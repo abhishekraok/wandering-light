@@ -16,13 +16,13 @@ This follows the programming by example (PBE) paradigm.
 - Utilities for synthesizing functions and evaluating solvers.
 
 ## Installation
-
+This project requires python 3.12 or later.
 ```bash
 git clone https://github.com/abhishekraok/wandering_light.git
 cd wandering_light
 python3 -m venv .venv
 source .venv/bin/activate
-pip install .
+pip install -e .
 ```
 
 ## Testing
