@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Evaluation Results Viewer</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .header {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .nav-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .nav-controls button,
+        .nav-controls input {
+            margin: 0 5px;
+            padding: 8px 15px;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .eval-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .eval-item {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+
+        .eval-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .eval-value {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 3px;
+        }
+
+        .success-true {
+            border-left-color: #28a745;
+        }
+
+        .success-false {
+            border-left-color: #dc3545;
+        }
+
+        .function-tag {
+            background: #007bff;
+            color: white;
+            padding: 2px 6px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .golden-function {
+            background: #28a745;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Evaluation Results Viewer</h1>
+            <p>Browse evaluation results sample by sample</p>
+        </div>
+
+        <div class="section">
+            <h3>📁 Select Results Directory</h3>
+            <input type="file" id="directoryInput" webkitdirectory multiple>
+            <button onclick="loadDirectory()">Load Directory</button>
+            <div id="status" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+        </div>
+
+        <div id="summarySection" class="section hidden">
+            <h3>📊 Summary</h3>
+            <div id="summaryContent"></div>
+        </div>
+
+        <div id="navigationSection" class="section hidden">
+            <h3>🧭 Navigation</h3>
+            <div class="nav-controls">
+                <button onclick="previousSample()">⬅️ Previous</button>
+                <input type="number" id="sampleNumber" min="0" value="0" onchange="goToSample()" style="width: 80px;">
+                <span id="sampleRange">/ 0</span>
+                <button onclick="nextSample()">Next ➡️</button>
+            </div>
+        </div>
+
+        <div id="sampleSection" class="hidden">
+            <div class="section">
+                <h3>💬 LLM Input</h3>
+                <div id="llmInput" class="code-block"></div>
+            </div>
+
+            <div class="section">
+                <h3>🤖 LLM Output</h3>
+                <div id="llmOutput" class="code-block"></div>
+            </div>
+
+            <div class="section">
+                <h3>📋 Evaluation Results</h3>
+                <div id="evalResults" class="eval-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let data = { summary: null, detailed: null, llmFiles: {}, currentSample: 0, totalSamples: 0 };
+
+        function showStatus(msg, isError = false) {
+            const status = document.getElementById('status');
+            status.textContent = msg;
+            status.style.display = 'block';
+            status.style.background = isError ? '#f8d7da' : '#d4edda';
+            status.style.color = isError ? '#721c24' : '#155724';
+        }
+
+        async function loadDirectory() {
+            const files = document.getElementById('directoryInput').files;
+            if (files.length === 0) {
+                showStatus('Please select a directory first.', true);
+                return;
+            }
+
+            try {
+                // Load summary.json
+                const summaryFile = Array.from(files).find(f => f.name === 'summary.json');
+                if (!summaryFile) throw new Error('summary.json not found');
+
+                data.summary = JSON.parse(await readFile(summaryFile));
+
+                // Load detailed results JSON
+                const detailFile = Array.from(files).find(f => f.name.endsWith('.json') && f.name !== 'summary.json');
+                if (detailFile) {
+                    data.detailed = JSON.parse(await readFile(detailFile));
+                    data.totalSamples = data.detailed.detailed_results.length;
+                }
+
+                // Load LLM files
+                const llmFiles = Array.from(files).filter(f =>
+                    f.webkitRelativePath.includes('llm_input_output') &&
+                    (f.name.endsWith('_input.txt') || f.name.endsWith('_output.txt'))
+                );
+
+                for (const file of llmFiles) {
+                    const content = await readFile(file);
+                    const match = file.name.match(/(\d+)_(input|output)\.txt$/);
+                    if (match) {
+                        const idx = parseInt(match[1]);
+                        const type = match[2];
+                        if (!data.llmFiles[idx]) data.llmFiles[idx] = {};
+                        data.llmFiles[idx][type] = content;
+                    }
+                }
+
+                displaySummary();
+                showNavigation();
+                showSample(0);
+                showStatus('Directory loaded successfully!');
+
+            } catch (error) {
+                showStatus('Error: ' + error.message, true);
+            }
+        }
+
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        function displaySummary() {
+            const solver = Object.keys(data.summary.results)[0];
+            const results = data.summary.results[solver];
+
+            document.getElementById('summaryContent').innerHTML = `
+                <p><strong>Solver:</strong> ${solver}</p>
+                <p><strong>Total Samples:</strong> ${results.total_samples}</p>
+                <p><strong>Success Rate:</strong> ${(results.success_rate * 100).toFixed(1)}%</p>
+                <p><strong>Successes:</strong> ${results.success_count}</p>
+                <p><strong>Average Length:</strong> ${results.avg_solution_length.toFixed(1)}</p>
+                ${data.summary.command ? `<p><strong>Command:</strong> <code style="background: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-size: 12px;">${data.summary.command}</code></p>` : ''}
+            `;
+            document.getElementById('summarySection').classList.remove('hidden');
+        }
+
+        function showNavigation() {
+            document.getElementById('sampleRange').textContent = `/ ${data.totalSamples - 1}`;
+            document.getElementById('sampleNumber').max = data.totalSamples - 1;
+            document.getElementById('navigationSection').classList.remove('hidden');
+        }
+
+        function showSample(index) {
+            if (!data.detailed || index < 0 || index >= data.totalSamples) return;
+
+            data.currentSample = index;
+            document.getElementById('sampleNumber').value = index;
+
+            const sample = data.detailed.detailed_results[index];
+            const llm = data.llmFiles[index] || {};
+
+            document.getElementById('llmInput').textContent = llm.input || 'No input available';
+            document.getElementById('llmOutput').textContent = llm.output || 'No output available';
+
+            const predicted = sample.predicted_functions || [];
+            const golden = sample.golden_functions || [];
+
+            document.getElementById('evalResults').innerHTML = `
+                <div class="eval-item">
+                    <div class="eval-label">Input</div>
+                    <div class="eval-value">${sample.input || 'N/A'}</div>
+                </div>
+                <div class="eval-item">
+                    <div class="eval-label">Expected Output</div>
+                    <div class="eval-value">${sample.expected_output || 'N/A'}</div>
+                </div>
+                <div class="eval-item">
+                    <div class="eval-label">Actual Output</div>
+                    <div class="eval-value">${sample.actual_output || 'N/A'}</div>
+                </div>
+                <div class="eval-item ${sample.success ? 'success-true' : 'success-false'}">
+                    <div class="eval-label">Success</div>
+                    <div class="eval-value">${sample.success ? '✅ True' : '❌ False'}</div>
+                </div>
+                <div class="eval-item">
+                    <div class="eval-label">Solution Length</div>
+                    <div class="eval-value">${sample.solution_length || 'N/A'}</div>
+                </div>
+                <div class="eval-item">
+                    <div class="eval-label">Predicted Functions</div>
+                    <div class="eval-value">
+                        ${predicted.map(f => `<span class="function-tag">${f}</span>`).join('')}
+                    </div>
+                </div>
+                <div class="eval-item">
+                    <div class="eval-label">Golden Functions</div>
+                    <div class="eval-value">
+                        ${golden.map(f => `<span class="function-tag golden-function">${f}</span>`).join('')}
+                    </div>
+                </div>
+                ${sample.error ? `
+                <div class="eval-item success-false">
+                    <div class="eval-label">Error</div>
+                    <div class="eval-value">${sample.error}</div>
+                </div>` : ''}
+            `;
+
+            document.getElementById('sampleSection').classList.remove('hidden');
+        }
+
+        function previousSample() {
+            if (data.currentSample > 0) showSample(data.currentSample - 1);
+        }
+
+        function nextSample() {
+            if (data.currentSample < data.totalSamples - 1) showSample(data.currentSample + 1);
+        }
+
+        function goToSample() {
+            const num = parseInt(document.getElementById('sampleNumber').value);
+            if (!isNaN(num) && num >= 0 && num < data.totalSamples) showSample(num);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function (e) {
+            if (data.totalSamples === 0) return;
+            if (e.key === 'ArrowLeft') { e.preventDefault(); previousSample(); }
+            if (e.key === 'ArrowRight') { e.preventDefault(); nextSample(); }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,21 @@
+You are an expert at solving sequence transformation problems.
+Given an input list and a target output list, you need to find a sequence of functions
+that transforms the input to the output.
+
+Available functions:
+
+def add_one(x):
+    return x + 1
+
+def double(x):
+    return x * 2
+
+Input: [1, 2, 3]
+Target Output: [2, 4, 6]
+
+Provide the sequence of function names (comma-separated) that transforms the input to the output.
+Do not output any additional text other than the sequence of function names.
+Only use the function names from the available functions list above.
+Example: function1,function2,function3
+
+Answer:

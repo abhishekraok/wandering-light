@@ -1,0 +1,172 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wandering-light"
+version = "0.1.0"
+description = "A Python library for learning, computation, and fun."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "black==25.1.0",
+    "fire==0.7.0",
+    "pytest",
+    "pytest-mock>=3.10.0",
+    "pytest-asyncio>=1.0.0",
+    "python-dotenv",
+    "ollama==0.5.1",
+    "openai==1.74.0",
+    "google-generativeai==0.8.5",
+    "tqdm==4.67.1",
+    "transformers==4.52.4",
+    "torch==2.7.1",
+    "datasets==3.6.0",
+    "accelerate==1.7.0",
+    "trl==0.18.1",
+    "bitsandbytes==0.46.0",
+    "einops==0.8.1",
+    "wandb==0.20.1",
+    "fastapi[all]>=0.115.0",
+    "httpx>=0.28.0",
+    "streamlit>=1.28.0",
+    "plotly>=5.15.0",
+    "pandas>=2.0.0",
+    "ruff>=0.8.0",
+]
+
+[project.optional-dependencies]
+e2e = [
+    "playwright>=1.41.0",
+    "pytest-playwright>=0.4.0",
+    "pytest-xdist>=3.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/abhishekraok/wandering_light"
+Repository = "https://github.com/abhishekraok/wandering_light"
+
+[tool.setuptools]
+packages = ["wandering_light"]
+package-dir = {"" = "."} 
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "wandb",
+    "checkpoints",
+]
+
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+# Assume Python 3.12+.
+target-version = "py312"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = [
+    "E4",
+    "E7",
+    "E9",
+    "F",
+    "W",
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "B",     # flake8-bugbear
+    "A",     # flake8-builtins
+    "C4",    # flake8-comprehensions
+    "PIE",   # flake8-pie
+    "PT",    # flake8-pytest-style
+    "SIM",   # flake8-simplify
+    "TCH",   # flake8-type-checking
+    "ARG",   # flake8-unused-arguments
+    "PTH",   # flake8-use-pathlib
+    "PL",    # pylint
+    "TRY",   # tryceratops
+    "RUF",   # ruff-specific rules
+]
+
+ignore = [
+    "E501",    # line too long (handled by formatter)
+    "E721",    # use isinstance instead of type comparison (style preference)
+    "E741",    # ambiguous variable name (l, O, I are sometimes needed)
+    "PLR0911", # too many return statements (complexity metric)
+    "PLR0912", # too many branches (complexity metric)
+    "PLR0913", # too many arguments (complexity metric)
+    "PLR0915", # too many statements (complexity metric)
+    "PLR2004", # magic values (style preference)
+    "PLC0415", # import should be at top level (sometimes needed for optional deps)
+    "PLW1641", # object does not implement __hash__ (not always needed)
+    "PTH",     # pathlib rules (os.path is fine for many use cases)
+    "TRY003",  # avoid specifying long messages outside exception class
+    "TRY004",  # prefer TypeError for invalid type (style preference)
+    "TRY300",  # consider moving statement to else block (style)
+    "TRY301",  # abstract raise to inner function (style)
+    "TRY401",  # redundant exception in logging call
+    "ARG002",  # unused method argument (common in interfaces)
+    "ARG001",  # unused function argument (common in callbacks)
+    "ARG005",  # unused lambda argument
+    "N806",    # variable in function should be lowercase (for ML code)
+    "N803",    # argument name should be lowercase (for ML code)
+    "RUF003",  # ambiguous character in comment
+    "RUF034",  # useless if-else condition (sometimes clearer)
+    "A001",    # builtin shadowing (common with 'input', 'id', etc)
+    "PT011",   # pytest.raises too broad (ok for simple tests)
+    "PT018",   # pytest assertion should be broken down (style)
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["PLR2004", "S101", "TID252", "SLF001"]
+"__init__.py" = ["F401"]  # Allow unused imports in __init__.py files
+"wandering_light/evals/data/*" = ["F821", "F401", "E501"]  # Generated eval data files
+"wandering_light/executor.py" = ["F821"]  # Forward references for Trajectory
+"wandering_light/evals/dashboard.py" = ["E722"]  # One bare except for datetime parsing
+
+[tool.ruff.lint.isort]
+known-first-party = ["wandering_light"] 

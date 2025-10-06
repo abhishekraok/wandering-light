@@ -1,0 +1,142 @@
+name: Python Package
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12.3"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install .
+    - name: Test with pytest (unit tests only)
+      run: |
+        pytest --ignore=tests/e2e
+
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.17.0'
+        cache: 'npm'
+        cache-dependency-path: wandering_light/web_ui/frontend/package-lock.json
+    - name: Install frontend dependencies
+      run: |
+        cd wandering_light/web_ui/frontend
+        npm ci
+    - name: Run frontend tests
+      run: |
+        cd wandering_light/web_ui/frontend
+        npm run test:ci
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12.3"
+        cache: 'pip'
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.17.0'
+        cache: 'npm'
+        cache-dependency-path: wandering_light/web_ui/frontend/package-lock.json
+    
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      id: playwright-cache
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ hashFiles('pyproject.toml', '**/package-lock.json') }}
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ".[e2e]"
+    
+    - name: Install Playwright browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      run: |
+        playwright install --with-deps chromium
+    
+    - name: Install frontend dependencies
+      run: |
+        cd wandering_light/web_ui/frontend
+        npm ci
+    
+    - name: Build frontend for production
+      run: |
+        cd wandering_light/web_ui/frontend
+        npm run build
+    
+    - name: Start servers in background
+      run: |
+        # Start backend
+        export PYTHONPATH=${{ github.workspace }}:$PYTHONPATH
+        cd ${{ github.workspace }}/wandering_light/web_ui/backend
+        python -m uvicorn main:app --host 0.0.0.0 --port 8000 &
+        BACKEND_PID=$!
+        
+        # Start frontend with production build
+        cd ${{ github.workspace }}/wandering_light/web_ui/frontend
+        npx serve -s build -l 3000 &
+        FRONTEND_PID=$!
+        
+        # Save PIDs to workspace root for cleanup
+        echo $BACKEND_PID > ${{ github.workspace }}/backend.pid
+        echo $FRONTEND_PID > ${{ github.workspace }}/frontend.pid
+        
+        # Wait for servers with faster polling
+        echo "Waiting for servers to start..."
+        timeout 45 bash -c 'until curl -f http://localhost:8000/ >/dev/null 2>&1; do sleep 0.5; done'
+        echo "Backend ready"
+        
+        timeout 45 bash -c 'until curl -f http://localhost:3000/ >/dev/null 2>&1; do sleep 0.5; done'
+        echo "Frontend ready"
+    
+    - name: Run E2E tests in parallel
+      run: |
+        pytest tests/e2e/ -v --tb=short -n auto --dist worksteal
+      env:
+        CI: true
+        E2E_ENABLED: 1
+    
+    - name: Cleanup servers
+      if: always()
+      run: |
+        if [ -f ${{ github.workspace }}/backend.pid ]; then kill $(cat ${{ github.workspace }}/backend.pid) || true; fi
+        if [ -f ${{ github.workspace }}/frontend.pid ]; then kill $(cat ${{ github.workspace }}/frontend.pid) || true; fi
+    
+    - name: Upload screenshots on failure
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: playwright-screenshots
+        path: test-results/
+
+
