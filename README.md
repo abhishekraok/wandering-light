@@ -3,8 +3,8 @@
 A Python library for learning function compositions from input-output examples.
 
 ## Motivation
-Current LLMs do not know what they know and do not know. They lack a world model. See Sutton's [age of experience](https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf) 
-Instead of next token prediction we would like a training approach that lets models take action and learn from it's consequence. 
+Current LLMs do not know what they know and do not know. They lack a world model. See Sutton's [age of experience](https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf). 
+Instead of next token prediction we would like a training approach that lets models take action and learn from its outcome. 
 We also want a task that is infinitely scalable for learning, bound only by computation.
 Programming by Example (PBE) provides such an environment, where the model is tasked to find a series of functions that transforms a given inputs to outputs. 
 
@@ -16,14 +16,20 @@ Given any task the model should be able to classify it into one of these 3 possi
   3. Unsure
 
 This is knowing what it knows and does not know. 
-This lets it keep learning boundless in the future by exploring the 3 class. 
+This lets it keep learning boundlessly in the future by exploring the 3 class. 
 A value function in the RL paradigm should help with this.
 
-### The task 
-Let us assume each state represents a list of values (e.g. the integers [1,2,3])
-We would like to train a model that can give us the shortest path between two states ([1,2,3] -> [3,5,7]) 
+### The tasks 
+Let us assume each state represents a list of values (e.g. the integers [1,2,3]).
+Using the naming convention of [Absolute Zero Reasoner](https://github.com/LeapLabTHU/Absolute-Zero-Reasoner)
+
+*Induction*
+We would like to train a solver model that can give us the shortest path between two states ([1,2,3] -> [3,5,7]) 
 A path is defined as a DAG consisting of pure functions (e.g. double, plus1). 
 Currently the functions take only one input and output only a single output.
+
+*Propose*
+Propose a new task for the solver, that is not too easy and not too hard. 
 
 ## Features
 
@@ -39,7 +45,7 @@ Currently the functions take only one input and output only a single output.
 ## Installation
 This project requires python 3.12 or later.
 ```bash
-git clone https://github.com/abhishekraok/wandering_light.git
+git clone https://github.com/abhishekraok/wandering-light.git
 cd wandering_light
 python3 -m venv .venv
 source .venv/bin/activate
@@ -98,16 +104,16 @@ See `solver.py` for additional solver names (openai, ollama, local models, etc.)
 
 
 ## Training SFT
-Quick check, wihtout online evaluation
+Quick check, without online evaluation
 ```bash
 python wandering_light/training/sft.py --no-eval
 ```
 
-Full dataset with 
+To train on the full dataset, use
 ```bash
 python wandering_light/training/sft.py --full-run 
 ```
-Suppose you store the output dir to SFT_OUTPUT_DIR, evalaute to ensure you have a decent success rate (between 30-70% ideally).
+Suppose you store the output dir to SFT_OUTPUT_DIR, evaluate to ensure you have a decent success rate (between 30-70% ideally).
 You can use the evaluation command below.
 
 Next you can do RL.
@@ -124,7 +130,7 @@ python wandering_light/evals/run_evaluation.py --budget=1 --eval_file=wandering_
 ```
 
 ### Evaluation Dashboard
-To see the results of all the past evalautions run
+To see the results of all the past evaluations run
 ```bash
 streamlit run wandering_light/evals/dashboard.py
 ```
