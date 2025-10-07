@@ -1,5 +1,7 @@
 # Wandering Light
 
+[![Python Package](https://github.com/abhishekraok/wandering-light/actions/workflows/python-package.yml/badge.svg)](https://github.com/abhishekraok/wandering-light/actions/workflows/python-package.yml)
+
 A Python library for learning function compositions from input-output examples.
 
 ## Motivation
