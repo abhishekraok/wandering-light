@@ -46,7 +46,7 @@ Propose a new task for the solver, that is not too easy and not too hard.
 This project requires python 3.12 or later.
 ```bash
 git clone https://github.com/abhishekraok/wandering-light.git
-cd wandering_light
+cd wandering-light
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
@@ -64,18 +64,24 @@ pytest
 
 ```
 .
-├── __init__.py         # Package initialization
-├── executor.py         # Executes individual functions and trajectories
-├── function_def.py     # Defines the FunctionDef class
-├── common_functions.py # Built-in helper functions
-├── trajectory.py       # Defines TrajectorySpec and Trajectory classes
-├── solver.py           # Implements search-based solvers
-├── synthesize.py       # Utilities for synthesizing new functions
-├── typed_list.py       # Typed list container
-├── evals/              # Evaluation scripts and workflows
-├── tests/              # pytest test cases for core functionality
-├── web_ui/
-└── pyproject.toml      # Project configuration
+├── wandering_light/        # Main package
+│   ├── __init__.py         # Package initialization
+│   ├── executor.py         # Executes individual functions and trajectories
+│   ├── function_def.py     # Defines the FunctionDef class
+│   ├── common_functions.py # Built-in helper functions
+│   ├── trajectory.py       # Defines TrajectorySpec and Trajectory classes
+│   ├── solver.py           # Implements search-based solvers
+│   ├── synthesize.py       # Utilities for synthesizing new functions
+│   ├── typed_list.py       # Typed list container
+│   ├── llm_utils.py        # LLM integration utilities
+│   ├── constants.py        # Project constants
+│   ├── evals/              # Evaluation scripts and workflows
+│   ├── training/           # Training scripts (SFT, RL)
+│   └── web_ui/             # Web interface
+├── tests/                  # pytest test cases for core functionality
+├── pyproject.toml          # Project configuration and dependencies
+├── pytest.ini              # pytest configuration
+└── README.md               # This file
 ```
 
 ## Usage
@@ -83,10 +89,10 @@ pytest
 ### Solving for an input output pair
 You can search for a trajectory that maps a specific input to an output using one of the built-in solvers.
 ```python
-from solver import get_solver_by_name
+from wandering_light.solver import get_solver_by_name
 
 solver = get_solver_by_name("bfs", budget=3)
-trajectory = solver.solve(input_list=<input_list>, output_list=<output_list>)
+trajectory = solver.solve(input_list=[1, 2, 3], output_list=[3, 5, 7])
 print("Found trajectory:", trajectory)
 ```
 
