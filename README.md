@@ -31,16 +31,6 @@ Currently the functions take only one input and output only a single output.
 *Propose*
 Propose a new task for the solver, that is not too easy and not too hard. 
 
-## Features
-
-- Define functions with `FunctionDef`.
-- Represent planned sequences of functions without execution using `TrajectorySpec`.
-- Execute trajectories and evaluate results with `Executor`.
-- Several solvers included:
-  - **RandomSolve**: tries random function sequences within a budget.
-  - **BFSSolve**: performs breadth-first search up to a maximum depth.
-  - **LLM solvers**: use OpenAI, Gemini, Ollama or local models to propose functions.
-- Utilities for synthesizing functions and evaluating solvers.
 
 ## Installation
 This project requires python 3.12 or later.
@@ -59,6 +49,18 @@ Run the full test suite with:
 ```bash
 pytest
 ```
+# Code
+
+## Concepts 
+
+- Immutable functions defined in the class `FunctionDef`.
+- Represent planned sequences of functions without execution using `TrajectorySpec`.
+- Triplet of inputs, outputs and function sequences defined in the class `Trajectory`.
+- Execute trajectories and evaluate results with `Executor` class.
+- Several solvers included:
+  - **RandomSolve**: tries random function sequences within a budget.
+  - **BFSSolve**: performs breadth-first search up to a maximum depth.
+  - **LLM solvers**: use OpenAI, Gemini, Ollama or local models to propose functions.
 
 ## Project Structure
 
