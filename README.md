@@ -32,6 +32,15 @@ Currently the functions take only one input and output only a single output.
 Propose a new task for the solver, that is not too easy and not too hard. 
 
 
+## Features
+
+ - Scripts for SFT and RL on Induction and Propose tasks using the TRL library.
+ - Wandb integration for monitoring and analyzing the metrics.
+ - Evaluation scripts, website to visualize the evaluation metrics.
+ - A web interface to visualize and interact with the various functions and data.
+ - Clean code: 300+ unit tests, CI using Github actions.
+
+
 ## Installation
 This project requires python 3.12 or later.
 ```bash
