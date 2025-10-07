@@ -1,6 +1,10 @@
 # Wandering Light
 
 [![Python Package](https://github.com/abhishekraok/wandering-light/actions/workflows/python-package.yml/badge.svg)](https://github.com/abhishekraok/wandering-light/actions/workflows/python-package.yml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 A Python library for learning function compositions from input-output examples.
 
