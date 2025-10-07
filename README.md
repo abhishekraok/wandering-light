@@ -1,8 +1,29 @@
 # Wandering Light
 
-A Python library for discovering sequences of functions (trajectories) that transform input lists into desired output lists. 
-The functions are pure (no side effects). The goal is to learn function usage, and also later synthesize new functions.
-This follows the programming by example (PBE) paradigm.
+A Python library for learning function compositions from input-output examples.
+
+## Motivation
+Current LLMs do not know what they know and do not know. They lack a world model. See Sutton's [age of experience](https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf) 
+Instead of next token prediction we would like a training approach that lets models take action and learn from it's consequence. 
+We also want a task that is infinitely scalable for learning, bound only by computation.
+Programming by Example (PBE) provides such an environment, where the model is tasked to find a series of functions that transforms a given inputs to outputs. 
+
+### Capabilities 
+Given any task the model should be able to classify it into one of these 3 possibilities. 
+
+  1. confidently say it can solve this
+  2. confidently say it cannot solve this
+  3. Unsure
+
+This is knowing what it knows and does not know. 
+This lets it keep learning boundless in the future by exploring the 3 class. 
+A value function in the RL paradigm should help with this.
+
+### The task 
+Let us assume each state represents a list of values (e.g. the integers [1,2,3])
+We would like to train a model that can give us the shortest path between two states ([1,2,3] -> [3,5,7]) 
+A path is defined as a DAG consisting of pure functions (e.g. double, plus1). 
+Currently the functions take only one input and output only a single output.
 
 ## Features
 
