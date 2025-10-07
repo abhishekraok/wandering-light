@@ -11,8 +11,8 @@ Programming by Example (PBE) provides such an environment, where the model is ta
 ### Capabilities 
 Given any task the model should be able to classify it into one of these 3 possibilities. 
 
-  1. confidently say it can solve this
-  2. confidently say it cannot solve this
+  1. Confidently say it can solve this
+  2. Confidently say it cannot solve this
   3. Unsure
 
 This is knowing what it knows and does not know. 
