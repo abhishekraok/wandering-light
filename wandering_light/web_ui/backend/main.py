@@ -81,7 +81,7 @@ class ExecutionResult(BaseModel):
 class SolverRequest(BaseModel):
     input_list: TypedListCreate
     output_list: TypedListCreate
-    checkpoint_path: str = "checkpoints/saved/rl/long_sft_opt_125m_s35k_no_len/"
+    checkpoint_path: str = "abhishekraok/induction-basicfns-opt125m-longsft"
 
 
 class SolverResponse(BaseModel):

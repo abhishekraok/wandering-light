@@ -149,7 +149,7 @@ python wandering_light/training/rl_grpo.py --batch-size 32 --model-name $SFT_OUT
 ### Evaluate local trained LLM 
 Assuming you have a checkpoint shown below.
 ```bash
-python wandering_light/evals/run_evaluation.py --budget=1 --eval_file=wandering_light/evals/data/random_inputs_500.py  --solver_names=[trained_local] --budget 1 --model-name checkpoints/saved/rl/long_sft_opt_125m_s35k_no_len/
+python wandering_light/evals/run_evaluation.py --budget=1 --eval_file=wandering_light/evals/data/random_inputs_500.py  --solver_names=[trained_local] --budget 1 --model-name abhishekraok/induction-basicfns-opt125m-longsft
 ```
 
 ### Evaluation Dashboard
@@ -164,5 +164,5 @@ First finetune it using SFT, using the `--task proposer` flag. Then evaluate it.
 
 ### Evaluate proposer
 ```bash
-python -m wandering_light.evals.evaluate_proposer --model checkpoints/saved/sft/proposer_opt_125m_2k --solver-model checkpoints/saved/rl/long_sft_opt_125m_s35k_no_len/ 
+python -m wandering_light.evals.evaluate_proposer --model checkpoints/saved/sft/proposer_opt_125m_2k --solver-model abhishekraok/induction-basicfns-opt125m-longsft 
 ```

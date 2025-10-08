@@ -40,7 +40,7 @@ const SolverPlayground: React.FC = () => {
   const [inputItems, setInputItems] = useState('[1, 2, 3]');
   const [outputType, setOutputType] = useState('builtins.int');
   const [outputItems, setOutputItems] = useState('[2, 4, 6]');
-  const [checkpointPath, setCheckpointPath] = useState('../../../checkpoints/saved/rl/long_sft_opt_125m_s35k_no_len/');
+  const [checkpointPath, setCheckpointPath] = useState('abhishekraok/induction-basicfns-opt125m-longsft');
   const [solverResult, setSolverResult] = useState<SolverResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
