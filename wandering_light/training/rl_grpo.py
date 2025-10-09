@@ -674,17 +674,11 @@ def create_reward_function(
         logger.info(f"Length penalty strength: {length_penalty_strength}")
     elif task == Task.PROPOSER:
         # Load solver model for proposer reward
-        if os.path.exists(DEFAULT_SOLVER_CHECKPOINT):
             solver_model = create_token_solver(
                 TrainedLLMTokenGenerator(DEFAULT_SOLVER_CHECKPOINT, temperature=0.8),
                 budget=1,
             )
             logger.info(f"Loaded solver model from {DEFAULT_SOLVER_CHECKPOINT}")
-        else:
-            raise ValueError(
-                f"Solver checkpoint not found at {DEFAULT_SOLVER_CHECKPOINT}. "
-                "ProposerReward requires a trained solver model."
-            )
 
         # Get available functions from evaluation data for reward function
         if callback.available_functions is None:
