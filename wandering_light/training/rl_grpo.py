@@ -200,18 +200,11 @@ class RewardEvaluationCallback(
 
         # Load solver model for proposer task
         if self.task == Task.PROPOSER:
-            if os.path.exists(DEFAULT_SOLVER_CHECKPOINT):
-                self.solver_model = create_token_solver(
-                    TrainedLLMTokenGenerator(
-                        DEFAULT_SOLVER_CHECKPOINT, temperature=0.8
-                    ),
-                    budget=1,
-                )
-                logger.info(f"Loaded solver model from {DEFAULT_SOLVER_CHECKPOINT}")
-            else:
-                logger.warning(
-                    "Solver checkpoint not found, skipping solver based evaluation for proposer task"
-                )
+            self.solver_model = create_token_solver(
+                TrainedLLMTokenGenerator(DEFAULT_SOLVER_CHECKPOINT, temperature=0.8),
+                budget=1,
+            )
+            logger.info(f"Loaded solver model from {DEFAULT_SOLVER_CHECKPOINT}")
 
     def _run_evaluation(self, model_path: str):
         """Run evaluation on the current model using pre-computed trajectories."""

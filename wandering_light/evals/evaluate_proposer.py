@@ -290,15 +290,9 @@ def file_evaluate_proposer(
     if isinstance(model, str):
         model = TrainedLLMTokenGenerator(model)
     if isinstance(solver_model, str):
-        if os.path.exists(solver_model):
-            solver_model = create_token_solver(
-                TrainedLLMTokenGenerator(solver_model), budget=1
-            )
-        else:
-            print(
-                f"Solver model not found at {solver_model}, skipping solver based evaluation"
-            )
-            solver_model = None
+        solver_model = create_token_solver(
+            TrainedLLMTokenGenerator(solver_model), budget=1
+        )
 
     trajectories = TrajectoryList.from_file(eval_file)
     num_samples = num_samples or len(trajectories)

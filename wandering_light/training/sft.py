@@ -54,14 +54,9 @@ class OnlineEvaluationCallback(TrainerCallback):
             self.trajectories = None
             self.available_functions = None
         if self.task == Task.PROPOSER:
-            if os.path.exists(DEFAULT_SOLVER_CHECKPOINT):
-                self.solver_model = create_token_solver(
-                    TrainedLLMTokenGenerator(DEFAULT_SOLVER_CHECKPOINT), budget=1
-                )
-            else:
-                print(
-                    "Solver checkpoint not found, skipping solver based evaluation for proposer task"
-                )
+            self.solver_model = create_token_solver(
+                TrainedLLMTokenGenerator(DEFAULT_SOLVER_CHECKPOINT), budget=1
+            )
 
     def _run_evaluation(self, model_path: str):
         """Run evaluation on the current model using pre-computed trajectories."""
