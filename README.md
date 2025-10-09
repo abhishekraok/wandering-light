@@ -11,7 +11,8 @@ A Python library for learning function compositions from input-output examples.
 ## Motivation
 Current LLMs do not know what they know and do not know. They lack a world model. See Sutton's [age of experience](https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf). 
 Instead of next token prediction we would like a training approach that lets models take action and learn from its outcome. 
-We also want a task that is infinitely scalable for learning, bound only by computation.
+We also want a task that is infinitely scalable for learning, bound only by computation. We call this self supervised tool-use learning (SSTL).
+Here tool use is represented by function calling.
 Programming by Example (PBE) provides such an environment, where the model is tasked to find a series of functions that transforms a given inputs to outputs. 
 
 ### Capabilities 
@@ -164,5 +165,9 @@ First finetune it using SFT, using the `--task proposer` flag. Then evaluate it.
 
 ### Evaluate proposer
 ```bash
-python -m wandering_light.evals.evaluate_proposer --model checkpoints/saved/sft/proposer_opt_125m_2k --solver-model abhishekraok/induction-basicfns-opt125m-longsft 
+ python wandering_light/evals/evaluate_proposer.py --model abhishekraok/proposer-basicfns-opt125m-sft2k --solver-model abhishekraok/induction-basicfns-opt125m-longsft
+```
+which should output
+```python
+EvalResult(parse_rate=0.96, avg_function_count=2.02, avg_function_count_ratio=1.38, solver_success_rate=0.15, num_samples=100, frac_non_zero_std=0.31)
 ```

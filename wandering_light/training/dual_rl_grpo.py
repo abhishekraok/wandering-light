@@ -517,13 +517,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--induction-model",
         type=str,
-        default="checkpoints/saved/sft/long_sft_opt_125m_r1_s434k/",
+        default="abhishekraok/induction-basicfns-opt125m-longsft",
         help="Induction model name from HuggingFace or path to local model",
     )
     parser.add_argument(
         "--proposer-model",
         type=str,
-        default="checkpoints/saved/rl/proposer/temp_opt_125m_s2k_s8k/",
+        default="abhishekraok/proposer-basicfns-opt125m-sft2k",
         help="Proposer model name from HuggingFace or path to local model",
     )
     parser.add_argument(
