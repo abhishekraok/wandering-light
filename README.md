@@ -6,24 +6,42 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-A Python library for learning function compositions from input-output examples.
+A Python library for tool call mastery through self play. 
+
+Given a set of functions (tool calls), we generate input output examples from these and then train LLMs 
+to predict the correct list of functions that can map the inputs to the outputs (AKA Induction task). 
+We also train on the proposal task to generate appropriately challenging tasks. 
+
+
+## Features
+
+ - Scripts for SFT and RL on Induction and Propose tasks using the TRL library.
+ - Synthetic data generation using LLMs.
+ - Wandb integration for monitoring and analyzing the metrics.
+ - Evaluation scripts, website to visualize the evaluation metrics.
+ - A web interface to visualize and interact with the various functions and data.
+ - Clean code: 300+ unit tests, CI using Github actions.
+ - Can train small models locally within a day.
 
 ## Motivation
-Current LLMs do not know what they know and do not know. They lack a world model. See Sutton's [age of experience](https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf). 
+Currently LLMs are trained to imitate text on the internet. 
+As a result they do not know what they know and do not know, which causes hallucination. 
+They lack a world model. See Sutton's [age of experience](https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf). 
 Instead of next token prediction we would like a training approach that lets models take action and learn from its outcome. 
-We also want a task that is infinitely scalable for learning, bound only by computation. We call this self supervised tool-use learning (SSTL).
-Here tool use is represented by function calling.
+We call this self supervised tool-use learning (SSTL).
+We can consider function calling or tool use as taking an action.
+We also want a task that is infinitely scalable for learning, bound only by computation. 
 Programming by Example (PBE) provides such an environment, where the model is tasked to find a series of functions that transforms a given inputs to outputs. 
 
 ### Capabilities 
+We would like to develop some meta cognition capabilities in the model.
 Given any task the model should be able to classify it into one of these 3 possibilities. 
 
   1. Confidently say it can solve this
   2. Confidently say it cannot solve this
   3. Unsure
 
-This is knowing what it knows and does not know. 
-This lets it keep learning boundlessly in the future by exploring the 3 class. 
+This lets it keep learning boundlessly in the future by exploring the unsure tasks. 
 A value function in the RL paradigm should help with this.
 
 ### The tasks 
@@ -38,14 +56,6 @@ Currently the functions take only one input and output only a single output.
 *Propose*
 Propose a new task for the solver, that is not too easy and not too hard. 
 
-
-## Features
-
- - Scripts for SFT and RL on Induction and Propose tasks using the TRL library.
- - Wandb integration for monitoring and analyzing the metrics.
- - Evaluation scripts, website to visualize the evaluation metrics.
- - A web interface to visualize and interact with the various functions and data.
- - Clean code: 300+ unit tests, CI using Github actions.
 
 
 ## Installation
