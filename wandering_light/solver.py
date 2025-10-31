@@ -89,7 +89,7 @@ class TrajectorySolver:
         return [
             self._process_response(pred, input_list, output_list, available_functions)
             for pred, (input_list, output_list) in zip(
-                predictions, problems, strict=False
+                predictions, problems, strict=True
             )
         ]
 
@@ -321,12 +321,13 @@ class OpenAITokenGenerator(TokenGenerator):
         self,
         prompt: str,
     ) -> str:
-        response = self.client.responses.create(
+        response = self.client.chat.completions.create(
             model=self.model,
-            input=prompt,
+            messages=[{"role": "user", "content": prompt}],
         )
-        self.llm_io_history.append((prompt, response.output_text))
-        return response.output_text
+        output_text = response.choices[0].message.content
+        self.llm_io_history.append((prompt, output_text))
+        return output_text
 
     def generate_batch(self, prompts: list[str]) -> list[str]:
         """Generate responses for a batch of prompts. Uses sequential processing for API-based generation."""
@@ -478,7 +479,7 @@ class TrainedLLMTokenGenerator(TokenGenerator):
             )
 
             responses = []
-            for prompt, result in zip(prompts, results, strict=False):
+            for prompt, result in zip(prompts, results, strict=True):
                 # Extract only the completion (remove the original prompt)
                 completion = result[0]["generated_text"][len(prompt) :].strip()
                 completion = remove_thinking(completion)

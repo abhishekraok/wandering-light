@@ -192,9 +192,6 @@ class TrajectorySpecList:
             f.write("# Trajectory specifications\n")
             f.write("_specs = [\n")
             for spec in self.specs:
-                # Write input TypedList
-                repr(spec.input.items)
-
                 # Write function list
                 func_names = [f"{func.name}_func" for func in spec.function_defs]
                 func_list = "FunctionDefList([" + ", ".join(func_names) + "])"

@@ -34,7 +34,7 @@ class Executor:
 
     def execute(self, fn_def: FunctionDef, inputs: TypedList) -> TypedList:
         # 1. Type‑check the incoming list
-        if inputs.item_type is not fn_def.input_type_cls():
+        if inputs.item_type != fn_def.input_type_cls():
             raise TypeError(f"Expected {fn_def.input_type}, got {inputs.item_type}")
 
         # 2. Build a tiny wrapper around the expression
@@ -58,7 +58,7 @@ class Executor:
         )
         if not isinstance(result, TypedList):
             raise TypeError("Must return a TypedList")
-        if result.item_type is not fn_def.output_type_cls():
+        if result.item_type != fn_def.output_type_cls():
             raise TypeError(
                 f"Expected output_type {fn_def.output_type}, got {result.item_type}"
             )

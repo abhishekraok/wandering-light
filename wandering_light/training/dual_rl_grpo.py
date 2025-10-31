@@ -506,7 +506,7 @@ def dual_rl_grpo_main(
     if use_wandb:
         wandb.finish()
 
-    return trainer
+    return (induction_trainer, proposer_trainer)
 
 
 if __name__ == "__main__":
