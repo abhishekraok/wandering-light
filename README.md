@@ -8,33 +8,32 @@
 
 A Python library for tool call mastery through self play. 
 
-Given a set of functions (tool calls), we generate input output examples from these and then train LLMs 
+Given a set of functions (tool calls), we generate input output examples from these and then train an LLM 
 to predict the correct list of functions that can map the inputs to the outputs (AKA Induction task). 
-We also train on the proposal task to generate appropriately challenging tasks. 
+The library also supports training the LLM for generating appropriately challenging input outputs (AKA proposal task). 
 
 
 ## Features
 
- - Scripts for SFT and RL on Induction and Propose tasks using the TRL library.
+ - Scripts for SFT and RL on Induction and Proposal tasks using the TRL library.
  - Synthetic data generation using LLMs.
  - Wandb integration for monitoring and analyzing the metrics.
  - Evaluation scripts, website to visualize the evaluation metrics.
- - A web interface to visualize and interact with the various functions and data.
+ - A web interface to visualize and interact with the data samples.
  - Clean code: 300+ unit tests, CI using Github actions.
- - Can train small models locally within a day.
+ - Can train small models (0.1B) locally within a few hours.
 
 ## Motivation
 Currently LLMs are trained to imitate text on the internet. 
 As a result they do not know what they know and do not know, which causes hallucination. 
-They lack a world model. See Sutton's [age of experience](https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf). 
+They lack a world model (See Sutton's [age of experience](https://storage.googleapis.com/deepmind-media/Era-of-Experience%20/The%20Era%20of%20Experience%20Paper.pdf)). 
 Instead of next token prediction we would like a training approach that lets models take action and learn from its outcome. 
 We call this self supervised tool-use learning (SSTL).
 We can consider function calling or tool use as taking an action.
 We also want a task that is infinitely scalable for learning, bound only by computation. 
 Programming by Example (PBE) provides such an environment, where the model is tasked to find a series of functions that transforms a given inputs to outputs. 
 
-### Capabilities 
-We would like to develop some meta cognition capabilities in the model.
+We would like to develop some **meta cognition capabilities** in the model.
 Given any task the model should be able to classify it into one of these 3 possibilities. 
 
   1. Confidently say it can solve this
@@ -48,14 +47,14 @@ A value function in the RL paradigm should help with this.
 Let us assume each state represents a list of values (e.g. the integers [1,2,3]).
 Using the naming convention of [Absolute Zero Reasoner](https://github.com/LeapLabTHU/Absolute-Zero-Reasoner)
 
-*Induction*
+**Induction**
 We would like to train a solver model that can give us the shortest path between two states ([1,2,3] -> [3,5,7]) 
 A path is defined as a DAG consisting of pure functions (e.g. double, plus1). 
-Currently the functions take only one input and output only a single output.
+Currently the functions take only one input and output only a single output for simplicity.
+In the future we would like to expand to multiple argument functions to make this library more practical.
 
-*Propose*
+**Propose**
 Propose a new task for the solver, that is not too easy and not too hard. 
-
 
 
 ## Installation
@@ -77,11 +76,9 @@ pytest
 ```
 # Code
 
-## Concepts 
-
-- Immutable functions defined in the class `FunctionDef`.
-- Represent planned sequences of functions without execution using `TrajectorySpec`.
-- Triplet of inputs, outputs and function sequences defined in the class `Trajectory`.
+- `FunctionDef`: Class for immutable functions e.g. double.
+- `TrajectorySpec`: Represents planned sequences of functions without execution e.g. [double, plus1].
+- `Trajectory`: Class representing triplet of inputs, outputs and function sequences e.g. [(1,2,3), (3,5,7), (double, plus1)].
 - Execute trajectories and evaluate results with `Executor` class.
 - Several solvers included:
   - **RandomSolve**: tries random function sequences within a budget.
