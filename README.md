@@ -47,6 +47,19 @@ A value function in the RL paradigm should help with this.
 Let us assume each state represents a list of values (e.g. the integers [1,2,3]).
 Using the naming convention of [Absolute Zero Reasoner](https://github.com/LeapLabTHU/Absolute-Zero-Reasoner)
 
+```mermaid
+flowchart LR
+    A["[1, 2, 3]"] -->|inc| B["[2, 3, 4]"]
+    A -->|double| C["[2, 4, 6]"]
+    A -->|neg| D["[-1, -2, -3]"]
+    C -->|inc| E["[3, 5, 7]"]
+    B -->|double| I["[4,6,8]"]
+    A -->|int_to_str| F["['1', '2', '3']"]
+    F -->|repeat| G["['11', '22', '33']"]
+    D -->|neg| A
+    E -->|neg| H["[-3, -5, -7]"]
+```
+
 **Induction**
 We would like to train a solver model that can give us the shortest path between two states ([1,2,3] -> [3,5,7]) 
 A path is defined as a DAG consisting of pure functions (e.g. double, plus1). 
