@@ -119,9 +119,9 @@ jobs:
         timeout 45 bash -c 'until curl -f http://localhost:3000/ >/dev/null 2>&1; do sleep 0.5; done'
         echo "Frontend ready"
     
-    - name: Run E2E tests in parallel
+    - name: Run E2E tests
       run: |
-        pytest tests/e2e/ -v --tb=short -n auto --dist worksteal
+        pytest tests/e2e/ -v --tb=short
       env:
         CI: true
         E2E_ENABLED: 1
