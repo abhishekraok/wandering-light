@@ -69,6 +69,8 @@ In the future we would like to expand to multiple argument functions to make thi
 **Propose**
 Propose a new task for the solver, that is not too easy and not too hard. 
 
+## Results
+Initial Results in [WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg?accessToken=21hou3g702spnui44p3bn1arsplg4t0m0yvbcrchn9hfe8b6gdzn8ncq8wpe5721)
 
 ## Installation
 This project requires python 3.12 or later.
