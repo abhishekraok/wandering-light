@@ -243,7 +243,7 @@ def sft_main(
             },
             tags=["sft", task],
         )
-        wandb_url = str(wandb.run.get_url())
+        wandb_url = str(wandb.run.url)
     else:
         wandb_url = None
     # Training phase

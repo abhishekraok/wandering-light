@@ -57,7 +57,7 @@ def test_sft_wandb_run_link(
     mock_wandb, mock_config, mock_trainer, mock_dataset, tmp_path
 ):
     run = MagicMock()
-    run.get_url.return_value = "http://wandb.test/sft"
+    run.url = "http://wandb.test/sft"
     mock_wandb.init.return_value = run
     mock_wandb.run = run
     mock_wandb.log = MagicMock()
@@ -96,7 +96,7 @@ def test_rl_grpo_wandb_run_link(
     mock_wandb, mock_config, mock_trainer, mock_tokenizer, mock_dataset, tmp_path
 ):
     run = MagicMock()
-    run.get_url.return_value = "http://wandb.test/rl"
+    run.url = "http://wandb.test/rl"
     mock_wandb.init.return_value = run
     mock_wandb.run = run
     mock_wandb.log = MagicMock()
