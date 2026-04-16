@@ -60,7 +60,7 @@ def setup_wandb(
         config=config,
         tags=["rl", "grpo", task],
     )
-    return str(wandb.run.get_url())
+    return str(wandb.run.url)
 
 
 def create_dataset(
