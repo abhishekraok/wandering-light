@@ -80,6 +80,16 @@ def _purge_widget_state() -> None:
             del st.session_state[key]
 
 
+def _delete_descendants(node_id: int) -> None:
+    node = st.session_state.tree[node_id]
+    for child_id in list(node["children"]):
+        _delete_descendants(child_id)
+        st.session_state.tree.pop(child_id, None)
+        for prefix in ("edge_sel_", "add_sel_"):
+            st.session_state.pop(f"{prefix}{child_id}", None)
+    node["children"] = []
+
+
 def _init_from_trajectory(traj: Trajectory, executor: Executor) -> None:
     _purge_widget_state()
     _new_root(traj.input)
@@ -133,6 +143,7 @@ def _render_edit_edge(
         if st.button("Apply", key=f"edge_btn_{node_id}"):
             new_fn = next(f for f in compatible if f.name == selected)
             node["applied_fn_def"] = new_fn
+            _delete_descendants(node_id)
             _recompute(node_id, executor)
             st.rerun()
 
