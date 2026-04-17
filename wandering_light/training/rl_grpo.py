@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+import time
 from datetime import datetime
 from typing import Any
 
@@ -177,6 +178,10 @@ class RewardEvaluationCallback(
         self._latest_completions = []
         self._latest_rewards = []
 
+        # Track training speed between on_log calls
+        self._last_log_time: float | None = None
+        self._last_log_step: int = 0
+
         # Load evaluation data once
         self._load_eval_data()
 
@@ -261,6 +266,23 @@ class RewardEvaluationCallback(
             # Get fraction of rewards with zero standard deviation
             frac_reward_zero_std = latest_logs.get("frac_reward_zero_std", 0.0)
 
+            # Compute training speed since the last on_log call
+            now = time.time()
+            steps_per_second: float | None = None
+            samples_per_second: float | None = None
+            seconds_per_step: float | None = None
+            if self._last_log_time is not None:
+                elapsed = now - self._last_log_time
+                step_delta = state.global_step - self._last_log_step
+                if elapsed > 0 and step_delta > 0:
+                    steps_per_second = step_delta / elapsed
+                    seconds_per_step = elapsed / step_delta
+                    batch_size = getattr(args, "per_device_train_batch_size", None)
+                    if batch_size:
+                        samples_per_second = steps_per_second * batch_size
+            self._last_log_time = now
+            self._last_log_step = state.global_step
+
             if self.task == Task.INDUCTION:
                 # Calculate interval averages
                 interval_avg_success_rate = (
@@ -299,21 +321,25 @@ class RewardEvaluationCallback(
 
                 # Log to wandb if enabled
                 if self.use_wandb:
-                    wandb.log(
-                        {
-                            # Interval averages (primary training metrics)
-                            "training/avg_reward": metrics.avg_reward,
-                            "training/success_rate": metrics.success_rate,
-                            "training/avg_function_count": metrics.avg_function_count,
-                            "training/avg_function_count_ratio": metrics.avg_function_count_ratio,
-                            "training/kl_divergence": metrics.kl_divergence,
-                            "training/policy_loss": metrics.policy_loss,
-                            "training/frac_reward_zero_std": metrics.frac_reward_zero_std,
-                            # Interval metadata
-                            "interval_metadata/num_batches": num_batches_in_interval,
-                            "step": state.global_step,
-                        }
-                    )
+                    log_dict = {
+                        # Interval averages (primary training metrics)
+                        "training/avg_reward": metrics.avg_reward,
+                        "training/success_rate": metrics.success_rate,
+                        "training/avg_function_count": metrics.avg_function_count,
+                        "training/avg_function_count_ratio": metrics.avg_function_count_ratio,
+                        "training/kl_divergence": metrics.kl_divergence,
+                        "training/policy_loss": metrics.policy_loss,
+                        "training/frac_reward_zero_std": metrics.frac_reward_zero_std,
+                        # Interval metadata
+                        "interval_metadata/num_batches": num_batches_in_interval,
+                        "step": state.global_step,
+                    }
+                    if steps_per_second is not None:
+                        log_dict["training/steps_per_second"] = steps_per_second
+                        log_dict["training/seconds_per_step"] = seconds_per_step
+                    if samples_per_second is not None:
+                        log_dict["training/samples_per_second"] = samples_per_second
+                    wandb.log(log_dict)
 
                 logger.info(f"\n{'=' * 60}")
                 logger.info(f"RL TRAINING METRICS AT STEP {state.global_step}")
@@ -370,21 +396,25 @@ class RewardEvaluationCallback(
 
                 # Log to wandb if enabled
                 if self.use_wandb:
-                    wandb.log(
-                        {
-                            # Interval averages (primary training metrics)
-                            "training/avg_reward": metrics.avg_reward,
-                            "training/parse_rate": metrics.parse_rate,
-                            "training/solver_success_rate": metrics.solver_success_rate,
-                            "training/intermediate_difficulty": metrics.frac_non_zero_std,
-                            "training/kl_divergence": metrics.kl_divergence,
-                            "training/policy_loss": metrics.policy_loss,
-                            "training/frac_reward_zero_std": metrics.frac_reward_zero_std,
-                            # Interval metadata
-                            "interval_metadata/num_batches": num_batches_in_interval,
-                            "step": state.global_step,
-                        }
-                    )
+                    log_dict = {
+                        # Interval averages (primary training metrics)
+                        "training/avg_reward": metrics.avg_reward,
+                        "training/parse_rate": metrics.parse_rate,
+                        "training/solver_success_rate": metrics.solver_success_rate,
+                        "training/intermediate_difficulty": metrics.frac_non_zero_std,
+                        "training/kl_divergence": metrics.kl_divergence,
+                        "training/policy_loss": metrics.policy_loss,
+                        "training/frac_reward_zero_std": metrics.frac_reward_zero_std,
+                        # Interval metadata
+                        "interval_metadata/num_batches": num_batches_in_interval,
+                        "step": state.global_step,
+                    }
+                    if steps_per_second is not None:
+                        log_dict["training/steps_per_second"] = steps_per_second
+                        log_dict["training/seconds_per_step"] = seconds_per_step
+                    if samples_per_second is not None:
+                        log_dict["training/samples_per_second"] = samples_per_second
+                    wandb.log(log_dict)
 
                 logger.info(f"\n{'=' * 60}")
                 logger.info(f"RL TRAINING METRICS AT STEP {state.global_step}")
