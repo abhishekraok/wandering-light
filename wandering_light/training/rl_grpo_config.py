@@ -23,7 +23,9 @@ class RLGRPOConfig:
     DEFAULT_LEARNING_RATE: float = 1e-6
     DEFAULT_MAX_LENGTH: int = 256
     DEFAULT_NUM_EPOCHS: int = 3
-    DEFAULT_LENGTH_PENALTY: float = 0.1
+    DEFAULT_LENGTH_PENALTY: float = (
+        0.0  # TODO: Investigate why higher value reduces accuracy
+    )
     DEFAULT_SOLVER_ATTEMPTS: int = 8
     INFERENCE_BATCH_SIZE: int = 64
     TRAINING_INTERVAL_STEPS: int = 8
