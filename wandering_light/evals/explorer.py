@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 
 import streamlit as st
 
+from wandering_light.evals.explorer_tree import ROOT_ID, TrajectoryTree
 from wandering_light.evals.run_evaluation import load_eval_data_as_trajectories
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDef, FunctionDefSet
@@ -12,6 +13,7 @@ from wandering_light.trajectory import Trajectory
 from wandering_light.typed_list import TypedList
 
 DEFAULT_EVAL_FILE = "wandering_light/evals/data/random_inputs_500.py"
+WIDGET_PREFIXES = ("edge_sel_", "add_sel_")
 
 
 @st.cache_resource(show_spinner=False)
@@ -23,79 +25,24 @@ def _type_str(item_type: type) -> str:
     return f"{item_type.__module__}.{item_type.__qualname__}"
 
 
-def _new_root(input_tl: TypedList) -> None:
-    st.session_state.tree = {
-        0: {
-            "typed_list": input_tl,
-            "error": None,
-            "parent": None,
-            "applied_fn_def": None,
-            "children": [],
-        }
-    }
-    st.session_state.next_id = 1
+def _tree() -> TrajectoryTree:
+    return st.session_state.tree
 
 
-def _append_child(parent_id: int, fn: FunctionDef, executor: Executor) -> int:
-    parent = st.session_state.tree[parent_id]
-    new_id = st.session_state.next_id
-    st.session_state.next_id += 1
-    node = {
-        "typed_list": None,
-        "error": None,
-        "parent": parent_id,
-        "applied_fn_def": fn,
-        "children": [],
-    }
-    st.session_state.tree[new_id] = node
-    parent["children"].append(new_id)
-    _recompute(new_id, executor)
-    return new_id
-
-
-def _recompute(node_id: int, executor: Executor) -> None:
-    node = st.session_state.tree[node_id]
-    parent = st.session_state.tree[node["parent"]]
-    fn: FunctionDef = node["applied_fn_def"]
-    parent_tl = parent["typed_list"]
-
-    if parent_tl is None:
-        node["typed_list"] = None
-        node["error"] = "parent has no output"
-    else:
-        try:
-            node["typed_list"] = executor.execute(fn, parent_tl)
-            node["error"] = None
-        except Exception as e:
-            node["typed_list"] = None
-            node["error"] = f"{type(e).__name__}: {e}"
-
-    for child_id in node["children"]:
-        _recompute(child_id, executor)
-
-
-def _purge_widget_state() -> None:
-    for key in list(st.session_state.keys()):
-        if key.startswith(("edge_sel_", "add_sel_")):
-            del st.session_state[key]
-
-
-def _delete_descendants(node_id: int) -> None:
-    node = st.session_state.tree[node_id]
-    for child_id in list(node["children"]):
-        _delete_descendants(child_id)
-        st.session_state.tree.pop(child_id, None)
-        for prefix in ("edge_sel_", "add_sel_"):
-            st.session_state.pop(f"{prefix}{child_id}", None)
-    node["children"] = []
+def _purge_widget_state(node_ids: list[int] | None = None) -> None:
+    if node_ids is None:
+        for key in list(st.session_state.keys()):
+            if key.startswith(WIDGET_PREFIXES):
+                del st.session_state[key]
+        return
+    for nid in node_ids:
+        for prefix in WIDGET_PREFIXES:
+            st.session_state.pop(f"{prefix}{nid}", None)
 
 
 def _init_from_trajectory(traj: Trajectory, executor: Executor) -> None:
     _purge_widget_state()
-    _new_root(traj.input)
-    parent_id = 0
-    for fn in traj.function_defs:
-        parent_id = _append_child(parent_id, fn, executor)
+    st.session_state.tree = TrajectoryTree.from_trajectory(traj, executor)
 
 
 def _render_typed_list(tl: TypedList) -> None:
@@ -109,8 +56,9 @@ def _render_edit_edge(
     available_functions: FunctionDefSet,
     executor: Executor,
 ) -> None:
-    node = st.session_state.tree[node_id]
-    parent = st.session_state.tree[node["parent"]]
+    tree = _tree()
+    node = tree.nodes[node_id]
+    parent = tree.nodes[node["parent"]]
     parent_tl: TypedList | None = parent["typed_list"]
     current_fn: FunctionDef = node["applied_fn_def"]
 
@@ -142,9 +90,8 @@ def _render_edit_edge(
     with col_btn:
         if st.button("Apply", key=f"edge_btn_{node_id}"):
             new_fn = next(f for f in compatible if f.name == selected)
-            node["applied_fn_def"] = new_fn
-            _delete_descendants(node_id)
-            _recompute(node_id, executor)
+            deleted = tree.replace_edge(node_id, new_fn, executor)
+            _purge_widget_state(deleted)
             st.rerun()
 
 
@@ -153,7 +100,8 @@ def _render_add_step(
     available_functions: FunctionDefSet,
     executor: Executor,
 ) -> None:
-    node = st.session_state.tree[node_id]
+    tree = _tree()
+    node = tree.nodes[node_id]
     tl: TypedList = node["typed_list"]
     tl_type = _type_str(tl.item_type)
     compatible = [f for f in available_functions if f.input_type == tl_type]
@@ -175,7 +123,7 @@ def _render_add_step(
     with col_btn:
         if st.button("Add", key=f"add_btn_{node_id}"):
             fn = next(f for f in compatible if f.name == selected)
-            _append_child(node_id, fn, executor)
+            tree.append_child(node_id, fn, executor)
             st.rerun()
 
 
@@ -185,7 +133,8 @@ def _render_node(
     available_functions: FunctionDefSet,
     executor: Executor,
 ) -> None:
-    node = st.session_state.tree[node_id]
+    tree = _tree()
+    node = tree.nodes[node_id]
 
     if depth == 0:
         target = st.container()
@@ -245,7 +194,7 @@ def main() -> None:
         _init_from_trajectory(selected_traj, executor)
         st.rerun()
 
-    _render_node(0, 0, available_functions, executor)
+    _render_node(ROOT_ID, 0, available_functions, executor)
 
 
 if __name__ == "__main__":
