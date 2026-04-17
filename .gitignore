@@ -163,6 +163,9 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# uv
+uv.lock
+
 # Custom
 *.db
 wandering_light/web_ui/frontend/node_modules/
