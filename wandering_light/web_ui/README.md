@@ -1,4 +1,9 @@
-# Wandering Light Graph Editor
+# Wandering Light Graph Editor (DEPRECATED)
+
+```
+Note: 17 Apr 2026: Use the wandering_light/evals/explorer.py for exploring the data. This web_ui is deprecated and will be deleted and replaced at some point.
+```
+
 
 A web-based visual programming interface for creating and executing graphs of FunctionDef and TypedList nodes.
 
