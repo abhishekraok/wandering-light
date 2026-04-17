@@ -74,7 +74,14 @@ def _recompute(node_id: int, executor: Executor) -> None:
         _recompute(child_id, executor)
 
 
+def _purge_widget_state() -> None:
+    for key in list(st.session_state.keys()):
+        if key.startswith(("edge_sel_", "add_sel_")):
+            del st.session_state[key]
+
+
 def _init_from_trajectory(traj: Trajectory, executor: Executor) -> None:
+    _purge_widget_state()
     _new_root(traj.input)
     parent_id = 0
     for fn in traj.function_defs:
