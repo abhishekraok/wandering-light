@@ -332,6 +332,44 @@ def _render_solver_tab() -> None:
         )
         return
 
+    # Run-level metadata
+    m1, m2, m3, m4 = st.columns(4)
+    success_rate = solver_data.get("success_rate")
+    with m1:
+        st.metric(
+            "Success rate",
+            f"{success_rate:.1%}" if success_rate is not None else "—",
+        )
+    with m2:
+        st.metric(
+            "Successes",
+            f"{solver_data.get('success_count', 0)} / "
+            f"{solver_data.get('total_samples', 0)}",
+        )
+    with m3:
+        avg_len = solver_data.get("avg_solution_length")
+        st.metric(
+            "Avg solution length",
+            f"{avg_len:.2f}" if avg_len is not None else "—",
+        )
+    with m4:
+        st.metric("Budget", summary.get("budget", "—"))
+
+    meta_bits = [
+        f"**Timestamp:** `{summary.get('timestamp', '—')}`",
+        f"**Eval file:** `{eval_file}`",
+    ]
+    if summary.get("num_samples") is not None:
+        meta_bits.append(f"**num_samples:** `{summary['num_samples']}`")
+    st.markdown(" · ".join(meta_bits))
+
+    command = summary.get("command")
+    if command:
+        with st.expander("Command", expanded=False):
+            st.code(command, language="bash")
+
+    st.divider()
+
     sample_idx = st.selectbox(
         "Sample",
         range(len(details)),
