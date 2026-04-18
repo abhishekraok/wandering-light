@@ -60,6 +60,8 @@ def setup_wandb(
         config=config,
         tags=["rl", "grpo", task],
     )
+    wandb.define_metric("step")
+    wandb.define_metric("*", step_metric="step")
     return str(wandb.run.url)
 
 

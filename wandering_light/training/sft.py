@@ -243,6 +243,8 @@ def sft_main(
             },
             tags=["sft", task],
         )
+        wandb.define_metric("step")
+        wandb.define_metric("*", step_metric="step")
         wandb_url = str(wandb.run.url)
     else:
         wandb_url = None
