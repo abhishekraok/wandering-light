@@ -241,6 +241,14 @@ class RewardEvaluationCallback(
             logger.exception(f"Error during RL evaluation: {e}")
             return None
 
+    def on_train_begin(
+        self, args, state: TrainerState, control: TrainerControl, **kwargs
+    ):
+        """Seed the speed timer so samples_per_second is logged from the first on_log."""
+        self._last_log_time = time.time()
+        self._last_log_step = state.global_step
+        return control
+
     def on_log(
         self, args, state: TrainerState, control: TrainerControl, logs=None, **kwargs
     ):
