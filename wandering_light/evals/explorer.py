@@ -129,40 +129,29 @@ def _render_add_step(
 
 def _render_node(
     node_id: int,
-    depth: int,
     available_functions: FunctionDefSet,
     executor: Executor,
 ) -> None:
     tree = _tree()
     node = tree.nodes[node_id]
 
-    if depth == 0:
-        target = st.container()
-    else:
-        d = min(depth, 6)
-        cs = st.columns([d, 16 - d])
-        target = cs[1]
+    with st.container(border=True):
+        if node["applied_fn_def"] is not None:
+            _render_edit_edge(node_id, available_functions, executor)
 
-    with target:
-        with st.container(border=True):
-            if node["applied_fn_def"] is not None:
-                _render_edit_edge(node_id, available_functions, executor)
-
-            if node["error"]:
-                st.error(node["error"])
-            elif node["typed_list"] is not None:
-                _render_typed_list(node["typed_list"])
-                if not node["children"]:
-                    _render_add_step(node_id, available_functions, executor)
+        if node["error"]:
+            st.error(node["error"])
+        elif node["typed_list"] is not None:
+            _render_typed_list(node["typed_list"])
+            if not node["children"]:
+                _render_add_step(node_id, available_functions, executor)
 
     for child_id in node["children"]:
-        _render_node(child_id, depth + 1, available_functions, executor)
+        _render_node(child_id, available_functions, executor)
 
 
 def main() -> None:
-    st.set_page_config(
-        page_title="Trajectory Explorer", page_icon="🌳", layout="wide"
-    )
+    st.set_page_config(page_title="Trajectory Explorer", page_icon="🌳")
     st.title("🌳 Trajectory Explorer")
     st.caption(
         "Full trajectory is shown by default. Change any edge's function and hit "
@@ -194,7 +183,7 @@ def main() -> None:
         _init_from_trajectory(selected_traj, executor)
         st.rerun()
 
-    _render_node(ROOT_ID, 0, available_functions, executor)
+    _render_node(ROOT_ID, available_functions, executor)
 
 
 if __name__ == "__main__":
