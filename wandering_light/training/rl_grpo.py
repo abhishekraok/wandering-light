@@ -266,20 +266,15 @@ class RewardEvaluationCallback(
             # Get fraction of rewards with zero standard deviation
             frac_reward_zero_std = latest_logs.get("frac_reward_zero_std", 0.0)
 
-            # Compute training speed since the last on_log call
+            # Compute training speed (samples/sec) since the last on_log call
             now = time.time()
-            steps_per_second: float | None = None
             samples_per_second: float | None = None
-            seconds_per_step: float | None = None
             if self._last_log_time is not None:
                 elapsed = now - self._last_log_time
                 step_delta = state.global_step - self._last_log_step
-                if elapsed > 0 and step_delta > 0:
-                    steps_per_second = step_delta / elapsed
-                    seconds_per_step = elapsed / step_delta
-                    batch_size = getattr(args, "per_device_train_batch_size", None)
-                    if batch_size:
-                        samples_per_second = steps_per_second * batch_size
+                batch_size = getattr(args, "per_device_train_batch_size", None)
+                if elapsed > 0 and step_delta > 0 and batch_size:
+                    samples_per_second = (step_delta * batch_size) / elapsed
             self._last_log_time = now
             self._last_log_step = state.global_step
 
@@ -334,9 +329,6 @@ class RewardEvaluationCallback(
                         "interval_metadata/num_batches": num_batches_in_interval,
                         "step": state.global_step,
                     }
-                    if steps_per_second is not None:
-                        log_dict["training/steps_per_second"] = steps_per_second
-                        log_dict["training/seconds_per_step"] = seconds_per_step
                     if samples_per_second is not None:
                         log_dict["training/samples_per_second"] = samples_per_second
                     wandb.log(log_dict)
@@ -409,9 +401,6 @@ class RewardEvaluationCallback(
                         "interval_metadata/num_batches": num_batches_in_interval,
                         "step": state.global_step,
                     }
-                    if steps_per_second is not None:
-                        log_dict["training/steps_per_second"] = steps_per_second
-                        log_dict["training/seconds_per_step"] = seconds_per_step
                     if samples_per_second is not None:
                         log_dict["training/samples_per_second"] = samples_per_second
                     wandb.log(log_dict)
