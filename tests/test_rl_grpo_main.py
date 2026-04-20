@@ -447,6 +447,61 @@ class TestRLGRPOMain:
                 for call in mock_wandb.log.call_args_list
             )
 
+    def test_induction_interval_metrics_preserve_zero(self):
+        """A batch of all-zero induction metrics must be reported as 0.0,
+        not replaced by the previous non-zero value."""
+        from wandering_light.trajectory import TrajectorySpecList
+
+        dummy_specs = TrajectorySpecList([])
+        dummy_fn_set = []
+
+        with (
+            patch(
+                "wandering_light.training.rl_grpo.load_eval_data_as_trajectories",
+                return_value=(dummy_specs, dummy_fn_set),
+            ),
+            patch("wandering_light.training.rl_grpo.wandb") as mock_wandb,
+        ):
+            mock_wandb.log = MagicMock()
+            callback = RewardEvaluationCallback(
+                eval_steps=1, num_samples=1, budget=1, use_wandb=True
+            )
+
+            # First seed the callback with a non-zero "last" value.
+            callback._last_success_rate = 0.8
+            callback._last_avg_function_count = 2.0
+            callback._last_avg_function_count_ratio = 1.0
+
+            # Then push a batch where the model genuinely scored zero.
+            callback.on_batch_processed(
+                success_rate=0.0,
+                avg_function_count=0.0,
+                function_counts=[],
+                correctness_scores=[],
+                avg_function_count_ratio=0.0,
+                function_count_ratios=[],
+            )
+
+            args = MagicMock()
+            state = MagicMock()
+            state.global_step = 1
+            control = TrainerControl()
+            logs = {"reward": 0.0, "kl": 0.0, "loss": 0.0, "frac_reward_zero_std": 0.0}
+
+            callback.on_log(args, state, control, logs)
+
+            # Find the wandb.log call that carried training metrics.
+            training_calls = [
+                call.args[0]
+                for call in mock_wandb.log.call_args_list
+                if "training/success_rate" in call.args[0]
+            ]
+            assert training_calls, "Expected a training/* log call"
+            logged = training_calls[-1]
+            assert logged["training/success_rate"] == 0.0
+            assert logged["training/avg_function_count"] == 0.0
+            assert logged["training/avg_function_count_ratio"] == 0.0
+
     def test_eval_metrics_logged_with_correct_prefix(self, tmp_path):
         """RewardEvaluationCallback should log eval metrics with the 'eval/' prefix."""
         from wandering_light.function_def import (
