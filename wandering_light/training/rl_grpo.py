@@ -279,24 +279,29 @@ class RewardEvaluationCallback(
             self._last_log_step = state.global_step
 
             if self.task == Task.INDUCTION:
-                # Calculate interval averages
+                # Calculate interval averages. Fall back to the last observed
+                # value only when no batches were accumulated; a legitimate
+                # 0.0 average must not be masked.
                 interval_avg_success_rate = (
                     self._batch_metrics.calculate_average(
                         self._batch_metrics.success_rates
                     )
-                    or self._last_success_rate
+                    if self._batch_metrics.success_rates
+                    else self._last_success_rate
                 )
                 interval_avg_function_count = (
                     self._batch_metrics.calculate_average(
                         self._batch_metrics.function_counts
                     )
-                    or self._last_avg_function_count
+                    if self._batch_metrics.function_counts
+                    else self._last_avg_function_count
                 )
                 interval_avg_function_count_ratio = (
                     self._batch_metrics.calculate_average(
                         self._batch_metrics.function_count_ratios
                     )
-                    or self._last_avg_function_count_ratio
+                    if self._batch_metrics.function_count_ratios
+                    else self._last_avg_function_count_ratio
                 )
                 num_batches_in_interval = len(self._batch_metrics.success_rates) or 1
 
@@ -351,24 +356,29 @@ class RewardEvaluationCallback(
                 logger.info(f"{'=' * 60}\n")
 
             elif self.task == Task.PROPOSER:
-                # Calculate interval averages
+                # Calculate interval averages. Fall back to the last observed
+                # value only when no batches were accumulated; a legitimate
+                # 0.0 average must not be masked.
                 interval_avg_parse_rate = (
                     self._batch_metrics.calculate_average(
                         self._batch_metrics.parse_rates
                     )
-                    or self._last_parse_rate
+                    if self._batch_metrics.parse_rates
+                    else self._last_parse_rate
                 )
                 interval_avg_solver_success_rate = (
                     self._batch_metrics.calculate_average(
                         self._batch_metrics.solver_success_rates
                     )
-                    or self._last_solver_success_rate
+                    if self._batch_metrics.solver_success_rates
+                    else self._last_solver_success_rate
                 )
                 interval_avg_frac_non_zero_std = (
                     self._batch_metrics.calculate_average(
                         self._batch_metrics.frac_non_zero_stds
                     )
-                    or self._last_frac_non_zero_std
+                    if self._batch_metrics.frac_non_zero_stds
+                    else self._last_frac_non_zero_std
                 )
                 num_batches_in_interval = len(self._batch_metrics.parse_rates) or 1
 
