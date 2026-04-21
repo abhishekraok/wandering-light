@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -370,15 +371,25 @@ def _render_solver_tab() -> None:
 
     st.divider()
 
-    sample_idx = st.selectbox(
-        "Sample",
-        range(len(details)),
-        format_func=lambda i: (
-            f"{'✅' if details[i].get('success') else '❌'} "
-            f"#{i} · {details[i].get('input', '')[:90]}"
-        ),
-        key="solver_sample_idx",
-    )
+    sample_col, random_col = st.columns([6, 1])
+    # Render the random button first so it can mutate solver_sample_idx
+    # before the selectbox below is instantiated.
+    with random_col:
+        st.write("")
+        st.write("")
+        if st.button("🎲 Random sample", key="solver_random_sample"):
+            st.session_state.solver_sample_idx = random.randrange(len(details))
+            st.rerun()
+    with sample_col:
+        sample_idx = st.selectbox(
+            "Sample",
+            range(len(details)),
+            format_func=lambda i: (
+                f"{'✅' if details[i].get('success') else '❌'} "
+                f"#{i} · {details[i].get('input', '')[:90]}"
+            ),
+            key="solver_sample_idx",
+        )
     sample = details[sample_idx]
     sample_key = (solver_json_path, sample_idx)
 
