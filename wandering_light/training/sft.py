@@ -1,7 +1,13 @@
 import argparse
 import os
 
-from transformers import TrainerCallback, TrainerControl, TrainerState
+from transformers import (
+    AutoConfig,
+    AutoModelForCausalLM,
+    TrainerCallback,
+    TrainerControl,
+    TrainerState,
+)
 from trl import SFTConfig, SFTTrainer
 
 import wandb
@@ -224,6 +230,7 @@ def sft_main(
     wandb_run_name: str | None = None,
     task: Task = Task.INDUCTION,
     num_train_epochs: int = 4,
+    from_scratch: bool = False,
 ):
     # Set use_wandb based on whether wandb_run_name is provided
     use_wandb = wandb_run_name is not None
@@ -243,6 +250,7 @@ def sft_main(
                 "num_train_epochs": num_train_epochs,
                 "max_length": 256,
                 "completion_only_loss": True,
+                "from_scratch": from_scratch,
             },
             tags=["sft", task],
         )
@@ -270,7 +278,12 @@ def sft_main(
     # Update training args to enable more frequent checkpointing for online eval
     max_length = 256
     processing_class = None
-    model_id = model_name
+    if from_scratch:
+        print(f"Initializing {model_name} with random weights (from scratch)")
+        config = AutoConfig.from_pretrained(model_name)
+        model_id = AutoModelForCausalLM.from_config(config)
+    else:
+        model_id = model_name
 
     training_args = SFTConfig(
         max_length=max_length,
@@ -467,6 +480,11 @@ if __name__ == "__main__":
         default=4,
         help="Number of training epochs (default: 4)",
     )
+    parser.add_argument(
+        "--from-scratch",
+        action="store_true",
+        help="If set, initialize the model with random weights instead of loading the pre-trained checkpoint",
+    )
 
     args = parser.parse_args()
     sft_main(
@@ -479,4 +497,5 @@ if __name__ == "__main__":
         wandb_run_name=args.wandb_run_name,
         task=Task(args.task),
         num_train_epochs=args.num_epochs,
+        from_scratch=args.from_scratch,
     )
