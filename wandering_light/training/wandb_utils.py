@@ -1,10 +1,34 @@
 import os
+from urllib.parse import urlparse
 
 from transformers import TrainerCallback, TrainerControl, TrainerState
 
 URL_FILE_CONTENT = """[InternetShortcut]
 URL={wandb_url}
 """
+
+
+def read_wandb_url_file(path: str) -> str | None:
+    """Read the URL from an InternetShortcut file written by WandbRunLinkCallback."""
+    try:
+        with open(path) as f:
+            for line in f:
+                if line.startswith("URL="):
+                    return line[4:].strip()
+    except FileNotFoundError:
+        return None
+    return None
+
+
+def parse_wandb_run_url(url: str) -> tuple[str, str, str] | None:
+    """Parse a wandb run URL into (entity, project, run_id), or None if unparseable.
+
+    Expected shape: https://wandb.ai/<entity>/<project>/runs/<run_id>
+    """
+    parts = urlparse(url).path.strip("/").split("/")
+    if len(parts) >= 4 and parts[-2] == "runs":
+        return parts[0], parts[1], parts[-1]
+    return None
 
 
 class WandbRunLinkCallback(TrainerCallback):
