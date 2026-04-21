@@ -8,6 +8,7 @@ set -euo pipefail
 VOLUME=/workspace
 REPO_URL=https://github.com/abhishekraok/wandering-light.git
 REPO_DIR=$VOLUME/wandering-light
+PYTHON_VERSION=3.12.8
 
 mkdir -p "$VOLUME"
 cd "$VOLUME"
@@ -22,9 +23,13 @@ if ! command -v uv >/dev/null 2>&1; then
 fi
 export PATH="$HOME/.local/bin:$PATH"
 
-# Install from uv.lock — byte-identical to laptop env. --no-dev skips linters/test tools.
+# Use a uv-managed Python that matches uv.lock exactly (not the system 3.12.3).
+uv python install "$PYTHON_VERSION"
+
+# Install from uv.lock into the project's default .venv.
+# --extra dev includes pytest/black/ruff so you can run the test suite on the pod.
 cd "$REPO_DIR"
-UV_PROJECT_ENVIRONMENT="$VOLUME/.venv" uv sync --frozen --no-dev
+uv sync --frozen --extra dev --python "$PYTHON_VERSION"
 
 # Point caches at the network volume so they survive pod restarts.
 mkdir -p "$VOLUME/hf_cache" "$VOLUME/wandb_runs" "$VOLUME/checkpoints"
@@ -33,8 +38,8 @@ ln -sfn "$VOLUME/checkpoints" "$REPO_DIR/checkpoints"
 # Persist env for future bash sessions on this pod.
 PROFILE=$VOLUME/.env.runpod
 cat > "$PROFILE" <<EOF
-source $VOLUME/.venv/bin/activate
 export PATH="\$HOME/.local/bin:\$PATH"
+source $REPO_DIR/.venv/bin/activate
 export HF_HOME=$VOLUME/hf_cache
 export WANDB_DIR=$VOLUME/wandb_runs
 export PYTHONUNBUFFERED=1
