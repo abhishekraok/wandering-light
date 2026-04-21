@@ -177,4 +177,5 @@ test_outputs/
 checkpoints/
 wandb/
 results/
+results_old/
 training_logs/

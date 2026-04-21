@@ -136,7 +136,8 @@ class OnlineEvaluationCallback(TrainerCallback):
                                         "eval/success_count": result.success_count,
                                         "eval/total_samples": result.total_samples,
                                         "step": state.global_step,
-                                    }
+                                    },
+                                    step=state.global_step,
                                 )
 
                             # Log to state if possible
@@ -184,7 +185,8 @@ class OnlineEvaluationCallback(TrainerCallback):
                                         "eval/frac_non_zero_std": result.frac_non_zero_std,
                                         "eval/num_samples": result.num_samples,
                                         "step": state.global_step,
-                                    }
+                                    },
+                                    step=state.global_step,
                                 )
 
                             # Log to state if possible
@@ -243,8 +245,6 @@ def sft_main(
             },
             tags=["sft", task],
         )
-        wandb.define_metric("step")
-        wandb.define_metric("*", step_metric="step")
         wandb_url = str(wandb.run.url)
     else:
         wandb_url = None
@@ -356,7 +356,8 @@ def sft_main(
                                         "final/total_evaluations": len(
                                             callback.eval_results
                                         ),
-                                    }
+                                    },
+                                    step=trainer.state.global_step,
                                 )
                         elif task == Task.PROPOSER:
                             best_parse_rate = max(
@@ -396,7 +397,8 @@ def sft_main(
                                         "final/total_evaluations": len(
                                             callback.eval_results
                                         ),
-                                    }
+                                    },
+                                    step=trainer.state.global_step,
                                 )
                     break
     else:

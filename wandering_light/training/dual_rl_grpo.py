@@ -60,8 +60,6 @@ def setup_wandb(
         config=config,
         tags=["rl", "grpo", task],
     )
-    wandb.define_metric("step")
-    wandb.define_metric("*", step_metric="step")
     return str(wandb.run.url)
 
 
@@ -502,7 +500,7 @@ def dual_rl_grpo_main(
                     "final/proposer_frac_non_zero_std": proposer_final_metrics.frac_non_zero_std,
                 }
             )
-            wandb.log(final_logs)
+            wandb.log(final_logs, step=trainer.state.global_step)
 
     # Finish wandb run
     if use_wandb:

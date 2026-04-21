@@ -276,7 +276,8 @@ class RewardEvaluationCallback(
                             # Interval metadata
                             "interval_metadata/num_batches": num_batches_in_interval,
                             "step": state.global_step + self.current_step,
-                        }
+                        },
+                        step=state.global_step + self.current_step,
                     )
 
                 logger.info(f"\n{'=' * 60}")
@@ -349,7 +350,8 @@ class RewardEvaluationCallback(
                             # Interval metadata
                             "interval_metadata/num_batches": num_batches_in_interval,
                             "step": state.global_step + self.current_step,
-                        }
+                        },
+                        step=state.global_step + self.current_step,
                     )
 
                 logger.info(f"\n{'=' * 60}")
@@ -472,7 +474,8 @@ class OnlineEvaluator:
                         "eval/success_count": result.success_count,
                         "eval/total_samples": result.total_samples,
                         "step": step,
-                    }
+                    },
+                    step=step,
                 )
         elif self.task == Task.PROPOSER:
             # Create the model for proposer evaluation
@@ -515,7 +518,8 @@ class OnlineEvaluator:
                         "eval/intermediate_difficulty": result.frac_non_zero_std,
                         "eval/num_samples": result.num_samples,
                         "step": step,
-                    }
+                    },
+                    step=step,
                 )
         else:
             logger.error(f"Unknown task type: {self.task}")
