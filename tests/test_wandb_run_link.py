@@ -3,6 +3,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import pytest
 from transformers import TrainerControl, TrainerState
 
 from wandering_light.training import rl_grpo, sft
@@ -32,8 +33,10 @@ class DummyTrainer:
     def __init__(self, *args, **kwargs):
         self.args = kwargs.get("args")
         self.callback_handler = SimpleNamespace(callbacks=kwargs.get("callbacks", []))
+        self.last_train_kwargs: dict | None = None
 
-    def train(self):
+    def train(self, **kwargs):
+        self.last_train_kwargs = kwargs
         state = TrainerState(global_step=1)
         control = TrainerControl()
         for cb in self.callback_handler.callbacks:
@@ -132,3 +135,72 @@ def test_rl_grpo_wandb_run_link(
     final_file = final_model_dir / "wandb_run.url"
     assert final_file.exists()
     assert _parse_wandb_url_file(final_file) == "http://wandb.test/rl"
+
+
+def test_sft_resume_errors_without_checkpoint(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(ValueError, match="no checkpoint found"):
+        sft.sft_main(model_name="unknown/model", resume=True, run_eval=False)
+
+
+def test_sft_resume_rejects_from_scratch():
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        sft.sft_main(resume=True, from_scratch=True)
+
+
+@patch("wandering_light.training.sft.induction_dataset", return_value=[])
+@patch("wandering_light.training.sft.SFTConfig")
+@patch("wandering_light.training.sft.wandb")
+def test_sft_resume_reuses_wandb_run(
+    mock_wandb, mock_config, mock_dataset, tmp_path, monkeypatch
+):
+    monkeypatch.chdir(tmp_path)
+    # Seed a prior checkpoint with a wandb URL file, matching HF's layout.
+    model_name = "tiny"
+    ckpt_root = tmp_path / "checkpoints" / model_name
+    ckpt_dir = ckpt_root / "checkpoint-100"
+    ckpt_dir.mkdir(parents=True)
+    (ckpt_dir / "wandb_run.url").write_text(
+        "[InternetShortcut]\nURL=https://wandb.ai/myent/myproj/runs/abc123\n"
+    )
+
+    run = MagicMock()
+    run.url = "https://wandb.ai/myent/myproj/runs/abc123"
+    mock_wandb.init.return_value = run
+    mock_wandb.run = run
+    mock_wandb.log = MagicMock()
+    mock_wandb.finish = MagicMock()
+
+    mock_config.side_effect = _create_dummy_config(str(tmp_path / "out"))
+
+    created_trainers: list[DummyTrainer] = []
+
+    def trainer_factory(*args, **kwargs):
+        t = DummyTrainer(*args, **kwargs)
+        created_trainers.append(t)
+        return t
+
+    with patch(
+        "wandering_light.training.sft.SFTTrainer", side_effect=trainer_factory
+    ):
+        sft.sft_main(
+            model_name=model_name,
+            full_run=False,
+            run_eval=False,
+            resume=True,
+        )
+
+    # wandb.init should have been called with the parsed run identifiers.
+    mock_wandb.init.assert_called_once()
+    init_kwargs = mock_wandb.init.call_args.kwargs
+    assert init_kwargs["id"] == "abc123"
+    assert init_kwargs["resume"] == "must"
+    assert init_kwargs["entity"] == "myent"
+    assert init_kwargs["project"] == "myproj"
+
+    # Trainer.train should have received the checkpoint path (as HF returns it:
+    # relative to the output_dir the script derives from model_name).
+    assert len(created_trainers) == 1
+    assert created_trainers[0].last_train_kwargs == {
+        "resume_from_checkpoint": f"./checkpoints/{model_name}/checkpoint-100"
+    }

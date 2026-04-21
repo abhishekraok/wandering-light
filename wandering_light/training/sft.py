@@ -8,6 +8,7 @@ from transformers import (
     TrainerControl,
     TrainerState,
 )
+from transformers.trainer_utils import get_last_checkpoint
 from trl import SFTConfig, SFTTrainer
 
 import wandb
@@ -17,7 +18,11 @@ from wandering_light.evals.model_eval import evaluate_model_checkpoint_with_traj
 from wandering_light.evals.run_evaluation import load_eval_data_as_trajectories
 from wandering_light.solver import TrainedLLMTokenGenerator, create_token_solver
 from wandering_light.training.data_generator import induction_dataset, proposer_dataset
-from wandering_light.training.wandb_utils import WandbRunLinkCallback
+from wandering_light.training.wandb_utils import (
+    WandbRunLinkCallback,
+    parse_wandb_run_url,
+    read_wandb_url_file,
+)
 
 
 class OnlineEvaluationCallback(TrainerCallback):
@@ -231,12 +236,49 @@ def sft_main(
     task: Task = Task.INDUCTION,
     num_train_epochs: int = 4,
     from_scratch: bool = False,
+    resume: bool = False,
 ):
-    # Set use_wandb based on whether wandb_run_name is provided
-    use_wandb = wandb_run_name is not None
+    if resume and from_scratch:
+        raise ValueError("--resume and --from-scratch are mutually exclusive.")
 
-    # Initialize wandb if enabled
-    if use_wandb:
+    output_dir = f"./checkpoints/{model_name.replace('/', '_')}"
+
+    # Resume-state resolution: find the latest checkpoint and its wandb run.
+    resume_checkpoint = None
+    resume_wandb = None  # (entity, project, run_id) or None
+    if resume:
+        try:
+            resume_checkpoint = get_last_checkpoint(output_dir)
+        except FileNotFoundError:
+            resume_checkpoint = None
+        if resume_checkpoint is None:
+            raise ValueError(
+                f"--resume set but no checkpoint found in {output_dir}.\n"
+                f"Hint: was --model-name '{model_name}' correct? "
+                f"Check ./checkpoints/ for other runs."
+            )
+        print(f"Resuming from checkpoint: {resume_checkpoint}")
+        url = read_wandb_url_file(os.path.join(resume_checkpoint, "wandb_run.url"))
+        if url:
+            resume_wandb = parse_wandb_run_url(url)
+            if resume_wandb is None:
+                print(
+                    f"Warning: could not parse wandb URL from {resume_checkpoint}; "
+                    "training metrics will not be logged."
+                )
+            elif wandb_run_name is not None or wandb_project != "wandering-light-sft":
+                print(
+                    f"Warning: --wandb-run-name/--wandb-project ignored on resume; "
+                    f"reusing run {resume_wandb[2]} in project {resume_wandb[1]}."
+                )
+
+    # Initialize wandb: resumed run if we have one, else new run if user named one.
+    if resume_wandb is not None:
+        entity, project, run_id = resume_wandb
+        wandb.init(id=run_id, resume="must", entity=entity, project=project)
+        use_wandb = True
+        wandb_url = str(wandb.run.url)
+    elif wandb_run_name is not None:
         wandb.init(
             project=wandb_project,
             name=wandb_run_name,
@@ -254,8 +296,10 @@ def sft_main(
             },
             tags=["sft", task],
         )
+        use_wandb = True
         wandb_url = str(wandb.run.url)
     else:
+        use_wandb = False
         wandb_url = None
     # Training phase
     print(f"Starting SFT training for {task} task...")
@@ -287,7 +331,7 @@ def sft_main(
 
     training_args = SFTConfig(
         max_length=max_length,
-        output_dir=f"./checkpoints/{model_name.replace('/', '_')}",
+        output_dir=output_dir,
         save_strategy="steps",
         save_steps=online_eval_steps,
         save_total_limit=3,
@@ -326,7 +370,7 @@ def sft_main(
             f"Online evaluation will run every {online_eval_steps} steps with {online_eval_samples} samples"
         )
 
-    trainer.train()
+    trainer.train(resume_from_checkpoint=resume_checkpoint)
 
     # Save the final model
     final_model_path = os.path.join(training_args.output_dir, "final_model")
@@ -485,6 +529,11 @@ if __name__ == "__main__":
         action="store_true",
         help="If set, initialize the model with random weights instead of loading the pre-trained checkpoint",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="If set, resume from the latest checkpoint in ./checkpoints/<model-name>/ and continue the original wandb run.",
+    )
 
     args = parser.parse_args()
     sft_main(
@@ -498,4 +547,5 @@ if __name__ == "__main__":
         task=Task(args.task),
         num_train_epochs=args.num_epochs,
         from_scratch=args.from_scratch,
+        resume=args.resume,
     )
