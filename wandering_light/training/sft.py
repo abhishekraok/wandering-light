@@ -223,6 +223,7 @@ def sft_main(
     wandb_project: str = "wandering-light-sft",
     wandb_run_name: str | None = None,
     task: Task = Task.INDUCTION,
+    num_train_epochs: int = 4,
 ):
     # Set use_wandb based on whether wandb_run_name is provided
     use_wandb = wandb_run_name is not None
@@ -239,7 +240,7 @@ def sft_main(
                 "run_eval": run_eval,
                 "online_eval_steps": online_eval_steps,
                 "online_eval_samples": online_eval_samples,
-                "num_train_epochs": 4,
+                "num_train_epochs": num_train_epochs,
                 "max_length": 256,
                 "completion_only_loss": True,
             },
@@ -278,7 +279,7 @@ def sft_main(
         save_steps=online_eval_steps,
         save_total_limit=3,
         logging_steps=500,
-        num_train_epochs=4,
+        num_train_epochs=num_train_epochs,
         completion_only_loss=True,
         report_to=["wandb"] if use_wandb else [],
         run_name=wandb_run_name if use_wandb else None,
@@ -460,6 +461,12 @@ if __name__ == "__main__":
         choices=list(Task),
         help="Task to run: 'induction' for function induction or 'proposer' for trajectory proposal (default: induction)",
     )
+    parser.add_argument(
+        "--num-epochs",
+        type=int,
+        default=4,
+        help="Number of training epochs (default: 4)",
+    )
 
     args = parser.parse_args()
     sft_main(
@@ -471,4 +478,5 @@ if __name__ == "__main__":
         wandb_project=args.wandb_project,
         wandb_run_name=args.wandb_run_name,
         task=Task(args.task),
+        num_train_epochs=args.num_epochs,
     )
