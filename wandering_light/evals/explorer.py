@@ -194,10 +194,12 @@ def _render_eval_tab() -> None:
             _init_eval_tree(selected_traj, executor)
             st.rerun()
 
+        # Sample-specific namespace prevents widget state from one sample
+        # leaking into another when switching samples.
         _render_node(
             st.session_state.tree_eval,
             ROOT_ID,
-            "eval",
+            f"eval_{selected_idx}",
             available_functions,
             executor,
         )
@@ -449,7 +451,7 @@ def _render_solver_tab() -> None:
             "Golden",
             "tree_gold",
             "solver_missing_gold",
-            "gold",
+            f"gold_{sample_idx}",
             available_functions,
             executor,
         )
@@ -458,7 +460,7 @@ def _render_solver_tab() -> None:
             "Predicted",
             "tree_pred",
             "solver_missing_pred",
-            "pred",
+            f"pred_{sample_idx}",
             available_functions,
             executor,
         )
