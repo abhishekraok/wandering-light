@@ -34,4 +34,10 @@ if [ -n "${HF_TOKEN:-}" ]; then
     huggingface-cli login --token "$HF_TOKEN" --add-to-git-credential >/dev/null 2>&1 || true
 fi
 
+# Git push auth: credential helper reads $GITHUB_TOKEN from env at push time.
+# No token on disk; relies on the Runpod Secret being present.
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    git config --global credential.helper '!f() { echo username=x-access-token; echo password=$GITHUB_TOKEN; }; f'
+fi
+
 echo "Pod restored. Open a new shell (or: source $VOLUME/.env.runpod)"
