@@ -46,21 +46,21 @@ python tests/e2e/setup_e2e.py
 
 ### Manual Setup
 
-1. **Install Python dependencies**:
+1. **Install Python dependencies** (including e2e extras):
    ```bash
-   pip install -e .
+   uv sync --extra e2e
    ```
 
 2. **Install Playwright browsers**:
    ```bash
-   playwright install
+   uv run playwright install
    ```
 
 3. **Install frontend dependencies**:
    ```bash
-   cd web_ui/frontend
+   cd wandering_light/web_ui/frontend
    npm install
-   cd ../..
+   cd ../../..
    ```
 
 ## Running Tests

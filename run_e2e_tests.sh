@@ -9,16 +9,16 @@ echo "🚀 Setting up E2E test environment..."
 
 # Install E2E dependencies if not already installed
 echo "📦 Installing E2E dependencies..."
-pip install ".[e2e]"
+uv sync --extra e2e
 
 # Install Playwright browsers
 echo "🌐 Installing Playwright browsers..."
-playwright install chromium
+uv run playwright install chromium
 
 # Set environment variable to enable E2E tests
 export E2E_ENABLED=1
 
 echo "🧪 Running E2E tests..."
-pytest tests/e2e/ -v
+uv run pytest tests/e2e/ -v
 
 echo "✅ E2E tests completed!" 
