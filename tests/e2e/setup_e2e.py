@@ -52,18 +52,18 @@ def setup_backend():
     """Set up the backend dependencies."""
     root_dir = Path(__file__).parent.parent.parent
 
-    print("Installing backend dependencies...")
+    print("Installing backend dependencies (uv sync --extra e2e)...")
     try:
-        # Install the project in development mode
         subprocess.run(
-            [sys.executable, "-m", "pip", "install", "-e", "."],
+            ["uv", "sync", "--extra", "e2e"],
             cwd=root_dir,
             check=True,
         )
         print("✓ Backend dependencies installed")
         return True
-    except subprocess.CalledProcessError as e:
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
         print(f"✗ Failed to install backend dependencies: {e}")
+        print("  Install uv first: https://docs.astral.sh/uv/")
         return False
 
 

@@ -73,21 +73,32 @@ Propose a new task for the solver, that is not too easy and not too hard.
 Initial Results in [WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg?accessToken=21hou3g702spnui44p3bn1arsplg4t0m0yvbcrchn9hfe8b6gdzn8ncq8wpe5721)
 
 ## Installation
-This project requires python 3.12 or later.
+This project requires python 3.12 or later. We use [uv](https://docs.astral.sh/uv/) for reproducible environments — the committed `uv.lock` pins every transitive dependency.
+
 ```bash
 git clone https://github.com/abhishekraok/wandering-light.git
 cd wandering-light
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
+uv sync --extra dev           # installs main deps + test/lint tools
 ```
+
+Then either activate the venv (`source .venv/bin/activate`) or prefix commands with `uv run`.
+
+<details>
+<summary>Don't have uv? Fallback with pip</summary>
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+```
+Note: pip won't respect `uv.lock`, so transitive versions may drift.
+</details>
 
 ## Testing
 
 Run the full test suite with:
 
 ```bash
-pytest
+uv run pytest
 ```
 # Code
 

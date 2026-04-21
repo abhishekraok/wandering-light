@@ -6,7 +6,7 @@ A Streamlit-based dashboard for viewing and analyzing evaluation results across 
 
 1. **Install dependencies** (if not already done):
    ```bash
-   pip install -e .
+   uv sync
    ```
 
 2. **Run some evaluations** (if you haven't already):
