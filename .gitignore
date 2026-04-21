@@ -164,7 +164,7 @@ dmypy.json
 cython_debug/
 
 # uv
-uv.lock
+# (uv.lock committed for reproducible envs)
 
 # Custom
 *.db
