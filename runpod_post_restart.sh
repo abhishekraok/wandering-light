@@ -5,6 +5,7 @@
 set -euo pipefail
 
 VOLUME=/workspace
+REPO_DIR=$VOLUME/wandering-light
 
 # Link dotfiles from volume into $HOME (created fresh on each restart).
 ln -sfn "$VOLUME/.bash_custom.sh" "$HOME/.bash_custom.sh"
@@ -22,9 +23,9 @@ fi
 # wandb and huggingface cache their auth under ~/.netrc / ~/.cache — both ephemeral.
 # Re-login using env-var secrets (set via Runpod pod env vars).
 # Activate venv so wandb/huggingface-cli are on PATH.
-if [ -f "$VOLUME/.venv/bin/activate" ]; then
+if [ -f "$REPO_DIR/.venv/bin/activate" ]; then
     # shellcheck disable=SC1091
-    source "$VOLUME/.venv/bin/activate"
+    source "$REPO_DIR/.venv/bin/activate"
 fi
 if [ -n "${WANDB_API_KEY:-}" ]; then
     wandb login --relogin "$WANDB_API_KEY" >/dev/null 2>&1 || true
