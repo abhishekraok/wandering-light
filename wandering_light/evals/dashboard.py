@@ -195,48 +195,49 @@ def main():
         chart_col1, chart_col2 = st.columns(2)
 
         with chart_col1:
-            # Success rate over time
-            fig_time = px.line(
-                filtered_df.sort_values("datetime"),
-                x="datetime",
-                y="success_rate",
-                color="solver",
-                title="Success Rate Over Time",
-                labels={"success_rate": "Success Rate", "datetime": "Date"},
+            # Success rate distribution
+            fig_success = px.histogram(
+                filtered_df,
+                x="success_rate",
+                nbins=20,
+                title="Success Rate Distribution",
+                labels={
+                    "success_rate": "Success Rate",
+                    "count": "Number of Runs",
+                },
             )
-            fig_time.update_layout(yaxis={"tickformat": ".1%"})
-            st.plotly_chart(fig_time, use_container_width=True)
+            fig_success.update_layout(xaxis={"tickformat": ".1%"})
+            st.plotly_chart(fig_success, use_container_width=True)
 
         with chart_col2:
-            # Success rate by solver
-            solver_stats = (
-                filtered_df.groupby("solver")
-                .agg({"success_rate": "mean", "total_samples": "sum"})
-                .reset_index()
+            # Solution length distribution
+            fig_length = px.histogram(
+                filtered_df[filtered_df["avg_solution_length"] > 0],
+                x="avg_solution_length",
+                nbins=20,
+                title="Solution Length Distribution",
+                labels={
+                    "avg_solution_length": "Average Solution Length",
+                    "count": "Number of Runs",
+                },
             )
+            st.plotly_chart(fig_length, use_container_width=True)
 
-            fig_solver = px.bar(
-                solver_stats,
-                x="solver",
-                y="success_rate",
-                title="Average Success Rate by Solver",
-                labels={"success_rate": "Avg Success Rate", "solver": "Solver"},
-            )
-            fig_solver.update_layout(yaxis={"tickformat": ".1%"})
-            st.plotly_chart(fig_solver, use_container_width=True)
-
-        # Solution length distribution
-        fig_length = px.histogram(
+        # Success rate vs solution length scatter
+        fig_scatter = px.scatter(
             filtered_df[filtered_df["avg_solution_length"] > 0],
             x="avg_solution_length",
-            nbins=20,
-            title="Solution Length Distribution",
+            y="success_rate",
+            color="solver",
+            hover_data=["relative_path", "eval_file", "model_name", "budget"],
+            title="Success Rate vs Solution Length",
             labels={
                 "avg_solution_length": "Average Solution Length",
-                "count": "Number of Runs",
+                "success_rate": "Success Rate",
             },
         )
-        st.plotly_chart(fig_length, use_container_width=True)
+        fig_scatter.update_layout(yaxis={"tickformat": ".1%"})
+        st.plotly_chart(fig_scatter, use_container_width=True)
 
     # Results table
     st.header("📋 Results Table")
