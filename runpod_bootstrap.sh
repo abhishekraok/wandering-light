@@ -1,8 +1,8 @@
 #!/bin/bash
 # One-time setup for a Runpod pod (PyTorch 2.8 template, 4090, 50GB network volume at /workspace).
 # Working copy lives on local disk (/root, fast but ephemeral).
-# Durable state (checkpoints, HF/wandb caches, uv wheel cache, scripts, env profile) lives on /workspace.
-# Run from anywhere on the pod: `bash runpod_bootstrap.sh`
+# Durable state (checkpoints, HF/wandb caches, uv wheel cache, persistent repo clone, env profile) lives on /workspace.
+# Run from the persistent clone: `bash /workspace/wandering-light/runpod_bootstrap.sh`
 # Idempotent — safe to re-run, and called automatically by runpod_post_restart.sh when /root is wiped.
 
 set -euo pipefail
@@ -27,16 +27,12 @@ if ! command -v uv >/dev/null 2>&1; then
 fi
 export PATH="$HOME/.local/bin:$PATH"
 
-# Clone repo onto local disk (or leave existing clone alone).
+# Clone repo onto local disk (or leave existing clone alone). Fast small-file I/O matters here
+# — running tests/training from the volume clone is noticeably slower.
 mkdir -p "$LOCAL_ROOT"
 if [ ! -d "$REPO_DIR/.git" ]; then
   git clone "$REPO_URL" "$REPO_DIR"
 fi
-
-# Copy the runpod scripts to VOLUME so runpod_post_restart.sh can re-bootstrap after a pod recycle
-# even when $REPO_DIR (on local disk) has been wiped.
-cp "$REPO_DIR/runpod_bootstrap.sh" "$VOLUME/runpod_bootstrap.sh"
-cp "$REPO_DIR/runpod_post_restart.sh" "$VOLUME/runpod_post_restart.sh"
 
 # Use a uv-managed Python that matches uv.lock exactly (not the system 3.12.3).
 uv python install "$PYTHON_VERSION"
@@ -69,4 +65,4 @@ echo "Set these as Runpod pod env vars (or export manually):"
 echo "  WANDB_API_KEY, HF_TOKEN, GITHUB_TOKEN"
 echo "Then: wandb login \$WANDB_API_KEY && huggingface-cli login --token \$HF_TOKEN"
 echo
-echo "Set the Runpod pod startup command to: bash $VOLUME/runpod_post_restart.sh"
+echo "Set the Runpod pod startup command to: bash $VOLUME/wandering-light/runpod_post_restart.sh"
