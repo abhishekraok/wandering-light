@@ -174,7 +174,7 @@ wandering_light/web_ui/frontend/node_modules/
 wandering_light/evals/data/llm_input_output/
 wandering_light/evals/results/
 test_outputs/
-checkpoints/
+checkpoints
 wandb/
 results/
 results_old/
