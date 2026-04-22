@@ -1,14 +1,23 @@
 #!/bin/bash
 # Run after every Runpod pod start. Re-bootstraps the local-disk working copy if it was wiped,
 # restores ~/.bashrc sourcing, and re-logs into wandb/huggingface.
-# Set the Runpod pod startup command to: bash /workspace/runpod_post_restart.sh
-# (This script lives on $VOLUME so it survives pod recycles.)
+# Set the Runpod pod startup command to: bash /workspace/wandering-light/runpod_post_restart.sh
+# (This script is canonical — edit, commit, push. The persistent clone at $REPO_VOLUME
+# git-pulls itself on boot so your pushes take effect on next restart.)
 
 set -euo pipefail
 
 VOLUME=/workspace
 LOCAL_ROOT=/root
+REPO_VOLUME=$VOLUME/wandering-light
 REPO_DIR=$LOCAL_ROOT/wandering-light
+
+# Self-update the volume clone so pushes from elsewhere take effect on next boot.
+# --ff-only fails loudly on divergence instead of silently running unknown code.
+# Note: this run still executes the old in-memory version; the update lands next boot.
+if [ -d "$REPO_VOLUME/.git" ]; then
+    git -C "$REPO_VOLUME" pull --ff-only
+fi
 
 # Restore Claude Code install + data from volume. Everything under /root is ephemeral
 # on Runpod; persisted copies live in $VOLUME/claude/.
@@ -29,7 +38,7 @@ fi
 # If local disk was wiped on recycle, re-run bootstrap. Bootstrap is idempotent, so calling it
 # when everything's already in place is a fast no-op (uv sync --frozen returns quickly).
 if [ ! -d "$REPO_DIR/.git" ] || [ ! -f "$REPO_DIR/.venv/bin/activate" ]; then
-    bash "$VOLUME/runpod_bootstrap.sh"
+    bash "$REPO_VOLUME/runpod_bootstrap.sh"
 fi
 
 # Link optional custom shell config from volume into $HOME (created fresh on each restart).
