@@ -1,49 +1,65 @@
 #!/bin/bash
 # One-time setup for a Runpod pod (PyTorch 2.8 template, 4090, 50GB network volume at /workspace).
+# Working copy lives on local disk (/root, fast but ephemeral).
+# Durable state (checkpoints, HF/wandb caches, uv wheel cache, scripts, env profile) lives on /workspace.
 # Run from anywhere on the pod: `bash runpod_bootstrap.sh`
-# Idempotent — safe to re-run.
+# Idempotent — safe to re-run, and called automatically by runpod_post_restart.sh when /root is wiped.
 
 set -euo pipefail
 
 VOLUME=/workspace
+LOCAL_ROOT=/root
 REPO_URL=https://github.com/abhishekraok/wandering-light.git
-REPO_DIR=$VOLUME/wandering-light
+REPO_DIR=$LOCAL_ROOT/wandering-light
 PYTHON_VERSION=3.12.8
 
-mkdir -p "$VOLUME"
-cd "$VOLUME"
+# Persist uv's wheel cache on VOLUME so re-syncs after pod recycle skip the ~3GB torch/CUDA download.
+# UV_LINK_MODE=copy because cache (VOLUME/MooseFS) and .venv (local overlay) are different filesystems,
+# so uv can't hardlink — this silences the fallback warning and makes behavior explicit.
+# (uv's python install dir stays default/local — python tarballs are ~50MB and fast to re-fetch.)
+export UV_CACHE_DIR=$VOLUME/uv_cache
+export UV_LINK_MODE=copy
+mkdir -p "$UV_CACHE_DIR" "$VOLUME/hf_cache" "$VOLUME/wandb_runs" "$VOLUME/checkpoints"
 
-if [ ! -d "$REPO_DIR/.git" ]; then
-  git clone "$REPO_URL" "$REPO_DIR"
-fi
-
-# Install uv (fast resolver + lockfile-based sync).
+# Install uv if missing.
 if ! command -v uv >/dev/null 2>&1; then
   curl -LsSf https://astral.sh/uv/install.sh | sh
 fi
 export PATH="$HOME/.local/bin:$PATH"
 
+# Clone repo onto local disk (or leave existing clone alone).
+mkdir -p "$LOCAL_ROOT"
+if [ ! -d "$REPO_DIR/.git" ]; then
+  git clone "$REPO_URL" "$REPO_DIR"
+fi
+
+# Copy the runpod scripts to VOLUME so runpod_post_restart.sh can re-bootstrap after a pod recycle
+# even when $REPO_DIR (on local disk) has been wiped.
+cp "$REPO_DIR/runpod_bootstrap.sh" "$VOLUME/runpod_bootstrap.sh"
+cp "$REPO_DIR/runpod_post_restart.sh" "$VOLUME/runpod_post_restart.sh"
+
 # Use a uv-managed Python that matches uv.lock exactly (not the system 3.12.3).
 uv python install "$PYTHON_VERSION"
 
-# Install from uv.lock into the project's default .venv.
+# Install from uv.lock into the project's default .venv on local disk (fast small-file I/O).
 # --extra dev includes pytest/black/ruff so you can run the test suite on the pod.
 cd "$REPO_DIR"
 uv sync --frozen --extra dev --python "$PYTHON_VERSION"
 
-# Point caches at the network volume so they survive pod restarts.
-mkdir -p "$VOLUME/hf_cache" "$VOLUME/wandb_runs" "$VOLUME/checkpoints"
+# Symlink durable paths into the repo.
 ln -sfn "$VOLUME/checkpoints" "$REPO_DIR/checkpoints"
 
-# Persist env for future bash sessions on this pod.
+# Persist env for future bash sessions on this pod (VOLUME-resident so pod recycles keep it).
 PROFILE=$VOLUME/.env.runpod
 cat > "$PROFILE" <<EOF
 export PATH="\$HOME/.local/bin:\$PATH"
-source $REPO_DIR/.venv/bin/activate
+export UV_CACHE_DIR=$VOLUME/uv_cache
+export UV_LINK_MODE=copy
 export HF_HOME=$VOLUME/hf_cache
 export WANDB_DIR=$VOLUME/wandb_runs
 export PYTHONUNBUFFERED=1
-cd $REPO_DIR
+[ -f "$REPO_DIR/.venv/bin/activate" ] && source "$REPO_DIR/.venv/bin/activate"
+[ -d "$REPO_DIR" ] && cd "$REPO_DIR"
 EOF
 grep -qxF "source $PROFILE" ~/.bashrc || echo "source $PROFILE" >> ~/.bashrc
 
@@ -52,3 +68,5 @@ echo "Done. Open a new shell or: source $PROFILE"
 echo "Set these as Runpod pod env vars (or export manually):"
 echo "  WANDB_API_KEY, HF_TOKEN, GITHUB_TOKEN"
 echo "Then: wandb login \$WANDB_API_KEY && huggingface-cli login --token \$HF_TOKEN"
+echo
+echo "Set the Runpod pod startup command to: bash $VOLUME/runpod_post_restart.sh"
