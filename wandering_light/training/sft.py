@@ -272,6 +272,9 @@ def sft_main(
                     f"reusing run {resume_wandb[2]} in project {resume_wandb[1]}."
                 )
 
+    # Keep induction and proposer runs in separate W&B projects.
+    effective_wandb_project = f"{wandb_project}-{task}"
+
     # Initialize wandb: resumed run if we have one, else new run if user named one.
     if resume_wandb is not None:
         entity, project, run_id = resume_wandb
@@ -280,7 +283,7 @@ def sft_main(
         wandb_url = str(wandb.run.url)
     elif wandb_run_name is not None:
         wandb.init(
-            project=wandb_project,
+            project=effective_wandb_project,
             name=wandb_run_name,
             config={
                 "model_name": model_name,
@@ -503,7 +506,7 @@ if __name__ == "__main__":
         "--wandb-project",
         type=str,
         default="wandering-light-sft",
-        help="Wandb project name (default: wandering-light-sft)",
+        help="Wandb project base name; the task is appended (e.g. 'wandering-light-sft-induction').",
     )
     parser.add_argument(
         "--wandb-run-name",
