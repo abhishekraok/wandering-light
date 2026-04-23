@@ -1,8 +1,9 @@
 from wandering_light.constants import DEFAULT_EVAL_FILE
 from wandering_light.evals.evaluate_proposer import EvalResult, evaluate_proposer
-from wandering_light.function_def import FunctionDefList
+from wandering_light.function_def import FunctionDef, FunctionDefList
 from wandering_light.solver import TokenGenerator, create_token_solver
-from wandering_light.trajectory import TrajectoryList
+from wandering_light.trajectory import Trajectory, TrajectoryList, TrajectorySpec
+from wandering_light.typed_list import TypedList
 
 
 class MockTokenGenerator(TokenGenerator):
@@ -176,3 +177,84 @@ def test_evaluate_proposer_with_solver():
     assert result.solver_success_rate == 6 / 12
     assert result.avg_function_count_ratio == 1.0
     assert result.frac_non_zero_std == 2 / 4  # Count only on parsed samples
+
+
+def test_evaluate_proposer_unexecutable_spec_does_not_misalign_attribution():
+    """Regression for index drift in evaluate_responses.
+
+    When a proposer-generated spec parses but its ground truth fails to
+    execute, EvaluateSolver.evaluate_using_trajectory_specs silently drops
+    it. The per-sample attribution must skip the dropped spec without
+    shifting later samples' attempts onto its slot.
+    """
+    # All three names are in basic_fns; evaluate_proposer merges basic_fns
+    # into available_functions, so the proposer responses below resolve.
+    inc = FunctionDef(
+        name="inc",
+        input_type="builtins.int",
+        output_type="builtins.int",
+        code="return x + 1",
+    )
+    dec = FunctionDef(
+        name="dec",
+        input_type="builtins.int",
+        output_type="builtins.int",
+        code="return x - 1",
+    )
+
+    # Trajectory list seeds the few-shot sampler (needs >= 3 entries).
+    seed_spec = TrajectorySpec(
+        input_list=TypedList([1, 2]),
+        function_defs=FunctionDefList([inc]),
+    )
+    trajectories = [
+        Trajectory(spec=seed_spec, output=TypedList([2, 3])) for _ in range(3)
+    ]
+
+    # A executes; B uses set_size on int input → ground truth TypeErrors;
+    # C executes. Without the fix, C's solver attempts shift onto B's slot.
+    proposer_responses = [
+        "TrajectorySpec(TL<int>([1, 2]) -> inc, inc)",
+        "TrajectorySpec(TL<int>([1, 2]) -> set_size)",
+        "TrajectorySpec(TL<int>([1, 2]) -> dec)",
+    ]
+
+    solver_attempts = 2
+    # Solver only runs against executable specs (A and C), 2 attempts each.
+    solver_responses = ["inc, inc"] * solver_attempts + ["dec"] * solver_attempts
+
+    proposer_model = MockTokenGenerator(proposer_responses)
+    solver_model = create_token_solver(MockTokenGenerator(solver_responses))
+
+    result = evaluate_proposer(
+        proposer_model,
+        trajectory_solver=solver_model,
+        trajectories=trajectories,
+        num_samples=3,
+        solver_attempts=solver_attempts,
+    )
+
+    # All three parse; B fails only at execution time.
+    assert all(s.parse_success for s in result.sample_results[:3])
+
+    # A: solver matched both attempts with [inc, inc].
+    assert result.sample_results[0].solve_rate == 1.0
+    assert all(
+        list(fl) == [inc, inc]
+        for fl in result.sample_results[0].attempted_function_deflists
+    )
+
+    # B: unexecutable → solver was never asked. Record solver_attempts empty
+    # FunctionDefLists so the attempt count stays consistent.
+    assert result.sample_results[1].solve_rate == 0.0
+    assert result.sample_results[1].attempted_function_deflists == [
+        FunctionDefList()
+    ] * solver_attempts
+
+    # C (after B): MUST get its own [dec] predictions, NOT shifted-up
+    # attempts that would have belonged to B's slot.
+    assert result.sample_results[2].solve_rate == 1.0
+    assert all(
+        list(fl) == [dec]
+        for fl in result.sample_results[2].attempted_function_deflists
+    )

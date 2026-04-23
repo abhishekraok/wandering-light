@@ -10,6 +10,7 @@ import fire
 from wandering_light.common_functions import basic_fns
 from wandering_light.constants import STANDALONE_EVAL_FILE
 from wandering_light.evals.evaluate_solver import EvaluateSolver
+from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDefList, FunctionDefSet
 from wandering_light.llm_utils import generate_proposer_training_prompt
 from wandering_light.solver import (
@@ -220,11 +221,24 @@ def evaluate_responses(
     frac_non_zero_std = 0.0
     # Evaluate the solver model
     if solver_model is not None:
+        # `evaluate_using_trajectory_specs` silently drops any spec whose
+        # ground-truth execution fails (e.g. the proposer hallucinated a
+        # type-incompatible chain). Pre-filter here so we know exactly which
+        # generated_specs survive, and can map solver detailed_results back to
+        # the right sample_results entry without index drift.
+        executor = Executor(available_functions)
+        executable_mask = [
+            executor.execute_trajectory(spec).success for spec in generated_specs
+        ]
+        executable_specs = [
+            spec for spec, ok in zip(generated_specs, executable_mask, strict=True) if ok
+        ]
+
         solver_eval_result = EvaluateSolver.evaluate_using_trajectory_specs(
             solver_model,
             TrajectorySpecList(
-                [specs for specs in generated_specs for _ in range(solver_attempts)]
-            ),  # Repeat each spec solver_attempts times
+                [spec for spec in executable_specs for _ in range(solver_attempts)]
+            ),  # Repeat each executable spec solver_attempts times
             available_functions,
             save_results=False,
             output_dir="",
@@ -240,29 +254,41 @@ def evaluate_responses(
         # Collect per sample results
         non_zero_variance_count = 0
         j = 0
+        spec_eval_idx = 0  # index into executable_specs / solver result slices
         for i in range(len(generated_specs)):
             # find the next parsed sample result
             while j < len(sample_results) and not sample_results[j].parse_success:
                 j += 1
             if j < len(sample_results):
-                results = solver_eval_result.detailed_results[
-                    i * solver_attempts : i * solver_attempts + solver_attempts
-                ]
-                sample_results[j].attempted_function_deflists = [
-                    (
-                        available_functions.parse_string(
-                            ",".join(res.predicted_functions)
+                if executable_mask[i]:
+                    results = solver_eval_result.detailed_results[
+                        spec_eval_idx * solver_attempts
+                        : (spec_eval_idx + 1) * solver_attempts
+                    ]
+                    sample_results[j].attempted_function_deflists = [
+                        (
+                            available_functions.parse_string(
+                                ",".join(res.predicted_functions)
+                            )
+                            if res.success
+                            else FunctionDefList()
                         )
-                        if res.success
-                        else FunctionDefList()
+                        for res in results
+                    ]
+                    sample_results[j].solve_rate = (
+                        float(sum(res.success for res in results) / len(results))
+                        if len(results) > 0
+                        else 0.0
                     )
-                    for res in results
-                ]
-                sample_results[j].solve_rate = (
-                    float(sum(res.success for res in results) / len(results))
-                    if len(results) > 0
-                    else 0.0
-                )
+                    spec_eval_idx += 1
+                else:
+                    # Proposer's spec was unexecutable, so the solver was never
+                    # asked. Record solver_attempts empty attempts so the count
+                    # stays consistent with executable samples.
+                    sample_results[j].attempted_function_deflists = [
+                        FunctionDefList() for _ in range(solver_attempts)
+                    ]
+                    sample_results[j].solve_rate = 0.0
                 non_zero_variance_count += (
                     1 if 0.0 < sample_results[j].solve_rate < 1.0 else 0
                 )
