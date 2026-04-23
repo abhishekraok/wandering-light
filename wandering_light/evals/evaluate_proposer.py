@@ -56,6 +56,8 @@ class EvalResult:
     solver_success_rate: float
     num_samples: int
     frac_non_zero_std: float = 0.0
+    proposer_model_name: str | None = None
+    solver_model_name: str | None = None
     sample_results: list[SampleResult] = field(default_factory=list)
 
     def __str__(self):
@@ -87,6 +89,8 @@ def evaluate_proposer(
     save_results: bool = False,
     filename: str | None = None,
     output_dir: str = "results/proposer/",
+    proposer_model_name: str | None = None,
+    solver_model_name: str | None = None,
 ) -> EvalResult:
     """Evaluate the proposer model on the given trajectories.
 
@@ -111,6 +115,8 @@ def evaluate_proposer(
             avg_function_count_ratio=0.0,
             solver_success_rate=0.0,
             num_samples=num_samples,
+            proposer_model_name=proposer_model_name,
+            solver_model_name=solver_model_name,
             sample_results=[],
         )
 
@@ -142,6 +148,8 @@ def evaluate_proposer(
     result = evaluate_responses(
         responses, available_functions, trajectory_solver, solver_attempts, num_samples
     )
+    result.proposer_model_name = proposer_model_name
+    result.solver_model_name = solver_model_name
 
     if save_results:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -287,6 +295,9 @@ def file_evaluate_proposer(
         filename: filename to save results if save_results is True. If None, a timestamp will be used.
         output_dir: directory to save results if save_results is True
     """
+    proposer_model_name = model if isinstance(model, str) else None
+    solver_model_name = solver_model if isinstance(solver_model, str) else None
+
     if isinstance(model, str):
         model = TrainedLLMTokenGenerator(model)
     if isinstance(solver_model, str):
@@ -304,6 +315,8 @@ def file_evaluate_proposer(
         save_results=save_results,
         filename=filename,
         output_dir=output_dir,
+        proposer_model_name=proposer_model_name,
+        solver_model_name=solver_model_name,
     )
     return result
 
