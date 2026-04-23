@@ -3444,11 +3444,6 @@ dev = [
     { name = "pytest-mock" },
     { name = "ruff" },
 ]
-e2e = [
-    { name = "playwright" },
-    { name = "pytest-playwright" },
-    { name = "pytest-xdist" },
-]
 
 [package.metadata]
 requires-dist = [
@@ -3465,13 +3460,10 @@ requires-dist = [
     { name = "ollama", specifier = ">=0.5.1" },
     { name = "openai", specifier = "==1.74.0" },
     { name = "pandas", specifier = ">=2.0.0" },
-    { name = "playwright", marker = "extra == 'e2e'", specifier = ">=1.41.0" },
     { name = "plotly", specifier = ">=5.15.0" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "pytest-mock", marker = "extra == 'dev'", specifier = ">=3.10.0" },
-    { name = "pytest-playwright", marker = "extra == 'e2e'", specifier = ">=0.4.0" },
-    { name = "pytest-xdist", marker = "extra == 'e2e'", specifier = ">=3.0.0" },
     { name = "python-dotenv" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8.0" },
     { name = "streamlit", specifier = ">=1.28.0" },
@@ -3481,7 +3473,7 @@ requires-dist = [
     { name = "trl", specifier = "==0.18.1" },
     { name = "wandb", specifier = "==0.20.1" },
 ]
-provides-extras = ["dev", "e2e"]
+provides-extras = ["dev"]
 
 [[package]]
 name = "watchdog"

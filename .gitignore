@@ -168,7 +168,6 @@ cython_debug/
 
 # Custom
 *.db
-wandering_light/web_ui/frontend/node_modules/
 
 # Generated evaluation data (can be regenerated)
 wandering_light/evals/data/llm_input_output/
