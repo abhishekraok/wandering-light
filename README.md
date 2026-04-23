@@ -19,7 +19,6 @@ The library also supports training the LLM for generating appropriately challeng
  - Synthetic data generation using LLMs.
  - Wandb integration for monitoring and analyzing the metrics.
  - Evaluation scripts, website to visualize the evaluation metrics.
- - A web interface to visualize and interact with the data samples.
  - Clean code: 300+ unit tests, CI using Github actions.
  - Can train small models (0.1B) locally within a few hours.
 
@@ -127,8 +126,7 @@ uv run pytest
 │   ├── llm_utils.py        # LLM integration utilities
 │   ├── constants.py        # Project constants
 │   ├── evals/              # Evaluation scripts and workflows
-│   ├── training/           # Training scripts (SFT, RL)
-│   └── web_ui/             # Web interface
+│   └── training/           # Training scripts (SFT, RL)
 ├── tests/                  # pytest test cases for core functionality
 ├── pyproject.toml          # Project configuration and dependencies
 ├── pytest.ini              # pytest configuration
