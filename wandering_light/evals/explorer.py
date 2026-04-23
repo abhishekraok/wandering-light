@@ -559,10 +559,17 @@ def _init_proposer_trees(
     st.session_state.prop_groups = groups
     st.session_state.prop_failures = failures
 
-    # Force the attempt tree to be (re)built on the next render.
-    st.session_state.tree_prop_attempt = None
-    st.session_state.prop_missing_attempt = []
-    st.session_state.prop_attempt_key = None
+    trees_att: dict[int, TrajectoryTree | None] = {}
+    missing_att: dict[int, list[str]] = {}
+    if input_tl is not None:
+        for gi, (seq, _count) in enumerate(groups):
+            tree, missing = _build_tree_from_names(
+                input_tl, list(seq), available_functions, executor
+            )
+            trees_att[gi] = tree
+            missing_att[gi] = missing
+    st.session_state.trees_prop_attempt = trees_att
+    st.session_state.missing_prop_attempt = missing_att
 
 
 def _render_proposer_tab() -> None:
@@ -694,47 +701,34 @@ def _render_proposer_tab() -> None:
             )
 
     with att_col:
-        st.subheader("Solver attempt")
+        st.subheader("Solver attempts")
         groups = st.session_state.get("prop_groups") or []
         failures = st.session_state.get("prop_failures", 0)
+        trees_att: dict[int, TrajectoryTree | None] = (
+            st.session_state.get("trees_prop_attempt") or {}
+        )
+        missing_att: dict[int, list[str]] = (
+            st.session_state.get("missing_prop_attempt") or {}
+        )
         if failures:
             st.markdown(f"❌ Failed attempts: **{failures}**")
         if not groups:
             st.info("No successful attempts to display.")
-        else:
-            group_idx = st.selectbox(
-                "Attempt group",
-                range(len(groups)),
-                format_func=lambda i: (
-                    f"✓ {', '.join(groups[i][0]) or '(empty)'} × {groups[i][1]}"
-                ),
-                key=f"prop_group_idx_{sample_idx}",
+        for gi, (seq, count) in enumerate(groups):
+            st.markdown(
+                f"**✓ `{', '.join(seq) or '(empty)'}` × {count}**"
             )
-            input_tl = st.session_state.get("prop_input_tl")
-            attempt_key = (run_path, sample_idx, group_idx)
-            if (
-                st.session_state.get("prop_attempt_key") != attempt_key
-                and input_tl is not None
-            ):
-                names = list(groups[group_idx][0])
-                tree_a, missing_a = _build_tree_from_names(
-                    input_tl, names, available_functions, executor
-                )
-                st.session_state.tree_prop_attempt = tree_a
-                st.session_state.prop_missing_attempt = missing_a
-                st.session_state.prop_attempt_key = attempt_key
-
-            missing_a = st.session_state.get("prop_missing_attempt") or []
-            tree_a = st.session_state.get("tree_prop_attempt")
-            if missing_a:
-                st.error(f"Unknown functions: {', '.join(missing_a)}")
-            elif tree_a is None:
+            miss = missing_att.get(gi) or []
+            tree = trees_att.get(gi)
+            if miss:
+                st.error(f"Unknown functions: {', '.join(miss)}")
+            elif tree is None:
                 st.info("No tree available.")
             else:
                 _render_node(
-                    tree_a,
+                    tree,
                     ROOT_ID,
-                    f"prop_att_{sample_idx}_{group_idx}",
+                    f"prop_att_{sample_idx}_{gi}",
                     available_functions,
                     executor,
                 )
