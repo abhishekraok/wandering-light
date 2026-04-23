@@ -618,10 +618,12 @@ def _render_proposer_tab() -> None:
         st.warning("No `sample_results` in this JSON.")
         return
 
-    # Proposer JSON doesn't record which eval file was used; assume the default.
-    eval_file = PROPOSER_EVAL_FILE
+    # Prefer the eval_file recorded in the run; fall back to the default for
+    # older JSONs that pre-date that field.
+    eval_file = run_data.get("eval_file") or PROPOSER_EVAL_FILE
+    eval_file_was_assumed = not run_data.get("eval_file")
     if not os.path.exists(eval_file):
-        st.error(f"Default eval file not found: `{eval_file}`")
+        st.error(f"Eval file not found: `{eval_file}`")
         return
     with st.spinner(f"Loading {eval_file}…"):
         _, available_functions = load_eval(eval_file)
@@ -652,8 +654,9 @@ def _render_proposer_tab() -> None:
     st.markdown(
         f"**Proposer:** `{proposer_name}` · **Solver:** `{solver_name}`"
     )
+    eval_file_label = "Eval file (assumed)" if eval_file_was_assumed else "Eval file"
     st.markdown(
-        f"**Eval file (assumed):** `{eval_file}` · "
+        f"**{eval_file_label}:** `{eval_file}` · "
         f"**avg_function_count_ratio:** "
         f"`{run_data.get('avg_function_count_ratio', 0):.2f}`"
     )

@@ -8,7 +8,7 @@ from typing import Any
 import fire
 
 from wandering_light.common_functions import basic_fns
-from wandering_light.constants import DEFAULT_EVAL_FILE
+from wandering_light.constants import STANDALONE_EVAL_FILE
 from wandering_light.evals.evaluate_solver import EvaluateSolver
 from wandering_light.function_def import FunctionDefList, FunctionDefSet
 from wandering_light.llm_utils import generate_proposer_training_prompt
@@ -59,6 +59,7 @@ class EvalResult:
     frac_non_zero_std: float = 0.0
     proposer_model_name: str | None = None
     solver_model_name: str | None = None
+    eval_file: str | None = None
     sample_results: list[SampleResult] = field(default_factory=list)
 
     def __str__(self):
@@ -92,6 +93,7 @@ def evaluate_proposer(
     output_dir: str = "results/proposer/",
     proposer_model_name: str | None = None,
     solver_model_name: str | None = None,
+    eval_file: str | None = None,
 ) -> EvalResult:
     """Evaluate the proposer model on the given trajectories.
 
@@ -118,6 +120,7 @@ def evaluate_proposer(
             num_samples=num_samples,
             proposer_model_name=proposer_model_name,
             solver_model_name=solver_model_name,
+            eval_file=eval_file,
             sample_results=[],
         )
 
@@ -155,6 +158,7 @@ def evaluate_proposer(
     )
     result.proposer_model_name = proposer_model_name
     result.solver_model_name = solver_model_name
+    result.eval_file = eval_file
 
     if save_results:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -283,7 +287,7 @@ def evaluate_responses(
 def file_evaluate_proposer(
     model: str,
     solver_model: str,
-    eval_file: str = DEFAULT_EVAL_FILE,
+    eval_file: str = STANDALONE_EVAL_FILE,
     num_samples: int | None = None,
     save_results: bool = False,
     filename: str | None = None,
@@ -322,6 +326,7 @@ def file_evaluate_proposer(
         output_dir=output_dir,
         proposer_model_name=proposer_model_name,
         solver_model_name=solver_model_name,
+        eval_file=eval_file,
     )
     return result
 
