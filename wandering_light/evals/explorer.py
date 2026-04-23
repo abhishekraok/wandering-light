@@ -647,6 +647,11 @@ def _render_proposer_tab() -> None:
             "Non-zero solve frac",
             f"{run_data.get('frac_non_zero_std', 0):.1%}",
         )
+    proposer_name = run_data.get("proposer_model_name") or "—"
+    solver_name = run_data.get("solver_model_name") or "—"
+    st.markdown(
+        f"**Proposer:** `{proposer_name}` · **Solver:** `{solver_name}`"
+    )
     st.markdown(
         f"**Eval file (assumed):** `{eval_file}` · "
         f"**avg_function_count_ratio:** "
