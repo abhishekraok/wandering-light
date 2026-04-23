@@ -11,7 +11,7 @@ from enum import StrEnum
 # evaluations where comparability across solver/proposer runs matters.
 DEFAULT_EVAL_FILE = "wandering_light/evals/data/random_inputs.py"
 STANDALONE_EVAL_FILE = "wandering_light/evals/data/random_inputs_500.py"
-DEFAULT_SOLVER_CHECKPOINT = "abhishekraok/induction-basicfns-opt125m-longsft"
+DEFAULT_SOLVER_CHECKPOINT = "abhishekraok/induction-basicfns-opt125m-sft434k-rl-6k-with-lp"
 
 
 class Task(StrEnum):
