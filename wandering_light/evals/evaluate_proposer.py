@@ -7,6 +7,7 @@ from typing import Any
 
 import fire
 
+from wandering_light.common_functions import basic_fns
 from wandering_light.constants import DEFAULT_EVAL_FILE
 from wandering_light.evals.evaluate_solver import EvaluateSolver
 from wandering_light.function_def import FunctionDefList, FunctionDefSet
@@ -120,10 +121,14 @@ def evaluate_proposer(
             sample_results=[],
         )
 
-    # Extract available functions from all trajectories
+    # Extract available functions from all trajectories, then merge basic_fns
+    # so the proposer isn't penalised for generating valid functions that
+    # happen not to appear in the loaded trajectories. Mirrors what
+    # run_evaluation.py does for solver evals.
     available_functions = FunctionDefSet()
     for trajectory in trajectories:
         available_functions.extend(trajectory.function_defs)
+    available_functions.extend(basic_fns)
 
     random.seed(seed)
     list_trajectories = list(trajectories)
