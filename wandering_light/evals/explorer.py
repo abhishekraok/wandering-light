@@ -501,6 +501,26 @@ def _group_attempts(
     return groups, failures
 
 
+def _extract_fn_names_from_spec_str(spec_str: str) -> list[str]:
+    """Pull the comma-separated function names out of a TrajectorySpec repr."""
+    if "->" not in spec_str:
+        return []
+    fn_part = spec_str.rsplit("->", 1)[1].strip()
+    if fn_part.endswith(")"):
+        fn_part = fn_part[:-1]
+    return [n.strip() for n in fn_part.split(",") if n.strip()]
+
+
+def _proposer_fn_frequencies(samples: list[dict]) -> Counter:
+    counts: Counter = Counter()
+    for s in samples:
+        if not s.get("parse_success"):
+            continue
+        for name in _extract_fn_names_from_spec_str(s.get("problem_spec") or ""):
+            counts[name] += 1
+    return counts
+
+
 def _prop_sample_label(sample: dict, i: int) -> str:
     solve_rate = sample.get("solve_rate") or 0.0
     parse_ok = sample.get("parse_success", False)
@@ -632,6 +652,21 @@ def _render_proposer_tab() -> None:
         f"**avg_function_count_ratio:** "
         f"`{run_data.get('avg_function_count_ratio', 0):.2f}`"
     )
+
+    with st.expander(
+        "Function frequency in proposed problems", expanded=False
+    ):
+        counts = _proposer_fn_frequencies(samples)
+        if not counts:
+            st.info("No parsed `problem_spec`s to count.")
+        else:
+            sorted_items = sorted(counts.items(), key=lambda x: -x[1])
+            chart_data = {name: count for name, count in sorted_items}
+            st.bar_chart(chart_data, horizontal=True, height=max(200, 22 * len(chart_data)))
+            st.caption(
+                f"{sum(counts.values())} function uses across "
+                f"{len(counts)} unique functions."
+            )
 
     st.divider()
 
