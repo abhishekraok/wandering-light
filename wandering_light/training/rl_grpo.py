@@ -479,6 +479,19 @@ class RewardEvaluationCallback(
                             )
 
                     elif self.task == Task.PROPOSER:
+                        # Count unique functions / sequences across proposed
+                        # specs to surface mode collapse during online evals.
+                        unique_function_names: set[str] = set()
+                        unique_function_sequences: set[tuple[str, ...]] = set()
+                        for sample in result.sample_results:
+                            if not sample.parse_success or sample.problem_spec is None:
+                                continue
+                            names = tuple(
+                                f.name for f in sample.problem_spec.function_defs
+                            )
+                            unique_function_names.update(names)
+                            unique_function_sequences.add(names)
+
                         logger.info(f"Step {state.global_step} Results:")
                         logger.info(f"  Parse Rate: {result.parse_rate:.2%}")
                         logger.info(
@@ -490,6 +503,12 @@ class RewardEvaluationCallback(
                         logger.info(
                             f"  Eval Frac Intermediate Difficulty: {result.frac_non_zero_std:.2%}"
                         )
+                        logger.info(
+                            f"  Unique Function Names: {len(unique_function_names)}"
+                        )
+                        logger.info(
+                            f"  Unique Function Sequences: {len(unique_function_sequences)}"
+                        )
 
                         eval_result = {
                             "step": state.global_step,
@@ -499,6 +518,10 @@ class RewardEvaluationCallback(
                             "solver_success_rate": result.solver_success_rate,
                             "frac_non_zero_std": result.frac_non_zero_std,
                             "num_samples": result.num_samples,
+                            "unique_function_names": len(unique_function_names),
+                            "unique_function_sequences": len(
+                                unique_function_sequences
+                            ),
                         }
                         self.eval_results.append(eval_result)
 
@@ -511,6 +534,12 @@ class RewardEvaluationCallback(
                                     "eval/solver_success_rate": result.solver_success_rate,
                                     "eval/intermediate_difficulty": result.frac_non_zero_std,
                                     "eval/num_samples": result.num_samples,
+                                    "eval/unique_function_names": len(
+                                        unique_function_names
+                                    ),
+                                    "eval/unique_function_sequences": len(
+                                        unique_function_sequences
+                                    ),
                                     "step": state.global_step,
                                 },
                                 step=state.global_step,
