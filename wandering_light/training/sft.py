@@ -47,6 +47,7 @@ class OnlineEvaluationCallback(TrainerCallback):
         self.use_wandb = use_wandb
         self.task = task
         self.solver_model = None
+        self.solver_model_name: str | None = None
         self._load_eval_data()
 
     def _load_eval_data(self):
@@ -68,6 +69,7 @@ class OnlineEvaluationCallback(TrainerCallback):
             self.solver_model = create_token_solver(
                 TrainedLLMTokenGenerator(DEFAULT_SOLVER_CHECKPOINT), budget=1
             )
+            self.solver_model_name = DEFAULT_SOLVER_CHECKPOINT
 
     def _run_evaluation(self, model_path: str):
         """Run evaluation on the current model using pre-computed trajectories."""
@@ -91,6 +93,9 @@ class OnlineEvaluationCallback(TrainerCallback):
                     trajectory_solver=self.solver_model,
                     trajectories=self.trajectories,
                     num_samples=self.num_samples or len(self.trajectories),
+                    proposer_model_name=model_path,
+                    solver_model_name=self.solver_model_name,
+                    eval_file=self.eval_file,
                 )
             else:
                 print(f"Unknown task type: {self.task}")

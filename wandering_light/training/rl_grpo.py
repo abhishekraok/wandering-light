@@ -155,6 +155,7 @@ class RewardEvaluationCallback(
         self.use_wandb = use_wandb
         self.task = task
         self.solver_model = None
+        self.solver_model_name: str | None = None
         self.sample_logger = sample_logger
 
         # Store metrics received from reward function observers
@@ -209,6 +210,7 @@ class RewardEvaluationCallback(
                 TrainedLLMTokenGenerator(DEFAULT_SOLVER_CHECKPOINT, temperature=0.8),
                 budget=1,
             )
+            self.solver_model_name = DEFAULT_SOLVER_CHECKPOINT
             logger.info(f"Loaded solver model from {DEFAULT_SOLVER_CHECKPOINT}")
 
     def _run_evaluation(self, model_path: str):
@@ -233,6 +235,9 @@ class RewardEvaluationCallback(
                     trajectory_solver=self.solver_model,
                     trajectories=self.trajectories,
                     num_samples=self.num_samples or len(self.trajectories),
+                    proposer_model_name=model_path,
+                    solver_model_name=self.solver_model_name,
+                    eval_file=self.eval_file,
                 )
             else:
                 logger.error(f"Unknown task type: {self.task}")
