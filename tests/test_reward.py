@@ -731,4 +731,10 @@ class TestProposerReward:
             available_functions=FunctionDefSet([inc_func]),
         )
         rewards = rewarder(completions)
-        assert rewards == [-1.0, 0.0, 1.0, 1.0, 0.0]
+        # Length bonus defaults to 0.2 * solver_avg_len / MAX_FUNCTIONS (5).
+        # Successful solver attempts produce a 1-function chain, so bonus = 0.04
+        # when there is at least one successful attempt, 0 otherwise.
+        expected = [-1.0, 0.04, 1.04, 1.04, 0.0]
+        assert len(rewards) == len(expected)
+        for actual, want in zip(rewards, expected, strict=True):
+            assert abs(actual - want) < 1e-9

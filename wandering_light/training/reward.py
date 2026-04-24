@@ -211,6 +211,7 @@ class ProposerReward:
         solver_attempts: int,
         available_functions: FunctionDefSet,
         observer: ProposerMetricsObserver | None = None,
+        length_bonus_strength: float = 0.2,
     ):
         self.trajectory_solver = trajectory_solver
         self.solver_attempts = solver_attempts
@@ -218,6 +219,7 @@ class ProposerReward:
             raise ValueError("available_functions must be provided")
         self.available_functions = available_functions
         self.observer = observer
+        self.length_bonus_strength = length_bonus_strength
         # Add __name__ attribute for compatibility with GRPOTrainer
         self.__name__ = "ProposerReward"
         # Store latest sample results for logging
@@ -250,6 +252,24 @@ class ProposerReward:
                     else 0
                 )
 
+                # Length bonus: average solver solution length across successful
+                # attempts only, so the signal reflects required chain length and
+                # is decoupled from solve rate. Discourages proposals the solver
+                # can shortcut (see sample traces where 3-fn specs collapse to 1-2 fns).
+                successful_lengths = [
+                    len(defs)
+                    for defs in (sample_result.attempted_function_deflists or [])
+                    if len(defs) > 0
+                ]
+                solver_avg_length = (
+                    sum(successful_lengths) / len(successful_lengths)
+                    if successful_lengths
+                    else 0.0
+                )
+                length_bonus = (
+                    self.length_bonus_strength * solver_avg_length / MAX_FUNCTIONS
+                )
+
                 # Check if solver succeeded on this proposal
                 if hasattr(sample_result, "solve_rate"):
                     if sample_result.solve_rate > 0:
@@ -257,11 +277,11 @@ class ProposerReward:
                     # Reward proposals with intermediate difficulty (0 < solve_rate < 1.0)
                     if 0 < sample_result.solve_rate < 1.0:
                         non_zero_variance_count += 1
-                        rewards.append(1.0)
+                        rewards.append(1.0 + length_bonus)
                     else:
-                        rewards.append(0.0)
+                        rewards.append(length_bonus)
                 else:
-                    rewards.append(0.0)
+                    rewards.append(length_bonus)
             else:
                 rewards.append(-1.0)
                 function_counts.append(0)
