@@ -36,7 +36,10 @@ from wandering_light.training.rl_grpo_config import (
     RLGRPOConfig,
     RLMetrics,
 )
-from wandering_light.training.wandb_utils import WandbRunLinkCallback
+from wandering_light.training.wandb_utils import (
+    WandbRunLinkCallback,
+    define_wandb_step_metric,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -341,7 +344,7 @@ class RewardEvaluationCallback(
                     }
                     if samples_per_second is not None:
                         log_dict["training/samples_per_second"] = samples_per_second
-                    wandb.log(log_dict, step=state.global_step)
+                    wandb.log(log_dict)
 
                 logger.info(f"\n{'=' * 60}")
                 logger.info(f"RL TRAINING METRICS AT STEP {state.global_step}")
@@ -418,7 +421,7 @@ class RewardEvaluationCallback(
                     }
                     if samples_per_second is not None:
                         log_dict["training/samples_per_second"] = samples_per_second
-                    wandb.log(log_dict, step=state.global_step)
+                    wandb.log(log_dict)
 
                 logger.info(f"\n{'=' * 60}")
                 logger.info(f"RL TRAINING METRICS AT STEP {state.global_step}")
@@ -479,8 +482,7 @@ class RewardEvaluationCallback(
                                     "eval/success_count": result.success_count,
                                     "eval/total_samples": result.total_samples,
                                     "step": state.global_step,
-                                },
-                                step=state.global_step,
+                                }
                             )
 
                     elif self.task == Task.PROPOSER:
@@ -546,8 +548,7 @@ class RewardEvaluationCallback(
                                         unique_function_sequences
                                     ),
                                     "step": state.global_step,
-                                },
-                                step=state.global_step,
+                                }
                             )
                 else:
                     logger.warning(f"Step {state.global_step}: Evaluation failed")
@@ -674,6 +675,7 @@ def setup_wandb(
         config=config,
         tags=["rl", "grpo", task],
     )
+    define_wandb_step_metric()
     return str(wandb.run.url)
 
 
@@ -976,7 +978,8 @@ def rl_grpo_main(
                         "final/frac_non_zero_std": final_metrics.frac_non_zero_std,
                     }
                 )
-            wandb.log(final_logs, step=trainer.state.global_step)
+            final_logs["step"] = trainer.state.global_step
+            wandb.log(final_logs)
 
     # Finish wandb run
     if use_wandb:

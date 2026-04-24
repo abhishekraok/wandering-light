@@ -27,7 +27,10 @@ from wandering_light.training.reward import (
 from wandering_light.training.rl_grpo_config import (
     RLGRPOConfig,
 )
-from wandering_light.training.wandb_utils import WandbRunLinkCallback
+from wandering_light.training.wandb_utils import (
+    WandbRunLinkCallback,
+    define_wandb_step_metric,
+)
 from wandering_light.training.callbacks import (
     RewardEvaluationCallback,
     TrainingSampleLogger,
@@ -60,6 +63,7 @@ def setup_wandb(
         config=config,
         tags=["rl", "grpo", task],
     )
+    define_wandb_step_metric()
     return str(wandb.run.url)
 
 
@@ -500,7 +504,8 @@ def dual_rl_grpo_main(
                     "final/proposer_frac_non_zero_std": proposer_final_metrics.frac_non_zero_std,
                 }
             )
-            wandb.log(final_logs, step=trainer.state.global_step)
+            final_logs["step"] = trainer.state.global_step
+            wandb.log(final_logs)
 
     # Finish wandb run
     if use_wandb:
