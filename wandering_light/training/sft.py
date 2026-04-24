@@ -20,6 +20,7 @@ from wandering_light.solver import TrainedLLMTokenGenerator, create_token_solver
 from wandering_light.training.data_generator import induction_dataset, proposer_dataset
 from wandering_light.training.wandb_utils import (
     WandbRunLinkCallback,
+    define_wandb_step_metric,
     parse_wandb_run_url,
     read_wandb_url_file,
 )
@@ -152,8 +153,7 @@ class OnlineEvaluationCallback(TrainerCallback):
                                         "eval/success_count": result.success_count,
                                         "eval/total_samples": result.total_samples,
                                         "step": state.global_step,
-                                    },
-                                    step=state.global_step,
+                                    }
                                 )
 
                             # Log to state if possible
@@ -201,8 +201,7 @@ class OnlineEvaluationCallback(TrainerCallback):
                                         "eval/frac_non_zero_std": result.frac_non_zero_std,
                                         "eval/num_samples": result.num_samples,
                                         "step": state.global_step,
-                                    },
-                                    step=state.global_step,
+                                    }
                                 )
 
                             # Log to state if possible
@@ -284,6 +283,7 @@ def sft_main(
     if resume_wandb is not None:
         entity, project, run_id = resume_wandb
         wandb.init(id=run_id, resume="must", entity=entity, project=project)
+        define_wandb_step_metric()
         use_wandb = True
         wandb_url = str(wandb.run.url)
     elif wandb_run_name is not None:
@@ -304,6 +304,7 @@ def sft_main(
             },
             tags=["sft", task],
         )
+        define_wandb_step_metric()
         use_wandb = True
         wandb_url = str(wandb.run.url)
     else:
@@ -422,8 +423,8 @@ def sft_main(
                                         "final/total_evaluations": len(
                                             callback.eval_results
                                         ),
-                                    },
-                                    step=trainer.state.global_step,
+                                        "step": trainer.state.global_step,
+                                    }
                                 )
                         elif task == Task.PROPOSER:
                             best_parse_rate = max(
@@ -463,8 +464,8 @@ def sft_main(
                                         "final/total_evaluations": len(
                                             callback.eval_results
                                         ),
-                                    },
-                                    step=trainer.state.global_step,
+                                        "step": trainer.state.global_step,
+                                    }
                                 )
                     break
     else:

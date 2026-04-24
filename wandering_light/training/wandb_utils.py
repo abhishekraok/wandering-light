@@ -1,7 +1,24 @@
 import os
 from urllib.parse import urlparse
 
+import wandb
 from transformers import TrainerCallback, TrainerControl, TrainerState
+
+
+def define_wandb_step_metric() -> None:
+    """Bind training/eval/etc. metrics to a custom "step" field for x-axis.
+
+    trl/HF advance wandb's internal step counter via their own logging,
+    which can race with our slow eval callbacks and cause our wandb.log
+    calls (using state.global_step) to be silently ignored. Defining a
+    dedicated step metric and dropping the explicit `step=` kwarg lets
+    us log out of order against our own step field.
+    """
+    if wandb.run is None:
+        return
+    wandb.define_metric("step")
+    for prefix in ("training", "eval", "interval_metadata", "final"):
+        wandb.define_metric(f"{prefix}/*", step_metric="step")
 
 URL_FILE_CONTENT = """[InternetShortcut]
 URL={wandb_url}
