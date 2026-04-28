@@ -61,7 +61,7 @@ def setup_wandb(
         project=wandb_project + "_" + task.value,
         name=wandb_run_name,
         config=config,
-        tags=["rl", "grpo", task],
+        tags=["rl", "grpo", task.value],
     )
     define_wandb_step_metric()
     return str(wandb.run.url)
@@ -445,10 +445,11 @@ def dual_rl_grpo_main(
         logger.info(f"Training steps: {step}:{step + training_interval_steps}")
         induction_trainer.train()
         proposer_trainer.train()
-        induction_reward_callback.current_step += induction_trainer.state.global_step
-        proposer_reward_callback.current_step += proposer_trainer.state.global_step
+        # `Trainer.state.global_step` is cumulative; keep callbacks aligned to it.
+        induction_reward_callback.current_step = induction_trainer.state.global_step
+        proposer_reward_callback.current_step = proposer_trainer.state.global_step
 
-    logger.info(f"\nGRPO training for {task} task completed successfully!")
+    logger.info("\nDual GRPO training completed successfully!")
 
     if (
         hasattr(induction_reward_callback, "metrics_history")
@@ -504,14 +505,18 @@ def dual_rl_grpo_main(
                     "final/proposer_frac_non_zero_std": proposer_final_metrics.frac_non_zero_std,
                 }
             )
-            final_logs["step"] = trainer.state.global_step
+            final_logs["step"] = max(
+                induction_trainer.state.global_step, proposer_trainer.state.global_step
+            )
+            final_logs["final/induction_global_step"] = induction_trainer.state.global_step
+            final_logs["final/proposer_global_step"] = proposer_trainer.state.global_step
             wandb.log(final_logs)
 
     # Finish wandb run
     if use_wandb:
         wandb.finish()
 
-    return trainer
+    return induction_trainer, proposer_trainer
 
 
 if __name__ == "__main__":
@@ -593,8 +598,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--task",
         type=str,
-        default=Task.INDUCTION,
-        choices=list(Task),
+        default=Task.INDUCTION.value,
+        choices=[t.value for t in Task],
         help="Task to run: 'induction' for function induction or 'proposer' for trajectory proposal (default: induction)",
     )
     parser.add_argument(
