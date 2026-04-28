@@ -1,8 +1,9 @@
 import pytest
 
-from wandering_light.function_def import FunctionDef, FunctionDefSet
+from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.proposer_pilot import SolveRater, Task, TrajectoryGraph
 from wandering_light.solver import create_bfs_solver
+from wandering_light.trajectory import Trajectory, TrajectorySpec
 from wandering_light.typed_list import TypedList
 
 inc = FunctionDef(
@@ -147,10 +148,10 @@ class TestTrajectoryGraph:
         mid = g.apply(root, inc)
         g.apply(mid, inc)  # creates [3] via 2 steps
         g.apply(root, add_two)  # also lands on [3] in 1 step
-        tasks = [t for t in g.tasks() if t.dst_tl == _tl([3])]
+        tasks = [t for t in g.tasks() if t.trajectory.output == _tl([3])]
         assert len(tasks) == 1
         assert tasks[0].num_steps == 1
-        assert [fn.name for fn in tasks[0].gt_path] == ["add_two"]
+        assert [fn.name for fn in tasks[0].trajectory.function_defs] == ["add_two"]
 
     def test_tasks_from_explicit_srcs(self):
         g = TrajectoryGraph(functions=FUNCTIONS)
@@ -209,11 +210,12 @@ class TestSolveRater:
 
 class TestTaskDataclass:
     def test_num_steps(self):
+        spec = TrajectorySpec(_tl([1]), FunctionDefList([inc]))
         t = Task(
             src_id=0,
             dst_id=1,
-            src_tl=_tl([1]),
-            dst_tl=_tl([2]),
-            gt_path=[inc],
+            trajectory=Trajectory(spec, _tl([2])),
         )
         assert t.num_steps == 1
+        assert t.trajectory.input == _tl([1])
+        assert t.trajectory.output == _tl([2])

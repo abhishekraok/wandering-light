@@ -12,7 +12,8 @@ from dataclasses import dataclass, field
 
 from wandering_light.common_functions import basic_fns
 from wandering_light.executor import Executor
-from wandering_light.function_def import FunctionDef, FunctionDefSet
+from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
+from wandering_light.trajectory import Trajectory, TrajectorySpec
 from wandering_light.typed_list import TypedList
 
 
@@ -32,13 +33,11 @@ class Node:
 class Task:
     src_id: int
     dst_id: int
-    src_tl: TypedList
-    dst_tl: TypedList
-    gt_path: list[FunctionDef]
+    trajectory: Trajectory
 
     @property
     def num_steps(self) -> int:
-        return len(self.gt_path)
+        return len(self.trajectory.function_defs)
 
 
 class TrajectoryGraph:
@@ -167,12 +166,13 @@ class TrajectoryGraph:
                     path.append(fn)
                     cur = prev
                 path.reverse()
+                src_tl = self._nodes[src_id].typed_list
+                dst_tl = self._nodes[dst_id].typed_list
+                spec = TrajectorySpec(src_tl, FunctionDefList(path))
                 yield Task(
                     src_id=src_id,
                     dst_id=dst_id,
-                    src_tl=self._nodes[src_id].typed_list,
-                    dst_tl=self._nodes[dst_id].typed_list,
-                    gt_path=path,
+                    trajectory=Trajectory(spec, dst_tl),
                 )
 
     def to_networkx(self):
