@@ -174,7 +174,6 @@ def dual_rl_grpo_main(
     wandb_project: str = "wandering-light-rl",
     wandb_run_name: str | None = None,
     length_penalty_strength: float = 0.1,
-    task: Task = Task.INDUCTION,
     solver_attempts: int = 8,
     sample_log_interval: int = 0,
     training_interval_steps: int = 32,
@@ -200,7 +199,7 @@ def dual_rl_grpo_main(
         sample_log_interval: Log training samples every N steps (0 to disable)
         training_interval_steps: Number of training steps to run continuously before changing task
     """
-    logger.info(f"Starting RL training with GRPO for {task} task...")
+    logger.info("Starting dual RL training with GRPO...")
 
     # Set use_wandb based on whether wandb_run_name is provided
     use_wandb = wandb_run_name is not None
@@ -209,7 +208,7 @@ def dual_rl_grpo_main(
     wandb_config = {
         "induction_model": induction_model,
         "proposer_model": proposer_model,
-        "task": task,
+        "task": Task.DUAL.value,
         "full_run": full_run,
         "eval_steps": eval_steps,
         "eval_samples": eval_samples,
@@ -221,13 +220,13 @@ def dual_rl_grpo_main(
         "solver_attempts": solver_attempts,
         "sample_log_interval": sample_log_interval,
     }
-    wandb_url = setup_wandb(wandb_run_name, wandb_project, task, wandb_config)
+    wandb_url = setup_wandb(wandb_run_name, wandb_project, Task.DUAL, wandb_config)
 
     # Create sample logger if interval is specified
     sample_logger = None
     if sample_log_interval > 0:
         sample_logger = TrainingSampleLogger(
-            log_interval=sample_log_interval, task=task
+            log_interval=sample_log_interval, task=Task.PROPOSER
         )
         logger.info(
             f"Training sample logging enabled every {sample_log_interval} steps"
@@ -596,13 +595,6 @@ if __name__ == "__main__":
         help=f"Strength of length penalty for induction task (default: {config.DEFAULT_LENGTH_PENALTY})",
     )
     parser.add_argument(
-        "--task",
-        type=str,
-        default=Task.INDUCTION.value,
-        choices=[t.value for t in Task],
-        help="Task to run: 'induction' for function induction or 'proposer' for trajectory proposal (default: induction)",
-    )
-    parser.add_argument(
         "--solver-attempts",
         type=int,
         default=config.DEFAULT_SOLVER_ATTEMPTS,
@@ -635,7 +627,6 @@ if __name__ == "__main__":
         wandb_project=args.wandb_project,
         wandb_run_name=args.wandb_run_name,
         length_penalty_strength=args.length_penalty_strength,
-        task=Task(args.task),
         solver_attempts=args.solver_attempts,
         sample_log_interval=args.sample_log_interval,
         training_interval_steps=args.training_interval_steps,
