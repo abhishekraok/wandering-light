@@ -52,7 +52,7 @@ class SolveRater:
         n = n_attempts if n_attempts is not None else self.n_attempts
         problems: list[tuple[TypedList, TypedList]] = []
         for t in tasks:
-            problems.extend([(t.src_tl, t.dst_tl)] * n)
+            problems.extend([(t.trajectory.input, t.trajectory.output)] * n)
         results = self.solver.solve_batch(problems, self.functions)
         out: list[SolveResult] = []
         for i, t in enumerate(tasks):
@@ -60,8 +60,8 @@ class SolveRater:
             n_solved = sum(1 for r in chunk if r.success)
             out.append(
                 SolveResult(
-                    src_tl=t.src_tl,
-                    dst_tl=t.dst_tl,
+                    src_tl=t.trajectory.input,
+                    dst_tl=t.trajectory.output,
                     n_attempts=n,
                     n_solved=n_solved,
                 )
