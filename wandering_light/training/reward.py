@@ -212,6 +212,7 @@ class ProposerReward:
         available_functions: FunctionDefSet,
         observer: ProposerMetricsObserver | None = None,
         length_bonus_strength: float = 0.2,
+        diversity_penalty_strength: float = 0.0,
     ):
         self.trajectory_solver = trajectory_solver
         self.solver_attempts = solver_attempts
@@ -220,6 +221,10 @@ class ProposerReward:
         self.available_functions = available_functions
         self.observer = observer
         self.length_bonus_strength = length_bonus_strength
+        # Per-group diversity penalty: r_i -= λ · log(count_i), where count_i is the
+        # number of rollouts in the same prompt group sharing i's function sequence.
+        # Counteracts GRPO's group-relative advantage pumping mass onto a single mode.
+        self.diversity_penalty_strength = diversity_penalty_strength
         # Add __name__ attribute for compatibility with GRPOTrainer
         self.__name__ = "ProposerReward"
         # Store latest sample results for logging
@@ -285,6 +290,45 @@ class ProposerReward:
             else:
                 rewards.append(-1.0)
                 function_counts.append(0)
+
+        # Per-group diversity penalty. Applied after the base reward so it composes
+        # cleanly: r_i -= λ · log(count_i), counted within the prompt group when
+        # GRPOTrainer passes `prompts`, otherwise across the full batch. Parse
+        # failures keep their -1.0 and are excluded from counting.
+        if self.diversity_penalty_strength > 0:
+            prompts = kwargs.get("prompts")
+            group_ids: list
+            if prompts is not None and len(prompts) == len(completions):
+                # Hash per prompt — `prompts` may be lists of chat-message dicts.
+                group_ids = [repr(p) for p in prompts]
+            else:
+                group_ids = [0] * len(completions)
+
+            # Build a (group_id -> {sequence_key: count}) map.
+            group_counts: dict = {}
+            sequence_keys: list = []
+            for sample_result, gid in zip(
+                eval_result.sample_results, group_ids, strict=True
+            ):
+                if sample_result.parse_success and sample_result.problem_spec:
+                    key = tuple(
+                        f.name for f in sample_result.problem_spec.function_defs
+                    )
+                else:
+                    key = None
+                sequence_keys.append(key)
+                if key is not None:
+                    group_counts.setdefault(gid, {})
+                    group_counts[gid][key] = group_counts[gid].get(key, 0) + 1
+
+            for i, (key, gid) in enumerate(
+                zip(sequence_keys, group_ids, strict=True)
+            ):
+                if key is None:
+                    continue
+                count = group_counts[gid][key]
+                if count > 1:
+                    rewards[i] -= self.diversity_penalty_strength * math.log(count)
 
         # Calculate metrics for observer
         total_samples = len(completions)

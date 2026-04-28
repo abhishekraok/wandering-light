@@ -738,3 +738,106 @@ class TestProposerReward:
         assert len(rewards) == len(expected)
         for actual, want in zip(rewards, expected, strict=True):
             assert abs(actual - want) < 1e-9
+
+    def test_diversity_penalty_applies_within_prompt_group(self):
+        """Duplicate function sequences inside a prompt group get penalized;
+        unique ones and parse failures don't."""
+        import math
+
+        inc_func = FunctionDef(
+            name="inc",
+            input_type="builtins.int",
+            output_type="builtins.int",
+            code="return x + 1",
+        )
+        dec_func = FunctionDef(
+            name="dec",
+            input_type="builtins.int",
+            output_type="builtins.int",
+            code="return x - 1",
+        )
+        inc_spec = TrajectorySpec(
+            input_list=TypedList([1, 2, 3], int),
+            function_defs=FunctionDefList([inc_func]),
+        )
+        dec_spec = TrajectorySpec(
+            input_list=TypedList([1, 2, 3], int),
+            function_defs=FunctionDefList([dec_func]),
+        )
+        # Group A: 3 identical inc proposals (all intermediate-difficulty).
+        # Group B: 1 inc proposal (different group, so no shared count) +
+        #          1 dec proposal + 1 parse failure.
+        completions = [
+            inc_spec.__repr__(),  # A0
+            inc_spec.__repr__(),  # A1
+            inc_spec.__repr__(),  # A2
+            inc_spec.__repr__(),  # B0
+            dec_spec.__repr__(),  # B1
+            "invalid gibberish",  # B2
+        ]
+        prompts = ["prompt-A"] * 3 + ["prompt-B"] * 3
+
+        # Solver: each non-failed completion gets 3 attempts; we craft them so
+        # every parsed spec lands in the intermediate-difficulty band (1/3 solve
+        # rate), giving base reward 1.0 + length_bonus.
+        intermediate = ["inc", "inc", "invalid"]  # for inc completions
+        intermediate_dec = ["dec", "dec", "invalid"]  # for dec completion
+        solver_responses = (
+            intermediate * 4  # A0, A1, A2, B0 (all inc)
+            + intermediate_dec  # B1 (dec)
+            # B2 is a parse failure → solver isn't called for it.
+        )
+        trajectory_solver = create_token_solver(MockTokenGenerator(solver_responses))
+
+        lam = 0.5
+        rewarder = ProposerReward(
+            trajectory_solver,
+            solver_attempts=3,
+            available_functions=FunctionDefSet([inc_func, dec_func]),
+            diversity_penalty_strength=lam,
+        )
+        rewards = rewarder(completions, prompts=prompts)
+
+        # Base reward for an intermediate-difficulty 1-function spec is
+        # 1.0 + 0.2 * 1 / 5 = 1.04. Parse failure stays at -1.0 and is excluded
+        # from duplicate counting.
+        base = 1.04
+        # Group A: count(inc) = 3 → penalty = 0.5 * log(3) for each of A0..A2.
+        # Group B: count(inc) = 1 (B0), count(dec) = 1 (B1) → no penalty.
+        expected = [
+            base - lam * math.log(3),
+            base - lam * math.log(3),
+            base - lam * math.log(3),
+            base,
+            base,
+            -1.0,
+        ]
+        assert len(rewards) == len(expected)
+        for actual, want in zip(rewards, expected, strict=True):
+            assert abs(actual - want) < 1e-9
+
+    def test_diversity_penalty_disabled_by_default(self):
+        """With strength=0 the penalty is a no-op, even given duplicates and prompts."""
+        inc_func = FunctionDef(
+            name="inc",
+            input_type="builtins.int",
+            output_type="builtins.int",
+            code="return x + 1",
+        )
+        inc_spec = TrajectorySpec(
+            input_list=TypedList([1, 2, 3], int),
+            function_defs=FunctionDefList([inc_func]),
+        )
+        completions = [inc_spec.__repr__()] * 2
+        intermediate = ["inc", "inc", "invalid"]
+        trajectory_solver = create_token_solver(
+            MockTokenGenerator(intermediate * len(completions))
+        )
+        rewarder = ProposerReward(
+            trajectory_solver,
+            solver_attempts=3,
+            available_functions=FunctionDefSet([inc_func]),
+        )
+        rewards = rewarder(completions, prompts=["p"] * len(completions))
+        for r in rewards:
+            assert abs(r - 1.04) < 1e-9

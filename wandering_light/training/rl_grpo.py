@@ -717,6 +717,7 @@ def create_reward_function(
     verifier_id_to_ground_truth_length: dict | None = None,
     length_penalty_strength: float = 0.1,
     solver_attempts: int = 8,
+    diversity_penalty_strength: float = 0.0,
 ):
     """Create appropriate reward function for task.
 
@@ -727,6 +728,7 @@ def create_reward_function(
         verifier_id_to_ground_truth_length: Ground truth lengths for induction task
         length_penalty_strength: Strength of length penalty for induction task
         solver_attempts: Number of solver attempts for proposer task
+        diversity_penalty_strength: Per-group diversity penalty for proposer task
 
     Returns:
         Reward function instance
@@ -756,6 +758,7 @@ def create_reward_function(
             solver_attempts=solver_attempts,
             available_functions=callback.available_functions,
             observer=callback,
+            diversity_penalty_strength=diversity_penalty_strength,
         )
         # Wrap with logging if sample logger is available
         reward_func = (
@@ -764,6 +767,7 @@ def create_reward_function(
             else base_reward
         )
         logger.info(f"Solver attempts: {solver_attempts}")
+        logger.info(f"Diversity penalty strength: {diversity_penalty_strength}")
     else:
         raise ValueError(f"Unknown task: {task}")
 
@@ -786,6 +790,7 @@ def rl_grpo_main(
     task: Task = Task.INDUCTION,
     solver_attempts: int = RLGRPOConfig.DEFAULT_SOLVER_ATTEMPTS,
     sample_log_interval: int = 0,
+    diversity_penalty_strength: float = RLGRPOConfig.DEFAULT_DIVERSITY_PENALTY,
 ):
     """
     Main function for RL training using GRPO with task-specific rewards.
@@ -827,6 +832,7 @@ def rl_grpo_main(
         "length_penalty_strength": length_penalty_strength,
         "solver_attempts": solver_attempts,
         "sample_log_interval": sample_log_interval,
+        "diversity_penalty_strength": diversity_penalty_strength,
     }
     wandb_url = setup_wandb(wandb_run_name, wandb_project, task, wandb_config)
 
@@ -879,6 +885,7 @@ def rl_grpo_main(
         verifier_id_to_ground_truth_length=verifier_id_to_ground_truth_length,
         length_penalty_strength=length_penalty_strength,
         solver_attempts=solver_attempts,
+        diversity_penalty_strength=diversity_penalty_strength,
     )
 
     reward_funcs = [reward_func]
@@ -1077,6 +1084,17 @@ if __name__ == "__main__":
         default=0,
         help="Log training samples every N steps (0 to disable)",
     )
+    parser.add_argument(
+        "--diversity-penalty-strength",
+        type=float,
+        default=config.DEFAULT_DIVERSITY_PENALTY,
+        help=(
+            "Per-group diversity penalty for proposer task: subtracts "
+            "λ·log(count) from each rollout's reward, counted within the "
+            f"prompt group (default: {config.DEFAULT_DIVERSITY_PENALTY}, "
+            "set 0 to disable)"
+        ),
+    )
 
     args = parser.parse_args()
     rl_grpo_main(
@@ -1094,4 +1112,5 @@ if __name__ == "__main__":
         task=Task(args.task),
         solver_attempts=args.solver_attempts,
         sample_log_interval=args.sample_log_interval,
+        diversity_penalty_strength=args.diversity_penalty_strength,
     )
