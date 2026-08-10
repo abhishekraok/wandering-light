@@ -1,0 +1,128 @@
+{
+  "claim_scope": "exact only where certified=true; RL failures retain explicit lower/upper bounds",
+  "config": {
+    "train_counts": {
+      "1": 100,
+      "2": 10000,
+      "3": 100000,
+      "4": 10000,
+      "5": 1000
+    },
+    "train_seed": 42,
+    "train_shuffle_seed": 42,
+    "eval_source": "wandering_light/evals/data/random_inputs_500.py",
+    "function_semantics": "stable_hash_and_set_order_v1",
+    "max_exact_depth": 3,
+    "rl_model": "checkpoints/saved/rl/induction_opt_125m_sft_434k_rl_6k_with_lp",
+    "rl_budget": 16,
+    "rl_temperature": 0.8
+  },
+  "train": {
+    "input_rows": 121100,
+    "valid": 120430,
+    "invalid": 670,
+    "certified": 120379,
+    "identity_excluded": 1649,
+    "released": 118730,
+    "unresolved": 51,
+    "shortened": 86167,
+    "rl_attempted": 64,
+    "rl_certified": 13,
+    "search_states": 11645297,
+    "search_transitions": 28254636,
+    "by_original_length": {
+      "1": {
+        "valid": 100,
+        "certified": 100,
+        "released": 92,
+        "shortened": 8,
+        "rl_attempted": 0
+      },
+      "2": {
+        "valid": 9972,
+        "certified": 9972,
+        "released": 9623,
+        "shortened": 3595,
+        "rl_attempted": 0
+      },
+      "3": {
+        "valid": 99465,
+        "certified": 99465,
+        "released": 98253,
+        "shortened": 72668,
+        "rl_attempted": 0
+      },
+      "4": {
+        "valid": 9908,
+        "certified": 9908,
+        "released": 9831,
+        "shortened": 8962,
+        "rl_attempted": 0
+      },
+      "5": {
+        "valid": 985,
+        "certified": 934,
+        "released": 931,
+        "shortened": 934,
+        "rl_attempted": 64
+      }
+    }
+  },
+  "eval": {
+    "input_rows": 500,
+    "valid": 496,
+    "invalid": 4,
+    "certified": 493,
+    "identity_excluded": 13,
+    "released": 480,
+    "unresolved": 3,
+    "shortened": 311,
+    "rl_attempted": 3,
+    "rl_certified": 0,
+    "search_states": 98756,
+    "search_transitions": 286155,
+    "by_original_length": {
+      "1": {
+        "valid": 100,
+        "certified": 100,
+        "released": 95,
+        "shortened": 5,
+        "rl_attempted": 0
+      },
+      "2": {
+        "valid": 100,
+        "certified": 100,
+        "released": 96,
+        "shortened": 46,
+        "rl_attempted": 0
+      },
+      "3": {
+        "valid": 99,
+        "certified": 99,
+        "released": 98,
+        "shortened": 71,
+        "rl_attempted": 0
+      },
+      "4": {
+        "valid": 99,
+        "certified": 99,
+        "released": 97,
+        "shortened": 94,
+        "rl_attempted": 0
+      },
+      "5": {
+        "valid": 98,
+        "certified": 95,
+        "released": 94,
+        "shortened": 95,
+        "rl_attempted": 3
+      }
+    }
+  },
+  "artifacts": {
+    "train_data": "wandering_light/training/data/induction_shortest_v1.jsonl.gz",
+    "train_sha256": "70657508702bf96f98478a9970738e74ede4609655e6cf330c024cd4e2b30175",
+    "eval_data": "wandering_light/evals/data/random_inputs_500_shortest_v1.jsonl.gz",
+    "eval_sha256": "cc1dcfa1ffd418c5b4a48480f010354964cda7445bab3e0d6fb3c5e350db18c4"
+  }
+}
