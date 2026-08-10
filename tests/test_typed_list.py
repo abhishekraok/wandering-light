@@ -113,3 +113,29 @@ def test_parse_from_repr_roundtrip():
         parsed = TypedList.parse_from_repr(repr_str)
         assert parsed == original
         assert repr(parsed) == repr_str
+
+
+@pytest.mark.parametrize(
+    "original",
+    [
+        TypedList([range(1, 5, 2)], item_type=range),
+        TypedList([bytearray(b"abc")], item_type=bytearray),
+        TypedList([set()], item_type=set),
+    ],
+)
+def test_parse_from_repr_safe_constructor_roundtrip(original):
+    assert TypedList.parse_from_repr(repr(original)) == original
+
+
+@pytest.mark.parametrize(
+    "expression",
+    [
+        "TL<int>([1 + 2])",
+        "TL<int>([__import__('os').getpid()])",
+        "TL<int>([int('3')])",
+        "TL<set>([set([1])])",
+    ],
+)
+def test_parse_from_repr_rejects_executable_expressions(expression):
+    with pytest.raises(ValueError, match="Failed to parse items"):
+        TypedList.parse_from_repr(expression)

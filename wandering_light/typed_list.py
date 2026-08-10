@@ -1,8 +1,47 @@
+import ast
 import importlib
 import json
 from typing import TypeVar
 
 T = TypeVar("T")
+
+
+def _safe_repr_literal(node: ast.AST):
+    """Evaluate literals plus safe constructors emitted by ``TypedList.__repr__``."""
+    try:
+        return ast.literal_eval(node)
+    except (ValueError, TypeError):
+        pass
+    if isinstance(node, ast.List):
+        return [_safe_repr_literal(item) for item in node.elts]
+    if isinstance(node, ast.Tuple):
+        return tuple(_safe_repr_literal(item) for item in node.elts)
+    if isinstance(node, ast.Set):
+        return {_safe_repr_literal(item) for item in node.elts}
+    if isinstance(node, ast.Dict):
+        return {
+            _safe_repr_literal(key): _safe_repr_literal(value)
+            for key, value in zip(node.keys, node.values, strict=True)
+        }
+    if (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id in {"bytearray", "range"}
+        and not node.keywords
+    ):
+        constructors = {"bytearray": bytearray, "range": range}
+        return constructors[node.func.id](
+            *(_safe_repr_literal(arg) for arg in node.args)
+        )
+    if (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "set"
+        and not node.args
+        and not node.keywords
+    ):
+        return set()
+    raise ValueError("expression is not a supported literal")
 
 
 class TypedList[T]:
@@ -134,7 +173,8 @@ class TypedList[T]:
 
         # Parse the items list
         try:
-            items = eval(items_str)  # Safe since we're parsing our own format
+            expression = ast.parse(items_str, mode="eval")
+            items = _safe_repr_literal(expression.body)
             if not isinstance(items, list):
                 raise ValueError("Items must be a list")
         except Exception as e:
