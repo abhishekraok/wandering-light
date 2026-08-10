@@ -30,6 +30,18 @@ to_str = FunctionDef(
     output_type="builtins.str",
     code="return str(x)",
 )
+dec = FunctionDef(
+    name="dec",
+    input_type="builtins.int",
+    output_type="builtins.int",
+    code="return x - 1",
+)
+identity = FunctionDef(
+    name="identity",
+    input_type="builtins.int",
+    output_type="builtins.int",
+    code="return x",
+)
 
 FUNCTIONS = FunctionDefSet([inc, double, add_two, to_str])
 
@@ -127,6 +139,12 @@ class TestTrajectoryGraph:
         assert g.find(_tl([1])) == root
         assert g.find(_tl([99])) is None
 
+    def test_state_dedup_is_structural_for_nested_unordered_values(self):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        a = TypedList([{"a": [1, 2], "b": {3, 4}}], item_type=dict)
+        b = TypedList([{"b": {4, 3}, "a": [1, 2]}], item_type=dict)
+        assert g.add_root(a) == g.add_root(b)
+
     def test_tasks_respects_min_max_steps(self):
         g = TrajectoryGraph(functions=FUNCTIONS)
         root = g.add_root(_tl([1]))
@@ -162,6 +180,152 @@ class TestTrajectoryGraph:
         tasks_from_other = list(g.tasks(src_ids=[other]))
         assert all(t.src_id == other for t in tasks_from_other)
         assert len(tasks_from_other) == 1
+
+
+class TestTrajectoryGraphExpansion:
+    def test_exhaustive_expansion_certifies_shortest_paths(self):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        root = g.add_root(_tl([1]))
+
+        expansion = g.expand(root, max_depth=2)
+        task = next(
+            task
+            for task in g.tasks_from_expansion(expansion)
+            if task.trajectory.output == _tl([3])
+        )
+
+        assert expansion.complete
+        assert expansion.certified_depth == 2
+        assert expansion.attempted_transitions == 12
+        assert task.verified_shortest_num_steps == 1
+        assert task.shortest_path_is_certified
+        assert [fn.name for fn in task.trajectory.function_defs] == ["add_two"]
+
+    def test_certified_path_ignores_edges_outside_expansion_function_set(self):
+        functions = FunctionDefSet([inc])
+        g = TrajectoryGraph(functions=functions)
+        root = g.add_root(_tl([1]))
+        g.apply(root, add_two)
+
+        expansion = g.expand(root, max_depth=2)
+        task = next(
+            task
+            for task in g.tasks_from_expansion(expansion)
+            if task.trajectory.output == _tl([3])
+        )
+
+        assert task.verified_shortest_num_steps == 2
+        assert [fn.name for fn in task.trajectory.function_defs] == ["inc", "inc"]
+
+    def test_expansion_evidence_depths_are_immutable(self):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        root = g.add_root(_tl([1]))
+        expansion = g.expand(root, max_depth=1)
+
+        with pytest.raises(TypeError):
+            expansion.node_depths[root] = 99
+
+    def test_expansion_filters_noops_but_retains_cycles(self):
+        functions = FunctionDefSet([inc, dec, identity])
+        g = TrajectoryGraph(functions=functions)
+        root = g.add_root(_tl([0]))
+
+        expansion = g.expand(root, max_depth=2)
+
+        assert expansion.complete
+        assert expansion.skipped_self_loops == 3
+        assert all(
+            child != node.id for node in g.nodes() for _, child in node.out_edges
+        )
+        assert any(child == root for fn, child in g.node(g.find(_tl([1]))).out_edges)
+
+    def test_partial_function_failure_does_not_invalidate_completeness(self):
+        reciprocal = FunctionDef(
+            name="reciprocal",
+            input_type="builtins.int",
+            output_type="builtins.int",
+            code="return 1 // x",
+        )
+        g = TrajectoryGraph(functions=FunctionDefSet([inc, reciprocal]))
+        root = g.add_root(_tl([0, 1]))
+
+        expansion = g.expand(root, max_depth=1)
+
+        assert expansion.complete
+        assert expansion.attempted_transitions == 2
+        assert expansion.failed_transitions == 1
+        assert expansion.certified_depth == 1
+
+    def test_transition_budget_only_certifies_completed_layers(self):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        root = g.add_root(_tl([1]))
+
+        expansion = g.expand(root, max_depth=3, max_transitions=5)
+        certified = list(g.tasks_from_expansion(expansion))
+        all_reached = list(g.tasks_from_expansion(expansion, require_certified=False))
+
+        assert not expansion.complete
+        assert expansion.stop_reason == "max_transitions"
+        assert expansion.certified_depth == 1
+        assert certified
+        assert all(task.num_steps == 1 for task in certified)
+        assert len(all_reached) >= len(certified)
+        assert all(
+            task.verified_shortest_num_steps is None
+            for task in all_reached
+            if task.num_steps > expansion.certified_depth
+        )
+
+    def test_state_budget_before_root_layer_completion_certifies_nothing(self):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        root = g.add_root(_tl([1]))
+
+        expansion = g.expand(root, max_depth=2, max_states=2)
+
+        assert expansion.stop_reason == "max_states"
+        assert expansion.certified_depth == 0
+        assert list(g.tasks_from_expansion(expansion)) == []
+        reached = list(g.tasks_from_expansion(expansion, require_certified=False))
+        assert len(reached) == 1
+        assert reached[0].verified_shortest_num_steps is None
+
+    def test_task_from_proposal_keeps_proposed_and_verified_lengths_separate(self):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        root = g.add_root(_tl([1]))
+        expansion = g.expand(root, max_depth=2)
+        proposal_spec = TrajectorySpec(_tl([1]), FunctionDefList([inc, inc]))
+        proposal = Trajectory(proposal_spec, _tl([3]))
+
+        task = g.task_from_proposal(proposal, expansion)
+
+        assert task.proposed_num_steps == 2
+        assert task.verified_shortest_num_steps == 1
+        assert task.num_steps == 1
+        assert [fn.name for fn in task.trajectory.function_defs] == ["add_two"]
+
+    @pytest.mark.parametrize(
+        ("kwargs", "message"),
+        [
+            ({"max_depth": -1}, "max_depth"),
+            ({"max_depth": 1, "max_states": 0}, "max_states"),
+            ({"max_depth": 1, "max_transitions": -1}, "max_transitions"),
+        ],
+    )
+    def test_expansion_rejects_invalid_bounds(self, kwargs, message):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        root = g.add_root(_tl([1]))
+        with pytest.raises(ValueError, match=message):
+            g.expand(root, **kwargs)
+
+    def test_expansion_evidence_is_graph_specific(self):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        root = g.add_root(_tl([1]))
+        expansion = g.expand(root, max_depth=1)
+        other = TrajectoryGraph(functions=FUNCTIONS)
+        other.add_root(_tl([1]))
+
+        with pytest.raises(ValueError, match="different graph"):
+            list(other.tasks_from_expansion(expansion))
 
 
 class TestSolveRater:
@@ -219,3 +383,6 @@ class TestTaskDataclass:
         assert t.num_steps == 1
         assert t.trajectory.input == _tl([1])
         assert t.trajectory.output == _tl([2])
+        assert t.proposed_num_steps is None
+        assert t.verified_shortest_num_steps is None
+        assert not t.shortest_path_is_certified

@@ -1,0 +1,59 @@
+{
+  "method": {
+    "subsequence": "exhaustive over every ordered subsequence; proves redundancy but not global shortestness",
+    "full_function_bfs": "breadth-first over all 118 basic functions; exact only when certified"
+  },
+  "num_specs": 500,
+  "num_valid": 496,
+  "num_invalid": 4,
+  "num_reducible_by_subsequence": 252,
+  "num_with_no_op": 163,
+  "num_revisiting_state": 194,
+  "exact_sample": {
+    "selection": "first executable tasks at each proposed length",
+    "selected_by_proposed_length": {
+      "1": 5,
+      "2": 5,
+      "3": 5,
+      "4": 5,
+      "5": 5
+    },
+    "selected": 25,
+    "certified": 25,
+    "budget_truncated": 0,
+    "not_reached": 0,
+    "full_function_shorter_than_subsequence": 4
+  },
+  "by_proposed_length": {
+    "1": {
+      "count": 100,
+      "reducible_by_subsequence": 5,
+      "has_no_op": 5,
+      "revisits_state": 5
+    },
+    "2": {
+      "count": 100,
+      "reducible_by_subsequence": 31,
+      "has_no_op": 21,
+      "revisits_state": 24
+    },
+    "3": {
+      "count": 99,
+      "reducible_by_subsequence": 48,
+      "has_no_op": 30,
+      "revisits_state": 35
+    },
+    "4": {
+      "count": 99,
+      "reducible_by_subsequence": 77,
+      "has_no_op": 48,
+      "revisits_state": 57
+    },
+    "5": {
+      "count": 98,
+      "reducible_by_subsequence": 91,
+      "has_no_op": 59,
+      "revisits_state": 73
+    }
+  }
+}
