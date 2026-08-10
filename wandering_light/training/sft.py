@@ -17,7 +17,11 @@ from wandering_light.evals.evaluate_proposer import evaluate_proposer
 from wandering_light.evals.model_eval import evaluate_model_checkpoint_with_trajectories
 from wandering_light.evals.run_evaluation import load_eval_data_as_trajectories
 from wandering_light.solver import TrainedLLMTokenGenerator, create_token_solver
-from wandering_light.training.data_generator import induction_dataset, proposer_dataset
+from wandering_light.training.data_generator import (
+    induction_dataset,
+    induction_dataset_from_relabels,
+    proposer_dataset,
+)
 from wandering_light.training.wandb_utils import (
     WandbRunLinkCallback,
     define_wandb_step_metric,
@@ -241,6 +245,7 @@ def sft_main(
     num_train_epochs: int = 4,
     from_scratch: bool = False,
     resume: bool = False,
+    induction_data_file: str | None = None,
 ):
     if resume and from_scratch:
         raise ValueError("--resume and --from-scratch are mutually exclusive.")
@@ -301,6 +306,7 @@ def sft_main(
                 "max_length": 256,
                 "completion_only_loss": True,
                 "from_scratch": from_scratch,
+                "induction_data_file": induction_data_file,
             },
             tags=["sft", task],
         )
@@ -320,9 +326,15 @@ def sft_main(
 
     # Use appropriate dataset based on task
     if task == Task.INDUCTION:
-        dataset = induction_dataset(length_counts=length_counts)
+        dataset = (
+            induction_dataset_from_relabels(induction_data_file)
+            if induction_data_file
+            else induction_dataset(length_counts=length_counts)
+        )
         print(f"Using induction dataset with {len(dataset)} examples")
     elif task == Task.PROPOSER:
+        if induction_data_file:
+            raise ValueError("--induction-data-file is only valid for induction SFT")
         dataset = proposer_dataset(length_counts=length_counts)
         print(f"Using proposer dataset with {len(dataset)} examples")
     else:
@@ -543,6 +555,12 @@ if __name__ == "__main__":
         action="store_true",
         help="If set, resume from the latest checkpoint in ./checkpoints/<model-name>/ and continue the original wandb run.",
     )
+    parser.add_argument(
+        "--induction-data-file",
+        type=str,
+        default=None,
+        help="Certified shortest-path JSONL.GZ; replaces generated induction data",
+    )
 
     args = parser.parse_args()
     sft_main(
@@ -557,4 +575,5 @@ if __name__ == "__main__":
         num_train_epochs=args.num_epochs,
         from_scratch=args.from_scratch,
         resume=args.resume,
+        induction_data_file=args.induction_data_file,
     )

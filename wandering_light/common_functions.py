@@ -1,7 +1,14 @@
+import hashlib
 import math
 import statistics
 
 from wandering_light.function_def import FunctionDef, FunctionDefSet
+
+
+def _stable_hash(value: str) -> int:
+    return int.from_bytes(
+        hashlib.sha256(value.encode()).digest()[:8], "big", signed=True
+    )
 
 # Sample inputs and expected outputs for testing
 SAMPLE_INPUTS = {
@@ -145,7 +152,7 @@ EXPECTED_OUTPUTS = {
         " ".join(x.split()[::-1]) for x in SAMPLE_INPUTS["builtins.str"]
     ],
     "str_to_list": [list(x) for x in SAMPLE_INPUTS["builtins.str"]],
-    "str_hash": [hash(x) for x in SAMPLE_INPUTS["builtins.str"]],
+    "str_hash": [_stable_hash(x) for x in SAMPLE_INPUTS["builtins.str"]],
     "list_max": [0 if not x else max(x) for x in SAMPLE_INPUTS["builtins.list"]],
     "list_min": [0 if not x else min(x) for x in SAMPLE_INPUTS["builtins.list"]],
     "tuple_count_none": [x.count(None) for x in SAMPLE_INPUTS["builtins.tuple"]],
@@ -167,7 +174,21 @@ EXPECTED_OUTPUTS = {
         math.atan2(x.imag, x.real) for x in SAMPLE_INPUTS["builtins.complex"]
     ],
     "range_max": [x[-1] if x else 0 for x in SAMPLE_INPUTS["builtins.range"]],
-    "set_hash": [hash(frozenset(x)) for x in SAMPLE_INPUTS["builtins.set"]],
+    "set_hash": [
+        _stable_hash(
+            repr(
+                sorted(
+                    x,
+                    key=lambda value: (
+                        type(value).__module__,
+                        type(value).__qualname__,
+                        repr(value),
+                    ),
+                )
+            )
+        )
+        for x in SAMPLE_INPUTS["builtins.set"]
+    ],
 }
 
 # Commonly used functions for various data types.
@@ -589,7 +610,7 @@ _basic_fns_list = [
         name="set_to_list",
         input_type="builtins.set",
         output_type="builtins.list",
-        code="return list(x)",
+        code="return sorted(x, key=lambda v: (type(v).__module__, type(v).__qualname__, repr(v)))",
     ),
     FunctionDef(
         name="dict_keys",
@@ -796,7 +817,7 @@ _basic_fns_list = [
         name="str_hash",
         input_type="builtins.str",
         output_type="builtins.int",
-        code="return hash(x)",
+        code="import hashlib; return int.from_bytes(hashlib.sha256(x.encode()).digest()[:8], 'big', signed=True)",
     ),
     # ── list ──────────────────────────────────────────────────────────────────
     FunctionDef(
@@ -893,7 +914,7 @@ _basic_fns_list = [
         name="set_hash",
         input_type="builtins.set",
         output_type="builtins.int",
-        code="return hash(frozenset(x))",
+        code="import hashlib; values=sorted(x, key=lambda v: (type(v).__module__, type(v).__qualname__, repr(v))); return int.from_bytes(hashlib.sha256(repr(values).encode()).digest()[:8], 'big', signed=True)",
     ),
 ]
 

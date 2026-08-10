@@ -1,5 +1,6 @@
 import random
 from collections.abc import Callable, Mapping
+from pathlib import Path
 
 import numpy as np
 from datasets import Dataset, IterableDataset
@@ -14,7 +15,9 @@ from wandering_light.llm_utils import (
     generate_proposer_training_prompt,
     generate_train_prompt,
 )
+from wandering_light.shortest_path_data import read_jsonl_gz, record_to_spec
 from wandering_light.trajectory import Trajectory, TrajectorySpec
+from wandering_light.typed_list import TypedList
 
 
 def generate_training_data(
@@ -173,6 +176,38 @@ def induction_dataset(
     function_pallete: list[FunctionDef] | None = None,
 ) -> Dataset:
     return induction_dataset_rl(length_counts, function_pallete)[0]
+
+
+def induction_dataset_from_relabels(path: str | Path) -> Dataset:
+    """Load a versioned, certified shortest-path induction dataset."""
+    records = read_jsonl_gz(Path(path))
+    executor = Executor(basic_fns)
+    dataset = []
+    for record in records:
+        spec = record_to_spec(record)
+        target = TypedList.from_str(record["output"])
+        execution = executor.execute_trajectory(spec)
+        if not execution.success or execution.trajectory.output != target:
+            raise ValueError(
+                f"relabel row {record['source_index']} does not reproduce its target"
+            )
+        example = generate_train_prompt(
+            input_list=spec.input,
+            output_list=target,
+            available_functions=basic_fns,
+            solution=spec.function_defs,
+            include_available_functions=False,
+        )
+        dataset.append(
+            {
+                "prompt": example.input_text,
+                "completion": example.output_text,
+                "source_index": record["source_index"],
+                "original_length": record["original_length"],
+                "shortest_length": record["relabeled_length"],
+            }
+        )
+    return Dataset.from_list(dataset)
 
 
 def proposer_dataset(

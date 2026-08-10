@@ -10,6 +10,40 @@ def test_int_list_roundtrip():
     assert tl == tl2
 
 
+def test_nested_non_json_values_roundtrip():
+    original = TypedList(
+        [
+            {
+                ("tuple", 1): {3, 2},
+                4: [bytearray(b"x"), range(1, 4)],
+            }
+        ],
+        item_type=dict,
+    )
+
+    serialized = original.to_string()
+
+    assert TypedList.from_str(serialized) == original
+    assert serialized == original.to_string()
+
+
+def test_legacy_tagged_serialization_still_loads():
+    serialized = (
+        '{"type": "builtins.tuple", "items": '
+        '[{"__tuple__": [1, {"__bytes__": [97]}]}]}'
+    )
+
+    assert TypedList.from_str(serialized) == TypedList([(1, b"a")], tuple)
+
+
+def test_state_equality_handles_nan_and_dict_order():
+    assert TypedList([float("nan")]) == TypedList([float("nan")])
+    assert TypedList([-0.0]) == TypedList([0.0])
+    assert TypedList([{"a": 1, "b": 2}], dict) == TypedList(
+        [{"b": 2, "a": 1}], dict
+    )
+
+
 def test_mixed_type_error():
     with pytest.raises(TypeError):
         TypedList([1, "two", 3])
