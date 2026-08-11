@@ -1,8 +1,149 @@
+import ast
 import importlib
 import json
+import math
 from typing import TypeVar
 
 T = TypeVar("T")
+
+_SERIALIZATION_TAGS = {
+    "__bytes__",
+    "__bytearray__",
+    "__set__",
+    "__frozenset__",
+    "__tuple__",
+    "__range__",
+    "__complex__",
+    "__dict_items__",
+}
+
+
+def _serialize_value(value):
+    if hasattr(value, "model_dump"):
+        return _serialize_value(value.model_dump())
+    if hasattr(value, "dict"):
+        return _serialize_value(value.dict())
+    if isinstance(value, bytes):
+        return {"__bytes__": list(value)}
+    if isinstance(value, bytearray):
+        return {"__bytearray__": list(value)}
+    if isinstance(value, set | frozenset):
+        items = [_serialize_value(item) for item in value]
+        items.sort(key=lambda item: json.dumps(item, sort_keys=True))
+        tag = "__frozenset__" if isinstance(value, frozenset) else "__set__"
+        return {tag: items}
+    if isinstance(value, tuple):
+        return {"__tuple__": [_serialize_value(item) for item in value]}
+    if isinstance(value, range):
+        return {"__range__": [value.start, value.stop, value.step]}
+    if isinstance(value, complex):
+        return {"__complex__": [value.real, value.imag]}
+    if isinstance(value, list):
+        return [_serialize_value(item) for item in value]
+    if isinstance(value, dict):
+        use_plain_dict = all(isinstance(key, str) for key in value) and not any(
+            key in _SERIALIZATION_TAGS for key in value
+        )
+        if use_plain_dict:
+            return {key: _serialize_value(item) for key, item in value.items()}
+        pairs = [
+            [_serialize_value(key), _serialize_value(item)]
+            for key, item in value.items()
+        ]
+        pairs.sort(key=lambda pair: json.dumps(pair[0], sort_keys=True))
+        return {"__dict_items__": pairs}
+    return value
+
+
+def _deserialize_value(value):
+    if isinstance(value, list):
+        return [_deserialize_value(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+    if set(value) == {"__bytes__"}:
+        return bytes(value["__bytes__"])
+    if set(value) == {"__bytearray__"}:
+        return bytearray(value["__bytearray__"])
+    if set(value) == {"__set__"}:
+        return {_deserialize_value(item) for item in value["__set__"]}
+    if set(value) == {"__frozenset__"}:
+        return frozenset(
+            _deserialize_value(item) for item in value["__frozenset__"]
+        )
+    if set(value) == {"__tuple__"}:
+        return tuple(_deserialize_value(item) for item in value["__tuple__"])
+    if set(value) == {"__range__"}:
+        start, stop, step = value["__range__"]
+        return range(start, stop, step)
+    if set(value) == {"__complex__"}:
+        real, imag = value["__complex__"]
+        return complex(real, imag)
+    if set(value) == {"__dict_items__"}:
+        return {
+            _deserialize_value(key): _deserialize_value(item)
+            for key, item in value["__dict_items__"]
+        }
+    return {key: _deserialize_value(item) for key, item in value.items()}
+
+
+def _canonical_value(value):
+    """Freeze serialized values with Python numeric equality and stable NaNs."""
+
+    def freeze(item):
+        if isinstance(item, float):
+            if math.isnan(item):
+                return ("float", "nan")
+            if item == 0:
+                return ("float", (0.0).hex())
+            return ("float", item.hex())
+        if isinstance(item, list):
+            return ("list", tuple(freeze(value) for value in item))
+        if isinstance(item, dict):
+            return (
+                "dict",
+                tuple((key, freeze(value)) for key, value in sorted(item.items())),
+            )
+        return (type(item).__name__, item)
+
+    return freeze(_serialize_value(value))
+
+
+def _safe_repr_literal(node: ast.AST):
+    """Evaluate literals plus safe constructors emitted by ``TypedList.__repr__``."""
+    try:
+        return ast.literal_eval(node)
+    except (ValueError, TypeError):
+        pass
+    if isinstance(node, ast.List):
+        return [_safe_repr_literal(item) for item in node.elts]
+    if isinstance(node, ast.Tuple):
+        return tuple(_safe_repr_literal(item) for item in node.elts)
+    if isinstance(node, ast.Set):
+        return {_safe_repr_literal(item) for item in node.elts}
+    if isinstance(node, ast.Dict):
+        return {
+            _safe_repr_literal(key): _safe_repr_literal(value)
+            for key, value in zip(node.keys, node.values, strict=True)
+        }
+    if (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id in {"bytearray", "range"}
+        and not node.keywords
+    ):
+        constructors = {"bytearray": bytearray, "range": range}
+        return constructors[node.func.id](
+            *(_safe_repr_literal(arg) for arg in node.args)
+        )
+    if (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "set"
+        and not node.args
+        and not node.keywords
+    ):
+        return set()
+    raise ValueError("expression is not a supported literal")
 
 
 class TypedList[T]:
@@ -28,28 +169,10 @@ class TypedList[T]:
         """
         Serialize the typed list as a JSON string, including a type tag and the items.
         """
-        ser_items = []
-        for x in self.items:
-            if hasattr(x, "dict"):
-                ser_items.append(x.dict())
-            elif isinstance(x, bytes):
-                ser_items.append({"__bytes__": list(x)})
-            elif isinstance(x, bytearray):
-                ser_items.append({"__bytearray__": list(x)})
-            elif isinstance(x, set):
-                ser_items.append({"__set__": list(x)})
-            elif isinstance(x, tuple):
-                ser_items.append({"__tuple__": list(x)})
-            elif isinstance(x, range):
-                ser_items.append({"__range__": [x.start, x.stop, x.step]})
-            elif isinstance(x, complex):
-                ser_items.append({"__complex__": [x.real, x.imag]})
-            else:
-                ser_items.append(x)
         return json.dumps(
             {
                 "type": f"{self.item_type.__module__}.{self.item_type.__qualname__}",
-                "items": ser_items,
+                "items": [_serialize_value(item) for item in self.items],
             }
         )
 
@@ -60,30 +183,9 @@ class TypedList[T]:
         module_name, _, class_name = type_str.rpartition(".")
         mod = importlib.import_module(module_name)
         item_type = getattr(mod, class_name)
-        items = []
-        for x in data["items"]:
-            if hasattr(item_type, "parse_obj"):
-                items.append(item_type.parse_obj(x))
-            elif isinstance(x, dict):
-                # Handle special serialized types
-                if "__bytes__" in x:
-                    items.append(bytes(x["__bytes__"]))
-                elif "__bytearray__" in x:
-                    items.append(bytearray(x["__bytearray__"]))
-                elif "__set__" in x:
-                    items.append(set(x["__set__"]))
-                elif "__tuple__" in x:
-                    items.append(tuple(x["__tuple__"]))
-                elif "__range__" in x:
-                    start, stop, step = x["__range__"]
-                    items.append(range(start, stop, step))
-                elif "__complex__" in x:
-                    real, imag = x["__complex__"]
-                    items.append(complex(real, imag))
-                else:
-                    items.append(x)
-            else:
-                items.append(x)
+        items = [_deserialize_value(item) for item in data["items"]]
+        if hasattr(item_type, "parse_obj"):
+            items = [item_type.parse_obj(item) for item in items]
         return TypedList(items, item_type=item_type)
 
     @classmethod
@@ -134,7 +236,8 @@ class TypedList[T]:
 
         # Parse the items list
         try:
-            items = eval(items_str)  # Safe since we're parsing our own format
+            expression = ast.parse(items_str, mode="eval")
+            items = _safe_repr_literal(expression.body)
             if not isinstance(items, list):
                 raise ValueError("Items must be a list")
         except Exception as e:
@@ -146,7 +249,7 @@ class TypedList[T]:
         return (
             isinstance(other, TypedList)
             and self.item_type == other.item_type
-            and self.items == other.items
+            and _canonical_value(self.items) == _canonical_value(other.items)
         )
 
     def __repr__(self):

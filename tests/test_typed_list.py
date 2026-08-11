@@ -10,6 +10,40 @@ def test_int_list_roundtrip():
     assert tl == tl2
 
 
+def test_nested_non_json_values_roundtrip():
+    original = TypedList(
+        [
+            {
+                ("tuple", 1): {3, 2},
+                4: [bytearray(b"x"), range(1, 4)],
+            }
+        ],
+        item_type=dict,
+    )
+
+    serialized = original.to_string()
+
+    assert TypedList.from_str(serialized) == original
+    assert serialized == original.to_string()
+
+
+def test_legacy_tagged_serialization_still_loads():
+    serialized = (
+        '{"type": "builtins.tuple", "items": '
+        '[{"__tuple__": [1, {"__bytes__": [97]}]}]}'
+    )
+
+    assert TypedList.from_str(serialized) == TypedList([(1, b"a")], tuple)
+
+
+def test_state_equality_handles_nan_and_dict_order():
+    assert TypedList([float("nan")]) == TypedList([float("nan")])
+    assert TypedList([-0.0]) == TypedList([0.0])
+    assert TypedList([{"a": 1, "b": 2}], dict) == TypedList(
+        [{"b": 2, "a": 1}], dict
+    )
+
+
 def test_mixed_type_error():
     with pytest.raises(TypeError):
         TypedList([1, "two", 3])
@@ -113,3 +147,29 @@ def test_parse_from_repr_roundtrip():
         parsed = TypedList.parse_from_repr(repr_str)
         assert parsed == original
         assert repr(parsed) == repr_str
+
+
+@pytest.mark.parametrize(
+    "original",
+    [
+        TypedList([range(1, 5, 2)], item_type=range),
+        TypedList([bytearray(b"abc")], item_type=bytearray),
+        TypedList([set()], item_type=set),
+    ],
+)
+def test_parse_from_repr_safe_constructor_roundtrip(original):
+    assert TypedList.parse_from_repr(repr(original)) == original
+
+
+@pytest.mark.parametrize(
+    "expression",
+    [
+        "TL<int>([1 + 2])",
+        "TL<int>([__import__('os').getpid()])",
+        "TL<int>([int('3')])",
+        "TL<set>([set([1])])",
+    ],
+)
+def test_parse_from_repr_rejects_executable_expressions(expression):
+    with pytest.raises(ValueError, match="Failed to parse items"):
+        TypedList.parse_from_repr(expression)

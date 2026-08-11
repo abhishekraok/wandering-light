@@ -1,5 +1,12 @@
-from wandering_light.function_def import FunctionDef
-from wandering_light.training.data_generator import induction_dataset
+from wandering_light.common_functions import basic_fns
+from wandering_light.function_def import FunctionDef, FunctionDefList
+from wandering_light.shortest_path_data import bounded_relabel, write_jsonl_gz
+from wandering_light.training.data_generator import (
+    induction_dataset,
+    induction_dataset_from_relabels,
+)
+from wandering_light.trajectory import TrajectorySpec
+from wandering_light.typed_list import TypedList
 
 
 def test_induction_dataset_custom_functions():
@@ -53,3 +60,21 @@ def test_induction_dataset_custom_functions():
         assert "completion" in example, "Example should have 'completion' key"
         assert isinstance(example["prompt"], str), "Prompt should be a string"
         assert isinstance(example["completion"], str), "Completion should be a string"
+
+
+def test_induction_dataset_from_certified_relabels(tmp_path):
+    inc = basic_fns.name_to_function["inc"]
+    record = bounded_relabel(
+        TrajectorySpec(TypedList([1, 2]), FunctionDefList([inc])),
+        7,
+        split="train",
+    )
+    path = tmp_path / "train.jsonl.gz"
+    write_jsonl_gz([record], path)
+
+    dataset = induction_dataset_from_relabels(path)
+
+    assert len(dataset) == 1
+    assert dataset[0]["completion"] == "inc"
+    assert dataset[0]["source_index"] == 7
+    assert dataset[0]["shortest_length"] == 1

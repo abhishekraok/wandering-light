@@ -1,5 +1,6 @@
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
-from wandering_light.solver import BFSPredictor, BFSSolve, RandomSolve
+from wandering_light.solver import BFSPredictor, BFSSolve, RandomPredictor, RandomSolve
+from wandering_light.trajectory import TrajectorySpec
 from wandering_light.typed_list import TypedList
 
 
@@ -36,7 +37,8 @@ def test_random_solver_single_step():
     assert len(traj.function_defs) == 1
     assert traj.function_defs[0].name == f1.name
     assert traj.output == target
-    assert f1.usage_count == 1
+    # Search executes once; the common TrajectorySolver verifies once.
+    assert f1.usage_count == 2
 
 
 def test_random_solver_multi_step():
@@ -51,7 +53,8 @@ def test_random_solver_multi_step():
     assert len(traj.function_defs) == 2
     assert all(f.name == f1.name for f in traj.function_defs)
     assert traj.output == target
-    assert f1.usage_count == 2
+    # Two search steps plus two common-verifier steps.
+    assert f1.usage_count == 4
 
 
 def test_random_solver_no_solution():
@@ -62,6 +65,50 @@ def test_random_solver_no_solution():
     result = solver.solve(tl, target, available_functions)
     assert not result.success
     assert "No solution found" in result.error_msg
+
+
+def test_random_predictor_retries_until_success(monkeypatch):
+    tl = TypedList([1])
+    target = TypedList([2])
+    inc = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    dec = make_function("dec", "builtins.int", "builtins.int", "return x - 1")
+    candidates = iter([dec, inc])
+    calls = 0
+
+    def controlled_walk(input_list, path_length, available_functions):
+        nonlocal calls
+        calls += 1
+        return TrajectorySpec(input_list, FunctionDefList([next(candidates)]))
+
+    monkeypatch.setattr(TrajectorySpec, "create_random_walk", controlled_walk)
+    predictor = RandomPredictor(budget=3, path_length=1)
+
+    result = predictor.predict_functions_batch(
+        [(tl, target)], FunctionDefSet([inc, dec])
+    )
+
+    assert calls == 2
+    assert result == [FunctionDefList([inc])]
+
+
+def test_random_predictor_exhausts_budget(monkeypatch):
+    tl = TypedList([1])
+    target = TypedList([99])
+    inc = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    calls = 0
+
+    def controlled_walk(input_list, path_length, available_functions):
+        nonlocal calls
+        calls += 1
+        return TrajectorySpec(input_list, FunctionDefList([inc]))
+
+    monkeypatch.setattr(TrajectorySpec, "create_random_walk", controlled_walk)
+    predictor = RandomPredictor(budget=3, path_length=1)
+
+    result = predictor.predict_functions_batch([(tl, target)], FunctionDefSet([inc]))
+
+    assert calls == 3
+    assert result == [FunctionDefList()]
 
 
 # BFS solver tests

@@ -14,7 +14,8 @@ import google.generativeai as genai
 import openai
 from dotenv import load_dotenv
 from ollama import ChatResponse, Client
-from transformers import pipeline as hf_pipeline, PreTrainedModel
+from transformers import PreTrainedModel
+from transformers import pipeline as hf_pipeline
 
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
@@ -166,19 +167,22 @@ class RandomPredictor(FunctionPredictor):
         problems: list[tuple[TypedList, TypedList]],
         available_functions: FunctionDefSet,
     ) -> list[FunctionDefList]:
-        """Predict random function sequences for each problem."""
+        """Try up to ``budget`` random sequences for each problem."""
         results = []
         available_functions_list = available_functions.functions
+        executor = Executor(available_functions)
 
-        for input_list, _output_list in problems:
-            if available_functions_list:
+        for input_list, output_list in problems:
+            prediction = FunctionDefList()
+            for _ in range(self.budget if available_functions_list else 0):
                 spec = TrajectorySpec.create_random_walk(
                     input_list, self.path_length, available_functions_list
                 )
-                function_def_list = FunctionDefList(spec.function_defs)
-                results.append(function_def_list)
-            else:
-                results.append(FunctionDefList())
+                execution = executor.execute_trajectory(spec)
+                if execution.success and execution.trajectory.output == output_list:
+                    prediction = FunctionDefList(list(spec.function_defs))
+                    break
+            results.append(prediction)
 
         return results
 
@@ -356,7 +360,7 @@ class GeminiTokenGenerator(TokenGenerator):
 
 
 def remove_thinking(response: str) -> str:
-    return response.split("</think>")[-1].strip()
+    return response.rsplit("</think>", maxsplit=1)[-1].strip()
 
 
 class OllamaTokenGenerator(TokenGenerator):
@@ -564,26 +568,41 @@ class TokenGeneratorPredictor(FunctionPredictor):
         problems: list[tuple[TypedList, TypedList]],
         available_functions: FunctionDefSet,
     ) -> list[FunctionDefList]:
-        """Predict function sequences for a batch of problems using the token generator."""
+        """Return the shortest valid prediction from ``budget`` attempts."""
         if not problems:
             return []
+        if self.budget <= 0:
+            return [FunctionDefList() for _ in problems]
 
-        # For batch processing, we try once per problem (budget=1 per problem)
-        # Generate all prompts
         prompts = [
             self._generate_prompt(input_list, output_list, available_functions)
             for input_list, output_list in problems
         ]
+        responses = self.token_generator.generate_batch(prompts * self.budget)
+        expected = len(prompts) * self.budget
+        if len(responses) != expected:
+            raise ValueError(
+                f"token generator returned {len(responses)} responses; expected {expected}"
+            )
 
-        # Get batch responses
-        responses = self.token_generator.generate_batch(prompts)
-
-        # Parse responses into FunctionDefList objects
-        results = []
-        for response in responses:
-            function_def_list = available_functions.parse_string(response)
-            results.append(function_def_list)
-        return results
+        executor = Executor(available_functions)
+        predictions = [FunctionDefList() for _ in problems]
+        best_lengths = [float("inf") for _ in problems]
+        for response_index, response in enumerate(responses):
+            problem_index = response_index % len(problems)
+            input_list, output_list = problems[problem_index]
+            candidate = available_functions.parse_string(response)
+            execution = executor.execute_trajectory(
+                TrajectorySpec(input_list, candidate)
+            )
+            if (
+                execution.success
+                and execution.trajectory.output == output_list
+                and len(candidate) < best_lengths[problem_index]
+            ):
+                predictions[problem_index] = candidate
+                best_lengths[problem_index] = len(candidate)
+        return predictions
 
     def save(self, directory: str):
         """Save the LLM IO histories to the given directory."""

@@ -243,6 +243,19 @@ class TestBatchProcessing:
         assert counting_generator.batch_calls == 1  # Only one batch call
         assert counting_generator.individual_calls == 0  # No individual calls
 
+    def test_token_budget_selects_shortest_valid_attempt(self, sample_functions):
+        generator = MockTokenGenerator(
+            ["increment,increment,increment", "double,double", "invalid"]
+        )
+        predictor = TokenGeneratorPredictor(generator, budget=3)
+
+        predictions = predictor.predict_functions_batch(
+            [(TypedList([1]), TypedList([4]))], sample_functions
+        )
+
+        assert generator.call_count == 3
+        assert predictions[0].to_string() == "double, double"
+
     def test_trained_llm_batch_generation(self):
         """Test that TrainedLLMTokenGenerator has proper batch generation."""
         # This is a unit test for the batch generation method specifically
