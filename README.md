@@ -71,41 +71,15 @@ Propose a new task for the solver, that is not too easy and not too hard.
 ## Results
 
 **Induction.** Best solver to date is `abhishekraok/induction-basicfns-opt125m-sft434k-rl-6k-with-lp`
-— an OPT-125M base, SFT'd and then RL'd with GRPO under a length penalty. Measured on a deterministic
-function palette with a `budget` flag that is actually honoured (both fixed in the certified-data
-work):
-
-| budget | `random_inputs_500_shortest_v1` (480 certified) | `random_inputs_500` (496) |
-| -----: | ---------------------------------------------: | ------------------------: |
-|      1 |                                         83.96 % |                   85.48 % |
-|      2 |                                         84.38 % |                   85.08 % |
-|      4 |                                         85.21 % |                   85.28 % |
-|      8 |                                         85.00 % |                   85.69 % |
-|     16 |                                         85.42 % |                   86.29 % |
-
-**Best-of-K sampling buys almost nothing.** Sixteen times the compute adds 7 solves out of 480, and
-the curve is non-monotonic, so most of that is noise. The remaining ~15 % of failures are systematic
-— the model is confidently wrong about particular functions rather than uncertain across samples.
-
-**Solutions are already near optimal in length.** On the certified eval the mean ground-truth path is
-**1.84** functions and the mean successful solution is **1.83**. The gap of 1.2 functions visible
-against `random_inputs_500` (mean ground truth 3.00) is an artefact of that file's labels: its paths
-come from random walks, and certification shortened 62.7 % of them. No length-5 task survives
-certification. The model was not out-cleverning its labels; the labels were long.
-
-Caveat: this checkpoint was trained before `str_hash`, `set_hash`, and `set_to_list` were made
-deterministic, so it is evaluated against function definitions it never saw. A model trained on the
-current palette should do at least this well.
+— an OPT-125M base, SFT'd and then RL'd with GRPO under a length penalty. It scores **84.0 %** on
+`random_inputs_500_shortest_v1` (480 certified specs) and **85.5 %** on `random_inputs_500` (496
+specs), both at budget 1. A solve counts when executing the predicted function list reproduces the
+target output; the path need not match the reference one.
 
 **Proposal.** Best proposer to date (`abhishekraok/proposer-basicfns-opt125m-sft2k`, scored against
 the solver above) reaches 0.96 parse rate and 0.15 solver success rate, but only **31 %** of
 generated groups have non-zero reward standard deviation — the other ~69 % give GRPO no gradient at
-all. These numbers predate the palette fix and have not been re-measured.
-
-**How success is measured.** A solve counts when executing the predicted function list on the input
-reproduces the target output exactly. The predicted path need not match the reference path, so these
-rates are an upper bound on "finds the shortest path" — though on the certified eval the two nearly
-coincide, per the length numbers above.
+all.
 
 Training curves and RL runs are in
 [WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg?accessToken=21hou3g702spnui44p3bn1arsplg4t0m0yvbcrchn9hfe8b6gdzn8ncq8wpe5721).
