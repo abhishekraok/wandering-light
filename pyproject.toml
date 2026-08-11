@@ -39,6 +39,14 @@ dev = [
     "pytest-mock>=3.10.0",
     "pytest-asyncio>=1.0.0",
 ]
+# Analysis scripts under experiments/ and the notebooks. These are pulled in
+# transitively by torch/pandas today, which is why nothing has broken yet;
+# declare them so `experiments/*.py` runs after a plain `uv sync --extra experiments`.
+experiments = [
+    "matplotlib>=3.8",
+    "networkx>=3.0",
+    "numpy>=1.26",
+]
 
 [tool.uv.sources]
 torch = { index = "pytorch-cu128" }
