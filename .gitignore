@@ -182,3 +182,4 @@ training_logs/
 # Generated report intermediates; release datasets and PNG summaries are tracked.
 reports/**/raw/
 reports/**/*.svg
+reports/**/*.csv
