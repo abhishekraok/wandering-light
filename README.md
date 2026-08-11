@@ -69,7 +69,29 @@ In the future we would like to expand to multiple argument functions to make thi
 Propose a new task for the solver, that is not too easy and not too hard. 
 
 ## Results
-Initial Results in [WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg?accessToken=21hou3g702spnui44p3bn1arsplg4t0m0yvbcrchn9hfe8b6gdzn8ncq8wpe5721)
+
+**Induction.** Best solver to date scores **84.9%** on
+`wandering_light/evals/data/random_inputs_500.py` at budget 1 (496 of the 500 specs execute
+cleanly), from an OPT-125M base that was SFT'd and then RL'd with GRPO. Ground-truth path
+lengths in that eval file are uniform over 1–5 functions (mean 3.0), but successful solutions
+average **1.81** functions — the model routinely finds a shorter route than the one the
+generator used. That gap is a property of the function set, not a bug: with 118 unary functions
+there are many collisions (`double` and `square` agree on `[2,2,2]`), round-trips (`inc`/`dec`),
+and effective identities (`upper` on already-uppercase input), so nominal path length is a weak
+proxy for task difficulty.
+
+**Proposal.** Best proposer to date (`abhishekraok/proposer-basicfns-opt125m-sft2k`, scored
+against the solver above) reaches 0.96 parse rate and 0.15 solver success rate, but only **31%**
+of generated groups have non-zero reward standard deviation — the other ~69% give GRPO no
+gradient at all. Raising that fraction is the main open problem.
+
+**How success is measured.** A solve counts when executing the predicted function list on the
+input reproduces the target output exactly. The predicted path need not match the ground-truth
+path and is not required to be shortest, so these rates are an upper bound on "finds the
+shortest path".
+
+Training curves and RL runs are in
+[WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg?accessToken=21hou3g702spnui44p3bn1arsplg4t0m0yvbcrchn9hfe8b6gdzn8ncq8wpe5721).
 
 ## Installation
 This project requires python 3.12 or later. We use [uv](https://docs.astral.sh/uv/) for reproducible environments — the committed `uv.lock` pins every transitive dependency.
@@ -121,7 +143,6 @@ uv run pytest
 │   ├── common_functions.py # Built-in helper functions
 │   ├── trajectory.py       # Defines TrajectorySpec and Trajectory classes
 │   ├── solver.py           # Implements search-based solvers
-│   ├── synthesize.py       # Utilities for synthesizing new functions
 │   ├── typed_list.py       # Typed list container
 │   ├── llm_utils.py        # LLM integration utilities
 │   ├── constants.py        # Project constants
