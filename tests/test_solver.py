@@ -145,6 +145,52 @@ def test_bfs_solver_respects_budget():
     assert f_dec.usage_count <= 5
 
 
+def test_bfs_state_key_canonicalizes_nested_unordered_values():
+    predictor = BFSPredictor()
+    first = TypedList(
+        [{"outer": {"values": [1, 2], "tags": {"a", "b"}}, "flag": True}],
+        item_type=dict,
+    )
+    reordered = TypedList(
+        [{"flag": True, "outer": {"tags": {"b", "a"}, "values": [1, 2]}}],
+        item_type=dict,
+    )
+
+    first_key = predictor._state_key(first)
+
+    assert first_key == predictor._state_key(reordered)
+    assert hash(first_key) == hash(predictor._state_key(reordered))
+
+
+def test_bfs_search_handles_nested_dictionary_states():
+    input_list = TypedList([{"value": 3}], item_type=dict)
+    target = TypedList([True], item_type=bool)
+    add_nested_status = make_function(
+        "add_nested_status",
+        "builtins.dict",
+        "builtins.dict",
+        "return {**x, 'status': {'done': True}}",
+    )
+    is_done = make_function(
+        "is_done",
+        "builtins.dict",
+        "builtins.bool",
+        "return x.get('status', {}).get('done', False)",
+    )
+    predictor = BFSPredictor(budget=10, max_depth=2)
+
+    result = predictor._bfs_search(
+        input_list,
+        target,
+        FunctionDefSet([add_nested_status, is_done]),
+    )
+
+    assert [function.name for function in result] == [
+        "add_nested_status",
+        "is_done",
+    ]
+
+
 # ================================
 # Tests for corrected BFS behavior
 # ================================

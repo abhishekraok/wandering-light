@@ -67,9 +67,7 @@ def _deserialize_value(value):
     if set(value) == {"__set__"}:
         return {_deserialize_value(item) for item in value["__set__"]}
     if set(value) == {"__frozenset__"}:
-        return frozenset(
-            _deserialize_value(item) for item in value["__frozenset__"]
-        )
+        return frozenset(_deserialize_value(item) for item in value["__frozenset__"])
     if set(value) == {"__tuple__"}:
         return tuple(_deserialize_value(item) for item in value["__tuple__"])
     if set(value) == {"__range__"}:
@@ -248,9 +246,12 @@ class TypedList[T]:
     def __eq__(self, other):
         return (
             isinstance(other, TypedList)
-            and self.item_type == other.item_type
-            and _canonical_value(self.items) == _canonical_value(other.items)
+            and self.canonical_key() == other.canonical_key()
         )
+
+    def canonical_key(self) -> tuple[type[T], object]:
+        """Return a hashable structural key for this typed value sequence."""
+        return (self.item_type, _canonical_value(self.items))
 
     def __repr__(self):
         return f"TL<{self.item_type.__name__}>({self.items})"
