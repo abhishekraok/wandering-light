@@ -28,41 +28,49 @@ SUPPORTED_RANDOM_TYPES = [
 ]
 
 
-def _random_value_for_type(t: type[Any]) -> Any:
+def _random_value_for_type(
+    t: type[Any], rng: random.Random | None = None
+) -> Any:
     """Generate a random value for a builtin type."""
+    source = rng if rng is not None else random
     if t is int:
-        return random.randint(-10, 10)
+        return source.randint(-10, 10)
     if t is float:
-        return random.uniform(-10.0, 10.0)
+        return source.uniform(-10.0, 10.0)
     if t is str:
-        length = random.randint(0, 6)
+        length = source.randint(0, 6)
         alphabet = string.ascii_letters + string.digits
-        return "".join(random.choices(alphabet, k=length))
+        return "".join(source.choices(alphabet, k=length))
     if t is bool:
-        return random.choice([True, False])
+        return source.choice([True, False])
     if t is list:
-        return [random.randint(-5, 5) for _ in range(random.randint(0, 3))]
+        return [source.randint(-5, 5) for _ in range(source.randint(0, 3))]
     if t is tuple:
-        return tuple(random.randint(-5, 5) for _ in range(random.randint(0, 3)))
+        return tuple(source.randint(-5, 5) for _ in range(source.randint(0, 3)))
     if t is set:
-        return {random.randint(-5, 5) for _ in range(random.randint(0, 3))}
+        return {source.randint(-5, 5) for _ in range(source.randint(0, 3))}
     if t is dict:
-        return {chr(97 + i): random.randint(-5, 5) for i in range(random.randint(0, 3))}
+        return {
+            chr(97 + i): source.randint(-5, 5)
+            for i in range(source.randint(0, 3))
+        }
     if t is bytes:
-        return bytes(random.getrandbits(8) for _ in range(random.randint(0, 4)))
+        return bytes(source.getrandbits(8) for _ in range(source.randint(0, 4)))
     if t is bytearray:
-        return bytearray(random.getrandbits(8) for _ in range(random.randint(0, 4)))
+        return bytearray(
+            source.getrandbits(8) for _ in range(source.randint(0, 4))
+        )
     if t is complex:
-        return complex(random.randint(-5, 5), random.randint(-5, 5))
+        return complex(source.randint(-5, 5), source.randint(-5, 5))
     if t is range:
-        start = random.randint(0, 3)
-        stop = start + random.randint(0, 5)
+        start = source.randint(0, 3)
+        stop = start + source.randint(0, 5)
         return range(start, stop)
 
     # Fallback: try SAMPLE_INPUTS
     type_str = f"{t.__module__}.{t.__qualname__}"
     if type_str in SAMPLE_INPUTS:
-        return random.choice(SAMPLE_INPUTS[type_str])
+        return source.choice(SAMPLE_INPUTS[type_str])
     raise ValueError(f"No sample input for type {type_str}")
 
 
@@ -85,21 +93,21 @@ def make_data(
     Returns:
         TrajectorySpecList object
     """
-    if seed is not None:
-        random.seed(seed)
+    rng = random.Random(seed)
 
     trajectories = TrajectorySpecList()
 
     for length, count in length_counts.items():
         # Create a random typed list to use as input
         for _ in range(count):
-            input_list = random.choice(input_lists)
+            input_list = rng.choice(input_lists)
 
             # Generate a random trajectory of the specified length
             trajectory = TrajectorySpec.create_random_walk(
                 input_list=input_list,
                 path_length=length,
                 available_functions=available_functions,
+                rng=rng,
             )
 
             trajectories.append(trajectory)
@@ -113,24 +121,26 @@ def make_random_data(
     seed: int | None = None,
 ) -> TrajectorySpecList:
     """Like :func:`make_data` but generates new random input lists with randomly chosen types."""
-    if seed is not None:
-        random.seed(seed)
+    rng = random.Random(seed)
 
     trajectories = TrajectorySpecList()
 
     for length, count in length_counts.items():
         for _ in range(count):
             # Randomly choose a type from supported types
-            input_type = random.choice(SUPPORTED_RANDOM_TYPES)
+            input_type = rng.choice(SUPPORTED_RANDOM_TYPES)
 
-            list_len = 2 if input_type is bool else random.randint(3, 5)
-            items = [_random_value_for_type(input_type) for _ in range(list_len)]
+            list_len = 2 if input_type is bool else rng.randint(3, 5)
+            items = [
+                _random_value_for_type(input_type, rng) for _ in range(list_len)
+            ]
             input_list = TypedList(items, item_type=input_type)
 
             trajectory = TrajectorySpec.create_random_walk(
                 input_list=input_list,
                 path_length=length,
                 available_functions=available_functions,
+                rng=rng,
             )
 
             trajectories.append(trajectory)

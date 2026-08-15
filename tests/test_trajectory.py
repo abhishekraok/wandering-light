@@ -318,7 +318,9 @@ def test_trajectory_list_from_file():
         spec_list.to_py_file(temp_path, "eval_trajectory_specs")
 
         # Test the from_file method
-        trajectory_list = TrajectoryList.from_file(temp_path)
+        trajectory_list = TrajectoryList.from_file(
+            temp_path, trusted_legacy_python=True
+        )
 
         # Verify we got the correct number of trajectories
         assert len(trajectory_list) == 2
@@ -345,7 +347,7 @@ def test_trajectory_list_from_file():
 def test_trajectory_list_from_file_not_found():
     """Test TrajectoryList.from_file with non-existent file."""
     with pytest.raises((FileNotFoundError, ImportError)):
-        TrajectoryList.from_file("non_existent_file.py")
+        TrajectoryList.from_file("non_existent_file.py", trusted_legacy_python=True)
 
 
 def test_trajectory_list_from_file_empty():
@@ -357,7 +359,9 @@ def test_trajectory_list_from_file_empty():
 
     try:
         empty_list.to_py_file(temp_path, "eval_trajectory_specs")
-        trajectory_list = TrajectoryList.from_file(temp_path)
+        trajectory_list = TrajectoryList.from_file(
+            temp_path, trusted_legacy_python=True
+        )
 
         assert len(trajectory_list) == 0
         assert len(trajectory_list.trajectories) == 0

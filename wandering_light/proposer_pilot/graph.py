@@ -142,7 +142,9 @@ class ExpansionResult:
 class TrajectoryGraph:
     def __init__(self, functions: FunctionDefSet | None = None):
         self.functions = functions if functions is not None else basic_fns
-        self.executor = Executor(self.functions)
+        # The graph may retain observational edges proposed outside the
+        # expansion palette; certified paths still restrict those edges below.
+        self.executor = Executor(self.functions, enforce_membership=False)
         self._nodes: dict[int, Node] = {}
         self._state_index: dict[StateKey, int] = {}
         self._roots: list[int] = []
@@ -463,9 +465,7 @@ class TrajectoryGraph:
             raise ValueError("function set changed after expansion")
 
     @staticmethod
-    def _expansion_path(
-        expansion: ExpansionResult, dst_id: int
-    ) -> list[FunctionDef]:
+    def _expansion_path(expansion: ExpansionResult, dst_id: int) -> list[FunctionDef]:
         if dst_id not in expansion.node_depths:
             raise ValueError("destination was not reached by this expansion")
         path: list[FunctionDef] = []

@@ -1,6 +1,6 @@
 import importlib
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # Note: Currently only supports single-argument functions
@@ -10,7 +10,7 @@ class FunctionDef(BaseModel):
     output_type: str
     code: str  # a Python function without the signature and using `x`, e.g. "return x + 1"
     usage_count: int = 0
-    metadata: dict = {}
+    metadata: dict = Field(default_factory=dict)
 
     def increment_usage(self):
         self.usage_count += 1
@@ -51,7 +51,9 @@ def {self.name}(x):
 class FunctionDefSet:
     """
     A set of unique FunctionDef objects for representing available functions.
-    Automatically handles duplicates by ignoring them when adding functions.
+    Automatically handles exact duplicates by ignoring them when adding functions.
+    A reused name with a different definition is rejected: silently choosing one
+    implementation makes function palettes dependent on merge order.
     Used for storing collections of available functions where duplicates don't make sense.
     """
 
@@ -62,10 +64,33 @@ class FunctionDefSet:
             self.extend(function_defs)
 
     def append(self, func_def: FunctionDef):
-        """Add a FunctionDef to the set, ignoring duplicates."""
-        if func_def.name not in self.name_to_function:
+        """Add a definition, deduplicating exact matches and rejecting collisions."""
+        existing = self.name_to_function.get(func_def.name)
+        if existing is None:
             self.name_to_function[func_def.name] = func_def
             self.functions.append(func_def)
+            return
+
+        provenance_keys = (
+            "basis_function_id",
+            "basis_function_fingerprint",
+            "basis_set_id",
+            "basis_set_digest",
+        )
+        existing_provenance = tuple(
+            (existing.metadata or {}).get(key) for key in provenance_keys
+        )
+        incoming_provenance = tuple(
+            (func_def.metadata or {}).get(key) for key in provenance_keys
+        )
+        if existing != func_def or existing_provenance != incoming_provenance:
+            raise ValueError(
+                f"Conflicting definitions for function name {func_def.name!r}: "
+                f"existing={existing.input_type}->{existing.output_type} "
+                f"{existing.code!r}, new={func_def.input_type}->{func_def.output_type} "
+                f"{func_def.code!r}, provenance={existing_provenance!r} vs "
+                f"{incoming_provenance!r}"
+            )
 
     def extend(self, func_defs: list[FunctionDef]):
         """Add multiple FunctionDefs to the set, ignoring duplicates."""

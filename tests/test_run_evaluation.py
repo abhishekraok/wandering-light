@@ -70,6 +70,8 @@ def test_run_evaluation_creates_summary(monkeypatch, tmp_path, sample_eval_file)
         output_dir=str(tmp_path),
         variable_name="specs",
         command="custom command",
+        basis_set_id="wl-core-v1",
+        trusted_legacy_python=True,
     )
 
     summaries = list(Path(tmp_path).glob("*/summary.json"))
@@ -79,3 +81,20 @@ def test_run_evaluation_creates_summary(monkeypatch, tmp_path, sample_eval_file)
     assert "dummy" in summary["results"]
     assert summary["results"]["dummy"]["success_rate"] == 1.0
     assert summary["command"] == "custom command"
+
+
+def test_legacy_eval_requires_trust_and_fixed_hash_seed(monkeypatch, sample_eval_file):
+    with pytest.raises(ValueError, match="execute Python code"):
+        run_eval.load_eval_data_as_trajectories(
+            str(sample_eval_file),
+            variable_name="specs",
+            basis_set_id="wl-core-v1",
+        )
+
+    monkeypatch.delenv("PYTHONHASHSEED", raising=False)
+    with pytest.raises(RuntimeError, match="fixed seed"):
+        run_eval.load_eval_data_as_trajectories(
+            str(sample_eval_file),
+            variable_name="specs",
+            trusted_legacy_python=True,
+        )

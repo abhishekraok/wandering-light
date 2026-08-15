@@ -5,7 +5,10 @@ average solution length to verify the metric calculation is correct.
 """
 
 # Import what we need to simulate run_evaluation.py
-from wandering_light.common_functions import basic_fns
+import os
+
+import pytest
+
 from wandering_light.evals.evaluate_solver import EvaluateSolver
 from wandering_light.evals.run_evaluation import load_eval_data_as_trajectories
 from wandering_light.executor import Executor
@@ -59,11 +62,15 @@ class TestRunEvaluationSimulation:
         eval_file = "wandering_light/evals/data/random_inputs.py"
 
         # Load the real evaluation data (exactly like run_evaluation.py does)
-        trajectories, available_functions = load_eval_data_as_trajectories(eval_file)
+        if os.environ.get("PYTHONHASHSEED") != "0":
+            pytest.skip("requires interpreter startup with PYTHONHASHSEED=0")
+        trajectories, available_functions = load_eval_data_as_trajectories(
+            eval_file, trusted_legacy_python=True
+        )
         trajectory_specs = trajectories.to_spec_list()
 
-        # Add basic functions (exactly like run_evaluation.py does)
-        available_functions.extend(basic_fns)
+        # The loader now returns the complete, checkpoint-bound palette. Do not
+        # merge today's default definitions into a historical evaluation basis.
 
         num_samples = len(trajectory_specs.specs)
         specs_subset = trajectory_specs.specs

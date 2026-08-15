@@ -201,6 +201,7 @@ class TestEvaluateSolverFile:
                 num_samples=2,
                 budget=20,
                 variable_name="test_eval_data",
+                trusted_legacy_python=True,
             )
 
             assert result is not None
@@ -215,6 +216,14 @@ class TestEvaluateSolverFile:
         result = evaluate_solver_from_file(
             eval_file="non_existent_file.py", solver_name="bfs"
         )
+
+        assert result is None
+
+    def test_evaluate_solver_from_file_requires_explicit_trust(self, tmp_path):
+        eval_file = tmp_path / "untrusted.py"
+        eval_file.write_text("raise RuntimeError('must not execute')\n")
+
+        result = evaluate_solver_from_file(eval_file=str(eval_file), solver_name="bfs")
 
         assert result is None
 

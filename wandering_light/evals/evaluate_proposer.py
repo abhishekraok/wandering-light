@@ -7,8 +7,11 @@ from typing import Any
 
 import fire
 
-from wandering_light.common_functions import basic_fns
-from wandering_light.constants import STANDALONE_EVAL_FILE
+from wandering_light.basis_set import (
+    load_basis_set,
+    require_reproducible_basis_runtime,
+)
+from wandering_light.constants import DEFAULT_SOLVER_BASIS_SET, STANDALONE_EVAL_FILE
 from wandering_light.evals.evaluate_solver import EvaluateSolver
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDefList, FunctionDefSet
@@ -61,6 +64,8 @@ class EvalResult:
     proposer_model_name: str | None = None
     solver_model_name: str | None = None
     eval_file: str | None = None
+    basis_set_id: str | None = None
+    basis_set_digest: str | None = None
     sample_results: list[SampleResult] = field(default_factory=list)
 
     def __str__(self):
@@ -95,6 +100,7 @@ def evaluate_proposer(
     proposer_model_name: str | None = None,
     solver_model_name: str | None = None,
     eval_file: str | None = None,
+    basis_set_id: str = DEFAULT_SOLVER_BASIS_SET,
 ) -> EvalResult:
     """Evaluate the proposer model on the given trajectories.
 
@@ -112,6 +118,8 @@ def evaluate_proposer(
     Returns:
         EvalResult: The evaluation result.
     """
+    basis = load_basis_set(basis_set_id)
+    require_reproducible_basis_runtime(basis)
     if num_samples == 0 or not trajectories:
         return EvalResult(
             parse_rate=0.0,
@@ -122,17 +130,23 @@ def evaluate_proposer(
             proposer_model_name=proposer_model_name,
             solver_model_name=solver_model_name,
             eval_file=eval_file,
+            basis_set_id=basis.basis_set_id,
+            basis_set_digest=basis.digest,
             sample_results=[],
         )
 
-    # Extract available functions from all trajectories, then merge basic_fns
-    # so the proposer isn't penalised for generating valid functions that
-    # happen not to appear in the loaded trajectories. Mirrors what
-    # run_evaluation.py does for solver evals.
-    available_functions = FunctionDefSet()
+    # Proposer and solver must share one immutable action vocabulary. Legacy
+    # trajectory files embed definitions, but they no longer determine merge
+    # precedence or create a hybrid palette.
+    available_functions = basis.as_function_set()
     for trajectory in trajectories:
-        available_functions.extend(trajectory.function_defs)
-    available_functions.extend(basic_fns)
+        for function in trajectory.function_defs:
+            registered = available_functions.name_to_function.get(function.name)
+            if registered is None or registered != function:
+                raise ValueError(
+                    f"Trajectory function {function.name!r} does not match basis "
+                    f"{basis_set_id!r}"
+                )
 
     random.seed(seed)
     list_trajectories = list(trajectories)
@@ -160,6 +174,8 @@ def evaluate_proposer(
     result.proposer_model_name = proposer_model_name
     result.solver_model_name = solver_model_name
     result.eval_file = eval_file
+    result.basis_set_id = basis.basis_set_id
+    result.basis_set_digest = basis.digest
 
     if save_results:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -231,7 +247,9 @@ def evaluate_responses(
             executor.execute_trajectory(spec).success for spec in generated_specs
         ]
         executable_specs = [
-            spec for spec, ok in zip(generated_specs, executable_mask, strict=True) if ok
+            spec
+            for spec, ok in zip(generated_specs, executable_mask, strict=True)
+            if ok
         ]
 
         solver_eval_result = EvaluateSolver.evaluate_using_trajectory_specs(
@@ -262,8 +280,8 @@ def evaluate_responses(
             if j < len(sample_results):
                 if executable_mask[i]:
                     results = solver_eval_result.detailed_results[
-                        spec_eval_idx * solver_attempts
-                        : (spec_eval_idx + 1) * solver_attempts
+                        spec_eval_idx * solver_attempts : (spec_eval_idx + 1)
+                        * solver_attempts
                     ]
                     sample_results[j].attempted_function_deflists = [
                         (
@@ -318,6 +336,8 @@ def file_evaluate_proposer(
     save_results: bool = False,
     filename: str | None = None,
     output_dir: str = "results/proposer/",
+    trusted_legacy_python: bool = False,
+    basis_set_id: str = DEFAULT_SOLVER_BASIS_SET,
 ) -> EvalResult:
     """Evaluate the proposer model on the given trajectories.
 
@@ -329,6 +349,8 @@ def file_evaluate_proposer(
         save_results: whether to save detailed results to a file
         filename: filename to save results if save_results is True. If None, a timestamp will be used.
         output_dir: directory to save results if save_results is True
+        trusted_legacy_python: Explicit opt-in for executable legacy data
+        basis_set_id: Immutable basis-set ID or registered alias
     """
     proposer_model_name = model if isinstance(model, str) else None
     solver_model_name = solver_model if isinstance(solver_model, str) else None
@@ -340,7 +362,9 @@ def file_evaluate_proposer(
             TrainedLLMTokenGenerator(solver_model), budget=1
         )
 
-    trajectories = TrajectoryList.from_file(eval_file)
+    trajectories = TrajectoryList.from_file(
+        eval_file, trusted_legacy_python=trusted_legacy_python
+    )
     num_samples = num_samples or len(trajectories)
     result = evaluate_proposer(
         model=model,
@@ -353,6 +377,7 @@ def file_evaluate_proposer(
         proposer_model_name=proposer_model_name,
         solver_model_name=solver_model_name,
         eval_file=eval_file,
+        basis_set_id=basis_set_id,
     )
     return result
 

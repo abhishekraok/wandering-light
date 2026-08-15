@@ -1,5 +1,13 @@
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
-from wandering_light.solver import BFSPredictor, BFSSolve, RandomPredictor, RandomSolve
+from wandering_light.function_usage import FunctionUsageTracker
+from wandering_light.solver import (
+    BFSPredictor,
+    BFSSolve,
+    RandomPredictor,
+    RandomSolve,
+    create_token_solver,
+    get_solver_by_name,
+)
 from wandering_light.trajectory import TrajectorySpec
 from wandering_light.typed_list import TypedList
 
@@ -39,6 +47,7 @@ def test_random_solver_single_step():
     assert traj.output == target
     # Search executes once; the common TrajectorySolver verifies once.
     assert f1.usage_count == 2
+    assert solver.function_usage.successful_solve_count == 0
 
 
 def test_random_solver_multi_step():
@@ -126,6 +135,97 @@ def test_bfs_solver_multi_step():
     assert len(traj.function_defs) == 3
     assert [f.name for f in traj.function_defs] == [f1.name, f2.name, f3.name]
     assert traj.output == target
+    assert solver.function_usage.successful_solve_count == 1
+    assert solver.function_usage.get(f1).invocation_count == 1
+    assert solver.function_usage.get(f2).invocation_count == 1
+    assert solver.function_usage.get(f3).invocation_count == 1
+
+
+def test_solver_tracks_only_verified_successful_trajectory_functions():
+    class FixedTokenGenerator:
+        def generate_batch(self, prompts):
+            return ["inc, inc" for _ in prompts]
+
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    unused = make_function("unused", "builtins.int", "builtins.int", "return x")
+    available_functions = FunctionDefSet([increment, unused])
+    solver = create_token_solver(FixedTokenGenerator())
+
+    success = solver.solve(TypedList([0]), TypedList([2]), available_functions)
+    failure = solver.solve(TypedList([0]), TypedList([99]), available_functions)
+
+    assert success.success
+    assert not failure.success
+    assert solver.function_usage.successful_solve_count == 1
+    assert solver.function_usage.get(increment).solution_count == 1
+    assert solver.function_usage.get(increment).invocation_count == 2
+    assert solver.function_usage.get(unused).solution_count == 0
+
+
+def test_solver_save_persists_usage_with_basis_provenance(tmp_path):
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    tracker = FunctionUsageTracker("basis-v1", "digest-v1")
+    solver = get_solver_by_name("bfs", budget=5, usage_tracker=tracker)
+
+    result = solver.solve(TypedList([0]), TypedList([1]), FunctionDefSet([increment]))
+    solver.save(str(tmp_path))
+
+    restored = FunctionUsageTracker.load(
+        tmp_path / FunctionUsageTracker.FILE_NAME,
+        basis_set_id="basis-v1",
+        basis_digest="digest-v1",
+    )
+    assert result.success
+    assert solver.function_usage is tracker
+    assert restored.to_dict() == tracker.to_dict()
+
+
+def test_solver_binds_tracker_to_available_function_basis():
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    increment.metadata.update(
+        {
+            "basis_function_id": "fn:increment",
+            "basis_set_id": "basis-v1",
+            "basis_set_digest": "digest-v1",
+        }
+    )
+    solver = BFSSolve(budget=5)
+
+    result = solver.solve(TypedList([0]), TypedList([1]), FunctionDefSet([increment]))
+
+    assert result.success
+    assert solver.function_usage.basis_set_id == "basis-v1"
+    assert solver.function_usage.basis_digest == "digest-v1"
+    assert solver.function_usage.get("fn:increment").invocation_count == 1
+
+
+def test_solver_binds_tracker_even_when_every_task_fails():
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    increment.metadata.update(
+        {
+            "basis_function_id": "fn:increment",
+            "basis_set_id": "basis-v1",
+            "basis_set_digest": "digest-v1",
+        }
+    )
+    solver = BFSSolve(budget=1)
+
+    result = solver.solve(TypedList([0]), TypedList([99]), FunctionDefSet([increment]))
+
+    assert not result.success
+    assert solver.function_usage.successful_solve_count == 0
+    assert solver.function_usage.basis_set_id == "basis-v1"
+    assert solver.function_usage.basis_digest == "digest-v1"
+
+
+def test_random_usage_tracking_can_be_explicitly_enabled():
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    solver = RandomSolve(budget=1, path_length=1, track_function_usage=True)
+
+    result = solver.solve(TypedList([0]), TypedList([1]), FunctionDefSet([increment]))
+
+    assert result.success
+    assert solver.function_usage.get(increment).invocation_count == 1
 
 
 def test_bfs_solver_respects_budget():
