@@ -323,6 +323,7 @@ def evaluate_solver_from_file(
     num_samples: int | None = None,
     budget: int = 10,
     variable_name: str = "eval_trajectory_specs",
+    trusted_legacy_python: bool = False,
 ):
     """
     Evaluate a solver using trajectory specs loaded from a .py file.
@@ -333,12 +334,24 @@ def evaluate_solver_from_file(
         num_samples: Number of samples to evaluate (None = all)
         budget: Budget for the solver
         variable_name: Variable name in the eval file
+        trusted_legacy_python: Explicit opt-in because ``.py`` data is executed
     """
     print(f"Loading evaluation data from {eval_file}...")
 
-    # Load trajectory specs from file
+    if not trusted_legacy_python:
+        print(
+            "Error loading evaluation data: legacy .py files execute Python code; "
+            "pass trusted_legacy_python=True only for a reviewed local fixture"
+        )
+        return None
+
+    # Load trajectory specs from an explicitly trusted file.
     try:
-        trajectory_specs = TrajectorySpecList.from_py_file(eval_file, variable_name)
+        trajectory_specs = TrajectorySpecList.from_py_file(
+            eval_file,
+            variable_name,
+            trusted_legacy_python=True,
+        )
         print(f"Loaded {len(trajectory_specs)} trajectory specifications")
     except Exception as e:
         print(f"Error loading evaluation data: {e}")

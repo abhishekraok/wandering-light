@@ -99,7 +99,7 @@ def analyze(
     max_states: int,
     max_transitions: int,
 ) -> list[dict[str, object]]:
-    specs = TrajectorySpecList.from_py_file(str(eval_file))
+    specs = TrajectorySpecList.from_py_file(str(eval_file), trusted_legacy_python=True)
     selected_per_length: Counter[int] = Counter()
     rows: list[dict[str, object]] = []
     for index, spec in enumerate(specs):

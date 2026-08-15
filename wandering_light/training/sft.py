@@ -15,7 +15,10 @@ import wandb
 from wandering_light.constants import DEFAULT_EVAL_FILE, DEFAULT_SOLVER_CHECKPOINT, Task
 from wandering_light.evals.evaluate_proposer import evaluate_proposer
 from wandering_light.evals.model_eval import evaluate_model_checkpoint_with_trajectories
-from wandering_light.evals.run_evaluation import load_eval_data_as_trajectories
+from wandering_light.evals.run_evaluation import (
+    is_packaged_legacy_eval_file,
+    load_eval_data_as_trajectories,
+)
 from wandering_light.solver import TrainedLLMTokenGenerator, create_token_solver
 from wandering_light.training.data_generator import (
     induction_dataset,
@@ -59,7 +62,10 @@ class OnlineEvaluationCallback(TrainerCallback):
         """Load the evaluation data once at initialization and pre-compute trajectories."""
         try:
             self.trajectories, self.available_functions = (
-                load_eval_data_as_trajectories(self.eval_file)
+                load_eval_data_as_trajectories(
+                    self.eval_file,
+                    trusted_legacy_python=is_packaged_legacy_eval_file(self.eval_file),
+                )
             )
             print(f"Pre-computed {len(self.trajectories)} trajectories for online eval")
             print(

@@ -29,9 +29,13 @@ class TrajectorySpec:
 
     @staticmethod
     def create_random_walk(
-        input_list: TypedList, path_length: int, available_functions: list[FunctionDef]
+        input_list: TypedList,
+        path_length: int,
+        available_functions: list[FunctionDef],
+        rng: random.Random | None = None,
     ) -> "TrajectorySpec":
         """Generate a random walk spec by selecting compatible fns (no execution)."""
+        chooser = rng if rng is not None else random
         functions: list[FunctionDef] = []
         # start with the input type
         current_type = input_list.item_type
@@ -40,7 +44,7 @@ class TrajectorySpec:
             candidates = [f for f in available_functions if f.input_type == sig]
             if not candidates:
                 break
-            fn = random.choice(candidates)
+            fn = chooser.choice(candidates)
             functions.append(fn)
             # update type only, no execution
             current_type = fn.output_type_cls()
@@ -211,7 +215,10 @@ class TrajectorySpecList:
 
     @staticmethod
     def from_py_file(
-        file_path: str, variable_name: str = "eval_trajectory_specs"
+        file_path: str,
+        variable_name: str = "eval_trajectory_specs",
+        *,
+        trusted_legacy_python: bool = False,
     ) -> "TrajectorySpecList":
         """
         Load TrajectorySpecList from a .py file.
@@ -219,11 +226,18 @@ class TrajectorySpecList:
         Args:
             file_path: Path to the .py file
             variable_name: Name of the variable in the .py file
+            trusted_legacy_python: Explicit opt-in because the module is executed
 
         Returns:
             TrajectorySpecList loaded from the file
         """
-        # Import the module dynamically
+        if not trusted_legacy_python:
+            raise ValueError(
+                "Legacy .py trajectory files execute Python code. Pass "
+                "trusted_legacy_python=True only for a reviewed local fixture."
+            )
+
+        # Import the explicitly trusted module dynamically.
         import importlib.util
         import sys
 
@@ -343,11 +357,20 @@ class TrajectoryList:
         return cls(trajectories)
 
     @classmethod
-    def from_file(cls, file_path: str) -> "TrajectoryList":
+    def from_file(
+        cls, file_path: str, *, trusted_legacy_python: bool = False
+    ) -> "TrajectoryList":
         """
-        Load a TrajectoryList from a file.
+        Load a TrajectoryList from an explicitly trusted legacy Python file.
         """
-        trajectory_specs = TrajectorySpecList.from_py_file(file_path)
+        if not trusted_legacy_python:
+            raise ValueError(
+                "Legacy .py trajectory files execute Python code. Pass "
+                "trusted_legacy_python=True only for a reviewed local fixture."
+            )
+        trajectory_specs = TrajectorySpecList.from_py_file(
+            file_path, trusted_legacy_python=True
+        )
         available_functions = FunctionDefSet()
         for spec in trajectory_specs.specs:
             available_functions.extend(spec.function_defs.functions)

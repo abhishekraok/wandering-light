@@ -90,7 +90,9 @@ class TestCreateData:
 
             # Verify that data can be loaded back from the file
             loaded_data = TrajectorySpecList.from_py_file(
-                latest_file_path, "eval_trajectory_specs"
+                latest_file_path,
+                "eval_trajectory_specs",
+                trusted_legacy_python=True,
             )
 
             # Check that loaded data matches original

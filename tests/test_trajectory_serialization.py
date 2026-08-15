@@ -20,7 +20,9 @@ class TestTrajectorySpecListSerialization:
 
         try:
             empty_list.to_py_file(temp_path, "test_empty")
-            loaded = TrajectorySpecList.from_py_file(temp_path, "test_empty")
+            loaded = TrajectorySpecList.from_py_file(
+                temp_path, "test_empty", trusted_legacy_python=True
+            )
 
             assert len(loaded) == 0
             assert len(loaded.specs) == 0
@@ -49,7 +51,9 @@ class TestTrajectorySpecListSerialization:
 
         try:
             spec_list.to_py_file(temp_path, "test_single")
-            loaded = TrajectorySpecList.from_py_file(temp_path, "test_single")
+            loaded = TrajectorySpecList.from_py_file(
+                temp_path, "test_single", trusted_legacy_python=True
+            )
 
             assert len(loaded) == 1
             assert loaded[0].input.items == [1, 2, 3]
@@ -91,7 +95,9 @@ class TestTrajectorySpecListSerialization:
             try:
                 spec_list.to_py_file(temp_path, f"test_{expected_type.__name__}")
                 loaded = TrajectorySpecList.from_py_file(
-                    temp_path, f"test_{expected_type.__name__}"
+                    temp_path,
+                    f"test_{expected_type.__name__}",
+                    trusted_legacy_python=True,
                 )
 
                 assert len(loaded) == 1
@@ -138,7 +144,9 @@ class TestTrajectorySpecListSerialization:
 
         try:
             spec_list.to_py_file(temp_path, "test_multiple")
-            loaded = TrajectorySpecList.from_py_file(temp_path, "test_multiple")
+            loaded = TrajectorySpecList.from_py_file(
+                temp_path, "test_multiple", trusted_legacy_python=True
+            )
 
             assert len(loaded) == 3
 
@@ -167,7 +175,9 @@ class TestTrajectorySpecListSerialization:
 
         # Test loading non-existent file
         with pytest.raises(FileNotFoundError):
-            TrajectorySpecList.from_py_file("non_existent_file.py")
+            TrajectorySpecList.from_py_file(
+                "non_existent_file.py", trusted_legacy_python=True
+            )
 
         # Test loading file with wrong variable name
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
@@ -177,7 +187,9 @@ class TestTrajectorySpecListSerialization:
             spec_list.to_py_file(temp_path, "correct_name")
 
             with pytest.raises(AttributeError):
-                TrajectorySpecList.from_py_file(temp_path, "wrong_name")
+                TrajectorySpecList.from_py_file(
+                    temp_path, "wrong_name", trusted_legacy_python=True
+                )
         finally:
             os.unlink(temp_path)
 

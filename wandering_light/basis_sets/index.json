@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "aliases": {
+    "default": "wl-core-v1",
+    "checkpoint-rl-6k-with-lp": "wl-core-pyhash-v1",
+    "pilot-compressed": "wl-pilot-compressed-v1"
+  },
+  "basis_sets": {
+    "wl-core-v1": {
+      "resource": "wl-core-v1.json",
+      "digest": "sha256:ffc602fb24db249df7eb4f6b0d5ba38d5a5070b2c68c6c5f94c7f387de682494"
+    },
+    "wl-core-pyhash-v1": {
+      "resource": "wl-core-pyhash-v1.json",
+      "digest": "sha256:21959c1255caf37b9b2665bf0d83e5c24fc7925e49b2377ddd44e9f2c7d6d4b6"
+    },
+    "wl-pilot-compressed-v1": {
+      "resource": "wl-pilot-compressed-v1.json",
+      "digest": "sha256:60d6ebe054b600410f58b25ff1d3f9cb62b234f3825fdb1c4f71c47eb24fd1c0"
+    }
+  }
+}

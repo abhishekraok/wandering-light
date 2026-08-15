@@ -10,7 +10,10 @@ import streamlit as st
 
 from wandering_light.constants import DEFAULT_EVAL_FILE as PROPOSER_EVAL_FILE
 from wandering_light.evals.explorer_tree import ROOT_ID, TrajectoryTree
-from wandering_light.evals.run_evaluation import load_eval_data_as_trajectories
+from wandering_light.evals.run_evaluation import (
+    is_packaged_legacy_eval_file,
+    load_eval_data_as_trajectories,
+)
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.trajectory import Trajectory, TrajectorySpec
@@ -23,7 +26,10 @@ RESULTS_PROPOSER_DIR = "results/proposer"
 
 @st.cache_resource(show_spinner=False)
 def load_eval(eval_file: str):
-    return load_eval_data_as_trajectories(eval_file)
+    return load_eval_data_as_trajectories(
+        eval_file,
+        trusted_legacy_python=is_packaged_legacy_eval_file(eval_file),
+    )
 
 
 @st.cache_resource(show_spinner=False)
@@ -162,21 +168,17 @@ def _init_eval_tree(traj: Trajectory, executor: Executor) -> None:
 
 
 def _render_eval_tab() -> None:
-    left, mid, right = st.columns([1, 2, 1])
+    _left, mid, _right = st.columns([1, 2, 1])
     with mid:
         st.caption(
             "Full trajectory is shown by default. Change any edge's function "
             "and hit Apply to recompute downstream."
         )
 
-        eval_file = st.text_input(
-            "Eval file", DEFAULT_EVAL_FILE, key="eval_file_input"
-        )
+        eval_file = st.text_input("Eval file", DEFAULT_EVAL_FILE, key="eval_file_input")
         with st.spinner(f"Loading {eval_file}…"):
             trajectories, available_functions = load_eval(eval_file)
-        st.caption(
-            f"{len(trajectories)} inputs · {len(available_functions)} functions"
-        )
+        st.caption(f"{len(trajectories)} inputs · {len(available_functions)} functions")
 
         options = [f"#{i}: {t.input!r}" for i, t in enumerate(trajectories)]
         selected_idx = st.selectbox(
@@ -342,9 +344,7 @@ def _render_solver_tab() -> None:
     solver_data = load_json_file(solver_json_path)
     details = solver_data.get("detailed_results") or []
     if not details:
-        st.warning(
-            "This solver JSON has no `detailed_results` (older run format)."
-        )
+        st.warning("This solver JSON has no `detailed_results` (older run format).")
         return
 
     # Run-level metadata
@@ -600,9 +600,7 @@ def _render_proposer_tab() -> None:
 
     runs = _find_proposer_runs()
     if not runs:
-        st.warning(
-            f"No proposer JSON files found under `{RESULTS_PROPOSER_DIR}/`."
-        )
+        st.warning(f"No proposer JSON files found under `{RESULTS_PROPOSER_DIR}/`.")
         return
 
     run_idx = st.selectbox(
@@ -641,9 +639,7 @@ def _render_proposer_tab() -> None:
     with m3:
         st.metric("Num samples", run_data.get("num_samples", 0))
     with m4:
-        st.metric(
-            "Avg fn count", f"{run_data.get('avg_function_count', 0):.2f}"
-        )
+        st.metric("Avg fn count", f"{run_data.get('avg_function_count', 0):.2f}")
     with m5:
         st.metric(
             "Non-zero solve frac",
@@ -651,9 +647,7 @@ def _render_proposer_tab() -> None:
         )
     proposer_name = run_data.get("proposer_model_name") or "—"
     solver_name = run_data.get("solver_model_name") or "—"
-    st.markdown(
-        f"**Proposer:** `{proposer_name}` · **Solver:** `{solver_name}`"
-    )
+    st.markdown(f"**Proposer:** `{proposer_name}` · **Solver:** `{solver_name}`")
     eval_file_label = "Eval file (assumed)" if eval_file_was_assumed else "Eval file"
     st.markdown(
         f"**{eval_file_label}:** `{eval_file}` · "
@@ -661,16 +655,16 @@ def _render_proposer_tab() -> None:
         f"`{run_data.get('avg_function_count_ratio', 0):.2f}`"
     )
 
-    with st.expander(
-        "Function frequency in proposed problems", expanded=False
-    ):
+    with st.expander("Function frequency in proposed problems", expanded=False):
         counts = _proposer_fn_frequencies(samples)
         if not counts:
             st.info("No parsed `problem_spec`s to count.")
         else:
             sorted_items = sorted(counts.items(), key=lambda x: -x[1])
-            chart_data = {name: count for name, count in sorted_items}
-            st.bar_chart(chart_data, horizontal=True, height=max(200, 22 * len(chart_data)))
+            chart_data = dict(sorted_items)
+            st.bar_chart(
+                chart_data, horizontal=True, height=max(200, 22 * len(chart_data))
+            )
             st.caption(
                 f"{sum(counts.values())} function uses across "
                 f"{len(counts)} unique functions."
@@ -719,9 +713,7 @@ def _render_proposer_tab() -> None:
         st.code(sample.get("raw_response") or "", language="text")
 
     if st.session_state.get("prop_parse_error"):
-        st.error(
-            f"Failed to parse problem_spec: {st.session_state.prop_parse_error}"
-        )
+        st.error(f"Failed to parse problem_spec: {st.session_state.prop_parse_error}")
 
     st.divider()
 
@@ -758,9 +750,7 @@ def _render_proposer_tab() -> None:
         if not groups:
             st.info("No successful attempts to display.")
         for gi, (seq, count) in enumerate(groups):
-            st.markdown(
-                f"**✓ `{', '.join(seq) or '(empty)'}` × {count}**"
-            )
+            st.markdown(f"**✓ `{', '.join(seq) or '(empty)'}` x {count}**")
             miss = missing_att.get(gi) or []
             tree = trees_att.get(gi)
             if miss:
@@ -778,9 +768,7 @@ def _render_proposer_tab() -> None:
 
 
 def main() -> None:
-    st.set_page_config(
-        page_title="Trajectory Explorer", page_icon="🌳", layout="wide"
-    )
+    st.set_page_config(page_title="Trajectory Explorer", page_icon="🌳", layout="wide")
     st.title("🌳 Trajectory Explorer")
 
     eval_tab, solver_tab, proposer_tab = st.tabs(

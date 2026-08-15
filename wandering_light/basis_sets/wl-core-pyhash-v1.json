@@ -1,0 +1,1080 @@
+{
+  "schema_version": 1,
+  "basis_set_id": "wl-core-pyhash-v1",
+  "description": "Exact ordered 118-function palette associated with rl-6k-with-lp. Its str_hash and set_hash use process-randomized Python hashing; the training PYTHONHASHSEED is unknown.",
+  "parent_basis_set_id": null,
+  "provenance": {
+    "kind": "git_and_checkpoint_snapshot",
+    "source_git_commit": "4e9ac78cf2f1dd8c4ea9229d4d3e69c5ff36b7c7",
+    "source_path": "wandering_light/common_functions.py",
+    "checkpoint_alias": "rl-6k-with-lp",
+    "hf_revision": "0c4ea07bfa618321b8dc5ce956ce5a86560d99a7",
+    "wandb_run_url": "https://wandb.ai/abhishekraok-na/wandering-light-rl_induction/runs/dp8ylg8y",
+    "pythonhashseed": "unknown"
+  },
+  "functions": [
+    {
+      "function_id": "bf:inc:bb07948ceffb7f8a",
+      "fingerprint": "sha256:bb07948ceffb7f8a4dd314d5ae03fe578c005ee4f70e1ee2195055c3b9d6100a",
+      "name": "inc",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return x + 1",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:dec:97c68e52567ba796",
+      "fingerprint": "sha256:97c68e52567ba796fffa7401836661b110fd763063848ea23aa2501adaa3af0d",
+      "name": "dec",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return x - 1",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:double:ff56194234a09619",
+      "fingerprint": "sha256:ff56194234a09619dcfdc44697043746c7ec42200ac49eed399e20ce29ad7e52",
+      "name": "double",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return x * 2",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:half:e65ca899f63afbca",
+      "fingerprint": "sha256:e65ca899f63afbca42855c071d77c62ef6e5c7e718fc446d6575f3727b88ca82",
+      "name": "half",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return x // 2",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:square:50d99731be7a3b4e",
+      "fingerprint": "sha256:50d99731be7a3b4e7385577c3f1826dd2ca069fa715a52277ffcb42dd4d92877",
+      "name": "square",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return x * x",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:mod2:af86fc18885b6497",
+      "fingerprint": "sha256:af86fc18885b64977f4446ce736fe8e5b3ea9cf15c365409e5a1c4d0d95272a2",
+      "name": "mod2",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return x % 2",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:neg:1e214fd4f8604d2f",
+      "fingerprint": "sha256:1e214fd4f8604d2f516d1e318c33c551f346470c03fd059fe1d41870df872ed3",
+      "name": "neg",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return -x",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:abs:826c4c022a657475",
+      "fingerprint": "sha256:826c4c022a65747592be013b3a334cf90f1989a352fe0af5bc934988f98a112f",
+      "name": "abs",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return abs(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:sign:47bd4e8cd0babf37",
+      "fingerprint": "sha256:47bd4e8cd0babf37dc8ce1343d6a592181b6963e01998b6b23cd488d5fc13dd3",
+      "name": "sign",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return 1 if x > 0 else (-1 if x < 0 else 0)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_reciprocal:06b4b56f5cc32a09",
+      "fingerprint": "sha256:06b4b56f5cc32a09ec571c17db04a9580bdc91671b8420dd8b315559c0256c24",
+      "name": "f_reciprocal",
+      "input_type": "builtins.float",
+      "output_type": "builtins.float",
+      "code": "return float('inf') if x == 0 else 1.0 / x",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_abs_sqrt:3471d8804302ba4c",
+      "fingerprint": "sha256:3471d8804302ba4cf698495106b1edd945c92589a89823e0ddb3690ac177f355",
+      "name": "f_abs_sqrt",
+      "input_type": "builtins.float",
+      "output_type": "builtins.float",
+      "code": "return abs(x) ** 0.5",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_fraction:686f6b119ddb6b34",
+      "fingerprint": "sha256:686f6b119ddb6b34d6137d4d7cc4408eec6501ea2b41097acbc94858388655d1",
+      "name": "f_fraction",
+      "input_type": "builtins.float",
+      "output_type": "builtins.float",
+      "code": "return x - int(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_trunc:7606784abf597c9c",
+      "fingerprint": "sha256:7606784abf597c9c7cc4f0eaad7672c64292a3acbc579ecbf9cdd899601749d4",
+      "name": "f_trunc",
+      "input_type": "builtins.float",
+      "output_type": "builtins.int",
+      "code": "return int(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_round:b7b0b209789c48e6",
+      "fingerprint": "sha256:b7b0b209789c48e62b4c7b6913dffcf93f73afda9492156d380df5b17dbbb284",
+      "name": "f_round",
+      "input_type": "builtins.float",
+      "output_type": "builtins.int",
+      "code": "return round(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_mod1:de96d7ff3d5e4ffb",
+      "fingerprint": "sha256:de96d7ff3d5e4ffb089f8e8b1e44c02699a7e6759bff46ce131703fd2440b858",
+      "name": "f_mod1",
+      "input_type": "builtins.float",
+      "output_type": "builtins.float",
+      "code": "return x % 1.0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:upper:41a2af70b9cf67eb",
+      "fingerprint": "sha256:41a2af70b9cf67ebc85867afcb694d555af4e733463f86db4bc659eb6fb1764c",
+      "name": "upper",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return x.upper()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:lower:07f5833f30eb0818",
+      "fingerprint": "sha256:07f5833f30eb0818cc116583180bd9a49629e911c44a3ac4f6286594cd38285c",
+      "name": "lower",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return x.lower()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:capitalize:3873259f8ffeda3d",
+      "fingerprint": "sha256:3873259f8ffeda3d8ec89d898bebb51f0fbbe8958bf8a443a1ab0e908b444b6f",
+      "name": "capitalize",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return x.capitalize()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:title:23ed5d9773be76d2",
+      "fingerprint": "sha256:23ed5d9773be76d280ddfd7f6b984ecd2396733f6c57747292f4bd949e78307b",
+      "name": "title",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return x.title()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:strip:8df7efb8dec1a4fc",
+      "fingerprint": "sha256:8df7efb8dec1a4fc550a6f2d130494cbcb7d1c819b9053f04c1029bc81fe5aa4",
+      "name": "strip",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return x.strip()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:swapcase:c6f5aadbc79b4ca9",
+      "fingerprint": "sha256:c6f5aadbc79b4ca96babedb3dfdcf745d8027205fe730d36ac541af77a0e6625",
+      "name": "swapcase",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return x.swapcase()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:reverse:695711b6ef6133b8",
+      "fingerprint": "sha256:695711b6ef6133b8547e319425219a724af36af6c416b7163542f2c08885669a",
+      "name": "reverse",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return x[::-1]",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:repeat:1459007b02a7f558",
+      "fingerprint": "sha256:1459007b02a7f5584405c718cffe620805c425b7a46a0936d6549928de513c81",
+      "name": "repeat",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return x * 2",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:duplicate:b6fcd3e3946b815e",
+      "fingerprint": "sha256:b6fcd3e3946b815e42aa571ba5eea7748143ea562f6b650853fbffb2328ffd7a",
+      "name": "duplicate",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return x + x",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:length:dbbaac84aa35ba3d",
+      "fingerprint": "sha256:dbbaac84aa35ba3d9be36568c812eb0ea3a21d34b1c44244570f6d7a94f12429",
+      "name": "length",
+      "input_type": "builtins.str",
+      "output_type": "builtins.int",
+      "code": "return len(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:is_digit:50d714d58eacd050",
+      "fingerprint": "sha256:50d714d58eacd05088491f7f6442149b786428b2d09758ff791e9fafa5ce8a1b",
+      "name": "is_digit",
+      "input_type": "builtins.str",
+      "output_type": "builtins.bool",
+      "code": "return x.isdigit()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:is_alpha:03ec3d7749e07a1a",
+      "fingerprint": "sha256:03ec3d7749e07a1a2152c9b3f6c85f0c503e6b96dddb2a12ea87e1bd23af183d",
+      "name": "is_alpha",
+      "input_type": "builtins.str",
+      "output_type": "builtins.bool",
+      "code": "return x.isalpha()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:count_a:c42b2daf3fee28ea",
+      "fingerprint": "sha256:c42b2daf3fee28eac4bf672b3cd4208572cdfb38d04a97a55d44acdae9dff801",
+      "name": "count_a",
+      "input_type": "builtins.str",
+      "output_type": "builtins.int",
+      "code": "return x.count('a')",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:startswith_a:d85466660ef2cfc5",
+      "fingerprint": "sha256:d85466660ef2cfc5c2056b47c54d45c400af43525c8cc832137767eded81b80a",
+      "name": "startswith_a",
+      "input_type": "builtins.str",
+      "output_type": "builtins.bool",
+      "code": "return x.startswith('a')",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:endswith_z:8aed4a159d6ae1e5",
+      "fingerprint": "sha256:8aed4a159d6ae1e5058525ca3cd48c5a4932a0041a8a2d3cf8cadd9f507aa032",
+      "name": "endswith_z",
+      "input_type": "builtins.str",
+      "output_type": "builtins.bool",
+      "code": "return x.endswith('z')",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:contains_space:8e82777af07b983a",
+      "fingerprint": "sha256:8e82777af07b983a986c63bb1e3caa37ffa4368809f386cfe6a5dfbea7c95676",
+      "name": "contains_space",
+      "input_type": "builtins.str",
+      "output_type": "builtins.bool",
+      "code": "return ' ' in x",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bool_not:60f7e508e7a8d39e",
+      "fingerprint": "sha256:60f7e508e7a8d39e4f2ad5b476477a6a1ca379b08546b05a4f413ca1b85ff402",
+      "name": "bool_not",
+      "input_type": "builtins.bool",
+      "output_type": "builtins.bool",
+      "code": "return not x",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bool_to_int:7e15f7e392ba5db8",
+      "fingerprint": "sha256:7e15f7e392ba5db822027f4baecfc2bf888d235da80b41e83dd71e9e7ff34f33",
+      "name": "bool_to_int",
+      "input_type": "builtins.bool",
+      "output_type": "builtins.int",
+      "code": "return int(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bool_to_str:08eb32f1ca5053f7",
+      "fingerprint": "sha256:08eb32f1ca5053f764c8edba57d514512cc1e4d843ca1a2d9e0eac3b7130b43e",
+      "name": "bool_to_str",
+      "input_type": "builtins.bool",
+      "output_type": "builtins.str",
+      "code": "return str(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:identity_int:d4850619def23cdf",
+      "fingerprint": "sha256:d4850619def23cdf7c4f7420e7842ec42ef8d2273814014a4b29ff7caa9e3c74",
+      "name": "identity_int",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return x",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:is_even:2ab9bb06bbbccce6",
+      "fingerprint": "sha256:2ab9bb06bbbccce66ed7d9333fc694c59835398f2c687e5ce8f7e78930fb8e8d",
+      "name": "is_even",
+      "input_type": "builtins.int",
+      "output_type": "builtins.bool",
+      "code": "return x % 2 == 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:is_odd:08c2f9d8c9320ef8",
+      "fingerprint": "sha256:08c2f9d8c9320ef897dfec7feb6dacd01dd79a24a0ce165aa00f7cff73c20d72",
+      "name": "is_odd",
+      "input_type": "builtins.int",
+      "output_type": "builtins.bool",
+      "code": "return x % 2 == 1",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:int_to_bool:c141de504097fe96",
+      "fingerprint": "sha256:c141de504097fe9680511769cc20b8d06ea252a04b1916f21cd0039849005e1b",
+      "name": "int_to_bool",
+      "input_type": "builtins.int",
+      "output_type": "builtins.bool",
+      "code": "return bool(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:int_to_str:cabcd36e9cb530c6",
+      "fingerprint": "sha256:cabcd36e9cb530c68e1592ebae9750839acb9de3a78a57ec1c9c6078ecfaa525",
+      "name": "int_to_str",
+      "input_type": "builtins.int",
+      "output_type": "builtins.str",
+      "code": "return str(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_abs:3ec8ba90e5226b42",
+      "fingerprint": "sha256:3ec8ba90e5226b42ef938a517324eaf32278ca84d27012b3ae4ffeabed1b0d11",
+      "name": "f_abs",
+      "input_type": "builtins.float",
+      "output_type": "builtins.float",
+      "code": "return abs(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_floor:7f4514287a688b4d",
+      "fingerprint": "sha256:7f4514287a688b4dac010494a446b22c607d85a48f6dd8e6fa550efaa0e6dca9",
+      "name": "f_floor",
+      "input_type": "builtins.float",
+      "output_type": "builtins.int",
+      "code": "return __import__('math').floor(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_ceil:36c6d8940b5d4d0c",
+      "fingerprint": "sha256:36c6d8940b5d4d0c4f87b5be83aa354c80324533968f632af470689adcd65209",
+      "name": "f_ceil",
+      "input_type": "builtins.float",
+      "output_type": "builtins.int",
+      "code": "return __import__('math').ceil(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_square:349d61f586ec8305",
+      "fingerprint": "sha256:349d61f586ec830501cbb456e4155ff101e387b75d61b7dc7dff58e7b60a7946",
+      "name": "f_square",
+      "input_type": "builtins.float",
+      "output_type": "builtins.float",
+      "code": "return x * x",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:is_lower:d8f531cdf38a9e49",
+      "fingerprint": "sha256:d8f531cdf38a9e497b32d1a574cfdb1019f34a393dea0ee181068c3fe49d6d9e",
+      "name": "is_lower",
+      "input_type": "builtins.str",
+      "output_type": "builtins.bool",
+      "code": "return x.islower()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:is_upper:50dbbec37f0c6de6",
+      "fingerprint": "sha256:50dbbec37f0c6de60423dd61da85bbafb40521da208e7c50a472ce7bdc078d3f",
+      "name": "is_upper",
+      "input_type": "builtins.str",
+      "output_type": "builtins.bool",
+      "code": "return x.isupper()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:is_space:4b732f63bbf69c83",
+      "fingerprint": "sha256:4b732f63bbf69c8332cd40517c2f3fdf84c9773f09c957d52e742c2fb23ca900",
+      "name": "is_space",
+      "input_type": "builtins.str",
+      "output_type": "builtins.bool",
+      "code": "return x.isspace()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:is_title:2a5e432b4d68cb98",
+      "fingerprint": "sha256:2a5e432b4d68cb98e4808ad6ed7caca04c50f88fe6cfc08837af84d11dd91db7",
+      "name": "is_title",
+      "input_type": "builtins.str",
+      "output_type": "builtins.bool",
+      "code": "return x.istitle()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:is_numeric:9010eda09f00e395",
+      "fingerprint": "sha256:9010eda09f00e395372b24f9bb97e86ed9dea881c8677f5ea7d63aa8a837ddbb",
+      "name": "is_numeric",
+      "input_type": "builtins.str",
+      "output_type": "builtins.bool",
+      "code": "return x.isnumeric()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:is_positive:b27c368a7c55766d",
+      "fingerprint": "sha256:b27c368a7c55766db97f3713d1c005110b9a442433c71bb6d6cd2cc3da4931f0",
+      "name": "is_positive",
+      "input_type": "builtins.int",
+      "output_type": "builtins.bool",
+      "code": "return x > 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:is_negative:f16655c075f43527",
+      "fingerprint": "sha256:f16655c075f435277c229f0ae1ec5b94b6065bf78848d21142b34b1eac66177c",
+      "name": "is_negative",
+      "input_type": "builtins.int",
+      "output_type": "builtins.bool",
+      "code": "return x < 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:int_to_float:bab36f9932d77c6c",
+      "fingerprint": "sha256:bab36f9932d77c6c9cea502a1b8a6b26895d04953a10d87d812d7c8a65ae0388",
+      "name": "int_to_float",
+      "input_type": "builtins.int",
+      "output_type": "builtins.float",
+      "code": "return float(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:float_to_str:f272ff36b283c7d6",
+      "fingerprint": "sha256:f272ff36b283c7d645042bacca829112607110594d5ff60e21f15ed49a870e30",
+      "name": "float_to_str",
+      "input_type": "builtins.float",
+      "output_type": "builtins.str",
+      "code": "return str(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:first_char:5cf76f5222acc396",
+      "fingerprint": "sha256:5cf76f5222acc39607ec108199774ea80e3e538486724892a90eb27318500e63",
+      "name": "first_char",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return x[0] if x else ''",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:last_char:d49f49a337f5fead",
+      "fingerprint": "sha256:d49f49a337f5feadb375e4727ba35828236ed3e77818e99b052366f20df510cb",
+      "name": "last_char",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return x[-1] if x else ''",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bool_identity:0215e6b5f83c85af",
+      "fingerprint": "sha256:0215e6b5f83c85af9bea7bda139e5caaa578c19b7be6792443071baac23f0274",
+      "name": "bool_identity",
+      "input_type": "builtins.bool",
+      "output_type": "builtins.bool",
+      "code": "return x",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bool_to_float:e79ce91faec05fcd",
+      "fingerprint": "sha256:e79ce91faec05fcdf53c4c57d08ef7c0f201e4cbc19a3449eb18de4ecb33bf21",
+      "name": "bool_to_float",
+      "input_type": "builtins.bool",
+      "output_type": "builtins.float",
+      "code": "return 1.0 if x else 0.0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:list_length:fd004648afe26601",
+      "fingerprint": "sha256:fd004648afe26601f8389d72a661de3ce219e496676140132177b8abe7965250",
+      "name": "list_length",
+      "input_type": "builtins.list",
+      "output_type": "builtins.int",
+      "code": "return len(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:list_reverse:6c53a092ee85ed6a",
+      "fingerprint": "sha256:6c53a092ee85ed6a12599af894511ec9d4c49513a2d8eb2875aebc7dd3a7c7da",
+      "name": "list_reverse",
+      "input_type": "builtins.list",
+      "output_type": "builtins.list",
+      "code": "return x[::-1]",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:list_sorted:5eb8823d5f386a6e",
+      "fingerprint": "sha256:5eb8823d5f386a6e230e7c39e1a60f6aa460f8c502b2aaebb40af2d5050cdcd9",
+      "name": "list_sorted",
+      "input_type": "builtins.list",
+      "output_type": "builtins.list",
+      "code": "return sorted(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:list_unique:5f99e280d1122b6a",
+      "fingerprint": "sha256:5f99e280d1122b6a6cff8ae86e191ec425646f2381ae68720bca6c1b82d94f39",
+      "name": "list_unique",
+      "input_type": "builtins.list",
+      "output_type": "builtins.list",
+      "code": "return list(dict.fromkeys(x))",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:list_sum:b13c6f9a0792119a",
+      "fingerprint": "sha256:b13c6f9a0792119acae030f89b29b8a2d3e0374eeeaf79f314fe08c0f1c696f4",
+      "name": "list_sum",
+      "input_type": "builtins.list",
+      "output_type": "builtins.int",
+      "code": "return sum(x) if x and all(isinstance(v, (int, float)) for v in x) else 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:list_is_empty:bc2fca3ed9af759e",
+      "fingerprint": "sha256:bc2fca3ed9af759e238904681f64ba212a808aa54b6224103286e20e84e44d4e",
+      "name": "list_is_empty",
+      "input_type": "builtins.list",
+      "output_type": "builtins.bool",
+      "code": "return len(x) == 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:tuple_length:34072693e13d17df",
+      "fingerprint": "sha256:34072693e13d17dfc8b018e4ceadf4a83d21f34a9cf1943bb15d3bb11606c8f3",
+      "name": "tuple_length",
+      "input_type": "builtins.tuple",
+      "output_type": "builtins.int",
+      "code": "return len(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:tuple_reverse:6e1aca53baffe9e0",
+      "fingerprint": "sha256:6e1aca53baffe9e0831ef0d38a44111baac3c36df18f423cb6003f6e5fd5c043",
+      "name": "tuple_reverse",
+      "input_type": "builtins.tuple",
+      "output_type": "builtins.tuple",
+      "code": "return x[::-1]",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:tuple_to_list:7e331fc8a4616713",
+      "fingerprint": "sha256:7e331fc8a46167133391bf2cbba9c18ce09332f646f6a55b13a7e0ee8269a4d1",
+      "name": "tuple_to_list",
+      "input_type": "builtins.tuple",
+      "output_type": "builtins.list",
+      "code": "return list(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:tuple_is_empty:3f7902c1eddfb96b",
+      "fingerprint": "sha256:3f7902c1eddfb96bb6d68ccc14f2c0a06409dbce8bbff7885371c3e5c51e9386",
+      "name": "tuple_is_empty",
+      "input_type": "builtins.tuple",
+      "output_type": "builtins.bool",
+      "code": "return len(x) == 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:set_size:712abc5538a9689f",
+      "fingerprint": "sha256:712abc5538a9689f13bbeb493e51885bedbe3918474ed1ba20e6d7b4b4ba35bc",
+      "name": "set_size",
+      "input_type": "builtins.set",
+      "output_type": "builtins.int",
+      "code": "return len(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:set_is_empty:fffcd4e0b7488157",
+      "fingerprint": "sha256:fffcd4e0b74881577b6961d44d948010d742dc9b98f8457545936a181e07c9fe",
+      "name": "set_is_empty",
+      "input_type": "builtins.set",
+      "output_type": "builtins.bool",
+      "code": "return len(x) == 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:set_to_list:ce70a92de0c19b79",
+      "fingerprint": "sha256:ce70a92de0c19b7956ebb44882eb2f66269b25ef47f85d872784e402a5ac9a9d",
+      "name": "set_to_list",
+      "input_type": "builtins.set",
+      "output_type": "builtins.list",
+      "code": "return list(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:dict_keys:3c0ba2da2fb2e55e",
+      "fingerprint": "sha256:3c0ba2da2fb2e55eafd1912d65573067924622d9eca2d50336b1a9b18f5c6bcc",
+      "name": "dict_keys",
+      "input_type": "builtins.dict",
+      "output_type": "builtins.list",
+      "code": "return list(x.keys())",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:dict_values:d8887d51effc6164",
+      "fingerprint": "sha256:d8887d51effc6164c2334ad4213ae2c2b3443855121bdfdd9b123a574537ef0b",
+      "name": "dict_values",
+      "input_type": "builtins.dict",
+      "output_type": "builtins.list",
+      "code": "return list(x.values())",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:dict_items:9e4ad7fb99745ae8",
+      "fingerprint": "sha256:9e4ad7fb99745ae8ff6a4251383ce2292010383422ebea1d92cdaa3c5a8cc921",
+      "name": "dict_items",
+      "input_type": "builtins.dict",
+      "output_type": "builtins.list",
+      "code": "return list(x.items())",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:dict_length:a493cedb90c6592f",
+      "fingerprint": "sha256:a493cedb90c6592f439b8255cb9d483c4133da8bf7f509f426e54981a3eba36e",
+      "name": "dict_length",
+      "input_type": "builtins.dict",
+      "output_type": "builtins.int",
+      "code": "return len(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:dict_is_empty:6e2495498bceb1c5",
+      "fingerprint": "sha256:6e2495498bceb1c51b6211064158204ef5e21d49c5f3632d1bd02e6d4cac37a1",
+      "name": "dict_is_empty",
+      "input_type": "builtins.dict",
+      "output_type": "builtins.bool",
+      "code": "return len(x) == 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:dict_keyset:3ec30dcde4d67127",
+      "fingerprint": "sha256:3ec30dcde4d67127ff4c99a48f29a286c78fd9df5c849bb654e6dd8091e82792",
+      "name": "dict_keyset",
+      "input_type": "builtins.dict",
+      "output_type": "builtins.set",
+      "code": "return set(x.keys())",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bytes_length:eb6a2e0f129d609c",
+      "fingerprint": "sha256:eb6a2e0f129d609c6b1f155d23e8e340768a079524fa926ad7daa29ffdfab48a",
+      "name": "bytes_length",
+      "input_type": "builtins.bytes",
+      "output_type": "builtins.int",
+      "code": "return len(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bytes_to_hex:534557e6a46a0369",
+      "fingerprint": "sha256:534557e6a46a0369500ed4017e69725f8388f65c603964787ca10d9e92d1316c",
+      "name": "bytes_to_hex",
+      "input_type": "builtins.bytes",
+      "output_type": "builtins.str",
+      "code": "return x.hex()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bytes_upper:0038662eba1cdb0c",
+      "fingerprint": "sha256:0038662eba1cdb0cb2fee666134de8fff51565c861c605d684bf414ab3f7e2ac",
+      "name": "bytes_upper",
+      "input_type": "builtins.bytes",
+      "output_type": "builtins.bytes",
+      "code": "return x.upper()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bytes_is_empty:cab8eb537227ef59",
+      "fingerprint": "sha256:cab8eb537227ef590cdf73db0ad06dd4589c52cb4d151b029eb0e8ea37221cad",
+      "name": "bytes_is_empty",
+      "input_type": "builtins.bytes",
+      "output_type": "builtins.bool",
+      "code": "return len(x) == 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bytearray_length:6e70260a47c836dc",
+      "fingerprint": "sha256:6e70260a47c836dc348498ff7d461f1ce2b256859f8314e4301f9640e56f683b",
+      "name": "bytearray_length",
+      "input_type": "builtins.bytearray",
+      "output_type": "builtins.int",
+      "code": "return len(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bytearray_to_bytes:f0bcb501e6838da6",
+      "fingerprint": "sha256:f0bcb501e6838da6d2210b4e88c99f8c6fe45679304e00a5deb87a198df0daf6",
+      "name": "bytearray_to_bytes",
+      "input_type": "builtins.bytearray",
+      "output_type": "builtins.bytes",
+      "code": "return bytes(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bytearray_reverse:7a118d7090d4be52",
+      "fingerprint": "sha256:7a118d7090d4be529aad32880b6a41a10439ac9a163cf702a9f82e304df66d09",
+      "name": "bytearray_reverse",
+      "input_type": "builtins.bytearray",
+      "output_type": "builtins.bytearray",
+      "code": "return bytearray(x[::-1])",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:complex_real:a3e0d0bd0cb3c59c",
+      "fingerprint": "sha256:a3e0d0bd0cb3c59c5e12cd265fc956fe1c605221a2eb84300eae37f89abd31c6",
+      "name": "complex_real",
+      "input_type": "builtins.complex",
+      "output_type": "builtins.float",
+      "code": "return x.real",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:complex_imag:14e0f2adb143800b",
+      "fingerprint": "sha256:14e0f2adb143800b2e88d9482dab7716f2615089274610c6e1492c4fcf60a36b",
+      "name": "complex_imag",
+      "input_type": "builtins.complex",
+      "output_type": "builtins.float",
+      "code": "return x.imag",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:complex_abs:2671b4376e68d8a8",
+      "fingerprint": "sha256:2671b4376e68d8a8c813f4a546c2477a7092709c96dc8d5faaa3e42418f9e595",
+      "name": "complex_abs",
+      "input_type": "builtins.complex",
+      "output_type": "builtins.float",
+      "code": "return abs(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:range_length:71484b42f63643c3",
+      "fingerprint": "sha256:71484b42f63643c3c099cdd3ddbbc325ec96bf3fdb192c8fbb9ce549a37484a0",
+      "name": "range_length",
+      "input_type": "builtins.range",
+      "output_type": "builtins.int",
+      "code": "return len(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:range_list:8b6c55d72bd3995a",
+      "fingerprint": "sha256:8b6c55d72bd3995ad09fdc774d523c5e6b17c82ab4b5a974e28526314ae526e1",
+      "name": "range_list",
+      "input_type": "builtins.range",
+      "output_type": "builtins.list",
+      "code": "return list(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:range_sum:ba5cd113f219aff8",
+      "fingerprint": "sha256:ba5cd113f219aff801f3c181634187805dc8a66c4cbec38736986eda7ddfa64a",
+      "name": "range_sum",
+      "input_type": "builtins.range",
+      "output_type": "builtins.int",
+      "code": "return sum(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:int_bit_length:5ae03fa65e72a11f",
+      "fingerprint": "sha256:5ae03fa65e72a11f03024913851f5ccd26c3da062c6e55ace295c44827771120",
+      "name": "int_bit_length",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return x.bit_length()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:int_popcount:385a38912de6258e",
+      "fingerprint": "sha256:385a38912de6258e6ccd9c8a6aa6e9f4c9ca413406f01f2e1c9a4e17c8ef0001",
+      "name": "int_popcount",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return x.bit_count()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:int_is_power_of_two:4b37779a1d702d5f",
+      "fingerprint": "sha256:4b37779a1d702d5f22e217661d29d5023f03326d72f6f11a77f16f82806db847",
+      "name": "int_is_power_of_two",
+      "input_type": "builtins.int",
+      "output_type": "builtins.bool",
+      "code": "return x > 0 and (x & (x - 1)) == 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:int_clip_0_100:5e31e275bfca818e",
+      "fingerprint": "sha256:5e31e275bfca818e8ddcb697fed8cfc0ab5ec552408f553c302b1509a4a2fbb7",
+      "name": "int_clip_0_100",
+      "input_type": "builtins.int",
+      "output_type": "builtins.int",
+      "code": "return 0 if x < 0 else (100 if x > 100 else x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_log10:5482c4311822956b",
+      "fingerprint": "sha256:5482c4311822956b576c640d2a65a1ffee095d2941f6cfab6a4a219de8cdc052",
+      "name": "f_log10",
+      "input_type": "builtins.float",
+      "output_type": "builtins.float",
+      "code": "import math; return math.log10(x) if x > 0 else 0.0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_exp:04b049c5c5ece251",
+      "fingerprint": "sha256:04b049c5c5ece251b58b8b55ae0643fa8d63d64cea58612f2a387aa2dba652cd",
+      "name": "f_exp",
+      "input_type": "builtins.float",
+      "output_type": "builtins.float",
+      "code": "import math; return math.exp(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_sin:8e867efb661a12f4",
+      "fingerprint": "sha256:8e867efb661a12f4e9eb8a9f1e12c6f9d6bcb3f1271a916ba54750357ca4f581",
+      "name": "f_sin",
+      "input_type": "builtins.float",
+      "output_type": "builtins.float",
+      "code": "import math; return math.sin(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_is_integer:5bfde11980c2db08",
+      "fingerprint": "sha256:5bfde11980c2db08c057e2c03339dc5c81efb89c4cb6646452d800ac89a64c9b",
+      "name": "f_is_integer",
+      "input_type": "builtins.float",
+      "output_type": "builtins.bool",
+      "code": "return x.is_integer()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:f_frac_percent:9fba77636fc375da",
+      "fingerprint": "sha256:9fba77636fc375da1b5332836944a812cbee11654ba340b1caa4bcd372b93a16",
+      "name": "f_frac_percent",
+      "input_type": "builtins.float",
+      "output_type": "builtins.int",
+      "code": "return int((x - int(x)) * 100)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:str_is_palindrome:d8076c276688acc4",
+      "fingerprint": "sha256:d8076c276688acc4ce9b820eb9ff6f1f4e8f1ca43d00a81d7f88b9de65f1605f",
+      "name": "str_is_palindrome",
+      "input_type": "builtins.str",
+      "output_type": "builtins.bool",
+      "code": "s=x.lower(); return s==s[::-1]",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:str_count_vowels:dc079f4a090ee58a",
+      "fingerprint": "sha256:dc079f4a090ee58a3696fb1ec349bdd7976121bb38aabfe56db1fbd986e45e90",
+      "name": "str_count_vowels",
+      "input_type": "builtins.str",
+      "output_type": "builtins.int",
+      "code": "return sum(1 for c in x.lower() if c in 'aeiou')",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:str_remove_digits:561d9727fdd2ce35",
+      "fingerprint": "sha256:561d9727fdd2ce3522a4f21f320c55ebcb903504e811b0a8534ac9ca557168e5",
+      "name": "str_remove_digits",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return ''.join(c for c in x if not c.isdigit())",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:str_reverse_words:00b2e9b461a03b02",
+      "fingerprint": "sha256:00b2e9b461a03b02bfda1d71698114c52fa298aa55fe1251ed55500160b69ac7",
+      "name": "str_reverse_words",
+      "input_type": "builtins.str",
+      "output_type": "builtins.str",
+      "code": "return ' '.join(x.split()[::-1])",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:str_to_list:2e3afce53ca18472",
+      "fingerprint": "sha256:2e3afce53ca184722c831c4ab2d11a02be222c6a23896ca72a6209c44b614392",
+      "name": "str_to_list",
+      "input_type": "builtins.str",
+      "output_type": "builtins.list",
+      "code": "return list(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:str_hash:a56f9a30316e1b92",
+      "fingerprint": "sha256:a56f9a30316e1b92c816018aa1cdee48fe1f04dcc37c3d9369664446586440b5",
+      "name": "str_hash",
+      "input_type": "builtins.str",
+      "output_type": "builtins.int",
+      "code": "return hash(x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:list_max:40bcfc1bafeae538",
+      "fingerprint": "sha256:40bcfc1bafeae5388d5dd840dbc6e61f98a9583aac97f75b99b317e3df7275d0",
+      "name": "list_max",
+      "input_type": "builtins.list",
+      "output_type": "builtins.int",
+      "code": "return max(x) if x and all(isinstance(v, (int, float)) for v in x) else 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:list_min:00b4c1cab7e9926a",
+      "fingerprint": "sha256:00b4c1cab7e9926afdf7ad8da7b1f5a4b959f779b1db7efd2dc255f59d6e1de9",
+      "name": "list_min",
+      "input_type": "builtins.list",
+      "output_type": "builtins.int",
+      "code": "return min(x) if x and all(isinstance(v, (int, float)) for v in x) else 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:list_tail:03c229ecd7f92bd1",
+      "fingerprint": "sha256:03c229ecd7f92bd1c700751b69ecb44393f0b661725d35198e0cf65577638fee",
+      "name": "list_tail",
+      "input_type": "builtins.list",
+      "output_type": "builtins.list",
+      "code": "return x[1:]",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:list_median:e88bbe1f0288e974",
+      "fingerprint": "sha256:e88bbe1f0288e9749bc7fdbb45229ca5e4008344036e6dabd164f04c12c7211f",
+      "name": "list_median",
+      "input_type": "builtins.list",
+      "output_type": "builtins.float",
+      "code": "import statistics; return float(statistics.median(x)) if x else 0.0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:tuple_count_none:3b95a7fa1bb3a63b",
+      "fingerprint": "sha256:3b95a7fa1bb3a63b8439d907aa122f85965f75d490a4fd7b24f77da8efb21ef4",
+      "name": "tuple_count_none",
+      "input_type": "builtins.tuple",
+      "output_type": "builtins.int",
+      "code": "return x.count(None)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:tuple_to_index_dict:ebdf0d9e627ee143",
+      "fingerprint": "sha256:ebdf0d9e627ee14357746aeb64f1b4defd67854a4478e3bc470c1de7dffbdd31",
+      "name": "tuple_to_index_dict",
+      "input_type": "builtins.tuple",
+      "output_type": "builtins.dict",
+      "code": "return {i:v for i,v in enumerate(x)}",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:dict_freeze:1a369ea8edf72de4",
+      "fingerprint": "sha256:1a369ea8edf72de43f23f7a0c1626d4478e3ba812819e49415064cefcb97b9fc",
+      "name": "dict_freeze",
+      "input_type": "builtins.dict",
+      "output_type": "builtins.tuple",
+      "code": "return tuple(sorted(x.items()))",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:dict_has_duplicate_values:74fd413998784b7f",
+      "fingerprint": "sha256:74fd413998784b7fe5085174aa28550733279a7961300b44c37e7a342de28d28",
+      "name": "dict_has_duplicate_values",
+      "input_type": "builtins.dict",
+      "output_type": "builtins.bool",
+      "code": "vals=list(x.values()); return len(vals)!=len(set(vals))",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:dict_flip:6f26b851abce3eed",
+      "fingerprint": "sha256:6f26b851abce3eed1be0db9c6b2af9d0414acd26bda25977de7994620a70083c",
+      "name": "dict_flip",
+      "input_type": "builtins.dict",
+      "output_type": "builtins.dict",
+      "code": "return {v:k for k,v in x.items()}",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bytes_reverse:aa1482bac77a8d90",
+      "fingerprint": "sha256:aa1482bac77a8d905492fd5819e0b0425ac3ce1f871f2ce6f4c0fb5905bff392",
+      "name": "bytes_reverse",
+      "input_type": "builtins.bytes",
+      "output_type": "builtins.bytes",
+      "code": "return x[::-1]",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:bytes_is_ascii:728d72776de0a5a9",
+      "fingerprint": "sha256:728d72776de0a5a9539bc14c377faa23984d5f2cee160988a52e918e49830c88",
+      "name": "bytes_is_ascii",
+      "input_type": "builtins.bytes",
+      "output_type": "builtins.bool",
+      "code": "return all(b < 128 for b in x)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:complex_conjugate:9e66e7fe72b0d777",
+      "fingerprint": "sha256:9e66e7fe72b0d777c071fd10483849576bf61b4deeb77d9516e5422e093cff0e",
+      "name": "complex_conjugate",
+      "input_type": "builtins.complex",
+      "output_type": "builtins.complex",
+      "code": "return x.conjugate()",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:complex_phase:137a702fc499f30b",
+      "fingerprint": "sha256:137a702fc499f30be50b02994f133c22bff4575d5112c46cf627d18269cf2491",
+      "name": "complex_phase",
+      "input_type": "builtins.complex",
+      "output_type": "builtins.float",
+      "code": "import math; return math.atan2(x.imag, x.real)",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:range_max:566319ed85d532bd",
+      "fingerprint": "sha256:566319ed85d532bd923f6783397cde2e5cf6a088cb0b4f61639df5371ae0305f",
+      "name": "range_max",
+      "input_type": "builtins.range",
+      "output_type": "builtins.int",
+      "code": "return x[-1] if x else 0",
+      "metadata": {}
+    },
+    {
+      "function_id": "bf:set_hash:703a4d320c6dfa3c",
+      "fingerprint": "sha256:703a4d320c6dfa3cd94bbe6f25c8f7fb61005932c2a16c4e8ca4b74eb7792800",
+      "name": "set_hash",
+      "input_type": "builtins.set",
+      "output_type": "builtins.int",
+      "code": "return hash(frozenset(x))",
+      "metadata": {}
+    }
+  ],
+  "digest": "sha256:21959c1255caf37b9b2665bf0d83e5c24fc7925e49b2377ddd44e9f2c7d6d4b6"
+}

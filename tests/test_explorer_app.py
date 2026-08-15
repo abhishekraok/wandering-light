@@ -47,14 +47,14 @@ def _invariant_violations(at: AppTest) -> list[str]:
             if applied is None:
                 continue
             for key, value in widget_values.items():
-                if key.startswith(f"{prefix}_") and key.endswith(
-                    f"_edge_sel_{nid}"
+                if (
+                    key.startswith(f"{prefix}_")
+                    and key.endswith(f"_edge_sel_{nid}")
+                    and value != applied.name
                 ):
-                    if value != applied.name:
-                        issues.append(
-                            f"{key}={value!r} but tree[{nid}].applied="
-                            f"{applied.name!r}"
-                        )
+                    issues.append(
+                        f"{key}={value!r} but tree[{nid}].applied={applied.name!r}"
+                    )
     return issues
 
 
@@ -62,16 +62,14 @@ def _pick_sample_with_multiple_gold_edges(json_path: str) -> int:
     with open(json_path) as f:
         details = json.load(f)["detailed_results"]
     return next(
-        (
-            i
-            for i, d in enumerate(details)
-            if len(d.get("golden_functions") or []) >= 2
-        ),
+        (i for i, d in enumerate(details) if len(d.get("golden_functions") or []) >= 2),
         0,
     )
 
 
 def test_widget_state_tracks_applied_fn_through_interactions(repo_cwd):
+    if os.environ.get("PYTHONHASHSEED") != "0":
+        pytest.skip("requires interpreter startup with PYTHONHASHSEED=0")
     if not os.path.exists(SOLVER_JSON):
         pytest.skip(f"Fixture missing: {SOLVER_JSON}")
 

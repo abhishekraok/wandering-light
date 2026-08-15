@@ -180,9 +180,7 @@ def sha256(path: Path) -> str:
 
 def write_csv_gz(records: list[dict], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fieldnames = list(
-        dict.fromkeys(key for record in records for key in record)
-    )
+    fieldnames = list(dict.fromkeys(key for record in records for key in record))
     with (
         path.open("wb") as raw_file,
         gzip.GzipFile(filename="", fileobj=raw_file, mode="wb", mtime=0) as compressed,
@@ -275,7 +273,9 @@ def main() -> None:
     np.random.seed(42)
     torch.manual_seed(42)
     train_specs = training_specs()
-    eval_specs = current_function_specs(TrajectorySpecList.from_py_file(str(EVAL_SOURCE)))
+    eval_specs = current_function_specs(
+        TrajectorySpecList.from_py_file(str(EVAL_SOURCE), trusted_legacy_python=True)
+    )
     bounded_dir = args.report_dir / "bounded"
     train_bounded = bounded_dir / "train.jsonl.gz"
     eval_bounded = bounded_dir / "eval.jsonl.gz"

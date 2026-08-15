@@ -4,6 +4,10 @@ This test focuses on understanding why we don't get 100% solve rate.
 """
 
 # Import what we need
+import os
+
+import pytest
+
 from wandering_light.evals.run_evaluation import load_eval_data_as_trajectories
 from wandering_light.executor import Executor
 from wandering_light.solver import TokenGenerator, TokenGeneratorSolver
@@ -49,7 +53,11 @@ class TestGroundTruthSolver:
         """
         # Load evaluation data using the new trajectory-based method
         eval_file = "wandering_light/evals/data/random_inputs.py"
-        trajectories, available_functions = load_eval_data_as_trajectories(eval_file)
+        if os.environ.get("PYTHONHASHSEED") != "0":
+            pytest.skip("requires interpreter startup with PYTHONHASHSEED=0")
+        trajectories, available_functions = load_eval_data_as_trajectories(
+            eval_file, trusted_legacy_python=True
+        )
         trajectory_specs = trajectories.to_spec_list()
 
         print(f"Testing {len(trajectories)} trajectories")

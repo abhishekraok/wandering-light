@@ -1,8 +1,13 @@
-from wandering_light.constants import DEFAULT_EVAL_FILE
+from wandering_light.basis_set import load_basis_set
 from wandering_light.evals.evaluate_proposer import EvalResult, evaluate_proposer
 from wandering_light.function_def import FunctionDef, FunctionDefList
 from wandering_light.solver import TokenGenerator, create_token_solver
-from wandering_light.trajectory import Trajectory, TrajectoryList, TrajectorySpec
+from wandering_light.trajectory import (
+    Trajectory,
+    TrajectoryList,
+    TrajectorySpec,
+    TrajectorySpecList,
+)
 from wandering_light.typed_list import TypedList
 
 
@@ -28,10 +33,27 @@ class MockTokenGenerator(TokenGenerator):
         return [self.generate(prompt) for prompt in prompts]
 
 
+def _current_basis_trajectories() -> TrajectoryList:
+    functions = load_basis_set("wl-core-v1").as_function_set()
+    by_name = functions.name_to_function
+    specs = TrajectorySpecList(
+        [
+            TrajectorySpec(TypedList([1, 2]), FunctionDefList([by_name["inc"]])),
+            TrajectorySpec(TypedList([3, 4]), FunctionDefList([by_name["double"]])),
+            TrajectorySpec(
+                TypedList([-1, 5]),
+                FunctionDefList([by_name["inc"], by_name["double"]]),
+            ),
+            TrajectorySpec(TypedList([8, 2]), FunctionDefList([by_name["dec"]])),
+        ]
+    )
+    return TrajectoryList.from_trajectory_specs(specs, functions)
+
+
 def test_evaluate_proposer():
     """Test evaluate_proposer with mock model that succeeds on first sample, fails on second."""
 
-    trajectories = TrajectoryList.from_file(DEFAULT_EVAL_FILE)
+    trajectories = _current_basis_trajectories()
 
     # Create mock model
     mock_model = MockTokenGenerator(
@@ -40,12 +62,18 @@ def test_evaluate_proposer():
 
     # Test the function
     result = evaluate_proposer(
-        mock_model, trajectory_solver=None, trajectories=trajectories, num_samples=2
+        mock_model,
+        trajectory_solver=None,
+        trajectories=trajectories,
+        num_samples=2,
+        basis_set_id="wl-core-v1",
     )
 
     # Verify the result
     assert isinstance(result, EvalResult)
     assert result.num_samples == 2
+    assert result.basis_set_id == "wl-core-v1"
+    assert result.basis_set_digest is not None
 
     # Parse rate: only first sample should parse successfully
     assert result.parse_rate == 0.5  # 1 out of 2 samples parsed
@@ -67,7 +95,11 @@ def test_evaluate_proposer_empty_trajectories():
     mock_model = MockTokenGenerator([])
 
     result = evaluate_proposer(
-        mock_model, trajectory_solver=None, trajectories=[], num_samples=0
+        mock_model,
+        trajectory_solver=None,
+        trajectories=[],
+        num_samples=0,
+        basis_set_id="wl-core-v1",
     )
 
     assert result.num_samples == 0
@@ -79,11 +111,15 @@ def test_evaluate_proposer_empty_trajectories():
 
 def test_evaluate_proposer_all_unparsable():
     """Test evaluate_proposer when all model outputs are unparsable."""
-    trajectories = TrajectoryList.from_file(DEFAULT_EVAL_FILE)
+    trajectories = _current_basis_trajectories()
 
     mock_model = MockTokenGenerator(["invalid gibberish"])
     result = evaluate_proposer(
-        mock_model, trajectory_solver=None, trajectories=trajectories, num_samples=1
+        mock_model,
+        trajectory_solver=None,
+        trajectories=trajectories,
+        num_samples=1,
+        basis_set_id="wl-core-v1",
     )
 
     assert result.num_samples == 1
@@ -96,7 +132,7 @@ def test_evaluate_proposer_all_unparsable():
 def test_evaluate_proposer_with_solver():
     """Test evaluate_proposer with solver model and check per sample results."""
 
-    trajectories = TrajectoryList.from_file(DEFAULT_EVAL_FILE)
+    trajectories = _current_basis_trajectories()
     first_trajectory = trajectories[0]
     second_trajectory = trajectories[1]
 
@@ -141,6 +177,7 @@ def test_evaluate_proposer_with_solver():
         trajectories=trajectories,
         num_samples=5,
         solver_attempts=3,
+        basis_set_id="wl-core-v1",
     )
     # Per sample results
     assert result.sample_results[0].parse_success
@@ -232,6 +269,7 @@ def test_evaluate_proposer_unexecutable_spec_does_not_misalign_attribution():
         trajectories=trajectories,
         num_samples=3,
         solver_attempts=solver_attempts,
+        basis_set_id="wl-core-v1",
     )
 
     # All three parse; B fails only at execution time.
@@ -247,14 +285,14 @@ def test_evaluate_proposer_unexecutable_spec_does_not_misalign_attribution():
     # B: unexecutable → solver was never asked. Record solver_attempts empty
     # FunctionDefLists so the attempt count stays consistent.
     assert result.sample_results[1].solve_rate == 0.0
-    assert result.sample_results[1].attempted_function_deflists == [
-        FunctionDefList()
-    ] * solver_attempts
+    assert (
+        result.sample_results[1].attempted_function_deflists
+        == [FunctionDefList()] * solver_attempts
+    )
 
     # C (after B): MUST get its own [dec] predictions, NOT shifted-up
     # attempts that would have belonged to B's slot.
     assert result.sample_results[2].solve_rate == 1.0
     assert all(
-        list(fl) == [dec]
-        for fl in result.sample_results[2].attempted_function_deflists
+        list(fl) == [dec] for fl in result.sample_results[2].attempted_function_deflists
     )

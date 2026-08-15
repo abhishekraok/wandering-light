@@ -61,8 +61,14 @@ Homepage = "https://github.com/abhishekraok/wandering_light"
 Repository = "https://github.com/abhishekraok/wandering_light"
 
 [tool.setuptools]
-packages = ["wandering_light"]
 package-dir = {"" = "."} 
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["wandering_light*"]
+
+[tool.setuptools.package-data]
+wandering_light = ["basis_sets/*.json"]
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.

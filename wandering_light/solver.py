@@ -19,6 +19,7 @@ from transformers import pipeline as hf_pipeline
 
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
+from wandering_light.function_usage import FunctionUsageTracker
 from wandering_light.llm_utils import generate_eval_prompt
 from wandering_light.trajectory import Trajectory, TrajectorySpec
 from wandering_light.typed_list import TypedList
@@ -36,6 +37,8 @@ class FunctionPredictor(abc.ABC):
     Base class for function prediction strategies.
     Focuses solely on predicting function sequences without execution.
     """
+
+    track_function_usage = True
 
     @abc.abstractmethod
     def predict_functions_batch(
@@ -60,8 +63,19 @@ class TrajectorySolver:
     Handles trajectory execution and comparison using a FunctionPredictor for function prediction.
     """
 
-    def __init__(self, predictor: FunctionPredictor):
+    def __init__(
+        self,
+        predictor: FunctionPredictor,
+        usage_tracker: FunctionUsageTracker | None = None,
+        track_function_usage: bool | None = None,
+    ):
         self.predictor = predictor
+        self.function_usage = (
+            usage_tracker if usage_tracker is not None else FunctionUsageTracker()
+        )
+        if track_function_usage is None:
+            track_function_usage = getattr(predictor, "track_function_usage", True)
+        self.track_function_usage = track_function_usage
 
     def solve_batch(
         self,
@@ -81,6 +95,12 @@ class TrajectorySolver:
         if not problems:
             return []
 
+        if self.track_function_usage:
+            basis_set_id, basis_digest = FunctionUsageTracker.basis_provenance(
+                available_functions
+            )
+            self.function_usage.bind_basis(basis_set_id, basis_digest)
+
         # Get predictions for all problems
         predictions = self.predictor.predict_functions_batch(
             problems, available_functions
@@ -90,7 +110,7 @@ class TrajectorySolver:
         return [
             self._process_response(pred, input_list, output_list, available_functions)
             for pred, (input_list, output_list) in zip(
-                predictions, problems, strict=False
+                predictions, problems, strict=True
             )
         ]
 
@@ -131,6 +151,12 @@ class TrajectorySolver:
 
         traj = result.trajectory
         if traj.output == output_list:
+            if self.track_function_usage:
+                self.function_usage.record_solution(
+                    traj.function_defs,
+                    basis_set_id=self.function_usage.basis_set_id,
+                    basis_digest=self.function_usage.basis_digest,
+                )
             return MaybeTrajectory(success=True, trajectory=traj)
         # Check if this is an empty function list (no solution found case)
         elif len(function_def_list.functions) == 0 and traj.output == input_list:
@@ -148,15 +174,20 @@ class TrajectorySolver:
             )
 
     def save(self, directory: str):
-        """Save any predictor-specific data."""
+        """Save predictor-specific data and successful-solution usage."""
         if hasattr(self.predictor, "save"):
             self.predictor.save(directory)
+        self.function_usage.save(
+            os.path.join(directory, FunctionUsageTracker.FILE_NAME)
+        )
 
 
 class RandomPredictor(FunctionPredictor):
     """
     Randomly predicts function sequences of fixed length.
     """
+
+    track_function_usage = False
 
     def __init__(self, budget: int = 100, path_length: int = 1):
         self.budget = budget
@@ -619,24 +650,37 @@ class TokenGeneratorPredictor(FunctionPredictor):
 
 
 # Factory functions for creating common solver configurations
-def create_random_solver(budget: int = 100, path_length: int = 1) -> TrajectorySolver:
+def create_random_solver(
+    budget: int = 100,
+    path_length: int = 1,
+    usage_tracker: FunctionUsageTracker | None = None,
+    track_function_usage: bool | None = None,
+) -> TrajectorySolver:
     """Create a solver with random function prediction."""
     predictor = RandomPredictor(budget=budget, path_length=path_length)
-    return TrajectorySolver(predictor)
+    return TrajectorySolver(predictor, usage_tracker, track_function_usage)
 
 
-def create_bfs_solver(budget: int = 100, max_depth: int = 3) -> TrajectorySolver:
+def create_bfs_solver(
+    budget: int = 100,
+    max_depth: int = 3,
+    usage_tracker: FunctionUsageTracker | None = None,
+    track_function_usage: bool | None = None,
+) -> TrajectorySolver:
     """Create a solver with breadth-first search function prediction."""
     predictor = BFSPredictor(budget=budget, max_depth=max_depth)
-    return TrajectorySolver(predictor)
+    return TrajectorySolver(predictor, usage_tracker, track_function_usage)
 
 
 def create_token_solver(
-    token_generator: TokenGenerator, budget: int = 1
+    token_generator: TokenGenerator,
+    budget: int = 1,
+    usage_tracker: FunctionUsageTracker | None = None,
+    track_function_usage: bool | None = None,
 ) -> TrajectorySolver:
     """Create a solver with token generator function prediction."""
     predictor = TokenGeneratorPredictor(token_generator, budget=budget)
-    return TrajectorySolver(predictor)
+    return TrajectorySolver(predictor, usage_tracker, track_function_usage)
 
 
 def get_solver_by_name(
@@ -644,29 +688,57 @@ def get_solver_by_name(
     budget: int = 10,
     path_length: int = 4,
     model_name: str = "checkpoints/latest",
+    usage_tracker: FunctionUsageTracker | None = None,
+    track_function_usage: bool | None = None,
 ) -> TrajectorySolver:
     if name == "random":
-        return create_random_solver(budget=budget, path_length=path_length)
+        return create_random_solver(
+            budget=budget,
+            path_length=path_length,
+            usage_tracker=usage_tracker,
+            track_function_usage=track_function_usage,
+        )
     elif name == "bfs":
-        return create_bfs_solver(budget=budget, max_depth=path_length)
+        return create_bfs_solver(
+            budget=budget,
+            max_depth=path_length,
+            usage_tracker=usage_tracker,
+            track_function_usage=track_function_usage,
+        )
     elif name == "openai":
         return create_token_solver(
-            OpenAITokenGenerator(model="o4-mini-2025-04-16"), budget=budget
+            OpenAITokenGenerator(model="o4-mini-2025-04-16"),
+            budget=budget,
+            usage_tracker=usage_tracker,
+            track_function_usage=track_function_usage,
         )
     elif name == "gemini":
-        return create_token_solver(GeminiTokenGenerator(), budget=budget)
+        return create_token_solver(
+            GeminiTokenGenerator(),
+            budget=budget,
+            usage_tracker=usage_tracker,
+            track_function_usage=track_function_usage,
+        )
     elif name == "ollama_phi3_mini":
         return create_token_solver(
-            OllamaTokenGenerator(model="phi3:mini"), budget=budget
+            OllamaTokenGenerator(model="phi3:mini"),
+            budget=budget,
+            usage_tracker=usage_tracker,
+            track_function_usage=track_function_usage,
         )
     elif name == "ollama_deepseek_r1_32b":
         return create_token_solver(
             OllamaTokenGenerator(model="deepseek-r1:32b-qwen-distill-q4_K_M"),
             budget=budget,
+            usage_tracker=usage_tracker,
+            track_function_usage=track_function_usage,
         )
     elif name == "trained_local":
         return create_token_solver(
-            TrainedLLMTokenGenerator(model_or_path=model_name), budget=budget
+            TrainedLLMTokenGenerator(model_or_path=model_name),
+            budget=budget,
+            usage_tracker=usage_tracker,
+            track_function_usage=track_function_usage,
         )
     else:
         raise ValueError(f"Unknown solver name: {name}")
