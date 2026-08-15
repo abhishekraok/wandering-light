@@ -183,7 +183,7 @@ The canonical paired analysis is [`paired-test-analysis.json`](./paired-test-ana
 
 All remote artifacts are in personal entities.
 
-- Code: branch [`codex/basis-library-lifecycle`](https://github.com/abhishekraok/wandering-light/tree/codex/basis-library-lifecycle); draft PR link will be added after publication.
+- Code: [draft PR #32](https://github.com/abhishekraok/wandering-light/pull/32), branch [`codex/basis-library-lifecycle`](https://github.com/abhishekraok/wandering-light/tree/codex/basis-library-lifecycle).
 - Control model: [`abhishekraok/wandering-light-basis-v1-control-verified-sft1@f6926e5`](https://huggingface.co/abhishekraok/wandering-light-basis-v1-control-verified-sft1/tree/f6926e575e5820083c92bb7f29d8b90d71450d3c), tagged `wl-core-v1`.
 - Challenger model: [`abhishekraok/wandering-light-basis-pilot-compressed-v1-verified-sft1@e1c63c3`](https://huggingface.co/abhishekraok/wandering-light-basis-pilot-compressed-v1-verified-sft1/tree/e1c63c3891a1274d12ec1be5eea73fef2b326a67), tagged `wl-pilot-compressed-v1`.
 - Corpus, compact evaluations, manifests, and report: [`abhishekraok/wandering-light-basis-pilot-20260815@e51eb87`](https://huggingface.co/datasets/abhishekraok/wandering-light-basis-pilot-20260815/tree/e51eb87f5feb2f42399ece5bfb1aeea2fe3656c5), tagged `pilot-20260815`.
