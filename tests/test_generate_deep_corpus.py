@@ -44,6 +44,18 @@ def _expand(typed_list, *, max_depth, tasks_per_distance=2, frontier_sample=0):
     )
 
 
+def test_shell_sizes_count_states_and_reconcile_with_reached():
+    # shell_sizes feeds the manifest's states_by_depth. Tasks are drawn per
+    # answer class, so it is tempting to count classes here -- but then the
+    # published per-layer counts no longer sum to reached_states and the field
+    # silently means something other than its name. class_sizes carries that.
+    _, outcome = _expand(TypedList([1, 2, 3], item_type=int), max_depth=4)
+
+    assert sum(outcome.shell_sizes.values()) == outcome.reached_states
+    for depth, classes in outcome.class_sizes.items():
+        assert classes <= outcome.shell_sizes[depth]
+
+
 def test_distance_is_measured_in_answer_equality_space():
     # `neg` reaches [-0.0] in one step and `slow_pos` reaches [0.0] in three.
     # The two compare equal, so a solver stopping at [-0.0] after one step is

@@ -238,12 +238,20 @@ Self-loops are skipped during expansion, 18,787,398 of them. A further
 | 6 | 204 | 129,440 | 19.9 | 4,065 |
 | 7 | 36 | 396,998 | 63.6 | 2,288 |
 
-States by BFS layer. Layers 1-6 are summed over all 240 roots; layer 7 comes
-only from the 36 deep roots, so it is not comparable to the column before it.
+Distinct answer classes by BFS layer — the number of separate *tasks* each
+layer can supply, which is what the sampler draws from. Layers 1-6 are summed
+over all 240 roots; layer 7 comes only from the 36 deep roots, so it is not
+comparable to the column before it.
 
 | layer | 1 | 2 | 3 | 4 | 5 | 6 | 7 (36 roots) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| states | 2,085 | 16,505 | 108,332 | 665,102 | 4,007,258 | 24,026,049 | 11,871,864 |
+| classes | 2,085 | 16,505 | 108,332 | 665,102 | 4,007,258 | 24,026,049 | 11,871,864 |
+
+These sum to 40,697,435 against 40,697,654 states actually reached: 219 states
+across the whole run were answer-equal to a state already reached at the same
+depth. The shipped manifest files these counts under `expansion.states_by_depth`,
+which is a misnomer for them — later runs report true state counts there and
+carry the class counts in `class_sizes` per root.
 
 Growth settles at almost exactly 6x per level (7.9x, 6.6x, 6.1x, 6.0x, 6.0x
 across layers 2 through 6) with no sign of saturation: the reachable set is

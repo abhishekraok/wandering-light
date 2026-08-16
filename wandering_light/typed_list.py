@@ -265,10 +265,17 @@ class TypedList[T]:
         tell them apart; otherwise the search prunes a state whose successors
         differ and can miss, or over-estimate the distance to, a target.
         ``canonical_key`` follows Python numeric equality, under which
-        ``-0.0 == 0.0`` -- but ``float_to_str``, ``f_fraction`` and ``f_sin``
-        all distinguish the two, so signed zero must survive here.  NaNs stay
-        collapsed: no basis function observes a NaN's sign or payload, and they
-        are not equal to themselves.
+        ``-0.0 == 0.0`` -- but ``float_to_str`` maps them to ``"0.0"`` and
+        ``"-0.0"``, which are not equal, so signed zero must survive here.
+        (``f_fraction`` and ``f_sin`` preserve the sign too, but their outputs
+        still compare equal; they carry the difference rather than expose it.)
+        NaNs stay collapsed: no basis function observes a NaN's sign or payload,
+        and they are not equal to themselves.
+
+        This is a *search* key. It is deliberately finer than the relation a
+        solution is graded by, so distance must be read after collapsing back
+        onto ``canonical_key`` -- see ``_grading_classes`` in
+        ``experiments/generate_deep_corpus.py``.
         """
         return (self.item_type, _canonical_value(self.items, signed_zero=True))
 

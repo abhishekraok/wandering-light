@@ -148,6 +148,10 @@ class RootOutcome:
     shell_sizes: dict[int, int]
     seconds: float
     emitted: int
+    # Answer-equality classes per depth: the number of distinct *tasks* a layer
+    # can supply, which is at most its state count and is what the sampler draws
+    # from. Kept apart from shell_sizes so states_by_depth stays a state count.
+    class_sizes: dict[int, int] = field(default_factory=dict)
     rejections: dict[str, int] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -165,6 +169,7 @@ class RootOutcome:
             "failed_transitions": self.failed_transitions,
             "skipped_self_loops": self.skipped_self_loops,
             "shell_sizes": {str(k): v for k, v in sorted(self.shell_sizes.items())},
+            "class_sizes": {str(k): v for k, v in sorted(self.class_sizes.items())},
             "seconds": round(self.seconds, 3),
             "emitted": self.emitted,
             "rejections": dict(sorted(self.rejections.items())),
@@ -599,7 +604,10 @@ def expand_root(
         attempted_transitions=expansion.attempted_transitions,
         failed_transitions=expansion.failed_transitions,
         skipped_self_loops=expansion.skipped_self_loops,
-        shell_sizes={depth: len(nodes) for depth, nodes in by_depth.items()},
+        # States, not answer classes: this feeds the manifest's states_by_depth,
+        # which has to stay reconcilable with reached_states.
+        shell_sizes={depth: len(nodes) for depth, nodes in nodes_by_depth.items()},
+        class_sizes={depth: len(keys) for depth, keys in by_depth.items()},
         seconds=time.perf_counter() - started,
         emitted=len(pending),
         rejections=dict(rejections),

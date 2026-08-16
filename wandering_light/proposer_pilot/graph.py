@@ -34,11 +34,13 @@ def _freeze(value: object) -> object:
     if isinstance(value, bool | int | str | bytes):
         return (value_type, value)
     if isinstance(value, float):
-        # Signed zero is kept: ``-0.0 == 0.0`` in Python, but ``float_to_str``,
-        # ``f_fraction`` and ``f_sin`` distinguish them, so merging the two
-        # states would leave one set of successors unexplored and inflate the
-        # certified distance of anything reachable only through them.  NaNs stay
-        # collapsed -- no basis function observes their sign or payload.
+        # Signed zero is kept: ``-0.0 == 0.0`` in Python, but ``float_to_str``
+        # maps them to unequal strings, so merging the two states would leave
+        # one set of successors unexplored and inflate the certified distance of
+        # anything reachable only through them.  (``f_fraction`` and ``f_sin``
+        # also preserve the sign, but their outputs still compare equal, so they
+        # carry the difference rather than expose it.)  NaNs stay collapsed --
+        # no basis function observes their sign or payload.
         normalized = "nan" if math.isnan(value) else value.hex()
         return (value_type, normalized)
     if isinstance(value, bytearray):
