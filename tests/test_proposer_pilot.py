@@ -256,6 +256,37 @@ class TestTrajectoryGraphExpansion:
         assert expansion.failed_transitions == 1
         assert expansion.certified_depth == 1
 
+    def test_graph_state_key_agrees_with_typed_list_search_key(self):
+        # The "may these two states be merged" rule is implemented twice: here
+        # in _freeze, and in TypedList.search_key for the BFS solver. They
+        # cannot share code -- the key shapes differ -- so nothing stops one
+        # from drifting, and a disagreement is precisely the bug class that
+        # inflates certified distances. Pin them to the same partition.
+        from wandering_light.proposer_pilot.graph import _state_key
+
+        values = [
+            _tl([0.0], float),
+            _tl([-0.0], float),
+            _tl([0.0, 1.0], float),
+            _tl([-0.0, 1.0], float),
+            _tl([float("nan")], float),
+            _tl([-float("nan")], float),
+            _tl([1.5], float),
+            _tl([{"a": [0.0]}], dict),
+            _tl([{"a": [-0.0]}], dict),
+            _tl([(0.0,)], tuple),
+            _tl([(-0.0,)], tuple),
+        ]
+
+        for left in values:
+            for right in values:
+                same_graph = _state_key(left) == _state_key(right)
+                same_search = left.search_key() == right.search_key()
+                assert same_graph == same_search, (
+                    f"{left!r} vs {right!r}: graph says {same_graph}, "
+                    f"search_key says {same_search}"
+                )
+
     def test_signed_zero_is_not_merged_with_positive_zero(self):
         # -0.0 == 0.0 in Python, so keying states on equality merges them and
         # leaves -0.0's successors unexplored: ["-0.0"] then looks unreachable,
