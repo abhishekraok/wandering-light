@@ -259,6 +259,41 @@ def build_root_plans(
     return plans
 
 
+def _grading_classes(
+    graph: TrajectoryGraph, depths: Mapping[int, int]
+) -> tuple[dict[Any, int], dict[Any, list[int]]]:
+    """Collapse the reached states onto the relation a solver is graded by.
+
+    Expansion deliberately separates states that no basis function may confuse,
+    so ``-0.0`` and ``0.0`` explore their own successors.  A solution, though,
+    is graded with ``==``, which equates them.  Distance therefore has to be
+    read after collapsing back: the distance of a target is the shallowest depth
+    at which *any* answer-equal state is reached.
+
+    Measuring in the finer space instead files a target as deep as its own path,
+    even when a solver may legitimately stop earlier at an equal value, and the
+    label is then unreachable by the very solver it is meant to score.
+
+    Returns the depth of each class and, for each class, the members sitting at
+    that depth -- the only ones on a shortest path to it.
+    """
+    depth_of: dict[Any, int] = {}
+    keys: dict[int, Any] = {}
+    for node_id, depth in depths.items():
+        key = graph.node(node_id).typed_list.canonical_key()
+        keys[node_id] = key
+        current = depth_of.get(key)
+        if current is None or depth < current:
+            depth_of[key] = depth
+    members: defaultdict[Any, list[int]] = defaultdict(list)
+    for node_id, depth in depths.items():
+        if depth == depth_of[keys[node_id]]:
+            members[keys[node_id]].append(node_id)
+    for group in members.values():
+        group.sort()
+    return depth_of, dict(members)
+
+
 def _shortest_path_dag_reach(
     graph: TrajectoryGraph,
     depths: Mapping[int, int],
@@ -441,9 +476,19 @@ def expand_root(
     )
     depths = expansion.node_depths
     certified_depth = expansion.certified_depth
-    by_depth: defaultdict[int, list[int]] = defaultdict(list)
+    nodes_by_depth: defaultdict[int, list[int]] = defaultdict(list)
     for node_id, depth in depths.items():
-        by_depth[depth].append(node_id)
+        nodes_by_depth[depth].append(node_id)
+
+    # Tasks are one per answer-equality class, filed at the class's own depth.
+    class_depth, class_members = _grading_classes(graph, depths)
+    by_depth: defaultdict[int, list[Any]] = defaultdict(list)
+    for key, depth in class_depth.items():
+        by_depth[depth].append(key)
+    for group in by_depth.values():
+        # Canonical keys are not orderable across types; the smallest member
+        # node id is, and it is stable for a given expansion.
+        group.sort(key=lambda key: class_members[key][0])
 
     first_states, bit_of, reach = _shortest_path_dag_reach(
         graph, depths, certified_depth
@@ -459,24 +504,32 @@ def expand_root(
         # Oversample: the filters below reject a minority of candidate states.
         sample_size = min(len(shell), max(tasks_per_distance * 4, tasks_per_distance))
         accepted = 0
-        for node_id in rng.sample(shell, sample_size):
+        for key in rng.sample(shell, sample_size):
             if accepted >= tasks_per_distance:
                 break
-            in_edges = _optimal_in_edges(graph, depths, node_id, distance)
+            members = class_members[key]
+            representative = members[0]
+            # Any answer-equal state at this depth is a correct answer, so every
+            # way of reaching one contributes an optimal action.
+            mask = 0
+            in_edges: list[tuple[FunctionDef, int]] = []
+            for member in members:
+                mask |= reach.get(member, 0)
+                in_edges.extend(_optimal_in_edges(graph, depths, member, distance))
             task = _emit_state(
                 graph=graph,
                 plan=plan,
-                node_id=node_id,
+                node_id=representative,
                 root_id=root_id,
                 distance=distance,
                 certification=CERTIFICATION_COMPLETE,
                 expansion_certified_depth=certified_depth,
-                mask=reach.get(node_id, 0),
+                mask=mask,
                 mask_complete=True,
                 first_states=first_states,
                 bit_of=bit_of,
                 first_actions=first_actions,
-                witness=_witness_path(graph, depths, node_id, distance, rng),
+                witness=_witness_path(graph, depths, representative, distance, rng),
                 in_edges=in_edges,
                 in_edges_complete=True,
                 shell_size=len(shell),
@@ -497,7 +550,8 @@ def expand_root(
             executor=executor,
             plan=plan,
             depths=depths,
-            frontier=by_depth.get(certified_depth, []),
+            frontier=nodes_by_depth.get(certified_depth, []),
+            reached_classes=class_depth,
             certified_depth=certified_depth,
             reach=reach,
             first_states=first_states,
@@ -560,6 +614,7 @@ def _extend_frontier(
     plan: RootPlan,
     depths: Mapping[int, int],
     frontier: Sequence[int],
+    reached_classes: Mapping[Any, int],
     certified_depth: int,
     reach: Mapping[int, int],
     first_states: Sequence[int],
@@ -597,15 +652,17 @@ def _extend_frontier(
                 result = executor.execute(function, parent_value)
             except Exception:
                 continue
-            if graph.find(result) is not None:
-                # Already reached at distance <= certified_depth by the complete
-                # expansion, so this step does not extend the distance.
+            key = result.canonical_key()
+            if key in reached_classes:
+                # An answer-equal state is already reachable within
+                # certified_depth, so this step does not extend the distance.
+                # The test is answer equality, not search identity: a solver
+                # that stops at the equal state is graded correct, so a target
+                # equal to one of them is not one step further out.
                 continue
-            # search_key, not canonical_key: grouping frontier candidates on
-            # Python equality would merge two states the basis distinguishes,
-            # and the merged entry's mask and in_edges -- the optimal first and
-            # last action labels -- would then mix both states' parents.
-            key = result.search_key()
+            # Candidates group by answer equality for the same reason. Two
+            # results a solver cannot be asked to tell apart are one task, and
+            # every way of reaching either is an optimal action for it.
             entry = candidates.get(key)
             if entry is None:
                 candidates[key] = {
@@ -850,7 +907,11 @@ def generate_corpus(
                 flush=True,
             )
 
-    seen_task_ids: set[str] = set()
+    # Answer equality, not task_id: task_id hashes the serialized values, and
+    # `-0.0` and `0.0` serialize differently while grading as the same answer.
+    # Keying on it lets two records that pose one task both through, which is
+    # how a pair carrying different certified distances survived.
+    seen_task_keys: set[tuple[Any, Any]] = set()
     duplicate_tasks = 0
     unserializable = 0
     split_metadata: dict[str, Any] = {}
@@ -867,10 +928,14 @@ def generate_corpus(
             except (ValueError, TypeError, OverflowError):
                 unserializable += 1
                 continue
-            if record.task_id in seen_task_ids:
+            task_key = (
+                task.input_value.canonical_key(),
+                task.output_value.canonical_key(),
+            )
+            if task_key in seen_task_keys:
                 duplicate_tasks += 1
                 continue
-            seen_task_ids.add(record.task_id)
+            seen_task_keys.add(task_key)
             records.append(record)
         path = corpus_dir / f"{split}.jsonl.gz"
         write_basis_task_records(records, path)
@@ -903,7 +968,15 @@ def generate_corpus(
         "generator_description": (
             "Complete breadth-first expansion from each root; a state first "
             "reached at depth k is certified at distance k. One sampled frontier "
-            "layer certifies distance k+1 against the complete depth-k set."
+            "layer certifies distance k+1 against the complete depth-k set. "
+            "Expansion separates states no basis function may confuse, but "
+            "distance is read after collapsing them onto answer equality, so a "
+            "certified distance is the fewest steps to any output a solver is "
+            "graded correct for."
+        ),
+        "distance_semantics": (
+            "shortest number of basis applications from input to any output "
+            "equal to the recorded one under TypedList.__eq__"
         ),
         "root_generator": {
             "name": ROOT_GENERATOR_NAME,
@@ -941,8 +1014,8 @@ def generate_corpus(
             "constant_output_definition": "fewer than two distinct output items",
         },
         "split_policy": "by root: every task from one root shares that root's split",
-        "global_task_count": len(seen_task_ids),
-        "global_dedupe_key": "sha256(canonical_input,canonical_output)",
+        "global_task_count": len(seen_task_keys),
+        "global_dedupe_key": "(canonical_key(input), canonical_key(output))",
         "duplicate_tasks_rejected": duplicate_tasks,
         "unserializable_states_rejected": unserializable,
         "expansion": {
@@ -1099,8 +1172,17 @@ def verify_corpus(
                 root_id = graph.add_root(record.input_value)
                 started = time.perf_counter()
                 expansion = graph.expand(root_id, distance - 1)
-                found = graph.find(record.output_value)
-                shorter = found is not None and found in expansion.node_depths
+                # Answer equality, not graph.find: find resolves through the
+                # search index, so asking it whether the target is reachable
+                # sooner re-uses the very identity the distance was assigned
+                # under, and cannot contradict it.  The claim being checked is
+                # that no state a solver would be *graded correct* for is
+                # reachable sooner.
+                target_key = record.output_value.canonical_key()
+                shorter = any(
+                    graph.node(node_id).typed_list.canonical_key() == target_key
+                    for node_id in expansion.node_depths
+                )
                 recertified.append(
                     {
                         "task_id": record.task_id,

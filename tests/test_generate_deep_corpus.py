@@ -44,11 +44,59 @@ def _expand(typed_list, *, max_depth, tasks_per_distance=2, frontier_sample=0):
     )
 
 
-def test_frontier_extension_keeps_signed_zero_candidates_apart():
-    # Two frontier parents whose successors are equal under Python but distinct
-    # to the basis. Grouping candidates on canonical_key merges them into one
-    # entry whose mask and in_edges -- the optimal action labels -- would then
-    # mix both parents.
+def test_distance_is_measured_in_answer_equality_space():
+    # `neg` reaches [-0.0] in one step and `slow_pos` reaches [0.0] in three.
+    # The two compare equal, so a solver stopping at [-0.0] after one step is
+    # graded correct and the task is at distance 1. Filing [0.0] at 3 -- its own
+    # path length -- would be a label no solver could be scored against.
+    neg = FunctionDef(
+        name="neg",
+        input_type="builtins.float",
+        output_type="builtins.float",
+        code="return -0.0 if x == 1.0 else x + 100.0",
+    )
+    step = FunctionDef(
+        name="step",
+        input_type="builtins.float",
+        output_type="builtins.float",
+        code="return x + 1.0 if x in (1.0, 2.0) else x + 200.0",
+    )
+    settle = FunctionDef(
+        name="settle",
+        input_type="builtins.float",
+        output_type="builtins.float",
+        code="return 0.0 if x == 3.0 else x + 300.0",
+    )
+    functions = FunctionDefSet([neg, step, settle])
+    root = TypedList([1.0, 1.0], item_type=float)
+
+    tasks, _ = deep.expand_root(
+        _plan(root, max_depth=3),
+        functions=functions,
+        seed=11,
+        min_distance=1,
+        tasks_per_distance=8,
+        frontier_sample=0,
+        allow_constant_outputs=True,
+        verify_witnesses=True,
+    )
+
+    zero = TypedList([0.0, 0.0], item_type=float)
+    matching = [task for task in tasks if task.output_value == zero]
+    assert matching, "the all-zero target should be emitted"
+    for task in matching:
+        assert task.certified_distance == 1, (
+            f"answer-equal target filed at {task.certified_distance}, not 1"
+        )
+    # And it is emitted once, not once per signed-zero variant.
+    assert len(matching) == 1
+
+
+def test_frontier_extension_merges_answer_equal_candidates():
+    # Two frontier parents whose successors are 0.0 and -0.0. A solver cannot be
+    # asked to tell those apart, so they are one task, reachable by either first
+    # action -- and both actions belong in the optimal set. Splitting them would
+    # emit the task twice, each copy naming only half of its optimal actions.
     to_float = FunctionDef(
         name="to_float",
         input_type="builtins.int",
@@ -81,11 +129,15 @@ def test_frontier_extension_keeps_signed_zero_candidates_apart():
         verify_witnesses=True,
     )
 
-    # float(1) * 0.0 is 0.0 and -float(1) * 0.0 is -0.0: equal, distinguishable.
+    # float(1) * 0.0 is 0.0 and -float(1) * 0.0 is -0.0: equal answers.
     extended = [task for task in tasks if task.certified_distance == 2]
-    outputs = {task.output_value.search_key() for task in extended}
-    assert len(outputs) == 2, f"expected both signed zeros, got {len(outputs)}"
-    assert len({task.output_value.canonical_key() for task in extended}) == 1
+    assert len(extended) == 1, f"expected one task, got {len(extended)}"
+    assert extended[0].output_value == TypedList([0.0, 0.0], item_type=float)
+    # Both first moves reach an acceptable answer in two, so both are optimal.
+    assert {f.name for f in extended[0].optimal_first_actions} == {
+        "to_float",
+        "neg_float",
+    }
 
 
 def _reaches_within(source, target, depth):
