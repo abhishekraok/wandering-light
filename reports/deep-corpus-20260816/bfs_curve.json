@@ -1,0 +1,500 @@
+{
+  "corpus_dir": "wandering_light/training/data/deep_corpus_v1",
+  "basis_set_id": "wl-core-v1",
+  "basis_set_digest": "sha256:ffc602fb24db249df7eb4f6b0d5ba38d5a5070b2c68c6c5f94c7f387de682494",
+  "solver": "wandering_light.solver.create_bfs_solver",
+  "budget": 20000000,
+  "splits": [
+    "validation",
+    "test"
+  ],
+  "seed": 20260816,
+  "tasks_per_distance": 12,
+  "sampled_tasks": 96,
+  "sample_distance_histogram": {
+    "1": 12,
+    "2": 12,
+    "3": 12,
+    "4": 12,
+    "5": 12,
+    "6": 12,
+    "7": 12,
+    "8": 12
+  },
+  "merged_from": [
+    "curve_d1_5.json",
+    "curve_d6.json",
+    "curve_d7.json"
+  ],
+  "curve": [
+    {
+      "by_certified_distance": {
+        "1": {
+          "max_ms": 1.8395220104139298,
+          "mean_ms": 1.0420991651092966,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "2": {
+          "max_ms": 1.9770079816225916,
+          "mean_ms": 1.2858687526507613,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "3": {
+          "max_ms": 2.7433560171630234,
+          "mean_ms": 1.5433388374124963,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "4": {
+          "max_ms": 1.754749013343826,
+          "mean_ms": 1.079724834805044,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "5": {
+          "max_ms": 2.2060489864088595,
+          "mean_ms": 1.3458433337897684,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "6": {
+          "max_ms": 3.92750499304384,
+          "mean_ms": 2.0744795862507694,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "7": {
+          "max_ms": 4.490191990043968,
+          "mean_ms": 1.7437365798590083,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "8": {
+          "max_ms": 2.089832996716723,
+          "mean_ms": 1.617091169464402,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        }
+      },
+      "depth": 1,
+      "mean_ms_per_task": 1.4665227824176934,
+      "median_ms_per_task": 1.3795895065413788,
+      "solve_rate": 0.125,
+      "solved": 12,
+      "tasks": 96,
+      "total_seconds": 0.14078618711209856
+    },
+    {
+      "by_certified_distance": {
+        "1": {
+          "max_ms": 3.247163986088708,
+          "mean_ms": 1.737263417453505,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "2": {
+          "max_ms": 11.994294007308781,
+          "mean_ms": 5.491103668949411,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "3": {
+          "max_ms": 26.816613011760637,
+          "mean_ms": 12.203066170817086,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "4": {
+          "max_ms": 27.009176003048196,
+          "mean_ms": 10.165715335460845,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "5": {
+          "max_ms": 18.441559019265696,
+          "mean_ms": 11.30795816910298,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "6": {
+          "max_ms": 32.991576998028904,
+          "mean_ms": 17.784953915300623,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "7": {
+          "max_ms": 26.47032801178284,
+          "mean_ms": 13.662025829641303,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "8": {
+          "max_ms": 8.216090995119885,
+          "mean_ms": 5.665102165949065,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        }
+      },
+      "depth": 2,
+      "mean_ms_per_task": 9.752148584084352,
+      "median_ms_per_task": 7.657720503630117,
+      "solve_rate": 0.25,
+      "solved": 24,
+      "tasks": 96,
+      "total_seconds": 0.9362062640720978
+    },
+    {
+      "by_certified_distance": {
+        "1": {
+          "max_ms": 1.9320010032970458,
+          "mean_ms": 1.109908919412798,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "2": {
+          "max_ms": 14.236614981200546,
+          "mean_ms": 6.212752744128617,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "3": {
+          "max_ms": 195.10972301941365,
+          "mean_ms": 59.84779341573206,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "4": {
+          "max_ms": 106.22307599987835,
+          "mean_ms": 58.63566007610643,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "5": {
+          "max_ms": 218.1262880039867,
+          "mean_ms": 73.84558216532848,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "6": {
+          "max_ms": 199.51188401319087,
+          "mean_ms": 87.79605158633785,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "7": {
+          "max_ms": 428.69412299478427,
+          "mean_ms": 90.76827716489788,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "8": {
+          "max_ms": 65.79552101902664,
+          "mean_ms": 38.164179585389014,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        }
+      },
+      "depth": 3,
+      "mean_ms_per_task": 52.04752570716664,
+      "median_ms_per_task": 40.410534013062716,
+      "solve_rate": 0.375,
+      "solved": 36,
+      "tasks": 96,
+      "total_seconds": 4.996562467887998
+    },
+    {
+      "by_certified_distance": {
+        "1": {
+          "max_ms": 1.813417999073863,
+          "mean_ms": 1.0382096637234401,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "2": {
+          "max_ms": 20.965828007319942,
+          "mean_ms": 7.295747833268251,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "3": {
+          "max_ms": 159.01065900106914,
+          "mean_ms": 44.354567505555075,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "4": {
+          "max_ms": 783.8587389851455,
+          "mean_ms": 280.8463932451559,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "5": {
+          "max_ms": 1679.8412069911137,
+          "mean_ms": 547.9980650003805,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "6": {
+          "max_ms": 1612.7257889893372,
+          "mean_ms": 603.4170918355812,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "7": {
+          "max_ms": 2926.6977040097117,
+          "mean_ms": 678.4259915002622,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "8": {
+          "max_ms": 455.84372998564504,
+          "mean_ms": 291.6327065807612,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        }
+      },
+      "depth": 4,
+      "mean_ms_per_task": 306.87609664558596,
+      "median_ms_per_task": 179.30329051159788,
+      "solve_rate": 0.5,
+      "solved": 48,
+      "tasks": 96,
+      "total_seconds": 29.460105277976254
+    },
+    {
+      "by_certified_distance": {
+        "1": {
+          "max_ms": 1.818831020500511,
+          "mean_ms": 1.0456331680567625,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "2": {
+          "max_ms": 12.088677991414443,
+          "mean_ms": 5.544061001273803,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "3": {
+          "max_ms": 121.20777598465793,
+          "mean_ms": 38.78642024938017,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "4": {
+          "max_ms": 726.7248310090508,
+          "mean_ms": 282.38755583394476,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "5": {
+          "max_ms": 8297.437264991459,
+          "mean_ms": 2675.264897829038,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "6": {
+          "max_ms": 11678.693093010224,
+          "mean_ms": 4107.29908158828,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "7": {
+          "max_ms": 18502.92442701175,
+          "mean_ms": 4137.409958493663,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "8": {
+          "max_ms": 3465.6170469825156,
+          "mean_ms": 2020.1024225801425,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        }
+      },
+      "depth": 5,
+      "mean_ms_per_task": 1658.4800038429723,
+      "median_ms_per_task": 656.7502714897273,
+      "solve_rate": 0.625,
+      "solved": 60,
+      "tasks": 96,
+      "total_seconds": 159.21408036892535
+    },
+    {
+      "by_certified_distance": {
+        "1": {
+          "max_ms": 1.8825759761966765,
+          "mean_ms": 1.05556891503511,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "2": {
+          "max_ms": 11.739973997464404,
+          "mean_ms": 5.482634837486937,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "3": {
+          "max_ms": 285.1300670008641,
+          "mean_ms": 62.15616916112291,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "4": {
+          "max_ms": 861.1533660150599,
+          "mean_ms": 304.8085872505908,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "5": {
+          "max_ms": 8041.860661003739,
+          "mean_ms": 2587.9499324122057,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "6": {
+          "max_ms": 66807.85842600744,
+          "mean_ms": 17353.55949033207,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "7": {
+          "max_ms": 117970.93308498734,
+          "mean_ms": 24390.057968831872,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        },
+        "8": {
+          "max_ms": 18141.46683702711,
+          "mean_ms": 10748.710650504412,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        }
+      },
+      "depth": 6,
+      "mean_ms_per_task": 6931.7226252805995,
+      "median_ms_per_task": 701.4576999936253,
+      "solve_rate": 0.75,
+      "solved": 72,
+      "tasks": 96,
+      "total_seconds": 665.4453720269375
+    },
+    {
+      "by_certified_distance": {
+        "1": {
+          "max_ms": 1.9423799822106957,
+          "mean_ms": 1.2254830022963386,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "2": {
+          "max_ms": 21.49646799080074,
+          "mean_ms": 8.625647661877641,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "3": {
+          "max_ms": 245.6726260134019,
+          "mean_ms": 67.69584183590875,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "4": {
+          "max_ms": 807.0748600002844,
+          "mean_ms": 304.83598549471935,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "5": {
+          "max_ms": 8580.513797001913,
+          "mean_ms": 2671.04251824882,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "6": {
+          "max_ms": 65925.8428089961,
+          "mean_ms": 17283.288500092265,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "7": {
+          "max_ms": 300229.2800889991,
+          "mean_ms": 73498.6597628352,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12
+        },
+        "8": {
+          "max_ms": 103267.71546099917,
+          "mean_ms": 59230.596569662644,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12
+        }
+      },
+      "depth": 7,
+      "mean_ms_per_task": 19133.246288604216,
+      "median_ms_per_task": 731.6984499921091,
+      "solve_rate": 0.875,
+      "solved": 84,
+      "tasks": 96,
+      "total_seconds": 1836.7916437060048
+    }
+  ]
+}
