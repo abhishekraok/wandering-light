@@ -479,3 +479,46 @@ def test_bfs_efficiency_improvement():
     # Should still find correct solution
     assert len(result.functions) == 3
     assert all(f.name == "inc" for f in result.functions)
+
+
+def test_bfs_search_survives_functions_that_raise_on_contents():
+    """A function may accept the list's item type and still raise on its values.
+
+    _is_type_compatible only checks the container item type, so such a function
+    passes the filter and is executed during expansion. Before this was handled,
+    one raising expansion aborted the entire search.
+    """
+    exploding = make_function(
+        "explode_on_str", "builtins.list", "builtins.int", "return sum(x)"
+    )
+    head = make_function("head", "builtins.list", "builtins.str", "return x[0]")
+    upper = make_function("upper", "builtins.str", "builtins.str", "return x.upper()")
+    available_functions = FunctionDefSet([exploding, head, upper])
+
+    start = TypedList([["a", "b"], ["c", "d"]], item_type=list)
+    target = TypedList(["A", "C"], item_type=str)
+
+    predictor = BFSPredictor(budget=1000, max_depth=3)
+    result = predictor.predict_functions_batch([(start, target)], available_functions)[
+        0
+    ]
+
+    assert [fn.name for fn in result] == ["head", "upper"]
+
+
+def test_bfs_counts_raising_expansions_against_budget():
+    """A failed expansion still costs work and must not be free."""
+    exploding = make_function(
+        "always_raises", "builtins.int", "builtins.int", "return x + None"
+    )
+    available_functions = FunctionDefSet([exploding])
+
+    start = TypedList([1, 2], item_type=int)
+    target = TypedList([99], item_type=int)
+
+    predictor = BFSPredictor(budget=1, max_depth=3)
+    result = predictor.predict_functions_batch([(start, target)], available_functions)[
+        0
+    ]
+
+    assert list(result) == []
