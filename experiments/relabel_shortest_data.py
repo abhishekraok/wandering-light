@@ -38,7 +38,11 @@ TRAIN_COUNTS = {1: 100, 2: 10_000, 3: 100_000, 4: 10_000, 5: 1_000}
 EVAL_SOURCE = Path("wandering_light/evals/data/random_inputs_500.py")
 RL_MODEL = Path("checkpoints/saved/rl/induction_opt_125m_sft_434k_rl_6k_with_lp")
 REPORT_DIR = Path("reports/shortest-data-20260810")
-TRAIN_DATA = Path("wandering_light/training/data/induction_shortest_v1.jsonl.gz")
+# Regenerated here, but released through the Hub rather than committed; see
+# wandering_light/corpus_hub.py and the manifest beside this path.
+TRAIN_DATA = Path(
+    "wandering_light/training/data/induction_shortest_v1/induction_shortest_v1.jsonl.gz"
+)
 EVAL_DATA = Path("wandering_light/evals/data/random_inputs_500_shortest_v1.jsonl.gz")
 
 _WORKER_CONTEXT = SimpleNamespace(specs=[], split="")

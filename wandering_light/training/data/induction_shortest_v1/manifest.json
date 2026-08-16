@@ -1,0 +1,30 @@
+{
+  "certified_records": 118730,
+  "dataset_id": "induction_shortest_v1",
+  "description": "Shortest-path relabelled induction trajectories from PR #26. A single gzipped JSONL file whose records each carry their own `split` field, so the one entry under `splits` is the whole dataset rather than one split of it.",
+  "hub": {
+    "repo_id": "abhishekraok/wandering-light-induction-shortest-v1",
+    "repo_type": "dataset",
+    "revision": "563889939e3e80903f6656e884b99ab73056d4e9"
+  },
+  "record_count": 118730,
+  "records_by_internal_split": {
+    "train": 118730
+  },
+  "records_by_relabeled_length": {
+    "1": 26614,
+    "2": 61344,
+    "3": 29743,
+    "4": 1029
+  },
+  "report": "reports/shortest-data-20260810/README.md",
+  "schema_version": 1,
+  "source": "experiments/relabel_shortest_data.py",
+  "splits": {
+    "all": {
+      "path": "induction_shortest_v1.jsonl.gz",
+      "sha256": "sha256:70657508702bf96f98478a9970738e74ede4609655e6cf330c024cd4e2b30175",
+      "size": 118730
+    }
+  }
+}

@@ -24,7 +24,11 @@ No BFS resource cap fired. Search covered 11,645,297 train states / 28,254,636 t
 
 ## Artifacts
 
-- Release: [`induction_shortest_v1.jsonl.gz`](../../wandering_light/training/data/induction_shortest_v1.jsonl.gz), SHA-256 `70657508702bf96f98478a9970738e74ede4609655e6cf330c024cd4e2b30175`
+- Release: [`induction_shortest_v1`](https://huggingface.co/datasets/abhishekraok/wandering-light-induction-shortest-v1)
+  on the HuggingFace Hub, SHA-256 `70657508702bf96f98478a9970738e74ede4609655e6cf330c024cd4e2b30175`.
+  The payload is no longer committed; `wandering_light/training/data/induction_shortest_v1/manifest.json`
+  pins the repo, revision and digest. Fetch and verify it with:
+  `uv run python -c "from wandering_light import corpus_hub; corpus_hub.fetch_corpus('wandering_light/training/data/induction_shortest_v1/manifest.json')"`
 - Release: [`random_inputs_500_shortest_v1.jsonl.gz`](../../wandering_light/evals/data/random_inputs_500_shortest_v1.jsonl.gz), SHA-256 `cc1dcfa1ffd418c5b4a48480f010354964cda7445bab3e0d6fb3c5e350db18c4`
 - Machine-readable metrics/config: [`summary.json`](summary.json)
 - Plot: [`shortest_relabel.png`](shortest_relabel.png)
@@ -35,8 +39,11 @@ Training accepts the release with:
 ```bash
 uv run python -m wandering_light.training.sft \
   --task induction \
-  --induction-data-file wandering_light/training/data/induction_shortest_v1.jsonl.gz
+  --induction-data-file wandering_light/training/data/induction_shortest_v1/induction_shortest_v1.jsonl.gz
 ```
+
+Fetch the file first with the command above; the path is a local cache, not a
+tracked artifact.
 
 The eval wrapper is `wandering_light.evals.data.random_inputs_500_shortest_v1`.
 
