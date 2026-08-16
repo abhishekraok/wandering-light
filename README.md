@@ -18,6 +18,7 @@ The library also supports training the LLM for generating appropriately challeng
  - Scripts for SFT and RL on Induction and Proposal tasks using the TRL library.
  - Synthetic data generation using LLMs.
  - Wandb integration for monitoring and analyzing the metrics.
+ - Versioned basis sets with verified-solution function usage tracking.
  - Evaluation scripts, website to visualize the evaluation metrics.
  - Clean code: 300+ unit tests, CI using Github actions.
  - Can train small models (0.1B) locally within a few hours.
@@ -80,6 +81,10 @@ target output; the path need not match the reference one.
 the solver above) reaches 0.96 parse rate and 0.15 solver success rate, but only **31 %** of
 generated groups have non-zero reward standard deviation — the other ~69 % give GRPO no gradient at
 all.
+
+**Basis functions.** Basis sets are immutable and content-addressed. A pilot generated 84K
+trajectories, measured 72K with the default solver, and recorded 62K function calls across 31K
+verified solutions. See the [basis-function report](reports/basis-library-20260815/README.md).
 
 Training curves and RL runs are in
 [WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg?accessToken=21hou3g702spnui44p3bn1arsplg4t0m0yvbcrchn9hfe8b6gdzn8ncq8wpe5721).
