@@ -58,10 +58,10 @@ resolved basis ID and digest and stable `basis_function_id`s rather than list
 positions. Splits are **by root**: every task from one root shares that root's
 split, so no two splits can share a source state.
 
-## Two bugs found while generating
+## Three bugs found while generating
 
-Both were found by the pipeline's own checks, and both are fixed in this
-branch.
+All three were found by the pipeline's own checks or by auditing them, and all
+three are fixed in this branch.
 
 ### Signed zero merged distinct search states
 
@@ -88,6 +88,19 @@ equal to themselves.
 The BFS half matters for the reference curve below. Unsound pruning can make
 BFS miss solutions that exist, which would have understated the baseline —
 the wrong direction for a number every learned arm is compared against.
+
+### Frontier candidates were grouped by the same coarse key
+
+Found by auditing the remaining `canonical_key` call sites after the fix above.
+The frontier extension collected candidate successors into a dict keyed on
+`canonical_key`, so `0.0` and `-0.0` merged into one entry. That entry keeps
+the first state as its value — the witness stays correct, which is why witness
+verification passed — but its mask and in-edges accumulate from both states'
+parents, and those become the optimal first and last action labels. The label
+would then name actions that reach the other state.
+
+Anywhere a state is deduplicated, the key has to be one no basis function can
+see through.
 
 ### Held-out splits were biased by input type
 
@@ -377,6 +390,10 @@ arrays merged; the sample depends only on seed, splits and
   optimal-action sets there are partial by construction.
 - Roots are 240 draws from a broad generator; per-type behaviour beyond the
   twelve supported types is untested.
-- The same signed-zero merge affected the certified datasets from PR #26,
-  which were generated before this fix. Their distance labels carry the same
-  inflation risk and have not been regenerated here.
+- The certified datasets from PR #26 were generated before the signed-zero fix,
+  so they were re-certified under the fixed key: every certified record, 480 in
+  `random_inputs_500_shortest_v1` and 118,730 in `induction_shortest_v1`, by
+  expanding a fresh graph from each input through `distance - 1` and looking
+  for the output. **0 inflated labels and 0 inconclusive expansions.** Their
+  distances are short enough (max 4 and 5) that shortest paths stay off the
+  signed-zero states. They need no regeneration.
