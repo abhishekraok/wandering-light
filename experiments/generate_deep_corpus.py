@@ -1082,6 +1082,10 @@ def load_corpus(
     stored_digest = manifest.get("manifest_digest")
     payload = dict(manifest)
     payload.pop("manifest_digest", None)
+    # "hub" records where the payload is published, which is not part of what
+    # the corpus is; a corpus keeps its identity whether or not it was uploaded.
+    # Digesting it would mean publishing a corpus invalidated its own manifest.
+    payload.pop("hub", None)
     expected = _sha256_bytes(_canonical_json(payload).encode())
     if stored_digest != expected:
         raise ValueError(f"manifest digest mismatch: {stored_digest!r} != {expected!r}")

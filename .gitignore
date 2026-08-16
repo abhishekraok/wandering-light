@@ -179,6 +179,14 @@ results/
 results_old/
 training_logs/
 
+# Generated corpus payloads live on the HuggingFace Hub, not in git: they are
+# derived artifacts that are regenerated whenever the basis, the generator or a
+# state-deduplication key changes, and gzipped payloads do not delta-compress,
+# so every superseded version would sit in history forever. The manifest beside
+# them stays tracked -- it pins the basis, the config and the sha256 of each
+# payload, which is what a fetch is verified against. See wandering_light/corpus_hub.py.
+wandering_light/training/data/deep_corpus_v1/*.jsonl.gz
+
 # Generated report intermediates; release datasets and PNG summaries are tracked.
 reports/**/raw/
 reports/**/*.svg

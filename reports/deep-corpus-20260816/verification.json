@@ -162,7 +162,7 @@
       "complete_expansion": true,
       "expanded_depth": 2,
       "reachable_below_distance": false,
-      "seconds": 0.0,
+      "seconds": 0.01,
       "states_searched": 61,
       "task_id": "5238f1b22c9de0feca6115fd7737170b12c247da70a3945f950242303b1594d8"
     },
@@ -180,7 +180,7 @@
       "complete_expansion": true,
       "expanded_depth": 3,
       "reachable_below_distance": false,
-      "seconds": 0.04,
+      "seconds": 0.05,
       "states_searched": 331,
       "task_id": "13535f6ab9a79774bbef606132c476edf2ecc01c532a80fc79c6a4644a8de757"
     },
@@ -189,7 +189,7 @@
       "complete_expansion": true,
       "expanded_depth": 3,
       "reachable_below_distance": false,
-      "seconds": 0.01,
+      "seconds": 0.03,
       "states_searched": 132,
       "task_id": "e195c3eee35cafc58bd7172fa2498e94cf34600797b1f55ae7fa4f1b80442c73"
     },
@@ -198,7 +198,7 @@
       "complete_expansion": true,
       "expanded_depth": 3,
       "reachable_below_distance": false,
-      "seconds": 0.04,
+      "seconds": 0.09,
       "states_searched": 431,
       "task_id": "f186aa384f4c74f016fb55c27916805297bbeb5a405826d7dbfdaef2b166ff18"
     },
@@ -207,7 +207,7 @@
       "complete_expansion": true,
       "expanded_depth": 3,
       "reachable_below_distance": false,
-      "seconds": 0.03,
+      "seconds": 0.05,
       "states_searched": 215,
       "task_id": "4ffe5f34e36ed5ab4c72b66fed27e70a3e7eddf85403db6ab8b95cedac518b66"
     },
@@ -225,7 +225,7 @@
       "complete_expansion": true,
       "expanded_depth": 3,
       "reachable_below_distance": false,
-      "seconds": 0.05,
+      "seconds": 0.04,
       "states_searched": 396,
       "task_id": "f35cd4964a037ada29e0897d2eb1309d77bc900fbfbc6ef2cb993c42d15cba5b"
     },
@@ -234,7 +234,7 @@
       "complete_expansion": true,
       "expanded_depth": 4,
       "reachable_below_distance": false,
-      "seconds": 0.65,
+      "seconds": 0.82,
       "states_searched": 5179,
       "task_id": "72b8ee0fe78cc4a3063be297eadccdb9058874664a38d8e372f6b30f260b1bd7"
     },
@@ -243,7 +243,7 @@
       "complete_expansion": true,
       "expanded_depth": 4,
       "reachable_below_distance": false,
-      "seconds": 0.16,
+      "seconds": 0.25,
       "states_searched": 1148,
       "task_id": "46d9b9812a659b399e201bce2167e3123a5029e81e4800cdb88e3582316b2560"
     },
@@ -261,7 +261,7 @@
       "complete_expansion": true,
       "expanded_depth": 4,
       "reachable_below_distance": false,
-      "seconds": 0.98,
+      "seconds": 1.09,
       "states_searched": 7348,
       "task_id": "cdd6dfb584cf5b64816f6e6f28e559935157499df650c7a88819400b19327e09"
     },
@@ -270,7 +270,7 @@
       "complete_expansion": true,
       "expanded_depth": 4,
       "reachable_below_distance": false,
-      "seconds": 0.33,
+      "seconds": 0.29,
       "states_searched": 1555,
       "task_id": "9a552dd79beb135337b503ffc46e6133ceff2d2713521542a08a651a6828d1e2"
     },
@@ -279,7 +279,7 @@
       "complete_expansion": true,
       "expanded_depth": 4,
       "reachable_below_distance": false,
-      "seconds": 0.79,
+      "seconds": 0.87,
       "states_searched": 5096,
       "task_id": "08bd98c538779926563e96ac1fe7440e48bb4c690c8c3611a4020f97ae75bc0b"
     },
@@ -288,7 +288,7 @@
       "complete_expansion": true,
       "expanded_depth": 5,
       "reachable_below_distance": false,
-      "seconds": 0.72,
+      "seconds": 0.97,
       "states_searched": 6869,
       "task_id": "fecafbcaa2933b85e83b31b099e8d53550f1f1a7f59e813568661fbc64bf2173"
     },
@@ -297,7 +297,7 @@
       "complete_expansion": true,
       "expanded_depth": 5,
       "reachable_below_distance": false,
-      "seconds": 2.05,
+      "seconds": 2.7,
       "states_searched": 16915,
       "task_id": "822349a832b8b8b3795a4fab5e125c66f8fc6dd3a14328a64e07747c4063c5dd"
     },
@@ -306,7 +306,7 @@
       "complete_expansion": true,
       "expanded_depth": 5,
       "reachable_below_distance": false,
-      "seconds": 0.95,
+      "seconds": 1.18,
       "states_searched": 5636,
       "task_id": "89d2e5de04092ae6b0e86ea22d402a1ad276abb28b62294dcdc916bc05180631"
     },
@@ -315,7 +315,7 @@
       "complete_expansion": true,
       "expanded_depth": 5,
       "reachable_below_distance": false,
-      "seconds": 1.01,
+      "seconds": 1.19,
       "states_searched": 6997,
       "task_id": "0b70b03ca0a403ba90693032ec4bafefdd1a72b64821428eb3806703d7d50963"
     },
@@ -324,7 +324,7 @@
       "complete_expansion": true,
       "expanded_depth": 5,
       "reachable_below_distance": false,
-      "seconds": 1.57,
+      "seconds": 1.84,
       "states_searched": 9783,
       "task_id": "a55609bbf9ed1ab15850e5798c0e48c3dc55bb9073038aceeba61781ef012e6c"
     },
@@ -333,7 +333,7 @@
       "complete_expansion": true,
       "expanded_depth": 5,
       "reachable_below_distance": false,
-      "seconds": 1.16,
+      "seconds": 1.29,
       "states_searched": 6994,
       "task_id": "0e16eff79722bec2bb5dd3ddcfb72915378ba97eb77cd82d2f5ac8124a7c4e82"
     },
@@ -342,7 +342,7 @@
       "complete_expansion": true,
       "expanded_depth": 6,
       "reachable_below_distance": false,
-      "seconds": 8.02,
+      "seconds": 9.06,
       "states_searched": 52396,
       "task_id": "fd0d4ae699de508c3d72455b182f91227e9f1b75a280f8c181980b9e12201e77"
     },
@@ -351,7 +351,7 @@
       "complete_expansion": true,
       "expanded_depth": 6,
       "reachable_below_distance": false,
-      "seconds": 15.03,
+      "seconds": 16.63,
       "states_searched": 103080,
       "task_id": "191ec001545f493e893a395ea13f43a4048c4b33176b35e55eaf8f36b2dedd58"
     },
@@ -360,16 +360,16 @@
       "complete_expansion": true,
       "expanded_depth": 6,
       "reachable_below_distance": false,
-      "seconds": 30.2,
+      "seconds": 35.79,
       "states_searched": 184956,
-      "task_id": "5ce6cc3579ba8f328172cc052dad322f6ffa48ed422bc18cafb774ec406bd0b2"
+      "task_id": "294e435b6cabdeeda9a3926f3903986979f3e3500e48d579f440da42bb4ff4e0"
     },
     {
       "certified_distance": 7,
       "complete_expansion": true,
       "expanded_depth": 6,
       "reachable_below_distance": false,
-      "seconds": 26.57,
+      "seconds": 31.22,
       "states_searched": 202357,
       "task_id": "183d22025bccb22e4599e6746fe5b80ec8e804bb9f65c7d5791a5c04fba520c1"
     },
@@ -378,7 +378,7 @@
       "complete_expansion": true,
       "expanded_depth": 6,
       "reachable_below_distance": false,
-      "seconds": 23.36,
+      "seconds": 24.71,
       "states_searched": 169187,
       "task_id": "c348d19534f7ce4824f7270c26245fcc2354b81f86d5634f41c9df650438940e"
     },
@@ -387,7 +387,7 @@
       "complete_expansion": true,
       "expanded_depth": 6,
       "reachable_below_distance": false,
-      "seconds": 15.84,
+      "seconds": 18.51,
       "states_searched": 103080,
       "task_id": "bb77a32a8a5d813f3c66b832e721e9dba13947873410c9e7747f1e1dbe0e055c"
     },
@@ -396,7 +396,7 @@
       "complete_expansion": true,
       "expanded_depth": 7,
       "reachable_below_distance": false,
-      "seconds": 30.76,
+      "seconds": 33.17,
       "states_searched": 181581,
       "task_id": "fc90a505e408502f4adaf91c7942c21649027ee1a60cf204088b21ca62d6b075"
     },
@@ -405,7 +405,7 @@
       "complete_expansion": true,
       "expanded_depth": 7,
       "reachable_below_distance": false,
-      "seconds": 84.97,
+      "seconds": 95.23,
       "states_searched": 478615,
       "task_id": "b9a067befea6bdd8a76380e50f5bd71e8dafc67d349b895e4acf72525fa2684a"
     },
@@ -414,7 +414,7 @@
       "complete_expansion": true,
       "expanded_depth": 7,
       "reachable_below_distance": false,
-      "seconds": 31.31,
+      "seconds": 34.22,
       "states_searched": 126207,
       "task_id": "0d814dba042c20fddbf9a1763fbede839810f2a279b510481b85afef308fffdb"
     },
@@ -423,16 +423,16 @@
       "complete_expansion": true,
       "expanded_depth": 7,
       "reachable_below_distance": false,
-      "seconds": 176.27,
+      "seconds": 198.97,
       "states_searched": 1158329,
-      "task_id": "664878d080cd9382f38a6734e166b398bf3f54f975917d2739030c06df5bc47f"
+      "task_id": "16a26f8e60d028425d0e7583a581af26cba4189d31d021f4b2bdb78a57355c3e"
     },
     {
       "certified_distance": 8,
       "complete_expansion": true,
       "expanded_depth": 7,
       "reachable_below_distance": false,
-      "seconds": 29.73,
+      "seconds": 43.63,
       "states_searched": 126207,
       "task_id": "986fab978130c3aa7e9e8aeaf1ed0e706eb9ecc82447b933b3b0ed330dd1a332"
     },
@@ -441,7 +441,7 @@
       "complete_expansion": true,
       "expanded_depth": 7,
       "reachable_below_distance": false,
-      "seconds": 49.8,
+      "seconds": 59.09,
       "states_searched": 327994,
       "task_id": "088dcf11bcd212b9258f7882906dc05e75a5171eee264f690acefc2218f12ebe"
     }

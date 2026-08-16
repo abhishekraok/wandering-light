@@ -86,6 +86,29 @@ def test_record_hub_location_keeps_the_manifest_digest(tmp_path):
     }
 
 
+def test_recorded_hub_location_does_not_break_the_digest_check(tmp_path):
+    # Asserting the stored string is unchanged is not enough: the reader
+    # recomputes the digest over the manifest body, so an added key breaks
+    # loading even though the stored digest still matches itself. Publishing a
+    # corpus must not invalidate its own manifest.
+    from experiments import generate_deep_corpus as deep
+
+    root = tmp_path / "corpus"
+    root.mkdir()
+    manifest = {"basis_set_id": "wl-core-v1", "splits": {}}
+    body = deep._canonical_json(manifest).encode()
+    manifest["manifest_digest"] = deep._sha256_bytes(body)
+    (root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+    corpus_hub.record_hub_location(root, repo_id="acct/name", revision="abc123")
+
+    stored = json.loads((root / "manifest.json").read_text())
+    payload = {k: v for k, v in stored.items() if k not in ("manifest_digest", "hub")}
+    assert deep._sha256_bytes(deep._canonical_json(payload).encode()) == (
+        stored["manifest_digest"]
+    )
+
+
 def test_fetch_verifies_what_it_downloaded(tmp_path, monkeypatch):
     root = _corpus(tmp_path)
     corpus_hub.record_hub_location(root, repo_id="acct/name", revision="abc123")
