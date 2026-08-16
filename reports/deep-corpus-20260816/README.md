@@ -102,6 +102,12 @@ would then name actions that reach the other state.
 Anywhere a state is deduplicated, the key has to be one no basis function can
 see through.
 
+**The shipped corpus is unaffected.** Replaying the frontier sampling of this
+run across all 240 roots — 24 sampled parents each, every basis function
+applied — found **0 candidate keys where two distinct states collided**. The
+bug was reachable in principle but never fired here, so the corpus was not
+regenerated for it.
+
 ### Held-out splits were biased by input type
 
 Root index determined both the input type (period 12) and the split (cycle
