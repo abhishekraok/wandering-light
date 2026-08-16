@@ -8,6 +8,7 @@ LLM-based solvers using ``TokenGenerator`` classes.
 
 import abc
 import os
+from collections import deque
 from dataclasses import dataclass
 
 import google.generativeai as genai
@@ -265,14 +266,16 @@ class BFSPredictor(FunctionPredictor):
 
         executor = Executor(available_functions)
 
-        # Queue stores tuples of (current_list, function_sequence)
-        queue = [(input_list, [])]
+        # Queue stores tuples of (current_list, function_sequence). A deque keeps
+        # the frontier pop O(1); a list makes deep searches quadratic in the
+        # number of visited states, which dominates past depth four.
+        queue = deque([(input_list, [])])
         # Track visited states to avoid redundant exploration
         visited = {self._state_key(input_list)}
         trajectories_tried = 0
 
         while queue and trajectories_tried < self.budget:
-            current_list, function_sequence = queue.pop(0)
+            current_list, function_sequence = queue.popleft()
 
             # Don't explore beyond max depth
             if len(function_sequence) >= self.max_depth:
