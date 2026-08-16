@@ -262,6 +262,17 @@ def test_bfs_state_key_canonicalizes_nested_unordered_values():
     assert hash(first_key) == hash(predictor._state_key(reordered))
 
 
+def test_bfs_state_key_separates_signed_zero():
+    # -0.0 == 0.0 in Python, so a key built on equality merges them and BFS
+    # prunes a state whose successors differ: float_to_str yields "-0.0" and
+    # "0.0". Visited-set keys must keep the two apart.
+    predictor = BFSPredictor()
+
+    assert predictor._state_key(TypedList([-0.0])) != predictor._state_key(
+        TypedList([0.0])
+    )
+
+
 def test_bfs_search_handles_nested_dictionary_states():
     input_list = TypedList([{"value": 3}], item_type=dict)
     target = TypedList([True], item_type=bool)

@@ -84,14 +84,19 @@ def _deserialize_value(value):
     return {key: _deserialize_value(item) for key, item in value.items()}
 
 
-def _canonical_value(value):
-    """Freeze serialized values with Python numeric equality and stable NaNs."""
+def _canonical_value(value, *, signed_zero: bool = False):
+    """Freeze serialized values with Python numeric equality and stable NaNs.
+
+    ``signed_zero`` keeps ``-0.0`` distinct from ``0.0``.  Answer checking wants
+    them equal, because Python says they are; search pruning wants them apart,
+    because the basis can tell them apart.  See ``search_key``.
+    """
 
     def freeze(item):
         if isinstance(item, float):
             if math.isnan(item):
                 return ("float", "nan")
-            if item == 0:
+            if item == 0 and not signed_zero:
                 return ("float", (0.0).hex())
             return ("float", item.hex())
         if isinstance(item, list):
@@ -252,6 +257,27 @@ class TypedList[T]:
     def canonical_key(self) -> tuple[type[T], object]:
         """Return a hashable structural key for this typed value sequence."""
         return (self.item_type, _canonical_value(self.items))
+
+    def search_key(self) -> tuple[type[T], object]:
+        """Return a key safe to deduplicate *search* states on.
+
+        Two states may be merged during a search only if no basis function can
+        tell them apart; otherwise the search prunes a state whose successors
+        differ and can miss, or over-estimate the distance to, a target.
+        ``canonical_key`` follows Python numeric equality, under which
+        ``-0.0 == 0.0`` -- but ``float_to_str`` maps them to ``"0.0"`` and
+        ``"-0.0"``, which are not equal, so signed zero must survive here.
+        (``f_fraction`` and ``f_sin`` preserve the sign too, but their outputs
+        still compare equal; they carry the difference rather than expose it.)
+        NaNs stay collapsed: no basis function observes a NaN's sign or payload,
+        and they are not equal to themselves.
+
+        This is a *search* key. It is deliberately finer than the relation a
+        solution is graded by, so distance must be read after collapsing back
+        onto ``canonical_key`` -- see ``_grading_classes`` in
+        ``experiments/generate_deep_corpus.py``.
+        """
+        return (self.item_type, _canonical_value(self.items, signed_zero=True))
 
     def __repr__(self):
         return f"TL<{self.item_type.__name__}>({self.items})"
