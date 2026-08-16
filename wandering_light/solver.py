@@ -287,10 +287,20 @@ class BFSPredictor(FunctionPredictor):
 
             # Try applying each compatible function
             for func in compatible_functions:
-                # Execute function incrementally from current_list
-                new_list = executor.execute(func, current_list)
                 new_sequence = [*function_sequence, func]
                 trajectories_tried += 1
+
+                # Execute function incrementally from current_list.
+                # _is_type_compatible only checks the container's item type, so a
+                # function can accept this list and still raise on its contents
+                # (list_median over a list of strings). Treat a raising expansion
+                # as an absent transition, matching TrajectoryGraph.expand.
+                try:
+                    new_list = executor.execute(func, current_list)
+                except Exception:
+                    if trajectories_tried >= self.budget:
+                        return FunctionDefList()
+                    continue
 
                 # Check if this reaches the target
                 if new_list == output_list:
