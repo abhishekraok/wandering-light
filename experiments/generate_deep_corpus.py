@@ -219,13 +219,22 @@ def build_root_plans(
     )
     attempts = 0
     attempt_limit = 200 * roots
+    # Splits are walked per input type, not per root index.  Indexing the cycle
+    # by the raw index couples the split to the type whenever the two periods
+    # share a factor -- with 12 types and a 9-long cycle, gcd 3, each split can
+    # only ever draw four types and the rest never leave discovery.  Counting
+    # within a type and offsetting by the type breaks that coupling: every type
+    # walks the whole cycle, and short runs still populate the held-out splits
+    # because each type starts at a different point in it.
+    type_positions: Counter[Any] = Counter()
     while len(plans) < roots:
         attempts += 1
         if attempts > attempt_limit:
             raise RuntimeError(
                 f"Could not draw {roots} distinct roots in {attempt_limit} attempts"
             )
-        input_type = SUPPORTED_RANDOM_TYPES[len(plans) % len(SUPPORTED_RANDOM_TYPES)]
+        type_index = len(plans) % len(SUPPORTED_RANDOM_TYPES)
+        input_type = SUPPORTED_RANDOM_TYPES[type_index]
         candidate = _random_input(input_type, rng)
         key = candidate.canonical_key()
         if key in seen:
@@ -233,10 +242,12 @@ def build_root_plans(
         seen.add(key)
         index = len(plans)
         deep = index in deep_positions
+        position = type_positions[input_type]
+        type_positions[input_type] += 1
         plans.append(
             RootPlan(
                 index=index,
-                split=split_cycle[index % len(split_cycle)],
+                split=split_cycle[(position + type_index) % len(split_cycle)],
                 input_type=input_type,
                 typed_list=candidate,
                 max_depth=deep_max_depth if deep else max_depth,

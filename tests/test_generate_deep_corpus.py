@@ -109,9 +109,32 @@ def test_roots_are_distinct_and_split_by_root():
     assert len({plan.typed_list.canonical_key() for plan in plans}) == 27
     assert len({plan.input_type for plan in plans}) == len(deep.SUPPORTED_RANDOM_TYPES)
     counts = Counter(plan.split for plan in plans)
-    assert counts["discovery"] == 21
-    assert counts["validation"] == 3
-    assert counts["test"] == 3
+    assert counts["discovery"] == 23
+    assert counts["validation"] == 2
+    assert counts["test"] == 2
+
+
+def test_every_split_covers_every_input_type():
+    # The split cycle is nine long and the types cycle twelve; indexing the
+    # cycle by root index would lock each split to 12 / gcd(9, 12) = 4 types and
+    # leave the other eight entirely in discovery, so the held-out sets would
+    # differ from discovery by input type rather than only by root.
+    plans = deep.build_root_plans(
+        roots=240,
+        seed=3,
+        max_depth=4,
+        deep_roots=0,
+        deep_max_depth=5,
+        max_states=1000,
+        max_transitions=1000,
+        deep_max_states=1000,
+        deep_max_transitions=1000,
+    )
+
+    expected = set(deep.SUPPORTED_RANDOM_TYPES)
+    for split in ("discovery", "validation", "test"):
+        covered = {plan.input_type for plan in plans if plan.split == split}
+        assert covered == expected, f"{split} covers {len(covered)} of {len(expected)}"
 
 
 def test_deep_root_types_restrict_the_deeper_budget():
