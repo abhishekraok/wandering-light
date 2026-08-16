@@ -10,6 +10,7 @@ import pytest
 
 from experiments import generate_deep_corpus as deep
 from wandering_light.basis_set import load_basis_set
+from wandering_light.function_def import FunctionDef, FunctionDefSet
 from wandering_light.proposer_pilot.graph import TrajectoryGraph
 from wandering_light.typed_list import TypedList
 
@@ -41,6 +42,50 @@ def _expand(typed_list, *, max_depth, tasks_per_distance=2, frontier_sample=0):
         allow_constant_outputs=False,
         verify_witnesses=True,
     )
+
+
+def test_frontier_extension_keeps_signed_zero_candidates_apart():
+    # Two frontier parents whose successors are equal under Python but distinct
+    # to the basis. Grouping candidates on canonical_key merges them into one
+    # entry whose mask and in_edges -- the optimal action labels -- would then
+    # mix both parents.
+    to_float = FunctionDef(
+        name="to_float",
+        input_type="builtins.int",
+        output_type="builtins.float",
+        code="return float(x)",
+    )
+    neg_float = FunctionDef(
+        name="neg_float",
+        input_type="builtins.int",
+        output_type="builtins.float",
+        code="return -float(x)",
+    )
+    mul_zero = FunctionDef(
+        name="mul_zero",
+        input_type="builtins.float",
+        output_type="builtins.float",
+        code="return x * 0.0",
+    )
+    functions = FunctionDefSet([to_float, neg_float, mul_zero])
+    root = TypedList([1, 2], item_type=int)
+
+    tasks, _ = deep.expand_root(
+        _plan(root, max_depth=1),
+        functions=functions,
+        seed=11,
+        min_distance=1,
+        tasks_per_distance=4,
+        frontier_sample=8,
+        allow_constant_outputs=True,
+        verify_witnesses=True,
+    )
+
+    # float(1) * 0.0 is 0.0 and -float(1) * 0.0 is -0.0: equal, distinguishable.
+    extended = [task for task in tasks if task.certified_distance == 2]
+    outputs = {task.output_value.search_key() for task in extended}
+    assert len(outputs) == 2, f"expected both signed zeros, got {len(outputs)}"
+    assert len({task.output_value.canonical_key() for task in extended}) == 1
 
 
 def _reaches_within(source, target, depth):

@@ -601,7 +601,11 @@ def _extend_frontier(
                 # Already reached at distance <= certified_depth by the complete
                 # expansion, so this step does not extend the distance.
                 continue
-            key = result.canonical_key()
+            # search_key, not canonical_key: grouping frontier candidates on
+            # Python equality would merge two states the basis distinguishes,
+            # and the merged entry's mask and in_edges -- the optimal first and
+            # last action labels -- would then mix both states' parents.
+            key = result.search_key()
             entry = candidates.get(key)
             if entry is None:
                 candidates[key] = {
