@@ -21,9 +21,9 @@ relabelling, no separate certification pass.
 | Certified distance 7 | 4,800 |
 | Certified distance 8 | 720 |
 | States expanded | 40,697,654 |
-| Expansion wall clock | 93 min |
+| Expansion wall clock | 109 min |
 | Witnesses re-executed, failures | 31,350, **0** |
-| BFS cost to fail at depth 6 / 7 | 17.6 s / 59.2 s per task |
+| BFS cost to fail at depth 6 / 7 | 18.2 s / 60.1 s per task |
 
 For contrast, BFS solves `random_inputs_500_shortest_v1` 100% at depth 4 in
 8 ms per task. Here it solves 75% at depth 6 and 87.5% at depth 7, and the
@@ -53,21 +53,34 @@ Optimal first actions come from bitmask reachability over the shortest-path
 DAG: action `a` is optimal at distance `d` iff `dist(f_a(s), target) == d - 1`,
 and every such distance is already in the expansion.
 
+**Distance is measured in the space a solver is graded in.** Expansion has to
+separate states no basis function may confuse, or it loses successors. Grading
+does the opposite: `TrajectorySolver` accepts any output `==` the target, and
+`-0.0 == 0.0`. So after expanding, the reached states are collapsed onto answer
+equality and a target's distance is the shallowest depth at which *any*
+answer-equal state is reached — the fewest steps to an output the solver would
+be scored correct for. Optimal first and last actions union over the class
+members at that depth, because every way of reaching an equal answer is an
+optimal way to solve the task.
+
 Records are `BasisTaskRecord` in the `basis_dataset` format, storing the
 resolved basis ID and digest and stable `basis_function_id`s rather than list
 positions. Splits are **by root**: every task from one root shares that root's
 split, so no two splits can share a source state.
 
-## Three bugs found while generating
+## Four bugs found while generating
 
-All three were found by the pipeline's own checks or by auditing them, and all
-three are fixed in this branch.
+Every one of them was a signed zero, and every one came from using the wrong
+notion of "the same state". They are listed in the order they were found.
 
 ### Signed zero merged distinct search states
 
 Expansion and BFS both keyed visited states on Python numeric equality, under
-which `-0.0 == 0.0`. The basis disagrees: `float_to_str`, `f_fraction` and
-`f_sin` all distinguish the two. Merging them left one state's successors
+which `-0.0 == 0.0`. The basis disagrees: `float_to_str` maps them to `"0.0"`
+and `"-0.0"`, which are *not* equal. (`f_fraction` and `f_sin` also return
+differently-signed zeros, but their outputs still compare equal, so they only
+propagate the difference rather than expose it — it becomes observable once
+`float_to_str` runs downstream.) Merging them left one state's successors
 unexplored, so a target reachable only through `-0.0` was either missed or
 found later by a longer path and **labelled with an inflated distance** — the
 exact claim this corpus exists to make.
@@ -89,24 +102,54 @@ The BFS half matters for the reference curve below. Unsound pruning can make
 BFS miss solutions that exist, which would have understated the baseline —
 the wrong direction for a number every learned arm is compared against.
 
-### Frontier candidates were grouped by the same coarse key
+### An over-correction, later reverted
 
-Found by auditing the remaining `canonical_key` call sites after the fix above.
-The frontier extension collected candidate successors into a dict keyed on
-`canonical_key`, so `0.0` and `-0.0` merged into one entry. That entry keeps
-the first state as its value — the witness stays correct, which is why witness
-verification passed — but its mask and in-edges accumulate from both states'
-parents, and those become the optimal first and last action labels. The label
-would then name actions that reach the other state.
+Auditing the remaining `canonical_key` call sites turned up the frontier
+extension grouping its candidates on it, and that looked like the same bug one
+site further in. It was not. Under grading, `0.0` and `-0.0` candidates are one
+task and every route to either is an optimal action for it, so the coarse key
+was right there all along. Splitting them was the same mistake pointed the
+other way, and the answer-equality fix below reverts it.
 
-Anywhere a state is deduplicated, the key has to be one no basis function can
-see through.
+A probe across all 240 roots — 24 sampled frontier parents each, every basis
+function applied — found 0 candidate keys where two distinct states collided,
+so neither the mistake nor its correction changed any shipped label.
 
-**The shipped corpus is unaffected.** Replaying the frontier sampling of this
-run across all 240 roots — 24 sampled parents each, every basis function
-applied — found **0 candidate keys where two distinct states collided**. The
-bug was reachable in principle but never fired here, so the corpus was not
-regenerated for it.
+### Distance was assigned in search space and graded in answer space
+
+Separating signed zero fixed pruning but not labelling, which stayed in the
+finer space while solutions are graded with `==`. A target reachable at depth 2
+as `[-1.0, 1.0, -0.0]` was filed at depth 4 as `[-1.0, 1.0, 0.0]` — a label no
+solver can be scored against, because one stopping at the equal value in two
+steps is graded correct.
+
+Both reviewers on [PR #37](https://github.com/abhishekraok/wandering-light/pull/37)
+caught this, and the corpus carried the proof: test records `96c9ae…` and
+`ca6a2a…` had `==` equal inputs *and* `==` equal outputs while carrying
+distances 4 and 2, as did validation records `b6d815…` and `53da48…`.
+
+The fix collapses reached states onto answer equality after expanding and reads
+distance as the shallowest depth in each class. Two further consequences had to
+follow, because both had been asking the wrong question:
+
+- Re-certification used `graph.find`, which resolves through the search index —
+  so it re-used the identity the distance was assigned under and could not
+  contradict it. It now looks for any answer-equal reached state.
+- Global dedup keyed on `task_id`, which hashes the serialized values, so the
+  two records posing one task both survived. It now keys on the graded task,
+  and the manifest states the distance semantics rather than advertising a
+  dedupe key it was not using.
+
+Measured before the fix: 2 records provably inflated by in-corpus contradiction,
+with 8.47% of targets structurally exposed (a zero-valued float somewhere in
+them). A 240-record sample of that exposed population at distances 2–5 found
+none, and a reviewer's 360-record sample found one, putting the rate near
+0.1%. Rare — but "certified shortest distance" is the whole claim, and an
+inflated label penalises a policy for finding the genuinely shorter answer.
+
+After regenerating: **0 answer-equality classes carrying conflicting labels, and
+0 tasks solvable below their label** in the same samples. The class that
+previously appeared twice now appears once, at distance 2.
 
 ### Held-out splits were biased by input type
 
@@ -174,9 +217,9 @@ globally on `sha256(canonical_input, canonical_output)`.
 
 | rejection | count |
 |---|---:|
-| `effective_identity_in_edges` | 1,924 |
-| `constant_output_example` | 1,642 |
-| `value_identity_task` | 81 |
+| `effective_identity_in_edges` | 1,914 |
+| `constant_output_example` | 1,640 |
+| `value_identity_task` | 80 |
 | `duplicate_task_id` | 0 |
 | `unserializable_state` | 0 |
 
@@ -192,15 +235,15 @@ Self-loops are skipped during expansion, 18,787,398 of them. A further
 
 | certified depth | roots | mean states | mean seconds | total seconds |
 |---:|---:|---:|---:|---:|
-| 6 | 204 | 129,440 | 17.1 | 3,487 |
-| 7 | 36 | 396,998 | 54.5 | 1,963 |
+| 6 | 204 | 129,440 | 19.9 | 4,065 |
+| 7 | 36 | 396,998 | 63.6 | 2,288 |
 
 States by BFS layer. Layers 1-6 are summed over all 240 roots; layer 7 comes
 only from the 36 deep roots, so it is not comparable to the column before it.
 
 | layer | 1 | 2 | 3 | 4 | 5 | 6 | 7 (36 roots) |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| states | 2,085 | 16,511 | 108,353 | 665,144 | 4,007,321 | 24,026,122 | 11,871,878 |
+| states | 2,085 | 16,505 | 108,332 | 665,102 | 4,007,258 | 24,026,049 | 11,871,864 |
 
 Growth settles at almost exactly 6x per level (7.9x, 6.6x, 6.1x, 6.0x, 6.0x
 across layers 2 through 6) with no sign of saturation: the reachable set is
@@ -255,13 +298,13 @@ budget.
 
 | BFS max depth | solved / 96 | solve rate | mean ms/task | median ms/task | total s |
 |---:|---:|---:|---:|---:|---:|
-| 1 | 12 | 12.5% | 1 | 1 | 0 |
-| 2 | 24 | 25.0% | 10 | 8 | 1 |
-| 3 | 36 | 37.5% | 52 | 40 | 5 |
-| 4 | 48 | 50.0% | 307 | 179 | 29 |
-| 5 | 60 | 62.5% | 1,658 | 657 | 159 |
-| 6 | 72 | 75.0% | 6,932 | 701 | 665 |
-| 7 | 84 | 87.5% | 19,133 | 732 | 1,837 |
+| 1 | 12 | 12.5% | 2 | 1 | 0 |
+| 2 | 24 | 25.0% | 8 | 6 | 1 |
+| 3 | 36 | 37.5% | 55 | 41 | 5 |
+| 4 | 48 | 50.0% | 322 | 191 | 31 |
+| 5 | 60 | 62.5% | 1,734 | 715 | 166 |
+| 6 | 72 | 75.0% | 7,144 | 642 | 686 |
+| 7 | 84 | 87.5% | 19,520 | 676 | 1,874 |
 
 Broken out by certified distance, the result is exactly lower-triangular:
 
@@ -285,11 +328,11 @@ pays when it cannot reach the target:
 
 | BFS depth | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| mean ms on unsolved tasks | 2 | 12 | 70 | 530 | 3,422 | 17,569 | 59,231 |
+| mean ms on unsolved tasks | 2 | 9 | 74 | 549 | 3,605 | 18,204 | 60,116 |
 
 That is roughly 5-6x per level, reaching about a minute per task at depth 7.
-The median cost per task barely moves from depth 5 onward (657 -> 701 -> 732
-ms) while the mean grows 12x: the distribution is entirely bimodal, cheap
+The median cost per task barely moves from depth 5 onward (715 -> 642 -> 676
+ms) while the mean grows 11x: the distribution is entirely bimodal, cheap
 successes against expensive exhaustive failures.
 
 The 20,000,000-trajectory budget never bound. Re-running three distance-8
@@ -301,7 +344,7 @@ not find the target establishes distance > 7, which together with the recorded
 length-8 witness pins those tasks at exactly 8.
 
 **What this means for #33.** There is real headroom. Distance 7 and 8 tasks
-cost BFS 17.6 and 59.2 seconds respectively to fail, and reaching them
+cost BFS 18.2 and 60.1 seconds respectively to fail, and reaching them
 exhaustively costs a full level of 6x growth each. A learned policy that
 proposes even a shortlist of good first actions converts that exhaustive sweep
 into a handful of executions. The corresponding numbers on
@@ -354,16 +397,30 @@ Full output: [`verification.json`](verification.json).
 Corpus at `wandering_light/training/data/deep_corpus_v1`, basis `wl-core-v1`,
 digest `sha256:ffc602fb24db249df7eb4f6b0d5ba38d5a5070b2c68c6c5f94c7f387de682494`,
 seed 20260816, manifest digest
-`sha256:a56246fb26801bdf56ae1b1a6e9359f76d86c49e00826489363c5261417d8c54`.
+`sha256:0efed8ca6c57942c1672ed0a2e6e3abe87b009168f9b26140408458ded8f41af`.
 
 - `discovery.jsonl.gz` — 24,498 tasks,
-  `sha256:1497fbd164a6648d949c0767c0f66ea539be7df34ff59216d53df84b3b5f1c39`
+  `sha256:b73909ef7bbbfe84985d5ccb7f89242651b6594bf7af0fed45426c0a8bdf47fb`
 - `validation.jsonl.gz` — 3,427 tasks,
-  `sha256:b62149e38b85ddfa7cccc715799f0027d503a54deeccdd46028f9286c75365f6`
+  `sha256:c416f507bc930626faceaf603ebb48c31e6e21f4c0f146ba6728a7d27f3a5748`
 - `test.jsonl.gz` — 3,425 tasks,
-  `sha256:ca68c9723afbc3daf845b5dfa38dd3495606d10a7af15542643bb8b7c04c5478`
-- `manifest.json` — full per-root record, including every root's certified
-  depth, stop reason, shell sizes and rejection counts.
+  `sha256:a404e339ff429344991d9ab92f379886062e67da6ce120090021ee865da2dced`
+The three payload files are **not in git**. They live on the HuggingFace Hub at
+[`abhishekraok/wandering-light-deep-corpus-v1`](https://huggingface.co/datasets/abhishekraok/wandering-light-deep-corpus-v1),
+pinned in the manifest to revision `fd22029677638702b6b13c572757a71e2f81335b`.
+Fetch and verify them against the manifest with:
+
+```
+uv run python -c "from wandering_light import corpus_hub; corpus_hub.fetch_corpus('wandering_light/training/data/deep_corpus_v1/manifest.json')"
+```
+
+That call refuses any file whose sha256 disagrees with the manifest, which is
+what makes the split safe: the manifest in git is the authority on what the
+corpus is, wherever the bytes are served from.
+
+- `manifest.json` — tracked in git; full per-root record, including every
+  root's certified depth, stop reason, shell sizes and rejection counts, plus
+  the digest of each payload file.
 - [`verification.json`](verification.json) — witness re-execution and
   independent re-certification results.
 - [`bfs_curve.json`](bfs_curve.json) — the reference curve, depths 1 through 7.
@@ -390,16 +447,20 @@ arrays merged; the sample depends only on seed, splits and
 ## Limits
 
 - Distance is certified against `wl-core-v1` only. A different basis is a
-  different metric.
+  different metric — and it is certified against *that basis's* notion of a
+  correct answer, so a grader stricter than `TypedList.__eq__` (one that
+  distinguished signed zero, say) would find some labels one or two steps
+  short.
 - The two deepest distances of each root rest on the frontier-extension
   argument. That argument certifies the distance exactly, but the
   optimal-action sets there are partial by construction.
 - Roots are 240 draws from a broad generator; per-type behaviour beyond the
   twelve supported types is untested.
-- The certified datasets from PR #26 were generated before the signed-zero fix,
-  so they were re-certified under the fixed key: every certified record, 480 in
-  `random_inputs_500_shortest_v1` and 118,730 in `induction_shortest_v1`, by
-  expanding a fresh graph from each input through `distance - 1` and looking
-  for the output. **0 inflated labels and 0 inconclusive expansions.** Their
-  distances are short enough (max 4 and 5) that shortest paths stay off the
-  signed-zero states. They need no regeneration.
+- The certified datasets from PR #26 predate all of these fixes, so every
+  certified record was re-checked — 480 in `random_inputs_500_shortest_v1` and
+  118,730 in `induction_shortest_v1` — by expanding a fresh graph from each
+  input through `distance - 1` and looking for any **answer-equal** state.
+  **0 inflated labels and 0 inconclusive expansions.** Their distances are short
+  enough (max 4 and 5) that shortest paths stay off the signed-zero states.
+  They need no regeneration. (An earlier pass used `graph.find`, which has the
+  circularity described above; the numbers here are from the corrected check.)
