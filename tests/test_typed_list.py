@@ -44,6 +44,20 @@ def test_state_equality_handles_nan_and_dict_order():
     )
 
 
+def test_search_key_separates_signed_zero_but_not_nan():
+    # Equality follows Python, where -0.0 == 0.0, but a search must not merge
+    # the two: float_to_str maps them to "0.0" and "-0.0", which have different
+    # lengths and so diverge under any downstream function.
+    assert TypedList([-0.0]).search_key() != TypedList([0.0]).search_key()
+    assert TypedList([-0.0]) == TypedList([0.0])
+    # NaNs stay merged; nothing in the basis observes a NaN's sign.
+    assert (
+        TypedList([float("nan")]).search_key()
+        == TypedList([-float("nan")]).search_key()
+    )
+    assert TypedList([0.5]).search_key() == TypedList([0.5]).search_key()
+
+
 def test_mixed_type_error():
     with pytest.raises(TypeError):
         TypedList([1, "two", 3])

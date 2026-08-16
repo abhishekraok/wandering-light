@@ -324,7 +324,7 @@ class BFSPredictor(FunctionPredictor):
 
     def _state_key(self, typed_list: TypedList) -> tuple:
         """Create a hashable key representing the state of a TypedList."""
-        return typed_list.canonical_key()
+        return typed_list.search_key()
 
     def _is_type_compatible(self, func: FunctionDef, typed_list: TypedList) -> bool:
         """Check if a function's input type is compatible with the typed list's type."""
