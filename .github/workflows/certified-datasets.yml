@@ -1,0 +1,33 @@
+name: Certified datasets
+
+on:
+  schedule:
+    - cron: "17 10 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recertify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install Python 3.12.8
+        run: uv python install 3.12.8
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev --extra experiments
+      - name: Re-certify shortest_v1 datasets
+        run: uv run python -m experiments.verify_shortest_path_datasets
+      - name: Verify deep corpus witnesses and sampled distances
+        run: >-
+          uv run python -m experiments.generate_deep_corpus
+          --mode verify
+          --output-dir wandering_light/training/data/deep_corpus_v1
+          --recertify 48

@@ -71,6 +71,10 @@ from wandering_light.basis_set import (
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDefList
 from wandering_light.proposer_pilot.graph import TrajectoryGraph
+from wandering_light.shortest_path_data import (
+    RecertificationStatus,
+    recertify_distance,
+)
 from wandering_light.trajectory import TrajectorySpec
 
 if TYPE_CHECKING:
@@ -1129,6 +1133,8 @@ def verify_corpus(
     *,
     recertify: int = 0,
     seed: int = DEFAULT_SEED,
+    recertify_max_states: int | None = None,
+    recertify_max_transitions: int | None = None,
 ) -> dict[str, Any]:
     """Re-execute every witness and optionally re-prove distances from scratch.
 
@@ -1180,35 +1186,43 @@ def verify_corpus(
                 by_distance[distance],
                 min(per_distance, len(by_distance[distance])),
             ):
-                graph = TrajectoryGraph(functions)
-                root_id = graph.add_root(record.input_value)
                 started = time.perf_counter()
-                expansion = graph.expand(root_id, distance - 1)
-                # Answer equality, not graph.find: find resolves through the
-                # search index, so asking it whether the target is reachable
-                # sooner re-uses the very identity the distance was assigned
-                # under, and cannot contradict it.  The claim being checked is
-                # that no state a solver would be *graded correct* for is
-                # reachable sooner.
-                target_key = record.output_value.canonical_key()
-                shorter = any(
-                    graph.node(node_id).typed_list.canonical_key() == target_key
-                    for node_id in expansion.node_depths
+                result = recertify_distance(
+                    record.input_value,
+                    record.output_value,
+                    distance,
+                    available_functions=functions,
+                    max_states=recertify_max_states,
+                    max_transitions=recertify_max_transitions,
                 )
                 recertified.append(
                     {
                         "task_id": record.task_id,
                         "certified_distance": distance,
-                        "expanded_depth": distance - 1,
-                        "complete_expansion": expansion.complete,
-                        "reachable_below_distance": bool(shorter),
-                        "states_searched": expansion.num_reached_states,
+                        "expanded_depth": result.search_depth,
+                        "complete_expansion": result.complete_expansion,
+                        "recertification_status": result.status.value,
+                        "reachable_below_distance": (
+                            result.status is RecertificationStatus.INFLATED
+                        ),
+                        "shorter_path_length": result.shorter_path_length,
+                        "certified_search_depth": result.certified_depth,
+                        "states_searched": result.states_searched,
+                        "transitions_attempted": result.transitions_attempted,
+                        "stop_reason": result.stop_reason,
                         "seconds": round(time.perf_counter() - started, 2),
                     }
                 )
 
     failed_recertification = [
-        row for row in recertified if row["reachable_below_distance"]
+        row
+        for row in recertified
+        if row["recertification_status"] == RecertificationStatus.INFLATED
+    ]
+    inconclusive_recertification = [
+        row
+        for row in recertified
+        if row["recertification_status"] == RecertificationStatus.INCONCLUSIVE
     ]
     return {
         "corpus_dir": str(corpus_dir),
@@ -1218,7 +1232,13 @@ def verify_corpus(
         "distance_histogram": _distance_histogram(records),
         "recertified": recertified,
         "recertification_failures": failed_recertification,
-        "ok": not witness_failures and not leaking_roots and not failed_recertification,
+        "recertification_inconclusive": inconclusive_recertification,
+        "ok": not (
+            witness_failures
+            or leaking_roots
+            or failed_recertification
+            or inconclusive_recertification
+        ),
     }
 
 
@@ -1538,6 +1558,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--recertify", type=int, default=0)
+    parser.add_argument("--recertify-max-states", type=int, default=None)
+    parser.add_argument("--recertify-max-transitions", type=int, default=None)
     parser.add_argument("--curve-depths", type=_parse_depths, default=[1, 2, 3, 4, 5])
     parser.add_argument("--curve-tasks-per-distance", type=int, default=12)
     parser.add_argument("--curve-budget", type=int, default=5_000_000)
@@ -1584,7 +1606,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     if args.mode == "verify":
         result = verify_corpus(
-            args.output_dir, recertify=args.recertify, seed=args.seed
+            args.output_dir,
+            recertify=args.recertify,
+            seed=args.seed,
+            recertify_max_states=args.recertify_max_states,
+            recertify_max_transitions=args.recertify_max_transitions,
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         if args.summary_path is not None:

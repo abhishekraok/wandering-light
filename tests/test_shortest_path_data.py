@@ -1,9 +1,15 @@
+from pathlib import Path
+
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.shortest_path_data import (
+    RecertificationStatus,
     apply_solver_candidate,
     bounded_relabel,
     certified_specs,
     read_jsonl_gz,
+    recertify_distance,
+    recertify_shortest_record,
+    recertify_shortest_records,
     write_jsonl_gz,
 )
 from wandering_light.trajectory import TrajectorySpec
@@ -27,6 +33,8 @@ identity = FunctionDef(
     output_type="builtins.int",
     code="return x",
 )
+
+DATA_ROOT = Path(__file__).parents[1] / "wandering_light"
 
 
 def _spec(functions):
@@ -131,3 +139,85 @@ def test_compressed_records_are_deterministic_and_round_trip(tmp_path):
 
     assert first.read_bytes() == second.read_bytes()
     assert read_jsonl_gz(first) == records
+
+
+def test_recertification_distinguishes_certified_inflated_and_inconclusive():
+    functions = FunctionDefSet([inc, add_two])
+
+    certified = recertify_distance(
+        TypedList([0]),
+        TypedList([2]),
+        2,
+        available_functions=FunctionDefSet([inc]),
+    )
+    inflated = recertify_distance(
+        TypedList([0]),
+        TypedList([2]),
+        2,
+        available_functions=functions,
+    )
+    inconclusive = recertify_distance(
+        TypedList([0]),
+        TypedList([2]),
+        2,
+        available_functions=functions,
+        max_transitions=0,
+    )
+
+    assert certified.status is RecertificationStatus.CERTIFIED
+    assert inflated.status is RecertificationStatus.INFLATED
+    assert inflated.shorter_path_length == 1
+    assert inconclusive.status is RecertificationStatus.INCONCLUSIVE
+    assert inconclusive.stop_reason == "max_transitions"
+    assert not inconclusive.complete_expansion
+
+
+def test_recertification_matches_targets_with_answer_equality():
+    negative_zero = FunctionDef(
+        name="negative_zero",
+        input_type="builtins.float",
+        output_type="builtins.float",
+        code="return -0.0",
+    )
+
+    result = recertify_distance(
+        TypedList([1.0]),
+        TypedList([0.0]),
+        2,
+        available_functions=FunctionDefSet([negative_zero]),
+    )
+
+    assert result.status is RecertificationStatus.INFLATED
+    assert result.shorter_path_length == 1
+
+
+def test_shortest_record_recertification_validates_its_witness():
+    record = {
+        "certified": True,
+        "input": TypedList([0]).to_string(),
+        "output": TypedList([2]).to_string(),
+        "relabeled_functions": ["inc", "inc"],
+        "relabeled_length": 2,
+    }
+
+    result = recertify_shortest_record(
+        record, available_functions=FunctionDefSet([inc])
+    )
+
+    assert result.status is RecertificationStatus.CERTIFIED
+
+
+def test_all_committed_random_input_distances_recertify():
+    records = read_jsonl_gz(
+        DATA_ROOT / "evals/data/random_inputs_500_shortest_v1.jsonl.gz"
+    )
+
+    results = recertify_shortest_records(records)
+    failures = [
+        (record["source_index"], result)
+        for record, result in zip(records, results, strict=True)
+        if result.status is not RecertificationStatus.CERTIFIED
+    ]
+
+    assert len(results) == 480
+    assert failures == []

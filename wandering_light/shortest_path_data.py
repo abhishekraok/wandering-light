@@ -3,6 +3,8 @@
 import gzip
 import io
 import json
+from dataclasses import dataclass
+from enum import StrEnum
 from itertools import combinations
 from pathlib import Path
 from typing import Any
@@ -15,6 +17,155 @@ from wandering_light.trajectory import TrajectorySpec, TrajectorySpecList
 from wandering_light.typed_list import TypedList
 
 SCHEMA_VERSION = 1
+
+
+class RecertificationStatus(StrEnum):
+    """Outcome of attempting to re-prove a recorded shortest distance."""
+
+    CERTIFIED = "certified"
+    INFLATED = "inflated"
+    INCONCLUSIVE = "inconclusive"
+
+
+@dataclass(frozen=True)
+class RecertificationResult:
+    """Fresh lower-bound evidence for one recorded shortest distance.
+
+    ``INFLATED`` carries a concrete shorter path length. ``INCONCLUSIVE`` means
+    a search budget stopped expansion before every state below the recorded
+    distance was explored; it must never be counted as a pass.
+    """
+
+    status: RecertificationStatus
+    recorded_distance: int
+    search_depth: int
+    complete_expansion: bool
+    certified_depth: int
+    states_searched: int
+    transitions_attempted: int
+    stop_reason: str | None
+    shorter_path_length: int | None = None
+
+
+def recertify_distance(
+    input_value: TypedList,
+    output_value: TypedList,
+    recorded_distance: int,
+    *,
+    available_functions: FunctionDefSet = basic_fns,
+    max_states: int | None = None,
+    max_transitions: int | None = None,
+) -> RecertificationResult:
+    """Re-prove that ``output_value`` is unreachable in fewer steps.
+
+    Expansion deduplicates with ``TypedList.search_key`` so states whose
+    successors can differ are never merged. Target matching deliberately uses
+    ``canonical_key`` instead: a shorter answer-equal state is a valid solver
+    answer and therefore contradicts the recorded distance.
+    """
+    if recorded_distance < 0:
+        raise ValueError("recorded_distance must be non-negative")
+
+    search_depth = max(0, recorded_distance - 1)
+    graph = TrajectoryGraph(functions=available_functions)
+    root = graph.add_root(input_value)
+    expansion = graph.expand(
+        root,
+        max_depth=search_depth,
+        max_states=max_states,
+        max_transitions=max_transitions,
+    )
+    target_key = output_value.canonical_key()
+    shorter_path_length = min(
+        (
+            depth
+            for node_id, depth in expansion.node_depths.items()
+            if graph.node(node_id).typed_list.canonical_key() == target_key
+            and depth < recorded_distance
+        ),
+        default=None,
+    )
+    if shorter_path_length is not None:
+        status = RecertificationStatus.INFLATED
+    elif expansion.complete:
+        status = RecertificationStatus.CERTIFIED
+    else:
+        status = RecertificationStatus.INCONCLUSIVE
+    return RecertificationResult(
+        status=status,
+        recorded_distance=recorded_distance,
+        search_depth=search_depth,
+        complete_expansion=expansion.complete,
+        certified_depth=expansion.certified_depth,
+        states_searched=expansion.num_reached_states,
+        transitions_attempted=expansion.attempted_transitions,
+        stop_reason=expansion.stop_reason,
+        shorter_path_length=shorter_path_length,
+    )
+
+
+def recertify_shortest_record(
+    record: dict[str, Any],
+    *,
+    available_functions: FunctionDefSet = basic_fns,
+    max_states: int | None = None,
+    max_transitions: int | None = None,
+) -> RecertificationResult:
+    """Validate a ``shortest_v1`` witness and freshly re-prove its distance."""
+    if not record.get("certified"):
+        raise ValueError("cannot re-certify a record not marked certified")
+    if record.get("output") is None:
+        raise ValueError("certified record has no output")
+
+    function_names = record.get("relabeled_functions")
+    if not isinstance(function_names, list):
+        raise ValueError("certified record has no relabeled function list")
+    recorded_distance = record.get("relabeled_length")
+    if not isinstance(recorded_distance, int):
+        raise ValueError("certified record has no integer relabeled_length")
+    if len(function_names) != recorded_distance:
+        raise ValueError("relabeled_length does not match the recorded witness")
+
+    input_value = TypedList.from_str(record["input"])
+    output_value = TypedList.from_str(record["output"])
+    try:
+        functions = [
+            available_functions.name_to_function[name] for name in function_names
+        ]
+    except KeyError as error:
+        raise ValueError(f"unknown witness function {error.args[0]!r}") from error
+    if not _execute_candidate(
+        input_value, output_value, functions, available_functions
+    ):
+        raise ValueError("recorded witness does not reproduce the recorded output")
+
+    return recertify_distance(
+        input_value,
+        output_value,
+        recorded_distance,
+        available_functions=available_functions,
+        max_states=max_states,
+        max_transitions=max_transitions,
+    )
+
+
+def recertify_shortest_records(
+    records: list[dict[str, Any]],
+    *,
+    available_functions: FunctionDefSet = basic_fns,
+    max_states: int | None = None,
+    max_transitions: int | None = None,
+) -> list[RecertificationResult]:
+    """Re-certify a sequence of ``shortest_v1`` records in input order."""
+    return [
+        recertify_shortest_record(
+            record,
+            available_functions=available_functions,
+            max_states=max_states,
+            max_transitions=max_transitions,
+        )
+        for record in records
+    ]
 
 
 def _function_names(functions: FunctionDefList) -> list[str]:

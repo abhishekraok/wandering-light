@@ -257,11 +257,9 @@ class TestTrajectoryGraphExpansion:
         assert expansion.certified_depth == 1
 
     def test_graph_state_key_agrees_with_typed_list_search_key(self):
-        # The "may these two states be merged" rule is implemented twice: here
-        # in _freeze, and in TypedList.search_key for the BFS solver. They
-        # cannot share code -- the key shapes differ -- so nothing stops one
-        # from drifting, and a disagreement is precisely the bug class that
-        # inflates certified distances. Pin them to the same partition.
+        # All exhaustive expansion must delegate to the same "may these two
+        # states be merged" rule as the shipped BFS solver. A divergent copy of
+        # this key is precisely the bug class that inflates certified distances.
         from wandering_light.proposer_pilot.graph import _state_key
 
         values = [
@@ -279,13 +277,7 @@ class TestTrajectoryGraphExpansion:
         ]
 
         for left in values:
-            for right in values:
-                same_graph = _state_key(left) == _state_key(right)
-                same_search = left.search_key() == right.search_key()
-                assert same_graph == same_search, (
-                    f"{left!r} vs {right!r}: graph says {same_graph}, "
-                    f"search_key says {same_search}"
-                )
+            assert _state_key(left) == left.search_key()
 
     def test_signed_zero_is_not_merged_with_positive_zero(self):
         # -0.0 == 0.0 in Python, so keying states on equality merges them and

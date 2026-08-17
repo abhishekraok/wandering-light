@@ -359,6 +359,7 @@ def test_generate_and_verify_roundtrip(tmp_path):
     assert result["witness_failures"] == []
     assert result["roots_leaking_across_splits"] == []
     assert result["recertified"]
+    assert result["recertification_inconclusive"] == []
     assert all(not row["reachable_below_distance"] for row in result["recertified"])
 
     _, records = deep.load_corpus(corpus_dir)
@@ -372,6 +373,25 @@ def test_generate_and_verify_roundtrip(tmp_path):
             deep.CERTIFICATION_FRONTIER,
         }
         assert record.basis_set_id == BASIS.basis_set_id
+
+
+def test_verify_reports_budget_limited_recertification_as_inconclusive(tmp_path):
+    _, corpus_dir = _tiny_corpus(tmp_path)
+
+    result = deep.verify_corpus(
+        corpus_dir,
+        recertify=3,
+        seed=5,
+        recertify_max_transitions=0,
+    )
+
+    assert not result["ok"]
+    assert result["recertification_failures"] == []
+    assert result["recertification_inconclusive"]
+    assert all(
+        row["stop_reason"] == "max_transitions"
+        for row in result["recertification_inconclusive"]
+    )
 
 
 def test_roots_do_not_leak_across_splits(tmp_path):
