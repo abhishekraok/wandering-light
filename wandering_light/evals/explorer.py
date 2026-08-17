@@ -10,10 +10,6 @@ import streamlit as st
 
 from wandering_light.constants import DEFAULT_EVAL_FILE as PROPOSER_EVAL_FILE
 from wandering_light.evals.explorer_tree import ROOT_ID, TrajectoryTree
-from wandering_light.evals.run_evaluation import (
-    is_packaged_legacy_eval_file,
-    load_eval_data_as_trajectories,
-)
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.trajectory import Trajectory, TrajectorySpec
@@ -22,10 +18,49 @@ from wandering_light.typed_list import TypedList
 DEFAULT_EVAL_FILE = "wandering_light/evals/data/random_inputs_500.py"
 RESULTS_ROOT = "results"
 RESULTS_PROPOSER_DIR = "results/proposer"
+_CORPUS_VALUE_WIDGET_KEYS = (
+    "corpus_source_selection",
+    "corpus_manual_path",
+    "corpus_browse_source",
+    "corpus_custom_input",
+    "corpus_custom_output",
+    "corpus_solver_kind",
+    "corpus_solver_budget",
+    "corpus_solver_depth",
+    "corpus_graph_mode",
+    "corpus_graph_scope",
+    "corpus_graph_max_records",
+    "corpus_graph_max_nodes",
+    "corpus_graph_max_edges",
+    "corpus_expand_depth",
+    "corpus_expand_states",
+    "corpus_expand_transitions",
+    "corpus_expand_self_loops",
+    "corpus_expand_palette",
+)
+_CORPUS_VALUE_WIDGET_PREFIXES = (
+    "corpus_splits_",
+    "corpus_distance_",
+    "corpus_match_",
+    "corpus_inputs_",
+    "corpus_outputs_",
+    "corpus_roles_",
+    "corpus_functions_",
+    "corpus_task_prefix_",
+    "corpus_page_size_",
+    "corpus_page_",
+    "corpus_selected_row_",
+    "corpus_solver_palette_",
+)
 
 
 @st.cache_resource(show_spinner=False)
 def load_eval(eval_file: str):
+    from wandering_light.evals.run_evaluation import (
+        is_packaged_legacy_eval_file,
+        load_eval_data_as_trajectories,
+    )
+
     return load_eval_data_as_trajectories(
         eval_file,
         trusted_legacy_python=is_packaged_legacy_eval_file(eval_file),
@@ -771,15 +806,74 @@ def main() -> None:
     st.set_page_config(page_title="Trajectory Explorer", page_icon="🌳", layout="wide")
     st.title("🌳 Trajectory Explorer")
 
-    eval_tab, solver_tab, proposer_tab = st.tabs(
-        ["Eval file", "Solver run", "Proposer run"]
+    page = st.sidebar.radio(
+        "View",
+        ["Corpus", "Eval file", "Solver run", "Proposer run"],
+        key="explorer_view",
     )
-    with eval_tab:
-        _render_eval_tab()
-    with solver_tab:
-        _render_solver_tab()
-    with proposer_tab:
-        _render_proposer_tab()
+    if page == "Corpus":
+        _restore_corpus_widget_state()
+        from wandering_light.evals.corpus_page import render_corpus_page
+
+        render_corpus_page(render_node=_render_node)
+        _capture_corpus_widget_state()
+    elif page == "Eval file":
+        _capture_corpus_widget_state()
+        _render_with_runtime_guidance(_render_eval_tab)
+    elif page == "Solver run":
+        _capture_corpus_widget_state()
+        _render_with_runtime_guidance(_render_solver_tab)
+    else:
+        _capture_corpus_widget_state()
+        _render_with_runtime_guidance(_render_proposer_tab)
+
+
+def _is_corpus_value_widget_key(key: object) -> bool:
+    return isinstance(key, str) and (
+        key in _CORPUS_VALUE_WIDGET_KEYS
+        or key.startswith(_CORPUS_VALUE_WIDGET_PREFIXES)
+    )
+
+
+def _capture_corpus_widget_state() -> None:
+    """Shadow value widgets before conditional page routing removes them."""
+    snapshot = {
+        key: value
+        for key, value in st.session_state.get(
+            "_explorer_corpus_widget_snapshot", {}
+        ).items()
+        if _is_corpus_value_widget_key(key)
+    }
+    snapshot.update(
+        {
+            key: value
+            for key, value in st.session_state.items()
+            if _is_corpus_value_widget_key(key)
+        }
+    )
+    st.session_state._explorer_corpus_widget_snapshot = snapshot
+
+
+def _restore_corpus_widget_state() -> None:
+    snapshot = st.session_state.get("_explorer_corpus_widget_snapshot", {})
+    for key, value in snapshot.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+
+def _render_with_runtime_guidance(renderer) -> None:
+    """Turn legacy pyhash reproducibility failures into actionable UI."""
+    try:
+        renderer()
+    except RuntimeError as error:
+        if "PYTHONHASHSEED" not in str(error):
+            raise
+        st.error(str(error))
+        st.code(
+            "PYTHONHASHSEED=0 streamlit run wandering_light/evals/explorer.py",
+            language="bash",
+        )
+        st.caption("The Corpus view remains available without restarting.")
 
 
 if __name__ == "__main__":

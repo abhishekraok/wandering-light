@@ -77,6 +77,8 @@ def test_widget_state_tracks_applied_fn_through_interactions(repo_cwd):
 
     at = AppTest.from_file(EXPLORER_PATH, default_timeout=120)
     at.run()
+    view = next(r for r in at.radio if r.key == "explorer_view")
+    view.set_value("Solver run").run()
 
     # Initial sample selection — enters the solver tab and seeds tree state.
     sb = next(s for s in at.selectbox if s.key == "solver_sample_idx")
@@ -120,3 +122,22 @@ def test_widget_state_tracks_applied_fn_through_interactions(repo_cwd):
     )
     apply_btn.click().run()
     assert _invariant_violations(at) == []
+
+
+def test_corpus_page_starts_without_fixed_hash_seed(repo_cwd, monkeypatch):
+    if os.environ.get("PYTHONHASHSEED") == "0":
+        pytest.skip("unseeded-startup behavior is covered in the default test run")
+    monkeypatch.delenv("PYTHONHASHSEED", raising=False)
+
+    at = AppTest.from_file(EXPLORER_PATH, default_timeout=120)
+    at.run()
+
+    assert not at.exception
+    view = next(r for r in at.radio if r.key == "explorer_view")
+    assert view.value == "Corpus"
+
+    view.set_value("Eval file").run()
+
+    assert not at.exception
+    assert any("PYTHONHASHSEED" in item.value for item in at.error)
+    assert any("PYTHONHASHSEED=0 streamlit run" in item.value for item in at.code)

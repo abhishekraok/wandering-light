@@ -207,6 +207,40 @@ To see the results of all the past evaluations run
 streamlit run wandering_light/evals/dashboard.py
 ```
 
+### Corpus and trajectory explorer
+
+To compare the certified corpora, filter tasks by basis function, edit a stored
+witness, run a bounded solver with custom input/output, or visualize trajectories
+in the `TrajectoryGraph` lab, run:
+
+```bash
+streamlit run wandering_light/evals/explorer.py
+```
+
+The first time a corpus is opened, the explorer streams its compressed JSONL
+into a disk-backed SQLite index; later interactions page and filter that index
+without retaining the full corpus in memory. Manifest-backed corpora are
+grouped across splits. When a manifest includes a pinned Hugging Face Hub
+location, a missing payload can be fetched with an explicit click and is then
+checked against the manifest digests; local checked-in payloads need no fetch.
+
+The graph lab carries the useful experiments from
+`notebooks/proposer_pilot.ipynb` into the app: it can merge the active edited
+trajectory with the latest solver path, replay stored same-root witnesses, or
+run an explicit local expansion with hard depth/state/transition caps. Local
+expansions enumerate reached candidate tasks and report shortest-path
+certification relative to the selected palette, plus self-loops, parallel
+functions, convergence, and cycles. They never expand the full
+corpus-generation graph implicitly.
+
+The Corpus view does not require a fixed Python hash seed. The legacy eval and
+solver-run views use the historical `wl-core-pyhash-v1` basis and should be
+launched reproducibly with:
+
+```bash
+PYTHONHASHSEED=0 streamlit run wandering_light/evals/explorer.py
+```
+
 ## Proposer
 The data generator.
 First finetune it using SFT, using the `--task proposer` flag. Then evaluate it.
