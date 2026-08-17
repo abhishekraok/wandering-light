@@ -71,6 +71,7 @@ from wandering_light.basis_set import (
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDefList
 from wandering_light.proposer_pilot.graph import TrajectoryGraph
+from wandering_light.shortest_path_data import recertify_shortest_path
 from wandering_light.trajectory import TrajectorySpec
 
 if TYPE_CHECKING:
@@ -1124,6 +1125,58 @@ def load_corpus(
     return manifest, records
 
 
+def _contains_zero_float(value: object) -> bool:
+    """Whether a value tree is exposed to the current search/equality split."""
+    if type(value) is float:
+        return value == 0.0
+    if isinstance(value, dict):
+        return any(
+            _contains_zero_float(key) or _contains_zero_float(item)
+            for key, item in value.items()
+        )
+    if isinstance(value, list | tuple | set | frozenset):
+        return any(_contains_zero_float(item) for item in value)
+    return False
+
+
+def _recertification_sample(
+    records: Sequence[BasisTaskRecord], count: int, *, seed: int
+) -> list[BasisTaskRecord]:
+    """Balance a deterministic sample over distance and zero-float exposure."""
+    rng = random.Random(seed)
+    by_distance: defaultdict[int, tuple[list[BasisTaskRecord], list[BasisTaskRecord]]]
+    by_distance = defaultdict(lambda: ([], []))
+    for record in records:
+        exposed = _contains_zero_float(record.output_value.items)
+        by_distance[record.metadata["certified_distance"]][int(exposed)].append(record)
+
+    queues: dict[int, list[BasisTaskRecord]] = {}
+    for distance, (ordinary, exposed) in by_distance.items():
+        rng.shuffle(ordinary)
+        rng.shuffle(exposed)
+        queue: list[BasisTaskRecord] = []
+        while ordinary or exposed:
+            if exposed:
+                queue.append(exposed.pop())
+            if ordinary:
+                queue.append(ordinary.pop())
+        queue.reverse()
+        queues[distance] = queue
+
+    sample: list[BasisTaskRecord] = []
+    target = min(count, len(records))
+    while len(sample) < target:
+        before = len(sample)
+        for distance in sorted(queues, reverse=True):
+            if queues[distance]:
+                sample.append(queues[distance].pop())
+                if len(sample) == target:
+                    break
+        if len(sample) == before:
+            break
+    return sample
+
+
 def verify_corpus(
     corpus_dir: str | Path,
     *,
@@ -1168,47 +1221,41 @@ def verify_corpus(
         digest for digest, splits in root_splits.items() if len(splits) > 1
     )
 
+    if recertify < 0:
+        raise ValueError("recertify must be non-negative")
     recertified: list[dict[str, Any]] = []
     if recertify:
-        rng = random.Random(seed)
-        by_distance: defaultdict[int, list[BasisTaskRecord]] = defaultdict(list)
-        for record in records:
-            by_distance[record.metadata["certified_distance"]].append(record)
-        per_distance = max(1, recertify // max(1, len(by_distance)))
-        for distance in sorted(by_distance):
-            for record in rng.sample(
-                by_distance[distance],
-                min(per_distance, len(by_distance[distance])),
-            ):
-                graph = TrajectoryGraph(functions)
-                root_id = graph.add_root(record.input_value)
-                started = time.perf_counter()
-                expansion = graph.expand(root_id, distance - 1)
-                # Answer equality, not graph.find: find resolves through the
-                # search index, so asking it whether the target is reachable
-                # sooner re-uses the very identity the distance was assigned
-                # under, and cannot contradict it.  The claim being checked is
-                # that no state a solver would be *graded correct* for is
-                # reachable sooner.
-                target_key = record.output_value.canonical_key()
-                shorter = any(
-                    graph.node(node_id).typed_list.canonical_key() == target_key
-                    for node_id in expansion.node_depths
-                )
-                recertified.append(
-                    {
-                        "task_id": record.task_id,
-                        "certified_distance": distance,
-                        "expanded_depth": distance - 1,
-                        "complete_expansion": expansion.complete,
-                        "reachable_below_distance": bool(shorter),
-                        "states_searched": expansion.num_reached_states,
-                        "seconds": round(time.perf_counter() - started, 2),
-                    }
-                )
+        for record in _recertification_sample(records, recertify, seed=seed):
+            distance = record.metadata["certified_distance"]
+            started = time.perf_counter()
+            result = recertify_shortest_path(
+                record.input_value,
+                record.output_value,
+                distance,
+                available_functions=functions,
+            )
+            recertified.append(
+                {
+                    "task_id": record.task_id,
+                    "certified_distance": distance,
+                    "expanded_depth": result.search_depth,
+                    "certified_search_depth": result.certified_search_depth,
+                    "complete_expansion": result.complete_expansion,
+                    "stop_reason": result.stop_reason,
+                    "outcome": result.outcome,
+                    "reachable_below_distance": result.outcome == "inflated",
+                    "shorter_distance": result.shorter_distance,
+                    "states_searched": result.states_searched,
+                    "transitions_attempted": result.transitions_attempted,
+                    "seconds": round(time.perf_counter() - started, 2),
+                }
+            )
 
     failed_recertification = [
-        row for row in recertified if row["reachable_below_distance"]
+        row for row in recertified if row["outcome"] == "inflated"
+    ]
+    inconclusive_recertification = [
+        row for row in recertified if row["outcome"] == "inconclusive"
     ]
     return {
         "corpus_dir": str(corpus_dir),
@@ -1218,7 +1265,15 @@ def verify_corpus(
         "distance_histogram": _distance_histogram(records),
         "recertified": recertified,
         "recertification_failures": failed_recertification,
-        "ok": not witness_failures and not leaking_roots and not failed_recertification,
+        "recertification_inconclusive": inconclusive_recertification,
+        "ok": not any(
+            (
+                witness_failures,
+                leaking_roots,
+                failed_recertification,
+                inconclusive_recertification,
+            )
+        ),
     }
 
 

@@ -5,6 +5,7 @@ import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -359,7 +360,8 @@ def test_generate_and_verify_roundtrip(tmp_path):
     assert result["witness_failures"] == []
     assert result["roots_leaking_across_splits"] == []
     assert result["recertified"]
-    assert all(not row["reachable_below_distance"] for row in result["recertified"])
+    assert all(row["outcome"] == "certified" for row in result["recertified"])
+    assert result["recertification_inconclusive"] == []
 
     _, records = deep.load_corpus(corpus_dir)
     assert len(records) == result["records"]
@@ -372,6 +374,27 @@ def test_generate_and_verify_roundtrip(tmp_path):
             deep.CERTIFICATION_FRONTIER,
         }
         assert record.basis_set_id == BASIS.basis_set_id
+
+
+def test_recertification_sample_balances_distance_and_zero_exposure():
+    records = [
+        SimpleNamespace(
+            metadata={"certified_distance": distance},
+            output_value=TypedList([value], item_type=float),
+        )
+        for distance in (1, 2)
+        for value in (1.0, 0.0)
+    ]
+
+    sample = deep._recertification_sample(records, 4, seed=7)
+
+    assert {
+        (
+            record.metadata["certified_distance"],
+            deep._contains_zero_float(record.output_value.items),
+        )
+        for record in sample
+    } == {(1, False), (1, True), (2, False), (2, True)}
 
 
 def test_roots_do_not_leak_across_splits(tmp_path):

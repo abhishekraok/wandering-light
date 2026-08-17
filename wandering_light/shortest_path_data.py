@@ -1,11 +1,13 @@
-"""Relabel random-walk trajectories with bounded shortest-path evidence."""
+"""Create, read, and re-certify bounded shortest-path datasets."""
 
 import gzip
 import io
 import json
+from collections.abc import Mapping
+from dataclasses import dataclass
 from itertools import combinations
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from wandering_light.common_functions import basic_fns
 from wandering_light.executor import Executor
@@ -17,8 +19,146 @@ from wandering_light.typed_list import TypedList
 SCHEMA_VERSION = 1
 
 
+@dataclass(frozen=True)
+class ShortestPathRecertification:
+    """Fresh lower-bound evidence for one recorded shortest distance."""
+
+    outcome: Literal["certified", "inflated", "inconclusive"]
+    recorded_distance: int
+    shorter_distance: int | None
+    search_depth: int
+    certified_search_depth: int
+    complete_expansion: bool
+    states_searched: int
+    transitions_attempted: int
+    stop_reason: str | None
+
+    @property
+    def ok(self) -> bool:
+        return self.outcome == "certified"
+
+
 def _function_names(functions: FunctionDefList) -> list[str]:
     return [function.name for function in functions]
+
+
+def _shortest_grading_equal_node(
+    graph: TrajectoryGraph,
+    node_depths: Mapping[int, int],
+    target: TypedList,
+) -> tuple[int, int] | None:
+    """Return ``(depth, node_id)`` using the equality used to grade solvers."""
+    target_key = target.canonical_key()
+    return min(
+        (
+            (depth, node_id)
+            for node_id, depth in node_depths.items()
+            if graph.node(node_id).typed_list.canonical_key() == target_key
+        ),
+        default=None,
+    )
+
+
+def recertify_shortest_path(
+    input_list: TypedList,
+    target: TypedList,
+    recorded_distance: int,
+    *,
+    available_functions: FunctionDefSet = basic_fns,
+    max_states: int | None = None,
+    max_transitions: int | None = None,
+) -> ShortestPathRecertification:
+    """Re-prove that ``target`` is unreachable below ``recorded_distance``.
+
+    Expansion prunes states with :meth:`TypedList.search_key`, through
+    :class:`TrajectoryGraph`, but reachability uses answer equality. A partial
+    expansion can prove an inflated label by finding a shorter target; absence
+    is evidence only when the expansion is complete.
+    """
+    if (
+        isinstance(recorded_distance, bool)
+        or not isinstance(recorded_distance, int)
+        or recorded_distance < 0
+    ):
+        raise ValueError("recorded_distance must be a non-negative integer")
+    if recorded_distance == 0 and input_list != target:
+        raise ValueError("a distance-zero target must equal the input")
+
+    search_depth = max(0, recorded_distance - 1)
+    graph = TrajectoryGraph(functions=available_functions)
+    root = graph.add_root(input_list)
+    expansion = graph.expand(
+        root,
+        max_depth=search_depth,
+        max_states=max_states,
+        max_transitions=max_transitions,
+    )
+    match = _shortest_grading_equal_node(graph, expansion.node_depths, target)
+    shorter_distance = (
+        match[0] if match is not None and match[0] < recorded_distance else None
+    )
+    if shorter_distance is not None:
+        outcome: Literal["certified", "inflated", "inconclusive"] = "inflated"
+    elif expansion.complete:
+        outcome = "certified"
+    else:
+        outcome = "inconclusive"
+
+    return ShortestPathRecertification(
+        outcome=outcome,
+        recorded_distance=recorded_distance,
+        shorter_distance=shorter_distance,
+        search_depth=search_depth,
+        certified_search_depth=expansion.certified_depth,
+        complete_expansion=expansion.complete,
+        states_searched=expansion.num_reached_states,
+        transitions_attempted=expansion.attempted_transitions,
+        stop_reason=expansion.stop_reason,
+    )
+
+
+def recertify_shortest_v1_record(
+    record: dict[str, Any],
+    *,
+    available_functions: FunctionDefSet = basic_fns,
+    max_states: int | None = None,
+    max_transitions: int | None = None,
+) -> ShortestPathRecertification:
+    """Re-execute and re-certify one ``shortest_v1`` record."""
+    if record.get("certified") is not True:
+        raise ValueError("record is not marked certified")
+    distance = record.get("relabeled_length")
+    names = record.get("relabeled_functions")
+    if isinstance(distance, bool) or not isinstance(distance, int) or distance < 0:
+        raise ValueError("relabeled_length must be a non-negative integer")
+    if not isinstance(names, list) or len(names) != distance:
+        raise ValueError("relabeled_functions must match relabeled_length")
+    if record.get("output") is None:
+        raise ValueError("record has no output")
+
+    input_list = TypedList.from_str(record["input"])
+    target = TypedList.from_str(record["output"])
+    try:
+        functions = [
+            available_functions.name_to_function[name]
+            for name in names
+            if isinstance(name, str)
+        ]
+    except KeyError as error:
+        raise ValueError(f"unknown witness function: {error.args[0]!r}") from error
+    if len(functions) != distance:
+        raise ValueError("relabeled_functions must contain function names")
+    if not _execute_candidate(input_list, target, functions, available_functions):
+        raise ValueError("stored witness does not reproduce the recorded output")
+
+    return recertify_shortest_path(
+        input_list,
+        target,
+        distance,
+        available_functions=available_functions,
+        max_states=max_states,
+        max_transitions=max_transitions,
+    )
 
 
 def _execute_candidate(
@@ -125,8 +265,9 @@ def bounded_relabel(
             search_transitions=expansion.attempted_transitions,
             search_stop_reason=expansion.stop_reason,
         )
-        destination = graph.find(target)
-        if destination is not None and destination in expansion.node_depths:
+        match = _shortest_grading_equal_node(graph, expansion.node_depths, target)
+        if match is not None:
+            _, destination = match
             path = graph.shortest_path(root, destination)
             if path is None:
                 raise AssertionError("reached destination has no graph path")
