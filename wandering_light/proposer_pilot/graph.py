@@ -6,7 +6,6 @@ them; multiple edges between the same pair are allowed when distinct functions
 yield the same result.
 """
 
-import math
 from collections import deque
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
@@ -18,59 +17,13 @@ from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionD
 from wandering_light.trajectory import Trajectory, TrajectorySpec
 from wandering_light.typed_list import TypedList
 
-type StateKey = tuple[str, tuple[object, ...]]
+type StateKey = tuple[type, object]
 type FunctionFingerprint = tuple[tuple[str, str, str, str], ...]
 
 
-def _type_name(t: type) -> str:
-    return f"{t.__module__}.{t.__qualname__}"
-
-
-def _freeze(value: object) -> object:
-    """Return a deterministic, hashable representation of a builtin value."""
-    value_type = _type_name(type(value))
-    if value is None:
-        return (value_type, None)
-    if isinstance(value, bool | int | str | bytes):
-        return (value_type, value)
-    if isinstance(value, float):
-        # Signed zero is kept: ``-0.0 == 0.0`` in Python, but ``float_to_str``
-        # maps them to unequal strings, so merging the two states would leave
-        # one set of successors unexplored and inflate the certified distance of
-        # anything reachable only through them.  (``f_fraction`` and ``f_sin``
-        # also preserve the sign, but their outputs still compare equal, so they
-        # carry the difference rather than expose it.)  NaNs stay collapsed --
-        # no basis function observes their sign or payload.
-        normalized = "nan" if math.isnan(value) else value.hex()
-        return (value_type, normalized)
-    if isinstance(value, bytearray):
-        return (value_type, bytes(value))
-    if isinstance(value, complex):
-        return (value_type, _freeze(value.real), _freeze(value.imag))
-    if isinstance(value, range):
-        return (value_type, value.start, value.stop, value.step)
-    if isinstance(value, list | tuple):
-        return (value_type, tuple(_freeze(item) for item in value))
-    if isinstance(value, set | frozenset):
-        return (value_type, frozenset(_freeze(item) for item in value))
-    if isinstance(value, dict):
-        return (
-            value_type,
-            frozenset((_freeze(key), _freeze(item)) for key, item in value.items()),
-        )
-    if hasattr(value, "model_dump"):
-        return (value_type, _freeze(value.model_dump()))
-    if hasattr(value, "dict"):
-        return (value_type, _freeze(value.dict()))
-    try:
-        hash(value)
-    except TypeError:
-        return (value_type, repr(value))
-    return (value_type, value)
-
-
 def _state_key(tl: TypedList) -> StateKey:
-    return (_type_name(tl.item_type), tuple(_freeze(item) for item in tl.items))
+    """Use the one basis-aware identity for pruning search states."""
+    return tl.search_key()
 
 
 def _fingerprint(functions: FunctionDefSet) -> FunctionFingerprint:
