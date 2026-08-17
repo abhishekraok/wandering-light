@@ -10,7 +10,9 @@ import os
 import pytest
 from streamlit.testing.v1 import AppTest
 
+from wandering_light.basis_dataset import typed_list_from_builtin_str
 from wandering_light.evals import corpus_view, graph_view
+from wandering_light.evals.explorer_playground import parse_typed_list
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 EXPLORER_PATH = os.path.join(REPO_ROOT, "wandering_light/evals/explorer.py")
@@ -64,6 +66,28 @@ def test_graph_expansion_produces_a_drawable_dot(app):
     assert stats["nodes"] > 1
     assert stats["certified_depth"] == 2
     assert "digraph trajectory {" in graph_view.to_dot(view)
+
+
+def test_graph_root_button_rewrites_the_widget_value(app):
+    """Writing a widget's key after it exists raises; the button uses a callback."""
+    if not _corpus_payload_present():
+        pytest.skip("corpus payload not downloaded")
+    assert app.button(key="graph_use_corpus").proto.disabled is True
+
+    app.button(key="corpus_send_playground").click().run()
+    app.button(key="graph_use_corpus").click().run()
+    assert [e.value for e in app.exception] == []
+
+    task = app.session_state["explorer_selected_task"]
+    expected = typed_list_from_builtin_str(task["input"])
+    assert parse_typed_list(app.session_state["graph_root"]) == expected
+
+
+def test_graph_tab_reports_an_unparseable_root(app):
+    app.session_state["graph_root"] = "not a typed list"
+    app.run()
+    assert [e.value for e in app.exception] == []
+    assert any("Could not parse root" in error.value for error in app.error)
 
 
 def _edge_widget_violations(at) -> list[str]:

@@ -42,6 +42,16 @@ def _root_text_default() -> str:
     return editable_text(task["input"])
 
 
+def _apply_corpus_root() -> None:
+    """Point the root box at the selected corpus task.
+
+    A widget's session-state entry may only be written before that widget is
+    instantiated, and a button callback runs ahead of the rerun -- so this has
+    to be a callback rather than a branch after the text input.
+    """
+    st.session_state["graph_root"] = _root_text_default()
+
+
 def _select_palette(functions: FunctionDefSet) -> FunctionDefSet:
     """Which functions may be applied during expansion.
 
@@ -113,14 +123,36 @@ def render_graph_tab() -> None:
     with cols[1]:
         st.write("")
         st.write("")
-        if st.button("↩ Use corpus task input", key="graph_use_corpus"):
-            st.session_state["graph_root"] = _root_text_default()
-            st.rerun()
+        st.button(
+            "↩ Use corpus task input",
+            key="graph_use_corpus",
+            on_click=_apply_corpus_root,
+            disabled=SELECTED_TASK_KEY not in st.session_state,
+            help="Send a task over from the Corpus tab first.",
+        )
+
+    try:
+        root_value = parse_typed_list(root_text)
+    except Exception as error:
+        st.error(f"Could not parse root: {error}")
+        return
 
     palette = _select_palette(functions)
     if len(palette) == 0:
         st.info("Select at least one function.")
         return
+
+    applicable = [
+        function
+        for function in palette
+        if function.input_type_cls() is root_value.item_type
+    ]
+    if not applicable:
+        st.warning(
+            f"No function in this palette takes "
+            f"`{root_value.item_type.__name__}`, so the expansion would stop at "
+            "the root. Switch to **Whole basis** or pick functions for that type."
+        )
 
     budget_cols = st.columns(4)
     with budget_cols[0]:
@@ -144,11 +176,6 @@ def render_graph_tab() -> None:
         )
 
     if st.button("🌐 Expand", key="graph_expand"):
-        try:
-            root_value = parse_typed_list(root_text)
-        except Exception as error:
-            st.error(f"Could not parse root: {error}")
-            return
         with st.spinner("Expanding…"):
             st.session_state[VIEW_KEY] = graph_view.expand_from(
                 root_value,
