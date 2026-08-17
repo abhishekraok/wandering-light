@@ -1,4 +1,3 @@
-import json
 import os
 import random
 import sys
@@ -9,13 +8,20 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 import streamlit as st
 
 from wandering_light.constants import DEFAULT_EVAL_FILE as PROPOSER_EVAL_FILE
+from wandering_light.evals.explorer_basis import render_basis_tab
+from wandering_light.evals.explorer_corpus import render_corpus_tab
+from wandering_light.evals.explorer_graph import render_graph_tab
+from wandering_light.evals.explorer_playground import render_playground_tab
 from wandering_light.evals.explorer_tree import ROOT_ID, TrajectoryTree
-from wandering_light.evals.run_evaluation import (
-    is_packaged_legacy_eval_file,
-    load_eval_data_as_trajectories,
+from wandering_light.evals.explorer_widgets import (
+    build_tree_from_names,
+    load_eval,
+    load_json_file,
+    purge_widget_state,
+    render_node,
 )
 from wandering_light.executor import Executor
-from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
+from wandering_light.function_def import FunctionDefSet
 from wandering_light.trajectory import Trajectory, TrajectorySpec
 from wandering_light.typed_list import TypedList
 
@@ -24,146 +30,8 @@ RESULTS_ROOT = "results"
 RESULTS_PROPOSER_DIR = "results/proposer"
 
 
-@st.cache_resource(show_spinner=False)
-def load_eval(eval_file: str):
-    return load_eval_data_as_trajectories(
-        eval_file,
-        trusted_legacy_python=is_packaged_legacy_eval_file(eval_file),
-    )
-
-
-@st.cache_resource(show_spinner=False)
-def load_json_file(path: str) -> dict:
-    with open(path) as f:
-        return json.load(f)
-
-
-def _type_str(item_type: type) -> str:
-    return f"{item_type.__module__}.{item_type.__qualname__}"
-
-
-def _purge_widget_state(ns: str, node_ids: list[int] | None = None) -> None:
-    prefixes = (f"{ns}_edge_sel_", f"{ns}_add_sel_")
-    if node_ids is None:
-        for key in list(st.session_state.keys()):
-            if key.startswith(prefixes):
-                del st.session_state[key]
-        return
-    for nid in node_ids:
-        for prefix in prefixes:
-            st.session_state.pop(f"{prefix}{nid}", None)
-
-
-def _render_typed_list(tl: TypedList) -> None:
-    st.markdown(f"**TL&lt;{tl.item_type.__name__}&gt;** · {len(tl)} items")
-    preview_items = tl.items if len(tl) <= 10 else [*tl.items[:10], "…"]
-    st.code(repr(preview_items), language="python")
-
-
-def _render_edit_edge(
-    tree: TrajectoryTree,
-    node_id: int,
-    ns: str,
-    available_functions: FunctionDefSet,
-    executor: Executor,
-) -> None:
-    node = tree.nodes[node_id]
-    parent = tree.nodes[node["parent"]]
-    parent_tl: TypedList | None = parent["typed_list"]
-    current_fn: FunctionDef = node["applied_fn_def"]
-
-    if parent_tl is None:
-        compatible = [current_fn]
-    else:
-        parent_type = _type_str(parent_tl.item_type)
-        compatible = [f for f in available_functions if f.input_type == parent_type]
-        if current_fn.name not in {f.name for f in compatible}:
-            compatible = [current_fn, *compatible]
-
-    fn_names = [f.name for f in compatible]
-    try:
-        default_idx = fn_names.index(current_fn.name)
-    except ValueError:
-        default_idx = 0
-
-    col_icon, col_sel, col_btn = st.columns([0.6, 5, 1])
-    with col_icon:
-        st.markdown("⤷")
-    with col_sel:
-        selected = st.selectbox(
-            "Edge function",
-            fn_names,
-            index=default_idx,
-            key=f"{ns}_edge_sel_{node_id}",
-            label_visibility="collapsed",
-        )
-    with col_btn:
-        if st.button("Apply", key=f"{ns}_edge_btn_{node_id}"):
-            new_fn = next(f for f in compatible if f.name == selected)
-            deleted = tree.replace_edge(node_id, new_fn, executor)
-            _purge_widget_state(ns, deleted)
-            st.rerun()
-
-
-def _render_add_step(
-    tree: TrajectoryTree,
-    node_id: int,
-    ns: str,
-    available_functions: FunctionDefSet,
-    executor: Executor,
-) -> None:
-    node = tree.nodes[node_id]
-    tl: TypedList = node["typed_list"]
-    tl_type = _type_str(tl.item_type)
-    compatible = [f for f in available_functions if f.input_type == tl_type]
-
-    if not compatible:
-        st.caption(f"No compatible functions for type `{tl_type}`")
-        return
-
-    fn_names = [f.name for f in compatible]
-    col_sel, col_btn = st.columns([5, 1])
-    with col_sel:
-        selected = st.selectbox(
-            "Add step",
-            fn_names,
-            key=f"{ns}_add_sel_{node_id}",
-            label_visibility="collapsed",
-            placeholder="Add step…",
-        )
-    with col_btn:
-        if st.button("Add", key=f"{ns}_add_btn_{node_id}"):
-            fn = next(f for f in compatible if f.name == selected)
-            tree.append_child(node_id, fn, executor)
-            st.rerun()
-
-
-def _render_node(
-    tree: TrajectoryTree,
-    node_id: int,
-    ns: str,
-    available_functions: FunctionDefSet,
-    executor: Executor,
-) -> None:
-    node = tree.nodes[node_id]
-
-    with st.container(border=True):
-        if node["applied_fn_def"] is not None:
-            _render_edit_edge(tree, node_id, ns, available_functions, executor)
-
-        if node["error"]:
-            st.error(node["error"])
-        elif node["typed_list"] is not None:
-            _render_typed_list(node["typed_list"])
-            if not node["children"]:
-                _render_add_step(tree, node_id, ns, available_functions, executor)
-
-    for child_id in node["children"]:
-        _render_node(tree, child_id, ns, available_functions, executor)
-
-
 def _init_eval_tree(traj: Trajectory, executor: Executor) -> None:
-    _purge_widget_state("eval")
+    purge_widget_state("eval")
     st.session_state.tree_eval = TrajectoryTree.from_trajectory(traj, executor)
 
 
@@ -201,7 +69,7 @@ def _render_eval_tab() -> None:
 
         # Sample-specific namespace prevents widget state from one sample
         # leaking into another when switching samples.
-        _render_node(
+        render_node(
             st.session_state.tree_eval,
             ROOT_ID,
             f"eval_{selected_idx}",
@@ -234,36 +102,6 @@ def _find_solver_runs() -> list[tuple[str, str]]:
     return runs
 
 
-def _resolve_fn_names(
-    names: list[str], available: FunctionDefSet
-) -> tuple[FunctionDefList, list[str]]:
-    resolved = FunctionDefList()
-    missing: list[str] = []
-    for name in names:
-        fn = available.name_to_function.get(name)
-        if fn is None:
-            missing.append(name)
-        else:
-            resolved.append(fn)
-    return resolved, missing
-
-
-def _build_tree_from_names(
-    input_tl: TypedList,
-    names: list[str],
-    available: FunctionDefSet,
-    executor: Executor,
-) -> tuple[TrajectoryTree | None, list[str]]:
-    resolved, missing = _resolve_fn_names(names, available)
-    if missing:
-        return None, missing
-    tree = TrajectoryTree.with_root(input_tl)
-    parent_id = ROOT_ID
-    for fn in resolved:
-        parent_id = tree.append_child(parent_id, fn, executor)
-    return tree, missing
-
-
 def _init_solver_trees(
     input_tl: TypedList,
     golden_names: list[str],
@@ -271,12 +109,12 @@ def _init_solver_trees(
     available: FunctionDefSet,
     executor: Executor,
 ) -> None:
-    _purge_widget_state("gold")
-    _purge_widget_state("pred")
-    gold_tree, gold_missing = _build_tree_from_names(
+    purge_widget_state("gold")
+    purge_widget_state("pred")
+    gold_tree, gold_missing = build_tree_from_names(
         input_tl, golden_names, available, executor
     )
-    pred_tree, pred_missing = _build_tree_from_names(
+    pred_tree, pred_missing = build_tree_from_names(
         input_tl, predicted_names, available, executor
     )
     st.session_state.tree_gold = gold_tree
@@ -302,7 +140,7 @@ def _render_solver_tree_column(
     if tree is None:
         st.info("No trajectory.")
         return
-    _render_node(tree, ROOT_ID, ns, available_functions, executor)
+    render_node(tree, ROOT_ID, ns, available_functions, executor)
 
 
 def _render_solver_tab() -> None:
@@ -564,7 +402,7 @@ def _init_proposer_trees(
             )
             input_tl = spec.input
             fn_names = [fn.name for fn in spec.function_defs]
-            tree_golden, missing_golden = _build_tree_from_names(
+            tree_golden, missing_golden = build_tree_from_names(
                 input_tl, fn_names, available_functions, executor
             )
         except Exception as e:
@@ -583,7 +421,7 @@ def _init_proposer_trees(
     missing_att: dict[int, list[str]] = {}
     if input_tl is not None:
         for gi, (seq, _count) in enumerate(groups):
-            tree, missing = _build_tree_from_names(
+            tree, missing = build_tree_from_names(
                 input_tl, list(seq), available_functions, executor
             )
             trees_att[gi] = tree
@@ -727,7 +565,7 @@ def _render_proposer_tab() -> None:
         elif tree_g is None:
             st.info("No tree available.")
         else:
-            _render_node(
+            render_node(
                 tree_g,
                 ROOT_ID,
                 f"prop_gol_{sample_idx}",
@@ -758,7 +596,7 @@ def _render_proposer_tab() -> None:
             elif tree is None:
                 st.info("No tree available.")
             else:
-                _render_node(
+                render_node(
                     tree,
                     ROOT_ID,
                     f"prop_att_{sample_idx}_{gi}",
@@ -771,9 +609,33 @@ def main() -> None:
     st.set_page_config(page_title="Trajectory Explorer", page_icon="🌳", layout="wide")
     st.title("🌳 Trajectory Explorer")
 
-    eval_tab, solver_tab, proposer_tab = st.tabs(
-        ["Eval file", "Solver run", "Proposer run"]
+    (
+        corpus_tab,
+        playground_tab,
+        graph_tab,
+        basis_tab,
+        eval_tab,
+        solver_tab,
+        proposer_tab,
+    ) = st.tabs(
+        [
+            "Corpus",
+            "Playground",
+            "Graph",
+            "Basis",
+            "Eval file",
+            "Solver run",
+            "Proposer run",
+        ]
     )
+    with corpus_tab:
+        render_corpus_tab()
+    with playground_tab:
+        render_playground_tab()
+    with graph_tab:
+        render_graph_tab()
+    with basis_tab:
+        render_basis_tab()
     with eval_tab:
         _render_eval_tab()
     with solver_tab:

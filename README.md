@@ -207,6 +207,32 @@ To see the results of all the past evaluations run
 streamlit run wandering_light/evals/dashboard.py
 ```
 
+## Data explorer
+One Streamlit app for looking at the data itself:
+
+```bash
+PYTHONHASHSEED=0 streamlit run wandering_light/evals/explorer.py
+```
+
+The seed is needed only for the checkpoint-era basis (`wl-core-pyhash-v1`),
+which the eval and solver tabs load.
+
+| Tab | What it shows |
+|---|---|
+| Corpus | Manifest headline for `deep_corpus_v1`, its certified-distance distribution next to the older relabelled eval data, and a filterable task browser. |
+| Playground | A corpus task or a hand-typed input/output pair: edit the function list, watch every intermediate state recompute, and run BFS or random search against the target. |
+| Graph | Budgeted breadth-first `TrajectoryGraph` expansion from one state, drawn as a graph with the shortest path to any node highlighted. |
+| Basis | Any registered basis set, its function code, and — per function — how often a corpus uses it as a witness step or an optimal first action. |
+| Eval file / Solver run / Proposer run | The original trajectory-tree views over eval files and past run JSON. |
+
+Corpus payloads live on the Hub, not in git. The Corpus tab shows a download
+button when the split files described by a committed manifest are not on disk;
+it verifies every digest before use. Equivalently:
+
+```bash
+python -c "from wandering_light.corpus_hub import fetch_corpus; fetch_corpus('wandering_light/training/data/deep_corpus_v1/manifest.json')"
+```
+
 ## Proposer
 The data generator.
 First finetune it using SFT, using the `--task proposer` flag. Then evaluate it.
