@@ -7,9 +7,10 @@ on:
       - 'v*'
   pull_request:
     branches: [ main ]
-  schedule:
-    - cron: '23 11 * * 0'
-  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -31,14 +32,3 @@ jobs:
       run: uv sync --frozen --extra dev
     - name: Test with pytest
       run: uv run pytest
-    - name: Fetch pinned deep corpus
-      run: >-
-        uv run python -c
-        "from wandering_light import corpus_hub;
-        corpus_hub.fetch_corpus('wandering_light/training/data/deep_corpus_v1/manifest.json')"
-    - name: Re-certify committed shortest paths (PR profile)
-      if: github.event_name == 'push' || github.event_name == 'pull_request'
-      run: uv run python -m experiments.verify_committed_shortest_paths --profile pr
-    - name: Re-certify committed shortest paths (full profile)
-      if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-      run: uv run python -m experiments.verify_committed_shortest_paths --profile full

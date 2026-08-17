@@ -1,0 +1,86 @@
+name: Certified shortest-path data
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/recertify-shortest-path-data.yml'
+      - 'experiments/basis_library_pilot.py'
+      - 'experiments/generate_deep_corpus.py'
+      - 'experiments/verify_committed_shortest_paths.py'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'wandering_light/basis_dataset.py'
+      - 'wandering_light/basis_set.py'
+      - 'wandering_light/basis_sets/**'
+      - 'wandering_light/common_functions.py'
+      - 'wandering_light/corpus_hub.py'
+      - 'wandering_light/evals/data/random_inputs_500_shortest_v1.jsonl.gz'
+      - 'wandering_light/executor.py'
+      - 'wandering_light/function_def.py'
+      - 'wandering_light/proposer_pilot/**'
+      - 'wandering_light/shortest_path_data.py'
+      - 'wandering_light/training/data/deep_corpus_v1/manifest.json'
+      - 'wandering_light/training/data/induction_shortest_v1.jsonl.gz'
+      - 'wandering_light/trajectory.py'
+      - 'wandering_light/typed_list.py'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/recertify-shortest-path-data.yml'
+      - 'experiments/basis_library_pilot.py'
+      - 'experiments/generate_deep_corpus.py'
+      - 'experiments/verify_committed_shortest_paths.py'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'wandering_light/basis_dataset.py'
+      - 'wandering_light/basis_set.py'
+      - 'wandering_light/basis_sets/**'
+      - 'wandering_light/common_functions.py'
+      - 'wandering_light/corpus_hub.py'
+      - 'wandering_light/evals/data/random_inputs_500_shortest_v1.jsonl.gz'
+      - 'wandering_light/executor.py'
+      - 'wandering_light/function_def.py'
+      - 'wandering_light/proposer_pilot/**'
+      - 'wandering_light/shortest_path_data.py'
+      - 'wandering_light/training/data/deep_corpus_v1/manifest.json'
+      - 'wandering_light/training/data/induction_shortest_v1.jsonl.gz'
+      - 'wandering_light/trajectory.py'
+      - 'wandering_light/typed_list.py'
+  schedule:
+    - cron: '23 11 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  recertify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+    - name: Install Python 3.12.8
+      run: uv python install 3.12.8
+    - name: Install dependencies
+      run: uv sync --frozen --extra dev
+    - name: Fetch pinned deep corpus
+      run: >-
+        uv run python -c
+        "from wandering_light import corpus_hub;
+        corpus_hub.fetch_corpus('wandering_light/training/data/deep_corpus_v1/manifest.json')"
+    - name: Re-certify relevant-change sample
+      if: github.event_name == 'push' || github.event_name == 'pull_request'
+      run: uv run python -m experiments.verify_committed_shortest_paths --profile pr
+    - name: Re-certify full dataset guard
+      if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      run: uv run python -m experiments.verify_committed_shortest_paths --profile full
