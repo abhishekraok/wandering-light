@@ -3,12 +3,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 import { BasisPanel } from "./components/BasisPanel";
 import { CorpusPanel } from "./components/CorpusPanel";
+import { ExpandBar, defaultPalette } from "./components/ExpandBar";
 import { FunctionPicker } from "./components/FunctionPicker";
 import { GraphView } from "./components/GraphView";
 import { SolverPanel } from "./components/SolverPanel";
-import { StateChip } from "./components/StateChip";
 import { TrajectoryStrip } from "./components/TrajectoryStrip";
-import { shortestPathFunctions } from "./lib/layout";
+import {
+  emptyGraph,
+  layoutNew,
+  mergeExpansion,
+  mergeTrajectory,
+  pathBetween,
+  trajectoryOnly,
+  type GraphState,
+  type Point,
+} from "./lib/graph-store";
 import { replaceStep, truncateAt } from "./lib/trajectory";
 import type {
   BasisInfo,
@@ -38,14 +47,23 @@ export function App() {
   const [target, setTarget] = useState<StateView | null>(null);
   const [steps, setSteps] = useState<string[]>([]);
   const [trajectory, setTrajectory] = useState<TrajectoryResult | null>(null);
-  const [expansion, setExpansion] = useState<Expansion | null>(null);
-  const [selectedNode, setSelectedNode] = useState<number | null>(null);
-  const [palette, setPalette] = useState<string[] | null>(null);
+
+  const [graph, setGraph] = useState<GraphState>(emptyGraph);
+  const [positions, setPositions] = useState<Map<string, Point>>(() => new Map());
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const [paletteByType, setPaletteByType] = useState<Record<string, string[]>>({});
+  const [depth, setDepth] = useState(2);
+  const [selfLoops, setSelfLoops] = useState(true);
+
+  const [lastExpansion, setLastExpansion] = useState<Expansion | null>(null);
+  const [fitSignal, setFitSignal] = useState(0);
+  const [growOrigin, setGrowOrigin] = useState<string | null>(null);
   const [attempt, setAttempt] = useState<SolveAttempt | null>(null);
   const [picker, setPicker] = useState<PickerState | null>(null);
   const [tab, setTab] = useState<"solver" | "basis" | "corpus">("solver");
-  const [depth, setDepth] = useState(2);
   const [busy, setBusy] = useState(false);
+  const [expanding, setExpanding] = useState(false);
   const [solving, setSolving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const expandSeq = useRef(0);
@@ -74,6 +92,21 @@ export function App() {
     return () => window.clearTimeout(timer);
   }, [rootText, steps, basisSetId]);
 
+  // Every state the trajectory passes through belongs on the canvas, so editing
+  // steps draws immediately rather than waiting for an expansion.
+  useEffect(() => {
+    if (trajectory === null) return;
+    setGraph((current) => mergeTrajectory(current, trajectory));
+  }, [trajectory]);
+
+  const anchor = trajectory?.root.wire ?? null;
+
+  // One place assigns positions, and only to nodes that lack one.
+  useEffect(() => {
+    if (anchor === null) return;
+    setPositions((current) => layoutNew(graph, anchor, current, growOrigin));
+  }, [graph, anchor, growOrigin]);
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       if (!targetText.trim()) {
@@ -94,6 +127,35 @@ export function App() {
     if (!last) return trajectory.root;
     return last.ok ? last.state : null;
   }, [trajectory]);
+
+  // Expansion anchors on the selected node, falling back to where the
+  // trajectory currently stands.
+  const expandFrom = useMemo(() => {
+    if (selected !== null) return graph.nodes.get(selected) ?? null;
+    if (currentState === null) return null;
+    return { wire: currentState.wire, label: currentState.label, type: currentState.type };
+  }, [selected, graph, currentState]);
+
+  const compatible = useMemo(
+    () => (basis === null || expandFrom === null
+      ? []
+      : basis.functions.filter((fn) => fn.input_type === expandFrom.type)),
+    [basis, expandFrom],
+  );
+
+  const palette = useMemo(() => {
+    if (expandFrom === null) return [];
+    const stored = paletteByType[expandFrom.type];
+    return stored ?? defaultPalette(compatible);
+  }, [paletteByType, expandFrom, compatible]);
+
+  const setPalette = useCallback(
+    (names: string[]) => {
+      if (expandFrom === null) return;
+      setPaletteByType((current) => ({ ...current, [expandFrom.type]: names }));
+    },
+    [expandFrom],
+  );
 
   const stateBefore = useCallback(
     (index: number): string | null => {
@@ -133,57 +195,60 @@ export function App() {
     [basisSetId, currentState, stateBefore],
   );
 
-  const pick = useCallback(
-    (name: string) => {
-      setPicker((current) => {
-        if (current === null) return null;
-        setSteps((existing) =>
-          current.index === null
-            ? [...existing, name]
-            : replaceStep(existing, current.index, name),
-        );
-        return null;
-      });
-    },
-    [],
-  );
+  const pick = useCallback((name: string) => {
+    setPicker((current) => {
+      if (current === null) return null;
+      setSteps((existing) =>
+        current.index === null ? [...existing, name] : replaceStep(existing, current.index, name),
+      );
+      return null;
+    });
+  }, []);
 
-  const expandHere = useCallback(async () => {
-    const wire = currentState?.wire;
-    if (!wire) return;
+  const expand = useCallback(async () => {
+    if (expandFrom === null || palette.length === 0) return;
     const sequence = ++expandSeq.current;
-    setBusy(true);
+    setExpanding(true);
     try {
-      const result = await api.expand(wire, basisSetId, palette, {
+      const result = await api.expand(expandFrom.wire, basisSetId, palette, {
         max_depth: depth,
-        max_states: 300,
+        max_states: 400,
         max_transitions: 200_000,
+        include_self_loops: selfLoops,
       });
       if (sequence !== expandSeq.current) return; // a newer expansion won
-      setExpansion(result);
-      setSelectedNode(null);
+      setLastExpansion(result);
+      setGrowOrigin(expandFrom.wire);
+      setGraph((current) => mergeExpansion(current, result));
+      // New nodes land outside the viewport otherwise, which reads as "expand
+      // did nothing" -- the expansion is an explicit action, so re-frame it.
+      setFitSignal((value) => value + 1);
       setError(null);
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setBusy(false);
+      setExpanding(false);
     }
-  }, [basisSetId, currentState, depth, palette]);
+  }, [basisSetId, depth, expandFrom, palette, selfLoops]);
+
+  const clearCanvas = useCallback(() => {
+    setGraph(trajectoryOnly(trajectory));
+    setPositions(new Map());
+    setSelected(null);
+    setLastExpansion(null);
+    setGrowOrigin(null);
+    setFitSignal((value) => value + 1);
+  }, [trajectory]);
 
   const walkToSelected = useCallback(() => {
-    if (expansion === null || selectedNode === null) return;
-    const names = shortestPathFunctions(
-      expansion.edges,
-      expansion.stats.root_id,
-      selectedNode,
-    );
-    if (names.length > 0) setSteps((existing) => [...existing, ...names]);
-  }, [expansion, selectedNode]);
+    if (selected === null || currentState === null) return;
+    const route = pathBetween(graph, currentState.wire, selected).map((edge) => edge.fn);
+    if (route.length > 0) setSteps((existing) => [...existing, ...route]);
+  }, [graph, selected, currentState]);
 
-  const selectedState = useMemo(() => {
-    if (expansion === null || selectedNode === null) return null;
-    return expansion.nodes.find((node) => node.node_id === selectedNode) ?? null;
-  }, [expansion, selectedNode]);
+  const moveNode = useCallback((wire: string, position: Point) => {
+    setPositions((current) => new Map(current).set(wire, position));
+  }, []);
 
   const runSolver = useCallback(
     (options: { solver: string; budget: number; max_depth: number }) => {
@@ -206,13 +271,18 @@ export function App() {
     setTargetText(task.output);
     setSteps([]);
     setAttempt(null);
-    setExpansion(null);
+    setGraph(emptyGraph());
+    setPositions(new Map());
+    setSelected(null);
+    setLastExpansion(null);
   }, []);
+
+  const selectedNode = selected === null ? null : (graph.nodes.get(selected) ?? null);
 
   return (
     <div className="app">
       <header className="topbar">
-        <h1>🌱 Wandering Light</h1>
+        <h1>Wandering Light</h1>
         <div className="field">
           <label>basis</label>
           <select
@@ -265,61 +335,81 @@ export function App() {
             {steps.length > 0 && (
               <div className="row" style={{ marginTop: 8 }}>
                 <button className="ghost" onClick={() => setSteps([])}>
-                  clear
+                  clear steps
                 </button>
                 <span className="muted small mono">{steps.join(" → ")}</span>
               </div>
             )}
           </div>
           <div className="section">
-            <h2>Expand from here</h2>
-            <div className="row">
-              <label className="muted small">depth</label>
-              <input
-                type="text"
-                value={depth}
-                onChange={(event) => setDepth(Number(event.target.value) || 1)}
-                style={{ width: 48 }}
-              />
-              <button className="primary" onClick={expandHere} disabled={busy || !currentState}>
-                🌐 expand
+            <h2>Canvas</h2>
+            <div className="row spread">
+              <span className="muted small">
+                {graph.nodes.size} nodes · {graph.edges.size} edges
+              </span>
+              <button onClick={clearCanvas} disabled={graph.nodes.size === 0}>
+                clear canvas
               </button>
             </div>
             <div className="muted small" style={{ marginTop: 6 }}>
-              {palette === null
-                ? "whole basis"
-                : `${palette.length} function(s) selected in the Basis tab`}
+              The canvas keeps everything you visit or expand, merged by state, so
+              involutions and self-loops close on themselves.
             </div>
           </div>
         </aside>
 
         <main className="pane-center">
-          <GraphView
-            expansion={expansion}
-            selected={selectedNode}
-            targetWire={target?.wire ?? null}
-            onSelect={setSelectedNode}
-          />
-          {selectedState !== null && (
-            <div
-              className="section"
-              style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "var(--panel)" }}
-            >
-              <div className="row spread">
-                <StateChip state={selectedState} />
-                <div className="row">
-                  <span className="muted small">depth {selectedState.depth}</span>
-                  <button onClick={walkToSelected}>walk here</button>
-                  <button onClick={() => setTargetText(selectedState.wire)}>set as target</button>
-                  <button
-                    onClick={() => {
-                      setRootText(selectedState.wire);
-                      setSteps([]);
-                    }}
-                  >
-                    make root
-                  </button>
-                </div>
+          <div className="canvas-area">
+            <GraphView
+              graph={graph}
+              positions={positions}
+              anchor={anchor}
+              selected={selected}
+              targetWire={target?.wire ?? null}
+              onSelect={setSelected}
+              onMove={moveNode}
+              fitSignal={fitSignal}
+            />
+          </div>
+          {expandFrom !== null && (
+            <div className="canvas-bar">
+              <ExpandBar
+                label={expandFrom.label}
+                type={expandFrom.type}
+                depth={depth}
+                compatible={compatible}
+                palette={palette}
+                selfLoops={selfLoops}
+                busy={expanding}
+                onPaletteChange={setPalette}
+                onDepthChange={setDepth}
+                onSelfLoopsChange={setSelfLoops}
+                onExpand={expand}
+              />
+              <div className="row" style={{ marginTop: 6 }}>
+                <span className="muted small">
+                  {selectedNode === null
+                    ? "expanding from the trajectory's current state — click a node to anchor elsewhere"
+                    : "selected node"}
+                </span>
+                <span style={{ flex: 1 }} />
+                {selectedNode !== null && (
+                  <>
+                    <button onClick={walkToSelected}>walk here</button>
+                    <button onClick={() => setTargetText(selectedNode.wire)}>set as target</button>
+                    <button
+                      onClick={() => {
+                        setRootText(selectedNode.wire);
+                        setSteps([]);
+                      }}
+                    >
+                      make root
+                    </button>
+                    <button className="ghost" onClick={() => setSelected(null)}>
+                      deselect
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -342,7 +432,7 @@ export function App() {
               root={trajectory?.root ?? null}
               target={target}
               attempt={attempt}
-              expansion={expansion}
+              expansion={lastExpansion}
               yourSteps={steps.length}
               running={solving}
               onSolve={runSolver}
@@ -352,9 +442,9 @@ export function App() {
           {tab === "basis" && (
             <BasisPanel
               basis={basis}
-              expansion={expansion}
+              expansion={lastExpansion}
               palette={palette}
-              onPaletteChange={setPalette}
+              onPaletteChange={(names) => setPalette(names ?? compatible.map((fn) => fn.name))}
             />
           )}
           {tab === "corpus" && <CorpusPanel onLoadTask={loadTask} />}

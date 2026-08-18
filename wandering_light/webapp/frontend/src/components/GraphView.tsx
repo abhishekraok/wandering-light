@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Background,
   Controls,
@@ -8,23 +8,33 @@ import {
   ReactFlow,
   type Edge,
   type Node,
+  type NodeChange,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 
-import { layoutExpansion, shortestPathEdges } from "../lib/layout";
-import type { Expansion } from "../types";
+import {
+  NODE_HEIGHT,
+  NODE_WIDTH,
+  compactLabel,
+  depthsFrom,
+  pathBetween,
+  reciprocalKeys,
+  type GraphState,
+  type Point,
+} from "../lib/graph-store";
+import { FlowEdge } from "./FlowEdge";
 
 function StateNode({ data }: { data: Record<string, unknown> }) {
   const classes = ["node-card"];
-  if (data.isRoot) classes.push("root");
+  if (data.isAnchor) classes.push("root");
   if (data.isTarget) classes.push("target");
   if (data.onPath) classes.push("on-path");
   return (
-    <div className={classes.join(" ")} title={String(data.label)}>
-      {/* Edges attach to handles; without them React Flow draws no lines at
-          all, and the functions -- the whole point of the graph -- vanish. */}
+    <div className={classes.join(" ")} title={String(data.full ?? data.label)}>
+      {/* Edges attach to handles; without them React Flow draws no lines at all. */}
       <Handle type="target" position={Position.Left} className="node-handle" />
       <div className="depth">
-        d{String(data.depth)} · {String(data.type)}
+        {data.depth === undefined ? "—" : `d${String(data.depth)}`} · {String(data.type)}
       </div>
       {String(data.label)}
       <Handle type="source" position={Position.Right} className="node-handle" />
@@ -33,78 +43,111 @@ function StateNode({ data }: { data: Record<string, unknown> }) {
 }
 
 const nodeTypes = { state: StateNode };
+const edgeTypes = { flow: FlowEdge };
 
 /**
- * The expansion, drawn in depth columns.
+ * The accumulated graph.
  *
- * Clicking a node selects it; the shortest route from the root is highlighted
- * so the graph answers "how would I get there" as directly as it answers "what
- * is reachable".
+ * Positions live outside this component so a node keeps its place when the
+ * graph grows and keeps a hand-dragged place across every later expansion.
  */
 export function GraphView({
-  expansion,
+  graph,
+  positions,
+  anchor,
   selected,
   targetWire,
   onSelect,
+  onMove,
+  fitSignal,
 }: {
-  expansion: Expansion | null;
-  selected: number | null;
+  graph: GraphState;
+  positions: ReadonlyMap<string, Point>;
+  anchor: string | null;
+  selected: string | null;
   targetWire: string | null;
-  onSelect: (nodeId: number) => void;
+  onSelect: (wire: string | null) => void;
+  onMove: (wire: string, position: Point) => void;
+  /** Bumped by the caller when the graph grew and should be re-framed. */
+  fitSignal: number;
 }) {
+  const flow = useRef<ReactFlowInstance | null>(null);
   const { nodes, edges } = useMemo(() => {
-    if (expansion === null) return { nodes: [] as Node[], edges: [] as Edge[] };
-    const rootId = expansion.stats.root_id;
-    const positioned = layoutExpansion(expansion);
-    const path =
-      selected === null ? new Set<string>() : shortestPathEdges(expansion.edges, rootId, selected);
-    const onPath = new Set<number>([rootId]);
-    for (const key of path) {
-      const [source, , target] = key.split(":");
-      onPath.add(Number(source));
-      onPath.add(Number(target));
-    }
-    const flowNodes: Node[] = positioned.map((item) => ({
-      id: item.id,
-      type: "state",
-      position: { x: item.x, y: item.y },
-      // Declared rather than measured: React Flow can then place the node (and
-      // its minimap counterpart) on first paint instead of after a reflow.
-      width: 220,
-      height: 44,
-      data: {
-        label: item.label,
-        depth: item.depth,
-        type: item.type,
-        isRoot: item.nodeId === rootId,
-        isTarget: targetWire !== null && item.wire === targetWire,
-        onPath: onPath.has(item.nodeId) && (selected !== null || item.nodeId === rootId),
-      },
-      selected: item.nodeId === selected,
-    }));
-    const flowEdges: Edge[] = expansion.edges.map((edge, index) => {
-      const key = `${edge.source}:${edge.function}:${edge.target}`;
-      const highlighted = path.has(key);
-      return {
-        id: `${index}-${key}`,
-        source: String(edge.source),
-        target: String(edge.target),
-        label: edge.function,
-        animated: highlighted,
-        style: highlighted
-          ? { stroke: "var(--accent)", strokeWidth: 2 }
-          : { stroke: "var(--line)" },
-        labelStyle: { fill: "var(--muted)", fontSize: 10 },
-        labelBgStyle: { fill: "var(--bg)" },
-      };
-    });
-    return { nodes: flowNodes, edges: flowEdges };
-  }, [expansion, selected, targetWire]);
+    const depths = anchor === null ? new Map<string, number>() : depthsFrom(graph, anchor);
+    const highlighted = new Set(
+      anchor === null || selected === null
+        ? []
+        : pathBetween(graph, anchor, selected).map((edge) => edge.key),
+    );
+    const reciprocal = reciprocalKeys(graph);
 
-  if (expansion === null) {
+    const flowNodes: Node[] = [...graph.nodes.values()].map((node) => ({
+      id: node.wire,
+      type: "state",
+      position: positions.get(node.wire) ?? { x: 0, y: 0 },
+      width: NODE_WIDTH,
+      height: NODE_HEIGHT,
+      selected: node.wire === selected,
+      data: {
+        label: compactLabel(node.label),
+        full: node.label,
+        type: node.type,
+        depth: depths.get(node.wire),
+        isAnchor: node.wire === anchor,
+        isTarget: targetWire !== null && node.wire === targetWire,
+        onPath: highlighted.size > 0 && (node.wire === anchor || node.wire === selected),
+      },
+    }));
+
+    const flowEdges: Edge[] = [...graph.edges.values()].map((edge) => ({
+      id: edge.key,
+      source: edge.source,
+      target: edge.target,
+      type: "flow",
+      label: edge.fn,
+      data: {
+        highlighted: highlighted.has(edge.key),
+        reciprocal: reciprocal.has(edge.key),
+      },
+    }));
+    return { nodes: flowNodes, edges: flowEdges };
+  }, [graph, positions, anchor, selected, targetWire]);
+
+  // A drag-end change can omit the position; the node carries it either way.
+  const positionOf = useMemo(
+    () => new Map(nodes.map((node) => [node.id, node.position])),
+    [nodes],
+  );
+
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      for (const change of changes) {
+        // Only the end of a drag is persisted. Feeding intermediate positions
+        // back through props re-renders mid-gesture and fights React Flow's own
+        // drag state, which makes the node stutter and land short.
+        if (change.type === "position" && change.dragging === false) {
+          const moved = change.position ?? positionOf.get(change.id);
+          if (moved) onMove(change.id, moved);
+        }
+      }
+    },
+    [onMove, positionOf],
+  );
+
+  useEffect(() => {
+    if (fitSignal === 0) return;
+    // After the nodes for this signal have rendered.
+    const timer = window.setTimeout(
+      () => flow.current?.fitView({ padding: 0.2, maxZoom: 1, duration: 350 }),
+      60,
+    );
+    return () => window.clearTimeout(timer);
+  }, [fitSignal]);
+
+  if (graph.nodes.size === 0) {
     return (
       <div className="section muted" style={{ height: "100%" }}>
-        Expand a state to draw its graph.
+        Enter a root state to start the graph.
       </div>
     );
   }
@@ -114,10 +157,15 @@ export function GraphView({
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
-      onNodeClick={(_event, node) => onSelect(Number(node.id))}
+      edgeTypes={edgeTypes}
+      onInit={(instance) => (flow.current = instance)}
+      onNodesChange={onNodesChange}
+      onNodeClick={(_event, node) => onSelect(node.id)}
+      onPaneClick={() => onSelect(null)}
       fitView
-      fitViewOptions={{ padding: 0.15, maxZoom: 1 }}
+      fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
       minZoom={0.05}
+      nodesConnectable={false}
       proOptions={{ hideAttribution: true }}
     >
       <Background gap={22} color="var(--line)" />

@@ -227,10 +227,16 @@ What it is for:
   shows the state it would actually produce from that point, including the ones
   that fail here and the ones that change nothing. Replacing an edge drops the
   steps downstream of it and re-runs the rest.
-- **See how far the basis reaches.** Expand any state breadth-first and read
-  the graph in depth columns; the panel reports which types were reached and
-  how many basis functions produced no edge at all — the concrete version of
-  "is anything missing".
+- **Grow one graph, rather than replacing a picture.** The canvas accumulates
+  everything you visit or expand, merged by state, so `inc` then `dec` closes a
+  two-cycle and `abs` on positives closes a self-loop. Editing the trajectory
+  draws on it immediately; *clear canvas* returns it to your path alone.
+- **Expand from whichever node you select**, with the set of functions you
+  choose and self-loops kept or dropped. Nodes are draggable and stay where you
+  put them across later expansions.
+- **See how far the basis reaches.** The panel reports which types an expansion
+  reached and how many basis functions produced no edge at all — the concrete
+  version of "is anything missing".
 - **Feel the solver's problem.** Run BFS or random search against your target
   and watch what it costs; the answer stays hidden behind a *reveal* until you
   ask, so you can try the task yourself first by walking the graph.

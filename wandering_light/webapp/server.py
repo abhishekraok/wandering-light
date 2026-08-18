@@ -80,6 +80,7 @@ class ExpandRequest(StateRequest):
     max_depth: int = Field(2, ge=1, le=6)
     max_states: int = Field(200, ge=2, le=5000)
     max_transitions: int = Field(20_000, ge=10, le=2_000_000)
+    include_self_loops: bool = True
 
 
 class SolveRequest(StateRequest):
@@ -155,6 +156,7 @@ def create_app() -> FastAPI:
             max_depth=request.max_depth,
             max_states=request.max_states,
             max_transitions=request.max_transitions,
+            include_self_loops=request.include_self_loops,
         ).dict()
 
     @app.post("/api/solve")

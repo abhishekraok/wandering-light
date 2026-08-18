@@ -97,6 +97,30 @@ def test_expand_reports_which_functions_never_fired(functions):
     assert view.types == {"int": 2}
 
 
+def test_expand_keeps_self_loops_and_involutions(functions):
+    """The two shapes that make a graph a graph rather than a tree."""
+    palette = core.palette(functions, ["inc", "dec", "abs"])
+    view = core.expand(TypedList([1, 2, 3], int), palette, max_depth=2)
+    edges = {(e["source"], e["target"], e["function"]) for e in view.edges}
+    root = view.stats["root_id"]
+
+    # `abs` is the identity on positive ints: a self-loop, not a dropped edge.
+    assert (root, root, "abs") in edges
+    # inc then dec returns to the root, so the pair is a two-cycle.
+    incremented = next(t for s, t, f in edges if s == root and f == "inc")
+    assert (incremented, root, "dec") in edges
+    assert view.stats["skipped_self_loops"] == 0
+
+
+def test_expand_can_drop_self_loops(functions):
+    palette = core.palette(functions, ["inc", "abs"])
+    view = core.expand(
+        TypedList([1, 2, 3], int), palette, max_depth=1, include_self_loops=False
+    )
+    assert all(e["source"] != e["target"] for e in view.edges)
+    assert view.stats["skipped_self_loops"] > 0
+
+
 def test_expand_records_the_budget_that_stopped_it(ints):
     view = core.expand(TypedList([1, 2, 3], int), ints, max_depth=4, max_states=5)
     assert view.stats["complete"] is False

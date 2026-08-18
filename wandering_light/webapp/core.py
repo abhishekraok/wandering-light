@@ -180,12 +180,17 @@ def expand(
     max_depth: int = 2,
     max_states: int | None = 200,
     max_transitions: int | None = 20_000,
+    include_self_loops: bool = True,
 ) -> ExpansionView:
     """Breadth-first expansion from one root, shaped for drawing.
 
     Only nodes the expansion actually reached are returned, so the depth of a
     node is its certified distance from the root whenever the expansion ran to
     completion.
+
+    Self-loops are kept by default. A function that does nothing to a state --
+    ``abs`` on positives, ``mod2`` on binary values -- says something real about
+    the basis at that point, and dropping it hides that from the drawing.
     """
     graph = TrajectoryGraph(functions=functions)
     root_id = graph.add_root(root)
@@ -195,6 +200,7 @@ def expand(
         max_depth=max_depth,
         max_states=max_states,
         max_transitions=max_transitions,
+        skip_self_loops=not include_self_loops,
     )
     elapsed = time.perf_counter() - started
 

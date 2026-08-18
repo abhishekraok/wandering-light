@@ -51,7 +51,12 @@ export const api = {
     state: string,
     basisSetId: string,
     functions: string[] | null,
-    budgets: { max_depth: number; max_states: number; max_transitions: number },
+    budgets: {
+      max_depth: number;
+      max_states: number;
+      max_transitions: number;
+      include_self_loops: boolean;
+    },
   ) =>
     post<Expansion>("/api/expand", {
       state,

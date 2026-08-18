@@ -165,3 +165,51 @@ table.grid tr.clickable:hover { background: var(--panel-2); cursor: pointer; }
 .react-flow__attribution { display: none; }
 /* Handles exist so edges have somewhere to land; nothing is dragged by hand. */
 .node-handle { opacity: 0; width: 1px; height: 1px; border: none; min-width: 0; min-height: 0; }
+
+/* Canvas chrome ------------------------------------------------------------ */
+
+/* The bar is a sibling of the canvas, not an overlay: floating it hid the nodes
+   underneath it from clicks and drags entirely. */
+.pane-center { display: flex; flex-direction: column; }
+.canvas-area { flex: 1; min-height: 0; position: relative; }
+.canvas-bar {
+  flex: none;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  padding: 8px 12px;
+}
+.expand-bar .state-chip { max-width: 260px; }
+
+.palette {
+  margin-top: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+  max-height: 190px;
+  overflow-y: auto;
+}
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 2px 10px;
+}
+.palette-item {
+  font-family: var(--mono);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Edge labels sit above the canvas, so they need their own background. */
+.edge-label {
+  position: absolute;
+  pointer-events: none;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--bg);
+  padding: 0 3px;
+  border-radius: 3px;
+}
+.edge-label.highlighted { color: var(--accent); font-weight: 600; }
+.edge-label.loop { color: var(--warn); }
