@@ -3,6 +3,7 @@ from dataclasses import replace
 
 import pytest
 
+from wandering_light.basis_dataset import typed_list_from_builtin_str
 from wandering_light.evals.corpus_index import RecordDetail
 from wandering_light.evals.explorer_graph import (
     build_local_expansion,
@@ -139,6 +140,42 @@ def test_bounded_local_expansion_enumerates_certified_candidate_tasks():
     assert all(task.certified for task in projection.tasks)
     assert {task.distance for task in projection.tasks} <= {1, 2}
     assert projection.view.diagnostics.directed_cycle_groups >= 1
+
+
+def test_graph_wire_fields_preserve_untruncated_and_serialized_values():
+    append_bang = FunctionDef(
+        name="append_bang",
+        input_type="builtins.str",
+        output_type="builtins.str",
+        code="return x + '!'",
+        metadata={"basis_function_id": "bf:append-bang:1"},
+    )
+    input_value = TypedList(["x" * 80], item_type=str)
+
+    projection = build_local_expansion(
+        input_value,
+        FunctionDefSet([append_bang]),
+        max_depth=1,
+        max_states=10,
+        max_transitions=10,
+    )
+
+    assert projection.view.root_ids == (0,)
+    root = next(
+        node
+        for node in projection.view.nodes
+        if node.node_id in projection.view.root_ids
+    )
+    assert root.value_repr == repr(input_value)
+    assert root.label.endswith("…")
+    assert len(root.value_repr) > len(root.label)
+    nodes_by_id = {node.node_id: node for node in projection.view.nodes}
+    assert len(projection.tasks) == 1
+    for task in projection.tasks:
+        decoded_output = typed_list_from_builtin_str(task.output_serialized)
+        assert decoded_output.to_string() == task.output_serialized
+        assert repr(decoded_output) == task.output
+        assert nodes_by_id[task.node_id].value_repr == task.output
 
 
 def test_graph_diagnostics_count_parallel_functions_and_self_loops():

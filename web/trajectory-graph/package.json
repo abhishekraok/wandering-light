@@ -1,0 +1,25 @@
+{
+  "name": "wandering-light-trajectory-graph",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "TMPDIR=/tmp vitest run"
+  },
+  "dependencies": {
+    "cytoscape": "^3.32.0"
+  },
+  "devDependencies": {
+    "@types/cytoscape": "^3.21.9",
+    "typescript": "^5.8.0",
+    "vite": "^7.0.0",
+    "vitest": "^3.2.0"
+  }
+}

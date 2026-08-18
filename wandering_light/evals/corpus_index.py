@@ -41,7 +41,7 @@ from wandering_light.basis_set import BasisSetError, load_basis_set
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Sequence
 
-INDEX_SCHEMA_VERSION = 3
+INDEX_SCHEMA_VERSION = 4
 FUNCTION_ROLES = ("witness", "optimal_first", "optimal_last")
 _QUERYABLE_COLUMNS = frozenset(
     {"split", "distance", "input_type", "output_type", "certification", "root_index"}
@@ -597,11 +597,55 @@ class CorpusIndex:
                    root_index
             FROM records
             {where}
-            ORDER BY COALESCE(distance, -1) DESC, split, id
+            ORDER BY -COALESCE(distance, -1), split, id
             LIMIT ? OFFSET ?
         """
         with self._connect() as connection:
             rows = connection.execute(query, [*parameters, limit, offset]).fetchall()
+        return self._record_summaries(rows)
+
+    def records_after(
+        self,
+        filters: CorpusFilters | None = None,
+        *,
+        limit: int = 100,
+        after: tuple[int, str, int] | None = None,
+    ) -> tuple[RecordSummary, ...]:
+        """Return a keyset page in the same stable order as :meth:`records`.
+
+        ``after`` is ``(COALESCE(distance, -1), split, row_id)`` from the last
+        item of the previous page. Unlike ``OFFSET``, lookup cost does not grow
+        with corpus size.
+        """
+        filters = filters or CorpusFilters()
+        if limit <= 0 or limit > 1_000:
+            raise ValueError("limit must be between 1 and 1000")
+        where, parameters = self._where(filters)
+        if after is not None:
+            distance, split, row_id = after
+            cursor_clause = """
+                -COALESCE(distance, -1) >= ?
+                AND (-COALESCE(distance, -1), split, id) > (?, ?, ?)
+            """
+            where = (
+                f"{where} AND {cursor_clause}" if where else f"WHERE {cursor_clause}"
+            )
+            parameters.extend((-distance, -distance, split, row_id))
+        query = f"""
+            SELECT id, task_id, split, distance, input_type, output_type,
+                   certified, witness_names_json, input_preview, output_preview,
+                   root_index
+            FROM records
+            {where}
+            ORDER BY -COALESCE(distance, -1), split, id
+            LIMIT ?
+        """
+        with self._connect() as connection:
+            rows = connection.execute(query, [*parameters, limit]).fetchall()
+        return self._record_summaries(rows)
+
+    @staticmethod
+    def _record_summaries(rows: Sequence[sqlite3.Row]) -> tuple[RecordSummary, ...]:
         return tuple(
             RecordSummary(
                 row_id=row["id"],
@@ -973,6 +1017,8 @@ def _build_index(
         connection.executescript(
             """
             CREATE INDEX records_split_distance_idx ON records(split, distance);
+            CREATE INDEX records_browse_order_idx
+                ON records(-COALESCE(distance, -1), split, id);
             CREATE INDEX records_types_idx ON records(input_type, output_type);
             CREATE INDEX records_root_idx ON records(root_index);
             CREATE INDEX records_task_id_idx ON records(task_id);

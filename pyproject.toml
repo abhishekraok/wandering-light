@@ -61,6 +61,9 @@ explicit = true
 Homepage = "https://github.com/abhishekraok/wandering_light"
 Repository = "https://github.com/abhishekraok/wandering_light"
 
+[project.scripts]
+wandering-light-graph = "wandering_light.evals.trajectory_graph_app:main"
+
 [tool.setuptools]
 package-dir = {"" = "."} 
 
@@ -69,7 +72,14 @@ where = ["."]
 include = ["wandering_light*"]
 
 [tool.setuptools.package-data]
-wandering_light = ["basis_sets/*.json"]
+wandering_light = [
+    "basis_sets/*.json",
+    "evals/data/*.jsonl.gz",
+    "evals/trajectory_graph_web/*.html",
+    "evals/trajectory_graph_web/assets/*",
+    "training/data/*.jsonl.gz",
+    "training/data/deep_corpus_v1/manifest.json",
+]
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
