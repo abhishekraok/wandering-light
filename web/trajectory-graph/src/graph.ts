@@ -59,7 +59,10 @@ export class TrajectoryGraphCanvas {
       elements: [],
       minZoom: 0.08,
       maxZoom: 3.5,
-      wheelSensitivity: 0.18,
+      // Cytoscape's normalized wheel delta is already small on high-resolution
+      // trackpads. Keep this responsive enough that one deliberate scroll is
+      // visible without making pinch/wheel zoom feel jumpy.
+      wheelSensitivity: 0.7,
       boxSelectionEnabled: false,
       selectionType: "single",
       textureOnViewport: true,
@@ -77,17 +80,27 @@ export class TrajectoryGraphCanvas {
             label: "data(displayLabel)",
             color: "#dce8ef",
             "font-family": "IBM Plex Mono, SFMono-Regular, Consolas, monospace",
-            "font-size": 10,
-            "font-weight": 500,
-            "text-margin-y": -9,
-            "text-background-color": "#09111a",
-            "text-background-opacity": 0.82,
-            "text-background-padding": "3px",
+            "font-size": 11,
+            "font-weight": 600,
+            "text-margin-y": -12,
+            "text-background-color": "#06101a",
+            "text-background-opacity": 0.96,
+            "text-background-padding": "5px",
             "text-background-shape": "roundrectangle",
+            "text-border-color": "#294154",
+            "text-border-opacity": 0.9,
+            "text-border-width": 1,
             "min-zoomed-font-size": 7,
             "overlay-opacity": 0,
             "transition-property": "opacity, background-color, border-color, border-width",
             "transition-duration": 120,
+          },
+        },
+        {
+          selector: "node.hover-label, node.path-terminal",
+          style: {
+            label: "data(expandedLabel)",
+            "z-index": 30,
           },
         },
         {
@@ -136,7 +149,7 @@ export class TrajectoryGraphCanvas {
             "curve-style": "bezier",
             "loop-direction": "-35deg",
             "loop-sweep": "70deg",
-            label: "data(functionLabel)",
+            label: "",
             color: "#9eb0bd",
             "font-family": "IBM Plex Mono, SFMono-Regular, Consolas, monospace",
             "font-size": 8,
@@ -149,6 +162,12 @@ export class TrajectoryGraphCanvas {
             "overlay-opacity": 0,
             "transition-property": "opacity, line-color, target-arrow-color, width",
             "transition-duration": 120,
+          },
+        },
+        {
+          selector: "edge.hover-label, edge:selected, edge.path-active, edge.stored-highlight",
+          style: {
+            label: "data(functionLabel)",
           },
         },
         {
@@ -231,6 +250,12 @@ export class TrajectoryGraphCanvas {
       const edge = event.target as EdgeSingular;
       this.selectEdge(String(edge.data("edgeKey")));
     });
+    this.cy.on("mouseover", "node, edge", (event) => {
+      event.target.addClass("hover-label");
+    });
+    this.cy.on("mouseout", "node, edge", (event) => {
+      event.target.removeClass("hover-label");
+    });
     this.cy.on("tap", (event) => {
       if (event.target === this.cy) {
         this.clearPath();
@@ -304,6 +329,25 @@ export class TrajectoryGraphCanvas {
       }
     });
     this.fit();
+    this.captureSnapshot();
+  }
+
+  spread(): void {
+    if (!this.hasGraph) return;
+    const extent = this.cy.extent();
+    const center = {
+      x: (extent.x1 + extent.x2) / 2,
+      y: (extent.y1 + extent.y2) / 2,
+    };
+    this.cy.batch(() => {
+      this.cy.nodes().forEach((node) => {
+        const position = node.position();
+        node.position({
+          x: center.x + (position.x - center.x) * 1.22,
+          y: center.y + (position.y - center.y) * 1.22,
+        });
+      });
+    });
     this.captureSnapshot();
   }
 

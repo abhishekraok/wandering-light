@@ -15,9 +15,13 @@ export interface MappedGraphElement {
 export const canvasNodeId = (id: number): string => `node:${id}`;
 export const canvasEdgeId = (id: string): string => `edge:${id}`;
 
-const DEPTH_GAP = 250;
-const WRAPPED_COLUMN_GAP = 96;
-const ROW_GAP = 88;
+const DENSE_DEPTH_GAP = 250;
+const DENSE_WRAPPED_COLUMN_GAP = 96;
+const DENSE_ROW_GAP = 88;
+const RELAXED_DEPTH_GAP = 340;
+const RELAXED_WRAPPED_COLUMN_GAP = 220;
+const RELAXED_ROW_GAP = 118;
+const RELAXED_LAYOUT_LIMIT = 120;
 const SAFE_TYPED_LIST_TYPES = new Set([
   "builtins.int",
   "builtins.float",
@@ -45,6 +49,7 @@ export function graphElements(
       id: canvasNodeId(node.id),
       nodeId: node.id,
       displayLabel: displayLabel(node.value, node.id),
+      expandedLabel: expandedLabel(node.value, node.id),
       role: node.role,
     },
     classes: `role-${node.role}`,
@@ -87,12 +92,18 @@ export function graphLayoutPositions(payload: GraphPayload): Map<number, Point> 
   }
 
   const positions = new Map<number, Point>();
+  const relaxed = payload.nodes.length <= RELAXED_LAYOUT_LIMIT;
+  const depthGap = relaxed ? RELAXED_DEPTH_GAP : DENSE_DEPTH_GAP;
+  const wrappedColumnGap = relaxed
+    ? RELAXED_WRAPPED_COLUMN_GAP
+    : DENSE_WRAPPED_COLUMN_GAP;
+  const rowGap = relaxed ? RELAXED_ROW_GAP : DENSE_ROW_GAP;
   // Balance the total model-space width and height. This keeps the full graph
   // comfortably above Cytoscape's minimum zoom even when one or several BFS
   // layers contain most of the render cap.
   const rowsPerColumn = Math.max(
     1,
-    Math.round(Math.sqrt((payload.nodes.length * WRAPPED_COLUMN_GAP) / ROW_GAP)),
+    Math.round(Math.sqrt((payload.nodes.length * wrappedColumnGap) / rowGap)),
   );
   let layerStartX = 100;
   const depths = [...layers.keys()].sort((left, right) => left - right);
@@ -106,12 +117,12 @@ export function graphLayoutPositions(payload: GraphPayload): Map<number, Point> 
       const center = (columnNodes.length - 1) / 2;
       for (const [row, node] of columnNodes.entries()) {
         positions.set(node.id, {
-          x: layerStartX + column * WRAPPED_COLUMN_GAP,
-          y: 120 + (row - center) * ROW_GAP,
+          x: layerStartX + column * wrappedColumnGap,
+          y: 120 + (row - center) * rowGap,
         });
       }
     }
-    layerStartX += (columnCount - 1) * WRAPPED_COLUMN_GAP + DEPTH_GAP;
+    layerStartX += (columnCount - 1) * wrappedColumnGap + depthGap;
   }
   return positions;
 }
@@ -176,6 +187,12 @@ export function shortestRootPath(payload: GraphPayload, destination: number): Gr
 
 function displayLabel(value: string, id: number): string {
   const normalized = value.replaceAll("\n", " ");
-  const valueLabel = normalized.length > 34 ? `${normalized.slice(0, 33)}…` : normalized;
+  const valueLabel = normalized.length > 22 ? `${normalized.slice(0, 21)}…` : normalized;
+  return `#${id}  ${valueLabel}`;
+}
+
+function expandedLabel(value: string, id: number): string {
+  const normalized = value.replaceAll("\n", " ");
+  const valueLabel = normalized.length > 72 ? `${normalized.slice(0, 71)}…` : normalized;
   return `#${id}  ${valueLabel}`;
 }

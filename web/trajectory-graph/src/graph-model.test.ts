@@ -51,6 +51,19 @@ describe("graphElements", () => {
     expect(forward?.data.source).toBe(canvasNodeId(0));
     expect(reverse?.data.target).toBe(canvasNodeId(0));
   });
+
+  it("uses a compact overview label and retains a longer interactive label", () => {
+    const payload = graph();
+    payload.nodes[0].value = "a deliberately long typed-list value that would overlap nearby nodes";
+    const root = graphElements(payload).find(
+      (element) => element.data.id === canvasNodeId(0),
+    );
+
+    expect(String(root?.data.displayLabel).length).toBeLessThan(
+      String(root?.data.expandedLabel).length,
+    );
+    expect(root?.data.expandedLabel).toContain("deliberately long typed-list value");
+  });
 });
 
 describe("shortestRootPath", () => {
@@ -65,6 +78,13 @@ describe("shortestRootPath", () => {
 });
 
 describe("graphLayoutPositions", () => {
+  it("gives ordinary graphs relaxed depth spacing", () => {
+    const positions = graphLayoutPositions(graph());
+    expect((positions.get(1)?.x ?? 0) - (positions.get(0)?.x ?? 0)).toBeGreaterThanOrEqual(
+      300,
+    );
+  });
+
   it("wraps a dense depth layer so fit is not defeated by minimum zoom", () => {
     const payload = graph();
     payload.nodes = Array.from({ length: 900 }, (_, id) => ({
