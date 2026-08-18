@@ -2,7 +2,9 @@ import { useMemo } from "react";
 import {
   Background,
   Controls,
+  Handle,
   MiniMap,
+  Position,
   ReactFlow,
   type Edge,
   type Node,
@@ -18,10 +20,14 @@ function StateNode({ data }: { data: Record<string, unknown> }) {
   if (data.onPath) classes.push("on-path");
   return (
     <div className={classes.join(" ")} title={String(data.label)}>
+      {/* Edges attach to handles; without them React Flow draws no lines at
+          all, and the functions -- the whole point of the graph -- vanish. */}
+      <Handle type="target" position={Position.Left} className="node-handle" />
       <div className="depth">
         d{String(data.depth)} · {String(data.type)}
       </div>
       {String(data.label)}
+      <Handle type="source" position={Position.Right} className="node-handle" />
     </div>
   );
 }
@@ -62,6 +68,10 @@ export function GraphView({
       id: item.id,
       type: "state",
       position: { x: item.x, y: item.y },
+      // Declared rather than measured: React Flow can then place the node (and
+      // its minimap counterpart) on first paint instead of after a reflow.
+      width: 220,
+      height: 44,
       data: {
         label: item.label,
         depth: item.depth,
@@ -106,12 +116,20 @@ export function GraphView({
       nodeTypes={nodeTypes}
       onNodeClick={(_event, node) => onSelect(Number(node.id))}
       fitView
-      minZoom={0.1}
+      fitViewOptions={{ padding: 0.15, maxZoom: 1 }}
+      minZoom={0.05}
       proOptions={{ hideAttribution: true }}
     >
       <Background gap={22} color="var(--line)" />
-      <Controls showInteractive={false} />
-      <MiniMap pannable zoomable nodeColor="var(--line)" maskColor="rgba(0,0,0,0.5)" />
+      <Controls showInteractive={false} position="top-left" />
+      <MiniMap
+        position="top-right"
+        pannable
+        zoomable
+        // The minimap paints SVG fills, where a CSS variable does not resolve.
+        nodeColor="#6ea8fe"
+        maskColor="rgba(120,130,150,0.25)"
+      />
     </ReactFlow>
   );
 }

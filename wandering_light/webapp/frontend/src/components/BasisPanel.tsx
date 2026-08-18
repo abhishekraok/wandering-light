@@ -90,9 +90,11 @@ export function BasisPanel({
       <table className="grid">
         <thead>
           <tr>
-            <th>name</th>
-            <th>type</th>
-            <th title="edges produced in the last expansion">used</th>
+            <th style={{ width: "42%" }}>name</th>
+            <th style={{ width: "38%" }}>type</th>
+            <th style={{ width: "20%" }} title="edges produced in the last expansion">
+              used
+            </th>
           </tr>
         </thead>
         <tbody>

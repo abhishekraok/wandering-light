@@ -50,6 +50,23 @@ describe("layoutExpansion", () => {
     const first = positioned.find((p) => p.nodeId === 1);
     expect(root?.y).toBeGreaterThan(first?.y as number);
   });
+
+  it("wraps a wide layer instead of drawing one unreadable column", () => {
+    const wide: Expansion = {
+      ...expansion,
+      nodes: [node(0, 0), ...Array.from({ length: 60 }, (_, i) => node(i + 1, 1))],
+    };
+    const positioned = layoutExpansion(wide);
+    const layer = positioned.filter((p) => p.depth === 1);
+    const columns = new Set(layer.map((p) => p.x));
+    expect(columns.size).toBeGreaterThan(1);
+    // Height stays bounded no matter how wide the frontier gets.
+    const span = Math.max(...layer.map((p) => p.y)) - Math.min(...layer.map((p) => p.y));
+    expect(span).toBeLessThan(18 * 74);
+    // The root still sits left of every node one step out.
+    const rootX = positioned.find((p) => p.nodeId === 0)?.x as number;
+    expect(Math.min(...layer.map((p) => p.x))).toBeGreaterThan(rootX);
+  });
 });
 
 describe("shortestPathEdges", () => {

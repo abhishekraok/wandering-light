@@ -69,7 +69,7 @@ export function TrajectoryStrip({
       ))}
       <div className="row" style={{ marginTop: 6 }}>
         <button onClick={onAppend} disabled={busy || broken}>
-          ＋ add step
+          + add step
         </button>
         {target !== null && (
           <span className={`badge ${reached ? "good" : "bad"}`}>

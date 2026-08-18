@@ -13,6 +13,12 @@ export interface Positioned {
 
 const COLUMN = 260;
 const ROW = 74;
+// A breadth-first layer is wide -- one step from an int state reaches dozens --
+// and a single column of 79 nodes is 5,800px tall, which fitView shrinks to
+// illegibility. Wrapping a layer into sub-columns keeps the drawing roughly
+// square -- which is what fits a landscape canvas -- and depth still reads left
+// to right because each layer's sub-columns stay contiguous.
+const MAX_ROWS = 18;
 
 /**
  * Lay an expansion out in depth columns.
@@ -29,22 +35,29 @@ export function layoutExpansion(expansion: Expansion): Positioned[] {
     bucket.push(node);
     byDepth.set(node.depth, bucket);
   }
-  const tallest = Math.max(...[...byDepth.values()].map((b) => b.length), 1);
+  const layers = [...byDepth.entries()].sort((a, b) => a[0] - b[0]);
+  const tallest = Math.min(
+    Math.max(...layers.map(([, bucket]) => bucket.length), 1),
+    MAX_ROWS,
+  );
   const positioned: Positioned[] = [];
-  for (const [depth, bucket] of [...byDepth.entries()].sort((a, b) => a[0] - b[0])) {
-    const offset = ((tallest - bucket.length) * ROW) / 2;
+  let column = 0;
+  for (const [, bucket] of layers) {
+    const rows = Math.min(bucket.length, MAX_ROWS);
+    const offset = ((tallest - rows) * ROW) / 2;
     bucket.forEach((node, index) => {
       positioned.push({
         id: String(node.node_id),
         nodeId: node.node_id,
-        x: depth * COLUMN,
-        y: offset + index * ROW,
+        x: (column + Math.floor(index / MAX_ROWS)) * COLUMN,
+        y: offset + (index % MAX_ROWS) * ROW,
         depth: node.depth,
         label: node.label,
         type: node.type,
         wire: node.wire,
       });
     });
+    column += Math.ceil(bucket.length / MAX_ROWS);
   }
   return positioned;
 }

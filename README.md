@@ -237,6 +237,21 @@ What it is for:
 - **Start from real data.** The corpus tab loads any task from a local corpus
   as root and target, witness included.
 
+### Visual checks
+
+Rendering bugs survive every unit test — an edgeless graph, a stretched control
+panel and a blank minimap all passed jsdom and the API tests. To look at the
+page without a desktop browser (WSL included):
+
+```bash
+npx playwright install chromium
+python -m wandering_light.webapp &
+node wandering_light/webapp/frontend/scripts/screenshot.mjs /tmp/shots
+```
+
+It walks the app — picker, graph, solver, corpus, basis — writes a PNG per step
+and reports any console error.
+
 The server holds no session state — every request carries the state it acts on,
 so reloading or duplicating a tab loses nothing.
 

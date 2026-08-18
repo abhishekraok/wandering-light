@@ -251,7 +251,7 @@ export function App() {
       </header>
 
       <div className="columns">
-        <aside className="left">
+        <aside className="pane-left">
           <div className="section">
             <h2>Trajectory</h2>
             <TrajectoryStrip
@@ -293,7 +293,7 @@ export function App() {
           </div>
         </aside>
 
-        <main className="center">
+        <main className="pane-center">
           <GraphView
             expansion={expansion}
             selected={selectedNode}
@@ -325,7 +325,7 @@ export function App() {
           )}
         </main>
 
-        <aside className="right">
+        <aside className="pane-right">
           <div className="tabs">
             {(["solver", "basis", "corpus"] as const).map((name) => (
               <button
