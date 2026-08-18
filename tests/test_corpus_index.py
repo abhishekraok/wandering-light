@@ -1,6 +1,7 @@
 import gzip
 import hashlib
 import json
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -9,6 +10,7 @@ from wandering_light.basis_dataset import BasisTaskRecord
 from wandering_light.basis_set import load_basis_set
 from wandering_light.evals.corpus_index import (
     CorpusFilters,
+    CorpusIndex,
     CorpusIndexError,
     corpus_source,
     discover_corpus_sources,
@@ -159,6 +161,98 @@ def test_indexes_legacy_rows_and_pages_without_materializing(tmp_path):
     assert detail.schema_kind == "shortest-path-v1"
     assert detail.witness_function_names == ("inc", "double")
     assert detail.basis_set_id is None
+
+
+def test_keyset_pages_match_stable_offset_order_across_ties_and_nulls(tmp_path):
+    rows = []
+    for index, (distance, split) in enumerate(
+        (
+            (2, "beta"),
+            (3, "beta"),
+            (3, "alpha"),
+            (3, "alpha"),
+            (None, "alpha"),
+            (1, "beta"),
+            (None, "beta"),
+        )
+    ):
+        row = _legacy_row(index, ["inc"])
+        row["split"] = split
+        if distance is None:
+            row.pop("relabeled_length")
+            row.pop("upper_bound")
+        else:
+            row["relabeled_length"] = distance
+            row["upper_bound"] = distance
+        rows.append(row)
+
+    data_path = _write_rows(tmp_path / "keyset.jsonl.gz", rows)
+    index = ensure_corpus_index(corpus_source(data_path), cache_dir=tmp_path / "cache")
+
+    def collect_pages(filters=None):
+        collected = []
+        after = None
+        while True:
+            page = index.records_after(filters, limit=2, after=after)
+            if not page:
+                return tuple(collected)
+            collected.extend(page)
+            last = page[-1]
+            after = (
+                last.distance if last.distance is not None else -1,
+                last.split,
+                last.row_id,
+            )
+
+    expected = index.records(limit=100)
+    actual = collect_pages()
+    assert [row.row_id for row in actual] == [row.row_id for row in expected]
+    assert len({row.row_id for row in actual}) == len(rows)
+    assert [(row.distance, row.split) for row in actual] == [
+        (3, "alpha"),
+        (3, "alpha"),
+        (3, "beta"),
+        (2, "beta"),
+        (1, "beta"),
+        (None, "alpha"),
+        (None, "beta"),
+    ]
+
+    filters = CorpusFilters(splits=("alpha",), function_keys=("name:inc",))
+    filtered_expected = index.records(filters, limit=100)
+    filtered_actual = collect_pages(filters)
+    assert [row.row_id for row in filtered_actual] == [
+        row.row_id for row in filtered_expected
+    ]
+
+    statements = []
+
+    class TracedCorpusIndex(CorpusIndex):
+        def _connect(self):
+            connection = super()._connect()
+            connection.set_trace_callback(statements.append)
+            return connection
+
+    traced_index = TracedCorpusIndex(index.database_path, index.source)
+    cursor = actual[1]
+    traced_index.records_after(
+        limit=2,
+        after=(
+            cursor.distance if cursor.distance is not None else -1,
+            cursor.split,
+            cursor.row_id,
+        ),
+    )
+    browse_statement = next(
+        statement
+        for statement in statements
+        if "SELECT id, task_id" in statement and "ORDER BY" in statement
+    )
+    with sqlite3.connect(index.database_path) as connection:
+        plan = connection.execute("EXPLAIN QUERY PLAN " + browse_statement).fetchall()
+    plan_text = "\n".join(str(row[3]) for row in plan)
+    assert "SEARCH records USING INDEX records_browse_order_idx" in plan_text
+    assert "USE TEMP B-TREE" not in plan_text
 
 
 def test_manifest_corpus_filters_by_stable_function_id_and_role(tmp_path):

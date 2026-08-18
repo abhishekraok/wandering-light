@@ -36,6 +36,7 @@ class GraphNodeView:
     label: str
     hover: str
     role: str
+    value_repr: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,6 +63,7 @@ class GraphView:
     total_edges: int
     truncated: bool
     diagnostics: GraphDiagnostics
+    root_ids: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,6 +81,7 @@ class ExpansionTaskView:
     output: str
     function_names: tuple[str, ...]
     certified: bool
+    output_serialized: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -354,10 +357,11 @@ def build_workspace_projection(
                     continue
                 graph_ids[child_tree_id] = child_graph_id
                 selected_nodes.add(child_graph_id)
-                selected_edges.add(
-                    (parent_graph_id, child_graph_id, function.name)
-                )
-                if target is not None and graph.node(child_graph_id).typed_list == target:
+                selected_edges.add((parent_graph_id, child_graph_id, function.name))
+                if (
+                    target is not None
+                    and graph.node(child_graph_id).typed_list == target
+                ):
                     target_nodes.add(child_graph_id)
                 processed_edges += 1
                 pending.append(child_tree_id)
@@ -396,9 +400,7 @@ def build_local_expansion(
     if not 1 <= max_states <= 1_000:
         raise ValueError("local expansion state cap must be between 1 and 1,000")
     if not 1 <= max_transitions <= 5_000:
-        raise ValueError(
-            "local expansion transition cap must be between 1 and 5,000"
-        )
+        raise ValueError("local expansion transition cap must be between 1 and 5,000")
     if max_nodes <= 0 or max_edges <= 0:
         raise ValueError("graph caps must be positive")
 
@@ -428,6 +430,7 @@ def build_local_expansion(
                         function.name for function in task.trajectory.function_defs
                     ),
                     certified=task.shortest_path_is_certified,
+                    output_serialized=task.trajectory.output.to_string(),
                 )
                 for task in graph.tasks_from_expansion(
                     expansion,
@@ -516,12 +519,8 @@ def graph_to_view(
         incoming_sources[edge.target_id].add(edge.source_id)
     diagnostics = GraphDiagnostics(
         self_loop_groups=sum(edge.source_id == edge.target_id for edge in edges),
-        parallel_function_groups=sum(
-            len(edge.function_names) > 1 for edge in edges
-        ),
-        convergent_nodes=sum(
-            len(sources) > 1 for sources in incoming_sources.values()
-        ),
+        parallel_function_groups=sum(len(edge.function_names) > 1 for edge in edges),
+        convergent_nodes=sum(len(sources) > 1 for sources in incoming_sources.values()),
         directed_cycle_groups=_cycle_group_count(edges),
     )
     layers: defaultdict[int, list[int]] = defaultdict(list)
@@ -561,6 +560,7 @@ def graph_to_view(
                 label=label,
                 hover=f"node {node_id}<br>{_html(value)}",
                 role=role,
+                value_repr=value,
             )
         )
 
@@ -571,6 +571,7 @@ def graph_to_view(
         total_edges=total_edges,
         truncated=(total_nodes > len(nodes) or len(ordered_pairs) > len(edges)),
         diagnostics=diagnostics,
+        root_ids=tuple(sorted(roots & included_ids)),
     )
 
 

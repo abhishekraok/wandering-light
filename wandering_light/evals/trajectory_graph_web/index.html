@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Explore certified trajectory corpora as interactive state graphs."
+    />
+    <title>Trajectory Graph · Wandering Light</title>
+    <script type="module" crossorigin src="/assets/index-B_k5vI5X.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Bm6E_Y58.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div>
+            <p class="eyebrow">Wandering Light</p>
+            <h1>Trajectory Graph</h1>
+          </div>
+        </div>
+
+        <div class="header-context" aria-live="polite">
+          <span class="status-dot" id="header-status-dot"></span>
+          <span id="header-context">Connecting to corpus index…</span>
+        </div>
+
+        <div class="mobile-actions">
+          <button class="icon-button" id="toggle-browser" type="button" aria-label="Open task browser" aria-controls="browser-rail" aria-expanded="false">
+            Browse
+          </button>
+          <button class="icon-button" id="toggle-details" type="button" aria-label="Open graph tools" aria-controls="tools-rail" aria-expanded="false">
+            Tools
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="rail browser-rail" id="browser-rail" aria-label="Corpus and task browser">
+          <div class="rail-header">
+            <div>
+              <p class="section-kicker">Corpus</p>
+              <h2>Choose a source</h2>
+            </div>
+            <button class="close-rail" type="button" data-close-rail aria-label="Close task browser">×</button>
+          </div>
+
+          <div class="rail-scroll">
+            <label class="field-label" for="source-select">Data source</label>
+            <select id="source-select" class="control source-select" disabled>
+              <option>Loading sources…</option>
+            </select>
+
+            <section class="source-card" id="source-card" aria-live="polite">
+              <div class="source-card-line skeleton-line"></div>
+              <div class="source-card-line skeleton-line short"></div>
+            </section>
+            <button class="primary-button full-width hidden" id="source-action" type="button"></button>
+
+            <div class="section-rule"></div>
+
+            <form id="filter-form" class="filter-form">
+              <div class="section-heading-row">
+                <div>
+                  <p class="section-kicker">Tasks</p>
+                  <h2>Find a trajectory</h2>
+                </div>
+                <button class="text-button" id="reset-filters" type="button">Reset</button>
+              </div>
+
+              <label class="search-field" for="task-search">
+                <span class="search-glyph" aria-hidden="true">⌕</span>
+                <input
+                  id="task-search"
+                  type="search"
+                  placeholder="Task ID prefix"
+                  autocomplete="off"
+                  maxlength="128"
+                />
+              </label>
+
+              <div class="two-column-fields">
+                <label>
+                  <span class="field-label">Split</span>
+                  <select id="split-filter" class="control">
+                    <option value="">All splits</option>
+                  </select>
+                </label>
+                <label>
+                  <span class="field-label">Function role</span>
+                  <select id="role-filter" class="control">
+                    <option value="witness">Witness</option>
+                    <option value="optimal_first">Optimal first</option>
+                    <option value="optimal_last">Optimal last</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="two-column-fields">
+                <label>
+                  <span class="field-label">Min distance</span>
+                  <input id="min-distance" class="control" type="number" min="0" placeholder="Any" />
+                </label>
+                <label>
+                  <span class="field-label">Max distance</span>
+                  <input id="max-distance" class="control" type="number" min="0" placeholder="Any" />
+                </label>
+              </div>
+
+              <label>
+                <span class="field-label">Uses function</span>
+                <select id="function-filter" class="control">
+                  <option value="">Any function</option>
+                </select>
+              </label>
+            </form>
+
+            <div class="task-count-row">
+              <span id="task-count">No tasks loaded</span>
+              <span id="task-filter-state"></span>
+            </div>
+
+            <div class="task-list" id="task-list" aria-live="polite"></div>
+            <button class="secondary-button full-width hidden" id="load-more-tasks" type="button">
+              Load more tasks
+            </button>
+          </div>
+        </aside>
+
+        <section class="graph-stage" aria-label="Interactive trajectory graph">
+          <div class="graph-toolbar">
+            <div class="mode-switch" role="group" aria-label="Graph mode">
+              <button class="mode-button active" id="mode-witness" type="button" data-mode="witness">
+                Witnesses
+              </button>
+              <button class="mode-button" id="mode-expand" type="button" data-mode="expand">
+                Expand
+              </button>
+            </div>
+
+            <div class="graph-actions">
+              <button class="toolbar-button help-button" id="open-help" type="button">How to use</button>
+              <button class="toolbar-button" id="clear-path" type="button" disabled>Clear path</button>
+              <button class="toolbar-button" id="fit-graph" type="button" disabled>Fit graph</button>
+              <button class="toolbar-button" id="reset-layout" type="button" disabled>Reset layout</button>
+            </div>
+          </div>
+
+          <div class="graph-summary hidden" id="graph-summary"></div>
+          <div id="graph-canvas" role="application" aria-label="Trajectory state graph"></div>
+
+          <div class="canvas-empty" id="canvas-empty">
+            <div class="empty-orbit" aria-hidden="true"><span></span></div>
+            <p class="section-kicker">Graph workspace</p>
+            <h2 id="canvas-empty-title">Select a task to trace its witness</h2>
+            <p id="canvas-empty-copy">
+              Choose a corpus task on the left. Its states and functions will appear here as an
+              interactive directed graph.
+            </p>
+          </div>
+
+          <div class="graph-loading hidden" id="graph-loading" aria-live="polite">
+            <div class="loading-spinner" aria-hidden="true"></div>
+            <div>
+              <strong id="graph-loading-title">Building graph</strong>
+              <span id="graph-loading-detail">Replaying registered functions…</span>
+            </div>
+          </div>
+
+          <div class="notice-stack" id="notice-stack" aria-live="assertive"></div>
+
+          <div class="canvas-hint" id="canvas-hint">
+            Drag nodes · scroll to zoom · click a state to trace its shortest path
+          </div>
+        </section>
+
+        <aside class="rail tools-rail" id="tools-rail" aria-label="Graph tools and inspector">
+          <div class="rail-header">
+            <div>
+              <p class="section-kicker">Workspace</p>
+              <h2 id="tools-heading">Graph tools</h2>
+            </div>
+            <button class="close-rail" type="button" data-close-rail aria-label="Close graph tools">×</button>
+          </div>
+
+          <div class="rail-scroll">
+            <section class="selected-task-panel" id="selected-task-panel">
+              <p class="muted-copy">Select a corpus task to begin.</p>
+            </section>
+
+            <section id="witness-controls" class="tool-section hidden">
+              <div class="tool-heading">
+                <div>
+                  <p class="section-kicker">Projection</p>
+                  <h3>Stored witnesses</h3>
+                </div>
+                <span class="mode-tag">Recorded</span>
+              </div>
+              <p class="tool-description">
+                Replay the selected witness alone, or merge witnesses sampled from the same root.
+              </p>
+
+              <fieldset class="segmented-fieldset" id="witness-scope">
+                <legend>Witness scope</legend>
+                <label>
+                  <input type="radio" name="witness-scope" value="selected" checked />
+                  <span>Selected task</span>
+                </label>
+                <label>
+                  <input type="radio" name="witness-scope" value="root" />
+                  <span>Same root</span>
+                </label>
+              </fieldset>
+
+              <label id="max-records-field" class="hidden">
+                <span class="field-label row-label">
+                  Witness records
+                  <output id="max-records-output">250</output>
+                </span>
+                <input id="max-records" type="range" min="10" max="500" value="250" step="10" />
+              </label>
+
+              <button class="secondary-button full-width" id="reload-witness" type="button">
+                Rebuild witness graph
+              </button>
+            </section>
+
+            <section id="expansion-controls" class="tool-section hidden">
+              <div class="tool-heading">
+                <div>
+                  <p class="section-kicker">Projection</p>
+                  <h3>Bounded expansion</h3>
+                </div>
+                <span class="mode-tag experimental">Computed</span>
+              </div>
+              <p class="tool-description">
+                Explore nearby states with strict depth, state, and transition budgets.
+                Shortest-path certification is relative to the selected palette.
+              </p>
+
+              <label>
+                <span class="field-label">Root TypedList JSON</span>
+                <textarea id="expansion-input" rows="4" spellcheck="false"></textarea>
+              </label>
+
+              <div class="palette-heading">
+                <span class="field-label">Function palette</span>
+                <span id="palette-count">0 selected</span>
+              </div>
+              <label class="search-field compact" for="palette-search">
+                <span class="search-glyph" aria-hidden="true">⌕</span>
+                <input id="palette-search" type="search" placeholder="Filter functions" autocomplete="off" />
+              </label>
+              <div class="palette-actions">
+                <button class="text-button" id="palette-witness" type="button">Use witness</button>
+                <button class="text-button" id="palette-compatible" type="button">Select compatible</button>
+                <button class="text-button" id="palette-clear" type="button">Clear</button>
+              </div>
+              <div class="function-palette" id="function-palette"></div>
+
+              <div class="budget-grid">
+                <label>
+                  <span class="field-label">Depth</span>
+                  <input id="max-depth" class="control" type="number" min="1" max="3" value="2" />
+                </label>
+                <label>
+                  <span class="field-label">States</span>
+                  <input id="max-states" class="control" type="number" min="10" max="1000" value="250" step="10" />
+                </label>
+                <label>
+                  <span class="field-label">Transitions</span>
+                  <input id="max-transitions" class="control" type="number" min="10" max="5000" value="2500" step="10" />
+                </label>
+              </div>
+
+              <label class="check-row">
+                <input id="include-self-loops" type="checkbox" checked />
+                <span>
+                  <strong>Include self-loops</strong>
+                  <small>Show effective identity functions.</small>
+                </span>
+              </label>
+
+              <button class="primary-button full-width" id="run-expansion" type="button">
+                Expand from root
+              </button>
+            </section>
+
+            <section class="tool-section inspector-section">
+              <div class="tool-heading">
+                <div>
+                  <p class="section-kicker">Inspect</p>
+                  <h3>Selection</h3>
+                </div>
+              </div>
+              <div id="inspector-content">
+                <p class="muted-copy">Click a state or transition in the graph.</p>
+              </div>
+            </section>
+
+            <section class="tool-section hidden" id="candidate-section">
+              <div class="tool-heading">
+                <div>
+                  <p class="section-kicker">Reached states</p>
+                  <h3>Candidate tasks</h3>
+                </div>
+                <span class="candidate-count" id="candidate-count"></span>
+              </div>
+              <div class="candidate-list" id="candidate-list"></div>
+              <button class="text-button full-width hidden" id="more-candidates" type="button">
+                Show more candidates
+              </button>
+            </section>
+          </div>
+        </aside>
+
+        <button class="rail-scrim" id="rail-scrim" type="button" aria-label="Close side panel"></button>
+      </main>
+    </div>
+
+    <dialog class="help-dialog" id="interaction-help" aria-labelledby="help-title">
+      <div class="help-dialog-header">
+        <div>
+          <p class="section-kicker">Interaction guide</p>
+          <h2 id="help-title">Read the graph at full speed</h2>
+        </div>
+        <button class="dialog-close" id="close-help" type="button" aria-label="Close interaction guide">×</button>
+      </div>
+      <ol class="help-steps">
+        <li>
+          <span>1</span>
+          <div><strong>Choose a task</strong><p>Click any task in the left rail to load its stored witness graph.</p></div>
+        </li>
+        <li>
+          <span>2</span>
+          <div><strong>Trace a state</strong><p>Click a node to highlight its shortest rendered path from a root and inspect every step.</p></div>
+        </li>
+        <li>
+          <span>3</span>
+          <div><strong>Inspect a transition</strong><p>Click an edge to see every function that maps between those two states.</p></div>
+        </li>
+        <li>
+          <span>4</span>
+          <div><strong>Move naturally</strong><p>Wheel or pinch to zoom, drag the background to pan, and drag any node to make space.</p></div>
+        </li>
+        <li>
+          <span>5</span>
+          <div><strong>Expand safely</strong><p>Choose Expand, set a function palette and budget, then build a palette-relative certified neighborhood.</p></div>
+        </li>
+        <li>
+          <span>6</span>
+          <div><strong>Chain candidates</strong><p>Inspect a reached state or use it as the next root; compatible functions refresh for its type.</p></div>
+        </li>
+      </ol>
+      <div class="help-legend" aria-label="Graph color legend">
+        <span><i class="legend-dot root"></i>Root</span>
+        <span><i class="legend-dot witness"></i>Witness path</span>
+        <span><i class="legend-dot target"></i>Target</span>
+        <span><i class="legend-line path"></i>Traced path</span>
+      </div>
+    </dialog>
+
+  </body>
+</html>
