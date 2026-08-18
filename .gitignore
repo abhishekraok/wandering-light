@@ -191,3 +191,10 @@ wandering_light/training/data/deep_corpus_v1/*.jsonl.gz
 reports/**/raw/
 reports/**/*.svg
 reports/**/*.csv
+
+# Explorer frontend: dependencies and build output are reproducible from source.
+wandering_light/webapp/frontend/node_modules/
+wandering_light/webapp/frontend/tsconfig.tsbuildinfo
+wandering_light/webapp/static/
+# The blanket `lib/` rule above is meant for Python build output, not this source.
+!wandering_light/webapp/frontend/src/lib/

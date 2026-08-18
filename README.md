@@ -143,6 +143,7 @@ uv run pytest
 │   ├── llm_utils.py        # LLM integration utilities
 │   ├── constants.py        # Project constants
 │   ├── evals/              # Evaluation scripts and workflows
+│   ├── webapp/             # FastAPI API + React explorer (frontend/ builds to static/)
 │   └── training/           # Training scripts (SFT, RL)
 ├── tests/                  # pytest test cases for core functionality
 ├── pyproject.toml          # Project configuration and dependencies
@@ -207,8 +208,40 @@ To see the results of all the past evaluations run
 streamlit run wandering_light/evals/dashboard.py
 ```
 
-## Data explorer
-One Streamlit app for looking at the data itself:
+## Explorer (browser app)
+
+An interactive explorer for states, trajectories and the trajectory graph:
+build the frontend once, then run the server.
+
+```bash
+cd wandering_light/webapp/frontend && npm install && npm run build && cd -
+PYTHONHASHSEED=0 python -m wandering_light.webapp
+```
+
+Then open <http://127.0.0.1:8765>. For frontend work, `npm run dev` serves a
+hot-reloading copy on port 5173 that proxies `/api` to the Python server.
+
+What it is for:
+
+- **Edit a trajectory by clicking its edges.** Every function in the picker
+  shows the state it would actually produce from that point, including the ones
+  that fail here and the ones that change nothing. Replacing an edge drops the
+  steps downstream of it and re-runs the rest.
+- **See how far the basis reaches.** Expand any state breadth-first and read
+  the graph in depth columns; the panel reports which types were reached and
+  how many basis functions produced no edge at all — the concrete version of
+  "is anything missing".
+- **Feel the solver's problem.** Run BFS or random search against your target
+  and watch what it costs; the answer stays hidden behind a *reveal* until you
+  ask, so you can try the task yourself first by walking the graph.
+- **Start from real data.** The corpus tab loads any task from a local corpus
+  as root and target, witness included.
+
+The server holds no session state — every request carries the state it acts on,
+so reloading or duplicating a tab loses nothing.
+
+## Data explorer (Streamlit)
+The older Streamlit app, still the best view of corpus-level statistics and past runs:
 
 ```bash
 PYTHONHASHSEED=0 streamlit run wandering_light/evals/explorer.py

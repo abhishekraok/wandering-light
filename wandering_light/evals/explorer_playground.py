@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, Any
 
 import streamlit as st
 
-from wandering_light.basis_dataset import typed_list_from_builtin_str
 from wandering_light.basis_set import (
     available_basis_set_aliases,
     available_basis_sets,
@@ -30,10 +29,12 @@ from wandering_light.evals.explorer_widgets import (
 )
 from wandering_light.executor import Executor
 from wandering_light.solver import get_solver_by_name
-from wandering_light.typed_list import TypedList
+from wandering_light.state_io import display_text as editable_text
+from wandering_light.state_io import parse_typed_list
 
 if TYPE_CHECKING:
     from wandering_light.function_def import FunctionDefSet
+    from wandering_light.typed_list import TypedList
 
 DEFAULT_BASIS = "wl-core-v1"
 NS = "play"
@@ -50,30 +51,6 @@ def load_functions(basis_set_id: str) -> tuple[FunctionDefSet, str | None]:
     basis_set = load_basis_set(basis_set_id)
     seed = require_reproducible_basis_runtime(basis_set)
     return basis_set.as_function_set(), seed
-
-
-def parse_typed_list(text: str) -> TypedList:
-    """Accept either a ``TL<int>([1, 2])`` repr or the JSON wire format."""
-    stripped = text.strip()
-    if stripped.startswith("{"):
-        return typed_list_from_builtin_str(stripped)
-    return TypedList.parse_from_repr(stripped)
-
-
-def editable_text(serialized: str) -> str:
-    """Prefer the readable repr, but only when it parses back to the value.
-
-    Not every builtin round-trips through ``repr``; the JSON the record stores
-    always does, so that is the fallback rather than a broken text box.
-    """
-    value = typed_list_from_builtin_str(serialized)
-    text = repr(value)
-    try:
-        if TypedList.parse_from_repr(text) == value:
-            return text
-    except (ValueError, TypeError):
-        pass
-    return serialized
 
 
 def select_basis(key: str) -> tuple[FunctionDefSet, str] | None:
