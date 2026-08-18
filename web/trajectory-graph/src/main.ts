@@ -106,6 +106,7 @@ class TrajectoryGraphApp {
   private readonly graphLoadingDetail = requiredElement<HTMLElement>("#graph-loading-detail");
   private readonly noticeStack = requiredElement<HTMLElement>("#notice-stack");
   private readonly fitGraphButton = requiredElement<HTMLButtonElement>("#fit-graph");
+  private readonly spreadGraphButton = requiredElement<HTMLButtonElement>("#spread-graph");
   private readonly resetLayoutButton = requiredElement<HTMLButtonElement>("#reset-layout");
   private readonly clearPathButton = requiredElement<HTMLButtonElement>("#clear-path");
   private readonly toggleBrowserButton = requiredElement<HTMLButtonElement>("#toggle-browser");
@@ -225,6 +226,7 @@ class TrajectoryGraphApp {
     requiredElement<HTMLButtonElement>("#run-expansion").addEventListener("click", () => void this.runExpansion());
 
     this.fitGraphButton.addEventListener("click", () => this.graph.fit());
+    this.spreadGraphButton.addEventListener("click", () => this.graph.spread());
     this.resetLayoutButton.addEventListener("click", () => this.graph.resetLayout());
     this.clearPathButton.addEventListener("click", () => this.graph.clearPath());
     this.moreCandidates.addEventListener("click", () => {
@@ -876,6 +878,7 @@ class TrajectoryGraphApp {
         ? "Click a state to trace it · choose a candidate in Tools · drag or zoom freely"
         : "Drag nodes · scroll to zoom · click a state to trace its shortest path";
     this.fitGraphButton.disabled = false;
+    this.spreadGraphButton.disabled = false;
     this.resetLayoutButton.disabled = false;
     this.clearPathButton.disabled = false;
   }
@@ -1067,6 +1070,7 @@ class TrajectoryGraphApp {
     setHidden(this.candidateSection, true);
     this.candidates = [];
     this.fitGraphButton.disabled = true;
+    this.spreadGraphButton.disabled = true;
     this.resetLayoutButton.disabled = true;
     this.clearPathButton.disabled = true;
     this.setGraphLoading(false);
@@ -1084,6 +1088,7 @@ class TrajectoryGraphApp {
     setHidden(this.canvasEmpty, false);
     setHidden(this.graphSummary, true);
     this.fitGraphButton.disabled = true;
+    this.spreadGraphButton.disabled = true;
     this.resetLayoutButton.disabled = true;
     this.clearPathButton.disabled = true;
     this.setGraphLoading(false);
