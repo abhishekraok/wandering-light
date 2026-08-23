@@ -1,0 +1,642 @@
+<title>What the Basis Reaches</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
+
+<style>
+:root {
+  --ground:#E5E6E2; --panel:#EFF0EC; --raise:#F8F9F6; --rule:#C6C9C3; --rule-soft:#D8DBD5;
+  --ink:#1B1E20; --ink-dim:#535B60; --ink-faint:#8A9295;
+  --s1:#9A6A0A; --s2:#1D5FA8;            /* validated categorical pair, light */
+  --s1-wash:rgba(154,106,10,.14); --s2-wash:rgba(29,95,168,.13);
+  --grid:rgba(27,30,32,.09);
+  --warn:#8A4218; --good:#3F6B33;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:#141719; --panel:#1B1F21; --raise:#22272A; --rule:#2C3235; --rule-soft:#242A2D;
+    --ink:#E6E4DE; --ink-dim:#98A0A5; --ink-faint:#69737a;
+    --s1:#B5851F; --s2:#4E9AD8;          /* validated categorical pair, dark */
+    --s1-wash:rgba(181,133,31,.18); --s2-wash:rgba(78,154,216,.16);
+    --grid:rgba(230,228,222,.10);
+    --warn:#D08A50; --good:#7FA86B;
+  }
+}
+:root[data-theme="dark"] {
+  --ground:#141719; --panel:#1B1F21; --raise:#22272A; --rule:#2C3235; --rule-soft:#242A2D;
+  --ink:#E6E4DE; --ink-dim:#98A0A5; --ink-faint:#69737a;
+  --s1:#B5851F; --s2:#4E9AD8;
+  --s1-wash:rgba(181,133,31,.18); --s2-wash:rgba(78,154,216,.16);
+  --grid:rgba(230,228,222,.10);
+  --warn:#D08A50; --good:#7FA86B;
+}
+
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans Condensed","Helvetica Neue",sans-serif;
+  font-size:16.5px; line-height:1.62; -webkit-font-smoothing:antialiased;
+}
+.wrap { max-width:1080px; margin:0 auto; padding:0 24px 96px; }
+.col { max-width:65ch; }
+
+h1 { font-family:"Instrument Serif",Georgia,serif; font-weight:400; font-size:clamp(38px,6.5vw,62px);
+     line-height:1.02; letter-spacing:.005em; margin:0; text-wrap:balance; }
+h2 { font-family:"Instrument Serif",Georgia,serif; font-weight:400; font-size:clamp(25px,3.4vw,33px);
+     line-height:1.14; margin:0 0 6px; text-wrap:balance; }
+h3 { font-size:14px; font-weight:600; letter-spacing:.02em; margin:0 0 4px; }
+p { margin:0 0 15px; }
+a { color:inherit; text-decoration-color:var(--s2); text-underline-offset:3px; }
+code, .mono { font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.9em; }
+code { background:var(--panel); padding:1px 5px; border-radius:3px; }
+strong { font-weight:600; }
+em { font-style:italic; }
+
+.eyebrow { font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:500;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--ink-faint); }
+
+header.masthead { padding:60px 0 34px; border-bottom:1px solid var(--rule); margin-bottom:34px; }
+.deck { font-size:19px; line-height:1.5; color:var(--ink-dim); max-width:60ch; margin:16px 0 0; }
+.runmeta { display:flex; flex-wrap:wrap; gap:8px 26px; margin-top:22px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-faint); }
+
+section { padding:44px 0 6px; border-top:1px solid var(--rule-soft); }
+section:first-of-type { border-top:none; }
+.sechead { display:flex; align-items:baseline; gap:14px; margin-bottom:18px; flex-wrap:wrap; }
+.sechead .eyebrow { flex:none; }
+
+/* verdict */
+.verdict { background:var(--panel); border:1px solid var(--rule); border-radius:3px;
+  padding:22px 24px; margin:26px 0 8px; }
+.verdict h3 { font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ink-faint); margin-bottom:12px; }
+.verdict ul { margin:0; padding-left:0; list-style:none; display:flex; flex-direction:column; gap:13px; }
+.verdict li { display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:baseline; }
+.verdict .tick { font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--s1);
+  letter-spacing:.1em; padding-top:2px; }
+
+/* stat tiles */
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(178px,1fr)); gap:1px;
+  background:var(--rule); border:1px solid var(--rule); margin:24px 0; }
+.tile { background:var(--panel); padding:15px 17px 17px; display:flex; flex-direction:column; gap:3px; }
+.tile .k { font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--ink-faint); }
+.tile .v { font-family:"IBM Plex Mono",monospace; font-size:27px; font-weight:500; line-height:1.1;
+  font-variant-numeric:tabular-nums; }
+.tile .n { font-size:13px; color:var(--ink-dim); line-height:1.4; }
+.tile.a .v { color:var(--s1); } .tile.b .v { color:var(--s2); }
+
+/* figures & charts */
+figure { margin:26px 0 8px; }
+figcaption { font-size:13.5px; color:var(--ink-dim); margin-top:12px; max-width:70ch; line-height:1.5; }
+.chartbox { background:var(--panel); border:1px solid var(--rule); border-radius:3px; padding:16px 16px 10px; }
+.charttop { display:flex; align-items:baseline; justify-content:space-between; gap:16px;
+  flex-wrap:wrap; margin-bottom:10px; }
+.charttitle { font-size:14px; font-weight:600; }
+.legend { display:flex; gap:15px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-dim); }
+.legend span { display:inline-flex; align-items:center; gap:6px; }
+.swatch { width:11px; height:11px; border-radius:2px; flex:none; }
+.scroller { overflow-x:auto; }
+svg { display:block; max-width:100%; height:auto; }
+svg text { font-family:"IBM Plex Mono",monospace; }
+.tipbox { position:fixed; pointer-events:none; z-index:40; background:var(--raise);
+  border:1px solid var(--rule); border-radius:3px; padding:8px 10px; font-size:12px;
+  font-family:"IBM Plex Mono",monospace; line-height:1.5; opacity:0; transition:opacity .09s;
+  box-shadow:0 4px 14px rgba(0,0,0,.18); white-space:nowrap; }
+
+/* tables */
+details.data { margin-top:12px; }
+details.data > summary { cursor:pointer; font-size:12px; font-family:"IBM Plex Mono",monospace;
+  color:var(--ink-faint); letter-spacing:.04em; padding:4px 0; }
+details.data > summary:hover { color:var(--ink-dim); }
+table { border-collapse:collapse; width:100%; font-size:13px;
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; margin-top:8px; }
+th, td { text-align:right; padding:5px 11px; border-bottom:1px solid var(--rule-soft); }
+th:first-child, td:first-child { text-align:left; }
+th { font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-faint); font-weight:600; }
+tbody tr:last-child td { border-bottom:none; }
+td.a { color:var(--s1); } td.b { color:var(--s2); }
+
+.callout { border-left:3px solid var(--s1); background:var(--panel); padding:15px 18px;
+  margin:24px 0; font-size:15px; }
+.callout p:last-child { margin-bottom:0; }
+.callout.caveat { border-left-color:var(--warn); }
+
+ul.plain { padding-left:19px; margin:0 0 15px; }
+ul.plain li { margin-bottom:8px; }
+
+:focus-visible { outline:2px solid var(--s2); outline-offset:2px; }
+@media (prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
+@media (max-width:640px) { body { font-size:16px; } .wrap { padding:0 17px 64px; } }
+</style>
+
+<script id="measurements" type="application/json">{"econ":{"old":{"n":118,"applicable":20.52,"bits":4.292,"succ":13.08},"new":{"n":18,"applicable":11.24,"bits":3.477,"succ":8.83}},"inert":[{"d":3,"total":163,"lit":156},{"d":4,"total":865,"lit":781},{"d":5,"total":4667,"lit":3906},{"d":6,"total":25337,"lit":19531},{"d":7,"total":138725,"lit":97656},{"d":8,"total":762355,"lit":488281}],"maxint":[[1,1],[2,1],[3,2],[4,2],[5,4],[6,4],[7,16],[8,16],[9,256]],"intcost":{"new":[1,2,2,4,4,16,16,256],"old":[2,4,16,256,65536,4294967296,18446744073709551616,340282366920938463463374607431768211456]},"reach":[[1,6],[2,31],[3,163],[4,865],[5,4667],[6,25337],[7,138725],[8,762355],[9,4208345]],"monoid":{"new":[{"i":0,"d":1,"n":19},{"i":1,"d":2,"n":186},{"i":2,"d":3,"n":1471},{"i":3,"d":4,"n":9970},{"i":4,"d":5,"n":63683},{"i":5,"d":6,"n":389479},{"i":6,"d":7,"n":2329238},{"i":7,"d":8,"n":13677749}],"old":[{"i":0,"d":1,"n":67},{"i":1,"d":2,"n":430},{"i":2,"d":3,"n":2403},{"i":3,"d":4,"n":13742},{"i":4,"d":5,"n":79468},{"i":5,"d":6,"n":458640}],"new_growth":5.8721989766610365,"old_growth":5.771379674837671},"ablation_monoid":[{"op":"1","group":"literals","without":36249,"fraction_lost":0.4307900067521945},{"op":"nil","group":"literals","without":37425,"fraction_lost":0.4123235400342321},{"op":"0","group":"literals","without":38605,"fraction_lost":0.39379426220498404},{"op":"over","group":"plumbing","without":41277,"fraction_lost":0.3518364398662124},{"op":"false","group":"literals","without":41729,"fraction_lost":0.34473878429094107},{"op":"true","group":"literals","without":42294,"fraction_lost":0.33586671482185193},{"op":"swap","group":"plumbing","without":44480,"fraction_lost":0.301540442504279},{"op":"dup","group":"plumbing","without":49069,"fraction_lost":0.22948039508189},{"op":"cons","group":"structure","without":49223,"fraction_lost":0.22706216729739492},{"op":"uncons","group":"structure","without":55675,"fraction_lost":0.125747844793744},{"op":"add","group":"arithmetic","without":57912,"fraction_lost":0.09062073080727984},{"op":"null?","group":"structure","without":58078,"fraction_lost":0.088014069688928},{"op":"sub","group":"arithmetic","without":58283,"fraction_lost":0.08479500023554165},{"op":"eq?","group":"predicates","without":59400,"fraction_lost":0.06725499740904162},{"op":"lt?","group":"predicates","without":59896,"fraction_lost":0.05946641960962895},{"op":"div","group":"arithmetic","without":59929,"fraction_lost":0.05894822794152288},{"op":"drop","group":"plumbing","without":59971,"fraction_lost":0.05828871127302415},{"op":"mul","group":"arithmetic","without":60768,"fraction_lost":0.04577359734937114}],"ablation_full":63683,"ablation_depth":5,"ablation_reach":[{"op":"nil","group":"literals","reachable_without":26795,"fraction_lost":0.8068480807352676},{"op":"1","group":"literals","reachable_without":33605,"fraction_lost":0.7577581546224545},{"op":"0","group":"literals","reachable_without":39004,"fraction_lost":0.718839430528023},{"op":"false","group":"literals","reachable_without":42182,"fraction_lost":0.6959307983420436},{"op":"true","group":"literals","reachable_without":53622,"fraction_lost":0.6134654892773472},{"op":"cons","group":"structure","reachable_without":108085,"fraction_lost":0.2208686249774734},{"op":"dup","group":"plumbing","reachable_without":131787,"fraction_lost":0.050012614885564965},{"op":"add","group":"arithmetic","reachable_without":133218,"fraction_lost":0.03969724274644082},{"op":"sub","group":"arithmetic","reachable_without":133225,"fraction_lost":0.03964678320418091},{"op":"over","group":"plumbing","reachable_without":134388,"fraction_lost":0.03126329068300593},{"op":"swap","group":"plumbing","reachable_without":138509,"fraction_lost":0.0015570373040187935},{"op":"uncons","group":"structure","reachable_without":138688,"fraction_lost":0.0002667147233735845},{"op":"mul","group":"arithmetic","reachable_without":138723,"fraction_lost":1.4417012074274815e-05},{"op":"drop","group":"plumbing","reachable_without":138725,"fraction_lost":0.0},{"op":"null?","group":"structure","reachable_without":138725,"fraction_lost":0.0},{"op":"div","group":"arithmetic","reachable_without":138725,"fraction_lost":0.0},{"op":"eq?","group":"predicates","reachable_without":138725,"fraction_lost":0.0},{"op":"lt?","group":"predicates","reachable_without":138725,"fraction_lost":0.0}],"collapse":[{"depth":1,"programs":5,"states":5,"collapse":1.0},{"depth":2,"programs":36,"states":27,"collapse":1.3333333333333333},{"depth":3,"programs":371,"states":163,"collapse":2.276073619631902},{"depth":4,"programs":3689,"states":865,"collapse":4.264739884393063},{"depth":5,"programs":40113,"states":4667,"collapse":8.59502892650525},{"depth":6,"programs":429206,"states":25337,"collapse":16.93989027903856},{"depth":7,"programs":4724725,"states":138725,"collapse":34.05820868624978}],"graph":{"nodes":4667,"distinct_edges":7517,"reversible_fraction":0.3400292669948118,"indeg_hist":{"1":2593,"2":1467,"3":379,"4":60,"5":5,"7":25,"8":4,"9":5,"10":1,"12":16,"13":14,"14":33,"15":27,"16":4,"23":1,"30":12,"31":13,"32":2,"35":3,"36":2},"hubs":[{"stack":"[ false ]","in_degree":117,"depth":1},{"stack":"[ nil false ]","in_degree":36,"depth":2},{"stack":"[ false false ]","in_degree":36,"depth":2},{"stack":"[ 0 false ]","in_degree":35,"depth":2},{"stack":"[ 1 false ]","in_degree":35,"depth":2},{"stack":"[ true false ]","in_degree":35,"depth":2},{"stack":"[ false nil false ]","in_degree":32,"depth":3},{"stack":"[ false false false ]","in_degree":32,"depth":3},{"stack":"[ 0 ]","in_degree":31,"depth":1},{"stack":"[ true ]","in_degree":31,"depth":1},{"stack":"[ 0 nil false ]","in_degree":31,"depth":3},{"stack":"[ 0 false false ]","in_degree":31,"depth":3}]},"roots":{"empty":[{"depth":1,"expanded":1,"edges":5,"new":5,"cumulative":6,"b_eff":5.0,"seconds":0.0,"reach":{"max_int":1,"max_list_len":0,"max_nesting":1}},{"depth":2,"expanded":5,"edges":36,"new":25,"cumulative":31,"b_eff":7.2,"seconds":0.0,"reach":{"max_int":1,"max_list_len":0,"max_nesting":1}},{"depth":3,"expanded":25,"edges":278,"new":132,"cumulative":163,"b_eff":11.12,"seconds":0.0,"reach":{"max_int":2,"max_list_len":1,"max_nesting":2}},{"depth":4,"expanded":132,"edges":1449,"new":702,"cumulative":865,"b_eff":10.977272727272727,"seconds":0.0,"reach":{"max_int":2,"max_list_len":1,"max_nesting":2}},{"depth":5,"expanded":702,"edges":7872,"new":3802,"cumulative":4667,"b_eff":11.213675213675213,"seconds":0.03,"reach":{"max_int":4,"max_list_len":2,"max_nesting":3}},{"depth":6,"expanded":3802,"edges":42582,"new":20670,"cumulative":25337,"b_eff":11.199894792214623,"seconds":0.2,"reach":{"max_int":4,"max_list_len":2,"max_nesting":3}},{"depth":7,"expanded":20670,"edges":232490,"new":113388,"cumulative":138725,"b_eff":11.24770198355104,"seconds":1.45,"reach":{"max_int":16,"max_list_len":3,"max_nesting":4}},{"depth":8,"expanded":113388,"edges":1275461,"new":623630,"cumulative":762355,"b_eff":11.248641831587117,"seconds":11.34,"reach":{"max_int":16,"max_list_len":3,"max_nesting":4}}],"one list":[{"depth":1,"expanded":1,"edges":9,"new":9,"cumulative":10,"b_eff":9.0,"seconds":0.0,"reach":{"max_int":1,"max_list_len":3,"max_nesting":1}},{"depth":2,"expanded":9,"edges":92,"new":65,"cumulative":75,"b_eff":10.222222222222221,"seconds":0.0,"reach":{"max_int":1,"max_list_len":4,"max_nesting":2}},{"depth":3,"expanded":65,"edges":707,"new":386,"cumulative":461,"b_eff":10.876923076923077,"seconds":0.0,"reach":{"max_int":2,"max_list_len":4,"max_nesting":2}},{"depth":4,"expanded":386,"edges":4376,"new":2428,"cumulative":2889,"b_eff":11.336787564766839,"seconds":0.02,"reach":{"max_int":2,"max_list_len":5,"max_nesting":3}},{"depth":5,"expanded":2428,"edges":27465,"new":14067,"cumulative":16956,"b_eff":11.31177924217463,"seconds":0.12,"reach":{"max_int":4,"max_list_len":5,"max_nesting":3}},{"depth":6,"expanded":14067,"edges":159170,"new":83516,"cumulative":100472,"b_eff":11.315134712447572,"seconds":0.83,"reach":{"max_int":4,"max_list_len":6,"max_nesting":4}}],"two ints":[{"depth":1,"expanded":1,"edges":15,"new":10,"cumulative":11,"b_eff":15.0,"seconds":0.0,"reach":{"max_int":2,"max_list_len":0,"max_nesting":1}},{"depth":2,"expanded":10,"edges":95,"new":56,"cumulative":67,"b_eff":9.5,"seconds":0.0,"reach":{"max_int":2,"max_list_len":0,"max_nesting":1}},{"depth":3,"expanded":56,"edges":626,"new":299,"cumulative":366,"b_eff":11.178571428571429,"seconds":0.0,"reach":{"max_int":4,"max_list_len":1,"max_nesting":2}},{"depth":4,"expanded":299,"edges":3361,"new":1608,"cumulative":1974,"b_eff":11.240802675585284,"seconds":0.01,"reach":{"max_int":4,"max_list_len":1,"max_nesting":2}},{"depth":5,"expanded":1608,"edges":18100,"new":8783,"cumulative":10757,"b_eff":11.256218905472636,"seconds":0.07,"reach":{"max_int":16,"max_list_len":2,"max_nesting":3}},{"depth":6,"expanded":8783,"edges":98929,"new":47972,"cumulative":58729,"b_eff":11.263691221678242,"seconds":0.45,"reach":{"max_int":16,"max_list_len":2,"max_nesting":3}},{"depth":7,"expanded":47972,"edges":540663,"new":263789,"cumulative":322518,"b_eff":11.270386892353873,"seconds":3.4,"reach":{"max_int":256,"max_list_len":3,"max_nesting":4}}],"list and int":[{"depth":1,"expanded":1,"edges":11,"new":10,"cumulative":11,"b_eff":11.0,"seconds":0.0,"reach":{"max_int":1,"max_list_len":3,"max_nesting":1}},{"depth":2,"expanded":10,"edges":109,"new":65,"cumulative":76,"b_eff":10.9,"seconds":0.0,"reach":{"max_int":2,"max_list_len":3,"max_nesting":1}},{"depth":3,"expanded":65,"edges":717,"new":411,"cumulative":487,"b_eff":11.03076923076923,"seconds":0.0,"reach":{"max_int":2,"max_list_len":4,"max_nesting":2}},{"depth":4,"expanded":411,"edges":4652,"new":2351,"cumulative":2838,"b_eff":11.318734793187348,"seconds":0.02,"reach":{"max_int":4,"max_list_len":4,"max_nesting":2}},{"depth":5,"expanded":2351,"edges":26502,"new":13969,"cumulative":16807,"b_eff":11.272649936197363,"seconds":0.12,"reach":{"max_int":4,"max_list_len":5,"max_nesting":3}},{"depth":6,"expanded":13969,"edges":158212,"new":79208,"cumulative":96015,"b_eff":11.325936001145394,"seconds":0.75,"reach":{"max_int":16,"max_list_len":5,"max_nesting":3}},{"depth":7,"expanded":79208,"edges":894558,"new":457346,"cumulative":553361,"b_eff":11.293783456216543,"seconds":5.47,"reach":{"max_int":16,"max_list_len":6,"max_nesting":4}}]},"root_stacks":{"empty":"[]","one list":"[ (1 0 1) ]","two ints":"[ 1 1 ]","list and int":"[ (0 1) 1 ]"},"old_reach":{"error":"AttributeError: 'BasisSet' object has no attribute 'function_defs'"},"cost":null,"derived":{"new_eff":0.734512756411447,"old_eff":0.5892162728286774},"refusal":{"dup":1,"swap":387,"drop":1,"over":387,"cons":104035,"uncons":129586,"null?":104244,"add":117602,"sub":117602,"mul":117602,"div":127441,"eq?":387,"lt?":117602}}</script>
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">Wandering Light &middot; issue #42 &middot; first measurement</div>
+  <h1>What the Basis Reaches</h1>
+  <p class="deck">The 18-op guarded stack machine, measured against <span class="mono">wl-core-v1</span>
+  &mdash; the 118-function basis it was proposed to replace. Reachability, the semantic monoid,
+  per-op ablation, and what a single step costs in bits.</p>
+  <div class="runmeta">
+    <span>BFS from 4 roots &middot; 4.2M states at depth 9</span>
+    <span>monoid BFS &middot; 13.7M behaviours at length 8</span>
+    <span>36 ablation runs</span>
+    <span>all figures from <span class="mono">wandering_light.stack_machine</span></span>
+  </div>
+</header>
+
+<div class="verdict">
+  <h3>The short version</h3>
+  <ul>
+    <li><span class="tick">01</span><span><strong>The new basis is cheaper per step, not more expressive per step.</strong>
+      Both bases generate new behaviour at almost exactly the same rate under composition
+      &mdash; 5.87&times; per op against 5.77&times;. The stack machine simply pays less to do it.</span></li>
+    <li><span class="tick">02</span><span><strong>The efficiency gain is real and it is about 25%.</strong>
+      Per step you spend 3.48 bits and gain 2.55 bits of new behaviour, against 4.29 spent for
+      2.53 gained on the old basis. 73% efficient versus 59%.</span></li>
+    <li><span class="tick">03</span><span><strong>The issue's central claim about the old basis does not survive contact
+      with the measurement.</strong> <span class="mono">wl-core-v1</span> does <em>not</em> have a
+      near-trivial composition monoid. It grows steadily and shows no sign of saturating.</span></li>
+    <li><span class="tick">04</span><span><strong>Most of the new basis's reachable set is inert.</strong>
+      64% of the states at depth 8 are literal stacking &mdash; constants pushed and never used.
+      That fraction is falling, but slowly.</span></li>
+    <li><span class="tick">05</span><span><strong>No op is dead weight, but you would not know it from reachability.</strong>
+      Six ops look worthless by reachable-state count and are worth 4.6&ndash;8.8% each by behaviour.</span></li>
+  </ul>
+</div>
+
+<section>
+  <div class="sechead"><span class="eyebrow">01</span><h2>What one step costs</h2></div>
+  <div class="col">
+  <p>The unit of search is a step. Its price is the entropy of the choice you make: how many
+  ops could go here, in this state. Guards are what make that number smaller than the basis.</p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile a"><span class="k">Stack machine</span><span class="v">11.24</span>
+      <span class="n">of 18 ops legal, on average. Guards remove 6.76.</span></div>
+    <div class="tile b"><span class="k">wl-core-v1</span><span class="v">20.52</span>
+      <span class="n">of 118 functions applicable. Types remove 97.5.</span></div>
+    <div class="tile a"><span class="k">Bits per step</span><span class="v">3.48</span>
+      <span class="n">down from log&#8322;18 = 4.17</span></div>
+    <div class="tile b"><span class="k">Bits per step</span><span class="v">4.29</span>
+      <span class="n">down from log&#8322;118 = 6.88</span></div>
+  </div>
+
+  <div class="col">
+  <p>The guard saves 0.69 bits. Type masking on the old basis saves 2.59. That looks like a rout
+  until you notice where the two <em>land</em>: <strong>3.48 bits against 4.29</strong>. The old
+  basis has more to throw away because it started with more. What matters for search is the
+  number you end up paying, and there the stack machine is 0.81 bits &mdash; about 43% &mdash; cheaper.</p>
+
+  <p>Both numbers overstate the real branching, because different ops can land on the same state.
+  Counting <em>distinct</em> successors instead: 8.83 for the stack machine, 13.08 for the old
+  basis. Roughly a third of each basis's apparent choice is duplicate work.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><span class="eyebrow">02</span><h2>What composition generates</h2></div>
+  <div class="col">
+  <p>Reachability from one root answers <em>what states exist</em>. That is the wrong question for
+  expressiveness, and on this basis it is actively misleading &mdash; it scores a contracting op
+  like <code>eq?</code> at zero, because booleans were already reachable by pushing
+  <code>true</code>.</p>
+
+  <p>The right question is how many distinct <em>behaviours</em> the ops generate when composed.
+  Fix a set of probe inputs; a program's behaviour is the tuple of results it gives on every probe,
+  with a hole where its guard refuses. Two programs are the same element of the monoid when those
+  tuples agree. BFS over behaviours enumerates the monoid, and its growth rate compares directly
+  across bases of different sizes. Eight probes each.</p>
+  </div>
+
+  <figure>
+    <div class="chartbox">
+      <div class="charttop">
+        <span class="charttitle">Distinct behaviours generated, by program length</span>
+        <span class="legend">
+          <span><span class="swatch" style="background:var(--s1)"></span>18-op stack machine</span>
+          <span><span class="swatch" style="background:var(--s2)"></span>wl-core-v1 (118 fns)</span>
+        </span>
+      </div>
+      <div class="scroller" id="c-monoid"></div>
+    </div>
+    <figcaption>Log scale. The two lines are close to parallel: the stack machine multiplies its
+    behaviour count by <strong>5.87&times;</strong> per op at length 8, the old basis by
+    <strong>5.77&times;</strong> at length 6. Neither has saturated. The old basis starts higher
+    because it has 118 generators to the stack machine's 18.</figcaption>
+    <details class="data"><summary>show the numbers</summary><div id="t-monoid"></div></details>
+  </figure>
+
+  <div class="callout">
+    <p><strong>This contradicts the premise of #42.</strong> The issue argues the old basis is
+    &ldquo;a near-trivial composition monoid&rdquo; &mdash; that half its functions are idempotent
+    or involutive, so it &ldquo;generates almost nothing under composition.&rdquo; On this
+    measurement that is false. <span class="mono">wl-core-v1</span> generates new behaviour at
+    5.77&times; per step and is still going at length 6.</p>
+    <p>What the issue's actual evidence shows &mdash; BFS solving
+    <span class="mono">random_inputs_500_shortest_v1</span> 100% at depth 4 &mdash; is that
+    <em>the corpus</em> is trivial, not that the basis is. The corpus was generated from that
+    basis, so its reachability was never in question. Those are different claims, and only the
+    weaker one is supported.</p>
+  </div>
+
+  <div class="col">
+  <p>Where the stack machine does win is price. Dividing behaviour gained by bits spent:</p>
+  </div>
+
+  <div class="tiles">
+    <div class="tile a"><span class="k">Stack machine</span><span class="v">73%</span>
+      <span class="n">2.55 bits of new behaviour per 3.48 bits of choice</span></div>
+    <div class="tile b"><span class="k">wl-core-v1</span><span class="v">59%</span>
+      <span class="n">2.53 bits of new behaviour per 4.29 bits of choice</span></div>
+  </div>
+
+  <div class="col">
+  <p>That 25% relative gain is the honest headline. It is a real improvement in search economics
+  and it is much smaller than the framing in #42 implies.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><span class="eyebrow">03</span><h2>Most of the space is inert</h2></div>
+  <div class="col">
+  <p>Five of the eighteen ops are literals, and a literal is always legal. That gives the machine a
+  free five-way branch in every state, and most of what BFS finds is the consequence: stacks of
+  constants that no later op ever touches.</p>
+  </div>
+
+  <figure>
+    <div class="chartbox">
+      <div class="charttop">
+        <span class="charttitle">Share of reachable states that do real work</span>
+        <span class="legend">
+          <span><span class="swatch" style="background:var(--s1)"></span>productive</span>
+          <span><span class="swatch" style="background:var(--ink-faint);opacity:.34"></span>reachable by literals alone</span>
+        </span>
+      </div>
+      <div class="scroller" id="c-inert"></div>
+    </div>
+    <figcaption>At depth 3, 96% of reachable states are pure literal stacks. By depth 8 it is
+    still 64%. The share falls about 6 points per level, so the machine does not stop wasting
+    its branching factor until well past the depths certification can afford.</figcaption>
+    <details class="data"><summary>show the numbers</summary><div id="t-inert"></div></details>
+  </figure>
+
+  <div class="col">
+  <p>The same fact shows up in the search tree: <strong>91% of all states are first discovered by a
+  literal push</strong>, and only 9% by an op that computes something. And it shows up in the
+  redundancy &mdash; at length 7 there are 4,724,725 executable programs mapping onto 138,725
+  states, <strong>34 programs per state</strong>, rising by roughly 2&times; per level.</p>
+
+  <p>This is the most actionable finding in the report. Literals are a fifth of the basis and
+  generate the majority of the search space's dead weight.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><span class="eyebrow">04</span><h2>What each op is worth</h2></div>
+  <div class="col">
+  <p>Drop one op, rebuild the monoid, and see how much behaviour disappears. This is the
+  measurement #41 needs in order to decide what a basis should contain.</p>
+  </div>
+
+  <figure>
+    <div class="chartbox">
+      <div class="charttop"><span class="charttitle">Behaviour lost when the op is removed (length 5)</span></div>
+      <div class="scroller" id="c-abl"></div>
+    </div>
+    <figcaption>Every op earns its place: the least valuable, <code>mul</code>, still costs 4.6%
+    of the monoid when removed. The literals rank highest partly because they are how any value
+    enters at all.</figcaption>
+    <details class="data"><summary>show the numbers</summary><div id="t-abl"></div></details>
+  </figure>
+
+  <div class="callout caveat">
+    <p><strong>Measured by reachability instead, six ops look worthless.</strong>
+    <code>div</code>, <code>eq?</code>, <code>lt?</code>, <code>null?</code>, <code>drop</code> and
+    <code>mul</code> each add 0.0% to the reachable-state count at depth 7 &mdash; they compute new
+    values but land on states that were already reachable another way. By behaviour they are worth
+    4.6&ndash;8.8% each.</p>
+    <p>If you rank a basis by reachability you will delete exactly the ops that do arithmetic and
+    comparison. Use the monoid.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><span class="eyebrow">05</span><h2>The shape of the graph</h2></div>
+  <div class="tiles">
+    <div class="tile"><span class="k">Reversible edges</span><span class="v">34%</span>
+      <span class="n">of transitions have an inverse transition &mdash; <code>swap swap</code>, <code>dup drop</code>. Pure search waste.</span></div>
+    <div class="tile"><span class="k">Growth per depth</span><span class="v">5.5&times;</span>
+      <span class="n">reachable states, stable from depth 3 to depth 9</span></div>
+    <div class="tile"><span class="k">Biggest attractor</span><span class="v">117</span>
+      <span class="n">distinct ways to reach the stack <span class="mono">[ false ]</span> within depth 5</span></div>
+  </div>
+  <div class="col">
+  <p>That last number is <code>eq?</code> and <code>lt?</code> doing their job. Every pair of unequal
+  values on the stack collapses to the same <span class="mono">[ false ]</span>. Predicates are
+  contractions: enormous in-degree, and they destroy the information that distinguishes their
+  inputs. Good for finding <em>a</em> program, bad for telling states apart.</p>
+
+  <p>Values, by contrast, grow fast. The largest integer reachable at depth <em>d</em> follows
+  2<sup>2<sup>(d&minus;3)/2</sup></sup> &mdash; doubly exponential, by repeated
+  <code>dup mul</code>: 2 at depth 3, 16 at depth 7, 256 at depth 9.</p>
+  </div>
+
+  <p class="col"><strong>But the old basis climbs faster.</strong> It has <code>square</code> and
+  <code>double</code> as single functions, where the stack machine needs <code>dup mul</code> &mdash;
+  two ops per squaring, and two more to build the 2 in the first place.</p>
+
+  <figure>
+    <div class="chartbox">
+      <div class="charttop">
+        <span class="charttitle">Largest integer reachable in N ops, starting from 1</span>
+        <span class="legend">
+          <span><span class="swatch" style="background:var(--s1)"></span>18-op stack machine</span>
+          <span><span class="swatch" style="background:var(--s2)"></span>wl-core-v1</span>
+        </span>
+      </div>
+      <div class="scroller" id="c-cost"></div>
+    </div>
+    <figcaption>Log scale, exhaustive search in both bases. At six ops the old basis reaches
+    <strong>4,294,967,296</strong>; the stack machine reaches <strong>16</strong>. Both curves are
+    doubly exponential &mdash; the stack machine's is simply shifted right by a factor of two in
+    program length, because every squaring costs it two ops instead of one.</figcaption>
+    <details class="data"><summary>show the numbers</summary><div id="t-cost"></div></details>
+  </figure>
+
+  <div class="callout caveat">
+    <p><strong>This is the <em>d</em>-inflation #42 predicted, and here it is worth about 2&times;.</strong>
+    It is the cost side of the 25% per-step efficiency gain, and on arithmetic the two roughly
+    cancel. Whether the trade nets out over real tasks needs a semantically matched corpus, which
+    does not exist yet &mdash; that is the measurement the issue's &ldquo;done when&rdquo; actually
+    calls for, and it is the one still missing.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechead"><span class="eyebrow">06</span><h2>What I would do next</h2></div>
+  <div class="col">
+  <ul class="plain">
+    <li><strong>Do not delete ops on reachability evidence.</strong> The monoid and the reachable
+    set disagree about six of eighteen ops, and the monoid is the one that tracks what programs
+    can compute.</li>
+    <li><strong>Look hard at the literals.</strong> They are the single largest source of inert
+    branching. Making a literal cost more fuel than an op, or gating pushes on stack depth, would
+    change the search economics more than any other single change measured here.</li>
+    <li><strong>Retire the &ldquo;trivial monoid&rdquo; argument for #42.</strong> The substrate
+    still has three good reasons &mdash; one structural notion of identity, guards as an exact
+    first-class mask, and abstraction by naming a substring. Expressiveness is not one of them,
+    and the issue is stronger without a claim that measurement contradicts.</li>
+    <li><strong>The kill criterion is still open.</strong> #42 says to reconsider if certified
+    generation at distance 4 is infeasible. It is comfortably feasible &mdash; depth 4 is 865
+    states from empty, and depth 9 is 4.2M. Certification is not the constraint; <em>d</em>-inflation is.</li>
+  </ul>
+  </div>
+
+  <div class="callout caveat">
+    <p><strong>What would change these numbers.</strong> The monoid is measured on eight probes
+    per basis, so every count is a lower bound &mdash; more probes distinguish more behaviours.
+    The two probe sets are different types of object, so the comparison is close but not exact.
+    The stack machine's count is flattered by literals, which manufacture new behaviour from
+    nothing; the old basis cannot do that. And <span class="mono">wl-core-v1</span> was only taken
+    to length 6 against the stack machine's 8.</p>
+  </div>
+</section>
+
+</div>
+
+<script>
+"use strict";
+const D = JSON.parse(document.getElementById("measurements").textContent);
+const NS = "http://www.w3.org/2000/svg";
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = n => n.toLocaleString("en-US");
+const el = (t, a = {}, p) => {
+  const e = document.createElementNS(NS, t);
+  for (const k in a) e.setAttribute(k, a[k]);
+  if (p) p.appendChild(e);
+  return e;
+};
+
+const tip = document.createElement("div");
+tip.className = "tipbox";
+document.body.appendChild(tip);
+const showTip = (evt, html) => {
+  tip.innerHTML = html;
+  tip.style.opacity = "1";
+  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = evt.clientX + pad, y = evt.clientY - h - pad;
+  if (x + w > innerWidth - 8) x = evt.clientX - w - pad;
+  if (y < 8) y = evt.clientY + pad;
+  tip.style.left = x + "px";
+  tip.style.top = y + "px";
+};
+const hideTip = () => { tip.style.opacity = "0"; };
+
+/* ------------------------------------------------------------------ line */
+function lineChart(mount, series, opts) {
+  const W = 880, H = opts.height || 330;
+  const M = { l: 66, r: opts.right ?? 104, t: 14, b: 40 };
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.label }, mount);
+  const xs = opts.x;
+  const all = series.flatMap(s => s.points.map(p => p.y)).filter(v => v > 0);
+  const lo = Math.log10(Math.min(...all)), hi = Math.log10(Math.max(...all));
+  const y0 = Math.floor(lo), y1 = Math.ceil(hi);
+  const px = i => M.l + (W - M.l - M.r) * (xs.length === 1 ? 0.5 : i / (xs.length - 1));
+  const py = v => H - M.b - (H - M.b - M.t) * ((Math.log10(v) - y0) / (y1 - y0));
+
+  for (let d = y0; d <= y1; d++) {
+    const y = py(Math.pow(10, d));
+    el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y, stroke: css("--grid"), "stroke-width": 1 }, svg);
+    const t = el("text", { x: M.l - 10, y: y + 4, "text-anchor": "end", "font-size": 11, fill: css("--ink-faint") }, svg);
+    t.textContent = d === 0 ? "1" : "10" + String(d).split("").map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+c]).join("");
+  }
+  xs.forEach((label, i) => {
+    const t = el("text", { x: px(i), y: H - M.b + 20, "text-anchor": "middle", "font-size": 11, fill: css("--ink-faint") }, svg);
+    t.textContent = label;
+  });
+  const ax = el("text", { x: M.l, y: H - 6, "font-size": 10.5, fill: css("--ink-faint"), "letter-spacing": ".1em" }, svg);
+  ax.textContent = opts.xlabel.toUpperCase();
+
+  series.forEach(s => {
+    const pts = s.points.filter(p => p.y > 0);
+    const dstr = pts.map((p, i) => `${i ? "L" : "M"}${px(p.i).toFixed(1)},${py(p.y).toFixed(1)}`).join(" ");
+    el("path", { d: dstr, fill: "none", stroke: css(s.color), "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+    pts.forEach(p => {
+      el("circle", { cx: px(p.i), cy: py(p.y), r: 4.5, fill: css("--panel"), stroke: css(s.color), "stroke-width": 2 }, svg);
+    });
+    const last = pts[pts.length - 1];
+    const lab = el("text", { x: px(last.i) + 12, y: py(last.y) + 4, "font-size": 12, fill: css(s.color), "font-weight": 600 }, svg);
+    lab.textContent = s.short;
+  });
+
+  const hover = el("g", {}, svg);
+  const rule = el("line", { y1: M.t, y2: H - M.b, stroke: css("--ink-faint"), "stroke-width": 1, "stroke-dasharray": "3 3", opacity: 0 }, hover);
+  xs.forEach((label, i) => {
+    const r = el("rect", {
+      x: px(i) - (W - M.l - M.r) / (2 * Math.max(1, xs.length - 1)), y: M.t,
+      width: (W - M.l - M.r) / Math.max(1, xs.length - 1), height: H - M.b - M.t,
+      fill: "transparent",
+    }, hover);
+    r.addEventListener("mousemove", e => {
+      rule.setAttribute("x1", px(i)); rule.setAttribute("x2", px(i)); rule.setAttribute("opacity", 1);
+      const rows = series.map(s => {
+        const p = s.points.find(q => q.i === i);
+        return p && p.y > 0
+          ? `<span style="color:${css(s.color)}">■</span> ${s.name}: <b>${fmt(p.y)}</b>`
+          : `<span style="color:${css("--ink-faint")}">■</span> ${s.name}: —`;
+      });
+      showTip(e, `<div style="color:${css("--ink-faint")}">${opts.xlabel} ${label}</div>${rows.join("<br>")}`);
+    });
+    r.addEventListener("mouseleave", () => { rule.setAttribute("opacity", 0); hideTip(); });
+  });
+}
+
+/* --------------------------------------------------------- horizontal bars */
+function barsH(mount, rows, opts) {
+  const rowH = 21, W = 880, M = { l: 118, r: 78, t: 8, b: 26 };
+  const H = M.t + M.b + rows.length * rowH;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.label }, mount);
+  const max = Math.max(...rows.map(r => r.v));
+  const span = W - M.l - M.r;
+  const bx = v => (span * v) / max;
+
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    const x = M.l + span * f;
+    el("line", { x1: x, x2: x, y1: M.t, y2: H - M.b, stroke: css("--grid"), "stroke-width": 1 }, svg);
+    const t = el("text", { x, y: H - M.b + 17, "text-anchor": "middle", "font-size": 10.5, fill: css("--ink-faint") }, svg);
+    t.textContent = opts.tickFmt(max * f);
+  });
+
+  rows.forEach((r, i) => {
+    const y = M.t + i * rowH;
+    const name = el("text", { x: M.l - 11, y: y + rowH / 2 + 4, "text-anchor": "end", "font-size": 12, fill: css("--ink") }, svg);
+    name.textContent = r.label;
+    const grp = el("text", { x: 6, y: y + rowH / 2 + 4, "font-size": 10, fill: css("--ink-faint") }, svg);
+    grp.textContent = r.group || "";
+    const w = Math.max(2, bx(r.v));
+    el("rect", { x: M.l, y: y + 4, width: w, height: rowH - 9, rx: 3, fill: css(r.color || "--s1") }, svg);
+    const val = el("text", { x: M.l + w + 9, y: y + rowH / 2 + 4, "font-size": 11.5, fill: css("--ink-dim") }, svg);
+    val.textContent = opts.valFmt(r.v);
+    const hit = el("rect", { x: M.l, y, width: span, height: rowH, fill: "transparent" }, svg);
+    hit.addEventListener("mousemove", e => showTip(e, r.tip));
+    hit.addEventListener("mouseleave", hideTip);
+  });
+}
+
+/* ------------------------------------------------------------ stacked bars */
+function stackedBars(mount, rows, opts) {
+  const W = 880, H = 260, M = { l: 46, r: 12, t: 14, b: 44 };
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.label }, mount);
+  const span = W - M.l - M.r, plot = H - M.t - M.b;
+  const bw = Math.min(74, (span / rows.length) - 14);
+  [0, 25, 50, 75, 100].forEach(p => {
+    const y = M.t + plot * (1 - p / 100);
+    el("line", { x1: M.l, x2: W - M.r, y1: y, y2: y, stroke: css("--grid"), "stroke-width": 1 }, svg);
+    const t = el("text", { x: M.l - 9, y: y + 4, "text-anchor": "end", "font-size": 10.5, fill: css("--ink-faint") }, svg);
+    t.textContent = p + "%";
+  });
+  rows.forEach((r, i) => {
+    const cx = M.l + (span / rows.length) * (i + 0.5);
+    const x = cx - bw / 2;
+    const share = r.top / r.total;
+    const hTop = plot * share, hBot = plot * (1 - share);
+    el("rect", { x, y: M.t, width: bw, height: Math.max(0, hTop - 1), fill: css("--ink-faint"), opacity: .34 }, svg);
+    el("rect", { x, y: M.t + hTop + 1, width: bw, height: Math.max(0, hBot - 1), rx: 3, fill: css("--s1") }, svg);
+    const lab = el("text", { x: cx, y: H - M.b + 19, "text-anchor": "middle", "font-size": 11.5, fill: css("--ink-faint") }, svg);
+    lab.textContent = r.label;
+    const pct = el("text", { x: cx, y: M.t + hTop + hBot / 2 + 4, "text-anchor": "middle", "font-size": 11.5,
+      fill: css("--ground"), "font-weight": 600 }, svg);
+    pct.textContent = Math.round((1 - share) * 100) + "%";
+    const hit = el("rect", { x, y: M.t, width: bw, height: plot, fill: "transparent" }, svg);
+    hit.addEventListener("mousemove", e => showTip(e, r.tip));
+    hit.addEventListener("mouseleave", hideTip);
+  });
+  const ax = el("text", { x: M.l, y: H - 8, "font-size": 10.5, fill: css("--ink-faint"), "letter-spacing": ".1em" }, svg);
+  ax.textContent = opts.xlabel.toUpperCase();
+}
+
+/* ------------------------------------------------------------------ render */
+const table = (mount, head, rows) => {
+  document.getElementById(mount).innerHTML =
+    `<table><thead><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map(r => `<tr>${r.map((c, i) => `<td${i && c.cls ? ` class="${c.cls}"` : ""}>${c.v ?? c}</td>`).join("")}</tr>`).join("") +
+    `</tbody></table>`;
+};
+
+/* 02 — the monoid */
+{
+  const xs = [...new Set([...D.monoid.new.map(p => p.d), ...D.monoid.old.map(p => p.d)])].sort((a, b) => a - b);
+  const at = (arr, d) => { const p = arr.find(q => q.d === d); return p ? p.n : 0; };
+  lineChart(document.getElementById("c-monoid"), [
+    { name: "stack machine", short: "18 ops", color: "--s1", points: xs.map((d, i) => ({ i, y: at(D.monoid.new, d) })) },
+    { name: "wl-core-v1", short: "118 fns", color: "--s2", points: xs.map((d, i) => ({ i, y: at(D.monoid.old, d) })) },
+  ], { x: xs, xlabel: "program length", label: "Distinct behaviours by program length, both bases" });
+
+  table("t-monoid", ["Length", "Stack machine", "wl-core-v1"], xs.map(d => [
+    String(d),
+    { v: at(D.monoid.new, d) ? fmt(at(D.monoid.new, d)) : "—", cls: "a" },
+    { v: at(D.monoid.old, d) ? fmt(at(D.monoid.old, d)) : "—", cls: "b" },
+  ]));
+}
+
+/* 03 — inert share */
+{
+  stackedBars(document.getElementById("c-inert"), D.inert.map(r => ({
+    label: "d" + r.d, top: r.lit, total: r.total,
+    tip: `<div style="color:${css("--ink-faint")}">depth ${r.d}</div>` +
+         `reachable: <b>${fmt(r.total)}</b><br>literal-only: <b>${fmt(r.lit)}</b><br>` +
+         `productive: <b>${fmt(r.total - r.lit)}</b> (${Math.round((1 - r.lit / r.total) * 100)}%)`,
+  })), { xlabel: "search depth", label: "Share of reachable states that are not pure literal stacks" });
+
+  table("t-inert", ["Depth", "Reachable", "Literal-only", "Productive", "Productive %"],
+    D.inert.map(r => [
+      "d" + r.d, fmt(r.total), fmt(r.lit),
+      { v: fmt(r.total - r.lit), cls: "a" },
+      Math.round((1 - r.lit / r.total) * 100) + "%",
+    ]));
+}
+
+/* 04 — ablation */
+{
+  const rows = D.ablation_monoid.map(r => ({
+    label: r.op, group: r.group, v: r.fraction_lost,
+    tip: `<div style="color:${css("--ink-faint")}">${r.op} &middot; ${r.group}</div>` +
+         `without it: <b>${fmt(r.without)}</b> behaviours<br>` +
+         `full basis: <b>${fmt(D.ablation_full)}</b><br>lost: <b>${(r.fraction_lost * 100).toFixed(1)}%</b>`,
+  }));
+  barsH(document.getElementById("c-abl"), rows, {
+    label: "Behaviour lost per op removed",
+    tickFmt: v => Math.round(v * 100) + "%",
+    valFmt: v => (v * 100).toFixed(1) + "%",
+  });
+
+  const reach = Object.fromEntries((D.ablation_reach || []).map(r => [r.op, r.fraction_lost]));
+  table("t-abl", ["Op", "Group", "Behaviour lost", "Reachable states lost"],
+    D.ablation_monoid.map(r => [
+      r.op, r.group,
+      { v: (r.fraction_lost * 100).toFixed(1) + "%", cls: "a" },
+      reach[r.op] === undefined ? "—" : (reach[r.op] * 100).toFixed(1) + "%",
+    ]));
+}
+
+/* 05 — description length: largest integer reachable in N ops */
+{
+  const n = Math.max(D.intcost.new.length, D.intcost.old.length);
+  const xs = Array.from({ length: n }, (_, i) => i + 1);
+  lineChart(document.getElementById("c-cost"), [
+    { name: "stack machine", short: "18 ops", color: "--s1", points: D.intcost.new.map((y, i) => ({ i, y })) },
+    { name: "wl-core-v1", short: "118 fns", color: "--s2", points: D.intcost.old.map((y, i) => ({ i, y })) },
+  ], { x: xs, xlabel: "ops", height: 300, label: "Largest integer reachable in N ops, both bases" });
+
+  table("t-cost", ["Ops", "Stack machine", "wl-core-v1"], xs.map((d, i) => [
+    String(d),
+    { v: D.intcost.new[i] === undefined ? "—" : fmt(D.intcost.new[i]), cls: "a" },
+    { v: D.intcost.old[i] === undefined ? "—" : fmt(D.intcost.old[i]), cls: "b" },
+  ]));
+}
+
+</script>
