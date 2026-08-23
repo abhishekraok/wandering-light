@@ -1,0 +1,429 @@
+"""A guarded, concatenative stack machine — the substrate core of issue #42.
+
+Design in four sentences:
+
+1. A *value* is an arbitrary-precision integer, a boolean, or a list of values
+   (``nil`` is the empty list). Nothing else.
+2. A *config* is ``(stack, fuel)``: an immutable bottom-to-top tuple of values
+   and the fuel spent so far.
+3. An *op* is a total-by-construction pair — ``guard(config)`` returns ``None``
+   when the op is legal and a short reason string when it is not, and
+   ``apply(config)`` returns ``(new_stack, cost)``. Illegal transitions are
+   *absent*, not exceptional.
+4. *Identity is structural.* ``value_key`` maps a value to a nested tuple of
+   plain ints, bools and str tags. Two configs are the same state exactly when
+   their keys are equal. No ``hash()``, no ``repr()``, no dict ordering, no
+   floats: the key is a value, not a digest, so it is identical in every
+   process regardless of ``PYTHONHASHSEED``.
+
+Deliberately out of scope for this slice: quotations (``quote``/``cat``/``i``),
+combinators (``map``/``filter``/``fold``/``ifte``), ``dip``, ``linrec``, stack
+effect types, strings, and any wiring into ``TrajectoryGraph``.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from collections.abc import Callable, Iterator
+from dataclasses import dataclass, field, replace
+
+# ---------------------------------------------------------------------------
+# Values
+# ---------------------------------------------------------------------------
+
+
+class MachineError(Exception):
+    """Base class for stack machine errors."""
+
+
+class IllegalOpError(MachineError):
+    """Raised when an op is applied to a config its guard rejects."""
+
+
+@dataclass(frozen=True, slots=True)
+class Int:
+    """An arbitrary-precision integer."""
+
+    value: int
+
+    def __post_init__(self) -> None:
+        # `bool` subclasses `int`, so `Int(True) == Int(1)` would hold and we
+        # would be back to two things that are equal but not the same. This is
+        # the exact bug class #42 exists to remove; refuse it at construction.
+        if self.value.__class__ is not int:
+            raise MachineError(f"Int takes a plain int, got {self.value.__class__}")
+
+
+@dataclass(frozen=True, slots=True)
+class Bool:
+    """A boolean, kept structurally distinct from Int(0)/Int(1)."""
+
+    value: bool
+
+    def __post_init__(self) -> None:
+        if self.value.__class__ is not bool:
+            raise MachineError(f"Bool takes a plain bool, got {self.value.__class__}")
+
+
+@dataclass(frozen=True, slots=True)
+class Lst:
+    """A list of values. The empty list is `nil`."""
+
+    items: tuple[Value, ...] = ()
+
+
+Value = Int | Bool | Lst
+
+NIL = Lst(())
+TRUE = Bool(True)
+FALSE = Bool(False)
+ZERO = Int(0)
+ONE = Int(1)
+
+
+def value_key(value: Value) -> tuple:
+    """The one and only notion of sameness for values.
+
+    Returns a nested tuple built from str tags, ints and bools. Equality of
+    keys is structural equality of values, and the key is byte-identical across
+    interpreters because it contains no hashes, no reprs and no dicts.
+    """
+    if isinstance(value, Int):
+        return ("int", value.value)
+    if isinstance(value, Bool):
+        return ("bool", value.value)
+    return ("list", tuple(value_key(item) for item in value.items))
+
+
+def same(left: Value, right: Value) -> bool:
+    """Structural sameness — defined as key equality, by construction."""
+    return value_key(left) == value_key(right)
+
+
+def format_value(value: Value) -> str:
+    """Human-readable rendering. Display only — never an identity."""
+    if isinstance(value, Int):
+        return str(value.value)
+    if isinstance(value, Bool):
+        return "true" if value.value else "false"
+    if not value.items:
+        return "nil"
+    return "(" + " ".join(format_value(item) for item in value.items) + ")"
+
+
+# ---------------------------------------------------------------------------
+# Config
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class Config:
+    """(stack, fuel). The stack runs bottom-to-top: `stack[-1]` is the top."""
+
+    stack: tuple[Value, ...] = ()
+    fuel: int = 0
+    fuel_limit: int | None = None
+
+    @property
+    def key(self) -> tuple:
+        """Structural state identity: the stack, and nothing else.
+
+        Fuel is deliberately excluded. Fuel is what a state *cost* to reach,
+        not what the state *is*; two searches arriving at the same stack are at
+        the same state and should be deduplicated.
+        """
+        return tuple(value_key(item) for item in self.stack)
+
+    def peek(self, depth: int = 0) -> Value:
+        """`peek(0)` is the top of the stack, `peek(1)` the one below it."""
+        return self.stack[-1 - depth]
+
+
+def format_stack(config: Config) -> str:
+    """Display only. Top of stack on the right."""
+    if not config.stack:
+        return "[]"
+    return "[ " + " ".join(format_value(item) for item in config.stack) + " ]"
+
+
+# ---------------------------------------------------------------------------
+# Ops
+# ---------------------------------------------------------------------------
+
+Guard = Callable[[Config], str | None]
+Apply = Callable[[Config], tuple[tuple[Value, ...], int]]
+
+
+@dataclass(frozen=True, eq=False)
+class Op:
+    """A single machine instruction: a guard and an application."""
+
+    name: str
+    group: str
+    effect: str  # Factor-style ( inputs -- outputs ), documentation only.
+    _guard: Guard = field(repr=False)
+    _apply: Apply = field(repr=False)
+
+    def guard(self, config: Config) -> str | None:
+        """None when legal, else a short reason. Fuel is one such reason."""
+        if config.fuel_limit is not None and config.fuel >= config.fuel_limit:
+            return "out of fuel"
+        return self._guard(config)
+
+    def apply(self, config: Config) -> tuple[tuple[Value, ...], int]:
+        """The new stack and the fuel this application costs."""
+        return self._apply(config)
+
+    def __repr__(self) -> str:
+        return f"Op({self.name})"
+
+
+def _needs(config: Config, count: int) -> str | None:
+    if len(config.stack) < count:
+        return f"needs {count} value(s), stack has {len(config.stack)}"
+    return None
+
+
+def _literal(name: str, value: Value) -> Op:
+    return Op(
+        name=name,
+        group="literals",
+        effect=f"( -- {name} )",
+        _guard=lambda config: None,
+        _apply=lambda config: ((*config.stack, value), 1),
+    )
+
+
+def _int_binary(
+    name: str,
+    combine: Callable[[int, int], int],
+    extra_guard: Callable[[int, int], str | None] | None = None,
+) -> Op:
+    def guard(config: Config) -> str | None:
+        if (reason := _needs(config, 2)) is not None:
+            return reason
+        left, right = config.peek(1), config.peek(0)
+        if not isinstance(left, Int) or not isinstance(right, Int):
+            return "top two values are not both integers"
+        if extra_guard is not None:
+            return extra_guard(left.value, right.value)
+        return None
+
+    def apply(config: Config) -> tuple[tuple[Value, ...], int]:
+        left, right = config.peek(1), config.peek(0)
+        result = Int(combine(left.value, right.value))
+        return (*config.stack[:-2], result), 1
+
+    return Op(name, "arithmetic", "( a b -- c )", guard, apply)
+
+
+def _plumbing(name: str, effect: str, count: int, rearrange) -> Op:
+    return Op(
+        name=name,
+        group="plumbing",
+        effect=effect,
+        _guard=lambda config: _needs(config, count),
+        _apply=lambda config: (rearrange(config), 1),
+    )
+
+
+def _cons_guard(config: Config) -> str | None:
+    if (reason := _needs(config, 2)) is not None:
+        return reason
+    if not isinstance(config.peek(1), Lst):
+        return "second value is not a list"
+    return None
+
+
+def _cons_apply(config: Config) -> tuple[tuple[Value, ...], int]:
+    target, element = config.peek(1), config.peek(0)
+    return (*config.stack[:-2], Lst((element, *target.items))), 1
+
+
+def _uncons_guard(config: Config) -> str | None:
+    if (reason := _needs(config, 1)) is not None:
+        return reason
+    top = config.peek(0)
+    if not isinstance(top, Lst):
+        return "top is not a list"
+    if not top.items:
+        return "list is empty"
+    return None
+
+
+def _uncons_apply(config: Config) -> tuple[tuple[Value, ...], int]:
+    top = config.peek(0)
+    head, tail = top.items[0], Lst(top.items[1:])
+    return (*config.stack[:-1], tail, head), 1
+
+
+def _null_guard(config: Config) -> str | None:
+    if (reason := _needs(config, 1)) is not None:
+        return reason
+    if not isinstance(config.peek(0), Lst):
+        return "top is not a list"
+    return None
+
+
+def _eq_apply(config: Config) -> tuple[tuple[Value, ...], int]:
+    result = Bool(same(config.peek(1), config.peek(0)))
+    return (*config.stack[:-2], result), 1
+
+
+def _lt_guard(config: Config) -> str | None:
+    if (reason := _needs(config, 2)) is not None:
+        return reason
+    if not isinstance(config.peek(1), Int) or not isinstance(config.peek(0), Int):
+        return "top two values are not both integers"
+    return None
+
+
+def _nonzero_divisor(left: int, right: int) -> str | None:
+    return "division by zero" if right == 0 else None
+
+
+OPS: tuple[Op, ...] = (
+    # literals
+    _literal("0", ZERO),
+    _literal("1", ONE),
+    _literal("nil", NIL),
+    _literal("true", TRUE),
+    _literal("false", FALSE),
+    # plumbing
+    _plumbing("dup", "( a -- a a )", 1, lambda c: (*c.stack, c.peek(0))),
+    _plumbing(
+        "swap", "( a b -- b a )", 2, lambda c: (*c.stack[:-2], c.peek(0), c.peek(1))
+    ),
+    _plumbing("drop", "( a -- )", 1, lambda c: c.stack[:-1]),
+    _plumbing("over", "( a b -- a b a )", 2, lambda c: (*c.stack, c.peek(1))),
+    # structure
+    Op("cons", "structure", "( lst a -- lst' )", _cons_guard, _cons_apply),
+    Op("uncons", "structure", "( lst -- tail head )", _uncons_guard, _uncons_apply),
+    Op(
+        "null?",
+        "structure",
+        "( lst -- bool )",
+        _null_guard,
+        lambda c: ((*c.stack[:-1], Bool(not c.peek(0).items)), 1),
+    ),
+    # arithmetic
+    _int_binary("add", lambda a, b: a + b),
+    _int_binary("sub", lambda a, b: a - b),
+    _int_binary("mul", lambda a, b: a * b),
+    _int_binary("div", lambda a, b: a // b, extra_guard=_nonzero_divisor),
+    # predicates
+    Op(
+        "eq?",
+        "predicates",
+        "( a b -- bool )",
+        lambda c: _needs(c, 2),
+        _eq_apply,
+    ),
+    Op(
+        "lt?",
+        "predicates",
+        "( a b -- bool )",
+        _lt_guard,
+        lambda c: ((*c.stack[:-2], Bool(c.peek(1).value < c.peek(0).value)), 1),
+    ),
+)
+
+# Name -> op. The *order* of OPS is the stable action ordering; this mapping is
+# only ever used for lookup by name, never iterated.
+OP_BY_NAME: dict[str, Op] = {op.name: op for op in OPS}
+
+
+# ---------------------------------------------------------------------------
+# Running
+# ---------------------------------------------------------------------------
+
+
+def legal_mask(config: Config) -> tuple[bool, ...]:
+    """One bool per op, in OPS order. The action mask a policy head consumes."""
+    return tuple(op.guard(config) is None for op in OPS)
+
+
+def legal_ops(config: Config) -> tuple[Op, ...]:
+    """The ops applicable in this config, in OPS order."""
+    return tuple(op for op in OPS if op.guard(config) is None)
+
+
+def step(config: Config, op: Op) -> Config:
+    """Apply `op`, or raise IllegalOpError with the guard's reason."""
+    reason = op.guard(config)
+    if reason is not None:
+        raise IllegalOpError(f"{op.name}: {reason}")
+    stack, cost = op.apply(config)
+    return replace(config, stack=stack, fuel=config.fuel + cost)
+
+
+def parse_program(text: str) -> tuple[Op, ...]:
+    """Whitespace-separated op names. Search never needs this; humans do."""
+    program = []
+    for token in text.split():
+        op = OP_BY_NAME.get(token)
+        if op is None:
+            raise MachineError(f"unknown op {token!r}")
+        program.append(op)
+    return tuple(program)
+
+
+def run(program: tuple[Op, ...], config: Config | None = None) -> Iterator[Config]:
+    """Yield the config after each op. Raises IllegalOpError on a guarded step."""
+    current = config if config is not None else Config()
+    for op in program:
+        current = step(current, op)
+        yield current
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+
+def _trace_line(label: str, config: Config) -> str:
+    legal = sum(legal_mask(config))
+    return (
+        f"{label:<8}  {format_stack(config):<34}"
+        f"  fuel {config.fuel:>3}  legal {legal:>2}/{len(OPS)}"
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="python -m wandering_light.stack_machine",
+        description="Run a concatenative program and trace the machine.",
+    )
+    parser.add_argument("program", help='e.g. "nil 1 cons uncons"')
+    parser.add_argument(
+        "--fuel-limit",
+        type=int,
+        default=None,
+        help="refuse every op once this much fuel is spent",
+    )
+    args = parser.parse_args(argv)
+
+    try:
+        program = parse_program(args.program)
+    except MachineError as error:
+        print(f"error: {error}", file=sys.stderr)
+        print(f"known ops: {' '.join(op.name for op in OPS)}", file=sys.stderr)
+        return 2
+
+    config = Config(fuel_limit=args.fuel_limit)
+    print("top of stack on the right")
+    print(f"{'op':<8}  {'stack':<34}  {'fuel':<8}  legal")
+    print(_trace_line("(start)", config))
+    for op in program:
+        reason = op.guard(config)
+        if reason is not None:
+            print(f"{op.name:<8}  ILLEGAL: {reason}")
+            return 1
+        config = step(config, op)
+        print(_trace_line(op.name, config))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
