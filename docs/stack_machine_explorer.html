@@ -1,0 +1,673 @@
+<title>The Guarded Stack</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=Instrument+Serif&display=swap">
+
+<style>
+:root {
+  --ground:#E5E6E2; --panel:#F1F2EE; --well:#D9DBD5; --raise:#FAFBF8;
+  --ink:#1B1E20; --ink-dim:#5C6469; --ink-ghost:#A5ACAD; --rule:#C6C9C3;
+  --gold:#8A6410; --gold-soft:#C9A44E; --blue:#2F5C87;
+  --refuse:#9A3B2E; --allow:#4A7238;
+  --shadow:0 1px 0 rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:#141719; --panel:#1C2023; --well:#0F1214; --raise:#232829;
+    --ink:#E6E4DE; --ink-dim:#8A9096; --ink-ghost:#4E5659; --rule:#2A2F33;
+    --gold:#D8A54A; --gold-soft:#8C7233; --blue:#6E9BC9;
+    --refuse:#C2685C; --allow:#7FA86B;
+    --shadow:0 1px 0 rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"] {
+  --ground:#141719; --panel:#1C2023; --well:#0F1214; --raise:#232829;
+  --ink:#E6E4DE; --ink-dim:#8A9096; --ink-ghost:#4E5659; --rule:#2A2F33;
+  --gold:#D8A54A; --gold-soft:#8C7233; --blue:#6E9BC9;
+  --refuse:#C2685C; --allow:#7FA86B;
+  --shadow:0 1px 0 rgba(0,0,0,.4);
+}
+
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:14px; line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+.label {
+  font-family:"IBM Plex Sans Condensed","Helvetica Neue",sans-serif;
+  font-weight:600; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-dim);
+}
+.serif { font-family:"Instrument Serif",Georgia,serif; font-weight:400; }
+
+/* ---------- shell ---------- */
+.machine {
+  height:100dvh; min-height:520px; display:grid;
+  grid-template-rows:auto auto minmax(0,1fr) auto;
+  gap:0;
+}
+.plate {
+  display:flex; align-items:baseline; gap:18px; flex-wrap:wrap;
+  padding:14px 20px 12px; border-bottom:1px solid var(--rule); background:var(--panel);
+}
+.plate .name { font-family:"Instrument Serif",Georgia,serif; font-size:27px; line-height:1; letter-spacing:.01em; }
+.plate .sub { color:var(--ink-dim); font-size:12px; }
+.readouts { margin-left:auto; display:flex; gap:22px; align-items:center; }
+.readout { display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
+.readout .v { font-size:15px; font-weight:600; font-variant-numeric:tabular-nums; letter-spacing:.02em; }
+.readout.fuel .v { color:var(--blue); }
+.readout.legal .v { color:var(--gold); }
+.badge { font-size:11px; letter-spacing:.02em; padding:3px 8px; border:1px solid var(--rule); border-radius:2px; color:var(--ink-dim); white-space:nowrap; }
+.badge.ok { color:var(--allow); border-color:color-mix(in srgb,var(--allow) 45%,transparent); }
+.badge.bad { color:var(--refuse); border-color:color-mix(in srgb,var(--refuse) 55%,transparent); }
+
+.keys {
+  padding:9px 20px; border-top:1px solid var(--rule); background:var(--panel);
+  display:flex; gap:16px; flex-wrap:wrap; align-items:center;
+  font-size:11px; color:var(--ink-dim);
+}
+.keys kbd {
+  font-family:inherit; font-size:11px; padding:1px 5px; margin-right:5px;
+  border:1px solid var(--rule); border-bottom-width:2px; border-radius:3px;
+  background:var(--raise); color:var(--ink);
+}
+
+/* ---------- tape ---------- */
+.tape-row { padding:10px 20px; border-bottom:1px solid var(--rule); display:flex; align-items:center; gap:14px; background:var(--well); }
+.tape-row .label { flex:none; }
+.tape { flex:1; min-width:0; overflow-x:auto; display:flex; align-items:center; gap:2px; padding:2px 0 6px; scrollbar-width:thin; }
+.chip { flex:none; padding:3px 9px; border-radius:2px; border:1px solid transparent; white-space:nowrap; font-size:13px; }
+.chip.done { color:var(--ink); background:var(--raise); border-color:var(--rule); }
+.chip.pending { color:var(--ink-ghost); }
+.chip.blocked { color:var(--refuse); border-color:color-mix(in srgb,var(--refuse) 55%,transparent); background:color-mix(in srgb,var(--refuse) 10%,transparent); }
+.caret { flex:none; width:2px; align-self:stretch; background:var(--gold); border-radius:1px; margin:0 1px; animation:blink 1.1s steps(2,start) infinite; }
+@keyframes blink { 50% { opacity:.25; } }
+.tape .empty { color:var(--ink-ghost); font-size:12px; }
+.reason { flex:none; color:var(--refuse); font-size:12px; }
+
+/* ---------- bench ---------- */
+.bench { display:grid; grid-template-columns:minmax(190px,1fr) minmax(0,1.55fr) minmax(230px,.95fr); min-height:0; }
+.col { min-height:0; display:flex; flex-direction:column; border-right:1px solid var(--rule); }
+.col:last-child { border-right:none; }
+.col > .head { padding:9px 16px 7px; border-bottom:1px solid var(--rule); display:flex; align-items:baseline; gap:8px; }
+.col > .body { flex:1; min-height:0; overflow-y:auto; padding:12px 16px 16px; scrollbar-width:thin; }
+
+/* stack cells */
+.cells { display:flex; flex-direction:column-reverse; gap:5px; align-items:stretch; }
+.cell {
+  display:flex; align-items:baseline; gap:9px; padding:6px 9px; border-radius:2px;
+  background:var(--raise); border:1px solid var(--rule); border-left:3px solid var(--rule);
+}
+.cell .d { flex:none; font-size:10px; letter-spacing:.1em; color:var(--ink-dim); text-transform:uppercase; min-width:26px; }
+.cell .v { overflow-wrap:anywhere; }
+.cell.top { border-left-color:var(--gold); }
+.cell.top .d { color:var(--gold); }
+.cell.long .v { font-size:11.5px; line-height:1.35; }
+.void { color:var(--ink-ghost); font-size:12px; padding:6px 2px; }
+
+/* ghosts */
+.ghosts { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; align-items:start; }
+.ghost { min-width:0; }
+.ghost .gh { display:flex; align-items:baseline; gap:7px; padding-bottom:7px; margin-bottom:8px; border-bottom:1px solid var(--rule); }
+.ghost .gn { font-weight:600; color:var(--ink-dim); }
+.ghost.pick .gn { color:var(--gold); }
+.ghost .ge { font-size:10.5px; color:var(--ink-ghost); }
+.ghost .cell { background:transparent; border-color:color-mix(in srgb,var(--rule) 60%,transparent); border-left-color:color-mix(in srgb,var(--rule) 60%,transparent); color:var(--ink-ghost); }
+.ghost .cell .d { color:var(--ink-ghost); }
+.ghost .cell.new { border-left-color:var(--gold-soft); color:var(--ink-dim); }
+.ghost .cell.new .d { color:var(--gold-soft); }
+
+/* palette */
+.filterline { display:flex; align-items:center; gap:8px; padding:0 16px; border-bottom:1px solid var(--rule); background:var(--well); }
+.filterline .arrow { color:var(--gold); }
+#entry {
+  flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--ink);
+  font:inherit; padding:11px 0; caret-color:var(--gold);
+}
+#entry::placeholder { color:var(--ink-ghost); }
+.oplist { display:flex; flex-direction:column; gap:1px; }
+.op { display:flex; align-items:baseline; gap:10px; padding:5px 9px; border-left:3px solid transparent; border-radius:2px; cursor:pointer; }
+.op .n { font-weight:500; min-width:56px; }
+.op .e { font-size:11px; color:var(--ink-ghost); overflow-wrap:anywhere; }
+.op.sel { background:var(--raise); border-left-color:var(--gold); }
+.op.sel .n { color:var(--gold); }
+.op.refused { cursor:default; }
+.op.refused .n { color:var(--ink-ghost); text-decoration:line-through; text-decoration-color:color-mix(in srgb,var(--refuse) 60%,transparent); }
+.op.refused .e { color:var(--refuse); opacity:.75; }
+.grouphead { padding:11px 0 4px; }
+.grouphead:first-child { padding-top:0; }
+
+/* ---------- browser ---------- */
+.browser { min-height:0; overflow-y:auto; padding:18px 20px 24px; scrollbar-width:thin; }
+.browser .intro { max-width:64ch; color:var(--ink-dim); font-size:12.5px; margin:0 0 18px; line-height:1.6; }
+.browser .intro b { color:var(--ink); font-weight:500; }
+.cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); }
+.card { background:var(--panel); padding:12px 15px 14px; cursor:pointer; border-left:3px solid transparent; display:flex; flex-direction:column; gap:5px; }
+.card .t { font-family:"Instrument Serif",Georgia,serif; font-size:20px; line-height:1.2; text-wrap:balance; }
+.card .p { font-size:12px; color:var(--gold); overflow-wrap:anywhere; }
+.card .p.blank { color:var(--ink-ghost); }
+.card .n { font-family:"IBM Plex Sans Condensed","Helvetica Neue",sans-serif; font-size:12.5px; color:var(--ink-dim); line-height:1.45; }
+.card.sel { background:var(--raise); border-left-color:var(--gold); }
+.browser .none { color:var(--ink-ghost); font-size:12.5px; }
+
+@media (max-width:880px) {
+  .machine { height:auto; min-height:100dvh; }
+  .bench { grid-template-columns:1fr; }
+  .col { border-right:none; border-bottom:1px solid var(--rule); }
+  .col > .body { overflow-y:visible; }
+  .readouts { width:100%; margin-left:0; justify-content:flex-start; }
+}
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
+:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+</style>
+
+<script id="conformance" type="application/json">{"examples":[{"note":"uncons undoes cons: head on top, tail below.","program":"nil 1 cons uncons","title":"The round trip","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop","null?"],"stack":"[ nil ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ nil 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop","uncons","null?"],"stack":"[ (1) ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ nil 1 ]"}]},{"note":"Every list starts as nil and grows one cons at a time.","program":"nil 1 cons 0 cons 1 cons","title":"Building a list","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop","null?"],"stack":"[ nil ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ nil 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop","uncons","null?"],"stack":"[ (1) ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ (1) 0 ]"},{"fuel":5,"legal":["0","1","nil","true","false","dup","drop","uncons","null?"],"stack":"[ (0 1) ]"},{"fuel":6,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ (0 1) 1 ]"},{"fuel":7,"legal":["0","1","nil","true","false","dup","drop","uncons","null?"],"stack":"[ (1 0 1) ]"}]},{"note":"Lists are values, so a list can hold another list.","program":"nil nil 1 cons cons","title":"A list inside a list","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop","null?"],"stack":"[ nil ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","null?","eq?"],"stack":"[ nil nil ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ nil nil 1 ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","uncons","null?","eq?"],"stack":"[ nil (1) ]"},{"fuel":5,"legal":["0","1","nil","true","false","dup","drop","uncons","null?"],"stack":"[ ((1)) ]"}]},{"note":"Destructuring without variables \u2014 just uncons, swap and drop.","program":"nil 1 cons 1 cons uncons swap uncons swap drop add","title":"Taking a list apart","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop","null?"],"stack":"[ nil ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ nil 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop","uncons","null?"],"stack":"[ (1) ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ (1) 1 ]"},{"fuel":5,"legal":["0","1","nil","true","false","dup","drop","uncons","null?"],"stack":"[ (1 1) ]"},{"fuel":6,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ (1) 1 ]"},{"fuel":7,"legal":["0","1","nil","true","false","dup","swap","drop","over","uncons","null?","eq?"],"stack":"[ 1 (1) ]"},{"fuel":8,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ 1 nil 1 ]"},{"fuel":9,"legal":["0","1","nil","true","false","dup","swap","drop","over","null?","eq?"],"stack":"[ 1 1 nil ]"},{"fuel":10,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 1 1 ]"},{"fuel":11,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 2 ]"}]},{"note":"Integers are arbitrary-precision. A float would round this one.","program":"1 1 add 1 add dup mul dup mul dup mul dup mul dup mul dup mul","title":"Exactly three to the sixty-fourth","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 1 ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 1 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 2 ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 2 1 ]"},{"fuel":5,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 3 ]"},{"fuel":6,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 3 3 ]"},{"fuel":7,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 9 ]"},{"fuel":8,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 9 9 ]"},{"fuel":9,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 81 ]"},{"fuel":10,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 81 81 ]"},{"fuel":11,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 6561 ]"},{"fuel":12,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 6561 6561 ]"},{"fuel":13,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 43046721 ]"},{"fuel":14,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 43046721 43046721 ]"},{"fuel":15,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 1853020188851841 ]"},{"fuel":16,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 1853020188851841 1853020188851841 ]"},{"fuel":17,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 3433683820292512484657849089281 ]"}]},{"note":"Two lists built separately are the same value. Identity is structural.","program":"nil 1 cons nil 1 cons eq?","title":"Same shape, same state","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop","null?"],"stack":"[ nil ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ nil 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop","uncons","null?"],"stack":"[ (1) ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","null?","eq?"],"stack":"[ (1) nil ]"},{"fuel":5,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ (1) nil 1 ]"},{"fuel":6,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","uncons","null?","eq?"],"stack":"[ (1) (1) ]"},{"fuel":7,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ true ]"}]},{"note":"Look for add. It is gone \u2014 booleans are not numbers here.","program":"1 true","title":"One is not true","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 1 ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","eq?"],"stack":"[ 1 true ]"}]},{"note":"The guard reads the divisor, not just its type. Zero, so no div.","program":"1 0","title":"Where did div go?","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 1 ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","eq?","lt?"],"stack":"[ 1 0 ]"}]},{"note":"null? consumes its list, so dup first if you still need it.","program":"nil dup null?","title":"Asking if it is empty","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop","null?"],"stack":"[ nil ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","null?","eq?"],"stack":"[ nil nil ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ nil true ]"}]},{"note":"over copies the second value to the top.","program":"0 1 over","title":"Reaching underneath","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 0 ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 0 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","eq?","lt?"],"stack":"[ 0 1 0 ]"}]},{"note":"An empty stack. Only the five literals are legal.","program":"","title":"Start from nothing","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"}]}],"ops":[{"effect":"( -- 0 )","group":"literals","name":"0"},{"effect":"( -- 1 )","group":"literals","name":"1"},{"effect":"( -- nil )","group":"literals","name":"nil"},{"effect":"( -- true )","group":"literals","name":"true"},{"effect":"( -- false )","group":"literals","name":"false"},{"effect":"( a -- a a )","group":"plumbing","name":"dup"},{"effect":"( a b -- b a )","group":"plumbing","name":"swap"},{"effect":"( a -- )","group":"plumbing","name":"drop"},{"effect":"( a b -- a b a )","group":"plumbing","name":"over"},{"effect":"( lst a -- lst' )","group":"structure","name":"cons"},{"effect":"( lst -- tail head )","group":"structure","name":"uncons"},{"effect":"( lst -- bool )","group":"structure","name":"null?"},{"effect":"( a b -- c )","group":"arithmetic","name":"add"},{"effect":"( a b -- c )","group":"arithmetic","name":"sub"},{"effect":"( a b -- c )","group":"arithmetic","name":"mul"},{"effect":"( a b -- c )","group":"arithmetic","name":"div"},{"effect":"( a b -- bool )","group":"predicates","name":"eq?"},{"effect":"( a b -- bool )","group":"predicates","name":"lt?"}],"probes":[{"program":"1 1 add dup mul 1 1 add add 1 add 0 swap sub 1 1 add div","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 1 ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 1 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 2 ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 2 2 ]"},{"fuel":5,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 4 ]"},{"fuel":6,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 4 1 ]"},{"fuel":7,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 4 1 1 ]"},{"fuel":8,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 4 2 ]"},{"fuel":9,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 6 ]"},{"fuel":10,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 6 1 ]"},{"fuel":11,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 7 ]"},{"fuel":12,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","eq?","lt?"],"stack":"[ 7 0 ]"},{"fuel":13,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 0 7 ]"},{"fuel":14,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ -7 ]"},{"fuel":15,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ -7 1 ]"},{"fuel":16,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ -7 1 1 ]"},{"fuel":17,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ -7 2 ]"},{"fuel":18,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ -4 ]"}]},{"program":"0 1 sub 1 1 add div","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 0 ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 0 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ -1 ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ -1 1 ]"},{"fuel":5,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ -1 1 1 ]"},{"fuel":6,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ -1 2 ]"},{"fuel":7,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ -1 ]"}]},{"program":"0 1 sub dup mul","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 0 ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 0 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ -1 ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ -1 -1 ]"},{"fuel":5,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 1 ]"}]},{"program":"0 1 sub 0 lt?","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 0 ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","div","eq?","lt?"],"stack":"[ 0 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ -1 ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","add","sub","mul","eq?","lt?"],"stack":"[ -1 0 ]"},{"fuel":5,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ true ]"}]},{"program":"1 true eq?","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 1 ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","eq?"],"stack":"[ 1 true ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ false ]"}]},{"program":"0 false eq?","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 0 ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","eq?"],"stack":"[ 0 false ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ false ]"}]},{"program":"0 nil eq?","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ 0 ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","null?","eq?"],"stack":"[ 0 nil ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ false ]"}]},{"program":"nil false eq?","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop","null?"],"stack":"[ nil ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ nil false ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ false ]"}]},{"program":"nil 1 cons 1 eq?","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop","null?"],"stack":"[ nil ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ nil 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop","uncons","null?"],"stack":"[ (1) ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ (1) 1 ]"},{"fuel":5,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ false ]"}]},{"program":"nil 1 cons 0 cons nil 1 cons 0 cons eq?","trace":[{"fuel":0,"legal":["0","1","nil","true","false"],"stack":"[]"},{"fuel":1,"legal":["0","1","nil","true","false","dup","drop","null?"],"stack":"[ nil ]"},{"fuel":2,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ nil 1 ]"},{"fuel":3,"legal":["0","1","nil","true","false","dup","drop","uncons","null?"],"stack":"[ (1) ]"},{"fuel":4,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ (1) 0 ]"},{"fuel":5,"legal":["0","1","nil","true","false","dup","drop","uncons","null?"],"stack":"[ (0 1) ]"},{"fuel":6,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","null?","eq?"],"stack":"[ (0 1) nil ]"},{"fuel":7,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ (0 1) nil 1 ]"},{"fuel":8,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","uncons","null?","eq?"],"stack":"[ (0 1) (1) ]"},{"fuel":9,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","eq?"],"stack":"[ (0 1) (1) 0 ]"},{"fuel":10,"legal":["0","1","nil","true","false","dup","swap","drop","over","cons","uncons","null?","eq?"],"stack":"[ (0 1) (0 1) ]"},{"fuel":11,"legal":["0","1","nil","true","false","dup","drop"],"stack":"[ true ]"}]}],"walks":[{"fuel":14,"mask":"111111111000000010","program":"0 0 mul nil true true nil 1 eq? over 1 eq? swap 0","stack":"[ 0 nil true true false false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 0 true true over eq? 0 over true over swap true drop eq?","stack":"[ 0 0 true true 0 true true ]"},{"fuel":14,"mask":"111111111000111111","program":"nil 0 nil swap dup false nil true dup 1 1 swap 1 dup","stack":"[ nil nil 0 0 false nil true true 1 1 1 1 ]"},{"fuel":14,"mask":"111111111100000010","program":"nil false 0 drop over 1 swap 1 over false eq? eq? dup eq?","stack":"[ nil false 1 nil true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 dup 1 0 sub true false 1 true 1 swap false drop dup","stack":"[ 1 1 1 true false 1 1 true true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 nil dup true eq? false 1 eq? nil over true nil drop swap","stack":"[ 1 nil false false nil true false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil true eq? nil 0 true 0 dup swap false 1 true eq? dup","stack":"[ false nil 0 true 0 0 false false false ]"},{"fuel":14,"mask":"111111111001000010","program":"1 dup drop true drop 1 false nil true over over false eq? swap","stack":"[ 1 1 false nil true false nil ]"},{"fuel":14,"mask":"111111111001000010","program":"false true dup true nil over drop 1 0 lt? 1 nil eq? nil","stack":"[ false true true true nil false false nil ]"},{"fuel":14,"mask":"111111111000000010","program":"true false 1 swap swap eq? drop false false over 0 1 sub over","stack":"[ true false false false -1 false ]"},{"fuel":14,"mask":"111111111000111111","program":"nil dup 1 false swap nil drop 0 mul false over nil over 1","stack":"[ nil nil false 0 false 0 nil 0 1 ]"},{"fuel":14,"mask":"111111111100000010","program":"nil true nil dup nil over over 0 cons dup drop 0 1 lt?","stack":"[ nil true nil nil nil nil (0) true ]"},{"fuel":14,"mask":"111111111101000010","program":"nil false true 0 true eq? 1 1 mul drop 1 over nil nil","stack":"[ nil false true false 1 false nil nil ]"},{"fuel":14,"mask":"111111111000000010","program":"true false nil false over null? swap true over true false swap dup drop","stack":"[ true false nil true false true false false true ]"},{"fuel":14,"mask":"111111111000000010","program":"false true 1 true true 1 dup 0 add over true eq? true 0","stack":"[ false true 1 true true 1 1 false true 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 dup sub 0 true 1 0 lt? dup 1 over true false drop","stack":"[ 0 0 true false false 1 false true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 false nil null? eq? drop 1 div true swap true 1 1 sub","stack":"[ true 1 true 0 ]"},{"fuel":14,"mask":"111111111000111011","program":"true nil swap swap drop drop 0 dup sub dup 1 0 swap mul","stack":"[ 0 0 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"nil 1 true true true over drop nil swap nil false drop true 1","stack":"[ nil 1 true true nil true nil true 1 ]"},{"fuel":14,"mask":"111111111001000010","program":"true drop false 0 0 sub over 0 1 lt? true nil swap drop","stack":"[ false 0 false true nil ]"},{"fuel":14,"mask":"111111111000000010","program":"true 1 swap 0 nil swap 0 swap false drop false swap over drop","stack":"[ 1 true nil 0 false 0 ]"},{"fuel":14,"mask":"111111111000111011","program":"1 1 false true 0 eq? over 0 dup 0 0 add drop over","stack":"[ 1 1 false false false 0 0 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"false 1 0 over 1 eq? nil 1 cons 1 eq? true swap 1","stack":"[ false 1 0 true true false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"false 1 eq? false 0 eq? 1 swap eq? eq? false dup false true","stack":"[ true false false false true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil true false swap nil eq? false drop dup 1 0 drop eq? eq?","stack":"[ nil false true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 0 over true over false nil dup 1 true dup false nil drop","stack":"[ 0 0 0 true 0 false nil nil 1 true true false ]"},{"fuel":14,"mask":"111111111000000010","program":"false dup false eq? over 0 over false 1 nil false 1 1 mul","stack":"[ false true false 0 false false 1 nil false 1 ]"},{"fuel":14,"mask":"111111111000111111","program":"false 1 false false eq? true dup true false over drop false 0 1","stack":"[ false 1 true true true true false false 0 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"true drop nil 0 0 dup eq? nil eq? false nil drop over swap","stack":"[ nil 0 false false false ]"},{"fuel":14,"mask":"111111111001000010","program":"false 0 1 1 lt? nil over 0 dup add over nil swap nil","stack":"[ false 0 false nil false 0 nil false nil ]"},{"fuel":14,"mask":"111111111001000010","program":"0 nil dup 0 dup true true 1 dup div over swap eq? nil","stack":"[ 0 nil nil 0 0 true true false nil ]"},{"fuel":14,"mask":"111111111001000010","program":"1 drop 1 drop 1 true 0 nil dup swap null? true false nil","stack":"[ 1 true 0 nil true true false nil ]"},{"fuel":14,"mask":"111111111000000010","program":"0 true 0 drop true true drop dup false true true 0 true swap","stack":"[ 0 true true true false true true true 0 ]"},{"fuel":14,"mask":"111111111001000010","program":"nil false 1 false dup over swap over dup 0 1 lt? false nil","stack":"[ nil false 1 false false false false false true false nil ]"},{"fuel":14,"mask":"111111111000111111","program":"false nil 0 1 add swap dup eq? dup swap eq? over 1 swap","stack":"[ false 1 true 1 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"false 1 false 0 swap 0 over over true dup swap 1 dup add","stack":"[ false 1 0 false 0 false 0 true true 2 ]"},{"fuel":14,"mask":"111111111001000010","program":"nil 1 false over false swap dup swap mul false over nil true swap","stack":"[ nil 1 false false 1 false 1 true nil ]"},{"fuel":14,"mask":"111111111000000010","program":"true dup nil null? eq? false swap over 0 false false true swap eq?","stack":"[ true false true false 0 false false ]"},{"fuel":14,"mask":"111111111000000010","program":"false dup dup drop drop true true over drop nil eq? 1 false over","stack":"[ false true false 1 false 1 ]"},{"fuel":14,"mask":"111111111000111111","program":"false nil 1 true false true true nil 0 0 true drop add 1","stack":"[ false nil 1 true false true true nil 0 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"true true eq? 1 swap drop true true nil eq? 0 1 div swap","stack":"[ 1 true 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 1 div dup over drop 0 over true 1 drop nil drop over","stack":"[ 1 1 0 1 true 1 ]"},{"fuel":14,"mask":"111111111001000010","program":"false false dup drop eq? drop false true over drop nil drop drop nil","stack":"[ false nil ]"},{"fuel":14,"mask":"111111111000000010","program":"1 drop nil null? dup true false drop 1 false true false dup dup","stack":"[ true true true 1 false true false false false ]"},{"fuel":14,"mask":"111111111000111111","program":"false 0 nil nil true swap nil eq? true 1 swap swap dup over","stack":"[ false 0 nil true true true 1 1 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"true true 0 true swap swap eq? 0 eq? swap drop 0 dup false","stack":"[ true false 0 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"true drop true false over eq? true drop true false swap drop 0 swap","stack":"[ true false 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil drop 1 drop true 1 eq? false 0 swap eq? eq? dup 0","stack":"[ true true 0 ]"},{"fuel":14,"mask":"111111111000111011","program":"0 dup swap nil drop nil 0 false swap dup true drop dup dup","stack":"[ 0 0 nil false 0 0 0 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"true nil swap false 1 drop 0 over 0 dup true 1 0 eq?","stack":"[ nil true false 0 false 0 0 true false ]"},{"fuel":14,"mask":"111111111000000010","program":"0 1 true 0 eq? nil true nil drop eq? 1 eq? true drop","stack":"[ 0 1 false false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil dup nil cons cons 1 nil false 1 eq? 0 false eq? swap","stack":"[ ((nil)) 1 nil false false ]"},{"fuel":14,"mask":"111111111000111011","program":"true dup true 1 eq? true 1 false eq? 1 eq? 0 dup over","stack":"[ true true false true false 0 0 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"true dup dup 1 over dup 0 swap drop 1 swap dup sub lt?","stack":"[ true true true 1 true false ]"},{"fuel":14,"mask":"111111111000000010","program":"true dup nil swap nil over eq? false eq? over drop drop swap null?","stack":"[ true true true ]"},{"fuel":14,"mask":"111111111100000010","program":"nil dup true 1 false drop true drop eq? cons uncons swap dup 0","stack":"[ nil false nil nil 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"true drop nil nil drop true dup false dup false eq? false over 0","stack":"[ nil true true false true false true 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"false 1 1 true swap drop over true drop drop drop 0 1 false","stack":"[ false 1 0 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true true false eq? dup drop over over dup swap over dup dup","stack":"[ 1 true false true false false false false false ]"},{"fuel":14,"mask":"111111111100000010","program":"true nil false false true 1 true dup 1 over nil true true drop","stack":"[ true nil false false true 1 true true 1 true nil true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil false 1 true false true dup nil false 0 over nil false 0","stack":"[ nil false 1 true false true true nil false 0 false nil false 0 ]"},{"fuel":14,"mask":"111111111001000010","program":"0 false false nil eq? drop 1 0 add false drop drop drop nil","stack":"[ 0 nil ]"},{"fuel":14,"mask":"111111111000111011","program":"1 0 false drop 1 eq? 1 swap drop 1 add sub dup 0","stack":"[ -1 -1 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 1 div false false 1 true 1 over swap eq? eq? eq? true","stack":"[ 1 false false false true ]"},{"fuel":14,"mask":"111111111000000010","program":"false true drop true false eq? swap false eq? eq? 0 eq? dup 1","stack":"[ false false 1 ]"},{"fuel":14,"mask":"111111111000111011","program":"1 dup true false 1 nil true nil over 1 nil 0 swap drop","stack":"[ 1 1 true false 1 nil true nil true 1 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"false true false 0 true false false drop 1 true false eq? true swap","stack":"[ false true false 0 true false 1 true false ]"},{"fuel":14,"mask":"111111111000000010","program":"0 false true nil false nil 1 0 nil false cons eq? eq? false","stack":"[ 0 false true nil false nil false false ]"},{"fuel":14,"mask":"111111111000000010","program":"true 0 drop dup false swap false over over drop drop 1 eq? 0","stack":"[ true false true false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"true dup dup eq? false 0 1 true eq? eq? 0 false eq? 0","stack":"[ true true false false false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true over drop false nil null? swap drop 1 drop dup swap dup","stack":"[ 1 true true true true ]"},{"fuel":14,"mask":"111111111000111111","program":"nil 1 nil dup swap eq? drop false swap over 0 drop 1 dup","stack":"[ nil false 1 false 1 1 ]"},{"fuel":14,"mask":"111111111000111011","program":"nil dup 1 swap over 0 sub over drop swap 0 true over dup","stack":"[ nil 1 1 nil 0 true 0 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"false drop true dup drop drop 0 1 false over nil false drop drop","stack":"[ 0 1 false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 0 sub false true nil false over 0 over swap 1 true 1","stack":"[ 0 false true nil false nil nil 0 1 true 1 ]"},{"fuel":14,"mask":"111111111001000010","program":"true 0 nil drop false over false swap drop drop true drop over nil","stack":"[ true 0 false 0 nil ]"},{"fuel":14,"mask":"111111111000000010","program":"true 1 eq? false nil 1 false swap dup lt? over false 0 false","stack":"[ false false nil false false false false 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil null? drop 1 true over drop dup dup over over swap drop dup","stack":"[ 1 true true true true true ]"},{"fuel":14,"mask":"111111111001000010","program":"1 dup true eq? swap true swap 0 dup mul drop swap swap nil","stack":"[ false true 1 nil ]"},{"fuel":14,"mask":"111111111001000010","program":"true 0 nil over cons dup 1 drop 1 over drop 0 mul nil","stack":"[ true 0 (0) (0) 0 nil ]"},{"fuel":14,"mask":"111110000000000000","program":"true drop 1 0 drop drop nil dup cons drop 0 drop nil drop","stack":"[]"},{"fuel":14,"mask":"111111111000111111","program":"nil null? drop false 0 eq? 0 true false true 1 swap 1 1","stack":"[ false 0 true false 1 true 1 1 ]"},{"fuel":14,"mask":"111111111100000010","program":"true 1 false 0 0 dup eq? 0 false dup dup swap nil true","stack":"[ true 1 false 0 true 0 false false false nil true ]"},{"fuel":14,"mask":"111111111101000010","program":"false true eq? dup nil nil nil 1 cons swap cons uncons true drop","stack":"[ false false nil (1) nil ]"},{"fuel":14,"mask":"111111111001000010","program":"false 1 true drop false drop false 0 drop false over nil 1 drop","stack":"[ false 1 false false false nil ]"},{"fuel":14,"mask":"111111111000000010","program":"nil false eq? true false drop false true swap drop 1 true swap eq?","stack":"[ false true true false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil false false 0 swap false 0 eq? 0 eq? drop false true eq?","stack":"[ nil false 0 false false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil true eq? 1 eq? nil eq? drop 1 dup 1 lt? 0 false","stack":"[ 1 false 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"true 0 eq? nil nil 1 false dup swap nil true nil over dup","stack":"[ false nil nil 1 false false nil true nil true true ]"},{"fuel":14,"mask":"111111111000000010","program":"false false false nil false drop false dup 1 drop 1 nil true eq?","stack":"[ false false false nil false false 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"true drop false nil 1 swap 0 false over 1 drop dup sub false","stack":"[ false 1 nil 0 false 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"false true dup 1 true drop 0 add over dup eq? true 1 drop","stack":"[ false true true 1 true true ]"},{"fuel":14,"mask":"111111111100000010","program":"nil drop 0 1 0 0 false drop 1 1 true over nil swap","stack":"[ 0 1 0 0 1 1 true nil 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"true nil eq? dup over swap eq? nil swap eq? 1 drop eq? true","stack":"[ true true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil 0 dup true drop drop true dup 1 dup over lt? dup 0","stack":"[ nil 0 true true 1 false false 0 ]"},{"fuel":14,"mask":"111111111001000010","program":"true nil true 1 drop 1 true eq? 0 0 eq? dup true nil","stack":"[ true nil true false true true true nil ]"},{"fuel":14,"mask":"111111111000000010","program":"false 1 1 eq? over true eq? true true dup nil null? 0 false","stack":"[ false true false true true true true 0 false ]"},{"fuel":14,"mask":"111111111100000010","program":"1 1 over false nil 1 eq? 0 nil 0 dup eq? true eq?","stack":"[ 1 1 1 false false 0 nil true ]"},{"fuel":14,"mask":"111111111101000010","program":"nil 0 nil false 0 nil swap over 1 1 drop drop dup over","stack":"[ nil 0 nil false nil 0 nil nil nil ]"},{"fuel":14,"mask":"111111111000000010","program":"false 0 drop false true eq? 0 over false drop 0 0 drop swap","stack":"[ false false 0 0 false ]"},{"fuel":14,"mask":"111111111011000010","program":"true dup 1 drop drop 0 1 dup add nil 1 nil false cons","stack":"[ true 0 2 nil 1 (false) ]"},{"fuel":14,"mask":"111111111000000010","program":"false false dup swap eq? over false drop over eq? swap 1 1 eq?","stack":"[ false false true true ]"},{"fuel":14,"mask":"111111111000111111","program":"false dup true swap drop true swap dup drop swap swap 1 dup swap","stack":"[ false true true 1 1 ]"},{"fuel":14,"mask":"111111111000111111","program":"nil false dup nil eq? drop 1 1 eq? 1 1 swap 1 mul","stack":"[ nil false true 1 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"nil nil over 0 cons over over dup uncons 1 swap dup lt? swap","stack":"[ nil nil (0) nil (0) nil false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 nil null? false dup 1 eq? over true nil eq? drop true 1","stack":"[ 0 true false false false true 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"nil dup 1 false eq? true swap over eq? eq? eq? eq? false 0","stack":"[ false false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"false dup false 0 nil false false dup dup 0 nil nil cons null?","stack":"[ false false false 0 nil false false false false 0 false ]"},{"fuel":14,"mask":"111111111001000010","program":"true 0 nil eq? 0 1 mul over true swap swap drop dup nil","stack":"[ true false 0 false false nil ]"},{"fuel":14,"mask":"111111111000000010","program":"nil false dup eq? cons 1 0 nil nil cons 0 eq? 1 false","stack":"[ (true) 1 0 false 1 false ]"},{"fuel":14,"mask":"111111111000111111","program":"true dup swap drop false drop true false true over 1 dup swap 1","stack":"[ true true false true false 1 1 1 ]"},{"fuel":14,"mask":"111111111001000010","program":"nil null? false false 0 true swap eq? 0 0 true false true nil","stack":"[ true false false false 0 0 true false true nil ]"},{"fuel":14,"mask":"111111111000000010","program":"nil false dup 1 0 drop swap nil nil swap over eq? true over","stack":"[ nil false 1 false nil true true true ]"},{"fuel":14,"mask":"111111111000000010","program":"false drop nil 1 swap 0 swap 0 drop 1 dup add swap null?","stack":"[ 1 0 2 true ]"},{"fuel":14,"mask":"111111111000000010","program":"true dup swap false 1 swap 0 dup nil null? drop lt? dup 1","stack":"[ true true 1 false false false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"true drop 0 1 swap add true over 1 swap eq? false dup true","stack":"[ 1 true true false false true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil nil 1 over eq? 1 over over true dup dup nil true 1","stack":"[ nil nil false 1 false 1 true true true nil true 1 ]"},{"fuel":14,"mask":"111111111100000010","program":"1 nil true nil null? nil eq? 1 nil eq? drop drop cons uncons","stack":"[ 1 nil true ]"},{"fuel":14,"mask":"111111111000000010","program":"true dup eq? dup eq? nil eq? nil nil drop 1 drop drop dup","stack":"[ false false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil false cons 0 dup over 1 false drop drop 0 0 dup lt?","stack":"[ (false) 0 0 0 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil 1 eq? drop 0 false eq? false swap drop false over 0 drop","stack":"[ false false false ]"},{"fuel":14,"mask":"111111111000111111","program":"false dup true dup eq? drop over nil 0 drop 1 dup mul 1","stack":"[ false false false nil 1 1 ]"},{"fuel":14,"mask":"111111111100000010","program":"false dup nil 0 true drop drop over over null? nil dup dup false","stack":"[ false false nil false true nil nil nil false ]"},{"fuel":14,"mask":"111111111000000010","program":"true true dup eq? 0 dup 1 dup 1 over sub swap false false","stack":"[ true true 0 0 1 0 1 false false ]"},{"fuel":14,"mask":"111111111001000010","program":"false drop 1 nil 1 cons null? nil dup false eq? eq? swap nil","stack":"[ 1 false false nil ]"},{"fuel":14,"mask":"111111111000111111","program":"false dup 1 false over swap dup nil eq? over 1 swap over dup","stack":"[ false false 1 1 false false 1 false 1 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 nil false nil true dup drop true true nil nil 1 false 1","stack":"[ 0 nil false nil true true true nil nil 1 false 1 ]"},{"fuel":14,"mask":"111111111101000010","program":"false drop false drop false 0 dup eq? eq? 1 eq? true nil nil","stack":"[ false true nil nil ]"},{"fuel":14,"mask":"111111010000000000","program":"1 drop false drop 1 dup drop 0 swap dup sub mul 1 drop","stack":"[ 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"false nil drop 1 over true false drop true dup eq? drop drop false","stack":"[ false 1 false false ]"},{"fuel":14,"mask":"111111111000000010","program":"true false over swap nil true cons nil false 0 drop dup over 1","stack":"[ true true false (true) nil false false false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"false drop 0 nil 1 nil false drop over nil swap 1 lt? true","stack":"[ 0 nil 1 nil nil false true ]"},{"fuel":14,"mask":"111111111000000010","program":"true nil 0 swap 0 swap over dup true swap 1 dup true 0","stack":"[ true 0 0 nil 0 true 0 1 1 true 0 ]"},{"fuel":14,"mask":"111111111100000010","program":"nil 1 eq? nil nil nil 0 false drop nil drop drop cons 0","stack":"[ false nil (nil) 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 0 false true nil over cons over swap 1 false true false 1","stack":"[ 0 0 false true true (true) 1 false true false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 1 swap sub drop false true 1 1 eq? drop eq? false 0","stack":"[ false false 0 ]"},{"fuel":14,"mask":"111111111100000010","program":"false false true nil false swap 0 cons dup true cons swap nil null?","stack":"[ false false true false (true 0) (0) true ]"},{"fuel":14,"mask":"111111111000111011","program":"0 false dup 1 over over over over over 0 swap drop 0 sub","stack":"[ 0 false false 1 false 1 false 1 0 ]"},{"fuel":14,"mask":"111111111100000010","program":"true nil false 0 dup eq? 1 dup true 1 eq? dup nil 0","stack":"[ true nil false true 1 1 false false nil 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"nil dup null? nil eq? drop null? dup nil nil 1 drop 0 false","stack":"[ true true nil nil 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 0 eq? 1 0 dup false over swap over drop false 0 true","stack":"[ false 1 0 0 0 false false 0 true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil dup 0 eq? dup false 1 dup swap lt? swap drop swap dup","stack":"[ nil false false false false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true drop nil over false 1 swap 1 swap eq? nil over false","stack":"[ 1 nil 1 1 false nil false false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil 1 1 dup sub false false drop eq? swap nil drop dup drop","stack":"[ nil false 1 ]"},{"fuel":14,"mask":"111111111001000010","program":"0 dup lt? nil null? swap false 0 1 sub swap dup over nil","stack":"[ true false -1 false false false nil ]"},{"fuel":14,"mask":"111111111000000010","program":"0 1 eq? false drop 0 nil 1 true dup dup swap eq? 0","stack":"[ false 0 nil 1 true true 0 ]"},{"fuel":14,"mask":"111111111100000010","program":"false 1 drop nil dup drop 1 cons nil over dup swap dup uncons","stack":"[ false (1) nil (1) (1) nil 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"nil true 1 0 mul nil drop over swap over 1 false false drop","stack":"[ nil true true 0 true 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 false false drop true 1 nil 1 drop nil eq? drop 1 div","stack":"[ 1 false true 1 ]"},{"fuel":14,"mask":"111111111100000010","program":"nil dup eq? 0 over over false false nil eq? nil dup over true","stack":"[ true 0 true 0 false false nil nil nil true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 1 div 1 true drop 0 dup over add dup drop eq? over","stack":"[ 0 1 true 1 ]"},{"fuel":14,"mask":"111111111101000010","program":"1 false 1 1 false swap drop over swap swap eq? 1 nil dup","stack":"[ 1 false 1 false 1 nil nil ]"},{"fuel":14,"mask":"111111111101000010","program":"0 true drop dup over dup nil over eq? eq? nil nil swap over","stack":"[ 0 0 0 false nil nil nil ]"},{"fuel":14,"mask":"111111111000000010","program":"0 drop 0 false nil false nil nil dup eq? true dup over false","stack":"[ 0 false nil false nil true true true true false ]"},{"fuel":14,"mask":"111111111000111111","program":"0 nil true eq? over false nil eq? false eq? over 1 over sub","stack":"[ 0 false 0 true 0 1 ]"},{"fuel":14,"mask":"111111111000111111","program":"1 false eq? 1 nil eq? eq? dup eq? nil null? 0 0 1","stack":"[ true true 0 0 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 dup eq? false false true eq? swap eq? 0 drop over false false","stack":"[ true true true false false ]"},{"fuel":14,"mask":"111111111000000010","program":"true 1 swap false drop 1 0 nil drop swap drop drop true dup","stack":"[ 1 true true true ]"},{"fuel":14,"mask":"111111111000000010","program":"false 1 dup eq? dup dup swap nil dup over over 1 dup true","stack":"[ false true true true nil nil nil nil 1 1 true ]"},{"fuel":14,"mask":"111111111001000010","program":"true 0 false drop true nil 1 0 false swap eq? swap true nil","stack":"[ true 0 true nil false 1 true nil ]"},{"fuel":14,"mask":"111111111000111111","program":"nil dup true nil drop over drop drop false drop 0 1 swap over","stack":"[ nil nil 1 0 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"true 1 true eq? dup 0 0 false drop add drop false over 0","stack":"[ true false false false false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 true nil false dup swap dup 0 swap 0 eq? over true dup","stack":"[ 0 true nil false false 0 false 0 true true ]"},{"fuel":14,"mask":"111111111100000010","program":"false nil 1 swap over drop over false eq? eq? eq? 1 nil 1","stack":"[ false false 1 nil 1 ]"},{"fuel":14,"mask":"111111111000111011","program":"true nil dup over dup nil true cons over swap over 0 0 0","stack":"[ true nil nil nil nil nil (true) nil 0 0 0 ]"},{"fuel":14,"mask":"111111111111000010","program":"1 dup dup div drop false drop 1 add false nil dup cons dup","stack":"[ 2 false (nil) (nil) ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true eq? dup false eq? dup over over over drop eq? false drop","stack":"[ false true true true ]"},{"fuel":14,"mask":"111111111011000010","program":"0 nil dup null? 1 swap eq? false 0 eq? drop false eq? cons","stack":"[ 0 (true) ]"},{"fuel":14,"mask":"111111111000000010","program":"1 dup 0 add drop 1 over sub mul false swap nil eq? true","stack":"[ false false true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 false 1 true 0 drop dup swap nil swap true swap over eq?","stack":"[ 0 false 1 true nil true true ]"},{"fuel":14,"mask":"111111111000000010","program":"true drop 0 dup nil over true over dup sub drop over swap dup","stack":"[ 0 0 nil 0 0 true true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true over dup over dup sub eq? false eq? drop true true false","stack":"[ 1 true 1 true true false ]"},{"fuel":14,"mask":"111111111000000010","program":"false nil true false false true drop dup drop dup over false false 1","stack":"[ false nil true false false false false false false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"false dup over swap swap dup nil false 0 false 1 dup lt? drop","stack":"[ false false false false nil false 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil null? 1 true over false over false nil 1 cons eq? eq? true","stack":"[ true 1 true 1 false false true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 0 sub false true true 0 1 swap dup mul drop 1 sub","stack":"[ 1 false true true 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 0 over lt? nil swap eq? drop true true false dup false 0","stack":"[ 1 true true false false false 0 ]"},{"fuel":14,"mask":"111111111000111011","program":"0 dup add 1 over mul mul drop 0 1 swap lt? 1 0","stack":"[ false 1 0 ]"},{"fuel":14,"mask":"111111111000111111","program":"true drop true 1 false 0 0 false eq? eq? 1 dup false drop","stack":"[ true 1 false false 1 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"false false drop 1 over drop false true 1 dup nil drop sub false","stack":"[ false 1 false true 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 0 mul nil false cons null? true nil null? swap swap over dup","stack":"[ 0 false true true true true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 true 1 nil nil drop dup true 0 false swap true drop false","stack":"[ 0 true 1 nil nil true false 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil false cons 0 false dup true 0 1 drop false nil swap eq?","stack":"[ (false) 0 false false true 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"false dup false 1 false dup eq? true true nil drop nil drop eq?","stack":"[ false false false 1 true true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil drop false true over true true eq? 1 over drop over dup 1","stack":"[ false true false true 1 true true 1 ]"},{"fuel":14,"mask":"111111111101000010","program":"false 0 0 lt? over over true eq? over nil nil dup over drop","stack":"[ false false false false false nil nil nil ]"},{"fuel":14,"mask":"111111111000000010","program":"0 dup true eq? drop 0 over drop eq? 0 drop 1 over swap","stack":"[ true true 1 ]"},{"fuel":14,"mask":"111111111000111011","program":"true false 0 over drop false 0 swap false 0 true eq? 1 0","stack":"[ true false 0 0 false false false 1 0 ]"},{"fuel":14,"mask":"111111111100000010","program":"true nil 1 over 0 1 lt? drop 0 false swap nil nil null?","stack":"[ true nil 1 nil false 0 nil true ]"},{"fuel":14,"mask":"111111111100000010","program":"true nil swap drop drop true 0 over nil eq? dup 1 nil over","stack":"[ true 0 false false 1 nil 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"true false nil true 0 0 false drop sub over swap over swap true","stack":"[ true false nil true true true 0 true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true dup nil false true 1 0 eq? swap eq? 0 true true","stack":"[ 1 true true nil false false 0 true true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 0 add 0 drop false 0 true 0 swap drop true over true","stack":"[ 0 false 0 0 true 0 true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 1 over false true eq? dup eq? eq? dup true false nil eq?","stack":"[ 0 1 false false true false ]"},{"fuel":14,"mask":"111111111000000010","program":"false 1 swap false false 0 over eq? nil eq? swap over drop 0","stack":"[ 1 false false false false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"nil drop false nil swap swap nil false swap nil over drop true true","stack":"[ false nil false nil nil true true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil nil drop 0 over swap swap over over nil swap true false true","stack":"[ nil 0 nil 0 nil nil true false true ]"},{"fuel":14,"mask":"111111111000111111","program":"nil 1 drop dup 1 over true 0 false swap eq? eq? 0 1","stack":"[ nil nil 1 nil false 0 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 drop false dup over true drop true dup false 0 true true 1","stack":"[ false false false true true false 0 true true 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"true 1 eq? dup true swap true over dup false swap drop over dup","stack":"[ false true false true false false false false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil false dup over drop drop 1 drop dup true dup dup swap 0","stack":"[ nil false false true true true 0 ]"},{"fuel":14,"mask":"111111111100000010","program":"false drop 1 dup nil 0 false over eq? eq? swap false nil true","stack":"[ 1 1 false nil false nil true ]"},{"fuel":14,"mask":"111111111101000010","program":"nil true swap null? true drop over dup false drop drop drop nil dup","stack":"[ true true nil nil ]"},{"fuel":14,"mask":"111111111000000010","program":"1 1 mul false drop 1 lt? false 0 over 0 1 eq? 0","stack":"[ false false 0 false false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 true nil eq? true 1 nil 0 true over drop dup 0 eq?","stack":"[ 0 false true 1 nil 0 true false ]"},{"fuel":14,"mask":"111111111000000010","program":"false true drop 0 0 over over swap 0 0 over mul false over","stack":"[ false 0 0 0 0 0 0 false 0 ]"},{"fuel":14,"mask":"111111111001000010","program":"nil 0 over eq? swap nil 1 1 over nil true true eq? over","stack":"[ false nil nil 1 1 1 nil true nil ]"},{"fuel":14,"mask":"111111111000111011","program":"nil dup false swap 1 dup swap drop cons true true false 1 0","stack":"[ nil false (1) true true false 1 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 true swap swap over drop 0 0 mul nil 1 drop swap eq?","stack":"[ 0 true false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil 1 over 0 true true eq? drop false 0 1 sub false over","stack":"[ nil 1 nil 0 false -1 false -1 ]"},{"fuel":14,"mask":"111111111000000010","program":"false dup 0 nil dup 0 true eq? nil swap 1 false nil null?","stack":"[ false false 0 nil nil nil false 1 false true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 false swap over dup swap nil 1 over dup 0 1 swap true","stack":"[ false 1 false false nil 1 nil nil 1 0 true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 nil null? eq? false swap dup 0 false drop drop true dup over","stack":"[ false false false true true true ]"},{"fuel":14,"mask":"111111111000000010","program":"true true nil eq? eq? dup swap 1 eq? false true 1 1 false","stack":"[ false false false true 1 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true nil swap dup dup 1 1 0 false drop dup eq? false","stack":"[ 1 nil true true true 1 1 true false ]"},{"fuel":14,"mask":"111111111000111111","program":"0 1 1 nil swap drop over over over swap 1 0 1 dup","stack":"[ 0 1 nil 1 1 nil 1 0 1 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"false 0 eq? false dup swap 0 false swap swap 1 over true eq?","stack":"[ false false false 0 false 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"false 1 swap nil nil false false false drop nil 1 nil swap false","stack":"[ 1 false nil nil false false nil nil 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"true nil drop drop 0 nil false true drop cons uncons true drop 1","stack":"[ 0 nil false 1 ]"},{"fuel":14,"mask":"111111010000000000","program":"1 nil 0 swap dup cons swap dup drop dup swap lt? eq? eq?","stack":"[ false ]"},{"fuel":14,"mask":"111111111101000010","program":"1 nil dup cons eq? 1 drop nil nil swap dup false eq? drop","stack":"[ false nil nil ]"},{"fuel":14,"mask":"111111111000000010","program":"false drop 1 nil swap false swap dup 1 lt? eq? true eq? over","stack":"[ nil false false false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 dup div false 0 drop true drop false 1 swap drop nil eq?","stack":"[ 1 false false ]"},{"fuel":14,"mask":"111111111001000010","program":"nil true false nil swap swap 1 drop null? drop eq? swap over over","stack":"[ false nil false nil ]"},{"fuel":14,"mask":"111111111000000010","program":"true false 0 dup mul over eq? 1 1 div true dup nil eq?","stack":"[ true false false 1 true false ]"},{"fuel":14,"mask":"111111111000000010","program":"false 0 eq? dup swap dup swap 1 0 1 false true over over","stack":"[ false false false 1 0 1 false true false true ]"},{"fuel":14,"mask":"111111111000000010","program":"false false eq? 1 drop nil swap drop nil dup 0 drop 1 false","stack":"[ nil nil nil 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"true 0 1 eq? nil dup false dup drop true over drop dup drop","stack":"[ true false nil nil false true ]"},{"fuel":14,"mask":"111111111100000010","program":"0 true drop nil 1 false 0 1 0 lt? dup 1 nil true","stack":"[ 0 nil 1 false 0 false false 1 nil true ]"},{"fuel":14,"mask":"111111111100000010","program":"false 1 over nil dup over swap drop true swap eq? nil nil null?","stack":"[ false 1 false nil false nil true ]"},{"fuel":14,"mask":"111111111000000010","program":"true true 0 eq? true drop eq? true swap 0 true true false 1","stack":"[ true false 0 true true false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"false 0 over nil dup dup true drop 1 false drop over eq? dup","stack":"[ false 0 false nil nil nil false false ]"},{"fuel":14,"mask":"111111111000000010","program":"false true eq? true eq? 0 dup dup lt? drop eq? 1 false eq?","stack":"[ false false ]"},{"fuel":14,"mask":"111111111001000010","program":"false 0 nil dup 1 true false 1 nil dup eq? nil over swap","stack":"[ false 0 nil nil 1 true false 1 true true nil ]"},{"fuel":14,"mask":"111111111000000010","program":"true false nil null? swap swap nil drop over nil over nil drop false","stack":"[ true false true false nil false false ]"},{"fuel":14,"mask":"111111111100000010","program":"1 1 dup eq? drop false 0 dup 0 drop nil true swap over","stack":"[ 1 false 0 0 true nil true ]"},{"fuel":14,"mask":"111111111000000010","program":"false dup drop true drop true drop true nil 1 cons 0 true false","stack":"[ false true (1) 0 true false ]"},{"fuel":14,"mask":"111111111011000010","program":"0 nil true over false nil drop cons eq? drop over over 1 cons","stack":"[ 0 nil 0 (1) ]"},{"fuel":14,"mask":"111111111000000010","program":"0 nil over dup over lt? 0 drop over true swap 1 mul true","stack":"[ 0 nil 0 false true 0 true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil 0 drop false dup 1 drop 1 true true eq? dup eq? swap","stack":"[ nil false false true 1 ]"},{"fuel":14,"mask":"111111111101000010","program":"1 false nil true true 0 eq? dup over false eq? over nil dup","stack":"[ 1 false nil true false false true false nil nil ]"},{"fuel":14,"mask":"111111111100000010","program":"nil false cons false over null? 1 nil swap 0 false nil nil true","stack":"[ (false) false false nil 1 0 false nil nil true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 dup dup eq? true swap drop nil null? false swap swap drop 1","stack":"[ 1 true true 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 true over false dup drop drop dup add 0 lt? 1 drop dup","stack":"[ 0 true false false ]"},{"fuel":14,"mask":"111111111000000010","program":"0 drop false true true swap true drop false dup false dup over eq?","stack":"[ false true true false false false true ]"},{"fuel":14,"mask":"111111111100000010","program":"1 false drop drop nil 0 0 1 sub div drop 0 1 lt?","stack":"[ nil true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true drop 0 swap true nil eq? false nil false 1 dup false","stack":"[ 0 1 false false nil false 1 1 false ]"},{"fuel":14,"mask":"111111111000111011","program":"0 nil eq? dup nil 0 swap eq? false true swap 1 1 0","stack":"[ false false false true false 1 1 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true 1 nil null? true over drop 0 0 mul dup lt? 1","stack":"[ 1 true 1 true true false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"true dup nil drop 1 true swap 1 mul 1 1 dup dup lt?","stack":"[ true true true 1 1 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil nil swap nil null? eq? nil 1 over null? 0 eq? nil drop","stack":"[ nil false nil 1 false ]"},{"fuel":14,"mask":"111111111001000010","program":"nil true eq? dup nil swap cons null? drop drop 1 0 1 nil","stack":"[ 1 0 1 nil ]"},{"fuel":14,"mask":"111111111000000010","program":"0 false swap dup swap dup eq? nil true false 1 true over eq?","stack":"[ false 0 true nil true false 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"false dup eq? nil 0 eq? false true over eq? over true swap false","stack":"[ true false false false true false false ]"},{"fuel":14,"mask":"111111111000111011","program":"0 drop 1 true swap 1 true drop sub eq? 0 over 0 dup","stack":"[ false 0 false 0 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"nil nil swap cons drop nil nil drop 1 0 add 1 0 false","stack":"[ nil 1 1 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 0 0 eq? swap over false over swap swap swap 1 over over","stack":"[ true 1 true true false 1 false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"false 1 false 1 false 1 over true nil over dup swap eq? eq?","stack":"[ false 1 false 1 false 1 false true false ]"},{"fuel":14,"mask":"111111111000000010","program":"0 nil swap true 0 true 1 swap 1 drop eq? eq? 0 false","stack":"[ nil 0 true false 0 false ]"},{"fuel":14,"mask":"111111111001000010","program":"1 0 0 mul nil 0 nil drop dup over over eq? false nil","stack":"[ 1 0 nil 0 0 true false nil ]"},{"fuel":14,"mask":"111111111000000010","program":"nil nil eq? drop nil 1 0 dup eq? swap false over 1 false","stack":"[ nil true 1 false 1 1 false ]"},{"fuel":14,"mask":"111111111100000010","program":"false dup 1 drop drop false dup 0 drop eq? nil dup nil false","stack":"[ false true nil nil nil false ]"},{"fuel":14,"mask":"111111111000000010","program":"0 false 1 true over 0 0 lt? 0 true 0 drop dup swap","stack":"[ 0 false 1 true 1 false 0 true true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 1 lt? drop 0 false swap true dup true swap dup false 1","stack":"[ false 0 true true true true false 1 ]"},{"fuel":14,"mask":"111111111100000010","program":"false nil 1 over eq? 0 nil true over 0 swap 1 drop false","stack":"[ false nil false 0 nil true 0 nil false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil dup 1 over drop 0 dup true false eq? false eq? true drop","stack":"[ nil nil 1 0 0 true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil null? drop 1 dup lt? false true nil 0 swap 0 true over","stack":"[ false false true 0 nil 0 true 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"nil 0 dup 0 eq? swap false 1 true over true swap drop 0","stack":"[ nil true 0 false 1 true true 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 dup false 1 0 true over swap dup drop 1 eq? 1 over","stack":"[ 1 1 false 1 0 0 false 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 dup eq? true 1 eq? eq? 0 swap nil true false false dup","stack":"[ 0 false nil true false false false ]"},{"fuel":14,"mask":"111111111100000010","program":"true dup dup dup drop false true 1 true nil null? 1 nil 1","stack":"[ true true true false true 1 true true 1 nil 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true drop nil swap 1 over dup div true drop false drop false","stack":"[ nil 1 1 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"0 0 nil eq? false eq? 0 true dup nil 1 true dup swap","stack":"[ 0 true 0 true true nil 1 true true ]"},{"fuel":14,"mask":"111111111000000010","program":"false 0 false false nil 0 swap drop over over true 1 drop 1","stack":"[ false 0 false false 0 false 0 true 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 0 0 0 lt? true nil true swap dup null? eq? 1 eq?","stack":"[ 1 0 false true true false ]"},{"fuel":14,"mask":"111111111000111111","program":"false nil 1 0 1 true drop div nil 1 dup 1 0 drop","stack":"[ false nil 1 0 nil 1 1 1 ]"},{"fuel":14,"mask":"111111111001000010","program":"0 1 lt? false swap swap drop 0 swap swap nil dup true nil","stack":"[ true 0 nil nil true nil ]"},{"fuel":14,"mask":"111111111000000010","program":"nil false drop nil 0 cons cons true eq? nil drop true over drop","stack":"[ false true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 0 false swap nil swap true over true over 0 swap eq? dup","stack":"[ 0 false nil 0 true 0 true true true ]"},{"fuel":14,"mask":"111111111000000010","program":"true false drop nil null? over dup swap false nil 0 dup add true","stack":"[ true true true true false nil 0 true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 drop nil 0 drop dup cons true nil 1 true true false over","stack":"[ (nil) true nil 1 true true false true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 drop 1 false swap dup lt? nil nil true cons dup eq? dup","stack":"[ false false nil true true ]"},{"fuel":14,"mask":"111111111000000010","program":"false 0 dup add eq? 1 eq? 1 drop false false nil drop 0","stack":"[ false false false 0 ]"},{"fuel":14,"mask":"111111111101000010","program":"0 0 true eq? true 0 over drop 0 dup add true nil dup","stack":"[ 0 false true 0 0 true nil nil ]"},{"fuel":14,"mask":"111111111100000010","program":"1 drop nil 0 0 nil null? nil 1 over dup 1 dup mul","stack":"[ nil 0 0 true nil 1 nil nil 1 ]"},{"fuel":14,"mask":"111111111100000010","program":"true false 1 dup false dup nil nil eq? swap drop dup nil over","stack":"[ true false 1 1 false true true nil true ]"},{"fuel":14,"mask":"111111111000000010","program":"false drop nil true eq? false nil swap false false nil nil eq? 0","stack":"[ false nil false false false true 0 ]"},{"fuel":14,"mask":"111111111101000010","program":"false true eq? 0 nil null? dup eq? true eq? 1 drop nil dup","stack":"[ false 0 true nil nil ]"},{"fuel":14,"mask":"111111111000000010","program":"0 1 dup dup nil eq? 1 dup drop 0 false true true 1","stack":"[ 0 1 1 false 1 0 false true true 1 ]"},{"fuel":14,"mask":"111111111000111011","program":"nil false 1 0 0 swap drop mul swap nil swap drop swap dup","stack":"[ nil nil 0 0 ]"},{"fuel":14,"mask":"111111111000111011","program":"false true 1 drop eq? dup true nil drop 1 0 false 0 dup","stack":"[ false false true 1 0 false 0 0 ]"},{"fuel":14,"mask":"111111111100000010","program":"nil 1 1 dup nil swap nil 1 over 1 dup add cons drop","stack":"[ nil 1 1 nil 1 nil 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 true nil null? swap nil 0 1 dup true true swap over over","stack":"[ 0 true true nil 0 1 1 true true true true ]"},{"fuel":14,"mask":"111111111000111011","program":"nil false false true 1 0 swap add over drop nil 0 dup 0","stack":"[ nil false false true 1 nil 0 0 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"true 0 false eq? drop 1 1 0 true nil eq? false 1 drop","stack":"[ true 1 1 0 false false ]"},{"fuel":14,"mask":"111111111101000010","program":"0 nil swap drop null? dup false 1 over swap nil dup swap dup","stack":"[ true true false false 1 nil nil nil ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true 0 false drop drop false true false eq? 0 nil eq? 1","stack":"[ 1 true false false false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 dup dup eq? over swap eq? true over 0 swap over swap over","stack":"[ 0 false true 0 0 false 0 ]"},{"fuel":14,"mask":"111111111001000010","program":"true false true drop false 1 swap 0 over eq? over eq? eq? nil","stack":"[ true false 1 false nil ]"},{"fuel":14,"mask":"111111111000000010","program":"0 drop true 1 nil true true nil 0 swap 1 eq? swap true","stack":"[ true 1 nil true true false 0 true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 drop false nil dup eq? 1 1 swap over swap over dup eq?","stack":"[ false true 1 1 1 true ]"},{"fuel":14,"mask":"111111111011000010","program":"nil null? drop 0 drop false false over swap 1 swap nil nil cons","stack":"[ false false 1 false (nil) ]"},{"fuel":14,"mask":"111111111000000010","program":"false false 1 1 add 1 div false over dup lt? swap false swap","stack":"[ false false 2 false false false ]"},{"fuel":14,"mask":"111111111100000010","program":"true false eq? true 0 nil false swap nil cons uncons null? swap 0","stack":"[ false true 0 false true nil 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"true nil true 0 drop false dup 0 dup lt? false false false drop","stack":"[ true nil true false false false false false ]"},{"fuel":14,"mask":"111111111000000010","program":"0 drop 1 1 false drop div drop nil false swap null? 1 true","stack":"[ false true 1 true ]"},{"fuel":14,"mask":"111111111000000010","program":"true 1 swap drop drop false drop nil 0 over nil 1 false over","stack":"[ nil 0 nil nil 1 false 1 ]"},{"fuel":14,"mask":"111111111000111011","program":"true 1 over eq? 0 nil true true 0 true 0 drop 0 dup","stack":"[ true false 0 nil true true 0 true 0 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 nil dup drop over swap eq? 1 0 true dup drop eq? drop","stack":"[ 1 false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 drop true false over dup dup nil false 1 false 0 swap 0","stack":"[ true false true true true nil false 1 0 false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 drop false drop 1 drop 1 dup true true false swap over 0","stack":"[ 1 1 true false true false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 true nil eq? nil null? 0 true false eq? false false swap swap","stack":"[ 0 false true 0 false false false ]"},{"fuel":14,"mask":"111111111000111011","program":"nil null? nil true drop false eq? over eq? swap eq? 0 0 over","stack":"[ false 0 0 0 ]"},{"fuel":14,"mask":"111111111001000010","program":"nil false false 1 drop 1 dup false dup false false false true nil","stack":"[ nil false false 1 1 false false false false false true nil ]"},{"fuel":14,"mask":"111111111000000010","program":"false drop 1 0 eq? drop false true dup nil 0 eq? drop false","stack":"[ false true true false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil drop true true 0 eq? eq? drop 1 nil true eq? over drop","stack":"[ 1 false ]"},{"fuel":14,"mask":"111111111100000010","program":"nil false nil eq? over nil false 1 drop nil false over nil null?","stack":"[ nil false nil nil false nil false nil true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil 1 true dup true false swap dup dup false eq? false drop 1","stack":"[ nil 1 true true false true true false 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"true 0 eq? false eq? 0 drop 1 over 1 swap over false swap","stack":"[ true 1 1 true false 1 ]"},{"fuel":14,"mask":"111111111100000010","program":"0 drop 1 1 true dup swap eq? drop nil dup eq? nil 1","stack":"[ 1 1 true nil 1 ]"},{"fuel":14,"mask":"111111111001000010","program":"true nil eq? 1 dup sub 0 0 drop false true nil null? nil","stack":"[ false 0 0 false true true nil ]"},{"fuel":14,"mask":"111111111000111011","program":"true drop 0 1 add true swap swap swap drop true 0 0 over","stack":"[ true true 0 0 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 dup dup 0 dup eq? over true 0 0 sub true true dup","stack":"[ 1 1 1 true 1 true 0 true true true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil nil 1 swap over cons false nil 1 0 false false drop over","stack":"[ nil 1 (1) false nil 1 0 false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"false false dup swap nil dup drop dup true nil swap 0 true true","stack":"[ false false false nil nil nil true 0 true true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 1 mul 0 add false nil 1 dup mul eq? 0 swap false","stack":"[ 1 false 0 false false ]"},{"fuel":14,"mask":"111111111000111111","program":"false false 0 eq? 0 1 sub 0 0 mul 1 swap drop swap","stack":"[ false false 1 -1 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 false false drop nil true eq? 0 false swap 1 sub over false","stack":"[ 0 false false false -1 false false ]"},{"fuel":14,"mask":"111111111000000010","program":"false false nil swap 1 over eq? 1 false 1 1 drop true eq?","stack":"[ false nil false false 1 false false ]"},{"fuel":14,"mask":"111111111000111011","program":"1 drop nil true dup swap false nil 0 over drop true drop dup","stack":"[ nil true true false nil 0 0 ]"},{"fuel":14,"mask":"111111111000111111","program":"1 0 0 sub 1 lt? 1 eq? drop 1 1 div over 1","stack":"[ 1 1 1 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 nil eq? 1 drop nil false drop 0 1 eq? nil 0 false","stack":"[ false nil false nil 0 false ]"},{"fuel":14,"mask":"111111111101000010","program":"nil dup swap eq? 0 1 eq? 0 0 lt? nil eq? nil dup","stack":"[ true false false nil nil ]"},{"fuel":14,"mask":"111111111100000010","program":"nil null? false false 1 dup eq? dup nil 1 swap swap drop false","stack":"[ true false false true true nil false ]"},{"fuel":14,"mask":"111111111000000010","program":"true dup drop drop true dup nil 1 nil 0 nil 1 swap null?","stack":"[ true true nil 1 nil 0 1 true ]"},{"fuel":14,"mask":"111111111000000010","program":"true drop false dup drop 1 eq? true dup eq? 0 nil drop drop","stack":"[ false true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 true drop 0 1 false dup 0 over eq? eq? true dup over","stack":"[ 0 0 1 false true true true true ]"},{"fuel":14,"mask":"111111111000111011","program":"false dup eq? 0 swap true drop dup swap nil over cons 0 0","stack":"[ 0 true true (true) 0 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 false drop drop true drop 1 0 eq? true dup true dup false","stack":"[ false true true true true false ]"},{"fuel":14,"mask":"111111111000000010","program":"0 false true over swap swap true 1 drop drop eq? drop 1 drop","stack":"[ 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"true nil 1 drop eq? 0 1 swap swap 0 over over 0 lt?","stack":"[ false 0 1 0 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"0 drop false false false over over true drop dup dup 0 true drop","stack":"[ false false false false false false false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"nil null? dup dup drop 1 1 div true 0 dup dup lt? false","stack":"[ true true 1 true 0 false false ]"},{"fuel":14,"mask":"111111111000000010","program":"false false dup 1 0 nil drop nil swap 1 false eq? true true","stack":"[ false false false 1 nil 0 false true true ]"},{"fuel":14,"mask":"111111111000111111","program":"0 drop true 1 drop drop 1 dup dup 1 div swap 0 sub","stack":"[ 1 1 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"false 0 drop true eq? false nil drop 0 over 0 over swap eq?","stack":"[ false false 0 false false ]"},{"fuel":14,"mask":"111111111000000010","program":"true false nil null? nil nil 1 swap eq? cons uncons dup over swap","stack":"[ true false true nil false false false ]"},{"fuel":14,"mask":"111111111000000010","program":"true false true false swap dup false drop nil nil swap cons eq? over","stack":"[ true false false true false true ]"},{"fuel":14,"mask":"111111111001000010","program":"nil dup eq? dup over true true true eq? false dup nil eq? nil","stack":"[ true true true true true false false nil ]"},{"fuel":14,"mask":"111111111000000010","program":"false false dup 1 dup over drop add eq? swap over false swap 0","stack":"[ false false false false false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"false 0 0 swap nil 0 eq? 0 true false nil false eq? false","stack":"[ false 0 0 false 0 true false false false ]"},{"fuel":14,"mask":"111111111011000010","program":"1 drop 0 dup eq? nil true over 0 dup lt? drop 1 cons","stack":"[ true nil true (1) ]"},{"fuel":14,"mask":"111111111000000010","program":"false drop 1 dup sub false swap true over false 0 swap swap swap","stack":"[ false 0 true 0 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil 0 0 mul false true eq? drop true dup eq? over eq? true","stack":"[ nil 0 false true ]"},{"fuel":14,"mask":"111111111000111011","program":"1 nil drop 1 sub 0 nil nil eq? over 1 swap 0 swap","stack":"[ 0 0 true 1 0 0 ]"},{"fuel":14,"mask":"111111111011000010","program":"nil false nil nil cons false 0 dup drop nil 0 nil dup cons","stack":"[ nil false (nil) false 0 nil 0 (nil) ]"},{"fuel":14,"mask":"111111111000000010","program":"0 drop false drop nil null? drop false false dup 1 dup over true","stack":"[ false false false 1 1 1 true ]"},{"fuel":14,"mask":"111111111000000010","program":"1 false 1 over nil swap over over swap 1 dup true true dup","stack":"[ 1 false 1 nil false false nil 1 1 true true true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil dup false true eq? over drop over eq? 0 1 sub dup drop","stack":"[ nil nil false -1 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 dup add false true 0 dup swap eq? 1 swap false over false","stack":"[ 2 false true 1 true false true false ]"},{"fuel":14,"mask":"111111111000111111","program":"0 false dup over over drop drop 0 false true dup over 1 1","stack":"[ 0 false false 0 false true true true 1 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 drop false false 0 1 true true swap 1 true over swap 1","stack":"[ false false 0 1 true true 1 1 true 1 ]"},{"fuel":14,"mask":"111111111011000010","program":"1 0 drop dup dup 0 1 1 0 nil false over 1 cons","stack":"[ 1 1 1 0 1 1 0 nil false (1) ]"},{"fuel":14,"mask":"111111111000111111","program":"1 nil swap swap drop dup swap swap dup 0 swap sub 1 over","stack":"[ 1 1 -1 1 -1 ]"},{"fuel":14,"mask":"111111111000000010","program":"0 dup mul false 1 eq? 0 1 dup lt? over 1 false false","stack":"[ 0 false 0 false 0 1 false false ]"},{"fuel":14,"mask":"111111111001000010","program":"false 0 false drop swap swap 0 drop nil over true nil swap over","stack":"[ false 0 nil 0 nil true nil ]"},{"fuel":14,"mask":"111111111000111011","program":"nil nil false eq? eq? nil 0 over over nil 1 0 0 add","stack":"[ false nil 0 nil 0 nil 1 0 ]"},{"fuel":14,"mask":"111111111101000010","program":"false true over over 1 false true dup true swap over nil nil nil","stack":"[ false true false true 1 false true true true true nil nil nil ]"},{"fuel":14,"mask":"111111111000000010","program":"1 false false true 1 nil eq? eq? 0 over drop over 1 false","stack":"[ 1 false false false 0 false 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"0 nil 1 true eq? drop dup dup nil null? eq? true 1 false","stack":"[ 0 nil nil false true 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"false 0 true dup drop drop dup add false eq? nil null? eq? dup","stack":"[ false false false ]"},{"fuel":14,"mask":"111111111000000010","program":"nil drop 1 0 dup true true swap false dup nil eq? dup drop","stack":"[ 1 0 0 true true false false ]"},{"fuel":14,"mask":"111111111100000010","program":"true true dup false drop over 1 nil eq? eq? 1 false nil over","stack":"[ true true true false 1 false nil false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 nil eq? 0 1 lt? 0 over 0 eq? eq? swap eq? true","stack":"[ false false true ]"},{"fuel":14,"mask":"111111111001000010","program":"0 false false over over drop nil dup swap true cons null? false nil","stack":"[ 0 false false false nil false false nil ]"},{"fuel":14,"mask":"111111111100000010","program":"true false over 1 swap dup over 0 true eq? nil over nil drop","stack":"[ true false 1 true true true false nil false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 1 add false nil drop dup 0 true drop true 1 false dup","stack":"[ 2 false false 0 true 1 false false ]"},{"fuel":14,"mask":"111111111000111011","program":"1 0 sub 1 over lt? dup swap drop drop 0 0 sub dup","stack":"[ 1 0 0 ]"},{"fuel":14,"mask":"111111111011000010","program":"0 dup over sub lt? nil false cons over cons nil swap uncons swap","stack":"[ false nil false (false) ]"},{"fuel":14,"mask":"111111111100000010","program":"nil 1 over false swap true over swap dup dup drop drop cons 0","stack":"[ nil 1 false nil (true) 0 ]"},{"fuel":14,"mask":"111111111111000010","program":"false 1 drop 1 true 1 over false true nil nil nil dup cons","stack":"[ false 1 true 1 true false true nil nil (nil) ]"},{"fuel":14,"mask":"111111010000000000","program":"0 dup true swap dup mul 1 drop drop drop 1 add 1 sub","stack":"[ 0 ]"},{"fuel":14,"mask":"111111111101000010","program":"true 0 true 0 nil null? eq? nil nil null? over 0 cons nil","stack":"[ true 0 true false nil true (0) nil ]"},{"fuel":14,"mask":"111111111000000010","program":"0 1 false nil over swap null? eq? 0 false 1 true drop eq?","stack":"[ 0 1 false false 0 false ]"},{"fuel":14,"mask":"111111111001000010","program":"true drop true 1 true swap eq? nil null? nil null? over false nil","stack":"[ true false true true true false nil ]"},{"fuel":14,"mask":"111111111000000010","program":"nil null? false eq? 0 true swap swap nil 1 0 true over over","stack":"[ false 0 true nil 1 0 true 0 true ]"},{"fuel":14,"mask":"111111111000111111","program":"true drop 1 false 1 nil drop eq? eq? 0 over over 1 1","stack":"[ false 0 false 0 1 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"true dup nil null? over 0 swap over swap dup 0 over swap true","stack":"[ true true true 0 0 true true true 0 true ]"},{"fuel":14,"mask":"111111111000000010","program":"true drop true nil null? eq? 0 swap nil false drop true 1 false","stack":"[ 0 true nil true 1 false ]"},{"fuel":14,"mask":"111111111000000010","program":"false false swap false true 0 0 add over 1 over 0 swap true","stack":"[ false false false true 0 true 1 0 true true ]"},{"fuel":14,"mask":"111111111000000010","program":"nil drop nil 1 nil swap eq? cons false false over swap eq? dup","stack":"[ (false) false true true ]"},{"fuel":14,"mask":"111111111101000010","program":"false nil eq? true true swap over over drop nil dup over over drop","stack":"[ false true true true nil nil nil ]"},{"fuel":14,"mask":"111111111100000010","program":"nil false cons dup eq? dup swap nil eq? 1 true drop nil 1","stack":"[ true false 1 nil 1 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 false swap dup div over eq? 0 nil swap eq? 0 1 eq?","stack":"[ false false false false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 true eq? true 1 1 false true dup 1 eq? 0 swap swap","stack":"[ false true 1 1 false true false 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"false dup over false eq? 0 nil eq? drop drop 0 true over false","stack":"[ false false 0 true 0 false ]"},{"fuel":14,"mask":"111111111000000010","program":"1 0 eq? false over over true eq? nil eq? 0 dup true 0","stack":"[ false false false false 0 0 true 0 ]"},{"fuel":14,"mask":"111111111000000010","program":"1 0 false swap dup sub swap swap eq? true over 0 1 lt?","stack":"[ 1 false true false true ]"},{"fuel":14,"mask":"111111111000000010","program":"0 false false over eq? dup dup false true eq? true drop swap eq?","stack":"[ 0 false true true false ]"},{"fuel":14,"mask":"111111111000000010","program":"0 nil nil swap over 1 over 1 over false dup 1 over false","stack":"[ 0 nil nil nil 1 nil 1 nil false false 1 false false ]"}]}</script>
+
+<div class="machine">
+  <header class="plate">
+    <div class="name serif">The Guarded Stack</div>
+    <div class="sub" id="subtitle">18 ops &middot; every one refuses what it cannot do</div>
+    <div class="readouts">
+      <div class="readout fuel"><span class="label">Fuel</span><span class="v" id="r-fuel">0</span></div>
+      <div class="readout legal"><span class="label">Legal now</span><span class="v" id="r-legal">5/18</span></div>
+      <div class="readout"><span class="label">Step</span><span class="v" id="r-step">0/0</span></div>
+      <div class="badge" id="r-conf">checking&hellip;</div>
+    </div>
+  </header>
+
+  <div class="tape-row" id="tape-row" hidden>
+    <span class="label">Program</span>
+    <div class="tape" id="tape"></div>
+    <span class="reason" id="tape-reason"></span>
+  </div>
+
+  <main id="main"></main>
+
+  <footer class="keys" id="keys"></footer>
+</div>
+
+<input id="entry" style="position:fixed;top:-100px;left:0;width:1px;height:1px;opacity:0" aria-label="command entry">
+
+<script>
+"use strict";
+
+/* ==== PORTABLE MACHINE START ==== */
+/* Everything between the START and END markers is extracted verbatim by
+   tests/test_stack_machine_explorer.py and replayed under node. Keep the
+   markers on their own lines.
+
+   The machine. A port of wandering_light/stack_machine.py.
+   It replays a fixture generated by the Python core on load; the badge in
+   the header is red if this port and the core ever disagree.
+   ====================================================================== */
+
+const Int  = v => ({ t:"int",  v });          // v is a BigInt
+const Bool = v => ({ t:"bool", v });
+const Lst  = items => ({ t:"list", items });
+const NIL = Lst([]), TRUE = Bool(true), FALSE = Bool(false), ZERO = Int(0n), ONE = Int(1n);
+
+function valueKey(v) {
+  if (v.t === "int")  return ["int", v.v.toString()];
+  if (v.t === "bool") return ["bool", v.v];
+  return ["list", v.items.map(valueKey)];
+}
+const keyOf = v => JSON.stringify(valueKey(v));
+const same  = (a, b) => keyOf(a) === keyOf(b);
+
+function fmt(v) {
+  if (v.t === "int")  return v.v.toString();
+  if (v.t === "bool") return v.v ? "true" : "false";
+  if (v.items.length === 0) return "nil";
+  return "(" + v.items.map(fmt).join(" ") + ")";
+}
+const fmtStack = st => st.length ? "[ " + st.map(fmt).join(" ") + " ]" : "[]";
+
+const peek = (c, d = 0) => c.stack[c.stack.length - 1 - d];
+const needs = (c, n) =>
+  c.stack.length < n ? `needs ${n} value(s), stack has ${c.stack.length}` : null;
+
+function floorDiv(a, b) {           // Python's // on integers
+  let q = a / b;
+  if (a % b !== 0n && (a < 0n) !== (b < 0n)) q -= 1n;
+  return q;
+}
+
+const literal = (name, value) => ({
+  name, group:"literals", effect:`( -- ${name} )`,
+  guard: () => null,
+  apply: c => [[...c.stack, value], 1],
+});
+
+const intBinary = (name, combine, extra) => ({
+  name, group:"arithmetic", effect:"( a b -- c )",
+  guard: c => {
+    const r = needs(c, 2); if (r !== null) return r;
+    const a = peek(c, 1), b = peek(c, 0);
+    if (a.t !== "int" || b.t !== "int") return "top two values are not both integers";
+    return extra ? extra(a.v, b.v) : null;
+  },
+  apply: c => [[...c.stack.slice(0, -2), Int(combine(peek(c,1).v, peek(c,0).v))], 1],
+});
+
+const plumbing = (name, effect, n, rearrange) => ({
+  name, group:"plumbing", effect,
+  guard: c => needs(c, n),
+  apply: c => [rearrange(c), 1],
+});
+
+const OPS = [
+  literal("0", ZERO), literal("1", ONE), literal("nil", NIL),
+  literal("true", TRUE), literal("false", FALSE),
+
+  plumbing("dup",  "( a -- a a )",     1, c => [...c.stack, peek(c,0)]),
+  plumbing("swap", "( a b -- b a )",   2, c => [...c.stack.slice(0,-2), peek(c,0), peek(c,1)]),
+  plumbing("drop", "( a -- )",         1, c => c.stack.slice(0,-1)),
+  plumbing("over", "( a b -- a b a )", 2, c => [...c.stack, peek(c,1)]),
+
+  { name:"cons", group:"structure", effect:"( lst a -- lst' )",
+    guard: c => {
+      const r = needs(c, 2); if (r !== null) return r;
+      return peek(c,1).t !== "list" ? "second value is not a list" : null;
+    },
+    apply: c => [[...c.stack.slice(0,-2), Lst([peek(c,0), ...peek(c,1).items])], 1] },
+
+  { name:"uncons", group:"structure", effect:"( lst -- tail head )",
+    guard: c => {
+      const r = needs(c, 1); if (r !== null) return r;
+      const t = peek(c,0);
+      if (t.t !== "list") return "top is not a list";
+      return t.items.length === 0 ? "list is empty" : null;
+    },
+    apply: c => {
+      const t = peek(c,0);
+      return [[...c.stack.slice(0,-1), Lst(t.items.slice(1)), t.items[0]], 1];
+    } },
+
+  { name:"null?", group:"structure", effect:"( lst -- bool )",
+    guard: c => {
+      const r = needs(c, 1); if (r !== null) return r;
+      return peek(c,0).t !== "list" ? "top is not a list" : null;
+    },
+    apply: c => [[...c.stack.slice(0,-1), Bool(peek(c,0).items.length === 0)], 1] },
+
+  intBinary("add", (a,b) => a + b),
+  intBinary("sub", (a,b) => a - b),
+  intBinary("mul", (a,b) => a * b),
+  intBinary("div", floorDiv, (a,b) => b === 0n ? "division by zero" : null),
+
+  { name:"eq?", group:"predicates", effect:"( a b -- bool )",
+    guard: c => needs(c, 2),
+    apply: c => [[...c.stack.slice(0,-2), Bool(same(peek(c,1), peek(c,0)))], 1] },
+
+  { name:"lt?", group:"predicates", effect:"( a b -- bool )",
+    guard: c => {
+      const r = needs(c, 2); if (r !== null) return r;
+      const a = peek(c,1), b = peek(c,0);
+      return (a.t !== "int" || b.t !== "int") ? "top two values are not both integers" : null;
+    },
+    apply: c => [[...c.stack.slice(0,-2), Bool(peek(c,1).v < peek(c,0).v)], 1] },
+];
+
+const OP_BY_NAME = new Map(OPS.map(op => [op.name, op]));
+const GROUPS = ["literals","plumbing","structure","arithmetic","predicates"];
+const legalOps  = c => OPS.filter(op => op.guard(c) === null);
+const legalMask = c => OPS.map(op => op.guard(c) === null);
+
+function runProgram(program) {
+  let c = { stack:[], fuel:0 };
+  const configs = [c];
+  let blocked = null;
+  for (let i = 0; i < program.length; i++) {
+    const reason = program[i].guard(c);
+    if (reason !== null) { blocked = { index:i, reason }; break; }
+    const [stack, cost] = program[i].apply(c);
+    c = { stack, fuel: c.fuel + cost };
+    configs.push(c);
+  }
+  return { configs, blocked };
+}
+
+const parse = text => text.split(/\s+/).filter(Boolean).map(n => OP_BY_NAME.get(n));
+
+/* ---------------------- conformance against the core ------------------ */
+
+const FIXTURE = JSON.parse(document.getElementById("conformance").textContent);
+
+function checkConformance() {
+  let checks = 0;
+  const fails = [];
+  const note = m => { if (fails.length < 4) fails.push(m); };
+
+  FIXTURE.ops.forEach((spec, i) => {
+    checks++;
+    if (!OPS[i] || OPS[i].name !== spec.name || OPS[i].group !== spec.group ||
+        OPS[i].effect !== spec.effect) note(`op ${i} (${spec.name})`);
+  });
+  checks++;
+  if (OPS.length !== FIXTURE.ops.length) note("op count");
+
+  for (const ex of [...FIXTURE.examples, ...FIXTURE.probes.map(p => ({ ...p, title:`probe ${p.program}` }))]) {
+    const { configs } = runProgram(parse(ex.program));
+    ex.trace.forEach((row, i) => {
+      checks += 3;
+      const c = configs[i];
+      if (!c) { note(`${ex.title} step ${i} missing`); return; }
+      if (fmtStack(c.stack) !== row.stack) note(`${ex.title} step ${i} stack`);
+      if (c.fuel !== row.fuel) note(`${ex.title} step ${i} fuel`);
+      if (legalOps(c).map(o => o.name).join(" ") !== row.legal.join(" "))
+        note(`${ex.title} step ${i} legal`);
+    });
+  }
+
+  for (const w of FIXTURE.walks) {
+    const { configs, blocked } = runProgram(parse(w.program));
+    const c = configs[configs.length - 1];
+    checks += 3;
+    if (blocked) note(`walk blocked: ${w.program}`);
+    if (fmtStack(c.stack) !== w.stack) note(`walk stack: ${w.program}`);
+    if (c.fuel !== w.fuel) note(`walk fuel: ${w.program}`);
+    if (legalMask(c).map(b => b ? "1" : "0").join("") !== w.mask)
+      note(`walk mask: ${w.program}`);
+  }
+  return { checks, fails };
+}
+
+/* ==== PORTABLE MACHINE END ==== */
+
+/* ======================================================================
+   The explorer
+   ====================================================================== */
+
+const el = id => document.getElementById(id);
+const entry = el("entry");
+
+const EXAMPLES = FIXTURE.examples.map(e => ({ title:e.title, program:e.program, note:e.note }));
+
+const state = {
+  view: "browser",
+  filter: "",
+  pick: 0,          // selection in the browser
+  program: [],      // Op objects
+  pos: 0,           // ops executed so far
+  title: "",
+  note: "",
+  opIndex: 0,       // selection in the palette
+  ghostNames: [],
+  showRefused: false,
+};
+
+let cache = { configs:[{stack:[],fuel:0}], blocked:null };
+
+const recompute = () => { cache = runProgram(state.program); };
+const maxPos = () => cache.configs.length - 1;
+const current = () => cache.configs[Math.min(state.pos, maxPos())];
+
+function matches(list, filter) {
+  if (!filter) return list;
+  const f = filter.toLowerCase();
+  const starts = list.filter(x => x.name.toLowerCase().startsWith(f));
+  return starts.length ? starts : list.filter(x => x.name.toLowerCase().includes(f));
+}
+const filteredLegal = () => matches(legalOps(current()), state.filter);
+
+function reroll() {
+  const pool = filteredLegal();
+  const selected = pool[state.opIndex];
+  const rest = pool.filter(op => op !== selected);
+  for (let i = rest.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rest[i], rest[j]] = [rest[j], rest[i]];
+  }
+  const chosen = selected ? [selected, ...rest.slice(0, 2)] : rest.slice(0, 3);
+  state.ghostNames = chosen.map(op => op.name);
+}
+
+/* ---------------------------- rendering ------------------------------- */
+
+const esc = s => s.replace(/[&<>]/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;" }[ch]));
+
+function cellsHtml(stack, ghostFrom) {
+  if (!stack.length) return `<div class="void">empty stack</div>`;
+  const keys = stack.map(keyOf);
+  let shared = 0;
+  if (ghostFrom) {
+    const base = ghostFrom.map(keyOf);
+    while (shared < keys.length && shared < base.length && keys[shared] === base[shared]) shared++;
+  }
+  return `<div class="cells">` + stack.map((v, i) => {
+    const text = fmt(v);
+    const depth = stack.length - 1 - i;
+    const cls = ["cell"];
+    if (depth === 0) cls.push("top");
+    if (text.length > 22) cls.push("long");
+    if (ghostFrom && i >= shared) cls.push("new");
+    const tag = depth === 0 ? "top" : String(depth);
+    return `<div class="${cls.join(" ")}"><span class="d">${tag}</span><span class="v">${esc(text)}</span></div>`;
+  }).join("") + `</div>`;
+}
+
+function renderTape() {
+  const row = el("tape-row");
+  if (state.view !== "editor") { row.hidden = true; return; }
+  row.hidden = false;
+  const parts = [];
+  if (!state.program.length) parts.push(`<span class="empty">nothing yet &mdash; type an op below and press Enter</span>`);
+  state.program.forEach((op, i) => {
+    if (i === state.pos) parts.push(`<span class="caret"></span>`);
+    const done = i < state.pos;
+    const bad = cache.blocked && cache.blocked.index === i;
+    parts.push(`<span class="chip ${bad ? "blocked" : done ? "done" : "pending"}">${esc(op.name)}</span>`);
+  });
+  if (state.pos >= state.program.length) parts.push(`<span class="caret"></span>`);
+  el("tape").innerHTML = parts.join("");
+  el("tape-reason").textContent =
+    cache.blocked ? `${state.program[cache.blocked.index].name}: ${cache.blocked.reason}` : "";
+  const caret = el("tape").querySelector(".caret");
+  if (caret) caret.scrollIntoView({ block:"nearest", inline:"nearest" });
+}
+
+function renderReadouts() {
+  const c = current();
+  el("r-fuel").textContent = c.fuel;
+  el("r-legal").textContent = `${legalOps(c).length}/${OPS.length}`;
+  el("r-step").textContent = state.view === "editor" ? `${state.pos}/${state.program.length}` : "—";
+}
+
+function renderBrowser() {
+  const shown = matches(EXAMPLES.map((e, i) => ({ ...e, i, name:e.title })), state.filter);
+  if (state.pick >= shown.length) state.pick = Math.max(0, shown.length - 1);
+  const cards = shown.map((e, n) => `
+    <div class="card ${n === state.pick ? "sel" : ""}" data-idx="${e.i}">
+      <div class="t">${esc(e.title)}</div>
+      <div class="p ${e.program ? "" : "blank"}">${e.program ? esc(e.program) : "(empty program)"}</div>
+      <div class="n">${esc(e.note)}</div>
+    </div>`).join("");
+  el("main").innerHTML = `
+    <div class="browser">
+      <p class="intro">A concatenative stack machine with <b>18 ops</b>. Every op carries a
+      <b>guard</b>: it either applies or tells you why it cannot, so at any moment only some
+      of the 18 are legal. Pick a program to take apart, or start from an empty stack.
+      Everything here is driven from the keyboard.</p>
+      ${shown.length ? `<div class="cards">${cards}</div>` : `<div class="none">No example matches &ldquo;${esc(state.filter)}&rdquo;. Press Esc to clear.</div>`}
+    </div>`;
+  el("main").querySelectorAll(".card").forEach(card =>
+    card.addEventListener("click", () => open(Number(card.dataset.idx))));
+  const sel = el("main").querySelector(".card.sel");
+  if (sel) sel.scrollIntoView({ block:"nearest" });
+}
+
+function renderEditor() {
+  const c = current();
+  const pool = filteredLegal();
+  const legalNow = legalOps(c);
+  if (state.opIndex >= pool.length) state.opIndex = Math.max(0, pool.length - 1);
+
+  const ghosts = state.ghostNames.map(n => OP_BY_NAME.get(n))
+    .filter(op => op && op.guard(c) === null)
+    .map(op => {
+      const [stack] = op.apply(c);
+      return `<div class="ghost ${op === pool[state.opIndex] ? "pick" : ""}">
+        <div class="gh"><span class="gn">${esc(op.name)}</span><span class="ge">${esc(op.effect)}</span></div>
+        ${cellsHtml(stack, c.stack)}
+      </div>`;
+    }).join("");
+
+  const rows = [];
+  let group = null;
+  const listed = state.showRefused ? matches(OPS, state.filter) : pool;
+  for (const op of listed) {
+    if (op.group !== group) { group = op.group; rows.push(`<div class="label grouphead">${group}</div>`); }
+    const reason = op.guard(c);
+    if (reason === null) {
+      const i = pool.indexOf(op);
+      rows.push(`<div class="op ${i === state.opIndex ? "sel" : ""}" data-op="${esc(op.name)}">
+        <span class="n">${esc(op.name)}</span><span class="e">${esc(op.effect)}</span></div>`);
+    } else {
+      rows.push(`<div class="op refused"><span class="n">${esc(op.name)}</span><span class="e">${esc(reason)}</span></div>`);
+    }
+  }
+  if (!listed.length) rows.push(`<div class="void">no op here matches &ldquo;${esc(state.filter)}&rdquo;</div>`);
+
+  el("main").innerHTML = `
+    <div class="bench">
+      <section class="col">
+        <div class="head"><span class="label">Stack</span><span class="ge label" style="color:var(--ink-ghost)">after ${state.pos} of ${state.program.length}</span></div>
+        <div class="body">${cellsHtml(c.stack, null)}</div>
+      </section>
+      <section class="col">
+        <div class="head"><span class="label">What if</span><span class="label" style="color:var(--ink-ghost)">${ghosts ? "up to three legal ops, previewed" : "nothing is legal here"}</span></div>
+        <div class="body">${ghosts ? `<div class="ghosts">${ghosts}</div>` : `<div class="void">Every op refuses this stack.</div>`}</div>
+      </section>
+      <section class="col">
+        <div class="filterline"><span class="arrow">&rsaquo;</span>
+          <span id="entry-mirror" style="flex:1;padding:11px 0;min-width:0;overflow:hidden;white-space:nowrap"></span></div>
+        <div class="head"><span class="label">${state.showRefused ? "All 18 ops" : "Legal here"}</span><span class="label" style="color:var(--ink-ghost)">${legalNow.length} of ${OPS.length}</span></div>
+        <div class="body"><div class="oplist">${rows.join("")}</div></div>
+      </section>
+    </div>`;
+
+  const mirror = el("entry-mirror");
+  mirror.innerHTML = state.filter
+    ? `${esc(state.filter)}<span class="caret" style="display:inline-block;width:2px;height:1em;vertical-align:-2px;margin-left:2px"></span>`
+    : `<span style="color:var(--ink-ghost)">type an op&hellip;</span>`;
+
+  el("main").querySelectorAll(".op[data-op]").forEach(row =>
+    row.addEventListener("click", () => { insert(OP_BY_NAME.get(row.dataset.op)); }));
+  const sel = el("main").querySelector(".op.sel");
+  if (sel) sel.scrollIntoView({ block:"nearest" });
+}
+
+const KEYS = {
+  browser: [["&uarr; &darr;","choose"],["&crarr;","open"],["type","filter"],["Esc","clear"]],
+  editor: [["&larr; &rarr;","step"],["&uarr; &darr;","select op"],["&crarr;","insert &amp; run"],
+           ["type","filter"],["&#9003;","delete"],["Tab","reroll previews"],["\\","show refused"],["Esc","back"]],
+};
+
+function renderKeys() {
+  el("keys").innerHTML = KEYS[state.view]
+    .map(([k, d]) => `<span><kbd>${k}</kbd>${d}</span>`).join("");
+}
+
+function render() {
+  el("subtitle").textContent = state.view === "editor"
+    ? state.note : "18 ops · every one refuses what it cannot do";
+  if (state.view === "browser") renderBrowser(); else renderEditor();
+  renderTape(); renderReadouts(); renderKeys();
+}
+
+/* ---------------------------- actions --------------------------------- */
+
+function setFilter(v) {
+  state.filter = v; entry.value = v;
+  state.opIndex = 0; state.pick = 0;
+  if (state.view === "editor") reroll();
+  render();
+}
+
+function open(idx) {
+  const ex = EXAMPLES[idx];
+  state.view = "editor";
+  state.program = parse(ex.program);
+  state.title = ex.title;
+  state.note = ex.note;
+  recompute();
+  state.pos = maxPos();
+  state.opIndex = 0;
+  setFilter("");
+}
+
+function toBrowser() { state.view = "browser"; setFilter(""); }
+
+function insert(op) {
+  if (!op || op.guard(current()) !== null) return;
+  state.program.splice(state.pos, 0, op);
+  recompute();
+  state.pos = Math.min(state.pos + 1, maxPos());
+  state.opIndex = 0;
+  setFilter("");
+}
+
+function deleteBefore() {
+  if (state.pos === 0) return;
+  state.program.splice(state.pos - 1, 1);
+  state.pos--;
+  recompute();
+  state.pos = Math.min(state.pos, maxPos());
+  reroll(); render();
+}
+
+function move(field, delta, len) {
+  if (!len) return;
+  state[field] = (state[field] + delta + len) % len;
+  render();
+}
+
+entry.addEventListener("keydown", e => {
+  const k = e.key;
+  if (state.view === "browser") {
+    const len = matches(EXAMPLES.map(x => ({ ...x, name:x.title })), state.filter).length;
+    if (k === "ArrowDown")      { move("pick", 1, len); e.preventDefault(); }
+    else if (k === "ArrowUp")   { move("pick", -1, len); e.preventDefault(); }
+    else if (k === "Enter")     {
+      const shown = matches(EXAMPLES.map((x, i) => ({ ...x, i, name:x.title })), state.filter);
+      if (shown[state.pick]) open(shown[state.pick].i);
+      e.preventDefault();
+    }
+    else if (k === "Escape")    { setFilter(""); e.preventDefault(); }
+    return;
+  }
+  if (k === "ArrowLeft")       { state.pos = Math.max(0, state.pos - 1); reroll(); render(); e.preventDefault(); }
+  else if (k === "ArrowRight") { state.pos = Math.min(maxPos(), state.pos + 1); reroll(); render(); e.preventDefault(); }
+  else if (k === "ArrowDown")  { move("opIndex", 1, filteredLegal().length); e.preventDefault(); }
+  else if (k === "ArrowUp")    { move("opIndex", -1, filteredLegal().length); e.preventDefault(); }
+  else if (k === "Enter")      { insert(filteredLegal()[state.opIndex]); e.preventDefault(); }
+  else if (k === "Tab")        { reroll(); render(); e.preventDefault(); }
+  else if (k === "Home")       { state.pos = 0; reroll(); render(); e.preventDefault(); }
+  else if (k === "End")        { state.pos = maxPos(); reroll(); render(); e.preventDefault(); }
+  else if (k === "\\")         { state.showRefused = !state.showRefused; render(); e.preventDefault(); }
+  else if (k === "Backspace" && entry.value === "") { deleteBefore(); e.preventDefault(); }
+  else if (k === "Escape")     { entry.value ? setFilter("") : toBrowser(); e.preventDefault(); }
+});
+
+entry.addEventListener("input", () => setFilter(entry.value));
+entry.addEventListener("blur", () => setTimeout(() => entry.focus(), 0));
+document.addEventListener("mousedown", e => {
+  if (e.target !== entry) setTimeout(() => entry.focus(), 0);
+});
+
+/* ------------------------------ boot ---------------------------------- */
+
+const { checks, fails } = checkConformance();
+const badge = el("r-conf");
+if (fails.length) {
+  badge.className = "badge bad";
+  badge.textContent = `✗ ${fails.length}+ disagree with core: ${fails[0]}`;
+} else {
+  badge.className = "badge ok";
+  badge.textContent = `✓ ${checks.toLocaleString()} checks vs Python core`;
+}
+
+render();
+entry.focus();
+</script>
