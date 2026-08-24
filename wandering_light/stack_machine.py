@@ -703,6 +703,47 @@ def step(config: Config, op: Op) -> Config:
     return replace(config, stack=stack, fuel=config.fuel + cost)
 
 
+def parse_stack(text: str) -> tuple[Value, ...]:
+    """The inverse of `format_stack`: read a printed stack back into values.
+
+    Input data is given, not built -- only 0 and 1 are literals, so there is no
+    program that produces the stack `[ 3 5 ]`. Anything that is not a number,
+    `nil`, `true`, `false` or a parenthesised list is an op name, and becomes a
+    `Sym`, which is what makes a printed quotation readable back in.
+    """
+
+    def read_value(token: str, tokens: list[str]) -> Value:
+        if token == "(":
+            items = []
+            while True:
+                if not tokens:
+                    raise MachineError("unterminated list")
+                head = tokens.pop(0)
+                if head == ")":
+                    return Lst(tuple(items))
+                items.append(read_value(head, tokens))
+        if token == ")":
+            raise MachineError("unexpected )")
+        if token == "nil":
+            return NIL
+        if token == "true":
+            return TRUE
+        if token == "false":
+            return FALSE
+        try:
+            return Int(int(token))
+        except ValueError:
+            return Sym(token)
+
+    spaced = text.replace("(", " ( ").replace(")", " ) ")
+    spaced = spaced.replace("[", " ").replace("]", " ")
+    tokens = spaced.split()
+    stack: list[Value] = []
+    while tokens:
+        stack.append(read_value(tokens.pop(0), tokens))
+    return tuple(stack)
+
+
 def parse_program(text: str) -> tuple[Op, ...]:
     """Whitespace-separated op names. Search never needs this; humans do."""
     program = []
