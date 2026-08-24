@@ -28,6 +28,9 @@
 }
 
 * { box-sizing:border-box; }
+/* Components below set display:flex, which outranks the user-agent rule for
+   [hidden]. Without this, every bar the script hides stays on screen empty. */
+[hidden] { display:none !important; }
 body {
   margin:0; background:var(--ground); color:var(--ink);
   font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -44,7 +47,7 @@ body {
 /* ---------- shell ---------- */
 .machine {
   height:100dvh; min-height:520px; display:grid;
-  grid-template-rows:auto auto minmax(0,1fr) auto;
+  grid-template-rows:auto auto minmax(0,1fr) auto auto;
   gap:0;
 }
 .plate {

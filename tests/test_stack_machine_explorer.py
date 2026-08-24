@@ -122,3 +122,47 @@ def test_javascript_port_replays_the_fixture():
     report = json.loads(result.stdout)
     assert report["fails"] == [], report["fails"]
     assert report["checks"] > 1000
+
+
+# ---------------------------------------------------------------------------
+# Layout invariants
+#
+# The page hides bars by setting the `hidden` attribute from script. That only
+# works if nothing outranks the user-agent rule for it, and the shell only
+# holds together if the grid declares a track per child. Both have been broken
+# by adding a row before, and neither shows up in a behavioural test.
+# ---------------------------------------------------------------------------
+
+STYLE = re.compile(r"<style>(.*?)</style>", re.DOTALL)
+SHELL = re.compile(r'<div class="machine">(.*?)\n</div>', re.DOTALL)
+TRACKS = re.compile(r"\.machine \{[^}]*grid-template-rows:([^;]+);", re.DOTALL)
+
+
+@pytest.fixture(scope="module")
+def page() -> str:
+    return PAGE.read_text(encoding="utf-8")
+
+
+def test_hidden_actually_hides(page):
+    """Components set display:flex, which beats the UA rule for [hidden]."""
+    css = STYLE.search(page).group(1)
+    assert re.search(r"\[hidden\]\s*\{[^}]*display\s*:\s*none\s*!important", css), (
+        "no [hidden] rule strong enough to beat the component display rules"
+    )
+
+
+def test_every_shell_child_has_a_grid_track(page):
+    """A child with no declared track lands in an implicit row."""
+    css = STYLE.search(page).group(1)
+    shell = SHELL.search(page).group(1)
+    children = re.findall(r"^  <(\w+)[^>]*>", shell, re.MULTILINE)
+    tracks = TRACKS.search(css).group(1).split()
+    assert len(children) == len(tracks), (children, tracks)
+
+
+def test_bars_the_script_toggles_are_hidden_in_the_markup(page):
+    """The bars start hidden, so a first paint never flashes an empty strip."""
+    shell = SHELL.search(page).group(1)
+    for element_id in ("tape-row", "pbe"):
+        row = re.search(rf'<div class="[^"]*" id="{element_id}"[^>]*>', shell)
+        assert row and " hidden" in row.group(0), element_id
