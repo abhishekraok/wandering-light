@@ -36,7 +36,7 @@ from collections import defaultdict
 from dataclasses import asdict, dataclass
 
 from wandering_light.stack_machine import (
-    OPS,
+    FIRST_ORDER_OPS,
     Bool,
     Config,
     Int,
@@ -46,7 +46,14 @@ from wandering_light.stack_machine import (
     value_key,
 )
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+
+# A "certified shortest" label is only meaningful relative to a basis: adding
+# ops can only shorten programs, never lengthen them. This corpus is certified
+# against the first-order basis, and every task records that, so a later basis
+# cannot silently invalidate the labels.
+OPS = FIRST_ORDER_OPS
+BASIS = "first-order-18"
 
 # A behaviour is the tuple of stacks a program leaves, one per example.
 Behaviour = tuple[tuple[Value, ...], ...]
@@ -64,6 +71,7 @@ class Task:
     witnesses: int  # distinct programs of this length with this behaviour
     certified: bool
     examples: int
+    basis: str = BASIS
     schema_version: int = SCHEMA_VERSION
 
 
