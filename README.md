@@ -163,14 +163,6 @@ print("Found trajectory:", trajectory)
 ```
 
 ## Evaluation
-
-> **The `TypedList` eval harness below is retired.** BFS solved its corpora 100%
-> at depth 4, so nothing measured against them separates a solver from free
-> search. New work uses the stack machine: a certified corpus at
-> `wandering_light/evals/data/stack_pbe_v2.jsonl.gz` and a measured baseline at
-> `reports/stack-machine-basis/bfs-baseline.md`. See [docs/retired.md](docs/retired.md)
-> for what is retired, what is kept, and why. The commands here still run.
-
 Create an evaluation file 
 ```bash
 python wandering_light/evals/create_data.py --save
