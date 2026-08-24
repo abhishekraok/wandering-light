@@ -93,10 +93,11 @@ def main() -> None:
     solved = [r for r in results if r["solved"]]
     nodes = sorted(r["nodes"] for r in solved)
     print(f"\nBFS baseline on {len(results)} {split} tasks\n")
-    print("The number a learned policy has to beat is NODES, not accuracy.")
-    print("Search already reaches everything the corpus contains -- the corpus was")
-    print("built by expanding to that depth -- so solve rate cannot separate a good")
-    print("policy from a bad one. Expansions per solved task is what it can move.\n")
+    print("On THIS corpus the number to beat is NODES, not accuracy: it stops at")
+    print("depth 6, where search still reaches everything, so solve rate saturates.")
+    print("That is a fact about this corpus, not about forward generation -- see")
+    print("deep-corpus-v1 (#37), where BFS fails 12.5% of tasks after an exhaustive")
+    print("sweep. Generation pays b^d once per root; search pays it once per task.\n")
     if nodes:
         print(
             f"{'nodes to solution':>20}  median {nodes[len(nodes) // 2]:>9,}"
