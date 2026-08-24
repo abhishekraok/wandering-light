@@ -41,23 +41,46 @@ def test_embedded_fixture_matches_the_core(embedded):
 def test_fixture_covers_every_op(embedded):
     """A fixture that never exercises an op cannot catch a port that breaks it."""
     exercised = {
-        name
-        for case in embedded["examples"] + embedded["probes"]
-        for name in case["program"].split()
+        name for case in embedded["examples"] for name in case["program"].split()
     } | {name for walk in embedded["walks"] for name in walk["program"].split()}
     assert exercised == {op["name"] for op in embedded["ops"]}
 
 
-def test_fixture_pins_the_guards_that_matter(embedded):
-    """Each guard must be observably closed somewhere in the recorded traces."""
-    legal_sets = [
-        set(row["legal"])
-        for case in embedded["examples"] + embedded["probes"]
-        for row in case["trace"]
+def masks(embedded) -> list[str]:
+    return [row["mask"] for case in embedded["examples"] for row in case["trace"]] + [
+        walk["mask"] for walk in embedded["walks"]
     ]
-    for name in ("div", "uncons", "cons", "add", "null?", "lt?", "swap"):
-        assert any(name not in legal for legal in legal_sets), name
-        assert any(name in legal for legal in legal_sets), name
+
+
+def test_fixture_pins_every_guard_open_and_closed(embedded):
+    """Each consuming op must be seen both offered and refused.
+
+    An op that is legal in every recorded state cannot catch a port whose guard
+    is broken open, and one that is never legal cannot catch the reverse.
+    """
+    rows = masks(embedded)
+    pushing = {"literals", "symbols"}
+    for index, op in enumerate(embedded["ops"]):
+        seen = {row[index] for row in rows}
+        if op["group"] in pushing:
+            # nothing here sets a fuel limit, so a push is always available
+            assert seen == {"1"}, op["name"]
+        else:
+            assert seen == {"0", "1"}, (op["name"], seen)
+
+
+def test_fixture_exercises_the_combinators_and_symbols(embedded):
+    """The point of this basis is quotations; the fixture must reach them."""
+    groups = {op["name"]: op["group"] for op in embedded["ops"]}
+    used = {name for case in embedded["examples"] for name in case["program"].split()}
+    assert {n for n in used if groups.get(n) == "combinators"} == {
+        "map",
+        "filter",
+        "fold",
+        "ifte",
+    }
+    assert {n for n in used if groups.get(n) == "symbols"}
+    assert any(case["inputs"] != [""] for case in embedded["examples"])
 
 
 MACHINE = re.compile(
