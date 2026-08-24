@@ -10,6 +10,7 @@ import abc
 import os
 from collections import deque
 from dataclasses import dataclass
+from typing import Literal
 
 import google.generativeai as genai
 import openai
@@ -31,6 +32,15 @@ class MaybeTrajectory:
     success: bool
     trajectory: Trajectory | None = None
     error_msg: str | None = None
+
+
+@dataclass(frozen=True)
+class BFSSearchResult:
+    """A BFS prediction together with the search cost and stop reason."""
+
+    function_defs: FunctionDefList
+    executions: int
+    termination: Literal["solved", "budget", "max_depth", "frontier_exhausted"]
 
 
 class FunctionPredictor(abc.ABC):
@@ -248,8 +258,19 @@ class BFSPredictor(FunctionPredictor):
         output_list: TypedList,
         available_functions: FunctionDefSet,
     ) -> FunctionDefList:
+        """Return only the predicted functions for the legacy predictor API."""
+        return self.search_with_cost(
+            input_list, output_list, available_functions
+        ).function_defs
+
+    def search_with_cost(
+        self,
+        input_list: TypedList,
+        output_list: TypedList,
+        available_functions: FunctionDefSet,
+    ) -> BFSSearchResult:
         """
-        Perform BFS to find a function sequence that transforms input_list to output_list.
+        Find a function sequence and report the compatible executions attempted.
 
         Fixed implementation that addresses:
         1. Missing visited state tracking
@@ -257,12 +278,12 @@ class BFSPredictor(FunctionPredictor):
         3. Inefficient execution (now executes incrementally)
         4. Missing type compatibility checks
         """
-        if not available_functions.functions:
-            return FunctionDefList()
-
         # Check if input already equals output (no functions needed)
         if input_list == output_list:
-            return FunctionDefList()
+            return BFSSearchResult(FunctionDefList(), 0, "solved")
+
+        if not available_functions.functions:
+            return BFSSearchResult(FunctionDefList(), 0, "frontier_exhausted")
 
         executor = Executor(available_functions)
 
@@ -272,13 +293,15 @@ class BFSPredictor(FunctionPredictor):
         queue = deque([(input_list, [])])
         # Track visited states to avoid redundant exploration
         visited = {self._state_key(input_list)}
-        trajectories_tried = 0
+        executions = 0
+        reached_max_depth = False
 
-        while queue and trajectories_tried < self.budget:
+        while queue and executions < self.budget:
             current_list, function_sequence = queue.popleft()
 
             # Don't explore beyond max depth
             if len(function_sequence) >= self.max_depth:
+                reached_max_depth = True
                 continue
 
             # Filter functions for type compatibility with current list
@@ -291,7 +314,7 @@ class BFSPredictor(FunctionPredictor):
             # Try applying each compatible function
             for func in compatible_functions:
                 new_sequence = [*function_sequence, func]
-                trajectories_tried += 1
+                executions += 1
 
                 # Execute function incrementally from current_list.
                 # _is_type_compatible only checks the container's item type, so a
@@ -301,17 +324,19 @@ class BFSPredictor(FunctionPredictor):
                 try:
                     new_list = executor.execute(func, current_list)
                 except Exception:
-                    if trajectories_tried >= self.budget:
-                        return FunctionDefList()
+                    if executions >= self.budget:
+                        return BFSSearchResult(FunctionDefList(), executions, "budget")
                     continue
 
                 # Check if this reaches the target
                 if new_list == output_list:
-                    return FunctionDefList(new_sequence)
+                    return BFSSearchResult(
+                        FunctionDefList(new_sequence), executions, "solved"
+                    )
 
                 # Check budget after each execution
-                if trajectories_tried >= self.budget:
-                    return FunctionDefList()
+                if executions >= self.budget:
+                    return BFSSearchResult(FunctionDefList(), executions, "budget")
 
                 # Check if this state has been visited before
                 state_key = self._state_key(new_list)
@@ -319,8 +344,11 @@ class BFSPredictor(FunctionPredictor):
                     visited.add(state_key)
                     queue.append((new_list, new_sequence))
 
-        # No solution found within budget/depth
-        return FunctionDefList()
+        if executions >= self.budget:
+            return BFSSearchResult(FunctionDefList(), executions, "budget")
+        if reached_max_depth:
+            return BFSSearchResult(FunctionDefList(), executions, "max_depth")
+        return BFSSearchResult(FunctionDefList(), executions, "frontier_exhausted")
 
     def _state_key(self, typed_list: TypedList) -> tuple:
         """Create a hashable key representing the state of a TypedList."""

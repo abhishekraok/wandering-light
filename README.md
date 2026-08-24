@@ -87,7 +87,7 @@ trajectories, measured 72K with the default solver, and recorded 62K function ca
 verified solutions. See the [basis-function report](reports/basis-library-20260815/README.md).
 
 Training curves and RL runs are in
-[WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg?accessToken=21hou3g702spnui44p3bn1arsplg4t0m0yvbcrchn9hfe8b6gdzn8ncq8wpe5721).
+[WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg).
 
 ## Installation
 This project requires python 3.12 or later. We use [uv](https://docs.astral.sh/uv/) for reproducible environments — the committed `uv.lock` pins every transitive dependency.

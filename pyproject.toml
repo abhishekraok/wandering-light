@@ -46,6 +46,9 @@ experiments = [
     "matplotlib>=3.8",
     "networkx>=3.0",
     "numpy>=1.26",
+    # W&B's report API is a separate Public Preview package. Pin it exactly so
+    # issue #50's programmatic report remains reproducible with wandb 0.20.1.
+    "wandb-workspaces==0.4.4",
 ]
 
 [tool.uv.sources]
