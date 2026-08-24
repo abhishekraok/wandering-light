@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import hashlib
 import json
 import random
 import sys
@@ -36,24 +37,34 @@ from collections import defaultdict
 from dataclasses import asdict, dataclass
 
 from wandering_light.stack_machine import (
-    FIRST_ORDER_OPS,
+    CORE_OPS,
+    DEFAULT_FUEL_LIMIT,
     Bool,
     Config,
     Int,
     Lst,
     Value,
     format_stack,
+    parse_stack,
+    step_raw,
     value_key,
 )
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
-# A "certified shortest" label is only meaningful relative to a basis: adding
-# ops can only shorten programs, never lengthen them. This corpus is certified
-# against the first-order basis, and every task records that, so a later basis
-# cannot silently invalidate the labels.
-OPS = FIRST_ORDER_OPS
-BASIS = "first-order-18"
+# The basis this corpus is certified against. A "certified shortest" label is
+# only meaningful relative to one, since adding ops can only shorten programs.
+#
+# This is the 26 executable ops: the first-order 18 plus dip, quote, cat, i and
+# the four combinators. It deliberately excludes the 26 symbol pushes. Symbols
+# are legal in every state, which triples the branching factor and costs two
+# whole depths of certification -- measured at 32x growth per depth against
+# 5.9x here. Quotations still reach the combinators, by arriving as part of a
+# task's input rather than being built op by op.
+OPS = CORE_OPS
+BASIS = "executable-26"
+
+TRAIN_FRACTION = 80  # out of 100
 
 # A behaviour is the tuple of stacks a program leaves, one per example.
 Behaviour = tuple[tuple[Value, ...], ...]
@@ -63,6 +74,7 @@ Behaviour = tuple[tuple[Value, ...], ...]
 class Task:
     """One PBE task with a certified-shortest witness program."""
 
+    split: str
     family: str
     inputs: tuple[str, ...]
     outputs: tuple[str, ...]
@@ -75,20 +87,49 @@ class Task:
     schema_version: int = SCHEMA_VERSION
 
 
+def assign_split(inputs: tuple[str, ...], outputs: tuple[str, ...]) -> str:
+    """Deterministic train/eval split keyed on the task itself.
+
+    Hashing the task rather than shuffling means the same task always lands in
+    the same split, so regenerating the corpus cannot quietly move a task
+    across the boundary. SHA-256 rather than `hash`, so it does not depend on
+    the interpreter.
+    """
+    payload = json.dumps([list(inputs), list(outputs)], sort_keys=True)
+    digest = hashlib.sha256(payload.encode()).hexdigest()
+    return "train" if int(digest[:8], 16) % 100 < TRAIN_FRACTION else "eval"
+
+
+def encode_task(task: Task) -> dict[str, str]:
+    """The text form a sequence model would be trained on.
+
+    Prompt is the examples; completion is the program. Kept here rather than in
+    a training script so the corpus and its encoding cannot drift apart.
+    """
+    pairs = " ; ".join(
+        f"{given} -> {wanted}"
+        for given, wanted in zip(task.inputs, task.outputs, strict=True)
+    )
+    return {"prompt": f"{pairs} =>", "completion": " " + " ".join(task.program)}
+
+
 def behaviour_key(behaviour: Behaviour) -> tuple:
     """Structural identity for a behaviour, built from `value_key`."""
     return tuple(tuple(value_key(v) for v in stack) for stack in behaviour)
 
 
 def step_all(behaviour: Behaviour, op) -> Behaviour | None:
-    """Apply `op` to every example, or None if any example's guard refuses."""
+    """Apply `op` to every example, or None if any example's guard refuses.
+
+    Uses `step_raw` rather than guard-then-apply: an op that runs code cannot
+    know its legality without running, so asking twice runs the body twice.
+    """
     out = []
     for stack in behaviour:
-        config = Config(stack)
-        if op.guard(config) is not None:
+        outcome = step_raw(op, stack, DEFAULT_FUEL_LIMIT, 0)
+        if isinstance(outcome, str):
             return None
-        new, _ = op.apply(config)
-        out.append(new)
+        out.append(outcome[0])
     return tuple(out)
 
 
@@ -128,6 +169,16 @@ def expand(
             complete = False
             break
     return found, complete
+
+
+def is_repetition(program: tuple[str, ...]) -> bool:
+    """Reject one op repeated, like `quote quote` or `dup dup`.
+
+    These are valid programs and useless tasks: they say nothing the length-one
+    version does not already say, and `quote` in particular manufactures a new
+    behaviour from any state, so it would otherwise pad the corpus.
+    """
+    return len(program) > 1 and len(set(program)) == 1
 
 
 def is_useful(inputs: Behaviour, outputs: Behaviour) -> bool:
@@ -197,6 +248,49 @@ FAMILIES: dict[str, list[Behaviour]] = {
     "lm_order3": [
         tuple((Int(a), Int(b), Int(c)) for a in (0, 1) for b in (0, 1) for c in (0, 1)),
     ],
+    # From here the input carries a quotation. This is what makes map, fold,
+    # filter, i and dip reachable without paying for 26 symbol pushes: the
+    # program does not build the function, the task hands it over.
+    "with_map": [
+        (
+            parse_stack("(1 0 1) (1 add)"),
+            parse_stack("(0 1 1) (1 add)"),
+            parse_stack("(1 1 0) (1 add)"),
+        ),
+        (
+            parse_stack("(2 5) (dup mul)"),
+            parse_stack("(3 4) (dup mul)"),
+        ),
+    ],
+    "with_fold": [
+        (
+            parse_stack("(1 2 3) 0 (add)"),
+            parse_stack("(4 5) 0 (add)"),
+            parse_stack("(7) 0 (add)"),
+        ),
+        (
+            parse_stack("(1 2 3) 1 (mul)"),
+            parse_stack("(2 2 2) 1 (mul)"),
+        ),
+    ],
+    "with_filter": [
+        (
+            parse_stack("(1 0 1 0) (0 eq?)"),
+            parse_stack("(0 0 1) (0 eq?)"),
+            parse_stack("(1 1) (0 eq?)"),
+        ),
+    ],
+    "with_apply": [
+        (
+            parse_stack("3 5 (add)"),
+            parse_stack("2 7 (add)"),
+            parse_stack("9 4 (add)"),
+        ),
+        (
+            parse_stack("6 (dup mul)"),
+            parse_stack("4 (dup mul)"),
+        ),
+    ],
 }
 
 
@@ -214,13 +308,16 @@ def generate(max_depth: int, per_depth: int, seed: int) -> tuple[list[Task], dic
                 if depth == 0:
                     continue
                 outputs = replay(inputs, program)
-                if not is_useful(inputs, outputs):
+                if not is_useful(inputs, outputs) or is_repetition(program):
                     continue
+                encoded_inputs = tuple(format_stack(Config(s)) for s in inputs)
+                encoded_outputs = tuple(format_stack(Config(s)) for s in outputs)
                 by_depth[depth].append(
                     Task(
+                        split=assign_split(encoded_inputs, encoded_outputs),
                         family=family,
-                        inputs=tuple(format_stack(Config(s)) for s in inputs),
-                        outputs=tuple(format_stack(Config(s)) for s in outputs),
+                        inputs=encoded_inputs,
+                        outputs=encoded_outputs,
                         program=program,
                         length=depth,
                         witnesses=witnesses,

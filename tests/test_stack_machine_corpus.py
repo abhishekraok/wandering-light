@@ -7,14 +7,20 @@ shortest -- which means exhaustively confirming nothing shorter works.
 
 import gzip
 import json
+from collections import Counter
 from pathlib import Path
 
 import pytest
 
-from wandering_light.stack_machine import OPS
+from wandering_light.stack_machine import Config, format_stack, parse_stack
 from wandering_light.stack_machine_corpus import (
+    BASIS,
     FAMILIES,
+    OPS,
+    Task,
+    assign_split,
     behaviour_key,
+    encode_task,
     expand,
     generate,
     is_useful,
@@ -26,7 +32,7 @@ CORPUS = (
     / "wandering_light"
     / "evals"
     / "data"
-    / "stack_pbe_v1.jsonl.gz"
+    / "stack_pbe_v2.jsonl.gz"
 )
 
 
@@ -36,58 +42,73 @@ def tasks() -> list[dict]:
         return [json.loads(line) for line in handle]
 
 
-def parse_stack(text: str):
-    """Read a formatted stack back into values.
-
-    `format_stack` wraps the whole stack in `[ ]` and each list in `( )`, with
-    the empty list printed as `nil`, so the two bracket kinds never collide.
-    Parsing here also round-trips the display form the corpus stores.
-    """
-    from wandering_light.stack_machine import Bool, Int, Lst
-
-    def read_list(tokens):
-        out = []
-        while True:
-            if not tokens:
-                raise ValueError("unterminated list")
-            tok = tokens.pop(0)
-            if tok == ")":
-                return Lst(tuple(out))
-            out.append(read_value(tok, tokens))
-
-    def read_value(tok, tokens):
-        if tok == "(":
-            return read_list(tokens)
-        if tok == "nil":
-            return Lst(())
-        if tok == "true":
-            return Bool(True)
-        if tok == "false":
-            return Bool(False)
-        return Int(int(tok))
-
-    spaced = text.replace("(", " ( ").replace(")", " ) ")
-    spaced = spaced.replace("[", " [ ").replace("]", " ] ")
-    tokens = spaced.split()
-    assert tokens[0] == "[" and tokens[-1] == "]", text
-    tokens = tokens[1:-1]
-    stack = []
-    while tokens:
-        stack.append(read_value(tokens.pop(0), tokens))
-    return tuple(stack)
-
-
 def test_parse_stack_round_trips_the_display_form():
-    from wandering_light.stack_machine import Config, format_stack
-
-    for text in ("[]", "[ nil 1 ]", "[ (1 0 1) ]", "[ ((1) nil true) -4 ]",
-                 "[ (true 0 0 1) ]", "[ false ]"):
+    """The corpus stores stacks as display text, so the parser is load-bearing."""
+    for text in (
+        "[]",
+        "[ nil 1 ]",
+        "[ (1 0 1) ]",
+        "[ ((1) nil true) -4 ]",
+        "[ (true 0 0 1) ]",
+        "[ false ]",
+        "[ (1 0 1) (1 add) ]",
+        "[ (1 2 3) 0 (add) ]",
+        "[ ((dup mul) map) ]",
+    ):
         assert format_stack(Config(parse_stack(text))) == text
 
 
 def test_corpus_is_not_empty(tasks):
     assert len(tasks) > 100
     assert {t["family"] for t in tasks} <= set(FAMILIES)
+
+
+def test_every_task_records_the_basis_it_was_certified_against(tasks):
+    """Labels are basis-relative; a corpus that does not say which is useless."""
+    assert {t["basis"] for t in tasks} == {BASIS}
+
+
+def test_the_split_is_deterministic_and_covers_both_sides(tasks):
+    counts = Counter(t["split"] for t in tasks)
+    assert set(counts) == {"train", "eval"}
+    share = counts["eval"] / len(tasks)
+    assert 0.10 < share < 0.30, counts
+    # and recomputing it from the task itself must agree
+    for task in tasks:
+        assert assign_split(tuple(task["inputs"]), tuple(task["outputs"])) == task["split"]
+
+
+def test_no_task_appears_in_both_splits(tasks):
+    """The split is keyed on the task, so an identical task cannot straddle."""
+    seen: dict[tuple, str] = {}
+    for task in tasks:
+        key = (tuple(task["inputs"]), tuple(task["outputs"]))
+        if key in seen:
+            assert seen[key] == task["split"], key
+        seen[key] = task["split"]
+
+
+def test_the_combinators_are_actually_exercised(tasks):
+    """The point of this basis is loops; the corpus must contain some."""
+    used = Counter(op for t in tasks for op in t["program"])
+    for name in ("map", "fold", "filter", "i"):
+        assert used[name] > 0, name
+    variable_length = [
+        t for t in tasks if "map" in t["program"] or "fold" in t["program"]
+    ]
+    assert variable_length, "no task needs a loop"
+
+
+def test_encoding_round_trips_into_the_program(tasks):
+    """The training encoding must recover exactly the certified program."""
+    for task in tasks[:200]:
+        record = Task(**task)
+        encoded = encode_task(record)
+        assert encoded["completion"].split() == list(task["program"])
+        for given in task["inputs"]:
+            assert given in encoded["prompt"]
+        for wanted in task["outputs"]:
+            assert wanted in encoded["prompt"]
 
 
 def test_every_program_reproduces_its_outputs(tasks):
