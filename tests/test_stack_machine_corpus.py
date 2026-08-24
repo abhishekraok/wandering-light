@@ -7,24 +7,28 @@ shortest -- which means exhaustively confirming nothing shorter works.
 
 import gzip
 import json
+import math
 from collections import Counter
 from pathlib import Path
 
 import pytest
 
-from wandering_light.stack_machine import Config, format_stack, parse_stack
+from wandering_light.stack_machine import Config, Int, Op, format_stack, parse_stack
 from wandering_light.stack_machine_corpus import (
     BASIS,
     FAMILIES,
     OPS,
+    CostedPath,
     Task,
     assign_split,
     behaviour_key,
     encode_task,
     expand,
+    expand_cost,
     generate,
     is_useful,
     replay,
+    step_all_costed,
 )
 
 CORPUS = (
@@ -75,7 +79,9 @@ def test_the_split_is_deterministic_and_covers_both_sides(tasks):
     assert 0.10 < share < 0.30, counts
     # and recomputing it from the task itself must agree
     for task in tasks:
-        assert assign_split(tuple(task["inputs"]), tuple(task["outputs"])) == task["split"]
+        assert (
+            assign_split(tuple(task["inputs"]), tuple(task["outputs"])) == task["split"]
+        )
 
 
 def test_no_task_appears_in_both_splits(tasks):
@@ -97,6 +103,21 @@ def test_the_combinators_are_actually_exercised(tasks):
         t for t in tasks if "map" in t["program"] or "fold" in t["program"]
     ]
     assert variable_length, "no task needs a loop"
+
+
+def test_cost_recertification_scope_is_the_101_loop_witnesses(tasks):
+    loop_ops = {"map", "fold", "filter"}
+    selected = [task for task in tasks if not loop_ops.isdisjoint(task["program"])]
+
+    assert len(selected) == 101
+    assert Counter(task["family"] for task in selected) == {
+        "with_filter": 40,
+        "with_fold": 37,
+        "with_map": 18,
+        "bool_int": 3,
+        "lm_order2": 2,
+        "int_pair": 1,
+    }
 
 
 def test_encoding_round_trips_into_the_program(tasks):
@@ -169,6 +190,62 @@ def test_the_behaviour_is_reachable_at_exactly_that_length(tasks):
         target = behaviour_key(tuple(parse_stack(s) for s in task["outputs"]))
         found, _ = expand(inputs, max_depth=task["length"])
         assert found[target][0] == task["length"], task
+
+
+def test_cost_expansion_trades_program_bits_for_log_fuel():
+    desired = " ".join(["1"] * 16)
+    source = " ".join(["0"] * 16)
+    inputs = (parse_stack(f"[ ({desired}) ({source}) (1 add) ]"),)
+    target = behaviour_key((parse_stack(f"[ ({desired}) ({desired}) ]"),))
+
+    breadth_first, _ = expand(inputs, max_depth=3)
+    assert breadth_first[target][1] == ("map",)
+
+    costed, complete = expand_cost(inputs, max_depth=3)
+    assert complete
+    assert costed[target].program == ("drop", "drop", "dup")
+    assert costed[target].fuel == 3
+    assert costed[target].kt == pytest.approx(3 + math.log2(3))
+
+
+def test_cost_expansion_retains_nondominated_arrivals_for_later_suffixes():
+    def transition(name: str, source: int, target: int, fuel: int) -> Op:
+        def guard(config):
+            return None if config.stack == (Int(source),) else "wrong state"
+
+        def apply(_config):
+            return (Int(target),), fuel
+
+        return Op(name, "test", "", guard, apply)
+
+    ops = (
+        transition("direct", 0, 3, 16),
+        transition("cheap-1", 0, 1, 1),
+        transition("cheap-2", 1, 2, 1),
+        transition("cheap-3", 2, 3, 1),
+        transition("finish", 3, 4, 2),
+    )
+    found, complete = expand_cost(((Int(0),),), max_depth=4, ops=ops)
+
+    assert complete
+    merge = found[behaviour_key(((Int(3),),))]
+    assert merge.program == ("cheap-1", "cheap-2", "cheap-3")
+    target = found[behaviour_key(((Int(4),),))]
+    assert target.program == ("direct", "finish")
+    assert target.score == 18 << 2
+
+
+def test_costed_steps_sum_work_and_preserve_per_example_fuel():
+    fold = next(op for op in OPS if op.name == "fold")
+    inputs = FAMILIES["with_fold"][0]
+    outcome = step_all_costed(inputs, (0, 0, 0), fold)
+
+    assert outcome is not None
+    _moved, example_fuels = outcome
+    path = CostedPath(("fold",), example_fuels)
+    assert path.example_fuels == (4, 3, 2)
+    assert path.fuel == 9
+    assert path.score == 9 << 1
 
 
 def test_tasks_are_not_degenerate(tasks):
