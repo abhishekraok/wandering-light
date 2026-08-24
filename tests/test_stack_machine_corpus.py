@@ -204,8 +204,16 @@ def test_generator_is_deterministic():
 
 @pytest.mark.slow
 def test_long_labels_are_certified_shortest(tasks):
-    """The same check at lengths 5 and 6, where each search is much larger."""
-    sample = stratified(tasks, per_cell=2, min_length=5)
+    """The same check at length 5, where each search is much larger.
+
+    Length 6 is deliberately excluded: re-certifying one costs a full expansion
+    to depth 5, minutes per task. It is covered instead, and more broadly, by
+    `experiments/stack_machine_baseline.py` -- that runs a separate BFS
+    implementation over the whole eval split and reports whether the length it
+    finds matches the label. That is the same minimality claim over all 355
+    tasks rather than a sample of them.
+    """
+    sample = stratified(tasks, per_cell=2, min_length=5, max_length=5)
     assert sample, "expected long tasks to check"
     for task in sample:
         inputs = tuple(parse_stack(s) for s in task["inputs"])
