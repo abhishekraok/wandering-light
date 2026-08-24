@@ -16,9 +16,21 @@ Design in four sentences:
    floats: the key is a value, not a digest, so it is identical in every
    process regardless of ``PYTHONHASHSEED``.
 
-Deliberately out of scope for this slice: quotations (``quote``/``cat``/``i``),
-combinators (``map``/``filter``/``fold``/``ifte``), ``dip``, ``linrec``, stack
-effect types, strings, and any wiring into ``TrajectoryGraph``.
+Quotations are ordinary list values. An op's *name* is a value too -- ``Sym``
+-- so a program is a list of symbols, built with the same ``nil`` and ``cons``
+that build any other list, and run with ``i``. Nothing here manipulates
+unevaluated program *text*: pushing ``Sym("add")`` materialises a value like
+any other push, which is what keeps every intermediate state a state.
+
+Combinators can loop, so the transition function is no longer total by
+construction. Every application that runs code carries a step budget, and
+exhausting it is reported through the same channel as any other refusal --
+``guard`` returns a reason. Totality is therefore restored by the guard rather
+than assumed.
+
+Deliberately out of scope: ``linrec`` (``ifte`` with a self-applying quotation
+reaches the same programs), stack effect types, strings, and any wiring into
+``TrajectoryGraph``.
 """
 
 from __future__ import annotations
@@ -27,6 +39,7 @@ import argparse
 import sys
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field, replace
+from functools import lru_cache
 
 # ---------------------------------------------------------------------------
 # Values
@@ -67,13 +80,30 @@ class Bool:
 
 
 @dataclass(frozen=True, slots=True)
+class Sym:
+    """The name of an op, as a value.
+
+    This is the whole of homoiconicity here. A quotation is just a list whose
+    items are symbols, so `nil` and `cons` build programs and `i` runs them --
+    no separate program representation, and no stage where the machine is
+    holding text instead of values.
+    """
+
+    name: str
+
+    def __post_init__(self) -> None:
+        if self.name.__class__ is not str:
+            raise MachineError(f"Sym takes a plain str, got {self.name.__class__}")
+
+
+@dataclass(frozen=True, slots=True)
 class Lst:
-    """A list of values. The empty list is `nil`."""
+    """A list of values. The empty list is `nil`; a quotation is one of these."""
 
     items: tuple[Value, ...] = ()
 
 
-Value = Int | Bool | Lst
+Value = Int | Bool | Sym | Lst
 
 NIL = Lst(())
 TRUE = Bool(True)
@@ -93,6 +123,8 @@ def value_key(value: Value) -> tuple:
         return ("int", value.value)
     if isinstance(value, Bool):
         return ("bool", value.value)
+    if isinstance(value, Sym):
+        return ("sym", value.name)
     return ("list", tuple(value_key(item) for item in value.items))
 
 
@@ -107,6 +139,8 @@ def format_value(value: Value) -> str:
         return str(value.value)
     if isinstance(value, Bool):
         return "true" if value.value else "false"
+    if isinstance(value, Sym):
+        return value.name
     if not value.items:
         return "nil"
     return "(" + " ".join(format_value(item) for item in value.items) + ")"
@@ -153,6 +187,19 @@ def format_stack(config: Config) -> str:
 
 Guard = Callable[[Config], str | None]
 Apply = Callable[[Config], tuple[tuple[Value, ...], int]]
+# An op that runs code decides legality and result together, because it cannot
+# know either without running: (stack, budget, depth) -> (stack, cost) | reason.
+Runner = Callable[[tuple, int, int], "tuple[tuple[Value, ...], int] | str"]
+
+# Reached only when a config carries no explicit limit. Combinators can loop,
+# so something must bound them or `guard` would not terminate.
+DEFAULT_FUEL_LIMIT = 100_000
+MAX_QUOTATION_DEPTH = 32
+
+
+def remaining_fuel(config: Config) -> int:
+    limit = config.fuel_limit if config.fuel_limit is not None else DEFAULT_FUEL_LIMIT
+    return max(0, limit - config.fuel)
 
 
 @dataclass(frozen=True, eq=False)
@@ -164,19 +211,88 @@ class Op:
     effect: str  # Factor-style ( inputs -- outputs ), documentation only.
     _guard: Guard = field(repr=False)
     _apply: Apply = field(repr=False)
+    _run: Runner | None = field(repr=False, default=None)
+
+    @property
+    def runs_code(self) -> bool:
+        """True for ops that execute a quotation, so their cost is not 1."""
+        return self._run is not None
 
     def guard(self, config: Config) -> str | None:
         """None when legal, else a short reason. Fuel is one such reason."""
         if config.fuel_limit is not None and config.fuel >= config.fuel_limit:
             return "out of fuel"
-        return self._guard(config)
+        if self._run is None:
+            return self._guard(config)
+        outcome = self._run(config.stack, remaining_fuel(config), 0)
+        return outcome if isinstance(outcome, str) else None
 
     def apply(self, config: Config) -> tuple[tuple[Value, ...], int]:
         """The new stack and the fuel this application costs."""
-        return self._apply(config)
+        if self._run is None:
+            return self._apply(config)
+        outcome = self._run(config.stack, remaining_fuel(config), 0)
+        if isinstance(outcome, str):
+            raise IllegalOpError(f"{self.name}: {outcome}")
+        return outcome
 
     def __repr__(self) -> str:
         return f"Op({self.name})"
+
+
+# ---------------------------------------------------------------------------
+# Running quotations
+# ---------------------------------------------------------------------------
+
+
+def step_raw(
+    op: Op, stack: tuple[Value, ...], budget: int, depth: int
+) -> tuple[tuple[Value, ...], int] | str:
+    """Apply one op to a bare stack under a budget, or return why it cannot."""
+    if budget <= 0:
+        return "out of fuel"
+    if op._run is not None:
+        return op._run(stack, budget, depth)
+    config = Config(stack)
+    reason = op._guard(config)
+    if reason is not None:
+        return reason
+    return op._apply(config)
+
+
+@lru_cache(maxsize=1 << 17)
+def run_body(
+    body: tuple, stack: tuple, budget: int, depth: int = 0
+) -> tuple[tuple[Value, ...], int] | str:
+    """Run a quotation body against a stack, or return the reason it stopped.
+
+    A body item that is a `Sym` names an op to apply; anything else is a value
+    to push. Cached because `guard` and `apply` ask the same question of the
+    same config, and the answer is expensive for a combinator.
+    """
+    if depth > MAX_QUOTATION_DEPTH:
+        return "quotation nested too deep"
+    cost = 0
+    for item in body:
+        if cost >= budget:
+            return "out of fuel"
+        if isinstance(item, Sym):
+            op = OP_BY_NAME.get(item.name)
+            if op is None:
+                return f"unknown op {item.name!r}"
+            outcome = step_raw(op, stack, budget - cost, depth + 1)
+            if isinstance(outcome, str):
+                # Name the op that refused, so a failure inside a quotation is
+                # not reported as though the combinator itself was misapplied.
+                return (
+                    outcome if outcome.startswith(op.name) else f"{op.name}: {outcome}"
+                )
+            stack, spent = outcome
+            cost += spent
+        else:
+            stack = (*stack, item)
+            cost += 1
+    return stack, cost
 
 
 def _needs(config: Config, count: int) -> str | None:
@@ -332,6 +448,235 @@ OPS: tuple[Op, ...] = (
 # Name -> op. The *order* of OPS is the stable action ordering; this mapping is
 # only ever used for lookup by name, never iterated.
 OP_BY_NAME: dict[str, Op] = {op.name: op for op in OPS}
+
+# ---------------------------------------------------------------------------
+# Quotation and combinator builders
+# ---------------------------------------------------------------------------
+
+
+def _symbol(name: str) -> Op:
+    """Push an op's name as a value. This is how a program becomes data."""
+    return Op(
+        name=f"'{name}",
+        group="symbols",
+        effect=f"( -- {name} )",
+        _guard=lambda config: None,
+        _apply=lambda config: ((*config.stack, Sym(name)), 1),
+    )
+
+
+def _quotations(stack: tuple, count: int) -> tuple | str:
+    """The top `count` values, checked to be quotations (lists)."""
+    if len(stack) < count:
+        return f"needs {count} value(s), stack has {len(stack)}"
+    top = stack[-count:]
+    for value in top:
+        if not isinstance(value, Lst):
+            return "expects a quotation on top"
+    return top
+
+
+def _run_i(stack: tuple, budget: int, depth: int):
+    got = _quotations(stack, 1)
+    if isinstance(got, str):
+        return got
+    (body,) = got
+    outcome = run_body(body.items, stack[:-1], budget - 1, depth + 1)
+    if isinstance(outcome, str):
+        return outcome
+    return outcome[0], outcome[1] + 1
+
+
+def _run_dip(stack: tuple, budget: int, depth: int):
+    got = _quotations(stack, 1)
+    if isinstance(got, str):
+        return got
+    if len(stack) < 2:
+        return f"needs 2 value(s), stack has {len(stack)}"
+    (body,) = got
+    kept = stack[-2]
+    outcome = run_body(body.items, stack[:-2], budget - 1, depth + 1)
+    if isinstance(outcome, str):
+        return outcome
+    return (*outcome[0], kept), outcome[1] + 1
+
+
+def _one_result(outcome, want_bool: bool = False):
+    """A body used as a function must leave exactly one value."""
+    if isinstance(outcome, str):
+        return outcome
+    stack, cost = outcome
+    if len(stack) != 1:
+        return f"body must leave exactly one value, left {len(stack)}"
+    if want_bool and not isinstance(stack[0], Bool):
+        return "body must leave a boolean"
+    return stack[0], cost
+
+
+def _run_map(stack: tuple, budget: int, depth: int):
+    got = _quotations(stack, 1)
+    if isinstance(got, str):
+        return got
+    if len(stack) < 2 or not isinstance(stack[-2], Lst):
+        return "second value is not a list"
+    (body,) = got
+    source = stack[-2]
+    out, cost = [], 1
+    for item in source.items:
+        result = _one_result(run_body(body.items, (item,), budget - cost, depth + 1))
+        if isinstance(result, str):
+            return result
+        value, spent = result
+        out.append(value)
+        cost += spent
+        if cost >= budget:
+            return "out of fuel"
+    return (*stack[:-2], Lst(tuple(out))), cost
+
+
+def _run_filter(stack: tuple, budget: int, depth: int):
+    got = _quotations(stack, 1)
+    if isinstance(got, str):
+        return got
+    if len(stack) < 2 or not isinstance(stack[-2], Lst):
+        return "second value is not a list"
+    (body,) = got
+    source = stack[-2]
+    out, cost = [], 1
+    for item in source.items:
+        result = _one_result(
+            run_body(body.items, (item,), budget - cost, depth + 1), want_bool=True
+        )
+        if isinstance(result, str):
+            return result
+        keep, spent = result
+        if keep.value:
+            out.append(item)
+        cost += spent
+        if cost >= budget:
+            return "out of fuel"
+    return (*stack[:-2], Lst(tuple(out))), cost
+
+
+def _run_fold(stack: tuple, budget: int, depth: int):
+    got = _quotations(stack, 1)
+    if isinstance(got, str):
+        return got
+    if len(stack) < 3 or not isinstance(stack[-3], Lst):
+        return "third value is not a list"
+    (body,) = got
+    source, acc = stack[-3], stack[-2]
+    cost = 1
+    for item in source.items:
+        result = _one_result(
+            run_body(body.items, (acc, item), budget - cost, depth + 1)
+        )
+        if isinstance(result, str):
+            return result
+        acc, spent = result
+        cost += spent
+        if cost >= budget:
+            return "out of fuel"
+    return (*stack[:-3], acc), cost
+
+
+def _run_ifte(stack: tuple, budget: int, depth: int):
+    got = _quotations(stack, 3)
+    if isinstance(got, str):
+        return got
+    condition, then, otherwise = got
+    rest = stack[:-3]
+    outcome = run_body(condition.items, rest, budget - 1, depth + 1)
+    if isinstance(outcome, str):
+        return outcome
+    tested, cost = outcome
+    if not tested or not isinstance(tested[-1], Bool):
+        return "condition must leave a boolean on top"
+    chosen = then if tested[-1].value else otherwise
+    outcome = run_body(chosen.items, rest, budget - cost - 1, depth + 1)
+    if isinstance(outcome, str):
+        return outcome
+    return outcome[0], outcome[1] + cost + 1
+
+
+def _combinator(name: str, effect: str, runner: Runner) -> Op:
+    return Op(
+        name=name,
+        group="combinators",
+        effect=effect,
+        _guard=lambda config: None,
+        _apply=lambda config: (config.stack, 1),
+        _run=runner,
+    )
+
+
+def _quotation_op(name: str, effect: str, runner: Runner) -> Op:
+    return Op(
+        name=name,
+        group="quotation",
+        effect=effect,
+        _guard=lambda config: None,
+        _apply=lambda config: (config.stack, 1),
+        _run=runner,
+    )
+
+
+def _cat_guard(config: Config) -> str | None:
+    if (reason := _needs(config, 2)) is not None:
+        return reason
+    if not isinstance(config.peek(1), Lst) or not isinstance(config.peek(0), Lst):
+        return "both values must be quotations"
+    return None
+
+
+FIRST_ORDER_OPS: tuple[Op, ...] = OPS
+
+# The ops that do something, as opposed to naming something.
+CORE_OPS: tuple[Op, ...] = (
+    *FIRST_ORDER_OPS,
+    # plumbing completed -- dip needs a quotation, so it could not exist before
+    Op(
+        "dip",
+        "plumbing",
+        "( x q -- ... x )",
+        lambda config: None,
+        lambda config: (config.stack, 1),
+        _run_dip,
+    ),
+    # quotation
+    Op(
+        "quote",
+        "quotation",
+        "( a -- (a) )",
+        lambda config: _needs(config, 1),
+        lambda config: ((*config.stack[:-1], Lst((config.peek(0),))), 1),
+    ),
+    Op(
+        "cat",
+        "quotation",
+        "( (a) (b) -- (a b) )",
+        _cat_guard,
+        lambda config: (
+            (*config.stack[:-2], Lst(config.peek(1).items + config.peek(0).items)),
+            1,
+        ),
+    ),
+    _quotation_op("i", "( q -- ... )", _run_i),
+    # combinators
+    _combinator("map", "( lst q -- lst' )", _run_map),
+    _combinator("filter", "( lst q -- lst' )", _run_filter),
+    _combinator("fold", "( lst acc q -- x )", _run_fold),
+    _combinator("ifte", "( qc qt qf -- ... )", _run_ifte),
+)
+
+# One symbol per core op -- *including* the combinators and `i`. Partial
+# coverage would be a quiet restriction to first-order quotations, under which
+# nothing can call itself, every program terminates, and the fuel guard could
+# never fire. Self-application is the point: it is what lets a program name
+# itself, and what makes the budget load-bearing rather than decorative.
+OPS = (*CORE_OPS, *(_symbol(op.name) for op in CORE_OPS))
+
+OP_BY_NAME = {op.name: op for op in OPS}
 
 
 # ---------------------------------------------------------------------------

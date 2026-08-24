@@ -6,6 +6,7 @@ import sys
 import pytest
 
 from wandering_light.stack_machine import (
+    FIRST_ORDER_OPS,
     NIL,
     OP_BY_NAME,
     OPS,
@@ -25,6 +26,9 @@ from wandering_light.stack_machine import (
     value_key,
 )
 
+# The first-order basis. Quotations and combinators were added later and are
+# covered by tests/test_stack_machine_quotations.py; these tests pin the
+# original 18 ops so that extending the basis cannot quietly change them.
 EXPECTED_OPS = {
     "literals": ["0", "1", "nil", "true", "false"],
     "plumbing": ["dup", "swap", "drop", "over"],
@@ -32,6 +36,9 @@ EXPECTED_OPS = {
     "arithmetic": ["add", "sub", "mul", "div"],
     "predicates": ["eq?", "lt?"],
 }
+
+# Ops that push without reading the stack, so they are legal in every config.
+PUSHING_GROUPS = {"literals", "symbols"}
 
 
 def execute(source: str, config: Config | None = None) -> Config:
@@ -49,10 +56,12 @@ def execute(source: str, config: Config | None = None) -> Config:
 
 def test_basis_is_exactly_the_named_ops():
     by_group: dict[str, list[str]] = {}
-    for op in OPS:
+    for op in FIRST_ORDER_OPS:
         by_group.setdefault(op.group, []).append(op.name)
     assert by_group == EXPECTED_OPS
-    assert len(OPS) == 18
+    assert len(FIRST_ORDER_OPS) == 18
+    # and the first-order ops keep their identity and order inside the full set
+    assert OPS[:18] == FIRST_ORDER_OPS
 
 
 def test_op_names_are_unique_and_order_is_stable():
@@ -170,17 +179,20 @@ print(json.dumps(config.key))
 # ---------------------------------------------------------------------------
 
 
-def test_only_literals_are_legal_on_an_empty_stack():
-    assert [op.name for op in legal_ops(Config())] == EXPECTED_OPS["literals"]
+def test_only_pushing_ops_are_legal_on_an_empty_stack():
+    legal = list(legal_ops(Config()))
+    assert {op.group for op in legal} == PUSHING_GROUPS
+    first_order = [op.name for op in legal if op in FIRST_ORDER_OPS]
+    assert first_order == EXPECTED_OPS["literals"]
 
 
-def test_every_non_literal_op_refuses_an_empty_stack_with_a_reason():
+def test_every_consuming_op_refuses_an_empty_stack_with_a_reason():
     for op in OPS:
         reason = op.guard(Config())
-        if op.group == "literals":
-            assert reason is None
+        if op.group in PUSHING_GROUPS:
+            assert reason is None, op.name
         else:
-            assert isinstance(reason, str) and reason
+            assert isinstance(reason, str) and reason, op.name
 
 
 def test_legal_mask_lines_up_with_ops():

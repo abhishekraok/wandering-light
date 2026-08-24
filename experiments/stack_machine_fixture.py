@@ -11,14 +11,26 @@ import json
 import random
 
 from wandering_light.stack_machine import (
-    OPS,
+    FIRST_ORDER_OPS,
     Config,
     format_stack,
-    legal_mask,
-    legal_ops,
     parse_program,
     step,
 )
+
+# The explorer teaches the first-order basis. Quotations and combinators are
+# deliberately outside it: porting a fuel-metered quotation interpreter to
+# JavaScript would be a second machine to keep in step, and the page's whole
+# claim is that it does not drift from this one.
+OPS = FIRST_ORDER_OPS
+
+
+def legal_ops(config):
+    return tuple(op for op in OPS if op.guard(config) is None)
+
+
+def legal_mask(config):
+    return tuple(op.guard(config) is None for op in OPS)
 
 EXAMPLES = [
     {
