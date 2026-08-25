@@ -235,6 +235,16 @@ class BFSPredictor(FunctionPredictor):
     """
 
     def __init__(self, budget: int = 100, max_depth: int = 3):
+        """`budget` counts **basis executions**, not trajectories.
+
+        Every type-compatible function tried costs one, including attempts
+        whose function raises. This changed with #50: it previously counted
+        trajectories dequeued, and executions are always the larger number, so
+        the same value is now a strictly tighter bound. Figures recorded before
+        that commit -- notably the reference curve in
+        `reports/deep-corpus-20260816/` -- are in the older unit and are not
+        directly comparable.
+        """
         self.budget = budget
         self.max_depth = max_depth
 
