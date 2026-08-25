@@ -1,4 +1,4 @@
-# One-step policy probe on `deep-corpus-v1`
+# One-step policy probes on `deep-corpus-v1`
 
 The cheapest test of #33's premise, run before building the search hybrid.
 
@@ -11,7 +11,8 @@ complete on 85% of tasks, so the label already exists and no search is needed.
 Reproduce:
 
 ```
-uv run python experiments/policy_probe.py <path-to-deep_corpus_v1>
+uv run python experiments/policy_probe.py <path-to-deep_corpus_v1>          # first action
+uv run python experiments/policy_probe.py <path-to-deep_corpus_v1> --last   # last action
 ```
 
 20,738 train / 2,907 validation / 2,905 test tasks with complete labels.
@@ -85,3 +86,77 @@ building the hybrid.
 
 It also tests **one step only**. #33 needs ordering at every step of a search,
 and nothing here says the second action is as predictable as the first.
+
+
+---
+
+# The last action, and why it is the more interesting end
+
+The first-action probe answers half the question. A policy head orders search
+at *every* step, so the second half is whether some other step is more
+learnable. `deep-corpus-v1` also stores `optimal_last_action_ids`, so the same
+machinery answers it.
+
+**The mask is not symmetric.** A first action must *consume* the task's input
+type; a last action must *produce* its output type. Masking on the wrong field
+would compare every predictor against a mask that does not apply. Measured:
+9.87 functions consume a given input type on average, but **25.88 produce a
+given output type** — so masking is worth 6.88 → 2.95 bits at the front and
+only 6.88 → 4.53 bits at the back.
+
+    Last-action policy probe -- 2905 test tasks
+
+    predictor                 top-1  mean rank   median    p90
+    uniform over all          0.0%     117.83      118    118
+    type mask                 0.3%      25.72       26     37
+    marginal frequency        7.6%      18.06       11     42
+    conditional lookup       22.3%       4.80        4     10
+    learned (mean-pool)      30.7%       4.10        3      9
+    learned (conv)           42.1%       3.43        2      8
+
+    Mean rank by certified distance
+
+    predictor                   d1      d2      d3      d4      d5      d6      d7
+    conditional lookup        6.62    5.48    5.10    4.41    4.18    4.21    4.27
+    learned (conv)            4.26    3.75    3.60    3.17    3.09    3.21    3.47
+
+## The finding inverts
+
+At the front, a dict matches a trained encoder. At the back it does not:
+
+| | lookup | conv encoder | gain |
+|---|---:|---:|---:|
+| **first** action, mean rank | 3.18 | 2.86 | 10% |
+| **first** action, top-1 | 42.1% | 42.2% | tie |
+| **last** action, mean rank | 4.80 | 3.43 | **29%** |
+| **last** action, top-1 | 22.3% | 42.1% | **+89%** |
+
+**Learning pays at the back and barely pays at the front.** The same encoder
+that could not beat a two-field dict on the first action nearly doubles its
+top-1 on the last one.
+
+The reason is visible in the mask numbers. At the front, the input type alone
+narrows 118 functions to about 10, and a dict keyed on two type fields
+captures most of what is left. At the back the type constraint is much weaker —
+26 functions produce any given output type — so there is far more residual
+signal, and it is in the values rather than the types.
+
+Note the absolute ordering still favours the front: 2.86 against 3.43 mean
+rank. The first action is *easier*; the last action is where a **model** adds
+more than a table.
+
+## What that suggests for #33
+
+#33 proposes a forward policy: order BFS expansion from the input. These
+numbers say the learnable signal is stronger running **backwards from the
+target**, which is a different architecture — bidirectional search with a
+learned backward policy, meeting a cheap forward expansion in the middle.
+
+That is a claim about one step at each end, not about a full search, and it
+should be tested before it is built. But it is a concrete alternative to the
+design in #33 and it comes from measurement rather than preference.
+
+**Both probes agree on one thing:** prediction does not degrade with distance.
+Last-action rank *improves* from 6.62 at distance 1 to 4.27 at distance 7 for
+the lookup, and 4.26 to 3.47 for the encoder. Longer programs do not make
+either endpoint harder to guess.
