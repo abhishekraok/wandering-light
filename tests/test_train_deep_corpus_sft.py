@@ -193,10 +193,10 @@ def test_import_does_not_load_model_or_wandb_stack():
     assert completed.stdout.strip() == "False False False False"
 
 
-def test_pristine_opt_base_model_is_exactly_pinned():
+def test_pristine_base_model_is_exactly_pinned():
     assert sft.DEFAULT_WANDB_PROJECT == "wandering-light-deep-corpus-v1"
-    assert sft.DEFAULT_BASE_MODEL_REPO == "facebook/opt-125m"
-    assert sft.DEFAULT_BASE_MODEL_REVISION == "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+    assert sft.DEFAULT_BASE_MODEL_REPO == "HuggingFaceTB/SmolLM2-360M"
+    assert sft.DEFAULT_BASE_MODEL_REVISION == "f8027fd0eaeea54caa13c31d31b9fdc459c38b49"
     assert sft.DEFAULT_MAX_LENGTH == 2048
     spec = sft.resolve_base_model(
         sft.DEFAULT_BASE_MODEL_REPO,
@@ -204,8 +204,8 @@ def test_pristine_opt_base_model_is_exactly_pinned():
     )
     assert spec.to_dict() == {
         "source": "huggingface",
-        "repo_id": "facebook/opt-125m",
-        "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6",
+        "repo_id": "HuggingFaceTB/SmolLM2-360M",
+        "revision": "f8027fd0eaeea54caa13c31d31b9fdc459c38b49",
     }
     with pytest.raises(ValueError, match="40-hex"):
         sft.resolve_base_model("facebook/opt-125m", "main")
@@ -352,7 +352,7 @@ def test_dry_run_never_calls_training_or_creates_output(tmp_path, monkeypatch):
     manifest = sft.run_training(config)
 
     assert manifest["status"] == "dry-run"
-    assert manifest["base_model"]["repo_id"] == "facebook/opt-125m"
+    assert manifest["base_model"]["repo_id"] == "HuggingFaceTB/SmolLM2-360M"
     assert manifest["preview"]["train_examples"][0]["completion"] == "inc"
     assert manifest["preview"]["validation_examples"][0]["split"] == "validation"
     assert manifest["wandb"]["entity"] == "abhishekraok-na"

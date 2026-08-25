@@ -50,8 +50,8 @@ DEFAULT_WANDB_PROJECT = "wandering-light-deep-corpus-v1"
 DEFAULT_CORPUS_DIR = Path("wandering_light/training/data/deep_corpus_v1")
 # Start from a pristine sub-0.5B base.  Prior induction checkpoints may have been
 # trained against a different basis and are therefore intentionally not defaults.
-DEFAULT_BASE_MODEL_REPO = "facebook/opt-125m"
-DEFAULT_BASE_MODEL_REVISION = "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+DEFAULT_BASE_MODEL_REPO = "HuggingFaceTB/SmolLM2-360M"
+DEFAULT_BASE_MODEL_REVISION = "f8027fd0eaeea54caa13c31d31b9fdc459c38b49"
 DEFAULT_MAX_LENGTH = 2048
 MAX_TOKEN_LENGTH_EXCLUSION_FRACTION = 0.001
 TRAIN_SPLIT = "discovery"

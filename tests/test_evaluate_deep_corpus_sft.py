@@ -92,8 +92,8 @@ def _write_checkpoint(tmp_path):
         "status": "complete",
         "base_model": {
             "source": "huggingface",
-            "repo_id": "facebook/opt-125m",
-            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6",
+            "repo_id": "HuggingFaceTB/SmolLM2-360M",
+            "revision": "f8027fd0eaeea54caa13c31d31b9fdc459c38b49",
         },
         "basis_set": basis.identity_dict(),
         "source_corpus": {
