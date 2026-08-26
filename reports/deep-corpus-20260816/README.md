@@ -298,6 +298,15 @@ distances, where only a sample of the frontier was expanded.
 
 ## BFS reference curve
 
+> **Unit note (added 2026-08-25).** The budget figures in this section count
+> **trajectories dequeued**, which is what `BFSPredictor.budget` meant when the
+> curve was measured. #50 redefined it to count **basis executions**, which is
+> always the larger number, so re-running with the same 20,000,000 applies a
+> strictly tighter bound. The solve counts and timings below are unaffected --
+> the budget never bound under either unit -- but do not compare a budget
+> figure here against one produced after that commit.
+
+
 This is the number every learned arm in #33 gets compared against. The solver
 is the one the repository ships, via `create_bfs_solver`, so its budget
 accounting is included. The sample is 96 tasks drawn from **validation and
