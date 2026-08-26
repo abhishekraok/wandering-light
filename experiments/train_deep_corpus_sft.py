@@ -8,8 +8,8 @@ module verifies the immutable manifest and basis digests, every split file, ever
 recorded witness, and the root-level split boundary.
 
 ``--dry-run`` deliberately stops before importing the model stack or W&B.  A real
-run requires CUDA, an immutable Hugging Face repository/revision pair, and an
-explicitly named W&B run in the owner's personal entity.  It creates no
+run requires CUDA, an immutable pretrained Hugging Face repository/revision pair,
+and an explicitly named W&B run in the owner's personal entity.  It creates no
 intermediate checkpoints and writes one weights-only final artifact with complete
 source, corpus, task-selection, basis, model, trainer, and W&B lineage.
 """
@@ -33,6 +33,7 @@ from wandering_light.basis_set import (
     load_basis_set,
     require_reproducible_basis_runtime,
 )
+from wandering_light.corpus_hub import fetch_corpus
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDefList, FunctionDefSet
 from wandering_light.llm_utils import generate_train_prompt
@@ -48,10 +49,15 @@ SCHEMA_VERSION = 1
 PERSONAL_WANDB_ENTITY = "abhishekraok-na"
 DEFAULT_WANDB_PROJECT = "wandering-light-deep-corpus-v1"
 DEFAULT_CORPUS_DIR = Path("wandering_light/training/data/deep_corpus_v1")
-# Start from a pristine sub-0.5B base.  Prior induction checkpoints may have been
-# trained against a different basis and are therefore intentionally not defaults.
+# Fine-tune an immutable pretrained sub-0.5B base. Prior task-relative checkpoints
+# may have been trained against a different basis and are intentionally rejected.
 DEFAULT_BASE_MODEL_REPO = "HuggingFaceTB/SmolLM2-360M"
 DEFAULT_BASE_MODEL_REVISION = "f8027fd0eaeea54caa13c31d31b9fdc459c38b49"
+PRETRAINED_MODEL_LOADER = "transformers.AutoModelForCausalLM.from_pretrained"
+APPROVED_BASE_MODEL_REVISIONS = {
+    "facebook/opt-125m": "27dcfa74d334bc871f3234de431e71c6eeba5dd6",
+    DEFAULT_BASE_MODEL_REPO: DEFAULT_BASE_MODEL_REVISION,
+}
 DEFAULT_MAX_LENGTH = 2048
 MAX_TOKEN_LENGTH_EXCLUSION_FRACTION = 0.001
 TRAIN_SPLIT = "discovery"
@@ -71,7 +77,7 @@ _FORBIDDEN_CHECKPOINT_NAMES = frozenset(
 
 @dataclass(frozen=True)
 class BaseModelSpec:
-    """One immutable Hugging Face base-model identity."""
+    """One immutable pretrained Hugging Face base-model identity."""
 
     repo_id: str
     revision: str
@@ -81,6 +87,8 @@ class BaseModelSpec:
             "source": "huggingface",
             "repo_id": self.repo_id,
             "revision": self.revision,
+            "weight_initialization": "pretrained",
+            "model_loader": PRETRAINED_MODEL_LOADER,
         }
 
 
@@ -158,7 +166,7 @@ def validate_personal_wandb_entity(entity: str) -> str:
 
 
 def resolve_base_model(repo_id: str, revision: str) -> BaseModelSpec:
-    """Validate a remote model identity without loading it or using the network."""
+    """Validate an approved foundation-model identity without using the network."""
     if not isinstance(repo_id, str) or not _HF_REPO_RE.fullmatch(repo_id):
         raise ValueError(
             "The base model must be an exact Hugging Face owner/repository ID; "
@@ -169,7 +177,39 @@ def resolve_base_model(repo_id: str, revision: str) -> BaseModelSpec:
             "The base model revision must be an immutable lowercase 40-hex commit "
             f"SHA; got {revision!r}"
         )
+    if APPROVED_BASE_MODEL_REVISIONS.get(repo_id) != revision:
+        raise ValueError(
+            "Base model is not an approved foundation-model revision for issue #50; "
+            "task-relative checkpoints are forbidden"
+        )
     return BaseModelSpec(repo_id=repo_id, revision=revision)
+
+
+def ensure_corpus(corpus_dir: Path) -> Path:
+    """Fetch missing split payloads from the manifest's immutable Hub revision."""
+
+    manifest_path = corpus_dir / "manifest.json"
+    if not manifest_path.is_file():
+        raise FileNotFoundError(f"Deep-corpus manifest is missing: {manifest_path}")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    splits = manifest.get("splits")
+    if not isinstance(splits, Mapping):
+        raise ValueError("Deep-corpus manifest has no split metadata")
+    missing = [
+        corpus_dir / metadata["path"]
+        for metadata in splits.values()
+        if isinstance(metadata, Mapping)
+        and not (corpus_dir / metadata["path"]).is_file()
+    ]
+    if missing:
+        fetch_corpus(manifest_path, destination=corpus_dir)
+    still_missing = [path for path in missing if not path.is_file()]
+    if still_missing:
+        raise FileNotFoundError(
+            "Deep-corpus payload fetch did not materialize required files: "
+            f"{[str(path) for path in still_missing]}"
+        )
+    return corpus_dir
 
 
 def _validate_config(config: DeepCorpusSFTConfig) -> None:
@@ -659,6 +699,7 @@ def prepare_training_corpus(
     from experiments import generate_deep_corpus as deep
 
     _validate_config(config)
+    ensure_corpus(config.corpus_dir)
     manifest, records = deep.load_corpus(config.corpus_dir, splits=REQUIRED_SPLITS)
     basis = load_basis_set(manifest["basis_set_id"])
     require_reproducible_basis_runtime(basis)

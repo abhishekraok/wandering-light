@@ -30,13 +30,14 @@ holds the argument.
 | **Basis growth by MDL** | Degenerate. Accepted 400 words without converging, basis 118 → 518, corpus −36.4%, **search 42,631x more expensive at depth 6**. Every candidate clearing the bar is length 2. | [#41](../../issues/41) |
 | **Policy probe, first action** | A lookup table on `(input type, output type)` reaches mean rank 3.18 and top-1 42.1%. Two byte-level encoders beat it by 10% on rank and tie on top-1. | [#33](../../issues/33) |
 | **Policy probe, last action** | Learning pays here and barely does at the front: lookup 4.80 / 22.3%, conv encoder **3.43 / 42.1%** — 29% better rank, nearly double top-1. Masking is weaker at the back (25.88 functions produce a given output type against 9.87 consuming a given input type). Neither end degrades with distance. | #33 |
-| **Learned solver, run 1** | `facebook/opt-125m`, 3-epoch SFT: 14/96 at k=64 on held-out. Cheaper than BFS at distances 3–4; **0/12 at every distance 5–8**. | [#50](../../issues/50) |
+| **Learned solver, run 1** | Pretrained `facebook/opt-125m`, 3-epoch SFT: 14/96 at k=64 on held-out. Cheaper than BFS at distances 3–4; **0/12 at every distance 5–8**. | [#50](../../issues/50) |
+| **Learned solver, run 2** | Pretrained `HuggingFaceTB/SmolLM2-360M`, same corpus and locked 3-epoch protocol: 4/96 at k=64, no cost win at any distance, and **0/12 at every distance 5–8**. A stronger pretrained base did not move the target number. | [#50](../../issues/50) |
 
 ## In flight
 
 | what | who | where | question it answers |
 |---|---|---|---|
-| Learned solver, run 2 | Codex agent | [#50](../../issues/50) | Does a stronger base model solve anything at distance 5+? |
+| Scratch solver scaling | Codex agent | [#54](../../issues/54) | Does a 10x corpus make random-init OPT-125M or SmolLM2-360M viable? |
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
 
 ## Superseded
@@ -55,9 +56,13 @@ correction lands in one place instead of being chased across comment threads.
 - **"`wl-core-v1` is a near-trivial composition monoid"** (#42's premise).
   Measured, it generates new behaviour at 5.77x/op against the stack machine's
   5.87x. What the evidence supports is that its *corpus* was trivial.
-- **"The autoregressive solver is finished on this substrate."** Only
-  `facebook/opt-125m` was tested — a 125M model from 2022, the weakest
-  plausible choice. Run 2 decides this.
+- **"The autoregressive solver is finished on this substrate."** Overstated
+  after run 1. A stronger pretrained SmolLM2-360M also remained 0/12 at every
+  distance 5–8, which supports the bounded conclusion for this locked
+  completion-only pretrained SFT protocol. It does not settle random-init
+  training or other objectives; #54 is the scratch follow-up.
+- **"Runs 1 and 2 used random initialization."** False. Both call
+  `AutoModelForCausalLM.from_pretrained`; neither is scratch evidence.
 - **"The TypedList eval harness is retired."** Reverted; nothing was deleted.
   `deep-corpus-v1` is the hard corpus and it lives on that harness.
 

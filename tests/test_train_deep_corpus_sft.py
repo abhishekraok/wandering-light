@@ -193,7 +193,7 @@ def test_import_does_not_load_model_or_wandb_stack():
     assert completed.stdout.strip() == "False False False False"
 
 
-def test_pristine_base_model_is_exactly_pinned():
+def test_pretrained_base_model_is_exactly_pinned_and_explicit():
     assert sft.DEFAULT_WANDB_PROJECT == "wandering-light-deep-corpus-v1"
     assert sft.DEFAULT_BASE_MODEL_REPO == "HuggingFaceTB/SmolLM2-360M"
     assert sft.DEFAULT_BASE_MODEL_REVISION == "f8027fd0eaeea54caa13c31d31b9fdc459c38b49"
@@ -206,11 +206,41 @@ def test_pristine_base_model_is_exactly_pinned():
         "source": "huggingface",
         "repo_id": "HuggingFaceTB/SmolLM2-360M",
         "revision": "f8027fd0eaeea54caa13c31d31b9fdc459c38b49",
+        "weight_initialization": "pretrained",
+        "model_loader": "transformers.AutoModelForCausalLM.from_pretrained",
     }
+    assert (
+        sft.resolve_base_model(
+            "facebook/opt-125m", "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+        ).repo_id
+        == "facebook/opt-125m"
+    )
     with pytest.raises(ValueError, match="40-hex"):
         sft.resolve_base_model("facebook/opt-125m", "main")
     with pytest.raises(ValueError, match="owner/repository"):
         sft.resolve_base_model("/tmp/mutable-checkpoint", "a" * 40)
+    with pytest.raises(ValueError, match="approved foundation-model"):
+        sft.resolve_base_model("abhishekraok/previous-checkpoint", "a" * 40)
+
+
+def test_missing_corpus_payload_is_fetched_from_pinned_manifest(tmp_path, monkeypatch):
+    corpus_dir = _write_corpus(tmp_path)
+    manifest_path = corpus_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    payload = corpus_dir / manifest["splits"]["test"]["path"]
+    expected_bytes = payload.read_bytes()
+    payload.unlink()
+    calls = []
+
+    def fake_fetch(path, *, destination):
+        calls.append((path, destination))
+        payload.write_bytes(expected_bytes)
+
+    monkeypatch.setattr(sft, "fetch_corpus", fake_fetch)
+
+    assert sft.ensure_corpus(corpus_dir) == corpus_dir
+    assert calls == [(manifest_path, corpus_dir)]
+    assert payload.read_bytes() == expected_bytes
 
 
 def test_token_length_filter_preserves_complete_labels_and_records_exclusions():

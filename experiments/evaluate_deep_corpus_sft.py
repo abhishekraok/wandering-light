@@ -26,6 +26,7 @@ import random
 import re
 import statistics
 import subprocess
+import sys
 import time
 from collections import defaultdict
 from dataclasses import dataclass
@@ -36,9 +37,9 @@ from urllib.parse import urlparse
 
 from experiments.generate_deep_corpus import load_corpus, verify_corpus
 from experiments.train_deep_corpus_sft import (
-    DEFAULT_BASE_MODEL_REPO,
-    DEFAULT_BASE_MODEL_REVISION,
+    PRETRAINED_MODEL_LOADER,
     assert_weights_only_artifact,
+    resolve_base_model,
     training_row_for_record,
 )
 from wandering_light.basis_set import BasisSet, load_basis_set
@@ -62,6 +63,11 @@ DEFAULT_SAMPLE_COUNTS = (1, 8, 64)
 _GIT_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 _CUBLAS_WORKSPACE_CONFIG = ":4096:8"
 _SUPPORTED_CUBLAS_WORKSPACE_CONFIGS = frozenset({":4096:8", ":16:8"})
+MODEL_COST_DEFINITION = (
+    "Each strictly parsed sampled program is charged its full function sequence "
+    "length; malformed text is charged zero and cannot solve. Sampling stops for "
+    "cost accounting at the first execution-correct program in each prefix."
+)
 
 
 @dataclass(frozen=True)
@@ -81,7 +87,8 @@ class EvaluationConfig:
     checkpoint: Path
     output_dir: Path
     corpus_dir: Path = DEFAULT_CORPUS_DIR
-    split: str = "test"
+    split: str = "validation"
+    selection_lock: Path | None = None
     tasks_per_distance: int = 12
     sample_counts: tuple[int, ...] = DEFAULT_SAMPLE_COUNTS
     seed: int = 20260816
@@ -132,6 +139,22 @@ def configure_deterministic_cuda_environment() -> str:
     if configured not in _SUPPORTED_CUBLAS_WORKSPACE_CONFIGS:
         os.environ["CUBLAS_WORKSPACE_CONFIG"] = _CUBLAS_WORKSPACE_CONFIG
     return os.environ["CUBLAS_WORKSPACE_CONFIG"]
+
+
+def configure_unbounded_int_serialization() -> int:
+    """Allow valid DSL outputs to contain integers beyond Python's text guard.
+
+    The evaluator serializes the actual output for diagnostics. Python 3.11+
+    otherwise raises for integers longer than the process limit (normally 4,300
+    digits), even though execution itself succeeded. This is deterministic and
+    changes only diagnostic JSON conversion, not solver semantics.
+    """
+
+    setter = getattr(sys, "set_int_max_str_digits", None)
+    if setter is not None:
+        setter(0)
+    getter = getattr(sys, "get_int_max_str_digits", None)
+    return int(getter()) if getter is not None else 0
 
 
 def _write_json(path: Path, value: Any) -> Path:
@@ -191,6 +214,24 @@ def _validate_config(config: EvaluationConfig) -> None:
     validate_personal_wandb_entity(config.wandb_entity)
     if config.split not in {"validation", "test"}:
         raise ValueError("split must be 'validation' or 'test'")
+    if config.split == "test" and config.selection_lock is None:
+        raise ValueError(
+            "Held-out test scoring requires a validation champion --selection-lock"
+        )
+    if config.split == "validation" and config.selection_lock is not None:
+        raise ValueError("--selection-lock is only valid with --split test")
+    if config.split == "test" and config.dry_run:
+        raise ValueError(
+            "A held-out test dry run would expose test labels without producing the "
+            "locked evaluation; dry-run the validation split instead"
+        )
+    if config.split == "test" and (
+        not config.run_bfs or config.bfs_budget != 20_000_000
+    ):
+        raise ValueError(
+            "Held-out test requires matched BFS with the locked 20,000,000-"
+            "execution safety budget"
+        )
     if config.tasks_per_distance <= 0:
         raise ValueError("tasks_per_distance must be positive")
     if config.sample_counts != DEFAULT_SAMPLE_COUNTS:
@@ -205,6 +246,166 @@ def _validate_config(config: EvaluationConfig) -> None:
         raise ValueError("bfs_budget must be positive")
     if not config.dry_run and not config.wandb_run_name:
         raise ValueError("An actual evaluation requires --wandb-run-name")
+
+
+def _parse_timestamp(value: Any, *, label: str) -> datetime:
+    if not isinstance(value, str):
+        raise ValueError(f"{label} has no timestamp")
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError as error:
+        raise ValueError(f"{label} has an invalid timestamp") from error
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{label} timestamp must include a UTC offset")
+    return parsed
+
+
+def validate_test_selection_lock(
+    selection_lock_path: Path,
+    *,
+    checkpoint: Path,
+) -> dict[str, Any]:
+    """Verify the validation-selected checkpoint before any test scoring starts."""
+
+    try:
+        payload = json.loads(selection_lock_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(
+            f"Could not read validation selection lock {selection_lock_path}: {error}"
+        ) from error
+    if payload.get("status") != "locked-before-held-out-test-scoring":
+        raise ValueError("Validation selection lock is not ready for test scoring")
+    discipline = payload.get("discipline", {})
+    if (
+        discipline.get("held_out_test_model_scored") is not False
+        or discipline.get("held_out_test_outcomes_used_for_selection") is not False
+        or discipline.get("selection_data") != "validation summaries only"
+    ):
+        raise ValueError("Validation selection lock has invalid test-score discipline")
+
+    evaluator_sha256 = _sha256_file(Path(__file__).resolve())
+    if payload.get("frozen_evaluator", {}).get("sha256") != evaluator_sha256:
+        raise ValueError("Validation selection lock does not freeze this evaluator")
+
+    assert_weights_only_artifact(checkpoint, require_complete=True)
+    actual_signature = tuple(
+        sorted(
+            (path.name, _sha256_file(path))
+            for path in checkpoint.iterdir()
+            if path.is_file()
+        )
+    )
+    champion = payload.get("champion", {})
+    try:
+        locked_signature = tuple(
+            sorted(
+                (row["name"], row["sha256"]) for row in champion["checkpoint_signature"]
+            )
+        )
+    except (KeyError, TypeError) as error:
+        raise ValueError(
+            "Validation selection lock has no checkpoint signature"
+        ) from error
+    if locked_signature != actual_signature:
+        raise ValueError("Test checkpoint is not the validation-locked champion")
+    training_manifest_path = checkpoint / "training_manifest.json"
+    if champion.get("checkpoint_training_manifest_sha256") != _sha256_file(
+        training_manifest_path
+    ):
+        raise ValueError("Validation lock has a different training manifest")
+
+    locked_at = _parse_timestamp(
+        payload.get("locked_at_utc"), label="Validation selection lock"
+    )
+    access_started = datetime.now(UTC)
+    if locked_at >= access_started:
+        raise ValueError("Validation selection lock timestamp is not in the past")
+    return {
+        "selection_lock_path": str(selection_lock_path.resolve()),
+        "selection_lock_sha256": _sha256_file(selection_lock_path),
+        "selection_locked_at_utc": payload["locked_at_utc"],
+        "selection_lock_validated_at_utc": access_started.isoformat(),
+        "frozen_evaluator_sha256": evaluator_sha256,
+        "locked_validation_identity": payload.get("validation_identity"),
+        "discipline": (
+            "Corpus integrity reads are allowed before selection; model-scored test "
+            "outcomes begin only after the validation champion is locked."
+        ),
+    }
+
+
+def _generation_protocol_from_config(config: EvaluationConfig) -> dict[str, Any]:
+    return {
+        "samples_per_task": max(config.sample_counts),
+        "sample_counts": list(config.sample_counts),
+        "seed": config.seed,
+        "temperature": config.temperature,
+        "top_p": config.top_p,
+        "max_new_tokens": config.max_new_tokens,
+        "batch_size": config.generation_batch_size,
+        "cost_definition": MODEL_COST_DEFINITION,
+    }
+
+
+def validate_locked_test_protocol(
+    test_access: Mapping[str, Any],
+    *,
+    config: EvaluationConfig,
+    corpus_identity: Mapping[str, Any],
+    cohort_identity: Mapping[str, Any],
+) -> None:
+    """Reject any post-lock corpus, cohort, or sampling drift before test scoring."""
+
+    identity = test_access.get("locked_validation_identity")
+    if not isinstance(identity, dict):
+        raise ValueError("Validation selection lock has no frozen protocol identity")
+    cohort_protocol = {
+        key: cohort_identity.get(key)
+        for key in ("seed", "selection", "tasks", "by_certified_distance")
+    }
+    if (
+        identity.get("corpus_manifest_digest") != corpus_identity.get("manifest_digest")
+        or identity.get("basis_set_digest") != corpus_identity.get("basis_set_digest")
+        or identity.get("cohort_protocol") != cohort_protocol
+        or identity.get("generation_protocol")
+        != _generation_protocol_from_config(config)
+    ):
+        raise ValueError(
+            "Held-out test configuration differs from the validation-locked protocol"
+        )
+
+
+def consume_test_selection_lock(
+    selection_lock_path: Path,
+    *,
+    test_access: Mapping[str, Any],
+    output_dir: Path,
+) -> dict[str, Any]:
+    """Create an exclusive receipt so the normal pipeline scores a lock once."""
+
+    receipt_path = selection_lock_path.with_name(
+        selection_lock_path.name + ".test-consumed.json"
+    )
+    receipt = {
+        "status": "held-out-test-scoring-started",
+        "selection_lock_sha256": test_access["selection_lock_sha256"],
+        "test_scoring_started_at_utc": test_access["test_scoring_started_at_utc"],
+        "evaluation_output_dir": str(output_dir.resolve()),
+    }
+    try:
+        with receipt_path.open("x", encoding="utf-8") as receipt_file:
+            json.dump(receipt, receipt_file, indent=2, sort_keys=True)
+            receipt_file.write("\n")
+    except FileExistsError as error:
+        raise RuntimeError(
+            "Validation selection lock has already been consumed for test scoring: "
+            f"{receipt_path}"
+        ) from error
+    return {
+        "path": str(receipt_path.resolve()),
+        "sha256": _sha256_file(receipt_path),
+        **receipt,
+    }
 
 
 def ensure_corpus(corpus_dir: Path) -> Path:
@@ -324,6 +525,7 @@ def evaluate_candidate(
 ) -> dict[str, Any]:
     """Parse and execute one sample, retaining exact and semantic correctness."""
 
+    configure_unbounded_int_serialization()
     if sample_index < 0:
         raise ValueError("sample_index must be non-negative")
     parsed = parse_program(response, available_functions)
@@ -730,14 +932,24 @@ def _checkpoint_identity(
     training_manifest = json.loads(training_manifest_path.read_text(encoding="utf-8"))
     if training_manifest.get("status") != "complete":
         raise ValueError("Checkpoint training manifest is not complete")
-    if training_manifest.get("base_model") != {
-        "source": "huggingface",
-        "repo_id": DEFAULT_BASE_MODEL_REPO,
-        "revision": DEFAULT_BASE_MODEL_REVISION,
-    }:
+    base_model = training_manifest.get("base_model")
+    if not isinstance(base_model, dict) or base_model.get("source") != "huggingface":
+        raise ValueError("Checkpoint has no immutable Hugging Face base identity")
+    try:
+        resolve_base_model(base_model["repo_id"], base_model["revision"])
+    except (KeyError, ValueError) as error:
         raise ValueError(
-            "Checkpoint did not start from the required pristine OPT-125M revision"
-        )
+            "Checkpoint has an invalid pretrained base identity"
+        ) from error
+    # Artifacts produced before this field was added are accepted because their
+    # frozen runner source still proves the same from_pretrained call.
+    if base_model.get("weight_initialization", "pretrained") != "pretrained":
+        raise ValueError("Checkpoint was not initialized from pretrained weights")
+    if (
+        base_model.get("model_loader", PRETRAINED_MODEL_LOADER)
+        != PRETRAINED_MODEL_LOADER
+    ):
+        raise ValueError("Checkpoint records an unsupported pretrained model loader")
     if training_manifest.get("basis_set") != basis.identity_dict():
         raise ValueError(
             "Checkpoint basis identity does not match the evaluation corpus"
@@ -1249,6 +1461,15 @@ def run_evaluation(config: EvaluationConfig) -> dict[str, Any]:
     """Verify provenance, evaluate, aggregate, persist, and log one run."""
 
     _validate_config(config)
+    int_max_str_digits = configure_unbounded_int_serialization()
+    test_access = (
+        validate_test_selection_lock(
+            config.selection_lock,
+            checkpoint=config.checkpoint,
+        )
+        if config.split == "test" and config.selection_lock is not None
+        else None
+    )
     if config.output_dir.exists():
         raise FileExistsError(
             f"Output directory already exists; choose a fresh path: {config.output_dir}"
@@ -1271,6 +1492,13 @@ def run_evaluation(config: EvaluationConfig) -> dict[str, Any]:
         basis,
         project=config.wandb_project,
     )
+    if test_access is not None:
+        validate_locked_test_protocol(
+            test_access,
+            config=config,
+            corpus_identity=corpus_identity,
+            cohort_identity=cohort_identity,
+        )
     available_functions = basis.as_function_set()
 
     if config.dry_run:
@@ -1282,6 +1510,8 @@ def run_evaluation(config: EvaluationConfig) -> dict[str, Any]:
             "checkpoint": checkpoint_identity,
             "source_code": source_code,
             "verification": verification,
+            "test_access": test_access,
+            "runtime_safety": {"int_max_str_digits": int_max_str_digits},
             "preview": [
                 training_row_for_record(record, available_functions)
                 for record in cohort[:8]
@@ -1289,6 +1519,13 @@ def run_evaluation(config: EvaluationConfig) -> dict[str, Any]:
         }
 
     config.output_dir.mkdir(parents=True)
+    if test_access is not None and config.selection_lock is not None:
+        test_access["test_scoring_started_at_utc"] = datetime.now(UTC).isoformat()
+        test_access["consumption_receipt"] = consume_test_selection_lock(
+            config.selection_lock,
+            test_access=test_access,
+            output_dir=config.output_dir,
+        )
     _write_json(config.output_dir / "cohort.json", cohort_identity)
     candidate_rows, generation_runtime = generate_model_candidates(
         cohort,
@@ -1343,20 +1580,10 @@ def run_evaluation(config: EvaluationConfig) -> dict[str, Any]:
         "checkpoint": checkpoint_identity,
         "source_code": source_code,
         "verification": verification,
+        "test_access": test_access,
+        "runtime_safety": {"int_max_str_digits": int_max_str_digits},
         "generation": {
-            "samples_per_task": max(config.sample_counts),
-            "sample_counts": list(config.sample_counts),
-            "seed": config.seed,
-            "temperature": config.temperature,
-            "top_p": config.top_p,
-            "max_new_tokens": config.max_new_tokens,
-            "batch_size": config.generation_batch_size,
-            "cost_definition": (
-                "Each strictly parsed sampled program is charged its full function "
-                "sequence length; malformed text is charged zero and cannot solve. "
-                "Sampling stops for cost accounting at the first execution-correct "
-                "program in each prefix."
-            ),
+            **_generation_protocol_from_config(config),
             "runtime": generation_runtime,
         },
         "bfs_configuration": (
@@ -1425,7 +1652,12 @@ def _parse_args(argv: Sequence[str] | None = None) -> EvaluationConfig:
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)
-    parser.add_argument("--split", choices=("validation", "test"), default="test")
+    parser.add_argument("--split", choices=("validation", "test"), default="validation")
+    parser.add_argument(
+        "--selection-lock",
+        type=Path,
+        help="Validation champion lock required before --split test scoring",
+    )
     parser.add_argument("--tasks-per-distance", type=int, default=12)
     parser.add_argument(
         "--sample-counts", type=_parse_sample_counts, default=DEFAULT_SAMPLE_COUNTS
@@ -1447,6 +1679,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> EvaluationConfig:
         output_dir=arguments.output_dir,
         corpus_dir=arguments.corpus_dir,
         split=arguments.split,
+        selection_lock=arguments.selection_lock,
         tasks_per_distance=arguments.tasks_per_distance,
         sample_counts=arguments.sample_counts,
         seed=arguments.seed,

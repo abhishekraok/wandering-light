@@ -6,7 +6,7 @@ import argparse
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -52,10 +52,11 @@ def _read_selection_lock(path: Path) -> dict[str, Any]:
         raise ValueError(
             f"Could not read validation selection lock {path}: {error}"
         ) from error
-    if (
-        not isinstance(value, dict)
-        or value.get("status") != "locked-before-held-out-test"
-    ):
+    supported_statuses = {
+        "locked-before-held-out-test",
+        "locked-before-held-out-test-scoring",
+    }
+    if not isinstance(value, dict) or value.get("status") not in supported_statuses:
         raise ValueError(f"Validation selection lock is not complete: {path}")
     return value
 
@@ -347,9 +348,155 @@ def _parse_timestamp(value: Any, *, label: str) -> datetime:
     if not isinstance(value, str):
         raise ValueError(f"{label} has no timestamp")
     try:
-        return datetime.fromisoformat(value)
+        parsed = datetime.fromisoformat(value)
     except ValueError as error:
         raise ValueError(f"{label} timestamp is malformed: {value!r}") from error
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{label} timestamp must include a UTC offset")
+    return parsed
+
+
+def _validate_validation_summaries_for_lock(
+    validation_summaries: Sequence[Mapping[str, Any]],
+) -> None:
+    """Reject an unmatched ablation before selecting and freezing a champion."""
+
+    for summary in validation_summaries:
+        if summary.get("corpus", {}).get("split") != "validation":
+            raise ValueError("Selection locks may use validation summaries only")
+        _max_samples(summary)
+    select_validation_champion(validation_summaries)
+    identity_fields = ("manifest_digest", "basis_set_id", "basis_set_digest")
+    identities = {
+        (
+            *(summary["corpus"].get(field) for field in identity_fields),
+            summary["corpus"].get("hub", {}).get("repo_id"),
+            summary["corpus"].get("hub", {}).get("revision"),
+        )
+        for summary in validation_summaries
+    }
+    if len(identities) != 1:
+        raise ValueError("Validation inputs do not share one corpus and basis identity")
+    matched_protocols = (
+        ("cohort", lambda summary: summary["cohort"]),
+        ("generation", _generation_protocol),
+        ("training", _training_protocol),
+        (
+            "base model",
+            lambda summary: summary["checkpoint"]["training"]["base_model"],
+        ),
+    )
+    for label, extract in matched_protocols:
+        frozen = {
+            json.dumps(extract(summary), sort_keys=True)
+            for summary in validation_summaries
+        }
+        if len(frozen) != 1:
+            raise ValueError(f"Validation inputs do not share one frozen {label}")
+    if len({_evaluator_sha256(summary) for summary in validation_summaries}) != 1:
+        raise ValueError("Validation inputs do not share one frozen evaluator")
+
+
+def build_validation_selection_lock(
+    validation_summaries: Sequence[Mapping[str, Any]],
+    *,
+    validation_summary_hashes: Mapping[int, str],
+    locked_at_utc: str | None = None,
+) -> dict[str, Any]:
+    """Build the validation-only artifact required before held-out test scoring."""
+
+    _validate_validation_summaries_for_lock(validation_summaries)
+    if set(validation_summary_hashes) != {1, 4}:
+        raise ValueError("Selection lock requires hashes for ablation arms 1 and 4")
+    champion = select_validation_champion(validation_summaries)
+
+    def candidate(summary: Mapping[str, Any]) -> dict[str, Any]:
+        arm = _arm_min_distance(summary)
+        distance_7_8 = summary["model"]["distance_7_8"]
+        return {
+            "arm_min_train_distance": arm,
+            "checkpoint_signature": [
+                {"name": name, "sha256": digest}
+                for name, digest in _checkpoint_signature(summary)
+            ],
+            "checkpoint_training_manifest_sha256": summary["checkpoint"][
+                "training_manifest_sha256"
+            ],
+            "selection_key": list(_selection_key(summary)),
+            "summary_sha256": validation_summary_hashes[arm],
+            "distance_7_8": {
+                str(samples): {
+                    "solved": distance_7_8[str(samples)]["solved"],
+                    "tasks": distance_7_8[str(samples)]["tasks"],
+                    "mean_executions_spent": distance_7_8[str(samples)][
+                        "mean_executions_spent"
+                    ],
+                }
+                for samples in DEFAULT_SAMPLE_COUNTS
+            },
+        }
+
+    first = validation_summaries[0]
+    evaluator = first.get("source_code", {}).get("runner", {})
+    evaluator_path = evaluator.get("path")
+    if not isinstance(evaluator_path, str):
+        raise ValueError("Validation summary has no frozen evaluator path")
+    locked_at = locked_at_utc or datetime.now(UTC).isoformat()
+    _parse_timestamp(locked_at, label="Validation selection lock")
+    return {
+        "status": "locked-before-held-out-test-scoring",
+        "locked_at_utc": locked_at,
+        "discipline": {
+            "selection_data": "validation summaries only",
+            "held_out_test_integrity_read_allowed": True,
+            "held_out_test_model_scored": False,
+            "held_out_test_outcomes_used_for_selection": False,
+        },
+        "frozen_evaluator": {
+            "path": evaluator_path,
+            "sha256": _evaluator_sha256(first),
+        },
+        "validation_identity": {
+            "corpus_manifest_digest": first["corpus"]["manifest_digest"],
+            "basis_set_digest": first["corpus"]["basis_set_digest"],
+            "cohort_task_ids_digest": first["cohort"]["task_ids_digest"],
+            "cohort_protocol": {
+                key: first["cohort"][key]
+                for key in ("seed", "selection", "tasks", "by_certified_distance")
+            },
+            "generation_protocol": _generation_protocol(first),
+        },
+        "candidates": [candidate(summary) for summary in validation_summaries],
+        "champion": candidate(champion),
+    }
+
+
+def create_validation_selection_lock(
+    validation_summary_paths: Sequence[Path],
+    *,
+    output: Path,
+) -> dict[str, Any]:
+    """Read two validation summaries and exclusively write their champion lock."""
+
+    summaries = [_read_summary(path) for path in validation_summary_paths]
+    hashes = {
+        _arm_min_distance(summary): _sha256_file(path)
+        for path, summary in zip(validation_summary_paths, summaries, strict=True)
+    }
+    lock = build_validation_selection_lock(
+        summaries,
+        validation_summary_hashes=hashes,
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with output.open("x", encoding="utf-8") as output_file:
+            json.dump(lock, output_file, indent=2, sort_keys=True)
+            output_file.write("\n")
+    except FileExistsError as error:
+        raise FileExistsError(
+            f"Selection-lock output already exists; refusing to overwrite: {output}"
+        ) from error
+    return lock
 
 
 def _loss_gap_rows(
@@ -800,12 +947,23 @@ def build_report_markdown(
     )
     lock_lines = []
     if selection_lock is not None:
-        lock_lines.extend(
-            [
-                f"- Validation champion locked at: `{selection_lock['locked_at_utc']}`",
-                f"- Lock recorded held-out test accessed: "
-                f"`{selection_lock['discipline']['held_out_test_accessed']}`",
-            ]
+        lock_lines.append(
+            f"- Validation champion locked at: `{selection_lock['locked_at_utc']}`"
+        )
+        if selection_lock.get("status") == "locked-before-held-out-test-scoring":
+            lock_lines.append(
+                f"- Lock recorded held-out test model-scored: "
+                f"`{selection_lock['discipline']['held_out_test_model_scored']}`"
+            )
+        else:
+            lock_lines.append(
+                "- Legacy lock field `held_out_test_accessed=false` means the test "
+                "was not model-scored for selection; it does not mean the payload "
+                "was unread."
+            )
+        lock_lines.append(
+            "- Corpus integrity verification may read the test payload before "
+            "selection; no test outcome is model-scored or used for selection."
         )
     if selection_lock_sha256 is not None:
         lock_lines.append(f"- Validation selection lock: `{selection_lock_sha256}`")
@@ -881,6 +1039,7 @@ def _validate_inputs(
     validation_summaries: Sequence[Mapping[str, Any]],
     *,
     selection_lock: Mapping[str, Any],
+    selection_lock_sha256: str,
     validation_summary_hashes: Mapping[int, str],
     entity: str,
     project: str,
@@ -969,7 +1128,9 @@ def _validate_inputs(
         )
         != 1
     ):
-        raise ValueError("Report inputs do not share one pristine base-model identity")
+        raise ValueError(
+            "Report inputs do not share one pretrained base-model identity"
+        )
 
     if require_local_artifacts:
         verified_checkpoints: set[str] = set()
@@ -1063,11 +1224,22 @@ def _validate_inputs(
     if _checkpoint_signature(test_summary) != _checkpoint_signature(champion):
         raise ValueError("Test checkpoint is not the validation-selected champion")
 
-    if selection_lock.get("status") != "locked-before-held-out-test":
+    lock_status = selection_lock.get("status")
+    if lock_status not in {
+        "locked-before-held-out-test",
+        "locked-before-held-out-test-scoring",
+    }:
         raise ValueError("Validation selection lock is not complete")
     discipline = selection_lock.get("discipline", {})
+    legacy_lock = lock_status == "locked-before-held-out-test"
+    valid_discipline = (
+        discipline.get("held_out_test_accessed") is False
+        if legacy_lock
+        else discipline.get("held_out_test_model_scored") is False
+        and discipline.get("held_out_test_outcomes_used_for_selection") is False
+    )
     if (
-        discipline.get("held_out_test_accessed") is not False
+        not valid_discipline
         or discipline.get("selection_data") != "validation summaries only"
     ):
         raise ValueError(
@@ -1146,10 +1318,55 @@ def _validate_inputs(
     test_completed = _parse_timestamp(
         test_summary.get("completed_at_utc"), label="Held-out test summary"
     )
-    if locked_at >= test_completed:
-        raise ValueError(
-            "Validation champion was not locked before held-out test completion"
+    if legacy_lock:
+        if locked_at >= test_completed:
+            raise ValueError(
+                "Validation champion was not locked before held-out test completion"
+            )
+    else:
+        test_access = test_summary.get("test_access")
+        if not isinstance(test_access, dict):
+            raise ValueError(
+                "Held-out test summary has no selection-lock access record"
+            )
+        if (
+            test_access.get("selection_lock_sha256") != selection_lock_sha256
+            or test_access.get("selection_locked_at_utc")
+            != selection_lock.get("locked_at_utc")
+            or test_access.get("frozen_evaluator_sha256") != frozen_evaluator
+        ):
+            raise ValueError(
+                "Held-out test did not consume this validation selection lock"
+            )
+        if test_access.get("locked_validation_identity") != selection_lock.get(
+            "validation_identity"
+        ):
+            raise ValueError("Held-out test used a different locked protocol identity")
+        test_scoring_started = _parse_timestamp(
+            test_access.get("test_scoring_started_at_utc"),
+            label="Held-out test scoring",
         )
+        if locked_at >= test_scoring_started or test_scoring_started >= test_completed:
+            raise ValueError(
+                "Validation champion was not locked before held-out test scoring"
+            )
+        receipt = test_access.get("consumption_receipt")
+        if (
+            not isinstance(receipt, dict)
+            or receipt.get("selection_lock_sha256") != selection_lock_sha256
+            or receipt.get("test_scoring_started_at_utc")
+            != test_access.get("test_scoring_started_at_utc")
+        ):
+            raise ValueError("Held-out test has no valid single-use lock receipt")
+        if require_local_artifacts:
+            receipt_path = receipt.get("path")
+            receipt_sha256 = receipt.get("sha256")
+            if (
+                not isinstance(receipt_path, str)
+                or not isinstance(receipt_sha256, str)
+                or _sha256_file(Path(receipt_path)) != receipt_sha256
+            ):
+                raise ValueError("Held-out test lock receipt changed after scoring")
 
     for summary in [test_summary, *validation_summaries]:
         run_entity, run_project, _ = _run_url_parts(summary)
@@ -1168,6 +1385,7 @@ def create_report(inputs: ReportInputs) -> dict[str, Any]:
     test_summary = _read_summary(inputs.test_summary)
     validation_summaries = [_read_summary(path) for path in inputs.validation_summaries]
     selection_lock = _read_selection_lock(inputs.selection_lock)
+    selection_lock_sha256 = _sha256_file(inputs.selection_lock)
     validation_summary_hashes = {
         _arm_min_distance(summary): _sha256_file(path)
         for path, summary in zip(
@@ -1178,11 +1396,11 @@ def create_report(inputs: ReportInputs) -> dict[str, Any]:
         test_summary,
         validation_summaries,
         selection_lock=selection_lock,
+        selection_lock_sha256=selection_lock_sha256,
         validation_summary_hashes=validation_summary_hashes,
         entity=inputs.entity,
         project=inputs.project,
     )
-    selection_lock_sha256 = _sha256_file(inputs.selection_lock)
     markdown = build_report_markdown(
         test_summary,
         validation_summaries,

@@ -1,21 +1,30 @@
 from __future__ import annotations
 
 import json
+import sys
+from pathlib import Path
 
 import pytest
 
+from experiments import evaluate_deep_corpus_sft as evaluation
 from experiments.evaluate_deep_corpus_sft import (
     DEFAULT_WANDB_PROJECT,
     EvaluationConfig,
     _checkpoint_identity,
     _log_wandb_run,
+    _sha256_file,
+    _validate_config,
     aggregate_model_candidates,
     configure_deterministic_cuda_environment,
+    configure_unbounded_int_serialization,
+    consume_test_selection_lock,
     evaluate_candidate,
     matched_compute_comparison,
     parse_program,
     select_balanced_cohort,
     validate_bfs_rows,
+    validate_locked_test_protocol,
+    validate_test_selection_lock,
 )
 from wandering_light.basis_dataset import BasisTaskRecord
 from wandering_light.basis_set import load_basis_set
@@ -94,6 +103,8 @@ def _write_checkpoint(tmp_path):
             "source": "huggingface",
             "repo_id": "HuggingFaceTB/SmolLM2-360M",
             "revision": "f8027fd0eaeea54caa13c31d31b9fdc459c38b49",
+            "weight_initialization": "pretrained",
+            "model_loader": "transformers.AutoModelForCausalLM.from_pretrained",
         },
         "basis_set": basis.identity_dict(),
         "source_corpus": {
@@ -159,6 +170,173 @@ def test_deterministic_cuda_environment_uses_supported_cublas_workspace(monkeypa
     assert configure_deterministic_cuda_environment() == ":4096:8"
 
 
+def test_evaluation_defaults_to_validation_and_test_requires_a_lock(tmp_path):
+    config = EvaluationConfig(
+        checkpoint=tmp_path / "checkpoint",
+        output_dir=tmp_path / "output",
+        dry_run=True,
+    )
+    assert config.split == "validation"
+    _validate_config(config)
+
+    with pytest.raises(ValueError, match="selection-lock"):
+        _validate_config(
+            EvaluationConfig(
+                checkpoint=config.checkpoint,
+                output_dir=config.output_dir,
+                split="test",
+                dry_run=False,
+                wandb_run_name="test",
+            )
+        )
+    lock_path = tmp_path / "selection-lock.json"
+    with pytest.raises(ValueError, match="matched BFS"):
+        _validate_config(
+            EvaluationConfig(
+                checkpoint=config.checkpoint,
+                output_dir=config.output_dir,
+                split="test",
+                selection_lock=lock_path,
+                run_bfs=False,
+                wandb_run_name="test",
+            )
+        )
+
+
+def test_huge_integer_output_is_serialized_without_external_env(arithmetic_basis):
+    if not hasattr(sys, "set_int_max_str_digits"):
+        pytest.skip("Python runtime has no integer conversion guard")
+    previous = sys.get_int_max_str_digits()
+    huge_basis = FunctionDefSet(
+        [
+            FunctionDef(
+                name="huge",
+                input_type="builtins.int",
+                output_type="builtins.int",
+                code="return 10 ** 5000",
+            )
+        ]
+    )
+    try:
+        sys.set_int_max_str_digits(4300)
+        row = evaluate_candidate(
+            _record(distance=1, output_value=TypedList([0], int)),
+            sample_index=0,
+            response="huge",
+            available_functions=huge_basis,
+        )
+        assert configure_unbounded_int_serialization() == 0
+        assert row["executor_success"] is True
+        assert len(row["actual_output"]) > 4_300
+    finally:
+        sys.set_int_max_str_digits(previous)
+
+
+def _write_selection_lock(tmp_path, checkpoint):
+    signature = [
+        {"name": path.name, "sha256": _sha256_file(path)}
+        for path in sorted(checkpoint.iterdir())
+        if path.is_file()
+    ]
+    generation = {
+        "samples_per_task": 64,
+        "sample_counts": [1, 8, 64],
+        "seed": 20260816,
+        "temperature": 0.8,
+        "top_p": 0.95,
+        "max_new_tokens": 64,
+        "batch_size": 32,
+        "cost_definition": evaluation.MODEL_COST_DEFINITION,
+    }
+    payload = {
+        "status": "locked-before-held-out-test-scoring",
+        "locked_at_utc": "2026-08-25T06:00:00+00:00",
+        "discipline": {
+            "selection_data": "validation summaries only",
+            "held_out_test_integrity_read_allowed": True,
+            "held_out_test_model_scored": False,
+            "held_out_test_outcomes_used_for_selection": False,
+        },
+        "frozen_evaluator": {
+            "path": str(Path(evaluation.__file__).resolve()),
+            "sha256": _sha256_file(Path(evaluation.__file__)),
+        },
+        "validation_identity": {
+            "corpus_manifest_digest": "sha256:" + "a" * 64,
+            "basis_set_digest": "sha256:" + "b" * 64,
+            "cohort_task_ids_digest": "sha256:" + "c" * 64,
+            "cohort_protocol": {
+                "seed": 20260816,
+                "selection": "distance-stratified-within-frozen-root-split",
+                "tasks": 96,
+                "by_certified_distance": {
+                    str(distance): 12 for distance in range(1, 9)
+                },
+            },
+            "generation_protocol": generation,
+        },
+        "champion": {
+            "checkpoint_signature": signature,
+            "checkpoint_training_manifest_sha256": _sha256_file(
+                checkpoint / "training_manifest.json"
+            ),
+        },
+    }
+    path = tmp_path / "selection-lock.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
+
+
+def test_test_lock_freezes_protocol_and_is_single_use(tmp_path):
+    checkpoint, _, _ = _write_checkpoint(tmp_path)
+    lock_path = _write_selection_lock(tmp_path, checkpoint)
+    access = validate_test_selection_lock(lock_path, checkpoint=checkpoint)
+    config = EvaluationConfig(
+        checkpoint=checkpoint,
+        output_dir=tmp_path / "test-output",
+        split="test",
+        selection_lock=lock_path,
+        wandb_run_name="test",
+    )
+    cohort = {
+        "seed": config.seed,
+        "selection": "distance-stratified-within-frozen-root-split",
+        "tasks": 96,
+        "by_certified_distance": {str(distance): 12 for distance in range(1, 9)},
+    }
+    corpus = {
+        "manifest_digest": "sha256:" + "a" * 64,
+        "basis_set_digest": "sha256:" + "b" * 64,
+    }
+    validate_locked_test_protocol(
+        access,
+        config=config,
+        corpus_identity=corpus,
+        cohort_identity=cohort,
+    )
+    with pytest.raises(ValueError, match="locked protocol"):
+        validate_locked_test_protocol(
+            access,
+            config=EvaluationConfig(**{**config.__dict__, "temperature": 0.7}),
+            corpus_identity=corpus,
+            cohort_identity=cohort,
+        )
+
+    access["test_scoring_started_at_utc"] = "2026-08-25T06:01:00+00:00"
+    receipt = consume_test_selection_lock(
+        lock_path,
+        test_access=access,
+        output_dir=config.output_dir,
+    )
+    assert receipt["selection_lock_sha256"] == access["selection_lock_sha256"]
+    with pytest.raises(RuntimeError, match="already been consumed"):
+        consume_test_selection_lock(
+            lock_path,
+            test_access=access,
+            output_dir=config.output_dir,
+        )
+
+
 def test_strict_program_parser_distinguishes_malformed_from_empty_program(
     arithmetic_basis,
 ):
@@ -189,7 +367,7 @@ def test_checkpoint_identity_accepts_runner_schema_and_only_hashes_model_weights
     assert [weight["name"] for weight in identity["weights"]] == ["model.safetensors"]
 
 
-def test_checkpoint_identity_rejects_split_leakage_and_non_pristine_base(tmp_path):
+def test_checkpoint_identity_rejects_split_leakage_and_invalid_initialization(tmp_path):
     checkpoint, basis, manifest = _write_checkpoint(tmp_path)
     manifest["source_corpus"]["task_roles"]["test"]["role"] = "training-only"
     (checkpoint / "training_manifest.json").write_text(
@@ -210,7 +388,20 @@ def test_checkpoint_identity_rejects_split_leakage_and_non_pristine_base(tmp_pat
     (checkpoint / "training_manifest.json").write_text(
         json.dumps(manifest), encoding="utf-8"
     )
-    with pytest.raises(ValueError, match="pristine OPT-125M"):
+    with pytest.raises(ValueError, match="invalid pretrained base"):
+        _checkpoint_identity(
+            checkpoint,
+            "sha256:" + "a" * 64,
+            basis,
+            project=DEFAULT_WANDB_PROJECT,
+        )
+
+    manifest["base_model"]["repo_id"] = "HuggingFaceTB/SmolLM2-360M"
+    manifest["base_model"]["weight_initialization"] = "random"
+    (checkpoint / "training_manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="pretrained weights"):
         _checkpoint_identity(
             checkpoint,
             "sha256:" + "a" * 64,

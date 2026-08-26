@@ -14,6 +14,8 @@ from experiments.create_deep_corpus_report import (
     _validate_inputs,
     _verify_checkpoint_artifacts,
     build_report_markdown,
+    build_validation_selection_lock,
+    create_validation_selection_lock,
     select_validation_champion,
 )
 from experiments.evaluate_deep_corpus_sft import (
@@ -196,7 +198,10 @@ def _summary(
             "top_p": 0.95,
         },
         "source_code": {
-            "runner": {"sha256": "sha256:" + "7" * 64},
+            "runner": {
+                "path": "experiments/evaluate_deep_corpus_sft.py",
+                "sha256": "sha256:" + "7" * 64,
+            },
         },
         "model": {
             "sample_counts": [1, 8, 64],
@@ -222,47 +227,11 @@ def _summary_hashes() -> dict[int, str]:
 def _selection_lock(
     validation_summaries: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    champion = select_validation_champion(validation_summaries)
-    summary_hashes = _summary_hashes()
-
-    def candidate(summary: dict[str, Any]) -> dict[str, Any]:
-        arm = summary["checkpoint"]["training"]["hyperparameters"]["min_train_distance"]
-        distance_7_8 = summary["model"]["distance_7_8"]
-        return {
-            "arm_min_train_distance": arm,
-            "checkpoint_signature": deepcopy(summary["checkpoint"]["artifact_files"]),
-            "checkpoint_training_manifest_sha256": summary["checkpoint"][
-                "training_manifest_sha256"
-            ],
-            "selection_key": [
-                distance_7_8["64"]["solve_rate"],
-                distance_7_8["8"]["solve_rate"],
-                distance_7_8["1"]["solve_rate"],
-                -distance_7_8["64"]["mean_executions_spent"],
-                distance_7_8["64"]["exact_match_rate"],
-            ],
-            "summary_sha256": summary_hashes[arm],
-        }
-
-    generation = deepcopy(validation_summaries[0]["generation"])
-    generation.pop("cost_definition")
-    return {
-        "status": "locked-before-held-out-test",
-        "locked_at_utc": "2026-08-25T06:00:00+00:00",
-        "discipline": {
-            "held_out_test_accessed": False,
-            "selection_data": "validation summaries only",
-        },
-        "frozen_evaluator": {"sha256": "sha256:" + "7" * 64},
-        "validation_identity": {
-            "corpus_manifest_digest": "sha256:" + "1" * 64,
-            "basis_set_digest": "sha256:" + "2" * 64,
-            "cohort_task_ids_digest": "sha256:" + "4" * 64,
-            "generation_protocol": generation,
-        },
-        "candidates": [candidate(summary) for summary in validation_summaries],
-        "champion": candidate(champion),
-    }
+    return build_validation_selection_lock(
+        validation_summaries,
+        validation_summary_hashes=_summary_hashes(),
+        locked_at_utc="2026-08-25T06:00:00+00:00",
+    )
 
 
 def _validate_fixture(
@@ -272,10 +241,27 @@ def _validate_fixture(
     selection_lock: dict[str, Any] | None = None,
     entity: str = PERSONAL_WANDB_ENTITY,
 ) -> None:
+    lock = selection_lock or _selection_lock(validation_summaries)
+    lock_sha256 = "sha256:" + "a" * 64
+    if test.get("corpus", {}).get("split") == "test" and lock.get("status") == (
+        "locked-before-held-out-test-scoring"
+    ):
+        test["test_access"] = {
+            "selection_lock_sha256": lock_sha256,
+            "selection_locked_at_utc": lock["locked_at_utc"],
+            "frozen_evaluator_sha256": lock["frozen_evaluator"]["sha256"],
+            "locked_validation_identity": deepcopy(lock["validation_identity"]),
+            "test_scoring_started_at_utc": "2026-08-25T06:30:00+00:00",
+            "consumption_receipt": {
+                "selection_lock_sha256": lock_sha256,
+                "test_scoring_started_at_utc": "2026-08-25T06:30:00+00:00",
+            },
+        }
     _validate_inputs(
         test,
         validation_summaries,
-        selection_lock=selection_lock or _selection_lock(validation_summaries),
+        selection_lock=lock,
+        selection_lock_sha256=lock_sha256,
         validation_summary_hashes=_summary_hashes(),
         entity=entity,
         project=DEFAULT_WANDB_PROJECT,
@@ -327,6 +313,62 @@ def test_validation_selection_requires_distinct_checkpoint_weights():
 
     with pytest.raises(ValueError, match="distinct checkpoints"):
         select_validation_champion([first, duplicate])
+
+
+def test_selection_lock_is_produced_from_matched_validation_only(tmp_path):
+    validation_one = _summary(checkpoint_id="a", min_train_distance=1)
+    validation_four = _summary(checkpoint_id="b", min_train_distance=4)
+    paths = []
+    for arm, summary in ((1, validation_one), (4, validation_four)):
+        path = tmp_path / f"validation-{arm}.json"
+        path.write_text(json.dumps(summary), encoding="utf-8")
+        paths.append(path)
+
+    output = tmp_path / "selection-lock.json"
+    lock = create_validation_selection_lock(paths, output=output)
+
+    assert lock["status"] == "locked-before-held-out-test-scoring"
+    assert lock["discipline"]["held_out_test_model_scored"] is False
+    assert lock["champion"]["arm_min_train_distance"] in {1, 4}
+    assert json.loads(output.read_text(encoding="utf-8")) == lock
+    with pytest.raises(FileExistsError, match="refusing to overwrite"):
+        create_validation_selection_lock(paths, output=output)
+
+    validation_four["generation"]["temperature"] = 0.7
+    with pytest.raises(ValueError, match="frozen generation"):
+        build_validation_selection_lock(
+            [validation_one, validation_four],
+            validation_summary_hashes=_summary_hashes(),
+        )
+
+
+def test_legacy_selection_lock_remains_verifiable_with_honest_semantics():
+    validation_one = _summary(checkpoint_id="a", min_train_distance=1)
+    validation_four = _summary(checkpoint_id="b", min_train_distance=4)
+    test = _summary(
+        checkpoint_id="a",
+        min_train_distance=1,
+        split="test",
+        killed=False,
+    )
+    lock = _selection_lock([validation_one, validation_four])
+    lock["status"] = "locked-before-held-out-test"
+    lock["discipline"] = {
+        "held_out_test_accessed": False,
+        "selection_data": "validation summaries only",
+    }
+
+    _validate_fixture(
+        test,
+        [validation_one, validation_four],
+        selection_lock=lock,
+    )
+    markdown = build_report_markdown(
+        test,
+        [validation_one, validation_four],
+        selection_lock=lock,
+    )
+    assert "does not mean the payload was unread" in markdown
 
 
 def test_loss_gap_rows_hashes_trainer_state_and_flags_turn_up(tmp_path):
@@ -547,7 +589,9 @@ def test_input_validation_rejects_frozen_protocol_drift(mutation, message):
     ("mutation", "message"),
     [
         (
-            lambda lock: lock["discipline"].__setitem__("held_out_test_accessed", True),
+            lambda lock: lock["discipline"].__setitem__(
+                "held_out_test_model_scored", True
+            ),
             "locked-test discipline",
         ),
         (
