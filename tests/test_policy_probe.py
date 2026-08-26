@@ -40,18 +40,16 @@ def test_missing_optimal_action_ranks_past_the_end():
     assert rank_of_first_optimal(scores, {"zzz"}) == 3
 
 
-def _task(distance, optimal):
-    return {
-        "metadata": {
-            "certified_distance": distance,
-            "optimal_first_action_names": optimal,
-        }
-    }
+FIRST = "optimal_first_action_names"
+
+
+def _task(distance, optimal, field=FIRST):
+    return {"metadata": {"certified_distance": distance, field: optimal}}
 
 
 def test_evaluate_reports_top1_and_distance_breakdown():
     tasks = [_task(1, ["a"]), _task(2, ["b"]), _task(2, ["a"])]
-    perfect = evaluate(lambda t: {"a": 1.0, "b": 0.0}, tasks, "x")
+    perfect = evaluate(lambda t: {"a": 1.0, "b": 0.0}, tasks, "x", FIRST)
     assert perfect["top1"] == pytest.approx(2 / 3)
     assert perfect["by_distance"][1] == pytest.approx(1.0)
     assert perfect["by_distance"][2] == pytest.approx(1.5)
@@ -59,6 +57,39 @@ def test_evaluate_reports_top1_and_distance_breakdown():
 
 def test_evaluate_is_not_fooled_by_a_flat_predictor():
     tasks = [_task(3, ["a"]) for _ in range(4)]
-    flat = evaluate(lambda t: {"a": 0.0, "b": 0.0, "c": 0.0}, tasks, "flat")
+    flat = evaluate(lambda t: {"a": 0.0, "b": 0.0, "c": 0.0}, tasks, "flat", FIRST)
     assert flat["top1"] == 0.0
     assert flat["mean_rank"] == 3.0
+
+
+def test_last_action_masks_on_output_type_not_input():
+    """The two ends are not symmetric.
+
+    A first action must consume the task's input type; a last action must
+    produce its output type. Masking a last-action probe on input type would
+    compare predictors against a mask that does not apply to them.
+    """
+    from policy_probe import action_field
+
+    names_field, complete_flag = action_field(last=True)
+    assert names_field == "optimal_last_action_names"
+    assert complete_flag == "optimal_last_actions_complete"
+    assert action_field(last=False) == (
+        "optimal_first_action_names",
+        "optimal_first_actions_complete",
+    )
+
+
+def test_type_mask_uses_the_field_it_is_given():
+    from policy_probe import make_type_mask
+
+    type_of = {"a": "builtins.int", "b": "builtins.str"}
+    task = {"metadata": {"input_type": "builtins.int", "output_type": "builtins.str"}}
+    assert make_type_mask(["a", "b"], type_of, "input_type")(task) == {
+        "a": 1.0,
+        "b": 0.0,
+    }
+    assert make_type_mask(["a", "b"], type_of, "output_type")(task) == {
+        "a": 0.0,
+        "b": 1.0,
+    }

@@ -1,0 +1,70 @@
+# Status
+
+**This file records state. Issues record argument. Never both.**
+
+So they cannot contradict each other: if you want to know *what is true*, read
+here; if you want to know *why*, follow the issue link. A claim that is not in
+this file is not established, however confidently some comment states it.
+
+Update this file as part of finishing work, not as a separate chore.
+
+Last updated: 2026-08-25
+
+## What is true now
+
+Every row is merged to `main` and measured. The number is the point; the issue
+holds the argument.
+
+| | | issue |
+|---|---|---|
+| **Stack machine** | 52 ops (26 executable + one symbol each). Guards return a reason or `None`; illegal is an *absent transition*, not an exception. | [#42](../../issues/42) |
+| **Identity is structural** | `value_key` builds nested tuples of str tags, ints and bools. No hash, no repr, no dict. Keys are byte-identical across `PYTHONHASHSEED`, pinned by a test running three seeds in subprocesses. | #42 |
+| **Fuel** | Every first-order op costs exactly 1, so `fuel == len(program)` there. Combinators break it: `map` costs `1 + body x len(input)`. Totality rests on the guard, not on structure. | #42 |
+| **Branching, stack machine** | first-order 18: `b_eff` 11.14, 3.464 bits/step. executable 26: 13.32, 3.712. full 52: 37.28, 5.220. | #42 |
+| **Branching, `wl-core-v1`** | 118 functions, 20.52 applicable, 4.292 bits/step. Type masking is worth ~3.9 bits, slightly better than #33 assumed. | #33 |
+| **Substrate comparison** | Both bases generate new behaviour at ~the same rate under composition — 5.87x/op against 5.77x. The stack machine's win is price: 73% of choice bits become new behaviour against 59%. It pays a **median 2.00x in program length**. | #42 |
+| **Stack corpus** | `stack_pbe_v2.jsonl.gz` — 1,857 PBE tasks certified shortest to depth 6 against `executable-26`, 1,502 train / 355 eval, 101 needing a loop. Split is a SHA-256 of the task, not a shuffle. | #42 |
+| **Stack BFS baseline** | 75.2% at a 10,000-node budget; median 1,119 nodes per solved task. Node cost grows ~7.5x per unit of program length. | `reports/stack-machine-basis/` |
+| **`deep-corpus-v1`** | 31,350 tasks, certified distances 1–8, 240 roots, split by root. BFS solve rate is a **step function**: 100% up to its depth cap, 0% beyond. Distance-8 answers cost it ~4.4M executions. | [#37](../../issues/37) |
+| **Kt vs length** | Re-certifying the 101 loop tasks under `\|p\| + log2(fuel)` changed **0 labels, 0 bits**. A label needs ~26x less fuel for one extra op; four-element lists cannot vary that much. A fact about input sizes, not the metric. | [#45](../../issues/45) |
+| **Basis growth by MDL** | Degenerate. Accepted 400 words without converging, basis 118 → 518, corpus −36.4%, **search 42,631x more expensive at depth 6**. Every candidate clearing the bar is length 2. | [#41](../../issues/41) |
+| **Policy probe, first action** | A lookup table on `(input type, output type)` reaches mean rank 3.18 and top-1 42.1%. Two byte-level encoders beat it by 10% on rank and tie on top-1. | [#33](../../issues/33) |
+| **Policy probe, last action** | Learning pays here and barely does at the front: lookup 4.80 / 22.3%, conv encoder **3.43 / 42.1%** — 29% better rank, nearly double top-1. Masking is weaker at the back (25.88 functions produce a given output type against 9.87 consuming a given input type). Neither end degrades with distance. | #33 |
+| **Learned solver, run 1** | `facebook/opt-125m`, 3-epoch SFT: 14/96 at k=64 on held-out. Cheaper than BFS at distances 3–4; **0/12 at every distance 5–8**. | [#50](../../issues/50) |
+
+## In flight
+
+| what | who | where | question it answers |
+|---|---|---|---|
+| Learned solver, run 2 | Codex agent | [#50](../../issues/50) | Does a stronger base model solve anything at distance 5+? |
+| Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
+
+## Superseded
+
+Claims that were stated confidently and are wrong. Recorded here so a
+correction lands in one place instead of being chased across comment threads.
+
+- **"Forward generation cannot produce problems that defeat forward search."**
+  False. Generation pays `b^d` **once per root**, offline and amortised — 109
+  minutes for all of `deep-corpus-v1`. Search pays it **once per task**. So a
+  corpus can be generated at a depth per-task search cannot afford.
+- **"BFS cannot solve 12.5% of `deep-corpus-v1`."** It is a depth cap, not a
+  wall. The curve is a step function; the missed 12.5% is exactly the
+  distance-8 tasks under a depth-7 search. What is true is that finding them
+  costs a depth-8 sweep, ~6x the 60 s depth-7 failure.
+- **"`wl-core-v1` is a near-trivial composition monoid"** (#42's premise).
+  Measured, it generates new behaviour at 5.77x/op against the stack machine's
+  5.87x. What the evidence supports is that its *corpus* was trivial.
+- **"The autoregressive solver is finished on this substrate."** Only
+  `facebook/opt-125m` was tested — a 125M model from 2022, the weakest
+  plausible choice. Run 2 decides this.
+- **"The TypedList eval harness is retired."** Reverted; nothing was deleted.
+  `deep-corpus-v1` is the hard corpus and it lives on that harness.
+
+## Where things live
+
+- `wandering_light/stack_machine.py` — the machine
+- `wandering_light/stack_machine_corpus.py` — PBE corpus generation, certified by BFS depth
+- `docs/stack_machine_explorer.html` — keyboard-driven explorer, self-checks against the Python core
+- `reports/` — every measurement, one directory per run
+- `experiments/` — the scripts that produced them

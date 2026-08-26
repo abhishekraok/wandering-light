@@ -26,7 +26,12 @@ The decisive comparison is **learned against conditional**. If a lookup table
 on two type fields matches a trained encoder, then types are the whole signal
 and #33's encoder is buying nothing that a dict does not.
 
-    uv run python experiments/policy_probe.py
+Passing `--last` probes the optimal *last* action instead, which brackets the
+question from the other end: if the last step is much more predictable than the
+first, a policy is worth more running backwards from the target than forwards
+from the input.
+
+    uv run python experiments/policy_probe.py [corpus-dir] [--last]
 """
 
 from __future__ import annotations
@@ -67,19 +72,46 @@ def resolve_corpus(argv: list[str]) -> Path:
     )
 
 
-def load(corpus: Path, split: str) -> list[dict]:
+def action_field(last: bool) -> tuple[str, str]:
+    """Which corpus fields carry the label and its completeness flag.
+
+    The corpus is not symmetric: the first action is stored as both ids and
+    names, the last action only as ids. `load` normalises the last-action ids
+    into a names field so everything downstream reads one key.
+    """
+    if last:
+        return "optimal_last_action_names", "optimal_last_actions_complete"
+    return "optimal_first_action_names", "optimal_first_actions_complete"
+
+
+def id_to_name() -> dict[str, str]:
+    from wandering_light.basis_set import load_basis_set
+
+    return {f.function_id: f.name for f in load_basis_set("wl-core-v1").functions}
+
+
+def load(
+    corpus: Path, split: str, complete_flag: str, last: bool = False
+) -> list[dict]:
     """Tasks with a *complete* optimal-action set.
 
     An incomplete set means the certifier could not prove it had found every
     optimal first action, so a prediction outside it might still be optimal and
     would be scored wrong. Those tasks are dropped rather than mislabelled.
     """
+    names_by_id = id_to_name() if last else {}
     rows = []
     with gzip.open(corpus / f"{split}.jsonl.gz", "rt") as handle:
         for line in handle:
             row = json.loads(line)
-            if row["metadata"]["optimal_first_actions_complete"]:
-                rows.append(row)
+            meta = row["metadata"]
+            if not meta[complete_flag]:
+                continue
+            if last:
+                meta["optimal_last_action_names"] = [
+                    names_by_id[i] for i in meta["optimal_last_action_ids"]
+                ]
+            rows.append(row)
     return rows
 
 
@@ -89,12 +121,19 @@ def basis_names() -> list[str]:
     return [f.name for f in load_basis_set("wl-core-v1").to_function_def_set()]
 
 
-def type_table() -> dict[str, str]:
+def type_table(last: bool) -> tuple[dict[str, str], str]:
+    """The mask is not symmetric between the two ends of a program.
+
+    A *first* action has to consume the task's input type; a *last* action has
+    to produce its output type. Masking on the wrong one would compare every
+    predictor against a mask that does not apply to it.
+    """
     from wandering_light.basis_set import load_basis_set
 
-    return {
-        f.name: f.input_type for f in load_basis_set("wl-core-v1").to_function_def_set()
-    }
+    functions = load_basis_set("wl-core-v1").to_function_def_set()
+    if last:
+        return {f.name: f.output_type for f in functions}, "output_type"
+    return {f.name: f.input_type for f in functions}, "input_type"
 
 
 # ---------------------------------------------------------------------------
@@ -118,11 +157,11 @@ def rank_of_first_optimal(scores: dict[str, float], optimal: set[str]) -> int:
     return len(ordered) + 1
 
 
-def evaluate(predict, tasks: list[dict], label: str) -> dict:
+def evaluate(predict, tasks: list[dict], label: str, names_field: str) -> dict:
     ranks, hits = [], 0
     by_distance: dict[int, list[int]] = defaultdict(list)
     for task in tasks:
-        optimal = set(task["metadata"]["optimal_first_action_names"])
+        optimal = set(task["metadata"][names_field])
         rank = rank_of_first_optimal(predict(task), optimal)
         ranks.append(rank)
         hits += rank == 1
@@ -147,27 +186,27 @@ def make_uniform(names):
     return lambda task: dict.fromkeys(names, 0.0)
 
 
-def make_type_mask(names, in_type_of):
-    """Uniform over actions whose input type matches the task's input type."""
+def make_type_mask(names, type_of, match_key):
+    """Uniform over actions whose relevant type matches the task's."""
 
     def predict(task):
-        want = task["metadata"]["input_type"]
-        return {n: (1.0 if in_type_of[n] == want else 0.0) for n in names}
+        want = task["metadata"][match_key]
+        return {n: (1.0 if type_of[n] == want else 0.0) for n in names}
 
     return predict
 
 
-def make_marginal(names, train):
+def make_marginal(names, train, names_field):
     counts = Counter()
     for task in train:
-        for name in task["metadata"]["optimal_first_action_names"]:
+        for name in task["metadata"][names_field]:
             counts[name] += 1
     total = sum(counts.values()) or 1
     table = {n: counts[n] / total for n in names}
     return lambda task: dict(table)
 
 
-def make_conditional(names, train, in_type_of):
+def make_conditional(names, train, type_of, match_key, names_field):
     """P(action | input type, output type), backing off to input type alone.
 
     No learning: a dict. This is the baseline a trained encoder has to beat to
@@ -178,7 +217,7 @@ def make_conditional(names, train, in_type_of):
     for task in train:
         meta = task["metadata"]
         key = (meta["input_type"], meta["output_type"])
-        for name in meta["optimal_first_action_names"]:
+        for name in meta[names_field]:
             joint[key][name] += 1
             backoff[meta["input_type"]][name] += 1
 
@@ -188,9 +227,9 @@ def make_conditional(names, train, in_type_of):
         if not counts:
             counts = backoff.get(meta["input_type"], Counter())
         total = sum(counts.values()) or 1
-        mask_want = meta["input_type"]
+        mask_want = meta[match_key]
         return {
-            n: (counts[n] / total) + (1e-6 if in_type_of[n] == mask_want else 0.0)
+            n: (counts[n] / total) + (1e-6 if type_of[n] == mask_want else 0.0)
             for n in names
         }
 
@@ -198,7 +237,15 @@ def make_conditional(names, train, in_type_of):
 
 
 def train_learned(
-    names, train, valid, in_type_of, epochs: int = 12, seed: int = 0, conv: bool = False
+    names,
+    train,
+    valid,
+    type_of,
+    match_key,
+    names_field,
+    epochs: int = 12,
+    seed: int = 0,
+    conv: bool = False,
 ):
     """A byte-level encoder over the serialized (input, output) pair.
 
@@ -223,7 +270,7 @@ def train_learned(
         x = torch.tensor([encode(t) for t in tasks], dtype=torch.long)
         y = torch.zeros(len(tasks), len(names))
         for row, task in enumerate(tasks):
-            for name in task["metadata"]["optimal_first_action_names"]:
+            for name in task["metadata"][names_field]:
                 y[row, index[name]] = 1.0
         return x, y / y.sum(dim=1, keepdim=True).clamp(min=1)
 
@@ -279,9 +326,9 @@ def train_learned(
     def predict(task):
         with torch.no_grad():
             logits = model(torch.tensor([encode(task)], dtype=torch.long))[0]
-        want = task["metadata"]["input_type"]
+        want = task["metadata"][match_key]
         return {
-            n: logits[i].item() + (0.0 if in_type_of[n] == want else -1e9)
+            n: logits[i].item() + (0.0 if type_of[n] == want else -1e9)
             for i, n in enumerate(names)
         }
 
@@ -289,11 +336,16 @@ def train_learned(
 
 
 def main() -> None:
-    corpus = resolve_corpus(sys.argv)
+    argv = [a for a in sys.argv if a != "--last"]
+    last = "--last" in sys.argv
+    end = "last" if last else "first"
+
+    corpus = resolve_corpus(argv)
     names = basis_names()
-    in_type_of = type_table()
-    train, valid, test = (load(corpus, s) for s in SPLITS)
-    print(f"corpus: {corpus}", file=sys.stderr)
+    type_of, match_key = type_table(last)
+    names_field, complete_flag = action_field(last)
+    train, valid, test = (load(corpus, s, complete_flag, last) for s in SPLITS)
+    print(f"corpus: {corpus}   probing the {end} action", file=sys.stderr)
     print(
         f"{len(train)} train / {len(valid)} val / {len(test)} test tasks "
         f"with complete labels; basis {len(names)}",
@@ -301,42 +353,47 @@ def main() -> None:
     )
 
     mask_sizes = [
-        sum(1 for n in names if in_type_of[n] == t["metadata"]["input_type"])
-        for t in test
+        sum(1 for n in names if type_of[n] == t["metadata"][match_key]) for t in test
     ]
     print(
         f"mean type-compatible actions: {sum(mask_sizes) / len(mask_sizes):.2f} "
         f"of {len(names)}  ({math.log2(len(names)):.2f} bits -> "
-        f"{sum(math.log2(m) for m in mask_sizes) / len(mask_sizes):.2f})",
+        f"{sum(math.log2(m) for m in mask_sizes if m) / len(mask_sizes):.2f})",
         file=sys.stderr,
     )
 
     rows = [
-        evaluate(make_uniform(names), test, "uniform over all"),
-        evaluate(make_type_mask(names, in_type_of), test, "type mask"),
-        evaluate(make_marginal(names, train), test, "marginal frequency"),
+        evaluate(make_uniform(names), test, "uniform over all", names_field),
         evaluate(
-            make_conditional(names, train, in_type_of), test, "conditional lookup"
+            make_type_mask(names, type_of, match_key), test, "type mask", names_field
+        ),
+        evaluate(
+            make_marginal(names, train, names_field),
+            test,
+            "marginal frequency",
+            names_field,
+        ),
+        evaluate(
+            make_conditional(names, train, type_of, match_key, names_field),
+            test,
+            "conditional lookup",
+            names_field,
         ),
     ]
-    print("  training the mean-pool encoder...", file=sys.stderr)
-    rows.append(
-        evaluate(
-            train_learned(names, train, valid, in_type_of),
-            test,
-            "learned (mean-pool)",
+    for label, conv in (("learned (mean-pool)", False), ("learned (conv)", True)):
+        print(f"  training {label}...", file=sys.stderr)
+        rows.append(
+            evaluate(
+                train_learned(
+                    names, train, valid, type_of, match_key, names_field, conv=conv
+                ),
+                test,
+                label,
+                names_field,
+            )
         )
-    )
-    print("  training the conv encoder...", file=sys.stderr)
-    rows.append(
-        evaluate(
-            train_learned(names, train, valid, in_type_of, conv=True),
-            test,
-            "learned (conv)",
-        )
-    )
 
-    print(f"\nOne-step policy probe -- {len(test)} test tasks\n")
+    print(f"\n{end.capitalize()}-action policy probe -- {len(test)} test tasks\n")
     print(f"{'predictor':<22} {'top-1':>8} {'mean rank':>10} {'median':>8} {'p90':>6}")
     for row in rows:
         print(
@@ -351,7 +408,7 @@ def main() -> None:
             f"{row['by_distance'].get(d, float('nan')):>8.2f}" for d in distances
         )
         print(f"{row['predictor']:<22}{cells}")
-    Path("policy_probe.json").write_text(json.dumps(rows, indent=1))
+    Path(f"policy_probe_{end}.json").write_text(json.dumps(rows, indent=1))
 
 
 if __name__ == "__main__":
