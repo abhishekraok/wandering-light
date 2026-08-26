@@ -146,8 +146,11 @@ def frozen_generation_options(
         "frontier_sample": 24,
         "max_states": 600_000,
         "max_transitions": 2_500_000,
-        "deep_max_states": 1_200_000,
-        "deep_max_transitions": 8_000_000,
+        # Seeded deep-complex root 35 needs 1,416,669 states and 4,615,150
+        # transitions to complete depth 7.  Keep substantial headroom so all
+        # 360 planned deep roots can supply the issue's distance-8 target.
+        "deep_max_states": 3_000_000,
+        "deep_max_transitions": 20_000_000,
         "deep_root_types": DEEP_ROOT_TYPES,
         "seed": SEED,
         "split_counts": SPLIT_COUNTS,

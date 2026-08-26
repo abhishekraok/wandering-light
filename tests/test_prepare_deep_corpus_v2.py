@@ -19,8 +19,8 @@ def test_frozen_profile_matches_issue_54_contract():
     assert options["tasks_per_distance"] == 20
     assert options["max_states"] == 600_000
     assert options["max_transitions"] == 2_500_000
-    assert options["deep_max_states"] == 1_200_000
-    assert options["deep_max_transitions"] == 8_000_000
+    assert options["deep_max_states"] == 3_000_000
+    assert options["deep_max_transitions"] == 20_000_000
     assert options["resume_dir"] == (
         prepare.OUTPUT_DIR.parent / f".{prepare.OUTPUT_DIR.name}.resume"
     )
