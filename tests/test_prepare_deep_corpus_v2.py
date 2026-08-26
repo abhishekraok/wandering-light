@@ -34,6 +34,7 @@ def test_frozen_profile_matches_issue_54_contract():
         "7": 48_000,
         "8": 7_200,
     }
+    assert "require_all_expansions_complete" not in options["target_contract"]
     assert prepare.HUB_REPO_ID == "abhishekraok/wandering-light-deep-corpus-v2"
 
 

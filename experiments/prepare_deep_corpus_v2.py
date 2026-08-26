@@ -77,7 +77,10 @@ def target_contract(
         "certified_distance_range": [1, 8],
         "distance_targets": dict(DISTANCE_TARGETS),
         "distance_relative_tolerance": 0.05,
-        "require_all_expansions_complete": True,
+        # A root may hit its resource cap while expanding the next BFS layer.
+        # The generator emits only examples at already-completed layers (plus
+        # the separately certified one-step frontier), so root-level exhaustion
+        # is not required for exact shortest-distance certification.
         "reference_manifest_digests": [reference_manifest_digest],
     }
     if generator_git_commit is not None:
