@@ -38,12 +38,18 @@ Typical use::
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
+import os
 import random
+import shutil
 import statistics
+import tempfile
 import time
 from collections import Counter, defaultdict
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -62,6 +68,7 @@ from experiments.basis_library_pilot import (
 from wandering_light.basis_dataset import (
     BasisTaskRecord,
     read_basis_task_records,
+    typed_list_from_builtin_str,
     write_basis_task_records,
 )
 from wandering_light.basis_set import (
@@ -75,7 +82,7 @@ from wandering_light.shortest_path_data import recertify_shortest_path
 from wandering_light.trajectory import TrajectorySpec
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Iterator, Mapping, Sequence
 
     from wandering_light.basis_set import BasisSet
     from wandering_light.function_def import FunctionDef, FunctionDefSet
@@ -95,6 +102,8 @@ DEFAULT_DEEP_MAX_STATES = 1_200_000
 DEFAULT_DEEP_MAX_TRANSITIONS = 6_000_000
 CERTIFICATION_COMPLETE = "complete-bfs-expansion"
 CERTIFICATION_FRONTIER = "frontier-extension"
+RESUME_SCHEMA_VERSION = 1
+RESUME_MANIFEST_NAME = "resume.json"
 
 
 @dataclass
@@ -135,6 +144,7 @@ class RootOutcome:
     """Per-root evidence retained for the manifest."""
 
     root_index: int
+    root_digest: str
     split: str
     input_type: str
     max_depth: int
@@ -158,6 +168,7 @@ class RootOutcome:
     def to_dict(self) -> dict[str, Any]:
         return {
             "root_index": self.root_index,
+            "root_digest": self.root_digest,
             "split": self.split,
             "input_type": self.input_type,
             "max_depth": self.max_depth,
@@ -177,6 +188,398 @@ class RootOutcome:
         }
 
 
+@dataclass(frozen=True)
+class CorpusIdentities:
+    """Stable root/task identities collected from one pinned corpus.
+
+    ``root_keys`` is the stronger, answer-equality-aware exclusion used while
+    drawing new roots.  The digest and task-ID sets are the externally visible
+    identities required by the corpus contract and retained in verification
+    evidence.
+    """
+
+    root_keys: frozenset[Any] = field(repr=False)
+    root_digests: frozenset[str]
+    task_ids: frozenset[str]
+    manifest_digest: str | None
+    basis_set_id: str
+    basis_set_digest: str
+    hub_repo_id: str | None = None
+    hub_revision: str | None = None
+
+    def manifest_reference(self) -> dict[str, Any]:
+        """Return compact, content-addressed provenance for a manifest."""
+        return {
+            "manifest_digest": self.manifest_digest,
+            "basis_set_id": self.basis_set_id,
+            "basis_set_digest": self.basis_set_digest,
+            "hub_repo_id": self.hub_repo_id,
+            "hub_revision": self.hub_revision,
+            "roots": len(self.root_digests),
+            "root_digest_set_sha256": identity_set_digest(self.root_digests),
+            "tasks": len(self.task_ids),
+            "task_id_set_sha256": identity_set_digest(self.task_ids),
+        }
+
+
+@dataclass(frozen=True)
+class _ExpansionJob:
+    """Pickle-friendly expansion request for one worker process."""
+
+    plan: RootPlan
+    basis_set_id: str
+    seed: int
+    min_distance: int
+    tasks_per_distance: int
+    frontier_sample: int
+    allow_constant_outputs: bool
+    verify_witnesses: bool
+
+
+def identity_set_digest(values: Sequence[str] | set[str] | frozenset[str]) -> str:
+    """Digest a set of identity strings independent of iteration order."""
+    return _sha256_bytes(_canonical_json(sorted(set(values))).encode("utf-8"))
+
+
+def _root_digest(value: TypedList) -> str:
+    return _sha256_bytes(value.to_string().encode("utf-8"))
+
+
+def _root_plan_resume_dict(plan: RootPlan) -> dict[str, Any]:
+    """Stable semantic identity for one resumable expansion job."""
+    return {
+        "index": plan.index,
+        "split": plan.split,
+        "input_type": _type_name(plan.input_type),
+        "root": plan.typed_list.to_string(),
+        "root_digest": _root_digest(plan.typed_list),
+        "max_depth": plan.max_depth,
+        "max_states": plan.max_states,
+        "max_transitions": plan.max_transitions,
+        "deep": plan.deep,
+    }
+
+
+def _pending_task_resume_dict(task: PendingTask) -> dict[str, Any]:
+    return {
+        "root_index": task.root_index,
+        "split": task.split,
+        "input": task.input_value.to_string(),
+        "output": task.output_value.to_string(),
+        "witness_function_ids": [
+            _function_identity(function)[0] for function in task.witness
+        ],
+        "certified_distance": task.certified_distance,
+        "certification": task.certification,
+        "expansion_certified_depth": task.expansion_certified_depth,
+        "optimal_first_action_ids": [
+            _function_identity(function)[0] for function in task.optimal_first_actions
+        ],
+        "optimal_first_actions_complete": task.optimal_first_actions_complete,
+        "optimal_last_action_ids": [
+            _function_identity(function)[0] for function in task.optimal_last_actions
+        ],
+        "optimal_last_actions_complete": task.optimal_last_actions_complete,
+        "shell_size": task.shell_size,
+    }
+
+
+def _pending_task_from_resume_dict(
+    data: Mapping[str, Any], functions_by_id: Mapping[str, FunctionDef]
+) -> PendingTask:
+    def resolve(field: str) -> list[FunctionDef]:
+        try:
+            return [functions_by_id[function_id] for function_id in data[field]]
+        except (KeyError, TypeError) as error:
+            raise ValueError(f"invalid resume task {field}") from error
+
+    try:
+        return PendingTask(
+            root_index=int(data["root_index"]),
+            split=str(data["split"]),
+            input_value=typed_list_from_builtin_str(data["input"]),
+            output_value=typed_list_from_builtin_str(data["output"]),
+            witness=resolve("witness_function_ids"),
+            certified_distance=int(data["certified_distance"]),
+            certification=str(data["certification"]),
+            expansion_certified_depth=int(data["expansion_certified_depth"]),
+            optimal_first_actions=resolve("optimal_first_action_ids"),
+            optimal_first_actions_complete=bool(data["optimal_first_actions_complete"]),
+            optimal_last_actions=resolve("optimal_last_action_ids"),
+            optimal_last_actions_complete=bool(data["optimal_last_actions_complete"]),
+            shell_size=int(data["shell_size"]),
+        )
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError("invalid resume task payload") from error
+
+
+def _root_outcome_from_resume_dict(data: Mapping[str, Any]) -> RootOutcome:
+    try:
+        return RootOutcome(
+            root_index=int(data["root_index"]),
+            root_digest=str(data["root_digest"]),
+            split=str(data["split"]),
+            input_type=str(data["input_type"]),
+            max_depth=int(data["max_depth"]),
+            certified_depth=int(data["certified_depth"]),
+            extended_depth=int(data["extended_depth"]),
+            complete=bool(data["complete"]),
+            stop_reason=(
+                None if data["stop_reason"] is None else str(data["stop_reason"])
+            ),
+            reached_states=int(data["reached_states"]),
+            attempted_transitions=int(data["attempted_transitions"]),
+            failed_transitions=int(data["failed_transitions"]),
+            skipped_self_loops=int(data["skipped_self_loops"]),
+            shell_sizes={
+                int(key): int(value) for key, value in data["shell_sizes"].items()
+            },
+            class_sizes={
+                int(key): int(value) for key, value in data["class_sizes"].items()
+            },
+            seconds=float(data["seconds"]),
+            emitted=int(data["emitted"]),
+            rejections={
+                str(key): int(value) for key, value in data["rejections"].items()
+            },
+        )
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError("invalid resume root outcome") from error
+
+
+def _atomic_write_bytes(path: Path, payload: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=path.parent, prefix=f".{path.name}.", suffix=".tmp"
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as output:
+            output.write(payload)
+            output.flush()
+            os.fsync(output.fileno())
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _atomic_write_json(path: Path, payload: Mapping[str, Any]) -> None:
+    _atomic_write_bytes(
+        path, (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    )
+
+
+class _RootResumeStore:
+    """Content-bound, atomic JSON checkpoints for completed root expansions."""
+
+    def __init__(
+        self,
+        path: Path,
+        *,
+        job: Mapping[str, Any],
+        plans: Sequence[RootPlan],
+        functions: FunctionDefSet,
+    ) -> None:
+        self.path = path
+        self.job = dict(job)
+        self.fingerprint = _sha256_bytes(_canonical_json(self.job).encode("utf-8"))
+        self.plans = {plan.index: plan for plan in plans}
+        self.functions_by_id = {
+            _function_identity(function)[0]: function
+            for function in functions.functions
+        }
+        if len(self.functions_by_id) != len(functions.functions):
+            raise ValueError("basis has duplicate stable function IDs")
+        self._open_or_create_manifest()
+
+    @property
+    def final_staging_dir(self) -> Path:
+        return self.path / "final-corpus"
+
+    def _open_or_create_manifest(self) -> None:
+        manifest_path = self.path / RESUME_MANIFEST_NAME
+        if not manifest_path.exists():
+            if self.path.exists() and any(self.path.iterdir()):
+                raise ValueError(
+                    f"resume directory has no {RESUME_MANIFEST_NAME}: {self.path}"
+                )
+            body = {
+                "schema_version": RESUME_SCHEMA_VERSION,
+                "job_fingerprint": self.fingerprint,
+                "job": self.job,
+            }
+            manifest = dict(body)
+            manifest["resume_manifest_digest"] = _sha256_bytes(
+                _canonical_json(body).encode("utf-8")
+            )
+            _atomic_write_json(manifest_path, manifest)
+            return
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            stored_digest = manifest.pop("resume_manifest_digest")
+        except (OSError, json.JSONDecodeError, KeyError, TypeError) as error:
+            raise ValueError(f"invalid resume manifest: {manifest_path}") from error
+        expected_digest = _sha256_bytes(_canonical_json(manifest).encode("utf-8"))
+        if stored_digest != expected_digest:
+            raise ValueError(f"resume manifest digest mismatch: {manifest_path}")
+        if manifest.get("schema_version") != RESUME_SCHEMA_VERSION:
+            raise ValueError("resume schema version mismatch")
+        if (
+            manifest.get("job_fingerprint") != self.fingerprint
+            or manifest.get("job") != self.job
+        ):
+            raise ValueError(
+                "resume job fingerprint mismatch; configuration or root plan drifted"
+            )
+
+    def shard_path(self, plan: RootPlan) -> Path:
+        return self.path / f"root-{plan.index:06d}.json.gz"
+
+    def write(
+        self, plan: RootPlan, result: tuple[list[PendingTask], RootOutcome]
+    ) -> None:
+        tasks, outcome = result
+        body = {
+            "schema_version": RESUME_SCHEMA_VERSION,
+            "job_fingerprint": self.fingerprint,
+            "plan": _root_plan_resume_dict(plan),
+            "outcome": outcome.to_dict(),
+            "tasks": [_pending_task_resume_dict(task) for task in tasks],
+        }
+        shard = dict(body)
+        shard["shard_digest"] = _sha256_bytes(_canonical_json(body).encode("utf-8"))
+        encoded = (_canonical_json(shard) + "\n").encode("utf-8")
+        _atomic_write_bytes(self.shard_path(plan), gzip.compress(encoded, mtime=0))
+
+    def load(self, plan: RootPlan) -> tuple[list[PendingTask], RootOutcome]:
+        path = self.shard_path(plan)
+        try:
+            shard = json.loads(gzip.decompress(path.read_bytes()))
+            stored_digest = shard.pop("shard_digest")
+        except (
+            OSError,
+            EOFError,
+            gzip.BadGzipFile,
+            json.JSONDecodeError,
+            KeyError,
+            TypeError,
+        ) as error:
+            raise ValueError(f"corrupt resume shard: {path}") from error
+        expected_digest = _sha256_bytes(_canonical_json(shard).encode("utf-8"))
+        if stored_digest != expected_digest:
+            raise ValueError(f"resume shard digest mismatch: {path}")
+        if shard.get("schema_version") != RESUME_SCHEMA_VERSION:
+            raise ValueError(f"resume shard schema mismatch: {path}")
+        if shard.get("job_fingerprint") != self.fingerprint:
+            raise ValueError(f"resume shard job fingerprint mismatch: {path}")
+        if shard.get("plan") != _root_plan_resume_dict(plan):
+            raise ValueError(f"resume shard root plan mismatch: {path}")
+        try:
+            tasks = [
+                _pending_task_from_resume_dict(task, self.functions_by_id)
+                for task in shard["tasks"]
+            ]
+            outcome = _root_outcome_from_resume_dict(shard["outcome"])
+        except (KeyError, TypeError, ValueError) as error:
+            raise ValueError(f"invalid resume shard payload: {path}") from error
+        if (
+            outcome.root_index != plan.index
+            or outcome.root_digest != _root_digest(plan.typed_list)
+            or outcome.split != plan.split
+            or outcome.emitted != len(tasks)
+            or any(
+                task.root_index != plan.index
+                or task.split != plan.split
+                or _root_digest(task.input_value) != outcome.root_digest
+                for task in tasks
+            )
+        ):
+            raise ValueError(f"resume shard provenance mismatch: {path}")
+        return tasks, outcome
+
+    def completed_indices(self) -> set[int]:
+        completed: set[int] = set()
+        for path in sorted(self.path.glob("root-*.json.gz")):
+            encoded_index = path.name.removeprefix("root-").removesuffix(".json.gz")
+            try:
+                index = int(encoded_index)
+                plan = self.plans[index]
+            except (ValueError, KeyError) as error:
+                raise ValueError(f"unexpected resume shard: {path}") from error
+            if path != self.shard_path(plan):
+                raise ValueError(f"non-canonical resume shard name: {path}")
+            self.load(plan)
+            completed.add(index)
+        return completed
+
+
+def remove_resume_directory(path: str | Path) -> bool:
+    """Remove a recognized resume directory after corpus verification succeeds."""
+    resume_dir = Path(path)
+    if not resume_dir.exists():
+        return False
+    marker = resume_dir / RESUME_MANIFEST_NAME
+    try:
+        manifest = json.loads(marker.read_text(encoding="utf-8"))
+        stored_digest = manifest.pop("resume_manifest_digest")
+    except (OSError, json.JSONDecodeError, KeyError, TypeError) as error:
+        raise ValueError(
+            f"refusing to remove unrecognized resume directory: {path}"
+        ) from error
+    expected_digest = _sha256_bytes(_canonical_json(manifest).encode("utf-8"))
+    if (
+        stored_digest != expected_digest
+        or manifest.get("schema_version") != RESUME_SCHEMA_VERSION
+        or not isinstance(manifest.get("job_fingerprint"), str)
+    ):
+        raise ValueError(f"refusing to remove unrecognized resume directory: {path}")
+    resolved = resume_dir.resolve()
+    if resolved == Path("/") or resolved == Path.home().resolve():
+        raise ValueError(f"refusing to remove unsafe resume directory: {path}")
+    shutil.rmtree(resume_dir)
+    return True
+
+
+def _exact_split_schedule(
+    roots: int, split_counts: Mapping[str, int], *, seed: int
+) -> list[str]:
+    """Return an exact, evenly interleaved deterministic split schedule."""
+    if set(split_counts) != set(SPLIT_ORDER):
+        raise ValueError(f"split_counts must contain exactly {SPLIT_ORDER}")
+    targets: dict[str, int] = {}
+    for split in SPLIT_ORDER:
+        count = split_counts[split]
+        if isinstance(count, bool) or not isinstance(count, int) or count < 0:
+            raise ValueError(f"split count for {split!r} must be non-negative")
+        targets[split] = count
+    if sum(targets.values()) != roots:
+        raise ValueError(
+            f"split counts sum to {sum(targets.values())}, expected roots={roots}"
+        )
+
+    # Weighted fair scheduling spreads each split across the type cycle instead
+    # of placing held-out roots in contiguous blocks. Integer deficits avoid
+    # platform-dependent floating-point tie behaviour. The seed only resolves
+    # exact ties, so the requested counts remain authoritative.
+    tie_order = list(SPLIT_ORDER)
+    random.Random(f"{seed}:exact-split-counts").shuffle(tie_order)
+    tie_rank = {split: rank for rank, split in enumerate(tie_order)}
+    assigned: Counter[str] = Counter()
+    schedule: list[str] = []
+    for position in range(roots):
+        available = [split for split in SPLIT_ORDER if assigned[split] < targets[split]]
+        selected = max(
+            available,
+            key=lambda split: (
+                (position + 1) * targets[split] - assigned[split] * roots,
+                -tie_rank[split],
+            ),
+        )
+        assigned[selected] += 1
+        schedule.append(selected)
+    return schedule
+
+
 def build_root_plans(
     *,
     roots: int,
@@ -190,14 +593,26 @@ def build_root_plans(
     deep_max_transitions: int,
     deep_root_types: Sequence[str] = (),
     split_cycle: Sequence[str] = DEFAULT_SPLIT_CYCLE,
+    split_counts: Mapping[str, int] | None = None,
+    excluded_root_keys: Sequence[Any] = (),
 ) -> list[RootPlan]:
-    """Draw distinct roots, cycling input types and assigning splits by root."""
+    """Draw distinct fresh roots and assign every root to exactly one split."""
     if roots <= 0:
         raise ValueError("roots must be positive")
     if deep_roots < 0 or deep_roots > roots:
         raise ValueError("deep_roots must be between 0 and roots")
+    if not split_cycle and split_counts is None:
+        raise ValueError("split_cycle must not be empty")
+    exact_schedule = (
+        _exact_split_schedule(roots, split_counts, seed=seed)
+        if split_counts is not None
+        else None
+    )
     rng = random.Random(seed)
-    seen: set[Any] = set()
+    # Reference roots are treated exactly like already drawn roots. This is
+    # stronger than comparing serialized digests after the fact: answer-equal
+    # signed-zero representations cannot slip through under different strings.
+    seen: set[Any] = set(excluded_root_keys)
     plans: list[RootPlan] = []
     # Types cycle by position, so eligibility is decided on the position alone.
     # Restricting deep roots keeps the depth budget off types whose branching
@@ -253,7 +668,11 @@ def build_root_plans(
         plans.append(
             RootPlan(
                 index=index,
-                split=split_cycle[(position + type_index) % len(split_cycle)],
+                split=(
+                    exact_schedule[index]
+                    if exact_schedule is not None
+                    else split_cycle[(position + type_index) % len(split_cycle)]
+                ),
                 input_type=input_type,
                 typed_list=candidate,
                 max_depth=deep_max_depth if deep else max_depth,
@@ -594,6 +1013,7 @@ def expand_root(
 
     outcome = RootOutcome(
         root_index=plan.index,
+        root_digest=_root_digest(plan.typed_list),
         split=plan.split,
         input_type=_type_name(plan.input_type),
         max_depth=plan.max_depth,
@@ -614,6 +1034,29 @@ def expand_root(
         rejections=dict(rejections),
     )
     return pending, outcome
+
+
+@lru_cache(maxsize=4)
+def _worker_functions(basis_set_id: str) -> FunctionDefSet:
+    """Load one immutable basis once in each worker process."""
+    basis = load_basis_set(basis_set_id)
+    require_reproducible_basis_runtime(basis)
+    return basis.as_function_set()
+
+
+def _expand_root_worker(
+    job: _ExpansionJob,
+) -> tuple[list[PendingTask], RootOutcome]:
+    return expand_root(
+        job.plan,
+        functions=_worker_functions(job.basis_set_id),
+        seed=job.seed,
+        min_distance=job.min_distance,
+        tasks_per_distance=job.tasks_per_distance,
+        frontier_sample=job.frontier_sample,
+        allow_constant_outputs=job.allow_constant_outputs,
+        verify_witnesses=job.verify_witnesses,
+    )
 
 
 def _extend_frontier(
@@ -784,7 +1227,7 @@ def _record_for(
             "optimal_last_action_ids": last_ids,
             "optimal_last_actions_complete": task.optimal_last_actions_complete,
             "root_index": task.root_index,
-            "root_digest": _sha256_bytes(task.input_value.to_string().encode("utf-8")),
+            "root_digest": _root_digest(task.input_value),
             "distance_shell_size": task.shell_size,
         },
     )
@@ -812,6 +1255,8 @@ def _split_summary(records: Sequence[BasisTaskRecord]) -> dict[str, Any]:
     first_action_counts = [
         len(record.metadata["optimal_first_action_ids"]) for record in records
     ]
+    root_digests = {record.metadata["root_digest"] for record in records}
+    task_ids = {record.task_id for record in records}
     return {
         "size": len(records),
         "by_certified_distance": _distance_histogram(records),
@@ -826,7 +1271,9 @@ def _split_summary(records: Sequence[BasisTaskRecord]) -> dict[str, Any]:
             sorted(Counter(r.metadata["certification"] for r in records).items())
         ),
         "roots": len({r.metadata["root_index"] for r in records}),
-        "root_digests": len({r.metadata["root_digest"] for r in records}),
+        "root_digests": len(root_digests),
+        "root_digest_set_sha256": identity_set_digest(root_digests),
+        "task_id_set_sha256": identity_set_digest(task_ids),
         "optimal_first_actions": {
             "mean": (
                 statistics.fmean(first_action_counts) if first_action_counts else None
@@ -840,6 +1287,70 @@ def _split_summary(records: Sequence[BasisTaskRecord]) -> dict[str, Any]:
             ),
         },
     }
+
+
+def _run_expansions(
+    plans: Sequence[RootPlan],
+    *,
+    basis_set_id: str,
+    functions: FunctionDefSet,
+    seed: int,
+    min_distance: int,
+    tasks_per_distance: int,
+    frontier_sample: int,
+    allow_constant_outputs: bool,
+    verify_witnesses: bool,
+    workers: int,
+) -> Iterator[tuple[RootPlan, tuple[list[PendingTask], RootOutcome]]]:
+    """Expand roots, yielding each result as soon as its worker completes."""
+    if isinstance(workers, bool) or not isinstance(workers, int) or workers < 1:
+        raise ValueError("workers must be a positive integer")
+    if workers == 1:
+        for plan in plans:
+            yield (
+                plan,
+                expand_root(
+                    plan,
+                    functions=functions,
+                    seed=seed,
+                    min_distance=min_distance,
+                    tasks_per_distance=tasks_per_distance,
+                    frontier_sample=frontier_sample,
+                    allow_constant_outputs=allow_constant_outputs,
+                    verify_witnesses=verify_witnesses,
+                ),
+            )
+        return
+
+    jobs = [
+        _ExpansionJob(
+            plan=plan,
+            basis_set_id=basis_set_id,
+            seed=seed,
+            min_distance=min_distance,
+            tasks_per_distance=tasks_per_distance,
+            frontier_sample=frontier_sample,
+            allow_constant_outputs=allow_constant_outputs,
+            verify_witnesses=verify_witnesses,
+        )
+        for plan in plans
+    ]
+    # Persisting in completion order prevents a slow early root from hiding
+    # successfully completed later roots from the resume store. Final corpus
+    # collation still walks the original plan order, and every root owns an RNG
+    # stream keyed by its index, so worker count cannot alter payload bytes.
+    executor = ProcessPoolExecutor(max_workers=workers)
+    futures = {executor.submit(_expand_root_worker, job): job.plan for job in jobs}
+    try:
+        for future in as_completed(futures):
+            yield futures[future], future.result()
+    except BaseException:
+        for future in futures:
+            future.cancel()
+        executor.shutdown(wait=False, cancel_futures=True)
+        raise
+    else:
+        executor.shutdown(wait=True)
 
 
 def generate_corpus(
@@ -859,6 +1370,13 @@ def generate_corpus(
     deep_max_transitions: int,
     seed: int,
     deep_root_types: Sequence[str] = (),
+    split_counts: Mapping[str, int] | None = None,
+    excluded_root_keys: Sequence[Any] = (),
+    excluded_task_ids: Sequence[str] = (),
+    reference_identities: Sequence[CorpusIdentities] = (),
+    target_contract: Mapping[str, Any] | None = None,
+    workers: int = 1,
+    resume_dir: str | Path | None = None,
     allow_constant_outputs: bool = False,
     verify_witnesses: bool = True,
     overwrite: bool = False,
@@ -869,14 +1387,35 @@ def generate_corpus(
     require_reproducible_basis_runtime(basis)
     functions = basis.as_function_set()
     corpus_dir = Path(output_dir)
+    resume_path = Path(resume_dir) if resume_dir is not None else None
+    if resume_path is not None and resume_path.resolve().is_relative_to(
+        corpus_dir.resolve()
+    ):
+        raise ValueError("resume_dir must not be inside output_dir")
     planned = [corpus_dir / f"{split}.jsonl.gz" for split in SPLIT_ORDER]
     planned.append(corpus_dir / "manifest.json")
     existing = [path for path in planned if path.exists()]
-    if existing and not overwrite:
+    if resume_path is not None and corpus_dir.exists():
+        raise FileExistsError(
+            "resumable generation requires a fresh output directory; "
+            f"refusing to overwrite {corpus_dir}"
+        )
+    if resume_path is None and existing and not overwrite:
         raise FileExistsError(
             "Corpus outputs already exist; pass --overwrite to replace them: "
             + ", ".join(str(path) for path in existing)
         )
+
+    reference_root_keys = {
+        key for identities in reference_identities for key in identities.root_keys
+    }
+    reference_task_ids = {
+        task_id
+        for identities in reference_identities
+        for task_id in identities.task_ids
+    }
+    all_excluded_root_keys = [*excluded_root_keys, *reference_root_keys]
+    all_excluded_task_ids = set(excluded_task_ids) | reference_task_ids
 
     plans = build_root_plans(
         roots=roots,
@@ -889,23 +1428,82 @@ def generate_corpus(
         deep_max_states=deep_max_states,
         deep_max_transitions=deep_max_transitions,
         deep_root_types=deep_root_types,
+        split_counts=split_counts,
+        excluded_root_keys=all_excluded_root_keys,
     )
+    resume_store: _RootResumeStore | None = None
+    completed_indices: set[int] = set()
+    if resume_path is not None:
+        plan_payload = [_root_plan_resume_dict(plan) for plan in plans]
+        reference_payload = sorted(
+            (identities.manifest_reference() for identities in reference_identities),
+            key=_canonical_json,
+        )
+        resume_job = {
+            "schema_version": RESUME_SCHEMA_VERSION,
+            "pipeline_schema_version": PIPELINE_SCHEMA_VERSION,
+            "generator": GENERATOR_NAME,
+            "basis_set_id": basis.basis_set_id,
+            "basis_set_digest": basis.digest,
+            "seed": seed,
+            "roots": roots,
+            "root_plan_sequence_sha256": _sha256_bytes(
+                _canonical_json(plan_payload).encode("utf-8")
+            ),
+            "min_distance": min_distance,
+            "tasks_per_distance": tasks_per_distance,
+            "frontier_sample": frontier_sample,
+            "allow_constant_outputs": allow_constant_outputs,
+            "verify_witnesses": verify_witnesses,
+            "deep_root_types": list(deep_root_types),
+            "split_counts": (
+                None
+                if split_counts is None
+                else {split: int(split_counts[split]) for split in SPLIT_ORDER}
+            ),
+            "excluded_task_id_set_sha256": identity_set_digest(all_excluded_task_ids),
+            "reference_corpora": reference_payload,
+            "target_contract": (
+                None if target_contract is None else dict(target_contract)
+            ),
+        }
+        resume_store = _RootResumeStore(
+            resume_path, job=resume_job, plans=plans, functions=functions
+        )
+        corpus_dir.parent.mkdir(parents=True, exist_ok=True)
+        if os.stat(resume_path).st_dev != os.stat(corpus_dir.parent).st_dev:
+            raise ValueError("resume_dir and output_dir must be on the same filesystem")
+        completed_indices = resume_store.completed_indices()
+        if progress and completed_indices:
+            print(
+                f"[resume] validated {len(completed_indices)}/{len(plans)} "
+                "completed roots",
+                flush=True,
+            )
+
     pending_by_split: dict[str, list[PendingTask]] = {s: [] for s in SPLIT_ORDER}
     outcomes: list[RootOutcome] = []
+    in_memory_results: dict[int, tuple[list[PendingTask], RootOutcome]] = {}
     started = time.perf_counter()
-    for plan in plans:
-        tasks, outcome = expand_root(
-            plan,
-            functions=functions,
-            seed=seed,
-            min_distance=min_distance,
-            tasks_per_distance=tasks_per_distance,
-            frontier_sample=frontier_sample,
-            allow_constant_outputs=allow_constant_outputs,
-            verify_witnesses=verify_witnesses,
-        )
-        pending_by_split[plan.split].extend(tasks)
-        outcomes.append(outcome)
+    expansion_results = _run_expansions(
+        [plan for plan in plans if plan.index not in completed_indices],
+        basis_set_id=basis.basis_set_id,
+        functions=functions,
+        seed=seed,
+        min_distance=min_distance,
+        tasks_per_distance=tasks_per_distance,
+        frontier_sample=frontier_sample,
+        allow_constant_outputs=allow_constant_outputs,
+        verify_witnesses=verify_witnesses,
+        workers=workers,
+    )
+    for plan, result in expansion_results:
+        tasks, outcome = result
+        if resume_store is None:
+            in_memory_results[plan.index] = result
+        else:
+            resume_store.write(plan, result)
+            completed_indices.add(plan.index)
         if progress:
             print(
                 f"[root {plan.index + 1}/{len(plans)}] {outcome.input_type} "
@@ -916,6 +1514,21 @@ def generate_corpus(
                 flush=True,
             )
 
+    for plan in plans:
+        if resume_store is None:
+            tasks, outcome = in_memory_results[plan.index]
+        else:
+            tasks, outcome = resume_store.load(plan)
+        pending_by_split[plan.split].extend(tasks)
+        outcomes.append(outcome)
+
+    write_dir = corpus_dir
+    if resume_store is not None:
+        write_dir = resume_store.final_staging_dir
+        if write_dir.exists():
+            shutil.rmtree(write_dir)
+        write_dir.mkdir(parents=True)
+
     # Answer equality, not task_id: task_id hashes the serialized values, and
     # `-0.0` and `0.0` serialize differently while grading as the same answer.
     # Keying on it lets two records that pose one task both through, which is
@@ -924,6 +1537,8 @@ def generate_corpus(
     duplicate_tasks = 0
     unserializable = 0
     split_metadata: dict[str, Any] = {}
+    global_task_ids: set[str] = set()
+    global_root_digests: set[str] = set()
     for split in SPLIT_ORDER:
         tasks = pending_by_split[split]
         # Heterogeneous file order without disturbing the generation streams.
@@ -944,9 +1559,15 @@ def generate_corpus(
             if task_key in seen_task_keys:
                 duplicate_tasks += 1
                 continue
+            if record.task_id in all_excluded_task_ids:
+                raise RuntimeError(
+                    f"generated task {record.task_id} overlaps an excluded corpus"
+                )
             seen_task_keys.add(task_key)
+            global_task_ids.add(record.task_id)
+            global_root_digests.add(record.metadata["root_digest"])
             records.append(record)
-        path = corpus_dir / f"{split}.jsonl.gz"
+        path = write_dir / f"{split}.jsonl.gz"
         write_basis_task_records(records, path)
         summary = _split_summary(records)
         summary.update({"path": path.name, "sha256": _sha256_file(path), "seed": seed})
@@ -970,6 +1591,40 @@ def generate_corpus(
     ]
     if overlapping:
         raise RuntimeError(f"roots leak across splits: {overlapping}")
+
+    excluded_root_digests = {
+        digest
+        for identities in reference_identities
+        for digest in identities.root_digests
+    }
+    root_digest_overlap = global_root_digests & excluded_root_digests
+    task_id_overlap = global_task_ids & reference_task_ids
+    if root_digest_overlap or task_id_overlap:
+        raise RuntimeError(
+            "generated corpus overlaps a reference corpus: "
+            f"roots={len(root_digest_overlap)}, tasks={len(task_id_overlap)}"
+        )
+
+    config: dict[str, Any] = {
+        "roots": roots,
+        "max_depth": max_depth,
+        "deep_roots": deep_roots,
+        "deep_max_depth": deep_max_depth,
+        "min_distance": min_distance,
+        "tasks_per_distance": tasks_per_distance,
+        "frontier_sample": frontier_sample,
+        "max_states": max_states,
+        "max_transitions": max_transitions,
+        "deep_max_states": deep_max_states,
+        "deep_max_transitions": deep_max_transitions,
+        "deep_root_types": list(deep_root_types),
+        "allow_constant_outputs": allow_constant_outputs,
+        "split_cycle": list(DEFAULT_SPLIT_CYCLE),
+    }
+    if split_counts is not None:
+        config["split_counts"] = {
+            split: int(split_counts[split]) for split in SPLIT_ORDER
+        }
 
     manifest: dict[str, Any] = {
         "schema_version": PIPELINE_SCHEMA_VERSION,
@@ -995,22 +1650,7 @@ def generate_corpus(
         "basis_set_id": basis.basis_set_id,
         "basis_set_digest": basis.digest,
         "seed": seed,
-        "config": {
-            "roots": roots,
-            "max_depth": max_depth,
-            "deep_roots": deep_roots,
-            "deep_max_depth": deep_max_depth,
-            "min_distance": min_distance,
-            "tasks_per_distance": tasks_per_distance,
-            "frontier_sample": frontier_sample,
-            "max_states": max_states,
-            "max_transitions": max_transitions,
-            "deep_max_states": deep_max_states,
-            "deep_max_transitions": deep_max_transitions,
-            "deep_root_types": list(deep_root_types),
-            "allow_constant_outputs": allow_constant_outputs,
-            "split_cycle": list(DEFAULT_SPLIT_CYCLE),
-        },
+        "config": config,
         "filters": {
             "skip_self_loops": True,
             "reject_value_identity_task": True,
@@ -1022,11 +1662,30 @@ def generate_corpus(
             ),
             "constant_output_definition": "fewer than two distinct output items",
         },
-        "split_policy": "by root: every task from one root shares that root's split",
+        "split_policy": (
+            "by root with exact split counts: every task from one root shares "
+            "that root's split"
+            if split_counts is not None
+            else "by root: every task from one root shares that root's split"
+        ),
         "global_task_count": len(seen_task_keys),
         "global_dedupe_key": "(canonical_key(input), canonical_key(output))",
         "duplicate_tasks_rejected": duplicate_tasks,
         "unserializable_states_rejected": unserializable,
+        "identity": {
+            "root_digest_definition": "sha256 of TypedList.to_string UTF-8 bytes",
+            "root_digests": len(global_root_digests),
+            "root_digest_set_sha256": identity_set_digest(global_root_digests),
+            "task_ids": len(global_task_ids),
+            "task_id_set_sha256": identity_set_digest(global_task_ids),
+        },
+        "reference_corpora_excluded": [
+            identities.manifest_reference() for identities in reference_identities
+        ],
+        "reference_overlap": {
+            "root_digests": len(root_digest_overlap),
+            "task_ids": len(task_id_overlap),
+        },
         "expansion": {
             "roots_expanded": len(outcomes),
             "roots_complete": sum(outcome.complete for outcome in outcomes),
@@ -1075,8 +1734,14 @@ def generate_corpus(
         "splits": split_metadata,
         "split_roots": {split: split_roots[split] for split in SPLIT_ORDER},
     }
+    if target_contract is not None:
+        manifest["target_contract"] = dict(target_contract)
     manifest["manifest_digest"] = _sha256_bytes(_canonical_json(manifest).encode())
-    manifest_path = _write_json(manifest, corpus_dir / "manifest.json")
+    manifest_path = _write_json(manifest, write_dir / "manifest.json")
+    if resume_store is not None:
+        corpus_dir.parent.mkdir(parents=True, exist_ok=True)
+        os.replace(write_dir, corpus_dir)
+        manifest_path = corpus_dir / "manifest.json"
     return manifest, manifest_path
 
 
@@ -1123,6 +1788,38 @@ def load_corpus(
                 raise ValueError(f"record {record.task_id} has the wrong split label")
         records.extend(split_records)
     return manifest, records
+
+
+def collect_corpus_identities(corpus_dir: str | Path) -> CorpusIdentities:
+    """Load a pinned corpus and collect the identities needed for exclusion."""
+    manifest, records = load_corpus(corpus_dir)
+    root_keys: set[Any] = set()
+    root_digests: set[str] = set()
+    task_ids: set[str] = set()
+    for record in records:
+        root_keys.add(record.input_value.canonical_key())
+        root_digest = record.metadata.get("root_digest")
+        if not isinstance(root_digest, str):
+            raise ValueError(f"record {record.task_id} has no root_digest")
+        expected_root_digest = _root_digest(record.input_value)
+        if root_digest != expected_root_digest:
+            raise ValueError(
+                f"record {record.task_id} root digest mismatch: "
+                f"{root_digest!r} != {expected_root_digest!r}"
+            )
+        root_digests.add(root_digest)
+        task_ids.add(record.task_id)
+    hub = manifest.get("hub", {})
+    return CorpusIdentities(
+        root_keys=frozenset(root_keys),
+        root_digests=frozenset(root_digests),
+        task_ids=frozenset(task_ids),
+        manifest_digest=manifest.get("manifest_digest"),
+        basis_set_id=manifest["basis_set_id"],
+        basis_set_digest=manifest["basis_set_digest"],
+        hub_repo_id=hub.get("repo_id"),
+        hub_revision=hub.get("revision"),
+    )
 
 
 def _contains_zero_float(value: object) -> bool:
@@ -1177,11 +1874,193 @@ def _recertification_sample(
     return sample
 
 
+def _manifest_summary_failures(
+    manifest: Mapping[str, Any], records: Sequence[BasisTaskRecord]
+) -> list[str]:
+    """Recompute review-critical manifest claims from the payload."""
+    failures: list[str] = []
+    by_split = {
+        split: [record for record in records if record.split == split]
+        for split in SPLIT_ORDER
+    }
+    for split, split_records in by_split.items():
+        metadata = manifest["splits"].get(split)
+        if not isinstance(metadata, dict):
+            failures.append(f"manifest has no metadata for split {split!r}")
+            continue
+        expected_values = {
+            "size": len(split_records),
+            "roots": len(
+                {
+                    record.metadata.get("root_index")
+                    for record in split_records
+                    if isinstance(record.metadata.get("root_index"), int)
+                }
+            ),
+            "root_digests": len(
+                {
+                    record.metadata.get("root_digest")
+                    for record in split_records
+                    if isinstance(record.metadata.get("root_digest"), str)
+                }
+            ),
+        }
+        extended_values = {
+            "by_certified_distance": _distance_histogram(split_records),
+            "by_distance_certification": _distance_certification(split_records),
+        }
+        # V2's target contract makes these review-critical summaries mandatory.
+        # Legacy and small synthetic manifests predate them, but if either field
+        # is present it is still verified rather than trusted.
+        for key, actual in extended_values.items():
+            if manifest.get("target_contract") is not None or key in metadata:
+                expected_values[key] = actual
+        for key, actual in expected_values.items():
+            if metadata.get(key) != actual:
+                failures.append(
+                    f"split {split!r} {key} mismatch: "
+                    f"manifest={metadata.get(key)!r}, payload={actual!r}"
+                )
+        root_digests = {
+            record.metadata["root_digest"]
+            for record in split_records
+            if isinstance(record.metadata.get("root_digest"), str)
+        }
+        task_ids = {record.task_id for record in split_records}
+        for key, actual in (
+            ("root_digest_set_sha256", identity_set_digest(root_digests)),
+            ("task_id_set_sha256", identity_set_digest(task_ids)),
+        ):
+            if key in metadata and metadata[key] != actual:
+                failures.append(
+                    f"split {split!r} {key} mismatch: "
+                    f"manifest={metadata[key]!r}, payload={actual!r}"
+                )
+        if metadata.get("seed") != manifest.get("seed"):
+            failures.append(f"split {split!r} seed differs from manifest seed")
+
+    task_ids = {record.task_id for record in records}
+    root_digests = {
+        record.metadata["root_digest"]
+        for record in records
+        if isinstance(record.metadata.get("root_digest"), str)
+    }
+    if manifest.get("global_task_count") != len(task_ids):
+        failures.append(
+            "global_task_count mismatch: "
+            f"manifest={manifest.get('global_task_count')!r}, payload={len(task_ids)}"
+        )
+    identity = manifest.get("identity")
+    if identity is not None:
+        expected_identity = {
+            "root_digests": len(root_digests),
+            "root_digest_set_sha256": identity_set_digest(root_digests),
+            "task_ids": len(task_ids),
+            "task_id_set_sha256": identity_set_digest(task_ids),
+        }
+        for key, actual in expected_identity.items():
+            if identity.get(key) != actual:
+                failures.append(
+                    f"identity {key} mismatch: "
+                    f"manifest={identity.get(key)!r}, payload={actual!r}"
+                )
+
+    split_roots = manifest.get("split_roots")
+    if isinstance(split_roots, dict):
+        for split, split_records in by_split.items():
+            actual = sorted(
+                {
+                    record.metadata["root_index"]
+                    for record in split_records
+                    if isinstance(record.metadata.get("root_index"), int)
+                }
+            )
+            if split_roots.get(split) != actual:
+                failures.append(f"split_roots mismatch for {split!r}")
+    return failures
+
+
+def _target_contract_failures(
+    manifest: Mapping[str, Any],
+    records: Sequence[BasisTaskRecord],
+    reference_identities: Sequence[CorpusIdentities],
+) -> list[str]:
+    contract = manifest.get("target_contract")
+    if contract is None:
+        return []
+    failures: list[str] = []
+    root_digests = {
+        record.metadata["root_digest"]
+        for record in records
+        if isinstance(record.metadata.get("root_digest"), str)
+    }
+    if "root_count" in contract and contract["root_count"] != len(root_digests):
+        failures.append(
+            f"target root_count={contract['root_count']}, observed={len(root_digests)}"
+        )
+    split_targets = contract.get("split_root_counts", {})
+    for split, target in split_targets.items():
+        observed = len(
+            {
+                record.metadata.get("root_digest")
+                for record in records
+                if record.split == split
+                and isinstance(record.metadata.get("root_digest"), str)
+            }
+        )
+        if observed != target:
+            failures.append(f"target roots for {split}={target}, observed={observed}")
+
+    histogram = _distance_histogram(records)
+    distance_range = contract.get("certified_distance_range")
+    observed_distances = sorted(int(distance) for distance in histogram)
+    if distance_range is not None and observed_distances:
+        observed_range = [observed_distances[0], observed_distances[-1]]
+        if observed_range != list(distance_range):
+            failures.append(
+                f"target distance range={distance_range}, observed={observed_range}"
+            )
+    tolerance = contract.get("distance_relative_tolerance", 0.0)
+    if (
+        not isinstance(tolerance, int | float)
+        or isinstance(tolerance, bool)
+        or tolerance < 0
+    ):
+        failures.append("distance_relative_tolerance must be non-negative")
+        tolerance = 0.0
+    for distance, target in contract.get("distance_targets", {}).items():
+        observed = histogram.get(str(distance), 0)
+        allowed = round(int(target) * float(tolerance))
+        if abs(observed - int(target)) > allowed:
+            failures.append(
+                f"target distance {distance}={target} +/- {allowed}, observed={observed}"
+            )
+    if contract.get("require_all_expansions_complete"):
+        expansion = manifest.get("expansion", {})
+        if expansion.get("roots_complete") != expansion.get("roots_expanded"):
+            failures.append("target requires every root expansion to complete")
+
+    expected_reference_digests = set(contract.get("reference_manifest_digests", []))
+    if expected_reference_digests:
+        supplied = {
+            identities.manifest_digest
+            for identities in reference_identities
+            if identities.manifest_digest is not None
+        }
+        missing = expected_reference_digests - supplied
+        if missing:
+            failures.append(
+                f"missing reference identities for manifest digests {sorted(missing)}"
+            )
+    return failures
+
+
 def verify_corpus(
     corpus_dir: str | Path,
     *,
     recertify: int = 0,
     seed: int = DEFAULT_SEED,
+    reference_identities: Sequence[CorpusIdentities] = (),
 ) -> dict[str, Any]:
     """Re-execute every witness and optionally re-prove distances from scratch.
 
@@ -1197,14 +2076,85 @@ def verify_corpus(
     by_name = functions.name_to_function
 
     witness_failures: list[str] = []
+    provenance_failures: list[str] = []
+    task_counts: Counter[str] = Counter()
+    task_splits: defaultdict[str, set[str]] = defaultdict(set)
+    root_splits: defaultdict[str, set[str]] = defaultdict(set)
+    root_keys_by_digest: dict[str, Any] = {}
     for record in records:
+        task_counts[record.task_id] += 1
+        task_splits[record.task_id].add(record.split)
+        metadata = record.metadata
+        distance = metadata.get("certified_distance")
+        if isinstance(distance, bool) or not isinstance(distance, int) or distance < 1:
+            provenance_failures.append(
+                f"{record.task_id}: invalid certified_distance {distance!r}"
+            )
+            distance = None
+        if record.generator != manifest.get("generator"):
+            provenance_failures.append(f"{record.task_id}: generator mismatch")
+        if record.seed != manifest.get("seed"):
+            provenance_failures.append(f"{record.task_id}: seed mismatch")
+        root_digest = metadata.get("root_digest")
+        expected_root_digest = _root_digest(record.input_value)
+        if root_digest != expected_root_digest:
+            provenance_failures.append(f"{record.task_id}: root digest mismatch")
+        if isinstance(root_digest, str):
+            root_splits[root_digest].add(record.split)
+            root_keys_by_digest[root_digest] = record.input_value.canonical_key()
+        if not isinstance(metadata.get("root_index"), int):
+            provenance_failures.append(f"{record.task_id}: invalid root_index")
+
+        certification = metadata.get("certification")
+        expansion_depth = metadata.get("expansion_certified_depth")
+        if (
+            isinstance(expansion_depth, bool)
+            or not isinstance(expansion_depth, int)
+            or expansion_depth < 0
+        ):
+            provenance_failures.append(
+                f"{record.task_id}: invalid expansion_certified_depth"
+            )
+        elif distance is not None:
+            if certification == CERTIFICATION_COMPLETE and distance > expansion_depth:
+                provenance_failures.append(
+                    f"{record.task_id}: complete certification exceeds expansion"
+                )
+            elif (
+                certification == CERTIFICATION_FRONTIER
+                and distance != expansion_depth + 1
+            ):
+                provenance_failures.append(
+                    f"{record.task_id}: frontier certification depth mismatch"
+                )
+            elif certification not in {CERTIFICATION_COMPLETE, CERTIFICATION_FRONTIER}:
+                provenance_failures.append(
+                    f"{record.task_id}: unknown certification {certification!r}"
+                )
+
+        for metadata_key in (
+            "optimal_first_action_ids",
+            "optimal_last_action_ids",
+        ):
+            for function_id in metadata.get(metadata_key, []):
+                if function_id not in names_by_id:
+                    provenance_failures.append(
+                        f"{record.task_id}: unknown {metadata_key} ID {function_id}"
+                    )
+
+        valid_witness = True
         for function_id, name in zip(
             record.witness_function_ids, record.witness_function_names, strict=True
         ):
             if names_by_id.get(function_id) != name:
                 witness_failures.append(f"{record.task_id}: unknown id {function_id}")
-        if record.witness_length != record.metadata["certified_distance"]:
+                valid_witness = False
+            if name not in by_name:
+                valid_witness = False
+        if distance is None or record.witness_length != distance:
             witness_failures.append(f"{record.task_id}: witness length mismatch")
+            continue
+        if not valid_witness:
             continue
         spec = TrajectorySpec(
             record.input_value,
@@ -1214,11 +2164,39 @@ def verify_corpus(
         if not execution.success or execution.trajectory.output != record.output_value:
             witness_failures.append(f"{record.task_id}: witness did not reproduce")
 
-    root_splits: defaultdict[str, set[str]] = defaultdict(set)
-    for record in records:
-        root_splits[record.metadata["root_digest"]].add(record.split)
     leaking_roots = sorted(
         digest for digest, splits in root_splits.items() if len(splits) > 1
+    )
+    duplicate_task_ids = sorted(
+        task_id for task_id, count in task_counts.items() if count > 1
+    )
+    leaking_tasks = sorted(
+        task_id for task_id, splits in task_splits.items() if len(splits) > 1
+    )
+
+    reference_root_digests = {
+        digest
+        for identities in reference_identities
+        for digest in identities.root_digests
+    }
+    reference_root_keys = {
+        key for identities in reference_identities for key in identities.root_keys
+    }
+    reference_task_ids = {
+        task_id
+        for identities in reference_identities
+        for task_id in identities.task_ids
+    }
+    root_digest_overlaps = sorted(set(root_splits) & reference_root_digests)
+    root_key_overlaps = sorted(
+        digest
+        for digest, key in root_keys_by_digest.items()
+        if key in reference_root_keys
+    )
+    task_id_overlaps = sorted(set(task_counts) & reference_task_ids)
+    manifest_summary_failures = _manifest_summary_failures(manifest, records)
+    target_contract_failures = _target_contract_failures(
+        manifest, records, reference_identities
     )
 
     if recertify < 0:
@@ -1261,15 +2239,33 @@ def verify_corpus(
         "corpus_dir": str(corpus_dir),
         "records": len(records),
         "witness_failures": witness_failures,
+        "provenance_failures": provenance_failures,
+        "manifest_summary_failures": manifest_summary_failures,
         "roots_leaking_across_splits": leaking_roots,
+        "duplicate_task_ids": duplicate_task_ids,
+        "tasks_leaking_across_splits": leaking_tasks,
+        "reference_root_digest_overlaps": root_digest_overlaps,
+        "reference_root_key_overlaps": root_key_overlaps,
+        "reference_task_id_overlaps": task_id_overlaps,
+        "root_digest_set_sha256": identity_set_digest(set(root_splits)),
+        "task_id_set_sha256": identity_set_digest(set(task_counts)),
         "distance_histogram": _distance_histogram(records),
+        "target_contract_failures": target_contract_failures,
         "recertified": recertified,
         "recertification_failures": failed_recertification,
         "recertification_inconclusive": inconclusive_recertification,
         "ok": not any(
             (
                 witness_failures,
+                provenance_failures,
+                manifest_summary_failures,
                 leaking_roots,
+                duplicate_task_ids,
+                leaking_tasks,
+                root_digest_overlaps,
+                root_key_overlaps,
+                task_id_overlaps,
+                target_contract_failures,
                 failed_recertification,
                 inconclusive_recertification,
             )
@@ -1559,6 +2555,25 @@ def _parse_depths(value: str) -> list[int]:
     return depths
 
 
+def _parse_split_counts(value: str) -> dict[str, int]:
+    """Parse ``discovery=...,validation=...,test=...`` for the CLI."""
+    try:
+        counts = {
+            split.strip(): int(count)
+            for item in value.split(",")
+            for split, count in [item.split("=", 1)]
+        }
+    except (TypeError, ValueError) as error:
+        raise argparse.ArgumentTypeError(
+            "split counts must look like discovery=7,validation=1,test=1"
+        ) from error
+    if set(counts) != set(SPLIT_ORDER) or any(count < 0 for count in counts.values()):
+        raise argparse.ArgumentTypeError(
+            f"split counts must contain non-negative values for {SPLIT_ORDER}"
+        )
+    return counts
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -1588,6 +2603,19 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
+    parser.add_argument(
+        "--split-counts",
+        type=_parse_split_counts,
+        default=None,
+        help="exact root counts as discovery=N,validation=N,test=N",
+    )
+    parser.add_argument("--workers", type=int, default=1)
+    parser.add_argument(
+        "--resume-dir",
+        type=Path,
+        default=None,
+        help="optional atomic per-root checkpoint directory",
+    )
     parser.add_argument("--allow-constant-outputs", action="store_true")
     parser.add_argument("--skip-witness-verification", action="store_true")
     parser.add_argument("--overwrite", action="store_true")
@@ -1624,6 +2652,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 part.strip() for part in args.deep_root_types.split(",") if part.strip()
             ),
             seed=args.seed,
+            split_counts=args.split_counts,
+            workers=args.workers,
+            resume_dir=args.resume_dir,
             allow_constant_outputs=args.allow_constant_outputs,
             verify_witnesses=not args.skip_witness_verification,
             overwrite=args.overwrite,

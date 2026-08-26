@@ -3,6 +3,8 @@
 import gzip
 import hashlib
 import json
+import shutil
+import sys
 
 import pytest
 
@@ -104,8 +106,9 @@ def test_recorded_hub_location_does_not_break_the_digest_check(tmp_path):
 
     stored = json.loads((root / "manifest.json").read_text())
     payload = {k: v for k, v in stored.items() if k not in ("manifest_digest", "hub")}
-    assert deep._sha256_bytes(deep._canonical_json(payload).encode()) == (
-        stored["manifest_digest"]
+    assert (
+        deep._sha256_bytes(deep._canonical_json(payload).encode())
+        == (stored["manifest_digest"])
     )
 
 
@@ -130,9 +133,7 @@ def test_fetch_verifies_what_it_downloaded(tmp_path, monkeypatch):
     )
 
     with pytest.raises(ValueError, match="digest mismatch"):
-        corpus_hub.fetch_corpus(
-            root / "manifest.json", destination=tmp_path / "out"
-        )
+        corpus_hub.fetch_corpus(root / "manifest.json", destination=tmp_path / "out")
 
 
 def test_fetch_requires_a_repo_id(tmp_path):
@@ -140,3 +141,70 @@ def test_fetch_requires_a_repo_id(tmp_path):
 
     with pytest.raises(ValueError, match=r"no hub\.repo_id"):
         corpus_hub.fetch_corpus(root / "manifest.json")
+
+
+def test_publish_uses_one_atomic_commit(tmp_path, monkeypatch):
+    root = _corpus(tmp_path)
+    observed = {}
+
+    class FakeOperation:
+        def __init__(self, *, path_in_repo, path_or_fileobj):
+            self.path_in_repo = path_in_repo
+            self.path_or_fileobj = path_or_fileobj
+
+    class FakeApi:
+        def create_repo(self, **kwargs):
+            observed["repo"] = kwargs
+
+        def create_commit(self, **kwargs):
+            observed["commit"] = kwargs
+            return type("Commit", (), {"oid": "abc123"})()
+
+    monkeypatch.setitem(
+        sys.modules,
+        "huggingface_hub",
+        type(
+            "Hub",
+            (),
+            {"CommitOperationAdd": FakeOperation, "HfApi": FakeApi},
+        ),
+    )
+
+    revision = corpus_hub.publish_corpus(root, repo_id="acct/v2")
+
+    assert revision == "abc123"
+    operations = observed["commit"]["operations"]
+    assert {operation.path_in_repo for operation in operations} == {
+        "discovery.jsonl.gz",
+        "validation.jsonl.gz",
+        "test.jsonl.gz",
+        "manifest.json",
+    }
+    assert len(operations) == 4
+
+
+def test_verify_published_corpus_uses_the_pinned_revision(tmp_path, monkeypatch):
+    root = _corpus(tmp_path)
+    remote = tmp_path / "remote"
+    remote.mkdir()
+    for path in root.iterdir():
+        shutil.copyfile(path, remote / path.name)
+    calls = []
+
+    def fake_download(*, repo_id, repo_type, filename, revision):
+        calls.append((repo_id, repo_type, filename, revision))
+        return str(remote / filename)
+
+    monkeypatch.setitem(
+        sys.modules,
+        "huggingface_hub",
+        type("Hub", (), {"hf_hub_download": staticmethod(fake_download)}),
+    )
+
+    checked = corpus_hub.verify_published_corpus(
+        root, repo_id="acct/v2", revision="immutable123"
+    )
+
+    assert set(checked) == {"discovery", "validation", "test"}
+    assert calls
+    assert {call[3] for call in calls} == {"immutable123"}

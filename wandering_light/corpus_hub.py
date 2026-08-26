@@ -20,6 +20,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -93,7 +94,7 @@ def publish_corpus(
     self-describing, but the repository keeps its own copy: that is what pins
     the digests a later fetch is checked against.
     """
-    from huggingface_hub import HfApi
+    from huggingface_hub import CommitOperationAdd, HfApi
 
     root = Path(corpus_dir)
     verify_corpus_files(root)
@@ -103,25 +104,19 @@ def publish_corpus(
     api.create_repo(
         repo_id=repo_id, repo_type="dataset", private=private, exist_ok=True
     )
-    for name in [*_payload_names(manifest), MANIFEST_NAME]:
-        api.upload_file(
-            path_or_fileobj=str(root / name),
-            path_in_repo=name,
-            repo_id=repo_id,
-            repo_type="dataset",
-        )
-    for extra in extra_files:
-        path = Path(extra)
-        api.upload_file(
-            path_or_fileobj=str(path),
-            path_in_repo=path.name,
-            repo_id=repo_id,
-            repo_type="dataset",
-        )
+    files = [root / name for name in [*_payload_names(manifest), MANIFEST_NAME]]
+    files.extend(Path(extra) for extra in extra_files)
+    names = [path.name for path in files]
+    if len(names) != len(set(names)):
+        raise ValueError("published corpus files must have unique bare names")
+    operations = [
+        CommitOperationAdd(path_in_repo=path.name, path_or_fileobj=str(path))
+        for path in files
+    ]
     commit = api.create_commit(
         repo_id=repo_id,
         repo_type="dataset",
-        operations=[],
+        operations=operations,
         commit_message=commit_message or f"Publish {root.name}",
     )
     revision = getattr(commit, "oid", None)
@@ -131,9 +126,37 @@ def publish_corpus(
     return revision
 
 
-def record_hub_location(
+def verify_published_corpus(
     corpus_dir: str | Path, *, repo_id: str, revision: str
-) -> Path:
+) -> dict[str, str]:
+    """Fetch one immutable Hub revision and verify its manifest and payload."""
+    from huggingface_hub import hf_hub_download
+
+    root = Path(corpus_dir)
+    local_manifest = root / MANIFEST_NAME
+    cached_manifest = Path(
+        hf_hub_download(
+            repo_id=repo_id,
+            repo_type="dataset",
+            filename=MANIFEST_NAME,
+            revision=revision,
+        )
+    )
+    if cached_manifest.read_bytes() != local_manifest.read_bytes():
+        raise ValueError("published manifest differs from the local manifest")
+    with tempfile.TemporaryDirectory(prefix="wandering-light-corpus-") as directory:
+        target = Path(directory)
+        shutil.copyfile(cached_manifest, target / MANIFEST_NAME)
+        fetch_corpus(
+            target / MANIFEST_NAME,
+            destination=target,
+            repo_id=repo_id,
+            revision=revision,
+        )
+        return verify_corpus_files(target)
+
+
+def record_hub_location(corpus_dir: str | Path, *, repo_id: str, revision: str) -> Path:
     """Note where a corpus was published, inside the manifest.
 
     Written under a separate key rather than into the digested body, so the
@@ -171,9 +194,7 @@ def fetch_corpus(
     repo_id = repo_id or hub.get("repo_id")
     revision = revision or hub.get("revision")
     if not repo_id:
-        raise ValueError(
-            f"{manifest_file} has no hub.repo_id; pass repo_id explicitly"
-        )
+        raise ValueError(f"{manifest_file} has no hub.repo_id; pass repo_id explicitly")
 
     target = Path(destination) if destination else manifest_file.parent
     target.mkdir(parents=True, exist_ok=True)

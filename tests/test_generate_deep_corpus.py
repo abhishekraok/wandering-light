@@ -10,6 +10,7 @@ from types import SimpleNamespace
 import pytest
 
 from experiments import generate_deep_corpus as deep
+from wandering_light.basis_dataset import BasisTaskRecord, write_basis_task_records
 from wandering_light.basis_set import load_basis_set
 from wandering_light.function_def import FunctionDef, FunctionDefSet
 from wandering_light.proposer_pilot.graph import TrajectoryGraph
@@ -224,6 +225,52 @@ def test_roots_are_distinct_and_split_by_root():
     assert counts["test"] == 2
 
 
+def test_exact_split_counts_and_reference_root_exclusion():
+    common = {
+        "roots": 27,
+        "seed": 3,
+        "max_depth": 4,
+        "deep_roots": 0,
+        "deep_max_depth": 5,
+        "max_states": 1000,
+        "max_transitions": 1000,
+        "deep_max_states": 1000,
+        "deep_max_transitions": 1000,
+    }
+    baseline = deep.build_root_plans(**common)
+    excluded = {plan.typed_list.canonical_key() for plan in baseline[:5]}
+
+    plans = deep.build_root_plans(
+        **common,
+        split_counts={"discovery": 21, "validation": 3, "test": 3},
+        excluded_root_keys=tuple(excluded),
+    )
+
+    assert Counter(plan.split for plan in plans) == {
+        "discovery": 21,
+        "validation": 3,
+        "test": 3,
+    }
+    assert not ({plan.typed_list.canonical_key() for plan in plans} & excluded)
+    assert len({plan.typed_list.canonical_key() for plan in plans}) == 27
+
+
+def test_exact_split_counts_must_sum_to_roots():
+    with pytest.raises(ValueError, match="sum to"):
+        deep.build_root_plans(
+            roots=4,
+            seed=3,
+            max_depth=2,
+            deep_roots=0,
+            deep_max_depth=3,
+            max_states=1000,
+            max_transitions=1000,
+            deep_max_states=1000,
+            deep_max_transitions=1000,
+            split_counts={"discovery": 3, "validation": 1, "test": 1},
+        )
+
+
 def test_every_split_covers_every_input_type():
     # The split cycle is nine long and the types cycle twelve; indexing the
     # cycle by root index would lock each split to 12 / gcd(9, 12) = 4 types and
@@ -362,6 +409,10 @@ def test_generate_and_verify_roundtrip(tmp_path):
     assert result["recertified"]
     assert all(row["outcome"] == "certified" for row in result["recertified"])
     assert result["recertification_inconclusive"] == []
+    assert result["provenance_failures"] == []
+    assert result["manifest_summary_failures"] == []
+    assert result["duplicate_task_ids"] == []
+    assert result["tasks_leaking_across_splits"] == []
 
     _, records = deep.load_corpus(corpus_dir)
     assert len(records) == result["records"]
@@ -374,6 +425,159 @@ def test_generate_and_verify_roundtrip(tmp_path):
             deep.CERTIFICATION_FRONTIER,
         }
         assert record.basis_set_id == BASIS.basis_set_id
+
+
+def test_reference_corpus_identities_are_excluded_and_verified(tmp_path):
+    _, reference_dir = _tiny_corpus(tmp_path / "reference", roots=6, seed=13)
+    reference = deep.collect_corpus_identities(reference_dir)
+
+    manifest, corpus_dir = _tiny_corpus(
+        tmp_path / "new",
+        roots=6,
+        seed=13,
+        split_counts={"discovery": 4, "validation": 1, "test": 1},
+        reference_identities=(reference,),
+        target_contract={
+            "root_count": 6,
+            "split_root_counts": {"discovery": 4, "validation": 1, "test": 1},
+            "reference_manifest_digests": [reference.manifest_digest],
+        },
+    )
+    identities = deep.collect_corpus_identities(corpus_dir)
+    result = deep.verify_corpus(corpus_dir, reference_identities=(reference,))
+
+    assert identities.root_digests.isdisjoint(reference.root_digests)
+    assert identities.root_keys.isdisjoint(reference.root_keys)
+    assert identities.task_ids.isdisjoint(reference.task_ids)
+    assert manifest["config"]["split_counts"] == {
+        "discovery": 4,
+        "validation": 1,
+        "test": 1,
+    }
+    assert manifest["reference_overlap"] == {"root_digests": 0, "task_ids": 0}
+    assert result["ok"], result
+
+
+def test_process_workers_preserve_payload_bytes(tmp_path):
+    serial, _ = _tiny_corpus(tmp_path / "serial", roots=6, seed=17, workers=1)
+    parallel, _ = _tiny_corpus(tmp_path / "parallel", roots=6, seed=17, workers=2)
+
+    for split in deep.SPLIT_ORDER:
+        assert serial["splits"][split]["sha256"] == parallel["splits"][split]["sha256"]
+    assert serial["identity"] == parallel["identity"]
+
+
+def _leave_resume_after_root_failure(
+    tmp_path, monkeypatch, *, seed=19, workers=1, fail_index=1
+):
+    resume_dir = tmp_path / "root-checkpoints"
+    original = deep.expand_root
+
+    def fail_selected_root(plan, **kwargs):
+        if plan.index == fail_index:
+            raise RuntimeError("injected root failure")
+        return original(plan, **kwargs)
+
+    monkeypatch.setattr(deep, "expand_root", fail_selected_root)
+    with pytest.raises(RuntimeError, match="injected root failure"):
+        _tiny_corpus(
+            tmp_path,
+            roots=6,
+            seed=seed,
+            resume_dir=resume_dir,
+            workers=workers,
+        )
+    monkeypatch.setattr(deep, "expand_root", original)
+    assert not (tmp_path / "corpus").exists()
+    assert (resume_dir / deep.RESUME_MANIFEST_NAME).is_file()
+    assert (resume_dir / "root-000000.json.gz").is_file()
+    return resume_dir
+
+
+def test_resumed_serial_and_parallel_payloads_are_byte_identical(tmp_path, monkeypatch):
+    clean, clean_dir = _tiny_corpus(tmp_path / "clean", roots=6, seed=19)
+    resume_root = tmp_path / "resumed"
+    resume_dir = _leave_resume_after_root_failure(
+        resume_root, monkeypatch, workers=2, fail_index=4
+    )
+
+    resumed, resumed_dir = _tiny_corpus(
+        resume_root,
+        roots=6,
+        seed=19,
+        resume_dir=resume_dir,
+        workers=2,
+    )
+    parallel, parallel_dir = _tiny_corpus(
+        tmp_path / "parallel", roots=6, seed=19, workers=2
+    )
+
+    for split in deep.SPLIT_ORDER:
+        clean_payload = (clean_dir / f"{split}.jsonl.gz").read_bytes()
+        assert (resumed_dir / f"{split}.jsonl.gz").read_bytes() == clean_payload
+        assert (parallel_dir / f"{split}.jsonl.gz").read_bytes() == clean_payload
+        assert resumed["splits"][split]["sha256"] == clean["splits"][split]["sha256"]
+        assert parallel["splits"][split]["sha256"] == clean["splits"][split]["sha256"]
+    assert resumed["identity"] == clean["identity"] == parallel["identity"]
+    assert deep.remove_resume_directory(resume_dir)
+    assert not resume_dir.exists()
+
+
+def test_resume_rejects_configuration_drift(tmp_path, monkeypatch):
+    resume_dir = _leave_resume_after_root_failure(tmp_path, monkeypatch, seed=23)
+
+    with pytest.raises(ValueError, match="job fingerprint mismatch"):
+        _tiny_corpus(
+            tmp_path,
+            roots=6,
+            seed=23,
+            tasks_per_distance=4,
+            resume_dir=resume_dir,
+        )
+
+    assert (resume_dir / "root-000000.json.gz").is_file()
+    assert not (tmp_path / "corpus").exists()
+
+
+def test_resume_rejects_corrupt_root_shard(tmp_path, monkeypatch):
+    resume_dir = _leave_resume_after_root_failure(tmp_path, monkeypatch, seed=29)
+    shard = resume_dir / "root-000000.json.gz"
+    shard.write_bytes(shard.read_bytes()[:-7])
+
+    with pytest.raises(ValueError, match="corrupt resume shard"):
+        _tiny_corpus(
+            tmp_path,
+            roots=6,
+            seed=29,
+            resume_dir=resume_dir,
+        )
+
+    assert shard.exists()
+    assert not (tmp_path / "corpus").exists()
+
+
+def test_verify_detects_record_provenance_mismatch(tmp_path):
+    manifest, corpus_dir = _tiny_corpus(tmp_path)
+    _, records = deep.load_corpus(corpus_dir, splits=("discovery",))
+    tampered = records[0].to_dict()
+    tampered["generator"] = "wrong-generator"
+    records[0] = BasisTaskRecord.from_dict(tampered)
+    split_path = corpus_dir / "discovery.jsonl.gz"
+    write_basis_task_records(records, split_path)
+    manifest["splits"]["discovery"]["sha256"] = deep._sha256_file(split_path)
+    payload = dict(manifest)
+    payload.pop("manifest_digest")
+    manifest["manifest_digest"] = deep._sha256_bytes(
+        deep._canonical_json(payload).encode()
+    )
+    (corpus_dir / "manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+
+    result = deep.verify_corpus(corpus_dir)
+
+    assert not result["ok"]
+    assert any("generator mismatch" in row for row in result["provenance_failures"])
 
 
 def test_recertification_sample_balances_distance_and_zero_exposure():
