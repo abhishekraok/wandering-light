@@ -1,0 +1,34 @@
+
+Depth policy probe -- witness-derived labels, tasks with d >= 3
+
+probe          predictor                 top-1  mean rank
+front k=0      uniform over all          0.0%     118.00
+front k=0      type mask                 0.0%       9.50
+front k=0      marginal frequency        7.1%      24.74
+front k=0      conditional lookup       39.7%       3.38
+front k=0      learned (conv)           38.9%       3.28
+back k=0       uniform over all          0.0%     118.00
+back k=0       type mask                 0.0%      25.87
+back k=0       marginal frequency        8.6%      13.08
+back k=0       conditional lookup       21.8%       4.48
+back k=0       learned (conv)           40.9%       3.38
+front k=1      uniform over all          0.0%     118.00
+front k=1      type mask                 0.0%      18.41
+front k=1      marginal frequency        6.6%      17.95
+front k=1      conditional lookup       26.1%       4.79
+front k=1      learned (conv)           32.0%       4.04
+back k=1       uniform over all          0.0%     118.00
+back k=1       type mask                 0.0%      26.71
+back k=1       marginal frequency        8.2%      13.69
+back k=1       conditional lookup       23.0%       4.83
+back k=1       learned (conv)           41.4%       3.74
+front k=2      uniform over all          0.0%     118.00
+front k=2      type mask                 0.0%      19.90
+front k=2      marginal frequency        7.1%      13.92
+front k=2      conditional lookup       29.3%       4.37
+front k=2      learned (conv)           37.0%       3.58
+back k=2       uniform over all          0.0%     118.00
+back k=2       type mask                 0.3%      26.87
+back k=2       marginal frequency        6.6%      20.52
+back k=2       conditional lookup       23.7%       4.97
+back k=2       learned (conv)           43.2%       3.84
