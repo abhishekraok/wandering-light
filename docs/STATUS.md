@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-08-25
+Last updated: 2026-08-26
 
 ## What is true now
 
@@ -34,12 +34,14 @@ holds the argument.
 | **Policy probe, inward** | The front/back asymmetry is a **first-step artifact**. `deep-corpus-v1` roots exclude `int`/`str`/`float`, so a task's input type is rare and masks to 9.50 of 118 functions; one op later states collapse onto `int`/`float`/`str` and the mask widens to 18.41, settling at 19.90. The back is flat at 25.87 → 26.87. So the dict matches the encoder at `k=0` only; at `k=1,2` on both ends the conv encoder beats it by 16–25% on rank and 23–88% on top-1. | [#33](../../issues/33) |
 | **Learned solver, run 1** | Pretrained `facebook/opt-125m`, 3-epoch SFT: 14/96 at k=64 on held-out. Cheaper than BFS at distances 3–4; **0/12 at every distance 5–8**. | [#50](../../issues/50) |
 | **Learned solver, run 2** | Pretrained `HuggingFaceTB/SmolLM2-360M`, same corpus and locked 3-epoch protocol: 4/96 at k=64, no cost win at any distance, and **0/12 at every distance 5–8**. A stronger pretrained base did not move the target number. | [#50](../../issues/50) |
+| **Why run 2 regressed** | Measured from the saved generations, not inferred: **42.4% of SmolLM2 candidates are unparseable against opt-125m's 0.4%**, essentially all invented function names (`f_sqrt` for `f_abs_sqrt`, `str_to_int` for `int_to_str`, `list_sort`) because the prompt never states the 118-name vocabulary. But conditional on parsing it is still 3.5x worse (0.28% vs 0.98%), so vocabulary is not the whole gap. **Pretrained priors are a liability on an arbitrary closed vocabulary** — which is why #54 tests random initialisation rather than a better pretrained base. | #50 |
+| **`deep-corpus-v2`** | Built, published and verified: 313,438 certified records from 2,400 roots, distances 1–8, zero leakage across splits or against v1. Shared discovery-only tokenizer, vocab 4,196, basis names as atomic tokens. **No models trained against it yet.** | [#54](../../issues/54) |
 
 ## In flight
 
 | what | who | where | question it answers |
 |---|---|---|---|
-| Scratch solver scaling | Codex agent | [#54](../../issues/54) | Does a 10x corpus make random-init OPT-125M or SmolLM2-360M viable? |
+| Scratch solver scaling | Codex agent | [#54](../../issues/54), PR #57 | Does a 10x corpus make random-init models viable? Corpus and tokenizer done. 10M (2.33 h) and 125M (3.72 h) arms are feasible and pending; 360M projects 17.02 h against a 16 h budget and is deferred to its own run. |
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
 
 ## Superseded
@@ -83,3 +85,12 @@ correction lands in one place instead of being chased across comment threads.
 - `docs/stack_machine_explorer.html` — keyboard-driven explorer, self-checks against the Python core
 - `reports/` — every measurement, one directory per run
 - `experiments/` — the scripts that produced them
+
+## Open traps
+
+- **PR #57's tracked manifest is 2.51 MB**, of which `expansion.roots` — 2,400
+  blocks of per-root generation telemetry — is **98.5%**. Removing just that
+  array leaves 42 KB with all identity, digests, histograms and `split_roots`
+  (13 KB) intact. Fix it **before the PR merges**; afterwards it needs a
+  history rewrite. #40's policy says "track the manifest" but sets no size
+  rule, and manifests grow linearly with root count.
