@@ -5,8 +5,7 @@
 
 ## Working with other agents
 
-Several agents and sessions touch this repo. These four conventions exist
-because each one has already failed once.
+Several agents and sessions touch this repo. 
 
 - **`docs/STATUS.md` records state; issues record argument.** Never both. If
   you establish something, add a row there — a claim that lives only in a
