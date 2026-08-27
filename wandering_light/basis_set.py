@@ -119,6 +119,29 @@ def _declared_hash_seed_probe(hash_seed: str) -> tuple[int, int]:
     return raw[0], raw[1]
 
 
+def require_python_hash_seed(expected_seed: str) -> str:
+    """Prove the running interpreter started with one declared hash seed."""
+
+    if (
+        not isinstance(expected_seed, str)
+        or not expected_seed
+        or (expected_seed.lower() == "random")
+    ):
+        raise ValueError("expected_seed must name one fixed Python hash seed")
+    declared_seed = os.environ.get("PYTHONHASHSEED")
+    if declared_seed != expected_seed:
+        raise RuntimeError(
+            f"PYTHONHASHSEED must be {expected_seed!r} before interpreter startup; "
+            f"got {declared_seed!r}"
+        )
+    if _runtime_hash_probe() != _declared_hash_seed_probe(expected_seed):
+        raise RuntimeError(
+            f"Declared PYTHONHASHSEED={expected_seed!r} does not match the running "
+            "interpreter. Relaunch Python with that seed before evaluation."
+        )
+    return expected_seed
+
+
 def require_reproducible_basis_runtime(basis_set: BasisSet) -> str | None:
     """Reject randomized-hash palettes unless Python started with a fixed seed."""
     if any("hash(" in function.code for function in basis_set.functions):
@@ -129,12 +152,7 @@ def require_reproducible_basis_runtime(basis_set: BasisSet) -> str | None:
                 "hashing. Relaunch Python with a fixed seed, for example "
                 "PYTHONHASHSEED=0."
             )
-        if _runtime_hash_probe() != _declared_hash_seed_probe(hash_seed):
-            raise RuntimeError(
-                f"Declared PYTHONHASHSEED={hash_seed!r} does not match the running "
-                "interpreter. Relaunch Python with that seed before evaluation."
-            )
-        return hash_seed
+        return require_python_hash_seed(hash_seed)
     return None
 
 

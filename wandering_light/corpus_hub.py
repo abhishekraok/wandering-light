@@ -5,10 +5,11 @@ or a state-deduplication key invalidates them, and each regeneration is a fresh
 multi-megabyte payload.  Committing them puts every superseded version in git
 history permanently, because gzipped payloads do not delta-compress.
 
-So the payload lives on the Hub and the manifest stays in the repository.  The
-manifest already records what was generated, from which basis and digest, under
-which config, and the sha256 of every file -- everything needed to review a
-corpus, and to verify a download really is the corpus the manifest describes.
+So payloads and per-root/per-record telemetry live on the Hub, while a compact
+manifest stays in the repository.  The manifest records what was generated,
+from which basis and digest, under which config, and the sha256 of every file --
+everything needed to review corpus identity and to verify that a download is
+the corpus and detail the manifest describes.
 
 ``fetch_corpus`` refuses any file whose digest disagrees with the manifest.
 That check is the point of the split: without it, moving the payload off disk
@@ -20,6 +21,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -28,7 +30,10 @@ if TYPE_CHECKING:
 
 MANIFEST_NAME = "manifest.json"
 DEFAULT_REPO_ID = "abhishekraok/wandering-light-deep-corpus-v1"
+EXPANSION_DETAIL_NAME = "expansion_detail.json"
+EXPANSION_DETAIL_ARTIFACT_TYPE = "wandering-light-corpus-expansion-detail"
 _HUB_KEY = "hub"
+_DETAIL_FILES_KEY = "detail_files"
 
 
 def _sha256_file(path: Path) -> str:
@@ -37,6 +42,85 @@ def _sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1 << 20), b""):
             digest.update(chunk)
     return f"sha256:{digest.hexdigest()}"
+
+
+def _canonical_json(value: Any) -> str:
+    return json.dumps(
+        value,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+
+
+def _write_json(path: Path, value: Any) -> None:
+    path.write_text(
+        json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def compact_manifest_details(corpus_dir: str | Path) -> dict[str, Any]:
+    """Detach legacy per-root telemetry before a generated corpus is published.
+
+    The corpus generator's commit remains the provenance for the rows. This
+    packaging step changes only where its telemetry is stored: a compact
+    manifest pins the detached file by byte count and SHA-256.
+    """
+
+    root = Path(corpus_dir)
+    path = root / MANIFEST_NAME
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    expansion = manifest.get("expansion")
+    if not isinstance(expansion, dict):
+        return manifest
+    roots = expansion.get("roots")
+    if roots is None:
+        return manifest
+    if not isinstance(roots, list):
+        raise ValueError("manifest expansion.roots must be an array")
+    if manifest.get(_DETAIL_FILES_KEY):
+        raise ValueError("manifest mixes embedded roots with detached detail")
+
+    detail = {
+        "schema_version": manifest.get("schema_version"),
+        "artifact_type": EXPANSION_DETAIL_ARTIFACT_TYPE,
+        "basis_set_id": manifest.get("basis_set_id"),
+        "basis_set_digest": manifest.get("basis_set_digest"),
+        "generator": manifest.get("generator"),
+        "seed": manifest.get("seed"),
+        "roots": roots,
+    }
+    detail_path = root / EXPANSION_DETAIL_NAME
+    _write_json(detail_path, detail)
+    expansion.pop("roots")
+    manifest[_DETAIL_FILES_KEY] = {
+        "expansion": {
+            "path": detail_path.name,
+            "bytes": detail_path.stat().st_size,
+            "sha256": _sha256_file(detail_path),
+            "records": len(roots),
+            "contents": "per-root generation and expansion telemetry",
+        }
+    }
+
+    manifest.pop("manifest_digest", None)
+    hub = manifest.pop(_HUB_KEY, None)
+    manifest["manifest_digest"] = (
+        "sha256:"
+        + hashlib.sha256(_canonical_json(manifest).encode("utf-8")).hexdigest()
+    )
+    if hub is not None:
+        manifest[_HUB_KEY] = hub
+    _write_json(path, manifest)
+    return manifest
+
+
+def _safe_bare_name(name: Any, *, label: str) -> str:
+    if not isinstance(name, str) or Path(name).name != name or name in ("", "."):
+        raise ValueError(f"unsafe {label}: {name!r}")
+    return name
 
 
 def _split_files(manifest: dict[str, Any]) -> list[tuple[str, str]]:
@@ -48,16 +132,32 @@ def _split_files(manifest: dict[str, Any]) -> list[tuple[str, str]]:
     """
     pairs = []
     for split, metadata in manifest["splits"].items():
-        name = metadata["path"]
-        if not isinstance(name, str) or Path(name).name != name or name in ("", "."):
-            raise ValueError(f"unsafe split path for {split!r}: {name!r}")
+        name = _safe_bare_name(metadata["path"], label=f"split path for {split!r}")
         pairs.append((split, name))
     return pairs
 
 
+def _detail_files(manifest: dict[str, Any]) -> list[tuple[str, str]]:
+    """``(label, filename)`` pairs for detached, content-addressed telemetry."""
+
+    details = manifest.get(_DETAIL_FILES_KEY, {})
+    if not isinstance(details, dict):
+        raise ValueError("manifest detail_files must be an object")
+    pairs = []
+    for label, metadata in details.items():
+        if not isinstance(metadata, dict):
+            raise ValueError(f"detail metadata for {label!r} must be an object")
+        name = _safe_bare_name(metadata.get("path"), label=f"detail path for {label!r}")
+        pairs.append((label, name))
+    return pairs
+
+
 def _payload_names(manifest: dict[str, Any]) -> list[str]:
-    """The split files a manifest describes, as plain names."""
-    return [name for _, name in _split_files(manifest)]
+    """The split and detail files a manifest describes, as plain names."""
+    return [
+        *(name for _, name in _split_files(manifest)),
+        *(name for _, name in _detail_files(manifest)),
+    ]
 
 
 def verify_corpus_files(corpus_dir: str | Path) -> dict[str, str]:
@@ -76,6 +176,24 @@ def verify_corpus_files(corpus_dir: str | Path) -> dict[str, str]:
                 f"{manifest['splits'][split]['sha256']}, file is {actual}"
             )
         checked[split] = actual
+    for label, name in _detail_files(manifest):
+        path = root / name
+        if not path.exists():
+            raise FileNotFoundError(f"missing corpus detail for {label!r}: {path}")
+        actual = _sha256_file(path)
+        expected = manifest[_DETAIL_FILES_KEY][label].get("sha256")
+        if actual != expected:
+            raise ValueError(
+                f"digest mismatch for {name}: manifest says {expected}, "
+                f"file is {actual}"
+            )
+        expected_bytes = manifest[_DETAIL_FILES_KEY][label].get("bytes")
+        if expected_bytes != path.stat().st_size:
+            raise ValueError(
+                f"size mismatch for {name}: manifest says {expected_bytes}, "
+                f"file is {path.stat().st_size}"
+            )
+        checked[f"detail:{label}"] = actual
     return checked
 
 
@@ -93,9 +211,10 @@ def publish_corpus(
     self-describing, but the repository keeps its own copy: that is what pins
     the digests a later fetch is checked against.
     """
-    from huggingface_hub import HfApi
+    from huggingface_hub import CommitOperationAdd, HfApi
 
     root = Path(corpus_dir)
+    compact_manifest_details(root)
     verify_corpus_files(root)
     manifest = json.loads((root / MANIFEST_NAME).read_text(encoding="utf-8"))
 
@@ -103,25 +222,19 @@ def publish_corpus(
     api.create_repo(
         repo_id=repo_id, repo_type="dataset", private=private, exist_ok=True
     )
-    for name in [*_payload_names(manifest), MANIFEST_NAME]:
-        api.upload_file(
-            path_or_fileobj=str(root / name),
-            path_in_repo=name,
-            repo_id=repo_id,
-            repo_type="dataset",
-        )
-    for extra in extra_files:
-        path = Path(extra)
-        api.upload_file(
-            path_or_fileobj=str(path),
-            path_in_repo=path.name,
-            repo_id=repo_id,
-            repo_type="dataset",
-        )
+    files = [root / name for name in [*_payload_names(manifest), MANIFEST_NAME]]
+    files.extend(Path(extra) for extra in extra_files)
+    names = [path.name for path in files]
+    if len(names) != len(set(names)):
+        raise ValueError("published corpus files must have unique bare names")
+    operations = [
+        CommitOperationAdd(path_in_repo=path.name, path_or_fileobj=str(path))
+        for path in files
+    ]
     commit = api.create_commit(
         repo_id=repo_id,
         repo_type="dataset",
-        operations=[],
+        operations=operations,
         commit_message=commit_message or f"Publish {root.name}",
     )
     revision = getattr(commit, "oid", None)
@@ -131,9 +244,37 @@ def publish_corpus(
     return revision
 
 
-def record_hub_location(
+def verify_published_corpus(
     corpus_dir: str | Path, *, repo_id: str, revision: str
-) -> Path:
+) -> dict[str, str]:
+    """Fetch one immutable Hub revision and verify its manifest and payload."""
+    from huggingface_hub import hf_hub_download
+
+    root = Path(corpus_dir)
+    local_manifest = root / MANIFEST_NAME
+    cached_manifest = Path(
+        hf_hub_download(
+            repo_id=repo_id,
+            repo_type="dataset",
+            filename=MANIFEST_NAME,
+            revision=revision,
+        )
+    )
+    if cached_manifest.read_bytes() != local_manifest.read_bytes():
+        raise ValueError("published manifest differs from the local manifest")
+    with tempfile.TemporaryDirectory(prefix="wandering-light-corpus-") as directory:
+        target = Path(directory)
+        shutil.copyfile(cached_manifest, target / MANIFEST_NAME)
+        fetch_corpus(
+            target / MANIFEST_NAME,
+            destination=target,
+            repo_id=repo_id,
+            revision=revision,
+        )
+        return verify_corpus_files(target)
+
+
+def record_hub_location(corpus_dir: str | Path, *, repo_id: str, revision: str) -> Path:
     """Note where a corpus was published, inside the manifest.
 
     Written under a separate key rather than into the digested body, so the
@@ -171,9 +312,7 @@ def fetch_corpus(
     repo_id = repo_id or hub.get("repo_id")
     revision = revision or hub.get("revision")
     if not repo_id:
-        raise ValueError(
-            f"{manifest_file} has no hub.repo_id; pass repo_id explicitly"
-        )
+        raise ValueError(f"{manifest_file} has no hub.repo_id; pass repo_id explicitly")
 
     target = Path(destination) if destination else manifest_file.parent
     target.mkdir(parents=True, exist_ok=True)

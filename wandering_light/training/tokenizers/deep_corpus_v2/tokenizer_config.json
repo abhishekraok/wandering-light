@@ -1,0 +1,988 @@
+{
+  "added_tokens_decoder": {
+    "0": {
+      "content": "<|pad|>",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": true
+    },
+    "1": {
+      "content": "<|bos|>",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": true
+    },
+    "2": {
+      "content": "<|eos|>",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": true
+    },
+    "3": {
+      "content": "<|unk|>",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": true
+    },
+    "360": {
+      "content": "length",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "363": {
+      "content": "square",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "396": {
+      "content": "double",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "402": {
+      "content": "abs",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "403": {
+      "content": "dec",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "406": {
+      "content": "inc",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "413": {
+      "content": "neg",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "434": {
+      "content": "half",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "514": {
+      "content": "reverse",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "591": {
+      "content": "duplicate",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "605": {
+      "content": "repeat",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "770": {
+      "content": "upper",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "793": {
+      "content": "sign",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "831": {
+      "content": "swapcase",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "899": {
+      "content": "lower",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "929": {
+      "content": "title",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "962": {
+      "content": "capitalize",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "1661": {
+      "content": "strip",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4096": {
+      "content": "bool_identity",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4097": {
+      "content": "bool_not",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4098": {
+      "content": "bool_to_float",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4099": {
+      "content": "bool_to_int",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4100": {
+      "content": "bool_to_str",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4101": {
+      "content": "bytearray_length",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4102": {
+      "content": "bytearray_reverse",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4103": {
+      "content": "bytearray_to_bytes",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4104": {
+      "content": "bytes_is_ascii",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4105": {
+      "content": "bytes_is_empty",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4106": {
+      "content": "bytes_length",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4107": {
+      "content": "bytes_reverse",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4108": {
+      "content": "bytes_to_hex",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4109": {
+      "content": "bytes_upper",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4110": {
+      "content": "complex_abs",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4111": {
+      "content": "complex_conjugate",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4112": {
+      "content": "complex_imag",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4113": {
+      "content": "complex_phase",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4114": {
+      "content": "complex_real",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4115": {
+      "content": "contains_space",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4116": {
+      "content": "count_a",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4117": {
+      "content": "dict_flip",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4118": {
+      "content": "dict_freeze",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4119": {
+      "content": "dict_has_duplicate_values",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4120": {
+      "content": "dict_is_empty",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4121": {
+      "content": "dict_items",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4122": {
+      "content": "dict_keys",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4123": {
+      "content": "dict_keyset",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4124": {
+      "content": "dict_length",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4125": {
+      "content": "dict_values",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4126": {
+      "content": "endswith_z",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4127": {
+      "content": "f_abs",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4128": {
+      "content": "f_abs_sqrt",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4129": {
+      "content": "f_ceil",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4130": {
+      "content": "f_exp",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4131": {
+      "content": "f_floor",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4132": {
+      "content": "f_frac_percent",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4133": {
+      "content": "f_fraction",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4134": {
+      "content": "f_is_integer",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4135": {
+      "content": "f_log10",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4136": {
+      "content": "f_mod1",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4137": {
+      "content": "f_reciprocal",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4138": {
+      "content": "f_round",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4139": {
+      "content": "f_sin",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4140": {
+      "content": "f_square",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4141": {
+      "content": "f_trunc",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4142": {
+      "content": "first_char",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4143": {
+      "content": "float_to_str",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4144": {
+      "content": "identity_int",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4145": {
+      "content": "int_bit_length",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4146": {
+      "content": "int_clip_0_100",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4147": {
+      "content": "int_is_power_of_two",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4148": {
+      "content": "int_popcount",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4149": {
+      "content": "int_to_bool",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4150": {
+      "content": "int_to_float",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4151": {
+      "content": "int_to_str",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4152": {
+      "content": "is_alpha",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4153": {
+      "content": "is_digit",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4154": {
+      "content": "is_even",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4155": {
+      "content": "is_lower",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4156": {
+      "content": "is_negative",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4157": {
+      "content": "is_numeric",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4158": {
+      "content": "is_odd",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4159": {
+      "content": "is_positive",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4160": {
+      "content": "is_space",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4161": {
+      "content": "is_title",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4162": {
+      "content": "is_upper",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4163": {
+      "content": "last_char",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4164": {
+      "content": "list_is_empty",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4165": {
+      "content": "list_length",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4166": {
+      "content": "list_max",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4167": {
+      "content": "list_median",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4168": {
+      "content": "list_min",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4169": {
+      "content": "list_reverse",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4170": {
+      "content": "list_sorted",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4171": {
+      "content": "list_sum",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4172": {
+      "content": "list_tail",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4173": {
+      "content": "list_unique",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4174": {
+      "content": "mod2",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4175": {
+      "content": "range_length",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4176": {
+      "content": "range_list",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4177": {
+      "content": "range_max",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4178": {
+      "content": "range_sum",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4179": {
+      "content": "set_hash",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4180": {
+      "content": "set_is_empty",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4181": {
+      "content": "set_size",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4182": {
+      "content": "set_to_list",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4183": {
+      "content": "startswith_a",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4184": {
+      "content": "str_count_vowels",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4185": {
+      "content": "str_hash",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4186": {
+      "content": "str_is_palindrome",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4187": {
+      "content": "str_remove_digits",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4188": {
+      "content": "str_reverse_words",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4189": {
+      "content": "str_to_list",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4190": {
+      "content": "tuple_count_none",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4191": {
+      "content": "tuple_is_empty",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4192": {
+      "content": "tuple_length",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4193": {
+      "content": "tuple_reverse",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4194": {
+      "content": "tuple_to_index_dict",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    },
+    "4195": {
+      "content": "tuple_to_list",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": false
+    }
+  },
+  "bos_token": "<|bos|>",
+  "clean_up_tokenization_spaces": false,
+  "eos_token": "<|eos|>",
+  "extra_special_tokens": {},
+  "model_max_length": 2048,
+  "pad_token": "<|pad|>",
+  "tokenizer_class": "PreTrainedTokenizer",
+  "unk_token": "<|unk|>"
+}

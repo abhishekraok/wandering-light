@@ -26,6 +26,7 @@ holds the argument.
 | **Stack corpus** | `stack_pbe_v2.jsonl.gz` — 1,857 PBE tasks certified shortest to depth 6 against `executable-26`, 1,502 train / 355 eval, 101 needing a loop. Split is a SHA-256 of the task, not a shuffle. | #42 |
 | **Stack BFS baseline** | 75.2% at a 10,000-node budget; median 1,119 nodes per solved task. Node cost grows ~7.5x per unit of program length. | `reports/stack-machine-basis/` |
 | **`deep-corpus-v1`** | 31,350 tasks, certified distances 1–8, 240 roots, split by root. BFS solve rate is a **step function**: 100% up to its depth cap, 0% beyond. Distance-8 answers cost it ~4.4M executions. | [#37](../../issues/37) |
+| **`deep-corpus-v2`** | 313,438 fresh certified tasks from 2,400 roots, split 1,880 / 260 / 260 with zero root/task overlap across splits or with v1. All witnesses re-execute. The tracked 42 KB manifest carries corpus identity and pins per-root telemetry published separately at HF revision `36753a013f3a4e965892b33bc44a8cc0fd567d99`. | [#54](../../issues/54) |
 | **Kt vs length** | Re-certifying the 101 loop tasks under `\|p\| + log2(fuel)` changed **0 labels, 0 bits**. A label needs ~26x less fuel for one extra op; four-element lists cannot vary that much. A fact about input sizes, not the metric. | [#45](../../issues/45) |
 | **Basis growth by MDL** | Degenerate. Accepted 400 words without converging, basis 118 → 518, corpus −36.4%, **search 42,631x more expensive at depth 6**. Every candidate clearing the bar is length 2. | [#41](../../issues/41) |
 | **Policy probe, first action** | A lookup table on `(input type, output type)` reaches mean rank 3.18 and top-1 42.1%. Two byte-level encoders beat it by 10% on rank and tie on top-1. | [#33](../../issues/33) |
@@ -35,13 +36,12 @@ holds the argument.
 | **Learned solver, run 1** | Pretrained `facebook/opt-125m`, 3-epoch SFT: 14/96 at k=64 on held-out. Cheaper than BFS at distances 3–4; **0/12 at every distance 5–8**. | [#50](../../issues/50) |
 | **Learned solver, run 2** | Pretrained `HuggingFaceTB/SmolLM2-360M`, same corpus and locked 3-epoch protocol: 4/96 at k=64, no cost win at any distance, and **0/12 at every distance 5–8**. A stronger pretrained base did not move the target number. | [#50](../../issues/50) |
 | **Why run 2 regressed** | Measured from the saved generations, not inferred: **42.4% of SmolLM2 candidates are unparseable against opt-125m's 0.4%**, essentially all invented function names (`f_sqrt` for `f_abs_sqrt`, `str_to_int` for `int_to_str`, `list_sort`) because the prompt never states the 118-name vocabulary. But conditional on parsing it is still 3.5x worse (0.28% vs 0.98%), so vocabulary is not the whole gap. **Pretrained priors are a liability on an arbitrary closed vocabulary** — which is why #54 tests random initialisation rather than a better pretrained base. | #50 |
-| **`deep-corpus-v2`** | Built, published and verified: 313,438 certified records from 2,400 roots, distances 1–8, zero leakage across splits or against v1. Shared discovery-only tokenizer, vocab 4,196, basis names as atomic tokens. **No models trained against it yet.** | [#54](../../issues/54) |
+| **Scratch solver feasibility** | On one RTX 4090, the exact 10M and OPT-style 125M arms project to 2.258 h and 3.947 h for three pilots plus final. The required-checkpointed 360M arm fits VRAM but projects to **17.282 h**, above the 16 h hard limit. The three-arm study stopped before pilots, final training, generation evaluation, or test opening. | [#54](../../issues/54) |
 
 ## In flight
 
 | what | who | where | question it answers |
 |---|---|---|---|
-| Scratch solver scaling | Codex agent | [#54](../../issues/54), PR #57 | Does a 10x corpus make random-init models viable? Corpus and tokenizer done. 10M (2.33 h) and 125M (3.72 h) arms are feasible and pending; 360M projects 17.02 h against a 16 h budget and is deferred to its own run. |
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
 
 ## Superseded
@@ -75,6 +75,10 @@ correction lands in one place instead of being chased across comment threads.
   training or other objectives; #54 is the scratch follow-up.
 - **"Runs 1 and 2 used random initialization."** False. Both call
   `AutoModelForCausalLM.from_pretrained`; neither is scratch evidence.
+- **"The feasible 10M and 125M scratch arms are pending while 360M is deferred
+  separately."** False under #54's locked three-arm comparison: the 360M arm's
+  failure of the predeclared hard gate stops all pilots and finals, so no
+  partial two-arm result is pending.
 - **"The TypedList eval harness is retired."** Reverted; nothing was deleted.
   `deep-corpus-v1` is the hard corpus and it lives on that harness.
 
@@ -85,12 +89,3 @@ correction lands in one place instead of being chased across comment threads.
 - `docs/stack_machine_explorer.html` — keyboard-driven explorer, self-checks against the Python core
 - `reports/` — every measurement, one directory per run
 - `experiments/` — the scripts that produced them
-
-## Open traps
-
-- **PR #57's tracked manifest is 2.51 MB**, of which `expansion.roots` — 2,400
-  blocks of per-root generation telemetry — is **98.5%**. Removing just that
-  array leaves 42 KB with all identity, digests, histograms and `split_roots`
-  (13 KB) intact. Fix it **before the PR merges**; afterwards it needs a
-  history rewrite. #40's policy says "track the manifest" but sets no size
-  rule, and manifests grow linearly with root count.
