@@ -9,6 +9,7 @@ from wandering_light.evals.deep_corpus_protocol import (
     ALLOWED_ARM_IDS,
     ARM_IDS,
     COHORT_SIZE,
+    SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     aggregate_candidate_funnels,
     begin_test_opening,
     build_bfs_settings,
@@ -17,6 +18,7 @@ from wandering_light.evals.deep_corpus_protocol import (
     build_generation_config,
     build_protocol_lock,
     build_selection_lock,
+    build_source_amendment,
     build_tokenizer_identity,
     canonical_json,
     classify_parse_failure,
@@ -26,6 +28,7 @@ from wandering_light.evals.deep_corpus_protocol import (
     interrupt_test_opening,
     load_test_opening_ledger,
     new_test_opening_ledger,
+    protocol_training_evaluator_sources,
     record_test_arm_result,
     replace_test_opening_ledger_file,
     resume_test_opening,
@@ -258,6 +261,191 @@ def test_protocol_lock_freezes_all_identities_and_rejects_any_mutation(
             protocol_lock,
             tokenizer_root=protocol_components["root"],
             evaluator_root=protocol_components["root"],
+        )
+
+
+def test_protocol_source_amendment_preserves_training_sources_and_legacy_fallback(
+    protocol_components, corpus_records
+):
+    values = protocol_components
+    metadata = {"git_commit": "a" * 40, "roots": ["evaluate.py"]}
+    training_sources = build_evaluator_source_identity(
+        [values["evaluator_file"]], root=values["root"], metadata=metadata
+    )
+    predecessor = build_protocol_lock(
+        corpus_identity={
+            "manifest_digest": "sha256:" + "2" * 64,
+            "generator_source": {
+                "protocol_git_commit": metadata["git_commit"],
+                "evaluator_source_sha256": training_sources["source_sha256"],
+            },
+        },
+        cohorts=values["cohorts"],
+        generation=values["generation"],
+        bfs=values["bfs"],
+        tokenizer=values["tokenizer"],
+        evaluator_sources=training_sources,
+    )
+    values["evaluator_file"].write_text(
+        "def evaluate(): return 2\n", encoding="utf-8"
+    )
+    successor_sources = build_evaluator_source_identity(
+        [values["evaluator_file"]],
+        root=values["root"],
+        metadata={**metadata, "git_commit": "b" * 40},
+    )
+    amendment = build_source_amendment(
+        predecessor_protocol_lock_sha256=predecessor["protocol_lock_sha256"],
+        training_evaluator_sources=training_sources,
+        successor_evaluator_sources=successor_sources,
+        reason="Suppress tokenizer token-type IDs before retrying validation.",
+        changed_source_allowlist=["evaluate.py"],
+        failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+    )
+    successor = build_protocol_lock(
+        corpus_identity=predecessor["corpus"],
+        cohorts=predecessor["cohorts"],
+        generation=predecessor["generation"],
+        bfs=predecessor["bfs"],
+        tokenizer=predecessor["tokenizer"],
+        evaluator_sources=successor_sources,
+        source_amendment=amendment,
+    )
+
+    assert validate_protocol_lock(
+        successor,
+        records=corpus_records,
+        tokenizer_root=values["root"],
+        evaluator_root=values["root"],
+    ) == successor
+    assert protocol_training_evaluator_sources(predecessor) == training_sources
+    assert protocol_training_evaluator_sources(successor) == training_sources
+    assert successor["evaluator_sources"] == successor_sources
+    for field in ("corpus", "cohorts", "generation", "bfs", "tokenizer"):
+        assert successor[field] == predecessor[field]
+
+    for invalid_generator_source in (None, "not-a-mapping"):
+        invalid_corpus = deepcopy(successor["corpus"])
+        if invalid_generator_source is None:
+            invalid_corpus.pop("generator_source")
+        else:
+            invalid_corpus["generator_source"] = invalid_generator_source
+        invalid_predecessor = build_protocol_lock(
+            corpus_identity=invalid_corpus,
+            cohorts=successor["cohorts"],
+            generation=successor["generation"],
+            bfs=successor["bfs"],
+            tokenizer=successor["tokenizer"],
+            evaluator_sources=training_sources,
+        )
+        invalid_amendment = build_source_amendment(
+            predecessor_protocol_lock_sha256=invalid_predecessor[
+                "protocol_lock_sha256"
+            ],
+            training_evaluator_sources=training_sources,
+            successor_evaluator_sources=successor_sources,
+            reason="Suppress tokenizer token-type IDs before retrying validation.",
+            changed_source_allowlist=["evaluate.py"],
+            failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+        )
+        invalid = build_protocol_lock(
+            corpus_identity=invalid_corpus,
+            cohorts=successor["cohorts"],
+            generation=successor["generation"],
+            bfs=successor["bfs"],
+            tokenizer=successor["tokenizer"],
+            evaluator_sources=successor_sources,
+            source_amendment=invalid_amendment,
+        )
+        with pytest.raises(ValueError, match="no preserved generator-source binding"):
+            validate_protocol_lock(invalid)
+
+    wrong_digest_amendment = build_source_amendment(
+        predecessor_protocol_lock_sha256="sha256:" + "f" * 64,
+        training_evaluator_sources=training_sources,
+        successor_evaluator_sources=successor_sources,
+        reason="Suppress tokenizer token-type IDs before retrying validation.",
+        changed_source_allowlist=["evaluate.py"],
+        failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+    )
+    wrong_digest_lock = build_protocol_lock(
+        corpus_identity=successor["corpus"],
+        cohorts=successor["cohorts"],
+        generation=successor["generation"],
+        bfs=successor["bfs"],
+        tokenizer=successor["tokenizer"],
+        evaluator_sources=successor_sources,
+        source_amendment=wrong_digest_amendment,
+    )
+    with pytest.raises(ValueError, match="does not reconstruct its predecessor"):
+        validate_protocol_lock(wrong_digest_lock)
+
+    changed_corpus = deepcopy(successor["corpus"])
+    changed_corpus["manifest_digest"] = "sha256:" + "3" * 64
+    changed_generation_body = deepcopy(successor["generation"])
+    changed_generation_body.pop("generation_sha256")
+    changed_generation_body["temperature"] = 0.7
+    changed_generation = {
+        **changed_generation_body,
+        "generation_sha256": sha256_json(changed_generation_body),
+    }
+    changed_cohorts = build_frozen_cohorts(corpus_records, selection_seed=20260826)
+    for overrides in (
+        {"corpus_identity": changed_corpus},
+        {"generation": changed_generation},
+        {"cohorts": changed_cohorts},
+    ):
+        changed_lock = build_protocol_lock(
+            corpus_identity=overrides.get("corpus_identity", successor["corpus"]),
+            cohorts=overrides.get("cohorts", successor["cohorts"]),
+            generation=overrides.get("generation", successor["generation"]),
+            bfs=successor["bfs"],
+            tokenizer=successor["tokenizer"],
+            evaluator_sources=successor_sources,
+            source_amendment=amendment,
+        )
+        with pytest.raises(ValueError, match="does not reconstruct its predecessor"):
+            validate_protocol_lock(changed_lock)
+
+
+def test_protocol_source_amendment_rejects_output_evidence_and_unlisted_change(
+    protocol_components,
+):
+    values = protocol_components
+    metadata = {"git_commit": "a" * 40, "roots": ["evaluate.py"]}
+    training_sources = build_evaluator_source_identity(
+        [values["evaluator_file"]], root=values["root"], metadata=metadata
+    )
+    values["evaluator_file"].write_text("CHANGED = True\n", encoding="utf-8")
+    successor_sources = build_evaluator_source_identity(
+        [values["evaluator_file"]],
+        root=values["root"],
+        metadata={**metadata, "git_commit": "b" * 40},
+    )
+    common = {
+        "predecessor_protocol_lock_sha256": "sha256:" + "f" * 64,
+        "training_evaluator_sources": training_sources,
+        "successor_evaluator_sources": successor_sources,
+        "reason": "Repair pre-forward evaluator failure.",
+    }
+    bad_evidence = {**SOURCE_AMENDMENT_FAILURE_EVIDENCE, "scored_tasks": 1}
+    with pytest.raises(ValueError, match="zero-output"):
+        build_source_amendment(
+            **common,
+            changed_source_allowlist=["evaluate.py"],
+            failure_evidence=bad_evidence,
+        )
+    with pytest.raises(ValueError, match="absent from the amendment allowlist"):
+        build_source_amendment(
+            **common,
+            changed_source_allowlist=["other.py"],
+            failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+        )
+    with pytest.raises(ValueError, match="unique and sorted"):
+        build_source_amendment(
+            **common,
+            changed_source_allowlist=["other.py", "evaluate.py"],
+            failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
         )
 
 

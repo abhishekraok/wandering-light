@@ -17,8 +17,10 @@ from experiments.evaluate_deep_corpus_v2_scratch import (
 )
 from wandering_light.evals.deep_corpus_protocol import (
     ARM_IDS,
+    SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     begin_test_opening,
     build_selection_lock,
+    build_source_amendment,
     complete_test_opening,
     new_test_opening_ledger,
     record_test_arm_result,
@@ -38,6 +40,7 @@ TOKENIZER_DIGEST = "sha256:" + "3" * 64
 FEASIBILITY_DIGEST = "sha256:" + "4" * 64
 GIT_COMMIT = "a" * 40
 PROBE_SOURCE_DIGEST = "sha256:" + "b" * 64
+SOURCE_HELPER_DIGEST = "sha256:" + "a" * 64
 REAL_LOAD_TEST_ARMS = report._load_test_arms
 
 
@@ -398,6 +401,25 @@ def study(tmp_path, monkeypatch):
         "statistics": {"records": 313_500, "roots": 2_400},
         "target_contract": {"profile": "deep-corpus-v2-issue-54"},
     }
+    evaluator_source_body = {
+        "metadata": {"git_commit": GIT_COMMIT},
+        "files": [
+            {
+                "path": "experiments/probe_deep_corpus_v2_scratch.py",
+                "bytes": 1,
+                "sha256": PROBE_SOURCE_DIGEST,
+            },
+            {
+                "path": "experiments/train_deep_corpus_sft.py",
+                "bytes": 1,
+                "sha256": SOURCE_HELPER_DIGEST,
+            },
+        ],
+    }
+    evaluator_sources = {
+        **evaluator_source_body,
+        "source_sha256": sha256_json(evaluator_source_body),
+    }
     protocol = {
         "protocol_lock_sha256": PROTOCOL_DIGEST,
         "allowed_arm_ids": list(ARM_IDS),
@@ -425,16 +447,7 @@ def study(tmp_path, monkeypatch):
             "bfs_sha256": "sha256:" + "f" * 64,
         },
         "tokenizer": {"metadata": {"artifact_digest": TOKENIZER_DIGEST}},
-        "evaluator_sources": {
-            "source_sha256": "sha256:" + "0" * 64,
-            "metadata": {"git_commit": GIT_COMMIT},
-            "files": [
-                {
-                    "path": "experiments/probe_deep_corpus_v2_scratch.py",
-                    "sha256": PROBE_SOURCE_DIGEST,
-                }
-            ],
-        },
+        "evaluator_sources": evaluator_sources,
     }
     tokenizer_stats = {
         str(distance): {
@@ -546,6 +559,11 @@ def study(tmp_path, monkeypatch):
         "source_code": {
             "commit": GIT_COMMIT,
             "dirty": False,
+            "untracked_files": [],
+            "runner": {
+                "path": "experiments/train_deep_corpus_sft.py",
+                "sha256": SOURCE_HELPER_DIGEST,
+            },
             "probe_runner": {
                 "path": "experiments/probe_deep_corpus_v2_scratch.py",
                 "sha256": PROBE_SOURCE_DIGEST,
@@ -732,6 +750,12 @@ def test_builds_atomic_deterministic_complete_json_and_markdown(study):
     assert first_report == second_report
     assert first_markdown == second_markdown
     assert first_report["test_opening"]["test_access_count"] == 1
+    assert (
+        first_report["protocol"]["training_evaluator_source_sha256"]
+        == first_report["protocol"]["evaluator_source_sha256"]
+    )
+    assert first_report["protocol"]["source_amendment_sha256"] is None
+    assert first_report["protocol"]["predecessor_protocol_lock_sha256"] is None
     assert first_report["decision_rules"]["all_models_zero_at_each_test_distance_5_8"]
     assert "0/12 at every distance from 5 through 8" in first_markdown
     assert (
@@ -1130,13 +1154,50 @@ def test_rejects_training_runtime_that_differs_from_protocol(
 def test_rejects_feasibility_probe_from_another_source(study):
     feasibility = study["feasibility"]
     feasibility["source_code"]["commit"] = "f" * 40
-    with pytest.raises(ValueError, match="outside the frozen commit"):
+    with pytest.raises(ValueError, match="outside the training commit"):
         report.build_report(study["inputs"])
 
     feasibility["source_code"]["commit"] = GIT_COMMIT
     feasibility["source_code"]["probe_runner"]["sha256"] = "sha256:" + "0" * 64
     with pytest.raises(ValueError, match="runner differs"):
         report.build_report(study["inputs"])
+
+
+def test_amended_report_separates_training_and_evaluation_sources(study):
+    protocol = study["protocol"]
+    training_sources = deepcopy(protocol["evaluator_sources"])
+    successor_body = deepcopy(training_sources)
+    successor_body.pop("source_sha256")
+    successor_body["metadata"]["git_commit"] = "b" * 40
+    successor_body["files"][0]["sha256"] = "sha256:" + "c" * 64
+    successor_sources = {
+        **successor_body,
+        "source_sha256": sha256_json(successor_body),
+    }
+    protocol["evaluator_sources"] = successor_sources
+    protocol["source_amendment"] = build_source_amendment(
+        predecessor_protocol_lock_sha256=protocol["protocol_lock_sha256"],
+        training_evaluator_sources=training_sources,
+        successor_evaluator_sources=successor_sources,
+        reason="Suppress tokenizer token-type IDs before retrying validation.",
+        changed_source_allowlist=[
+            "experiments/probe_deep_corpus_v2_scratch.py"
+        ],
+        failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+    )
+
+    built, markdown = report.build_report(study["inputs"])
+
+    assert built["protocol"]["evaluator_source_sha256"] == successor_sources[
+        "source_sha256"
+    ]
+    assert built["protocol"]["training_evaluator_source_sha256"] == training_sources[
+        "source_sha256"
+    ]
+    assert built["protocol"]["source_amendment_sha256"] == protocol[
+        "source_amendment"
+    ]["source_amendment_sha256"]
+    assert "evaluation-only source amendment" in markdown
 
 
 def test_load_test_arms_requires_all_receipts_and_rebuilds_combined(study, monkeypatch):

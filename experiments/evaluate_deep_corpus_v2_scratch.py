@@ -60,6 +60,7 @@ from wandering_light.evals.deep_corpus_protocol import (
     interrupt_test_opening,
     load_test_opening_ledger,
     new_test_opening_ledger,
+    protocol_training_evaluator_sources,
     record_test_arm_result,
     replace_test_opening_ledger_file,
     resume_test_opening,
@@ -458,9 +459,9 @@ def _checkpoint_study_identity(manifest: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _frozen_source_file(
-    protocol_lock: Mapping[str, Any], *, path: str
+    evaluator_sources: Mapping[str, Any], *, path: str
 ) -> dict[str, Any]:
-    files = protocol_lock.get("evaluator_sources", {}).get("files", [])
+    files = evaluator_sources.get("files", [])
     matches = [
         row for row in files if isinstance(row, Mapping) and row.get("path") == path
     ]
@@ -475,10 +476,11 @@ def _validate_checkpoint_source_and_architecture(
     arm_id: str,
     protocol_lock: Mapping[str, Any],
 ) -> None:
+    training_sources = protocol_training_evaluator_sources(protocol_lock)
     # ARM_SPECS is meaningful as a frozen contract only when its defining
     # module is itself covered by the validated protocol source identity.
     _frozen_source_file(
-        protocol_lock, path="wandering_light/training/deep_corpus_scratch.py"
+        training_sources, path="wandering_light/training/deep_corpus_scratch.py"
     )
     spec = ARM_SPECS[arm_id]
     architecture = manifest.get("architecture")
@@ -542,19 +544,27 @@ def _validate_checkpoint_source_and_architecture(
     source = manifest.get("source_code")
     if not isinstance(source, Mapping) or source.get("dirty") is not False:
         raise ValueError("Final checkpoint was not produced from a clean source tree")
-    frozen_sources = protocol_lock.get("evaluator_sources", {})
-    frozen_commit = frozen_sources.get("metadata", {}).get("git_commit")
+    frozen_commit = training_sources.get("metadata", {}).get("git_commit")
     if source.get("commit") != frozen_commit:
         raise ValueError("Final checkpoint source commit differs from the protocol")
     if source.get("untracked_files") != []:
         raise ValueError("Final checkpoint source identity contains untracked files")
     runner_path = "experiments/train_deep_corpus_v2_scratch.py"
-    frozen_runner = _frozen_source_file(protocol_lock, path=runner_path)
+    frozen_runner = _frozen_source_file(training_sources, path=runner_path)
     if source.get("runner") != {
         "path": runner_path,
         "sha256": frozen_runner["sha256"],
     }:
         raise ValueError("Final checkpoint runner differs from the frozen source")
+    helper_path = "experiments/train_deep_corpus_sft.py"
+    frozen_helper = _frozen_source_file(training_sources, path=helper_path)
+    if source.get("source_identity_helper") != {
+        "path": helper_path,
+        "sha256": frozen_helper["sha256"],
+    }:
+        raise ValueError(
+            "Final checkpoint source-identity helper differs from frozen source"
+        )
 
 
 def checkpoint_identity(
@@ -696,6 +706,7 @@ def generate_scratch_candidates(
                 inputs = tokenizer(
                     [prompt] * count,
                     return_tensors="pt",
+                    return_token_type_ids=False,
                     padding=True,
                     truncation=True,
                     max_length=prompt_max_length,
@@ -1344,13 +1355,72 @@ def load_validation_results(
     ]
 
 
+def validate_feasibility_producer(
+    feasibility_manifest: Mapping[str, Any],
+    *,
+    protocol_lock: Mapping[str, Any],
+) -> None:
+    """Require the feasibility probe to come from the training-source commit."""
+
+    source = feasibility_manifest.get("source_code")
+    training_sources = protocol_training_evaluator_sources(protocol_lock)
+    metadata = training_sources.get("metadata")
+    files = training_sources.get("files")
+    if (
+        not isinstance(source, Mapping)
+        or not isinstance(metadata, Mapping)
+        or not isinstance(files, list)
+    ):
+        raise ValueError("Feasibility/protocol producer identity is missing")
+    if (
+        source.get("dirty") is not False
+        or source.get("untracked_files") != []
+        or source.get("commit") != metadata.get("git_commit")
+    ):
+        raise ValueError("Feasibility probe was produced outside the training commit")
+    expected_sources = (
+        (
+            "probe_runner",
+            "experiments/probe_deep_corpus_v2_scratch.py",
+            "Feasibility probe runner",
+        ),
+        (
+            "runner",
+            "experiments/train_deep_corpus_sft.py",
+            "Feasibility source-identity helper",
+        ),
+    )
+    for source_field, path, label in expected_sources:
+        frozen = next(
+            (
+                row
+                for row in files
+                if isinstance(row, Mapping) and row.get("path") == path
+            ),
+            None,
+        )
+        recorded = source.get(source_field)
+        if (
+            not isinstance(frozen, Mapping)
+            or not isinstance(recorded, Mapping)
+            or recorded.get("path") != path
+            or recorded.get("sha256") != frozen.get("sha256")
+        ):
+            raise ValueError(f"{label} differs from frozen training source")
+
+
 def _validate_test_feasibility(
     feasibility_manifest: Mapping[str, Any],
     *,
+    protocol_lock: Mapping[str, Any],
     validation_results: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
     """Bind an exact active/deferred split to one validated feasibility artifact."""
 
+    validate_feasibility_producer(
+        feasibility_manifest,
+        protocol_lock=protocol_lock,
+    )
     active = validate_active_arm_ids(tuple(validation_results))
     deferred = tuple(arm_id for arm_id in ARM_IDS if arm_id not in active)
     if feasibility_manifest.get("status") != "complete":
@@ -1467,7 +1537,9 @@ def validate_test_readiness(
         raise ValueError("Test readiness lock changed after it was sealed")
     value["readiness_sha256"] = recorded
     feasibility_identity = _validate_test_feasibility(
-        feasibility_manifest, validation_results=validation_results
+        feasibility_manifest,
+        protocol_lock=protocol_lock,
+        validation_results=validation_results,
     )
     expected = _test_readiness_body(
         protocol_lock=protocol_lock,
@@ -1499,7 +1571,9 @@ def prepare_test_opening(
     )
     feasibility_manifest = load_probe_manifest(feasibility_manifest_path)
     feasibility_identity = _validate_test_feasibility(
-        feasibility_manifest, validation_results=results
+        feasibility_manifest,
+        protocol_lock=protocol,
+        validation_results=results,
     )
     active = tuple(feasibility_identity["active_arm_ids"])
     ledger = new_test_opening_ledger(

@@ -37,6 +37,7 @@ from experiments.evaluate_deep_corpus_v2_scratch import (
     load_protocol_lock,
     load_validation_results,
     validate_evaluation_summary,
+    validate_feasibility_producer,
     validate_wandb_receipt,
 )
 from experiments.freeze_deep_corpus_v2_protocol import (
@@ -54,6 +55,7 @@ from wandering_light.evals.deep_corpus_protocol import (
     ARM_IDS,
     SAMPLE_PREFIXES,
     canonical_copy,
+    protocol_training_evaluator_sources,
     sha256_file,
     sha256_json,
     validate_test_opening_ledger,
@@ -243,38 +245,6 @@ def _deferred_arm_report(
         ],
         "must_not_shrink": list(FROZEN_WORKLOAD_INVARIANTS),
     }
-
-
-def _validate_feasibility_producer(
-    feasibility: Mapping[str, Any], *, protocol: Mapping[str, Any]
-) -> None:
-    source = feasibility.get("source_code")
-    evaluator_sources = protocol.get("evaluator_sources")
-    if not isinstance(source, Mapping) or not isinstance(evaluator_sources, Mapping):
-        raise ValueError("Feasibility/protocol producer identity is missing")
-    metadata = evaluator_sources.get("metadata")
-    files = evaluator_sources.get("files")
-    if not isinstance(metadata, Mapping) or not isinstance(files, list):
-        raise ValueError("Frozen evaluator source identity is incomplete")
-    if source.get("dirty") is not False or source.get("commit") != metadata.get(
-        "git_commit"
-    ):
-        raise ValueError("Feasibility probe was produced outside the frozen commit")
-    path = "experiments/probe_deep_corpus_v2_scratch.py"
-    frozen = next(
-        (row for row in files if isinstance(row, Mapping) and row.get("path") == path),
-        None,
-    )
-    runner = source.get("probe_runner")
-    if (
-        not isinstance(frozen, Mapping)
-        or not isinstance(runner, Mapping)
-        or runner.get("path") != path
-        or runner.get("sha256") != frozen.get("sha256")
-    ):
-        raise ValueError(
-            "Feasibility probe runner differs from frozen evaluator source"
-        )
 
 
 def _validate_combined_test_summary(
@@ -901,6 +871,16 @@ def build_markdown(report: Mapping[str, Any]) -> str:
     scope = report.get("study_scope", {})
     active_arm_ids = tuple(scope.get("active_arm_ids", ARM_IDS))
     deferred_arm_ids = tuple(scope.get("deferred_arm_ids", ()))
+    protocol = report["protocol"]
+    source_amendment_sections = (
+        (
+            "Training and feasibility remain pinned to the predecessor evaluator "
+            "sources; validation, held-out evaluation, and this report use the "
+            "sealed evaluation-only source amendment.",
+        )
+        if protocol.get("source_amendment_sha256") is not None
+        else ()
+    )
 
     provenance_rows = []
     for arm_id in active_arm_ids:
@@ -1192,6 +1172,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
         "\n\n".join(
             [
                 "# Deep corpus v2 scratch scaling report (issue #54)",
+                *source_amendment_sections,
                 decisions["long_distance_statement"],
                 "## Primary held-out comparison: certified distance 5-8\n\n"
                 + "Distance 7-8 is the headline slice.\n\n"
@@ -1413,7 +1394,7 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
     ):
         raise ValueError("Tokenizer artifact differs from the frozen protocol")
     feasibility = load_probe_manifest(inputs.feasibility_manifest)
-    _validate_feasibility_producer(feasibility, protocol=protocol)
+    validate_feasibility_producer(feasibility, protocol_lock=protocol)
     feasibility_results = _study_result_by_arm(feasibility)
     active_arm_ids, deferred_arm_ids = _study_arm_scope(feasibility)
     if feasibility.get("source_data", {}).get("corpus_manifest_digest") != corpus.get(
@@ -1553,6 +1534,8 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
         )
         for arm_id in deferred_arm_ids
     }
+    training_evaluator_sources = protocol_training_evaluator_sources(protocol)
+    source_amendment = protocol.get("source_amendment")
     body: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "status": "complete",
@@ -1574,6 +1557,19 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
             "generation": canonical_copy(protocol["generation"]),
             "bfs": canonical_copy(protocol["bfs"]),
             "evaluator_source_sha256": protocol["evaluator_sources"]["source_sha256"],
+            "training_evaluator_source_sha256": training_evaluator_sources[
+                "source_sha256"
+            ],
+            "source_amendment_sha256": (
+                source_amendment["source_amendment_sha256"]
+                if isinstance(source_amendment, Mapping)
+                else None
+            ),
+            "predecessor_protocol_lock_sha256": (
+                source_amendment["predecessor_protocol_lock_sha256"]
+                if isinstance(source_amendment, Mapping)
+                else None
+            ),
         },
         "corpus": {
             "manifest_digest": corpus["manifest_digest"],

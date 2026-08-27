@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from collections import Counter
 from copy import deepcopy
 from types import SimpleNamespace
@@ -11,8 +12,10 @@ from experiments import evaluate_deep_corpus_v2_scratch as evaluate
 from wandering_light.basis_dataset import BasisTaskRecord
 from wandering_light.evals.deep_corpus_protocol import (
     ARM_IDS,
+    SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     begin_test_opening,
     build_selection_lock,
+    build_source_amendment,
     complete_test_opening,
     create_test_opening_ledger_file,
     load_test_opening_ledger,
@@ -40,8 +43,123 @@ def test_candidate_generation_requires_frozen_python_hash_seed(tmp_path, monkeyp
         )
 
 
+def test_candidate_generation_disables_token_type_ids(tmp_path, monkeypatch):
+    torch = pytest.importorskip("torch")
+    seen: dict[str, object] = {}
+
+    class FakeBatch(dict):
+        def to(self, _device):
+            return self
+
+    class FakeTokenizer:
+        pad_token_id = 0
+        eos_token_id = 2
+        padding_side = "right"
+
+        def __call__(self, _prompts, **kwargs):
+            seen.update(kwargs)
+            batch = FakeBatch(
+                input_ids=torch.tensor([[1, 2]]),
+                attention_mask=torch.tensor([[1, 1]]),
+            )
+            if kwargs.get("return_token_type_ids") is not False:
+                batch["token_type_ids"] = torch.tensor([[0, 0]])
+            return batch
+
+        def batch_decode(self, _tokens, *, skip_special_tokens):
+            assert skip_special_tokens is True
+            return ["inc"]
+
+    tokenizer = FakeTokenizer()
+
+    class FakeTokenizerFactory:
+        @staticmethod
+        def from_pretrained(*_args, **_kwargs):
+            return tokenizer
+
+    class FakeModel:
+        config = SimpleNamespace(max_position_embeddings=32)
+        device = "cpu"
+
+        def to(self, _device):
+            return self
+
+        def eval(self):
+            return None
+
+        def generate(self, **kwargs):
+            assert "token_type_ids" not in kwargs
+            input_ids = kwargs["input_ids"]
+            return torch.cat((input_ids, torch.tensor([[2]])), dim=1)
+
+    class FakeModelFactory:
+        @staticmethod
+        def from_pretrained(*_args, **_kwargs):
+            return FakeModel()
+
+    fake_transformers = SimpleNamespace(
+        AutoModelForCausalLM=FakeModelFactory,
+        PreTrainedTokenizerFast=FakeTokenizerFactory,
+        set_seed=lambda *_args, **_kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "transformers", fake_transformers)
+    monkeypatch.setattr(
+        evaluate, "require_deterministic_python_hash_seed", lambda: None
+    )
+    monkeypatch.setattr(
+        evaluate, "configure_deterministic_cuda_environment", lambda: ":16:8"
+    )
+    monkeypatch.setattr(evaluate, "Executor", lambda _functions: object())
+    monkeypatch.setattr(
+        evaluate,
+        "training_row_for_record",
+        lambda *_args, **_kwargs: {"prompt": "prompt"},
+    )
+    monkeypatch.setattr(
+        evaluate,
+        "evaluate_candidate",
+        lambda *_args, **_kwargs: {
+            "execution_correct": True,
+            "execution_error": None,
+        },
+    )
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "reset_peak_memory_stats", lambda: None)
+    monkeypatch.setattr(torch.cuda, "empty_cache", lambda: None)
+    monkeypatch.setattr(torch.cuda, "max_memory_allocated", lambda: 0)
+    monkeypatch.setattr(torch.cuda, "max_memory_reserved", lambda: 0)
+    monkeypatch.setattr(torch.cuda, "get_device_name", lambda _index: "fake")
+
+    record = SimpleNamespace(metadata={"certified_distance": 1})
+    rows, _runtime = evaluate.generate_scratch_candidates(
+        [record],
+        arm_id=ARM_IDS[0],
+        checkpoint=tmp_path / "checkpoint",
+        tokenizer_dir=tmp_path / "tokenizer",
+        available_functions=object(),
+        generation={
+            "sampling_seed": 1,
+            "max_sequence_length": 16,
+            "max_new_tokens": 1,
+            "samples_per_task": 1,
+            "batch_size": 1,
+            "temperature": 0.8,
+            "top_p": 0.95,
+        },
+        progress=False,
+    )
+
+    assert seen["return_token_type_ids"] is False
+    assert len(rows) == 1
+
+
 PROTOCOL_DIGEST = "sha256:" + "1" * 64
 TOKENIZER_DIGEST = "sha256:" + "2" * 64
+TRAIN_RUNNER_DIGEST = "sha256:" + "b" * 64
+SOURCE_HELPER_DIGEST = "sha256:" + "c" * 64
+ARCHITECTURE_SOURCE_DIGEST = "sha256:" + "d" * 64
+PROBE_RUNNER_DIGEST = "sha256:" + "e" * 64
+EVALUATOR_RUNNER_DIGEST = "sha256:" + "0" * 64
 
 
 def _record(distance: int, *, split: str = "test") -> BasisTaskRecord:
@@ -72,6 +190,40 @@ def records() -> list[BasisTaskRecord]:
 
 @pytest.fixture
 def protocol() -> dict:
+    evaluator_source_body = {
+        "metadata": {"git_commit": "a" * 40},
+        "files": [
+            {
+                "path": "experiments/evaluate_deep_corpus_v2_scratch.py",
+                "bytes": 1,
+                "sha256": EVALUATOR_RUNNER_DIGEST,
+            },
+            {
+                "path": "experiments/probe_deep_corpus_v2_scratch.py",
+                "bytes": 1,
+                "sha256": PROBE_RUNNER_DIGEST,
+            },
+            {
+                "path": "experiments/train_deep_corpus_sft.py",
+                "bytes": 1,
+                "sha256": SOURCE_HELPER_DIGEST,
+            },
+            {
+                "path": "experiments/train_deep_corpus_v2_scratch.py",
+                "bytes": 1,
+                "sha256": TRAIN_RUNNER_DIGEST,
+            },
+            {
+                "path": "wandering_light/training/deep_corpus_scratch.py",
+                "bytes": 1,
+                "sha256": ARCHITECTURE_SOURCE_DIGEST,
+            },
+        ],
+    }
+    evaluator_sources = {
+        **evaluator_source_body,
+        "source_sha256": evaluate.sha256_json(evaluator_source_body),
+    }
     return {
         "protocol_lock_sha256": PROTOCOL_DIGEST,
         "corpus": {
@@ -111,22 +263,33 @@ def protocol() -> dict:
                 "total_vocab_size": 600,
             }
         },
-        "evaluator_sources": {
-            "metadata": {"git_commit": "a" * 40},
-            "files": [
-                {
-                    "path": "experiments/train_deep_corpus_v2_scratch.py",
-                    "bytes": 1,
-                    "sha256": "sha256:" + "b" * 64,
-                },
-                {
-                    "path": "wandering_light/training/deep_corpus_scratch.py",
-                    "bytes": 1,
-                    "sha256": "sha256:" + "d" * 64,
-                },
-            ],
-        },
+        "evaluator_sources": evaluator_sources,
     }
+
+
+def _amended_protocol(protocol: dict) -> dict:
+    amended = deepcopy(protocol)
+    training_sources = deepcopy(protocol["evaluator_sources"])
+    successor_body = deepcopy(training_sources)
+    successor_body.pop("source_sha256")
+    successor_body["metadata"]["git_commit"] = "b" * 40
+    successor_body["files"][0]["sha256"] = "sha256:" + "9" * 64
+    successor_sources = {
+        **successor_body,
+        "source_sha256": evaluate.sha256_json(successor_body),
+    }
+    amended["evaluator_sources"] = successor_sources
+    amended["source_amendment"] = build_source_amendment(
+        predecessor_protocol_lock_sha256=protocol["protocol_lock_sha256"],
+        training_evaluator_sources=training_sources,
+        successor_evaluator_sources=successor_sources,
+        reason="Suppress tokenizer token-type IDs before retrying validation.",
+        changed_source_allowlist=[
+            "experiments/evaluate_deep_corpus_v2_scratch.py"
+        ],
+        failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+    )
+    return amended
 
 
 def _training_manifest(arm_id: str) -> dict:
@@ -246,7 +409,11 @@ def _training_manifest(arm_id: str) -> dict:
             "untracked_files": [],
             "runner": {
                 "path": "experiments/train_deep_corpus_v2_scratch.py",
-                "sha256": "sha256:" + "b" * 64,
+                "sha256": TRAIN_RUNNER_DIGEST,
+            },
+            "source_identity_helper": {
+                "path": "experiments/train_deep_corpus_sft.py",
+                "sha256": SOURCE_HELPER_DIGEST,
             },
         },
         "feasibility_gate": {
@@ -510,6 +677,12 @@ def test_checkpoint_identity_requires_final_config_only_artifact(tmp_path, proto
             "runner differs",
         ),
         (
+            lambda manifest: manifest["source_code"]["source_identity_helper"].update(
+                sha256="sha256:" + "0" * 64
+            ),
+            "source-identity helper differs",
+        ),
+        (
             lambda manifest: manifest["architecture"].update(family="llama"),
             "frozen ARM_SPECS",
         ),
@@ -540,6 +713,24 @@ def test_checkpoint_identity_rejects_source_or_architecture_mutation(
         evaluate.checkpoint_identity(checkpoint, arm_id=arm_id, protocol_lock=protocol)
 
 
+def test_amended_protocol_validates_old_checkpoint_against_training_sources(
+    tmp_path, protocol
+):
+    arm_id = ARM_IDS[0]
+    checkpoint = tmp_path / "checkpoint"
+    manifest = _training_manifest(arm_id)
+    _write_checkpoint(checkpoint, manifest)
+
+    identity, loaded = evaluate.checkpoint_identity(
+        checkpoint,
+        arm_id=arm_id,
+        protocol_lock=_amended_protocol(protocol),
+    )
+
+    assert identity["arm_id"] == arm_id
+    assert loaded == manifest
+
+
 def test_checkpoint_identity_requires_frozen_arm_spec_source(tmp_path, protocol):
     arm_id = ARM_IDS[0]
     checkpoint = tmp_path / "checkpoint"
@@ -548,6 +739,11 @@ def test_checkpoint_identity_requires_frozen_arm_spec_source(tmp_path, protocol)
     changed_protocol["evaluator_sources"]["files"] = changed_protocol[
         "evaluator_sources"
     ]["files"][:1]
+    changed_source_body = deepcopy(changed_protocol["evaluator_sources"])
+    changed_source_body.pop("source_sha256")
+    changed_protocol["evaluator_sources"]["source_sha256"] = evaluate.sha256_json(
+        changed_source_body
+    )
 
     with pytest.raises(ValueError, match="do not identify"):
         evaluate.checkpoint_identity(
@@ -901,6 +1097,19 @@ def _feasibility_manifest(active_arm_ids=ARM_IDS):
     return {
         "status": "complete",
         "artifact_digest": artifact_digest,
+        "source_code": {
+            "commit": "a" * 40,
+            "dirty": False,
+            "untracked_files": [],
+            "runner": {
+                "path": "experiments/train_deep_corpus_sft.py",
+                "sha256": SOURCE_HELPER_DIGEST,
+            },
+            "probe_runner": {
+                "path": "experiments/probe_deep_corpus_v2_scratch.py",
+                "sha256": PROBE_RUNNER_DIGEST,
+            },
+        },
         "arm_results": arm_results,
         "launch_gate": {
             "authorized_arm_ids": list(active),
@@ -913,7 +1122,9 @@ def _feasibility_manifest(active_arm_ids=ARM_IDS):
 def _write_readiness(test_dir, protocol, validation, feasibility=None):
     feasibility = feasibility or _feasibility_manifest(tuple(validation))
     identity = evaluate._validate_test_feasibility(
-        feasibility, validation_results=validation
+        feasibility,
+        protocol_lock=protocol,
+        validation_results=validation,
     )
     body = evaluate._test_readiness_body(
         protocol_lock=protocol,
@@ -974,6 +1185,57 @@ def test_prepare_test_opening_creates_prepared_zero_access_ledger(
             test_dir=test_dir,
             opening_id="another-opening",
         )
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda source: source.update(commit="b" * 40),
+        lambda source: source["probe_runner"].update(
+            sha256="sha256:" + "7" * 64
+        ),
+        lambda source: source["runner"].update(sha256="sha256:" + "7" * 64),
+        lambda source: source.update(untracked_files=[{"path": "untracked.py"}]),
+    ],
+)
+def test_feasibility_producer_is_rejected_before_test_ledger_creation(
+    tmp_path, protocol, monkeypatch, mutation
+):
+    validation, locks = _selection_locks(protocol)
+    feasibility = _feasibility_manifest()
+    mutation(feasibility["source_code"])
+    monkeypatch.setattr(evaluate, "load_protocol_lock", lambda *_, **__: protocol)
+    monkeypatch.setattr(
+        evaluate,
+        "load_validation_results",
+        lambda *_, **__: (validation, locks),
+    )
+    monkeypatch.setattr(
+        evaluate, "load_probe_manifest", lambda *_args, **_kwargs: feasibility
+    )
+    test_dir = tmp_path / "held-out"
+
+    with pytest.raises(ValueError, match="Feasibility"):
+        evaluate.prepare_test_opening(
+            protocol_lock_path=tmp_path / "protocol.json",
+            tokenizer_dir=tmp_path / "tokenizer",
+            validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
+            feasibility_manifest_path=tmp_path / "feasibility.json",
+            test_dir=test_dir,
+            opening_id="issue-54-final-test",
+        )
+
+    assert not test_dir.exists()
+
+
+def test_amended_protocol_validates_feasibility_against_training_sources(protocol):
+    feasibility = _feasibility_manifest()
+    amended = _amended_protocol(protocol)
+
+    evaluate.validate_feasibility_producer(feasibility, protocol_lock=amended)
+    feasibility["source_code"]["commit"] = "b" * 40
+    with pytest.raises(ValueError, match="training commit"):
+        evaluate.validate_feasibility_producer(feasibility, protocol_lock=amended)
 
 
 def test_test_opening_is_one_shared_atomic_access_and_recovers_without_rescoring(
@@ -1130,7 +1392,9 @@ def test_two_active_arms_open_once_and_deferred_arm_cannot_be_added(
     ] = True
     with pytest.raises(ValueError, match="not feasibility-blocked"):
         evaluate._validate_test_feasibility(
-            tampered_feasibility, validation_results=validation
+            tampered_feasibility,
+            protocol_lock=protocol,
+            validation_results=validation,
         )
 
     basis = SimpleNamespace(as_function_set=object)

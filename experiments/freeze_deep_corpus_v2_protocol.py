@@ -39,15 +39,18 @@ from experiments.prepare_deep_corpus_v2 import (
 from wandering_light.evals.deep_corpus_protocol import (
     COHORT_SIZE,
     SAMPLE_PREFIXES,
+    SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     build_bfs_settings,
     build_evaluator_source_identity,
     build_frozen_cohorts,
     build_generation_config,
     build_protocol_lock,
+    build_source_amendment,
     build_tokenizer_identity,
     canonical_copy,
     file_identity,
     sha256_json,
+    validate_evaluator_source_identity,
     validate_frozen_cohorts,
     validate_protocol_lock,
 )
@@ -214,6 +217,24 @@ def _is_within(path: Path, parent: Path) -> bool:
     except ValueError:
         return False
     return True
+
+
+def _absolute_path_without_resolving(path: str | Path) -> Path:
+    """Return a lexical absolute path without dereferencing a dangling symlink."""
+
+    return Path(os.path.abspath(os.fspath(path)))
+
+
+def _fresh_output_destination(path: str | Path) -> Path:
+    """Resolve parent aliases while retaining a leaf-symlink existence check."""
+
+    lexical = _absolute_path_without_resolving(path)
+    if os.path.lexists(os.fspath(lexical)):
+        raise FileExistsError(f"Protocol output must be a fresh path: {lexical}")
+    destination = lexical.parent.resolve() / lexical.name
+    if os.path.lexists(os.fspath(destination)):
+        raise FileExistsError(f"Protocol output must be a fresh path: {destination}")
+    return destination
 
 
 def assert_clean_source_tree(
@@ -430,7 +451,7 @@ def _git_commit_is_ancestor(repo_root: Path, ancestor: str, descendant: str) -> 
         capture_output=True,
     )
     if result.returncode not in {0, 1}:
-        raise RuntimeError("Could not verify corpus-generator Git ancestry")
+        raise RuntimeError("Could not verify Git commit ancestry")
     return result.returncode == 0
 
 
@@ -443,14 +464,130 @@ def _git_file_identity(repo_root: Path, commit: str, relative: str) -> dict[str,
             capture_output=True,
         ).stdout
     except subprocess.CalledProcessError as error:
-        raise ValueError(
-            f"Corpus generator commit does not contain {relative}"
-        ) from error
+        raise ValueError(f"Git commit does not contain {relative}") from error
     return {
         "path": relative,
         "bytes": len(payload),
         "sha256": f"sha256:{hashlib.sha256(payload).hexdigest()}",
     }
+
+
+def _validate_evaluator_sources_from_git(
+    evaluator_sources: Mapping[str, Any], *, repo_root: Path
+) -> dict[str, Any]:
+    """Validate a historical source identity from immutable Git objects."""
+
+    normalized = validate_evaluator_source_identity(evaluator_sources)
+    commit = normalized.get("metadata", {}).get("git_commit")
+    if not isinstance(commit, str) or _GIT_COMMIT_RE.fullmatch(commit) is None:
+        raise ValueError("Historical evaluator sources have no full Git commit")
+    for recorded in normalized["files"]:
+        committed = _git_file_identity(repo_root, commit, recorded["path"])
+        if committed != recorded:
+            raise ValueError(
+                "Historical evaluator source differs from its recorded Git object: "
+                f"{recorded['path']}"
+            )
+    return normalized
+
+
+def _git_changed_paths(
+    repo_root: Path, *, predecessor: str, successor: str
+) -> tuple[str, ...]:
+    result = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repo_root),
+            "diff",
+            "--name-status",
+            "-z",
+            "--no-renames",
+            f"{predecessor}..{successor}",
+        ],
+        check=True,
+        stdout=subprocess.PIPE,
+    )
+    chunks = [value for value in result.stdout.split(b"\0") if value]
+    if len(chunks) % 2:
+        raise RuntimeError("Could not parse Git changed-source status")
+    changed: list[str] = []
+    for index in range(0, len(chunks), 2):
+        status = chunks[index].decode("ascii", errors="strict")
+        path = os.fsdecode(chunks[index + 1])
+        if status != "M":
+            raise ValueError(
+                "Protocol source amendment permits only modified tracked files: "
+                f"{status} {path}"
+            )
+        parts = Path(path).parts
+        if (
+            Path(path).suffix != ".py"
+            or not parts
+            or parts[0] not in {"experiments", "tests", "wandering_light"}
+        ):
+            raise ValueError(
+                "Protocol source amendment changed a non-Python or out-of-scope file: "
+                f"{path}"
+            )
+        changed.append(path)
+    paths = tuple(sorted(changed))
+    if len(set(paths)) != len(paths):
+        raise RuntimeError("Git returned duplicate changed paths")
+    return paths
+
+
+def _validate_preserved_generator_source_binding(
+    protocol_lock: Mapping[str, Any],
+    *,
+    repo_root: Path,
+    training_evaluator_sources: Mapping[str, Any],
+) -> None:
+    binding = protocol_lock.get("corpus", {}).get("generator_source")
+    if not isinstance(binding, Mapping):
+        raise ValueError("Predecessor protocol has no generator-source binding")
+    body = canonical_copy(dict(binding))
+    recorded_digest = body.pop("generator_source_sha256", None)
+    if recorded_digest != sha256_json(body):
+        raise ValueError("Predecessor generator-source binding changed after freezing")
+    predecessor_commit = training_evaluator_sources.get("metadata", {}).get(
+        "git_commit"
+    )
+    if (
+        binding.get("protocol_git_commit") != predecessor_commit
+        or binding.get("evaluator_source_sha256")
+        != training_evaluator_sources.get("source_sha256")
+    ):
+        raise ValueError("Predecessor generator-source binding changed source identity")
+    generator_commit = binding.get("git_commit")
+    if (
+        not isinstance(generator_commit, str)
+        or _GIT_COMMIT_RE.fullmatch(generator_commit) is None
+        or not _git_commit_is_ancestor(
+            repo_root, generator_commit, str(predecessor_commit)
+        )
+    ):
+        raise ValueError("Corpus generator commit is not a predecessor-source ancestor")
+    frozen_by_path = {
+        row["path"]: row for row in training_evaluator_sources.get("files", [])
+    }
+    files = binding.get("files")
+    if not isinstance(files, list) or not files:
+        raise ValueError("Predecessor generator-source binding has no files")
+    for row in files:
+        if not isinstance(row, Mapping) or not isinstance(row.get("path"), str):
+            raise ValueError("Predecessor generator-source file identity is malformed")
+        identity = {
+            "path": row["path"],
+            "bytes": row.get("bytes"),
+            "sha256": row.get("sha256"),
+        }
+        if (
+            _git_file_identity(repo_root, generator_commit, row["path"])
+            != identity
+            or frozen_by_path.get(row["path"]) != identity
+        ):
+            raise ValueError("Predecessor generator-source file binding changed")
 
 
 def _generator_source_binding(
@@ -668,6 +805,66 @@ def build_protocol_artifacts(
     }
 
 
+def build_amended_protocol_artifacts(
+    predecessor_artifacts: Mapping[str, Any],
+    *,
+    successor_evaluator_sources: Mapping[str, Any],
+    reason: str,
+    changed_source_allowlist: Sequence[str],
+) -> dict[str, Any]:
+    """Build a source-only successor while preserving every study input."""
+
+    if set(predecessor_artifacts) != set(ARTIFACT_FILENAMES):
+        raise ValueError("Predecessor protocol artifact set is incomplete")
+    predecessor = validate_protocol_lock(
+        predecessor_artifacts[PROTOCOL_LOCK_FILENAME]
+    )
+    if "source_amendment" in predecessor:
+        raise ValueError("A protocol source amendment cannot itself be amended")
+    if (
+        canonical_copy(predecessor_artifacts[VALIDATION_COHORT_FILENAME])
+        != predecessor["cohorts"]["validation"]
+        or canonical_copy(predecessor_artifacts[TEST_COHORT_FILENAME])
+        != predecessor["cohorts"]["test"]
+    ):
+        raise ValueError("Predecessor cohort artifacts differ from its protocol lock")
+    amendment = build_source_amendment(
+        predecessor_protocol_lock_sha256=predecessor["protocol_lock_sha256"],
+        training_evaluator_sources=predecessor["evaluator_sources"],
+        successor_evaluator_sources=successor_evaluator_sources,
+        reason=reason,
+        changed_source_allowlist=changed_source_allowlist,
+        failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+    )
+    successor = build_protocol_lock(
+        corpus_identity=predecessor["corpus"],
+        cohorts=predecessor["cohorts"],
+        generation=predecessor["generation"],
+        bfs=predecessor["bfs"],
+        tokenizer=predecessor["tokenizer"],
+        evaluator_sources=successor_evaluator_sources,
+        source_amendment=amendment,
+    )
+    if set(successor) != {*predecessor, "source_amendment"}:
+        raise RuntimeError("Source amendment changed the protocol field set")
+    for field in set(predecessor) - {
+        "evaluator_sources",
+        "protocol_lock_sha256",
+    }:
+        if successor[field] != predecessor[field]:
+            raise RuntimeError(f"Source amendment changed frozen protocol field: {field}")
+    validate_protocol_lock(successor)
+    return {
+        PROTOCOL_LOCK_FILENAME: successor,
+        VALIDATION_COHORT_FILENAME: canonical_copy(
+            predecessor_artifacts[VALIDATION_COHORT_FILENAME]
+        ),
+        TEST_COHORT_FILENAME: canonical_copy(
+            predecessor_artifacts[TEST_COHORT_FILENAME]
+        ),
+    }
+
+
 def _load_artifact_directory(output_dir: Path) -> dict[str, Any]:
     return {
         name: json.loads((output_dir / name).read_text(encoding="utf-8"))
@@ -681,15 +878,12 @@ def write_protocol_artifacts(
     *,
     repo_root: str | Path,
     tokenizer_dir: str | Path,
-    records: Sequence[Any],
+    records: Sequence[Any] | None,
+    must_remain_absent: Sequence[str | Path] = (),
 ) -> Path:
     """Atomically publish all protocol artifacts into one fresh directory."""
 
-    destination = Path(output_dir).resolve()
-    if destination.exists():
-        raise FileExistsError(
-            f"Protocol output must be a fresh directory: {destination}"
-        )
+    destination = _fresh_output_destination(output_dir)
     if set(artifacts) != set(ARTIFACT_FILENAMES):
         raise ValueError("Protocol artifact set is incomplete or has extra files")
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -721,15 +915,174 @@ def write_protocol_artifacts(
             tokenizer_root=tokenizer_dir,
             evaluator_root=repo_root,
         )
-        if destination.exists():
+        if os.path.lexists(os.fspath(destination)):
             raise FileExistsError(
                 f"Protocol output appeared while it was being built: {destination}"
+            )
+        absence_paths = tuple(
+            _absolute_path_without_resolving(path) for path in must_remain_absent
+        )
+        appeared = [
+            str(path) for path in absence_paths if os.path.lexists(os.fspath(path))
+        ]
+        if appeared:
+            raise RuntimeError(
+                "Test/evaluation output appeared during protocol amendment: "
+                + ", ".join(appeared)
             )
         temporary.rename(destination)
         return destination
     finally:
         if temporary.exists():
             shutil.rmtree(temporary)
+
+
+def freeze_protocol_source_amendment(
+    *,
+    predecessor_protocol_dir: str | Path,
+    tokenizer_dir: str | Path,
+    output_dir: str | Path,
+    reason: str,
+    changed_source_allowlist: Sequence[str],
+    failed_result_artifact: str | Path,
+    test_opening_ledger: str | Path,
+    scored_tasks: int,
+    generated_candidates: int,
+    repo_root: str | Path = REPO_ROOT,
+    dry_run: bool = False,
+    evaluator_source_roots: Sequence[str | Path] = EVALUATOR_SOURCE_ROOTS,
+    evaluator_static_files: Sequence[str | Path] = EVALUATOR_STATIC_FILES,
+    extra_evaluator_sources: Sequence[str | Path] = (),
+) -> dict[str, Any]:
+    """Freeze a source-only successor after a proved zero-output evaluator failure."""
+
+    root = Path(repo_root).resolve()
+    predecessor_dir = Path(predecessor_protocol_dir).resolve()
+    tokenizer = Path(tokenizer_dir).resolve()
+    output = _fresh_output_destination(output_dir)
+    failed_result = _absolute_path_without_resolving(failed_result_artifact)
+    test_ledger = _absolute_path_without_resolving(test_opening_ledger)
+    if not predecessor_dir.is_dir():
+        raise FileNotFoundError(
+            f"Predecessor protocol directory is missing: {predecessor_dir}"
+        )
+    for immutable_dir in (predecessor_dir, tokenizer):
+        if _is_within(output, immutable_dir) or _is_within(immutable_dir, output):
+            raise ValueError(
+                "Successor output must be separate from predecessor/tokenizer inputs"
+            )
+    if {path.name for path in predecessor_dir.iterdir()} != set(ARTIFACT_FILENAMES):
+        raise ValueError("Predecessor protocol directory contains non-protocol outputs")
+    if type(scored_tasks) is not int or scored_tasks != 0:
+        raise ValueError("Source amendment requires exactly zero scored tasks")
+    if type(generated_candidates) is not int or generated_candidates != 0:
+        raise ValueError("Source amendment requires exactly zero generated candidates")
+    if failed_result == test_ledger:
+        raise ValueError("Failed-result and test-ledger paths must be distinct")
+    if test_ledger.name != "test_opening_ledger.json":
+        raise ValueError("Test-opening evidence must name test_opening_ledger.json")
+    if os.path.lexists(os.fspath(failed_result)):
+        raise ValueError("Source amendment refuses an existing evaluation result artifact")
+    if os.path.lexists(os.fspath(test_ledger)):
+        raise ValueError("Source amendment refuses an existing test-opening ledger")
+    for evidence_path in (failed_result, test_ledger):
+        if _is_within(evidence_path, output) or _is_within(output, evidence_path):
+            raise ValueError("Failure-evidence paths must be outside successor output")
+
+    commit = assert_clean_source_tree(
+        root,
+        ignored_paths=(predecessor_dir, tokenizer, output),
+    )
+    predecessor_artifacts = _load_artifact_directory(predecessor_dir)
+    predecessor = validate_protocol_lock(
+        predecessor_artifacts[PROTOCOL_LOCK_FILENAME],
+        tokenizer_root=tokenizer,
+    )
+    if "source_amendment" in predecessor:
+        raise ValueError("A protocol source amendment cannot itself be amended")
+    training_sources = _validate_evaluator_sources_from_git(
+        predecessor["evaluator_sources"], repo_root=root
+    )
+    predecessor_commit = training_sources["metadata"]["git_commit"]
+    if predecessor_commit == commit or not _git_commit_is_ancestor(
+        root, predecessor_commit, commit
+    ):
+        raise ValueError("Predecessor protocol commit is not a successor ancestor")
+    changed_paths = _git_changed_paths(
+        root,
+        predecessor=predecessor_commit,
+        successor=commit,
+    )
+    if tuple(changed_source_allowlist) != changed_paths:
+        raise ValueError(
+            "Changed-source allowlist must exactly match committed predecessor diff"
+        )
+
+    source_roots = (
+        *(Path(path).as_posix() for path in evaluator_source_roots),
+        *(Path(path).as_posix() for path in extra_evaluator_sources),
+    )
+    if training_sources["metadata"].get("roots") != list(source_roots):
+        raise ValueError("Source amendment changed evaluator dependency roots")
+    source_paths = evaluator_source_paths(
+        root,
+        source_roots=evaluator_source_roots,
+        static_files=evaluator_static_files,
+        extra_roots=extra_evaluator_sources,
+    )
+    successor_metadata = {
+        **training_sources["metadata"],
+        "git_commit": commit,
+    }
+    successor_sources = build_evaluator_source_identity(
+        source_paths,
+        root=root,
+        metadata=successor_metadata,
+    )
+    _validate_evaluator_sources_from_git(successor_sources, repo_root=root)
+    _validate_preserved_generator_source_binding(
+        predecessor,
+        repo_root=root,
+        training_evaluator_sources=training_sources,
+    )
+    artifacts = build_amended_protocol_artifacts(
+        predecessor_artifacts,
+        successor_evaluator_sources=successor_sources,
+        reason=reason,
+        changed_source_allowlist=changed_source_allowlist,
+    )
+    lock = artifacts[PROTOCOL_LOCK_FILENAME]
+    status = "dry-run"
+    if not dry_run:
+        write_protocol_artifacts(
+            output,
+            artifacts,
+            repo_root=root,
+            tokenizer_dir=tokenizer,
+            records=None,
+            must_remain_absent=(failed_result, test_ledger),
+        )
+        status = "written"
+    return {
+        "status": status,
+        "output_dir": str(output),
+        "protocol_lock_sha256": lock["protocol_lock_sha256"],
+        "predecessor_protocol_lock_sha256": predecessor[
+            "protocol_lock_sha256"
+        ],
+        "source_amendment_sha256": lock["source_amendment"][
+            "source_amendment_sha256"
+        ],
+        "evaluator_source_sha256": lock["evaluator_sources"]["source_sha256"],
+        "git_commit": commit,
+        "changed_source_allowlist": list(changed_source_allowlist),
+        "failure_evidence": canonical_copy(SOURCE_AMENDMENT_FAILURE_EVIDENCE),
+        "checked_absent_paths": {
+            "failed_result_artifact": str(failed_result),
+            "test_opening_ledger": str(test_ledger),
+        },
+        "wrote_files": list(ARTIFACT_FILENAMES) if not dry_run else [],
+    }
 
 
 def freeze_protocol(
@@ -749,9 +1102,7 @@ def freeze_protocol(
     root = Path(repo_root).resolve()
     corpus = Path(corpus_dir).resolve()
     tokenizer = Path(tokenizer_dir).resolve()
-    output = Path(output_dir).resolve()
-    if output.exists():
-        raise FileExistsError(f"Protocol output must be a fresh path: {output}")
+    output = _fresh_output_destination(output_dir)
 
     payload_paths = corpus_payload_paths(corpus)
     reference_payload_paths = tuple(
@@ -863,27 +1214,95 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
             "transitive source lock (repeatable)"
         ),
     )
+    parser.add_argument(
+        "--amend-predecessor-protocol-dir",
+        type=Path,
+        help="Existing three-file protocol directory to amend source-only",
+    )
+    parser.add_argument("--amendment-reason")
+    parser.add_argument(
+        "--changed-source",
+        action="append",
+        default=[],
+        help="Exact repository-relative path changed since the predecessor",
+    )
+    parser.add_argument(
+        "--failed-result-artifact",
+        type=Path,
+        help="Expected failed evaluation artifact path; it must not exist",
+    )
+    parser.add_argument(
+        "--test-opening-ledger",
+        type=Path,
+        help="Expected test-opening ledger path; it must not exist",
+    )
+    parser.add_argument("--scored-tasks", type=int)
+    parser.add_argument("--generated-candidates", type=int)
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
-    result = freeze_protocol(
-        corpus_dir=args.corpus_dir,
-        tokenizer_dir=args.tokenizer_dir,
-        output_dir=args.output_dir,
-        repo_root=args.repo_root,
-        dry_run=args.dry_run,
-        reference_corpus_dirs=tuple(
-            args.reference_corpus_dir or (DEFAULT_REFERENCE_CORPUS_DIR,)
-        ),
-        extra_evaluator_sources=tuple(args.evaluator_source),
-    )
-    if result["validation_tasks"] != COHORT_SIZE or result["test_tasks"] != (
-        COHORT_SIZE
-    ):
-        raise AssertionError("Protocol freeze produced an invalid cohort size")
+    if args.amend_predecessor_protocol_dir is not None:
+        required = {
+            "amendment reason": args.amendment_reason,
+            "failed result artifact": args.failed_result_artifact,
+            "test-opening ledger": args.test_opening_ledger,
+            "scored tasks": args.scored_tasks,
+            "generated candidates": args.generated_candidates,
+        }
+        missing = [label for label, value in required.items() if value is None]
+        if not args.changed_source:
+            missing.append("changed source")
+        if missing:
+            raise ValueError(
+                "Protocol source amendment is missing required inputs: "
+                + ", ".join(missing)
+            )
+        result = freeze_protocol_source_amendment(
+            predecessor_protocol_dir=args.amend_predecessor_protocol_dir,
+            tokenizer_dir=args.tokenizer_dir,
+            output_dir=args.output_dir,
+            reason=args.amendment_reason,
+            changed_source_allowlist=tuple(args.changed_source),
+            failed_result_artifact=args.failed_result_artifact,
+            test_opening_ledger=args.test_opening_ledger,
+            scored_tasks=args.scored_tasks,
+            generated_candidates=args.generated_candidates,
+            repo_root=args.repo_root,
+            dry_run=args.dry_run,
+            extra_evaluator_sources=tuple(args.evaluator_source),
+        )
+    else:
+        if any(
+            value is not None
+            for value in (
+                args.amendment_reason,
+                args.failed_result_artifact,
+                args.test_opening_ledger,
+                args.scored_tasks,
+                args.generated_candidates,
+            )
+        ) or args.changed_source:
+            raise ValueError(
+                "Amendment-only arguments require --amend-predecessor-protocol-dir"
+            )
+        result = freeze_protocol(
+            corpus_dir=args.corpus_dir,
+            tokenizer_dir=args.tokenizer_dir,
+            output_dir=args.output_dir,
+            repo_root=args.repo_root,
+            dry_run=args.dry_run,
+            reference_corpus_dirs=tuple(
+                args.reference_corpus_dir or (DEFAULT_REFERENCE_CORPUS_DIR,)
+            ),
+            extra_evaluator_sources=tuple(args.evaluator_source),
+        )
+        if result["validation_tasks"] != COHORT_SIZE or result["test_tasks"] != (
+            COHORT_SIZE
+        ):
+            raise AssertionError("Protocol freeze produced an invalid cohort size")
     print(_canonical_pretty_json(result), end="")
     return 0
 
