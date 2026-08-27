@@ -104,8 +104,6 @@ CERTIFICATION_COMPLETE = "complete-bfs-expansion"
 CERTIFICATION_FRONTIER = "frontier-extension"
 RESUME_SCHEMA_VERSION = 1
 RESUME_MANIFEST_NAME = "resume.json"
-EXPANSION_DETAIL_NAME = "expansion_detail.json"
-EXPANSION_DETAIL_ARTIFACT_TYPE = "wandering-light-corpus-expansion-detail"
 
 
 @dataclass
@@ -1395,7 +1393,7 @@ def generate_corpus(
     ):
         raise ValueError("resume_dir must not be inside output_dir")
     planned = [corpus_dir / f"{split}.jsonl.gz" for split in SPLIT_ORDER]
-    planned.extend((corpus_dir / "manifest.json", corpus_dir / EXPANSION_DETAIL_NAME))
+    planned.append(corpus_dir / "manifest.json")
     existing = [path for path in planned if path.exists()]
     if resume_path is not None and corpus_dir.exists():
         raise FileExistsError(
@@ -1628,19 +1626,6 @@ def generate_corpus(
             split: int(split_counts[split]) for split in SPLIT_ORDER
         }
 
-    expansion_detail = {
-        "schema_version": PIPELINE_SCHEMA_VERSION,
-        "artifact_type": EXPANSION_DETAIL_ARTIFACT_TYPE,
-        "basis_set_id": basis.basis_set_id,
-        "basis_set_digest": basis.digest,
-        "generator": GENERATOR_NAME,
-        "seed": seed,
-        "roots": [outcome.to_dict() for outcome in outcomes],
-    }
-    expansion_detail_path = _write_json(
-        expansion_detail, write_dir / EXPANSION_DETAIL_NAME
-    )
-
     manifest: dict[str, Any] = {
         "schema_version": PIPELINE_SCHEMA_VERSION,
         "generator": GENERATOR_NAME,
@@ -1701,15 +1686,6 @@ def generate_corpus(
             "root_digests": len(root_digest_overlap),
             "task_ids": len(task_id_overlap),
         },
-        "detail_files": {
-            "expansion": {
-                "path": expansion_detail_path.name,
-                "bytes": expansion_detail_path.stat().st_size,
-                "sha256": _sha256_file(expansion_detail_path),
-                "records": len(outcomes),
-                "contents": "per-root generation and expansion telemetry",
-            }
-        },
         "expansion": {
             "roots_expanded": len(outcomes),
             "roots_complete": sum(outcome.complete for outcome in outcomes),
@@ -1753,6 +1729,7 @@ def generate_corpus(
                     ).items()
                 )
             ),
+            "roots": [outcome.to_dict() for outcome in outcomes],
         },
         "splits": split_metadata,
         "split_roots": {split: split_roots[split] for split in SPLIT_ORDER},

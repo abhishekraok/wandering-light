@@ -30,6 +30,8 @@ if TYPE_CHECKING:
 
 MANIFEST_NAME = "manifest.json"
 DEFAULT_REPO_ID = "abhishekraok/wandering-light-deep-corpus-v1"
+EXPANSION_DETAIL_NAME = "expansion_detail.json"
+EXPANSION_DETAIL_ARTIFACT_TYPE = "wandering-light-corpus-expansion-detail"
 _HUB_KEY = "hub"
 _DETAIL_FILES_KEY = "detail_files"
 
@@ -40,6 +42,79 @@ def _sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1 << 20), b""):
             digest.update(chunk)
     return f"sha256:{digest.hexdigest()}"
+
+
+def _canonical_json(value: Any) -> str:
+    return json.dumps(
+        value,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+
+
+def _write_json(path: Path, value: Any) -> None:
+    path.write_text(
+        json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def compact_manifest_details(corpus_dir: str | Path) -> dict[str, Any]:
+    """Detach legacy per-root telemetry before a generated corpus is published.
+
+    The corpus generator's commit remains the provenance for the rows. This
+    packaging step changes only where its telemetry is stored: a compact
+    manifest pins the detached file by byte count and SHA-256.
+    """
+
+    root = Path(corpus_dir)
+    path = root / MANIFEST_NAME
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    expansion = manifest.get("expansion")
+    if not isinstance(expansion, dict):
+        return manifest
+    roots = expansion.get("roots")
+    if roots is None:
+        return manifest
+    if not isinstance(roots, list):
+        raise ValueError("manifest expansion.roots must be an array")
+    if manifest.get(_DETAIL_FILES_KEY):
+        raise ValueError("manifest mixes embedded roots with detached detail")
+
+    detail = {
+        "schema_version": manifest.get("schema_version"),
+        "artifact_type": EXPANSION_DETAIL_ARTIFACT_TYPE,
+        "basis_set_id": manifest.get("basis_set_id"),
+        "basis_set_digest": manifest.get("basis_set_digest"),
+        "generator": manifest.get("generator"),
+        "seed": manifest.get("seed"),
+        "roots": roots,
+    }
+    detail_path = root / EXPANSION_DETAIL_NAME
+    _write_json(detail_path, detail)
+    expansion.pop("roots")
+    manifest[_DETAIL_FILES_KEY] = {
+        "expansion": {
+            "path": detail_path.name,
+            "bytes": detail_path.stat().st_size,
+            "sha256": _sha256_file(detail_path),
+            "records": len(roots),
+            "contents": "per-root generation and expansion telemetry",
+        }
+    }
+
+    manifest.pop("manifest_digest", None)
+    hub = manifest.pop(_HUB_KEY, None)
+    manifest["manifest_digest"] = (
+        "sha256:"
+        + hashlib.sha256(_canonical_json(manifest).encode("utf-8")).hexdigest()
+    )
+    if hub is not None:
+        manifest[_HUB_KEY] = hub
+    _write_json(path, manifest)
+    return manifest
 
 
 def _safe_bare_name(name: Any, *, label: str) -> str:
@@ -139,6 +214,7 @@ def publish_corpus(
     from huggingface_hub import CommitOperationAdd, HfApi
 
     root = Path(corpus_dir)
+    compact_manifest_details(root)
     verify_corpus_files(root)
     manifest = json.loads((root / MANIFEST_NAME).read_text(encoding="utf-8"))
 

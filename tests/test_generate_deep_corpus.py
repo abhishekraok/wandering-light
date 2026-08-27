@@ -10,6 +10,7 @@ from types import SimpleNamespace
 import pytest
 
 from experiments import generate_deep_corpus as deep
+from wandering_light import corpus_hub
 from wandering_light.basis_dataset import BasisTaskRecord, write_basis_task_records
 from wandering_light.basis_set import load_basis_set
 from wandering_light.function_def import FunctionDef, FunctionDefSet
@@ -623,14 +624,19 @@ def test_existing_corpus_is_not_overwritten_by_default(tmp_path):
 
 
 def test_per_root_telemetry_is_detached_and_content_addressed(tmp_path):
-    manifest, corpus_dir = _tiny_corpus(tmp_path)
+    generated, corpus_dir = _tiny_corpus(tmp_path)
+    assert generated["expansion"]["roots"]
+
+    manifest = corpus_hub.compact_manifest_details(corpus_dir)
+    loaded, _ = deep.load_corpus(corpus_dir)
 
     assert "roots" not in manifest["expansion"]
+    assert loaded == manifest
     identity = manifest["detail_files"]["expansion"]
-    detail_path = corpus_dir / deep.EXPANSION_DETAIL_NAME
+    detail_path = corpus_dir / corpus_hub.EXPANSION_DETAIL_NAME
     detail = json.loads(detail_path.read_text(encoding="utf-8"))
     assert identity == {
-        "path": deep.EXPANSION_DETAIL_NAME,
+        "path": corpus_hub.EXPANSION_DETAIL_NAME,
         "bytes": detail_path.stat().st_size,
         "sha256": deep._sha256_file(detail_path),
         "records": manifest["expansion"]["roots_expanded"],
