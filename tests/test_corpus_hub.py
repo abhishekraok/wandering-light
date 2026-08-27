@@ -11,7 +11,7 @@ import pytest
 from wandering_light import corpus_hub
 
 
-def _corpus(tmp_path, *, payload=b'{"a": 1}\n'):
+def _corpus(tmp_path, *, payload=b'{"a": 1}\n', with_detail=False):
     root = tmp_path / "corpus"
     root.mkdir()
     digests = {}
@@ -31,6 +31,16 @@ def _corpus(tmp_path, *, payload=b'{"a": 1}\n'):
             for split in ("discovery", "validation", "test")
         },
     }
+    if with_detail:
+        detail = root / "expansion_detail.json"
+        detail.write_text('{"roots": []}\n', encoding="utf-8")
+        manifest["detail_files"] = {
+            "expansion": {
+                "path": detail.name,
+                "bytes": detail.stat().st_size,
+                "sha256": "sha256:" + hashlib.sha256(detail.read_bytes()).hexdigest(),
+            }
+        }
     (root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
     return root
 
@@ -58,6 +68,17 @@ def test_verify_rejects_a_missing_payload(tmp_path):
     (root / "test.jsonl.gz").unlink()
 
     with pytest.raises(FileNotFoundError):
+        corpus_hub.verify_corpus_files(root)
+
+
+def test_verify_checks_detached_detail_identity(tmp_path):
+    root = _corpus(tmp_path, with_detail=True)
+
+    checked = corpus_hub.verify_corpus_files(root)
+    assert "detail:expansion" in checked
+
+    (root / "expansion_detail.json").write_text('{"roots": [1]}\n')
+    with pytest.raises(ValueError, match="digest mismatch"):
         corpus_hub.verify_corpus_files(root)
 
 
@@ -144,7 +165,7 @@ def test_fetch_requires_a_repo_id(tmp_path):
 
 
 def test_publish_uses_one_atomic_commit(tmp_path, monkeypatch):
-    root = _corpus(tmp_path)
+    root = _corpus(tmp_path, with_detail=True)
     observed = {}
 
     class FakeOperation:
@@ -178,9 +199,10 @@ def test_publish_uses_one_atomic_commit(tmp_path, monkeypatch):
         "discovery.jsonl.gz",
         "validation.jsonl.gz",
         "test.jsonl.gz",
+        "expansion_detail.json",
         "manifest.json",
     }
-    assert len(operations) == 4
+    assert len(operations) == 5
 
 
 def test_verify_published_corpus_uses_the_pinned_revision(tmp_path, monkeypatch):

@@ -83,8 +83,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         ),
         dry_run=arguments.dry_run,
     )
-    # A real manifest contains every retained/excluded task and can be large. The
-    # full record is on disk; stdout carries the immutable identity and headline.
+    # The tracked manifest is compact; detailed token-length telemetry is saved
+    # beside it for Hub publication. Stdout carries identity and headline only.
     if result.get("status") == "dry-run":
         printable = result
     else:

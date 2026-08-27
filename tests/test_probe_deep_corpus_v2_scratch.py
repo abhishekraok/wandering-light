@@ -3,16 +3,26 @@
 from __future__ import annotations
 
 import json
+import threading
 from types import SimpleNamespace
 
 import pytest
 
+from experiments import evaluate_deep_corpus_v2_scratch as evaluate
 from experiments import probe_deep_corpus_v2_scratch as probe
+from experiments import train_deep_corpus_v2_scratch as train
 from wandering_light.training.deep_corpus_scratch import (
+    ARM_SPECS,
+    DATA_ORDER_SEED,
+    DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG,
     FEASIBILITY_HARD_LIMIT_HOURS,
     FEASIBILITY_SOFT_LIMIT_HOURS,
     FEASIBILITY_STEPS,
+    INITIALIZATION_SEED,
     digest_json,
+)
+from wandering_light.training.deep_corpus_tokenizer import (
+    DETERMINISTIC_PYTHON_HASH_SEED,
 )
 
 
@@ -28,11 +38,13 @@ def _arm_result(arm_id: str, *, seconds_per_step: float = 1.0):
             "uuid": gpu_uuid,
             "physical_vram_bytes": physical,
         },
-        "process_gpu_memory": {
+        "gpu_memory_telemetry": {
             "source": "nvidia-smi compute-apps used_gpu_memory polling",
+            "measurement_scope": "process",
             "gpu_uuid": gpu_uuid,
-            "pid": 123,
+            "namespace_pid": 123,
             "samples": 10,
+            "peak_observed_used_bytes": 18_000_000_000,
             "peak_process_used_bytes": 18_000_000_000,
         },
         "longest_batch": {
@@ -107,6 +119,82 @@ def _optimization_plan(results, *, seconds_per_step: float = 1.0, **overrides):
     value.update(overrides)
     value["artifact_digest"] = digest_json(value)
     return value
+
+
+@pytest.mark.parametrize("arm_id", tuple(ARM_SPECS))
+def test_probe_train_and_evaluator_share_exact_study_identity(arm_id):
+    architecture = {"arm_id": arm_id, "identity": f"resolved-{arm_id}"}
+    resolved = SimpleNamespace(
+        spec=SimpleNamespace(arm_id=arm_id),
+        identity_dict=lambda: architecture,
+    )
+    data = SimpleNamespace(
+        corpus_manifest={"manifest_digest": "sha256:" + "1" * 64},
+        tokenizer_manifest={"artifact_digest": "sha256:" + "2" * 64},
+        train_audit={"retained_task_ids_digest": "sha256:" + "3" * 64},
+    )
+    config = SimpleNamespace(
+        arm_id=arm_id,
+        phase="pilot",
+        num_train_epochs=0.25,
+        learning_rate=1e-4,
+        initialization_seed=INITIALIZATION_SEED,
+        data_order_seed=DATA_ORDER_SEED,
+    )
+    probe_identity, probe_digest = probe._arm_study_identity(
+        resolved=resolved, data=data, runner=train
+    )
+    training_identity = train._study_identity_for_run(config, data, resolved)
+    manifest = {
+        "architecture": architecture,
+        "source_data": {
+            "corpus_manifest_digest": data.corpus_manifest["manifest_digest"],
+            "task_roles": {
+                "discovery": {
+                    "retained_task_ids_digest": data.train_audit[
+                        "retained_task_ids_digest"
+                    ]
+                }
+            },
+        },
+        "tokenizer_digest": data.tokenizer_manifest["artifact_digest"],
+        "training_protocol": train._training_protocol(config),
+        "initialization_seed": INITIALIZATION_SEED,
+        "data_order_seed": DATA_ORDER_SEED,
+        "execution_environment": {
+            "cublas_workspace_config": DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG,
+            "pythonhashseed": DETERMINISTIC_PYTHON_HASH_SEED,
+        },
+    }
+    evaluation_identity = evaluate._checkpoint_study_identity(manifest)
+
+    assert probe_identity == training_identity == evaluation_identity
+    assert probe_digest == digest_json(evaluation_identity)
+    if arm_id == "smollm2-360m-scratch":
+        assert probe_identity["gradient_checkpointing"] is True
+        assert probe_identity["gradient_checkpointing_kwargs"] == {
+            "use_reentrant": False
+        }
+    else:
+        assert probe_identity["gradient_checkpointing"] is False
+        assert probe_identity["gradient_checkpointing_kwargs"] == {}
+
+
+def test_probe_enables_non_reentrant_gradient_checkpointing():
+    calls = []
+    model = SimpleNamespace(
+        config=SimpleNamespace(use_cache=True),
+        gradient_checkpointing_enable=lambda **kwargs: calls.append(kwargs),
+    )
+
+    probe._configure_gradient_checkpointing(
+        model, enabled=True, kwargs={"use_reentrant": False}
+    )
+
+    assert model.config.use_cache is False
+    assert calls == [
+        {"gradient_checkpointing_kwargs": {"use_reentrant": False}}
+    ]
 
 
 def test_step_projection_covers_every_lr_pilot_and_final_epoch_cap():
@@ -413,20 +501,21 @@ def test_reference_corpora_are_repeatable_and_content_bound(tmp_path):
         probe.validate_probe_manifest(changed)
 
 
-def test_process_gpu_memory_sampler_is_uuid_pid_scoped_and_fail_closed():
-    gpu_uuid = "GPU-11111111-2222-3333-4444-555555555555"
+def test_gpu_memory_sampler_prefers_uuid_pid_scoped_measurement():
+    gpu_uuid = "11111111-2222-3333-4444-555555555555"
+    nvidia_smi_uuid = f"GPU-{gpu_uuid}"
     outputs = iter(
         [
-            f"999, {gpu_uuid}, 100\n123, {gpu_uuid}, 1200\n",
-            f"123, {gpu_uuid}, 1400\n",
-            f"123, {gpu_uuid}, 1300\n",
+            f"999, {nvidia_smi_uuid}, 100\n123, {nvidia_smi_uuid}, 1200\n",
+            f"123, {nvidia_smi_uuid}, 1400\n",
+            f"123, {nvidia_smi_uuid}, 1300\n",
         ]
     )
 
     def command_runner(*_args, **_kwargs):
         return SimpleNamespace(stdout=next(outputs))
 
-    sampler = probe.NvidiaSmiProcessMemorySampler(
+    sampler = probe.NvidiaSmiGpuMemorySampler(
         gpu_uuid=gpu_uuid,
         pid=123,
         poll_interval_seconds=60,
@@ -435,25 +524,119 @@ def test_process_gpu_memory_sampler_is_uuid_pid_scoped_and_fail_closed():
     sampler.start()
     sampler.sample_now()
     measurement = sampler.stop()
+    assert measurement["measurement_scope"] == "process"
+    assert measurement["peak_observed_used_bytes"] == 1400 * 1024 * 1024
     assert measurement["peak_process_used_bytes"] == 1400 * 1024 * 1024
     assert measurement["samples"] == 3
 
     assert (
         probe.parse_nvidia_smi_process_memory(
-            f"999, {gpu_uuid}, 100\n",
+            f"999, {nvidia_smi_uuid}, 100\n",
             pid=123,
             gpu_uuid=gpu_uuid,
         )
         is None
     )
-    missing = probe.NvidiaSmiProcessMemorySampler(
+
+
+def test_gpu_memory_sampler_uses_honest_physical_gpu_fallback_and_fails_closed():
+    gpu_uuid = "11111111-2222-3333-4444-555555555555"
+    nvidia_smi_uuid = f"GPU-{gpu_uuid}"
+
+    def fallback_runner(command, **_kwargs):
+        if any("--query-compute-apps" in argument for argument in command):
+            return SimpleNamespace(stdout=f"999, {nvidia_smi_uuid}, 100\n")
+        return SimpleNamespace(stdout=f"{nvidia_smi_uuid}, 1500\n")
+
+    fallback = probe.NvidiaSmiGpuMemorySampler(
         gpu_uuid=gpu_uuid,
         pid=123,
         poll_interval_seconds=60,
-        command_runner=lambda *_args, **_kwargs: SimpleNamespace(
-            stdout=f"999, {gpu_uuid}, 100\n"
-        ),
+        command_runner=fallback_runner,
+    )
+    fallback.start()
+    measurement = fallback.stop()
+    assert measurement["measurement_scope"] == "physical_gpu_total"
+    assert measurement["baseline_observed_used_bytes"] == 1500 * 1024 * 1024
+    assert measurement["peak_observed_used_bytes"] == 1500 * 1024 * 1024
+    assert measurement["peak_physical_gpu_used_bytes"] == 1500 * 1024 * 1024
+    assert "peak_process_used_bytes" not in measurement
+    assert measurement["limitation"]
+
+    assert (
+        probe.parse_nvidia_smi_physical_gpu_memory(
+            f"{nvidia_smi_uuid}, 1500\n", gpu_uuid=gpu_uuid
+        )
+        == 1500 * 1024 * 1024
+    )
+    with pytest.raises(ValueError, match="duplicate rows"):
+        probe.parse_nvidia_smi_physical_gpu_memory(
+            f"{nvidia_smi_uuid}, 1500\n{nvidia_smi_uuid}, 1501\n",
+            gpu_uuid=gpu_uuid,
+        )
+    with pytest.raises(ValueError, match="malformed"):
+        probe.parse_nvidia_smi_physical_gpu_memory(
+            f"{nvidia_smi_uuid}, 1500, unexpected\n",
+            gpu_uuid=gpu_uuid,
+        )
+
+    missing = probe.NvidiaSmiGpuMemorySampler(
+        gpu_uuid=gpu_uuid,
+        pid=123,
+        poll_interval_seconds=60,
+        command_runner=lambda *_args, **_kwargs: SimpleNamespace(stdout=""),
     )
     missing.start()
-    with pytest.raises(RuntimeError, match="never observed"):
+    with pytest.raises(RuntimeError, match="neither this process nor physical GPU"):
         missing.stop()
+
+
+def test_gpu_memory_sampler_joins_inflight_poll_before_final_sample():
+    gpu_uuid = "GPU-11111111-2222-3333-4444-555555555555"
+    poll_in_flight = threading.Event()
+    release_poll = threading.Event()
+    final_query = threading.Event()
+    call_lock = threading.Lock()
+    call_count = 0
+
+    def command_runner(*_args, **_kwargs):
+        nonlocal call_count
+        with call_lock:
+            call_count += 1
+            invocation = call_count
+        if invocation == 1:
+            return SimpleNamespace(stdout=f"123, {gpu_uuid}, 1200\n")
+        if invocation == 2:
+            poll_in_flight.set()
+            assert release_poll.wait(timeout=2)
+            return SimpleNamespace(stdout=f"123, {gpu_uuid}, 1600\n")
+        final_query.set()
+        return SimpleNamespace(stdout=f"123, {gpu_uuid}, 1400\n")
+
+    sampler = probe.NvidiaSmiGpuMemorySampler(
+        gpu_uuid=gpu_uuid,
+        pid=123,
+        poll_interval_seconds=0.001,
+        command_runner=command_runner,
+    )
+    sampler.start()
+    assert poll_in_flight.wait(timeout=1)
+    outcome = []
+    failures = []
+
+    def stop_sampler():
+        try:
+            outcome.append(sampler.stop())
+        except BaseException as error:  # pragma: no cover - surfaced below
+            failures.append(error)
+
+    stopping = threading.Thread(target=stop_sampler)
+    stopping.start()
+    assert not final_query.wait(timeout=0.05)
+    release_poll.set()
+    stopping.join(timeout=2)
+    assert not stopping.is_alive()
+    assert not failures
+    assert final_query.is_set()
+    assert outcome[0]["samples"] == 3
+    assert outcome[0]["peak_observed_used_bytes"] == 1600 * 1024 * 1024

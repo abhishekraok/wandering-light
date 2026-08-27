@@ -326,12 +326,19 @@ def _training_run_outcome(
     trainer = manifest.get("trainer_state", {})
     workload = manifest.get("workload", {})
     environment = manifest.get("execution_environment", {})
+    protocol = manifest.get("training_protocol", {})
     metrics = trainer.get("train_metrics", {}) if isinstance(trainer, Mapping) else {}
     if not all(
         isinstance(value, Mapping)
-        for value in (trainer, workload, environment, metrics)
+        for value in (trainer, workload, environment, protocol, metrics)
     ):
         raise ValueError(f"{arm_id} {phase} has malformed training outcomes")
+    for field in ("cublas_workspace_config", "pythonhashseed"):
+        if environment.get(field) != protocol.get(field):
+            raise ValueError(
+                f"{arm_id} {phase} deterministic runtime differs from its protocol: "
+                f"{field}"
+            )
     steps = trainer.get("global_step")
     tokens = trainer.get("num_input_tokens_seen")
     if type(steps) is not int or steps <= 0 or type(tokens) is not int or tokens <= 0:
@@ -351,20 +358,53 @@ def _training_run_outcome(
         raise ValueError(f"{arm_id} {phase} lacks a full-runtime scope")
     allocated = environment.get("peak_torch_allocated_bytes")
     reserved = environment.get("peak_torch_reserved_bytes")
-    process_peak = environment.get("peak_process_gpu_memory_bytes")
-    process_gpu_memory = environment.get("process_gpu_memory")
+    observed_peak = environment.get("peak_observed_gpu_memory_bytes")
+    gpu_memory_telemetry = environment.get("gpu_memory_telemetry")
+    memory_measurement_note = environment.get("memory_measurement_note")
     physical = environment.get("physical_vram_bytes")
+    measurement_scope = (
+        gpu_memory_telemetry.get("measurement_scope")
+        if isinstance(gpu_memory_telemetry, Mapping)
+        else None
+    )
+    telemetry_peak = (
+        gpu_memory_telemetry.get("peak_observed_used_bytes")
+        if isinstance(gpu_memory_telemetry, Mapping)
+        else None
+    )
     if (
         type(allocated) is not int
         or type(reserved) is not int
-        or type(process_peak) is not int
-        or not isinstance(process_gpu_memory, Mapping)
-        or not process_gpu_memory
+        or type(observed_peak) is not int
+        or not isinstance(gpu_memory_telemetry, Mapping)
+        or not gpu_memory_telemetry
+        or measurement_scope not in {"process", "physical_gpu_total"}
+        or telemetry_peak != observed_peak
+        or type(gpu_memory_telemetry.get("samples")) is not int
+        or gpu_memory_telemetry["samples"] <= 0
+        or not isinstance(memory_measurement_note, str)
+        or not memory_measurement_note
         or type(physical) is not int
         or not 0 < allocated <= reserved <= physical
-        or not 0 < process_peak <= physical
+        or not 0 < observed_peak <= physical
     ):
         raise ValueError(f"{arm_id} {phase} has invalid VRAM telemetry")
+    if measurement_scope == "process" and (
+        gpu_memory_telemetry.get("peak_process_used_bytes") != observed_peak
+    ):
+        raise ValueError(f"{arm_id} {phase} has invalid process VRAM telemetry")
+    if measurement_scope == "physical_gpu_total" and (
+        type(gpu_memory_telemetry.get("baseline_observed_used_bytes")) is not int
+        or not 0
+        <= gpu_memory_telemetry["baseline_observed_used_bytes"]
+        <= observed_peak
+        or gpu_memory_telemetry.get("peak_physical_gpu_used_bytes") != observed_peak
+        or not isinstance(gpu_memory_telemetry.get("limitation"), str)
+        or not gpu_memory_telemetry["limitation"]
+    ):
+        raise ValueError(
+            f"{arm_id} {phase} has invalid physical-GPU-total VRAM telemetry"
+        )
     wandb = manifest.get("wandb", {})
     if (
         not isinstance(wandb, Mapping)
@@ -393,13 +433,10 @@ def _training_run_outcome(
         "trainer_train_runtime_seconds": trainer_runtime,
         "peak_torch_allocated_bytes": allocated,
         "peak_torch_reserved_bytes": reserved,
-        "peak_process_gpu_memory_bytes": process_peak,
-        "process_gpu_memory": canonical_copy(dict(process_gpu_memory)),
+        "peak_observed_gpu_memory_bytes": observed_peak,
+        "gpu_memory_telemetry": canonical_copy(dict(gpu_memory_telemetry)),
         "physical_vram_bytes": physical,
-        "vram_measurement_note": (
-            "allocated/reserved are PyTorch allocator peaks; process peak is "
-            "nvidia-smi PID/GPU-UUID telemetry; physical is device capacity"
-        ),
+        "vram_measurement_note": memory_measurement_note,
         "best_validation_loss": manifest.get("best_validation_loss"),
         "validation_trend": canonical_copy(manifest.get("validation_trend")),
         "loss_curve": curve,
@@ -750,7 +787,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                     f"{run['trainer_train_runtime_seconds']:.1f}",
                     run["peak_torch_allocated_bytes"],
                     run["peak_torch_reserved_bytes"],
-                    run["peak_process_gpu_memory_bytes"],
+                    run["peak_observed_gpu_memory_bytes"],
                     run["physical_vram_bytes"],
                     run["best_validation_loss"],
                 ]
@@ -822,7 +859,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                     runtime.get("samples_per_second"),
                     runtime.get("peak_torch_allocated_bytes"),
                     runtime.get("peak_torch_reserved_bytes"),
-                    runtime.get("peak_process_gpu_memory_bytes", "n/a"),
+                    runtime.get("peak_observed_gpu_memory_bytes", "n/a"),
                 ]
             )
             groups = evaluations[arm_id]["matched_compute"]
@@ -983,15 +1020,15 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                         "trainer runtime s",
                         "torch allocated",
                         "torch reserved",
-                        "process peak",
+                        "observed peak",
                         "physical capacity",
                         "best val loss",
                     ],
                     training_rows,
                 ),
-                "Allocated/reserved memory is PyTorch allocator telemetry; process "
-                "peak is nvidia-smi PID/GPU-UUID telemetry; physical capacity is "
-                "reported separately. Runtime covers each invocation through its "
+                "Allocated/reserved memory is PyTorch allocator telemetry; observed "
+                "peak carries an explicit process or physical-GPU-total scope; "
+                "physical capacity is reported separately. Runtime covers each invocation through its "
                 "model/tokenizer/config/trainer artifact writes; trainer runtime is "
                 "shown separately.",
                 "### Train/validation loss and gap at every evaluation\n\n"
@@ -1052,7 +1089,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                         "samples/s",
                         "torch allocated",
                         "torch reserved",
-                        "process peak",
+                        "observed peak",
                     ],
                     generation_rows,
                 ),

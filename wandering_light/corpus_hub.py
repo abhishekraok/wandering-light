@@ -5,10 +5,11 @@ or a state-deduplication key invalidates them, and each regeneration is a fresh
 multi-megabyte payload.  Committing them puts every superseded version in git
 history permanently, because gzipped payloads do not delta-compress.
 
-So the payload lives on the Hub and the manifest stays in the repository.  The
-manifest already records what was generated, from which basis and digest, under
-which config, and the sha256 of every file -- everything needed to review a
-corpus, and to verify a download really is the corpus the manifest describes.
+So payloads and per-root/per-record telemetry live on the Hub, while a compact
+manifest stays in the repository.  The manifest records what was generated,
+from which basis and digest, under which config, and the sha256 of every file --
+everything needed to review corpus identity and to verify that a download is
+the corpus and detail the manifest describes.
 
 ``fetch_corpus`` refuses any file whose digest disagrees with the manifest.
 That check is the point of the split: without it, moving the payload off disk
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
 MANIFEST_NAME = "manifest.json"
 DEFAULT_REPO_ID = "abhishekraok/wandering-light-deep-corpus-v1"
 _HUB_KEY = "hub"
+_DETAIL_FILES_KEY = "detail_files"
 
 
 def _sha256_file(path: Path) -> str:
@@ -38,6 +40,12 @@ def _sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1 << 20), b""):
             digest.update(chunk)
     return f"sha256:{digest.hexdigest()}"
+
+
+def _safe_bare_name(name: Any, *, label: str) -> str:
+    if not isinstance(name, str) or Path(name).name != name or name in ("", "."):
+        raise ValueError(f"unsafe {label}: {name!r}")
+    return name
 
 
 def _split_files(manifest: dict[str, Any]) -> list[tuple[str, str]]:
@@ -49,16 +57,32 @@ def _split_files(manifest: dict[str, Any]) -> list[tuple[str, str]]:
     """
     pairs = []
     for split, metadata in manifest["splits"].items():
-        name = metadata["path"]
-        if not isinstance(name, str) or Path(name).name != name or name in ("", "."):
-            raise ValueError(f"unsafe split path for {split!r}: {name!r}")
+        name = _safe_bare_name(metadata["path"], label=f"split path for {split!r}")
         pairs.append((split, name))
     return pairs
 
 
+def _detail_files(manifest: dict[str, Any]) -> list[tuple[str, str]]:
+    """``(label, filename)`` pairs for detached, content-addressed telemetry."""
+
+    details = manifest.get(_DETAIL_FILES_KEY, {})
+    if not isinstance(details, dict):
+        raise ValueError("manifest detail_files must be an object")
+    pairs = []
+    for label, metadata in details.items():
+        if not isinstance(metadata, dict):
+            raise ValueError(f"detail metadata for {label!r} must be an object")
+        name = _safe_bare_name(metadata.get("path"), label=f"detail path for {label!r}")
+        pairs.append((label, name))
+    return pairs
+
+
 def _payload_names(manifest: dict[str, Any]) -> list[str]:
-    """The split files a manifest describes, as plain names."""
-    return [name for _, name in _split_files(manifest)]
+    """The split and detail files a manifest describes, as plain names."""
+    return [
+        *(name for _, name in _split_files(manifest)),
+        *(name for _, name in _detail_files(manifest)),
+    ]
 
 
 def verify_corpus_files(corpus_dir: str | Path) -> dict[str, str]:
@@ -77,6 +101,24 @@ def verify_corpus_files(corpus_dir: str | Path) -> dict[str, str]:
                 f"{manifest['splits'][split]['sha256']}, file is {actual}"
             )
         checked[split] = actual
+    for label, name in _detail_files(manifest):
+        path = root / name
+        if not path.exists():
+            raise FileNotFoundError(f"missing corpus detail for {label!r}: {path}")
+        actual = _sha256_file(path)
+        expected = manifest[_DETAIL_FILES_KEY][label].get("sha256")
+        if actual != expected:
+            raise ValueError(
+                f"digest mismatch for {name}: manifest says {expected}, "
+                f"file is {actual}"
+            )
+        expected_bytes = manifest[_DETAIL_FILES_KEY][label].get("bytes")
+        if expected_bytes != path.stat().st_size:
+            raise ValueError(
+                f"size mismatch for {name}: manifest says {expected_bytes}, "
+                f"file is {path.stat().st_size}"
+            )
+        checked[f"detail:{label}"] = actual
     return checked
 
 

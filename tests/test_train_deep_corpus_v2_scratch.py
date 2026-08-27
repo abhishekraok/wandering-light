@@ -44,6 +44,19 @@ def test_run_contract_rejects_distribution_and_seed_drift(tmp_path):
         )
 
 
+def test_data_preparation_requires_frozen_python_hash_seed(tmp_path, monkeypatch):
+    def reject_seed():
+        raise RuntimeError("fixed Python hash seed required")
+
+    monkeypatch.setattr(
+        runner,
+        "require_deterministic_python_hash_seed",
+        reject_seed,
+    )
+    with pytest.raises(RuntimeError, match="fixed Python hash seed required"):
+        runner.prepare_scratch_data(_config(tmp_path))
+
+
 def test_final_requires_selection_lock_and_at_most_three_epochs(tmp_path):
     with pytest.raises(ValueError, match="requires a validation-only LR lock"):
         runner._validate_run_config(
@@ -69,7 +82,10 @@ def test_final_requires_selection_lock_and_at_most_three_epochs(tmp_path):
         )
 
 
-def test_sft_protocol_is_identical_except_disclosed_checkpointing(tmp_path):
+def test_sft_protocol_discloses_required_360m_checkpointing(tmp_path, monkeypatch):
+    monkeypatch.setenv("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+    assert len(runner.GRADIENT_CHECKPOINTING_ARMS) == 1
+    assert "smollm2-360m-scratch" in runner.GRADIENT_CHECKPOINTING_ARMS
     small = runner.build_sft_config(
         _config(tmp_path), report_to_wandb=False, precision_bf16=False
     )
@@ -86,6 +102,20 @@ def test_sft_protocol_is_identical_except_disclosed_checkpointing(tmp_path):
     assert small.load_best_model_at_end and large.load_best_model_at_end
     assert not small.gradient_checkpointing
     assert large.gradient_checkpointing
+    assert large.gradient_checkpointing_kwargs == {"use_reentrant": False}
+    assert runner._training_protocol(_config(tmp_path))["cublas_workspace_config"] == (
+        scratch.DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG
+    )
+    assert runner._training_protocol(_config(tmp_path))["pythonhashseed"] == "0"
+    small_protocol = runner._training_protocol(_config(tmp_path))
+    large_protocol = runner._training_protocol(
+        _config(tmp_path, arm_id="smollm2-360m-scratch")
+    )
+    assert small_protocol["gradient_checkpointing_kwargs"] == {}
+    assert large_protocol["gradient_checkpointing"]
+    assert large_protocol["gradient_checkpointing_kwargs"] == {
+        "use_reentrant": False
+    }
 
 
 def _pilot(rate, loss):
@@ -332,7 +362,7 @@ def test_published_training_args_contain_no_deleted_staging_path(tmp_path):
     assert str(staging) not in json.dumps(published)
 
 
-def test_execution_environment_distinguishes_process_peak_from_allocator():
+def test_execution_environment_distinguishes_observed_peak_from_allocator():
     properties = SimpleNamespace(
         name="RTX 4090",
         total_memory=24_000_000_000,
@@ -350,22 +380,45 @@ def test_execution_environment_distinguishes_process_peak_from_allocator():
             max_memory_reserved=lambda _index: 12_000,
         ),
     )
-    process = {
+    telemetry = {
+        "measurement_scope": "process",
+        "peak_observed_used_bytes": 15_000,
         "peak_process_used_bytes": 15_000,
         "source": "nvidia-smi",
         "gpu_uuid": "GPU-test",
-        "pid": 123,
+        "namespace_pid": 123,
         "samples": 4,
     }
 
     environment = runner._cuda_environment(
         fake_torch,
-        process_gpu_memory=process,
+        gpu_memory_telemetry=telemetry,
     )
 
-    assert environment["peak_process_gpu_memory_bytes"] == 15_000
+    assert environment["peak_observed_gpu_memory_bytes"] == 15_000
+    assert environment["gpu_memory_telemetry"] == telemetry
+    assert "process-attributed" in environment["memory_measurement_note"]
     assert environment["peak_torch_allocated_bytes"] == 10_000
     assert environment["physical_vram_bytes"] == 24_000_000_000
+
+    physical_telemetry = {
+        "measurement_scope": "physical_gpu_total",
+        "peak_observed_used_bytes": 16_000,
+        "peak_physical_gpu_used_bytes": 16_000,
+        "baseline_observed_used_bytes": 2_000,
+        "source": "nvidia-smi",
+        "gpu_uuid": "GPU-test",
+        "namespace_pid": 123,
+        "samples": 4,
+        "limitation": "compute-process rows unavailable in this namespace",
+    }
+    physical_environment = runner._cuda_environment(
+        fake_torch,
+        gpu_memory_telemetry=physical_telemetry,
+    )
+    assert physical_environment["peak_observed_gpu_memory_bytes"] == 16_000
+    assert "conservative total usage" in physical_environment["memory_measurement_note"]
+    assert "peak_process_gpu_memory_bytes" not in physical_environment
 
 
 def test_training_and_probe_use_the_same_physical_gpu_identity_digest():

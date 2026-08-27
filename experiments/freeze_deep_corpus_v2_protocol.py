@@ -53,6 +53,7 @@ from wandering_light.evals.deep_corpus_protocol import (
 )
 from wandering_light.training.deep_corpus_tokenizer import (
     DEFAULT_REFERENCE_CORPUS_DIR,
+    DETERMINISTIC_PYTHON_HASH_SEED,
     EXPECTED_CORPUS_REPO_ID,
     FIXED_MAX_LENGTH,
     TOKENIZER_FILENAMES,
@@ -579,6 +580,7 @@ def _tokenizer_identity(
             "max_length": tokenizer["max_length"],
             "base_vocab_size": tokenizer["base_vocab_size"],
             "total_vocab_size": tokenizer["total_vocab_size"],
+            "pythonhashseed": tokenizer_manifest["training_text"]["pythonhashseed"],
         },
     )
 
@@ -608,6 +610,10 @@ def build_protocol_artifacts(
         max_new_tokens=GENERATION_MAX_NEW_TOKENS,
         batch_size=GENERATION_BATCH_SIZE,
         max_sequence_length=FIXED_MAX_LENGTH,
+        extra={
+            "pythonhashseed": DETERMINISTIC_PYTHON_HASH_SEED,
+            "prompt_rendering": "PR53 Python repr under fixed hash seed",
+        },
     )
     bfs = build_bfs_settings(
         budget=BFS_EXECUTION_SAFETY_BUDGET,

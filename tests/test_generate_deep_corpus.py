@@ -622,6 +622,24 @@ def test_existing_corpus_is_not_overwritten_by_default(tmp_path):
     assert (corpus_dir / "manifest.json").exists()
 
 
+def test_per_root_telemetry_is_detached_and_content_addressed(tmp_path):
+    manifest, corpus_dir = _tiny_corpus(tmp_path)
+
+    assert "roots" not in manifest["expansion"]
+    identity = manifest["detail_files"]["expansion"]
+    detail_path = corpus_dir / deep.EXPANSION_DETAIL_NAME
+    detail = json.loads(detail_path.read_text(encoding="utf-8"))
+    assert identity == {
+        "path": deep.EXPANSION_DETAIL_NAME,
+        "bytes": detail_path.stat().st_size,
+        "sha256": deep._sha256_file(detail_path),
+        "records": manifest["expansion"]["roots_expanded"],
+        "contents": "per-root generation and expansion telemetry",
+    }
+    assert len(detail["roots"]) == manifest["expansion"]["roots_expanded"]
+    assert detail["basis_set_digest"] == manifest["basis_set_digest"]
+
+
 def test_tampered_manifest_is_rejected(tmp_path):
     _, corpus_dir = _tiny_corpus(tmp_path)
     manifest_path = corpus_dir / "manifest.json"

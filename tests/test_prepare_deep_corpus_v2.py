@@ -1,7 +1,11 @@
+import json
 from collections import Counter
+from pathlib import Path
 
 from experiments import generate_deep_corpus as deep
 from experiments import prepare_deep_corpus_v2 as prepare
+
+MAX_TRACKED_MANIFEST_BYTES = 64 * 1024
 
 
 def test_frozen_profile_matches_issue_54_contract():
@@ -36,6 +40,39 @@ def test_frozen_profile_matches_issue_54_contract():
     }
     assert "require_all_expansions_complete" not in options["target_contract"]
     assert prepare.HUB_REPO_ID == "abhishekraok/wandering-light-deep-corpus-v2"
+
+
+def test_tracked_v2_manifests_carry_identity_not_record_detail():
+    """Keep the new policy enforceable; V1 is a documented history exception."""
+
+    corpus_path = Path("wandering_light/training/data/deep_corpus_v2/manifest.json")
+    tokenizer_path = Path(
+        "wandering_light/training/tokenizers/deep_corpus_v2/tokenizer_manifest.json"
+    )
+    assert corpus_path.stat().st_size <= MAX_TRACKED_MANIFEST_BYTES
+    assert tokenizer_path.stat().st_size <= MAX_TRACKED_MANIFEST_BYTES
+
+    corpus = json.loads(corpus_path.read_text(encoding="utf-8"))
+    tokenizer = json.loads(tokenizer_path.read_text(encoding="utf-8"))
+    assert "roots" not in corpus["expansion"]
+    assert corpus["detail_files"]["expansion"]["sha256"].startswith("sha256:")
+    assert "excluded" not in tokenizer["selection"]
+    assert tokenizer["selection"]["detail_file"]["sha256"].startswith("sha256:")
+    assert not [
+        value
+        for value in _nested_values(tokenizer["selection"]["statistics"])
+        if isinstance(value, dict) and "histogram" in value
+    ]
+
+
+def _nested_values(value):
+    yield value
+    if isinstance(value, dict):
+        for item in value.values():
+            yield from _nested_values(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _nested_values(item)
 
 
 def test_run_removes_resume_only_after_successful_verification(tmp_path, monkeypatch):

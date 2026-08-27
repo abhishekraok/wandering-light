@@ -154,6 +154,7 @@ def _tokenizer_manifest(source: dict) -> dict:
             "base_vocab_size": 512,
             "total_vocab_size": 600,
         },
+        "training_text": {"pythonhashseed": "0"},
     }
 
 
@@ -394,6 +395,8 @@ def test_artifacts_freeze_exact_cohorts_generation_bfs_and_file_identities(
         "generation_sha256": lock["generation"]["generation_sha256"],
         "max_new_tokens": 64,
         "max_sequence_length": 2048,
+        "prompt_rendering": "PR53 Python repr under fixed hash seed",
+        "pythonhashseed": "0",
         "sample_prefixes": [1, 8, 64],
         "samples_per_task": 64,
         "sampling_seed": 20260826,

@@ -13,6 +13,15 @@ from wandering_light.typed_list import TypedList
 BASIS = load_basis_set("wl-core-v1")
 
 
+@pytest.fixture(autouse=True)
+def _fixed_python_hash_seed_contract(monkeypatch):
+    monkeypatch.setattr(
+        shared,
+        "require_deterministic_python_hash_seed",
+        lambda: shared.DETERMINISTIC_PYTHON_HASH_SEED,
+    )
+
+
 def _rows(*, long_distance: int | None = None):
     names = shared.basis_function_names(BASIS)
     rows = []
@@ -203,6 +212,8 @@ def test_frozen_artifact_is_deterministic_and_validates_reload_identity(tmp_path
     assert first["artifact_digest"] == second["artifact_digest"]
     assert first["tokenizer"]["files"] == second["tokenizer"]["files"]
     assert first["training_text"]["discovery_only"] is True
+    assert first["training_text"]["pythonhashseed"] == "0"
+    assert first["tokenizer"]["implementation"]["pythonhashseed"] == "0"
     assert first["training_text"]["records"] == 8
     reloaded = shared.validate_frozen_tokenizer(
         tmp_path / "first",
@@ -221,32 +232,40 @@ def test_selection_lists_statistics_and_token_id_digests_are_complete(tmp_path):
     assert selection["excluded_records"] == 1
     assert "retained" not in selection
     assert selection["retained_rows"]["storage"].startswith("omitted-from-artifact")
-    assert selection["excluded"] == [
+    assert "excluded" not in selection
+    detail_identity = selection["detail_file"]
+    detail_path = tmp_path / "tokenizer" / shared.DETAIL_FILENAME
+    assert detail_identity["sha256"] == shared._sha256_file(detail_path)
+    detail = json.loads(detail_path.read_text(encoding="utf-8"))["selection"]
+    assert detail["excluded"] == [
         {
             "task_id": "task-8",
             "split": "discovery",
             "certified_distance": 8,
-            "prompt_tokens": selection["excluded"][0]["prompt_tokens"],
-            "completion_tokens": selection["excluded"][0]["completion_tokens"],
-            "completion_tokens_with_eos": selection["excluded"][0][
+            "prompt_tokens": detail["excluded"][0]["prompt_tokens"],
+            "completion_tokens": detail["excluded"][0]["completion_tokens"],
+            "completion_tokens_with_eos": detail["excluded"][0][
                 "completion_tokens_with_eos"
             ],
-            "combined_tokens": selection["excluded"][0]["combined_tokens"],
+            "combined_tokens": detail["excluded"][0]["combined_tokens"],
             "reason": "combined_tokens_exceed_fixed_max_length",
             "max_length": shared.FIXED_MAX_LENGTH,
         }
     ]
-    assert selection["excluded"][0]["combined_tokens"] > shared.FIXED_MAX_LENGTH
+    assert detail["excluded"][0]["combined_tokens"] > shared.FIXED_MAX_LENGTH
     selected_stats = selection["statistics"]["selected"]
     assert selected_stats["overall"]["combined"]["count"] == 8
     assert selected_stats["by_certified_distance"]["8"]["combined"]["count"] == 1
-    assert selected_stats["by_certified_distance"]["8"]["combined"]["histogram"]
+    assert "histogram" not in selected_stats["by_certified_distance"]["8"]["combined"]
     assert (
-        selection["statistics"]["retained"]["by_certified_distance"]["8"]["combined"][
+        detail["statistics"]["retained"]["by_certified_distance"]["8"]["combined"][
             "count"
         ]
         == 0
     )
+    assert detail["statistics"]["selected"]["by_certified_distance"]["8"]["combined"][
+        "histogram"
+    ]
     for scope in ("selected", "retained"):
         for field in ("prompt", "completion", "completion_with_eos", "combined"):
             assert selection["token_id_digests"][scope][field].startswith("sha256:")
@@ -270,6 +289,27 @@ def test_validation_rejects_tampering_and_wrong_source(tmp_path):
     tokenizer_path.write_text(tokenizer_path.read_text() + "\n", encoding="utf-8")
     with pytest.raises(ValueError, match="file digest mismatch"):
         shared.validate_frozen_tokenizer(tmp_path / "valid")
+
+
+def test_validation_rejects_detached_detail_tampering(tmp_path):
+    _freeze(tmp_path, "valid")
+    detail = tmp_path / "valid" / shared.DETAIL_FILENAME
+    detail.write_text(detail.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="detail-file identity drifted"):
+        shared.validate_frozen_tokenizer(tmp_path / "valid")
+
+
+def test_record_hub_location_is_outside_tokenizer_identity(tmp_path):
+    manifest = _freeze(tmp_path, "valid")
+
+    shared.record_hub_location(
+        tmp_path / "valid", repo_id="acct/dataset", revision="a" * 40
+    )
+
+    recorded = shared.validate_frozen_tokenizer(tmp_path / "valid")
+    assert recorded["artifact_digest"] == manifest["artifact_digest"]
+    assert recorded["hub"]["revision"] == "a" * 40
 
 
 def test_dry_run_summary_has_no_tokenizer_side_effects(tmp_path):

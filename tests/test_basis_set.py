@@ -1,7 +1,10 @@
 import copy
 import json
+import os
 import re
 import shutil
+import subprocess
+import sys
 from dataclasses import FrozenInstanceError
 from pathlib import Path
 
@@ -220,6 +223,40 @@ def test_hash_runtime_guard_rejects_environment_changed_after_startup(monkeypatc
 
     with pytest.raises(RuntimeError, match="does not match the running interpreter"):
         basis_set_module.require_reproducible_basis_runtime(basis)
+
+
+def test_explicit_python_hash_seed_guard_is_fail_closed(monkeypatch):
+    monkeypatch.delenv("PYTHONHASHSEED", raising=False)
+    with pytest.raises(RuntimeError, match="before interpreter startup"):
+        basis_set_module.require_python_hash_seed("0")
+
+    monkeypatch.setenv("PYTHONHASHSEED", "1")
+    with pytest.raises(RuntimeError, match="before interpreter startup"):
+        basis_set_module.require_python_hash_seed("0")
+
+    monkeypatch.setenv("PYTHONHASHSEED", "0")
+    monkeypatch.setattr(basis_set_module, "_runtime_hash_probe", lambda: (1, 2))
+    monkeypatch.setattr(
+        basis_set_module,
+        "_declared_hash_seed_probe",
+        lambda _seed: (1, 2),
+    )
+    assert basis_set_module.require_python_hash_seed("0") == "0"
+
+
+def test_explicit_python_hash_seed_guard_accepts_seeded_interpreter():
+    code = (
+        "from wandering_light.basis_set import require_python_hash_seed; "
+        "print(require_python_hash_seed('0'))"
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", code],
+        check=True,
+        capture_output=True,
+        text=True,
+        env={**os.environ, "PYTHONHASHSEED": "0"},
+    )
+    assert completed.stdout.strip() == "0"
 
 
 def test_loader_rejects_tampered_manifest_digest(tmp_path):

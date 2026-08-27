@@ -28,7 +28,6 @@ from typing import Any
 from experiments import generate_deep_corpus as deep
 from experiments.evaluate_deep_corpus_sft import (
     aggregate_model_candidates,
-    configure_deterministic_cuda_environment,
     evaluate_bfs_records,
     evaluate_candidate,
     matched_compute_comparison,
@@ -72,9 +71,16 @@ from wandering_light.executor import Executor
 from wandering_light.training.deep_corpus_scratch import (
     ARM_SPECS,
     DEFAULT_WANDB_PROJECT,
+    DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG,
     PARAMETER_TOLERANCE_FRACTION,
     PERSONAL_WANDB_ENTITY,
+    build_scratch_study_identity,
+    configure_deterministic_cuda_environment,
     validate_final_restart,
+)
+from wandering_light.training.deep_corpus_tokenizer import (
+    DETERMINISTIC_PYTHON_HASH_SEED,
+    require_deterministic_python_hash_seed,
 )
 
 SCHEMA_VERSION = 1
@@ -144,6 +150,15 @@ def _seal_summary(body: Mapping[str, Any]) -> dict[str, Any]:
     return value
 
 
+def _validate_generation_runtime(runtime: Any) -> None:
+    if not isinstance(runtime, Mapping) or (
+        runtime.get("cublas_workspace_config")
+        != DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG
+        or runtime.get("pythonhashseed") != DETERMINISTIC_PYTHON_HASH_SEED
+    ):
+        raise ValueError("Generation runtime differs from the deterministic protocol")
+
+
 def validate_evaluation_summary(
     summary: Mapping[str, Any],
     *,
@@ -174,6 +189,9 @@ def validate_evaluation_summary(
         raise ValueError("Evaluation summary has no checkpoint identity")
     if not isinstance(value.get("artifacts"), dict):
         raise ValueError("Evaluation summary has no raw artifact identities")
+    generation = value.get("generation")
+    runtime = generation.get("runtime") if isinstance(generation, Mapping) else None
+    _validate_generation_runtime(runtime)
     return value
 
 
@@ -191,11 +209,17 @@ def load_protocol_lock(
     repo_root: str | Path = REPO_ROOT,
 ) -> dict[str, Any]:
     value = _read_json(path, label="protocol lock")
-    return validate_protocol_lock(
+    validated = validate_protocol_lock(
         value,
         tokenizer_root=tokenizer_dir,
         evaluator_root=repo_root,
     )
+    if (
+        validated.get("generation", {}).get("pythonhashseed")
+        != DETERMINISTIC_PYTHON_HASH_SEED
+    ):
+        raise ValueError("Protocol lock has no deterministic Python hash seed")
+    return validated
 
 
 def _verify_reference_corpora(
@@ -321,16 +345,12 @@ def _training_outcomes(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "trainer_train_runtime_seconds": trainer_runtime,
         "peak_torch_allocated_bytes": environment.get("peak_torch_allocated_bytes"),
         "peak_torch_reserved_bytes": environment.get("peak_torch_reserved_bytes"),
-        "peak_process_gpu_memory_bytes": environment.get(
-            "peak_process_gpu_memory_bytes"
+        "peak_observed_gpu_memory_bytes": environment.get(
+            "peak_observed_gpu_memory_bytes"
         ),
-        "process_gpu_memory": canonical_copy(environment.get("process_gpu_memory")),
+        "gpu_memory_telemetry": canonical_copy(environment.get("gpu_memory_telemetry")),
         "physical_vram_bytes": environment.get("physical_vram_bytes"),
-        "vram_measurement_note": (
-            "PyTorch allocated/reserved peaks are allocator telemetry; "
-            "peak_process_gpu_memory_bytes is PID/GPU-UUID nvidia-smi telemetry; "
-            "physical_vram_bytes is device capacity"
-        ),
+        "vram_measurement_note": environment.get("memory_measurement_note"),
         "best_validation_loss": manifest.get("best_validation_loss"),
         "loss_trend": canonical_copy(manifest.get("validation_trend")),
         "loss_curve": canonical_copy(
@@ -383,13 +403,25 @@ def _validate_checkpoint_feasibility_gate(
             "Direct feasibility authorization lacks its hard-stop requirement"
         )
 
+    expected_study = _checkpoint_study_identity(manifest)
+    if sha256_json(expected_study) != study_digest:
+        raise ValueError("Final checkpoint feasibility study identity does not match")
+    return canonical_copy(dict(gate))
+
+
+def _checkpoint_study_identity(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """Rebuild the feasibility identity from independent checkpoint provenance."""
+
     source = manifest.get("source_data", {})
     roles = source.get("task_roles", {}) if isinstance(source, Mapping) else {}
     discovery = roles.get("discovery", {}) if isinstance(roles, Mapping) else {}
     protocol = manifest.get("training_protocol", {})
     if not isinstance(protocol, Mapping):
         protocol = {}
-    expected_study = {
+    environment = manifest.get("execution_environment", {})
+    if not isinstance(environment, Mapping):
+        environment = {}
+    values = {
         "architecture": manifest.get("architecture"),
         "corpus_manifest_digest": source.get("corpus_manifest_digest"),
         "tokenizer_artifact_digest": manifest.get("tokenizer_digest"),
@@ -400,14 +432,25 @@ def _validate_checkpoint_feasibility_gate(
         "optimizer": protocol.get("optimizer"),
         "precision": protocol.get("precision"),
         "gradient_checkpointing": protocol.get("gradient_checkpointing"),
+        "gradient_checkpointing_kwargs": protocol.get(
+            "gradient_checkpointing_kwargs"
+        ),
+        "cublas_workspace_config": protocol.get("cublas_workspace_config"),
+        "pythonhashseed": protocol.get("pythonhashseed"),
         "initialization_seed": manifest.get("initialization_seed"),
         "data_order_seed": manifest.get("data_order_seed"),
     }
-    if any(value is None for value in expected_study.values()):
+    if not isinstance(values["architecture"], Mapping) or any(
+        value is None for value in values.values()
+    ):
         raise ValueError("Final checkpoint cannot reconstruct its feasibility study")
-    if sha256_json(expected_study) != study_digest:
-        raise ValueError("Final checkpoint feasibility study identity does not match")
-    return canonical_copy(dict(gate))
+    for field in ("cublas_workspace_config", "pythonhashseed"):
+        if environment.get(field) != protocol.get(field):
+            raise ValueError(
+                "Final checkpoint deterministic runtime differs from training "
+                f"protocol: {field}"
+            )
+    return build_scratch_study_identity(**values)
 
 
 def _frozen_source_file(
@@ -604,7 +647,8 @@ def generate_scratch_candidates(
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Generate one ordered 64-sample draw using the frozen shared tokenizer."""
 
-    configure_deterministic_cuda_environment()
+    require_deterministic_python_hash_seed()
+    cublas_workspace_config = configure_deterministic_cuda_environment()
     import torch
     from transformers import AutoModelForCausalLM, PreTrainedTokenizerFast, set_seed
 
@@ -708,6 +752,8 @@ def generate_scratch_candidates(
             "device": torch.cuda.get_device_name(0),
             "torch_version": torch.__version__,
             "cuda_version": torch.version.cuda,
+            "cublas_workspace_config": cublas_workspace_config,
+            "pythonhashseed": os.environ.get("PYTHONHASHSEED"),
             "peak_torch_allocated_bytes": int(torch.cuda.max_memory_allocated()),
             "peak_torch_reserved_bytes": int(torch.cuda.max_memory_reserved()),
         }
@@ -789,6 +835,7 @@ def build_arm_summary(
     bfs_rows: Sequence[Mapping[str, Any]],
     artifacts: Mapping[str, Any],
 ) -> dict[str, Any]:
+    _validate_generation_runtime(generation_runtime)
     task_ids = [record.task_id for record in records]
     model_by_distance, per_task = aggregate_model_candidates(
         candidate_rows,

@@ -190,6 +190,8 @@ def _evaluation_summary(
                     "seconds": 1.0,
                     "samples": 6_144,
                     "samples_per_second": 100.0,
+                    "cublas_workspace_config": ":16:8",
+                    "pythonhashseed": "0",
                     "peak_torch_allocated_bytes": 1_000,
                     "peak_torch_reserved_bytes": 1_100,
                 }
@@ -240,6 +242,11 @@ def _study_identity(arm_id: str, architecture: dict, protocol: dict) -> str:
             "optimizer": protocol["optimizer"],
             "precision": protocol["precision"],
             "gradient_checkpointing": protocol["gradient_checkpointing"],
+            "gradient_checkpointing_kwargs": protocol[
+                "gradient_checkpointing_kwargs"
+            ],
+            "cublas_workspace_config": protocol["cublas_workspace_config"],
+            "pythonhashseed": protocol["pythonhashseed"],
             "initialization_seed": 54_001,
             "data_order_seed": 54_002,
         }
@@ -266,6 +273,13 @@ def _training_manifest(
         "optimizer": "adamw_torch",
         "precision": "bf16",
         "gradient_checkpointing": arm_id == "smollm2-360m-scratch",
+        "gradient_checkpointing_kwargs": (
+            {"use_reentrant": False}
+            if arm_id == "smollm2-360m-scratch"
+            else {}
+        ),
+        "cublas_workspace_config": ":16:8",
+        "pythonhashseed": "0",
     }
     initial = "sha256:" + str(index) * 64
     study = _study_identity(arm_id, architecture, protocol)
@@ -329,15 +343,22 @@ def _training_manifest(
         },
         "validation_trend": {"classification": "compute-limited"},
         "execution_environment": {
+            "cublas_workspace_config": ":16:8",
+            "pythonhashseed": "0",
             "full_invocation_elapsed_seconds": (12.0 if phase == "pilot" else 120.0),
             "full_invocation_runtime_scope": ("unit-test run through artifact writes"),
             "peak_torch_allocated_bytes": 1_000,
             "peak_torch_reserved_bytes": 1_100,
-            "peak_process_gpu_memory_bytes": 1_200,
-            "process_gpu_memory": {
-                "measurement": "nvidia-smi PID/GPU-UUID sampling",
+            "peak_observed_gpu_memory_bytes": 1_200,
+            "gpu_memory_telemetry": {
+                "measurement_scope": "process",
+                "source": "nvidia-smi compute-apps used_gpu_memory polling",
                 "gpu_uuid": "GPU-unit-test",
+                "samples": 4,
+                "peak_observed_used_bytes": 1_200,
+                "peak_process_used_bytes": 1_200,
             },
+            "memory_measurement_note": "unit-test process-scoped measurement",
             "physical_vram_bytes": 2_000,
         },
         "wandb": {
@@ -395,6 +416,7 @@ def study(tmp_path, monkeypatch):
             "batch_size": 32,
             "max_sequence_length": 2048,
             "do_sample": True,
+            "pythonhashseed": "0",
             "generation_sha256": "sha256:" + "e" * 64,
         },
         "bfs": {
@@ -875,6 +897,37 @@ def test_rejects_training_wandb_and_feasibility_study_mismatch(study):
         final["selection_lock"]["selected_pilot_manifest_digest"] = sha256_json(changed)
     pilot_path.write_text(json.dumps(changed), encoding="utf-8")
     with pytest.raises(ValueError, match="study identity"):
+        report.build_report(inputs)
+
+
+@pytest.mark.parametrize(
+    ("field", "replacement"),
+    [
+        ("cublas_workspace_config", ":4096:8"),
+        ("pythonhashseed", "1"),
+    ],
+)
+def test_rejects_training_runtime_that_differs_from_protocol(
+    study, field, replacement
+):
+    inputs = study["inputs"]
+    pilot_path = inputs.pilot_manifests[0]
+    changed = json.loads(pilot_path.read_text(encoding="utf-8"))
+    changed["execution_environment"][field] = replacement
+    final = study["validation"][changed["arm_id"]]["training_manifest"]
+    rate = float(changed["learning_rate"])
+    lock_row = next(
+        row for row in final["selection_lock"]["pilots"]
+        if row["learning_rate"] == rate
+    )
+    lock_row["manifest_digest"] = sha256_json(changed)
+    if final["selection_lock"]["selected_learning_rate"] == rate:
+        final["selection_lock"]["selected_pilot_manifest_digest"] = sha256_json(
+            changed
+        )
+    pilot_path.write_text(json.dumps(changed), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="deterministic runtime differs"):
         report.build_report(inputs)
 
 

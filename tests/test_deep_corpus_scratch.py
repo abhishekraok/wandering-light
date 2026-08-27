@@ -11,6 +11,18 @@ from transformers import LlamaConfig, LlamaForCausalLM, OPTConfig, OPTForCausalL
 from wandering_light.training import deep_corpus_scratch as scratch
 
 
+def test_deterministic_cuda_environment_is_frozen_before_torch_cuda():
+    environment: dict[str, str] = {}
+    assert scratch.configure_deterministic_cuda_environment(environment) == ":16:8"
+    assert environment["CUBLAS_WORKSPACE_CONFIG"] == ":16:8"
+    assert scratch.configure_deterministic_cuda_environment(environment) == ":16:8"
+
+    with pytest.raises(RuntimeError, match="frozen deterministic CUDA protocol"):
+        scratch.configure_deterministic_cuda_environment(
+            {"CUBLAS_WORKSPACE_CONFIG": ":4096:8"}
+        )
+
+
 def test_parameter_formulas_match_actual_tied_models():
     opt_config = OPTConfig(
         vocab_size=123,

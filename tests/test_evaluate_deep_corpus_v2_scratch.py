@@ -22,6 +22,24 @@ from wandering_light.evals.deep_corpus_protocol import (
 from wandering_light.training.deep_corpus_scratch import ARM_SPECS, digest_json
 from wandering_light.typed_list import TypedList
 
+
+def test_candidate_generation_requires_frozen_python_hash_seed(tmp_path, monkeypatch):
+    def reject_seed():
+        raise RuntimeError("fixed Python hash seed required")
+
+    monkeypatch.setattr(evaluate, "require_deterministic_python_hash_seed", reject_seed)
+    with pytest.raises(RuntimeError, match="fixed Python hash seed required"):
+        evaluate.generate_scratch_candidates(
+            (),
+            arm_id=ARM_IDS[0],
+            checkpoint=tmp_path / "checkpoint",
+            tokenizer_dir=tmp_path / "tokenizer",
+            available_functions=None,
+            generation={},
+            progress=False,
+        )
+
+
 PROTOCOL_DIGEST = "sha256:" + "1" * 64
 TOKENIZER_DIGEST = "sha256:" + "2" * 64
 
@@ -77,6 +95,7 @@ def protocol() -> dict:
             "batch_size": 32,
             "max_sequence_length": 2048,
             "do_sample": True,
+            "pythonhashseed": "0",
             "generation_sha256": "sha256:" + "7" * 64,
         },
         "bfs": {
@@ -146,6 +165,13 @@ def _training_manifest(arm_id: str) -> dict:
         "optimizer": "adamw_torch",
         "precision": "bf16",
         "gradient_checkpointing": arm_id == "smollm2-360m-scratch",
+        "gradient_checkpointing_kwargs": (
+            {"use_reentrant": False}
+            if arm_id == "smollm2-360m-scratch"
+            else {}
+        ),
+        "cublas_workspace_config": ":16:8",
+        "pythonhashseed": "0",
         "initialization_seed": 54_001,
         "data_order_seed": 54_002,
     }
@@ -196,6 +222,13 @@ def _training_manifest(arm_id: str) -> dict:
             "optimizer": "adamw_torch",
             "precision": "bf16",
             "gradient_checkpointing": arm_id == "smollm2-360m-scratch",
+            "gradient_checkpointing_kwargs": (
+                {"use_reentrant": False}
+                if arm_id == "smollm2-360m-scratch"
+                else {}
+            ),
+            "cublas_workspace_config": ":16:8",
+            "pythonhashseed": "0",
         },
         "workload": {
             "unique_training_examples": 100,
@@ -244,14 +277,18 @@ def _training_manifest(arm_id: str) -> dict:
             ],
         },
         "execution_environment": {
+            "cublas_workspace_config": ":16:8",
+            "pythonhashseed": "0",
             "physical_vram_bytes": 24_000_000_000,
             "peak_torch_allocated_bytes": 12_000_000_000,
             "peak_torch_reserved_bytes": 13_000_000_000,
-            "peak_process_gpu_memory_bytes": 14_000_000_000,
-            "process_gpu_memory": {
-                "measurement": "nvidia-smi PID/GPU-UUID sampling",
+            "peak_observed_gpu_memory_bytes": 14_000_000_000,
+            "gpu_memory_telemetry": {
+                "measurement_scope": "process",
+                "source": "nvidia-smi compute-apps used_gpu_memory polling",
                 "gpu_uuid": "GPU-unit-test",
             },
+            "memory_measurement_note": "unit-test process-scoped measurement",
         },
         "wandb": {"url": "https://wandb.ai/example"},
     }
@@ -353,6 +390,12 @@ def test_summary_seal_rejects_mutation(protocol):
             "arm_id": ARM_IDS[0],
             "protocol_lock_sha256": PROTOCOL_DIGEST,
             "checkpoint": {"digest": "one"},
+            "generation": {
+                "runtime": {
+                    "cublas_workspace_config": ":16:8",
+                    "pythonhashseed": "0",
+                }
+            },
             "artifacts": {},
         }
     )
@@ -369,6 +412,45 @@ def test_summary_seal_rejects_mutation(protocol):
     with pytest.raises(ValueError, match="changed after it was sealed"):
         evaluate.validate_evaluation_summary(
             changed, protocol_lock_sha256=protocol["protocol_lock_sha256"]
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "replacement"),
+    [
+        ("cublas_workspace_config", ":4096:8"),
+        ("cublas_workspace_config", None),
+        ("pythonhashseed", "1"),
+        ("pythonhashseed", None),
+    ],
+)
+def test_resealed_summary_rejects_wrong_or_missing_generation_runtime(
+    protocol, field, replacement
+):
+    body = {
+        "schema_version": 1,
+        "status": "complete",
+        "split": "validation",
+        "arm_id": ARM_IDS[0],
+        "protocol_lock_sha256": PROTOCOL_DIGEST,
+        "checkpoint": {"digest": "one"},
+        "generation": {
+            "runtime": {
+                "cublas_workspace_config": ":16:8",
+                "pythonhashseed": "0",
+            }
+        },
+        "artifacts": {},
+    }
+    if replacement is None:
+        body["generation"]["runtime"].pop(field)
+    else:
+        body["generation"]["runtime"][field] = replacement
+    summary = evaluate._seal_summary(body)
+
+    with pytest.raises(ValueError, match="deterministic protocol"):
+        evaluate.validate_evaluation_summary(
+            summary, protocol_lock_sha256=protocol["protocol_lock_sha256"]
         )
 
 
@@ -521,6 +603,71 @@ def test_checkpoint_identity_rejects_inadequate_feasibility_gate(
         evaluate.checkpoint_identity(checkpoint, arm_id=arm_id, protocol_lock=protocol)
 
 
+@pytest.mark.parametrize(
+    ("field", "replacement"),
+    [
+        ("cublas_workspace_config", ":4096:8"),
+        ("pythonhashseed", "1"),
+        ("gradient_checkpointing", True),
+        ("gradient_checkpointing_kwargs", {"use_reentrant": True}),
+    ],
+)
+def test_checkpoint_identity_binds_deterministic_runtime(
+    tmp_path, protocol, field, replacement
+):
+    arm_id = ARM_IDS[0]
+    manifest = _training_manifest(arm_id)
+    manifest["training_protocol"][field] = replacement
+    if field in manifest["execution_environment"]:
+        manifest["execution_environment"][field] = replacement
+    checkpoint = tmp_path / "checkpoint"
+    _write_checkpoint(checkpoint, manifest)
+
+    with pytest.raises(ValueError, match="study identity does not match"):
+        evaluate.checkpoint_identity(
+            checkpoint, arm_id=arm_id, protocol_lock=protocol
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "replacement"),
+    [
+        ("cublas_workspace_config", ":4096:8"),
+        ("pythonhashseed", "1"),
+    ],
+)
+def test_checkpoint_identity_cross_checks_observed_deterministic_runtime(
+    tmp_path, protocol, field, replacement
+):
+    arm_id = ARM_IDS[0]
+    manifest = _training_manifest(arm_id)
+    manifest["execution_environment"][field] = replacement
+    checkpoint = tmp_path / "checkpoint"
+    _write_checkpoint(checkpoint, manifest)
+
+    with pytest.raises(ValueError, match="deterministic runtime differs"):
+        evaluate.checkpoint_identity(
+            checkpoint, arm_id=arm_id, protocol_lock=protocol
+        )
+
+
+def test_360m_checkpoint_identity_binds_non_reentrant_checkpointing(
+    tmp_path, protocol
+):
+    arm_id = "smollm2-360m-scratch"
+    manifest = _training_manifest(arm_id)
+    manifest["training_protocol"]["gradient_checkpointing_kwargs"] = {
+        "use_reentrant": True
+    }
+    checkpoint = tmp_path / "checkpoint"
+    _write_checkpoint(checkpoint, manifest)
+
+    with pytest.raises(ValueError, match="study identity does not match"):
+        evaluate.checkpoint_identity(
+            checkpoint, arm_id=arm_id, protocol_lock=protocol
+        )
+
+
 def test_training_outcomes_fall_back_to_planned_token_workload():
     manifest = _training_manifest(ARM_IDS[0])
     manifest["trainer_state"].pop("num_input_tokens_seen")
@@ -552,6 +699,8 @@ def test_arm_summary_reports_prefix_distance_funnel_cost_and_training(
         candidate_rows=rows,
         generation_runtime={
             "seconds": 1.0,
+            "cublas_workspace_config": ":16:8",
+            "pythonhashseed": "0",
             "peak_torch_allocated_bytes": 1_000,
             "peak_torch_reserved_bytes": 1_100,
         },
@@ -577,8 +726,8 @@ def test_arm_summary_reports_prefix_distance_funnel_cost_and_training(
     )
     assert summary["training"]["peak_torch_allocated_bytes"] == 12_000_000_000
     assert summary["training"]["peak_torch_reserved_bytes"] == 13_000_000_000
-    assert summary["training"]["peak_process_gpu_memory_bytes"] == 14_000_000_000
-    assert summary["training"]["process_gpu_memory"]["gpu_uuid"] == "GPU-unit-test"
+    assert summary["training"]["peak_observed_gpu_memory_bytes"] == 14_000_000_000
+    assert summary["training"]["gpu_memory_telemetry"]["gpu_uuid"] == ("GPU-unit-test")
     assert summary["training"]["physical_vram_bytes"] == 24_000_000_000
 
 
@@ -600,6 +749,8 @@ def test_wandb_publisher_keeps_sealed_result_immutable_and_writes_receipt(
         candidate_rows=rows,
         generation_runtime={
             "seconds": 1.0,
+            "cublas_workspace_config": ":16:8",
+            "pythonhashseed": "0",
             "peak_torch_allocated_bytes": 1_000,
             "peak_torch_reserved_bytes": 1_100,
         },
@@ -831,6 +982,8 @@ def test_test_opening_is_one_shared_atomic_access_and_recovers_without_rescoring
             raise RuntimeError("simulated crash")
         return _candidate_rows(records, arm_id), {
             "seconds": 1.0,
+            "cublas_workspace_config": ":16:8",
+            "pythonhashseed": "0",
             "peak_torch_allocated_bytes": 100,
             "peak_torch_reserved_bytes": 110,
         }

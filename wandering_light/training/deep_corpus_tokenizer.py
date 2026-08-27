@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from wandering_light.basis_set import load_basis_set
+from wandering_light.basis_set import load_basis_set, require_python_hash_seed
 
 if TYPE_CHECKING:
     from transformers import PreTrainedTokenizerFast
@@ -49,6 +49,7 @@ FIXED_MAX_LENGTH = 2048
 DISCOVERY_SPLIT = "discovery"
 CORPUS_SPLITS = (DISCOVERY_SPLIT, "validation", "test")
 REQUIRED_DISTANCES = tuple(range(1, 9))
+DETERMINISTIC_PYTHON_HASH_SEED = "0"
 
 # Order is part of the protocol. BpeTrainer assigns these IDs before the byte
 # alphabet and learned vocabulary.
@@ -65,9 +66,17 @@ TOKENIZER_FILENAMES = (
     "tokenizer_config.json",
 )
 MANIFEST_FILENAME = "tokenizer_manifest.json"
+DETAIL_FILENAME = "tokenizer_detail.json"
+DETAIL_ARTIFACT_TYPE = "wandering-light-deep-corpus-v2-tokenizer-detail"
 
 _HF_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 _SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
+
+
+def require_deterministic_python_hash_seed() -> str:
+    """Prove prompt reconstruction uses the tokenizer artifact's hash seed."""
+
+    return require_python_hash_seed(DETERMINISTIC_PYTHON_HASH_SEED)
 
 
 @dataclass(frozen=True)
@@ -371,6 +380,7 @@ def load_verified_v2_discovery(
 ) -> VerifiedDiscoveryCorpus:
     """Verify all V2 splits, then expose canonical discovery text only."""
 
+    require_deterministic_python_hash_seed()
     from experiments import generate_deep_corpus as deep
 
     root = Path(corpus_dir)
@@ -876,6 +886,7 @@ def _tokenizer_identity(
             "normalizer": None,
             "target_bpe_vocab_size": config.vocab_size,
             "min_frequency": config.min_frequency,
+            "pythonhashseed": DETERMINISTIC_PYTHON_HASH_SEED,
         },
         "max_length": config.max_length,
         "base_vocab_size": tokenizer.vocab_size,
@@ -908,12 +919,30 @@ def _write_json(path: Path, value: Any) -> None:
     )
 
 
-def _compact_frozen_selection(audit: Mapping[str, Any]) -> dict[str, Any]:
-    """Keep all exclusions and content hashes without duplicating every row.
+def _statistics_summaries(value: Any) -> Any:
+    """Keep aggregate summaries while detaching the full length histograms."""
+
+    if isinstance(value, Mapping):
+        return {
+            key: _statistics_summaries(item)
+            for key, item in value.items()
+            if key != "histogram"
+        }
+    if isinstance(value, list):
+        return [_statistics_summaries(item) for item in value]
+    return value
+
+
+def _compact_frozen_selection(
+    audit: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Keep identity and summaries in git; detach record/histogram detail.
 
     The retained rows are deterministically reconstructed and re-audited by each
-    consumer. Storing hundreds of thousands of per-row summaries in git would
-    add no identity beyond the ordered task/token digests already frozen here.
+    consumer. Per-record exclusions and full token-length histograms are useful
+    audit telemetry, but add no identity beyond the task/token digests frozen in
+    the compact manifest, so they are published as a content-addressed detail
+    artifact rather than committed to git.
     """
 
     selection = dict(audit)
@@ -927,7 +956,24 @@ def _compact_frozen_selection(audit: Mapping[str, Any]) -> dict[str, Any]:
         "ordering": "source corpus order after fixed maximum-length filter",
         "identity": "retained_task_ids_digest and retained token_id_digests",
     }
-    return selection
+    excluded = selection.pop("excluded", None)
+    if not isinstance(excluded, list) or len(excluded) != selection.get(
+        "excluded_records"
+    ):
+        raise ValueError("Tokenization audit has an invalid excluded-row list")
+    statistics = selection.pop("statistics", None)
+    if not isinstance(statistics, Mapping):
+        raise ValueError("Tokenization audit has no length statistics")
+    selection["statistics"] = _statistics_summaries(statistics)
+    detail = {
+        "schema_version": SCHEMA_VERSION,
+        "artifact_type": DETAIL_ARTIFACT_TYPE,
+        "selection": {
+            "excluded": excluded,
+            "statistics": statistics,
+        },
+    }
+    return selection, detail
 
 
 def freeze_shared_tokenizer(
@@ -940,6 +986,7 @@ def freeze_shared_tokenizer(
 ) -> dict[str, Any]:
     """Train, atomically save, hash, reload, and validate one frozen artifact."""
 
+    require_deterministic_python_hash_seed()
     if config is None:
         config = SharedTokenizerConfig()
     _validate_config(config)
@@ -965,13 +1012,21 @@ def freeze_shared_tokenizer(
                 "Unexpected tokenizer artifact files: "
                 f"expected={sorted(TOKENIZER_FILENAMES)}, got={sorted(saved_names)}"
             )
-        selection = _compact_frozen_selection(
+        selection, detail = _compact_frozen_selection(
             build_tokenization_audit(
                 tokenizer,
                 rows,
                 max_length=config.max_length,
             )
         )
+        detail_path = temporary / DETAIL_FILENAME
+        _write_json(detail_path, detail)
+        selection["detail_file"] = {
+            "path": detail_path.name,
+            "bytes": detail_path.stat().st_size,
+            "sha256": _sha256_file(detail_path),
+            "contents": "excluded-row telemetry and full token-length histograms",
+        }
         manifest: dict[str, Any] = {
             "schema_version": SCHEMA_VERSION,
             "artifact_type": ARTIFACT_TYPE,
@@ -980,6 +1035,7 @@ def freeze_shared_tokenizer(
             "training_text": {
                 "split": DISCOVERY_SPLIT,
                 "discovery_only": True,
+                "pythonhashseed": DETERMINISTIC_PYTHON_HASH_SEED,
                 "records": len(rows),
                 "texts": 2 * len(rows),
                 "ordered_prompt_completion_digest": _line_digest(
@@ -1057,6 +1113,9 @@ def validate_frozen_tokenizer(
     stored_digest = manifest.get("artifact_digest")
     digest_payload = dict(manifest)
     digest_payload.pop("artifact_digest", None)
+    # Hosting changes where the detached detail can be fetched, not the
+    # tokenizer's content identity.
+    digest_payload.pop("hub", None)
     expected_digest = _canonical_digest(digest_payload)
     if stored_digest != expected_digest:
         raise ValueError(
@@ -1120,27 +1179,83 @@ def validate_frozen_tokenizer(
         raise ValueError("Frozen tokenizer basis-token identity drifted")
     if manifest["tokenizer"].get("total_vocab_size") != len(tokenizer):
         raise ValueError("Frozen tokenizer vocabulary size drifted")
+    if (
+        manifest["tokenizer"].get("implementation", {}).get("pythonhashseed")
+        != DETERMINISTIC_PYTHON_HASH_SEED
+        or manifest.get("training_text", {}).get("pythonhashseed")
+        != DETERMINISTIC_PYTHON_HASH_SEED
+    ):
+        raise ValueError("Frozen tokenizer has no deterministic Python hash seed")
     selection = manifest.get("selection")
     if not isinstance(selection, Mapping):
         raise ValueError("Frozen tokenizer has no selection audit")
     selected_records = selection.get("selected_records")
     retained_records = selection.get("retained_records")
     excluded_records = selection.get("excluded_records")
-    excluded = selection.get("excluded")
+    detail = selection.get("detail_file")
     if (
         type(selected_records) is not int
         or type(retained_records) is not int
         or type(excluded_records) is not int
-        or not isinstance(excluded, list)
         or selected_records != retained_records + excluded_records
-        or excluded_records != len(excluded)
         or selection.get("max_length") != FIXED_MAX_LENGTH
         or "retained" in selection
+        or "excluded" in selection
+        or not isinstance(detail, Mapping)
+        or detail.get("path") != DETAIL_FILENAME
+        or not _SHA256_RE.fullmatch(str(detail.get("sha256", "")))
+        or type(detail.get("bytes")) is not int
+        or detail["bytes"] <= 0
         or selection.get("retained_rows", {}).get("storage")
         != "omitted-from-artifact; deterministically reconstructed"
     ):
         raise ValueError("Frozen tokenizer selection audit is inconsistent")
+    statistics = selection.get("statistics")
+    if not isinstance(statistics, Mapping) or any(
+        isinstance(item, Mapping) and "histogram" in item
+        for item in _walk_values(statistics)
+    ):
+        raise ValueError("Frozen tokenizer contains detailed length histograms")
+    detail_path = root / DETAIL_FILENAME
+    if detail_path.exists() and (
+        detail_path.stat().st_size != detail["bytes"]
+        or _sha256_file(detail_path) != detail["sha256"]
+    ):
+        raise ValueError("Frozen tokenizer detail-file identity drifted")
     return manifest
+
+
+def _walk_values(value: Any) -> list[Any]:
+    """Return nested values for small manifest-policy validation."""
+
+    values = [value]
+    if isinstance(value, Mapping):
+        for item in value.values():
+            values.extend(_walk_values(item))
+    elif isinstance(value, list):
+        for item in value:
+            values.extend(_walk_values(item))
+    return values
+
+
+def record_hub_location(
+    artifact_dir: str | Path, *, repo_id: str, revision: str
+) -> Path:
+    """Record where the detached tokenizer detail is hosted, outside identity."""
+
+    if not repo_id or not _HF_COMMIT_RE.fullmatch(revision):
+        raise ValueError("Tokenizer Hub location requires a repo and full revision")
+    root = Path(artifact_dir)
+    path = root / MANIFEST_FILENAME
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["hub"] = {
+        "repo_id": repo_id,
+        "repo_type": "dataset",
+        "revision": revision,
+    }
+    _write_json(path, manifest)
+    validate_frozen_tokenizer(root)
+    return path
 
 
 def dry_run_summary(source: VerifiedDiscoveryCorpus) -> dict[str, Any]:

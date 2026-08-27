@@ -14,11 +14,12 @@ import copy
 import hashlib
 import json
 import math
+import os
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Mapping, MutableMapping, Sequence
 
 
 SCHEMA_VERSION = 1
@@ -35,6 +36,25 @@ FEASIBILITY_SOFT_LIMIT_HOURS = 14.0
 FEASIBILITY_HARD_LIMIT_HOURS = 16.0
 PARAMETER_TOLERANCE_FRACTION = 0.01
 MODEL_CREATION_MARKER = "_wandering_light_config_only_provenance"
+DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG = ":16:8"
+
+
+def configure_deterministic_cuda_environment(
+    environ: MutableMapping[str, str] | None = None,
+) -> str:
+    """Set CuBLAS's required deterministic workspace before Torch uses CUDA."""
+
+    target = os.environ if environ is None else environ
+    configured = target.get("CUBLAS_WORKSPACE_CONFIG")
+    if configured is None:
+        configured = DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG
+        target["CUBLAS_WORKSPACE_CONFIG"] = configured
+    if configured != DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG:
+        raise RuntimeError(
+            "CUBLAS_WORKSPACE_CONFIG must be :16:8 for the frozen deterministic "
+            "CUDA protocol"
+        )
+    return configured
 
 
 @dataclass(frozen=True)
@@ -149,6 +169,47 @@ def sha256_bytes(value: bytes) -> str:
 
 def digest_json(value: Any) -> str:
     return sha256_bytes(canonical_json(value).encode("utf-8"))
+
+
+def build_scratch_study_identity(
+    *,
+    architecture: Mapping[str, Any],
+    corpus_manifest_digest: str,
+    tokenizer_artifact_digest: str,
+    retained_training_task_ids_digest: str,
+    per_device_batch_size: int,
+    gradient_accumulation_steps: int,
+    max_length: int,
+    optimizer: str,
+    precision: str,
+    gradient_checkpointing: bool,
+    gradient_checkpointing_kwargs: Mapping[str, Any],
+    cublas_workspace_config: str,
+    pythonhashseed: str,
+    initialization_seed: int,
+    data_order_seed: int,
+) -> dict[str, Any]:
+    """Build the exact feasibility identity shared by probe, train, and eval."""
+
+    return {
+        "architecture": copy.deepcopy(dict(architecture)),
+        "corpus_manifest_digest": corpus_manifest_digest,
+        "tokenizer_artifact_digest": tokenizer_artifact_digest,
+        "retained_training_task_ids_digest": retained_training_task_ids_digest,
+        "per_device_batch_size": per_device_batch_size,
+        "gradient_accumulation_steps": gradient_accumulation_steps,
+        "max_length": max_length,
+        "optimizer": optimizer,
+        "precision": precision,
+        "gradient_checkpointing": gradient_checkpointing,
+        "gradient_checkpointing_kwargs": copy.deepcopy(
+            dict(gradient_checkpointing_kwargs)
+        ),
+        "cublas_workspace_config": cublas_workspace_config,
+        "pythonhashseed": pythonhashseed,
+        "initialization_seed": initialization_seed,
+        "data_order_seed": data_order_seed,
+    }
 
 
 def _config_dict(config: Any) -> dict[str, Any]:

@@ -15,6 +15,7 @@ import json
 import math
 import os
 import shutil
+import sys
 import tempfile
 import time
 from collections.abc import Mapping, Sequence
@@ -38,6 +39,7 @@ from wandering_light.training.deep_corpus_scratch import (
     ARM_SPECS,
     DATA_ORDER_SEED,
     DEFAULT_WANDB_PROJECT,
+    DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG,
     FEASIBILITY_HARD_LIMIT_HOURS,
     INITIALIZATION_SEED,
     LR_GRID,
@@ -47,7 +49,9 @@ from wandering_light.training.deep_corpus_scratch import (
     TOKENIZER_MAX_LENGTH,
     ResolvedScratchConfig,
     assert_config_created_model,
+    build_scratch_study_identity,
     classify_validation_trend,
+    configure_deterministic_cuda_environment,
     digest_json,
     initialize_model_from_config,
     resolve_scratch_config,
@@ -56,8 +60,10 @@ from wandering_light.training.deep_corpus_scratch import (
 )
 from wandering_light.training.deep_corpus_tokenizer import (
     DEFAULT_REFERENCE_CORPUS_DIR,
+    DETERMINISTIC_PYTHON_HASH_SEED,
     build_tokenization_audit,
     canonical_corpus_rows,
+    require_deterministic_python_hash_seed,
     validate_frozen_tokenizer,
 )
 from wandering_light.training.deep_corpus_tokenizer import (
@@ -80,7 +86,11 @@ GRADIENT_ACCUMULATION_STEPS = 1
 WARMUP_RATIO = 0.03
 WEIGHT_DECAY = 0.01
 LOGGING_STEPS = 50
+# The 360M arm's exact longest batch exceeds one RTX 4090's physical VRAM
+# without checkpointing. Non-reentrant checkpointing avoids needless full-layer
+# recomputation while keeping the frozen batch and all model/data semantics.
 GRADIENT_CHECKPOINTING_ARMS = frozenset({"smollm2-360m-scratch"})
+GRADIENT_CHECKPOINTING_KWARGS = {"use_reentrant": False}
 
 
 @dataclass(frozen=True)
@@ -388,6 +398,7 @@ def _source_identity(
 def prepare_scratch_data(config: ScratchRunConfig) -> PreparedScratchData:
     """Verify all provenance, then expose discovery/validation model rows only."""
 
+    require_deterministic_python_hash_seed()
     _validate_run_config(config)
     corpus_manifest, records = deep.load_corpus(config.corpus_dir)
     reference_identities = tuple(
@@ -519,6 +530,7 @@ def build_sft_config(
 ):
     from trl import SFTConfig
 
+    checkpointing = config.arm_id in GRADIENT_CHECKPOINTING_ARMS
     return SFTConfig(
         output_dir=str(config.output_dir),
         overwrite_output_dir=False,
@@ -553,7 +565,10 @@ def build_sft_config(
         data_seed=config.data_order_seed,
         full_determinism=True,
         dataloader_num_workers=0,
-        gradient_checkpointing=config.arm_id in GRADIENT_CHECKPOINTING_ARMS,
+        gradient_checkpointing=checkpointing,
+        gradient_checkpointing_kwargs=(
+            dict(GRADIENT_CHECKPOINTING_KWARGS) if checkpointing else None
+        ),
         bf16=precision_bf16,
         fp16=False,
         report_to=["wandb"] if report_to_wandb else [],
@@ -592,6 +607,7 @@ def _loss_curve(log_history: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]
 
 
 def _training_protocol(config: ScratchRunConfig) -> dict[str, Any]:
+    checkpointing = config.arm_id in GRADIENT_CHECKPOINTING_ARMS
     return {
         "phase": config.phase,
         "primary_training_distribution": "all certified distances 1-8",
@@ -612,7 +628,12 @@ def _training_protocol(config: ScratchRunConfig) -> dict[str, Any]:
         "weight_decay": WEIGHT_DECAY,
         "precision": "bf16",
         "attention_implementation": "sdpa",
-        "gradient_checkpointing": config.arm_id in GRADIENT_CHECKPOINTING_ARMS,
+        "cublas_workspace_config": DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG,
+        "pythonhashseed": DETERMINISTIC_PYTHON_HASH_SEED,
+        "gradient_checkpointing": checkpointing,
+        "gradient_checkpointing_kwargs": (
+            dict(GRADIENT_CHECKPOINTING_KWARGS) if checkpointing else {}
+        ),
         "completion_only_loss": True,
         "eval_strategy": "epoch",
         "validation_selection": "minimum eval_loss",
@@ -621,6 +642,33 @@ def _training_protocol(config: ScratchRunConfig) -> dict[str, Any]:
         "data_order_seed": config.data_order_seed,
         "resumption_supported": False,
     }
+
+
+def _study_identity_for_run(
+    config: ScratchRunConfig,
+    data: PreparedScratchData,
+    resolved: ResolvedScratchConfig,
+) -> dict[str, Any]:
+    protocol = _training_protocol(config)
+    return build_scratch_study_identity(
+        architecture=resolved.identity_dict(),
+        corpus_manifest_digest=data.corpus_manifest["manifest_digest"],
+        tokenizer_artifact_digest=data.tokenizer_manifest["artifact_digest"],
+        retained_training_task_ids_digest=data.train_audit[
+            "retained_task_ids_digest"
+        ],
+        per_device_batch_size=protocol["per_device_train_batch_size"],
+        gradient_accumulation_steps=protocol["gradient_accumulation_steps"],
+        max_length=protocol["max_length"],
+        optimizer=protocol["optimizer"],
+        precision=protocol["precision"],
+        gradient_checkpointing=protocol["gradient_checkpointing"],
+        gradient_checkpointing_kwargs=protocol["gradient_checkpointing_kwargs"],
+        cublas_workspace_config=protocol["cublas_workspace_config"],
+        pythonhashseed=protocol["pythonhashseed"],
+        initialization_seed=config.initialization_seed,
+        data_order_seed=config.data_order_seed,
+    )
 
 
 def _workload_identity(
@@ -713,22 +761,38 @@ def _build_manifest(
 
 
 def _cuda_environment(
-    torch: Any, *, process_gpu_memory: Mapping[str, Any]
+    torch: Any, *, gpu_memory_telemetry: Mapping[str, Any]
 ) -> dict[str, Any]:
     index = torch.cuda.current_device()
     properties = torch.cuda.get_device_properties(index)
+    measurement_scope = gpu_memory_telemetry.get("measurement_scope")
+    if measurement_scope == "process":
+        memory_measurement_note = (
+            "peak is nvidia-smi process-attributed physical usage; torch "
+            "allocated/reserved are allocator telemetry; physical_vram_bytes "
+            "is device capacity"
+        )
+    elif measurement_scope == "physical_gpu_total":
+        memory_measurement_note = (
+            "nvidia-smi exposed no compute-process rows; peak is conservative "
+            "total usage of the identified physical GPU, including baseline; "
+            "torch allocated/reserved are allocator telemetry"
+        )
+    else:
+        raise ValueError("GPU-memory telemetry has an unknown measurement scope")
     return {
         "device": f"cuda:{index}",
         "name": str(properties.name),
         "physical_vram_bytes": int(properties.total_memory),
         "peak_torch_allocated_bytes": int(torch.cuda.max_memory_allocated(index)),
         "peak_torch_reserved_bytes": int(torch.cuda.max_memory_reserved(index)),
-        "peak_process_gpu_memory_bytes": process_gpu_memory["peak_process_used_bytes"],
-        "process_gpu_memory": dict(process_gpu_memory),
-        "memory_measurement_note": (
-            "process peak is nvidia-smi physical usage; torch allocated/reserved "
-            "are allocator telemetry; physical_vram_bytes is device capacity"
-        ),
+        "peak_observed_gpu_memory_bytes": gpu_memory_telemetry[
+            "peak_observed_used_bytes"
+        ],
+        "gpu_memory_telemetry": dict(gpu_memory_telemetry),
+        "memory_measurement_note": memory_measurement_note,
+        "cublas_workspace_config": os.environ.get("CUBLAS_WORKSPACE_CONFIG"),
+        "pythonhashseed": os.environ.get("PYTHONHASHSEED"),
         "compute_capability": [int(properties.major), int(properties.minor)],
         "torch_version": str(torch.__version__),
         "cuda_runtime_version": torch.version.cuda,
@@ -839,6 +903,9 @@ def _validate_feasibility_for_run(
         raise ValueError("Feasibility artifact has no result for this arm")
     if result.get("architecture") != resolved.identity_dict():
         raise ValueError("Feasibility artifact used another scratch architecture")
+    expected_study_digest = digest_json(_study_identity_for_run(config, data, resolved))
+    if result.get("study_identity_digest") != expected_study_digest:
+        raise ValueError("Feasibility artifact changed the frozen training protocol")
     actual_gpu = _current_gpu_probe_identity(torch)
     if result.get("gpu", {}).get("identity_digest") != actual_gpu["identity_digest"]:
         raise ValueError("Full run is not using the physical GPU measured by the probe")
@@ -976,14 +1043,15 @@ def _run_cuda_training(
     started_at_utc: str,
     run_started_monotonic: float,
 ) -> dict[str, Any]:
+    configure_deterministic_cuda_environment()
     import torch
-    import wandb
     from datasets import Dataset
     from transformers import PreTrainedTokenizerFast
     from trl import SFTTrainer
 
+    import wandb
     from experiments.probe_deep_corpus_v2_scratch import (
-        NvidiaSmiProcessMemorySampler,
+        NvidiaSmiGpuMemorySampler,
     )
 
     if not torch.cuda.is_available():
@@ -1019,7 +1087,7 @@ def _run_cuda_training(
         deadline.check("before_model_setup")
 
         actual_gpu = feasibility_gate["run_gpu"]
-        sampler = NvidiaSmiProcessMemorySampler(gpu_uuid=actual_gpu["uuid"])
+        sampler = NvidiaSmiGpuMemorySampler(gpu_uuid=actual_gpu["uuid"])
         sampler.start()
         torch.cuda.reset_peak_memory_stats()
         tokenizer = PreTrainedTokenizerFast.from_pretrained(
@@ -1109,11 +1177,11 @@ def _run_cuda_training(
             source_code,
             ignored_paths=active_ignored_paths,
         )
-        process_gpu_memory = sampler.stop()
+        gpu_memory_telemetry = sampler.stop()
         sampler = None
         execution_environment = _cuda_environment(
             torch,
-            process_gpu_memory=process_gpu_memory,
+            gpu_memory_telemetry=gpu_memory_telemetry,
         )
         execution_environment["wall_clock_hard_stop"] = {
             **allocation,
@@ -1195,8 +1263,8 @@ def _run_cuda_training(
                 "peak_torch_reserved_bytes": execution_environment[
                     "peak_torch_reserved_bytes"
                 ],
-                "peak_process_gpu_memory_bytes": execution_environment[
-                    "peak_process_gpu_memory_bytes"
+                "peak_observed_gpu_memory_bytes": execution_environment[
+                    "peak_observed_gpu_memory_bytes"
                 ],
             }
         )
@@ -1207,9 +1275,14 @@ def _run_cuda_training(
         assert_weights_only_artifact(destination, require_complete=True)
         return manifest
     finally:
+        active_error = sys.exc_info()[1]
         try:
             if sampler is not None:
-                sampler.stop()
+                try:
+                    sampler.stop()
+                except RuntimeError:
+                    if active_error is None:
+                        raise
         finally:
             try:
                 if run is not None:

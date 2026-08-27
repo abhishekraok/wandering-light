@@ -1,0 +1,864 @@
+{
+  "arm_results": [
+    {
+      "architecture": {
+        "arm_id": "scratch-10m",
+        "budget_dimension": "ffn_dim",
+        "budget_dimension_value": 2240,
+        "config_source": {
+          "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+          "repo_id": "facebook/opt-125m",
+          "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+        },
+        "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+        "exact_trainable_parameters": 10080896,
+        "family": "opt",
+        "label": "10M scratch causal LM",
+        "parameter_error": 80896,
+        "parameter_error_fraction": 0.0080896,
+        "target_trainable_parameters": 10000000,
+        "vocab_size": 4196
+      },
+      "arm_id": "scratch-10m",
+      "gpu": {
+        "compute_capability": [
+          8,
+          9
+        ],
+        "cuda_runtime_version": "12.8",
+        "cudnn_version": 91002,
+        "identity_digest": "sha256:27b20075e16e7c2c943edee31bab87a2429fb1e50db332edb4769e56fd9d508f",
+        "logical_device": "cuda:0",
+        "name": "NVIDIA GeForce RTX 4090",
+        "physical_vram_bytes": 25756696576,
+        "torch_version": "2.8.0+cu128",
+        "uuid": "83281fc5-cbe5-acde-6699-b2058e4ebbb3",
+        "visible_cuda_devices": 1
+      },
+      "gpu_memory_telemetry": {
+        "baseline_observed_used_bytes": 3026190336,
+        "gpu_uuid": "83281fc5-cbe5-acde-6699-b2058e4ebbb3",
+        "limitation": "nvidia-smi exposed no compute-process row; the observed peak is the conservative total usage of the identified physical GPU",
+        "measurement_scope": "physical_gpu_total",
+        "namespace_pid": 638025,
+        "peak_observed_used_bytes": 6146752512,
+        "peak_physical_gpu_used_bytes": 6146752512,
+        "poll_interval_seconds": 0.1,
+        "samples": 1871,
+        "source": "nvidia-smi physical-GPU memory.used polling"
+      },
+      "initialization": {
+        "arm_id": "scratch-10m",
+        "budget_dimension": "ffn_dim",
+        "budget_dimension_value": 2240,
+        "config_source": {
+          "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+          "repo_id": "facebook/opt-125m",
+          "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+        },
+        "creation_method": "AutoModelForCausalLM.from_config",
+        "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+        "exact_trainable_parameters": 10080896,
+        "family": "opt",
+        "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+        "initialization_seed": 54001,
+        "label": "10M scratch causal LM",
+        "parameter_error": 80896,
+        "parameter_error_fraction": 0.0080896,
+        "pretrained_weights_loaded": false,
+        "target_trainable_parameters": 10000000,
+        "vocab_size": 4196
+      },
+      "longest_batch": {
+        "batch_size": 8,
+        "combined_token_lengths": [
+          1956,
+          1908,
+          1880,
+          1876,
+          1868,
+          1858,
+          1844,
+          1784
+        ],
+        "forward_backward_seconds": 0.5829040399985388,
+        "loss": 8.339699745178223,
+        "padded_sequence_length": 1956,
+        "passed": true,
+        "peak_torch_allocated_bytes": 2393878016,
+        "peak_torch_reserved_bytes": 2640314368,
+        "precision": "bf16",
+        "selection": "largest combined_tokens; stable source order breaks ties",
+        "task_ids": [
+          "c887174d8826514de392ec70faf9b78bd309137d4fa1da02c7f3745f2303eca5",
+          "2deb10e15942418937356faba1af0de65b166883027a86ac692945b6551b60ce",
+          "ffa0169f1146267bab6fefac9999bda8c458019275ee7ecff0a3356d12f274d4",
+          "ee744c44fe88b210e6df940f10775dbb007fbfb81eacd403bbb291ebfcfbad48",
+          "8a3690cc750bc6794b0e74d79cf4b134a7c9c8bea30091aaacb1b54e4e4a23b6",
+          "d6423debef77959d65a1522a2d61a45d45baea541a6b5d3494363687e94bddf2",
+          "2fdd9c17fa1177c19b79e58583b7e8f20b1e7009667366afc88fb6e0a2bc73d9",
+          "0e8af9f71a78caf2c6c0fc8c3e9a40be07b0552c1a11af627c5dc8b35b3a8e28"
+        ],
+        "task_ids_digest": "sha256:8b0f35571b85ec8197139d2f98527ef43967647ff81d3b43f1c475ba901028e7"
+      },
+      "peak_torch_allocated_bytes": 2393878016,
+      "peak_torch_reserved_bytes": 2640314368,
+      "status": "passed",
+      "study_identity_digest": "sha256:266d306f43f51a7eaa53b3f5d876aed74d6f589b46ae53aa684f40b58b3ba6d1",
+      "study_protocol": {
+        "architecture": {
+          "arm_id": "scratch-10m",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 2240,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+          "exact_trainable_parameters": 10080896,
+          "family": "opt",
+          "label": "10M scratch causal LM",
+          "parameter_error": 80896,
+          "parameter_error_fraction": 0.0080896,
+          "target_trainable_parameters": 10000000,
+          "vocab_size": 4196
+        },
+        "corpus_manifest_digest": "sha256:a3ba242346f5c43b081e498984380d471a67ee4b91c7c094612100622791916e",
+        "cublas_workspace_config": ":16:8",
+        "data_order_seed": 54002,
+        "gradient_accumulation_steps": 1,
+        "gradient_checkpointing": false,
+        "initialization_seed": 54001,
+        "max_length": 2048,
+        "optimizer": "adamw_torch",
+        "per_device_batch_size": 8,
+        "precision": "bf16",
+        "pythonhashseed": "0",
+        "retained_training_task_ids_digest": "sha256:a007b251911724b7ea0bca3078c3935f0f7f86b316755cf9d3dcd4fd3439ecf9",
+        "tokenizer_artifact_digest": "sha256:128279939a1e8e8acf533a474998dcf2a508726767ecbe2043cfed149f0be1ef"
+      },
+      "throughput": {
+        "elapsed_seconds": 26.548597214976326,
+        "examples_per_second_at_batch_8": 150.6670942954214,
+        "num_input_tokens_seen": 629792,
+        "optimizer_steps": 500,
+        "optimizer_steps_per_second": 18.833386786927676,
+        "passed": true,
+        "peak_torch_allocated_bytes": 1008420352,
+        "peak_torch_reserved_bytes": 2281701376,
+        "protocol_overhead": {
+          "checkpoint_bytes": 20486595,
+          "checkpoint_elapsed_seconds": 0.03945645899511874,
+          "factor_scope": "setup, online W&B, best-checkpoint reload, and final artifact serialization",
+          "full_validation_evaluations_measured": 1,
+          "passed": true,
+          "setup_wandb_and_best_reload_factor": 1.15,
+          "validation_elapsed_seconds": 73.84217145096045,
+          "validation_examples": 33910,
+          "validation_metrics": {
+            "eval_loss": 1.8766975402832031,
+            "eval_runtime": 70.9326,
+            "eval_samples_per_second": 478.059,
+            "eval_steps_per_second": 59.761
+          },
+          "weights_only_checkpoint_writes_measured": 1
+        },
+        "trainer_metrics": {
+          "total_flos": 32051072163840.0,
+          "train_loss": 2.41932275390625,
+          "train_runtime": 26.0625,
+          "train_samples_per_second": 153.477,
+          "train_steps_per_second": 19.185
+        }
+      },
+      "throughput_initialization": {
+        "arm_id": "scratch-10m",
+        "budget_dimension": "ffn_dim",
+        "budget_dimension_value": 2240,
+        "config_source": {
+          "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+          "repo_id": "facebook/opt-125m",
+          "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+        },
+        "creation_method": "AutoModelForCausalLM.from_config",
+        "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+        "exact_trainable_parameters": 10080896,
+        "family": "opt",
+        "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+        "initialization_seed": 54001,
+        "label": "10M scratch causal LM",
+        "parameter_error": 80896,
+        "parameter_error_fraction": 0.0080896,
+        "pretrained_weights_loaded": false,
+        "target_trainable_parameters": 10000000,
+        "vocab_size": 4196
+      }
+    },
+    {
+      "architecture": {
+        "arm_id": "opt-125m-scratch",
+        "budget_dimension": "ffn_dim",
+        "budget_dimension_value": 4992,
+        "config_source": {
+          "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+          "repo_id": "facebook/opt-125m",
+          "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+        },
+        "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+        "exact_trainable_parameters": 125265408,
+        "family": "opt",
+        "label": "OPT-style 125M scratch causal LM",
+        "parameter_error": 265408,
+        "parameter_error_fraction": 0.002123264,
+        "target_trainable_parameters": 125000000,
+        "vocab_size": 4196
+      },
+      "arm_id": "opt-125m-scratch",
+      "gpu": {
+        "compute_capability": [
+          8,
+          9
+        ],
+        "cuda_runtime_version": "12.8",
+        "cudnn_version": 91002,
+        "identity_digest": "sha256:27b20075e16e7c2c943edee31bab87a2429fb1e50db332edb4769e56fd9d508f",
+        "logical_device": "cuda:0",
+        "name": "NVIDIA GeForce RTX 4090",
+        "physical_vram_bytes": 25756696576,
+        "torch_version": "2.8.0+cu128",
+        "uuid": "83281fc5-cbe5-acde-6699-b2058e4ebbb3",
+        "visible_cuda_devices": 1
+      },
+      "gpu_memory_telemetry": {
+        "baseline_observed_used_bytes": 3512729600,
+        "gpu_uuid": "83281fc5-cbe5-acde-6699-b2058e4ebbb3",
+        "limitation": "nvidia-smi exposed no compute-process row; the observed peak is the conservative total usage of the identified physical GPU",
+        "measurement_scope": "physical_gpu_total",
+        "namespace_pid": 638025,
+        "peak_observed_used_bytes": 11622416384,
+        "peak_physical_gpu_used_bytes": 11622416384,
+        "poll_interval_seconds": 0.1,
+        "samples": 2273,
+        "source": "nvidia-smi physical-GPU memory.used polling"
+      },
+      "initialization": {
+        "arm_id": "opt-125m-scratch",
+        "budget_dimension": "ffn_dim",
+        "budget_dimension_value": 4992,
+        "config_source": {
+          "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+          "repo_id": "facebook/opt-125m",
+          "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+        },
+        "creation_method": "AutoModelForCausalLM.from_config",
+        "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+        "exact_trainable_parameters": 125265408,
+        "family": "opt",
+        "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+        "initialization_seed": 54001,
+        "label": "OPT-style 125M scratch causal LM",
+        "parameter_error": 265408,
+        "parameter_error_fraction": 0.002123264,
+        "pretrained_weights_loaded": false,
+        "target_trainable_parameters": 125000000,
+        "vocab_size": 4196
+      },
+      "longest_batch": {
+        "batch_size": 8,
+        "combined_token_lengths": [
+          1956,
+          1908,
+          1880,
+          1876,
+          1868,
+          1858,
+          1844,
+          1784
+        ],
+        "forward_backward_seconds": 0.5577475070022047,
+        "loss": 8.713937759399414,
+        "padded_sequence_length": 1956,
+        "passed": true,
+        "peak_torch_allocated_bytes": 7627957760,
+        "peak_torch_reserved_bytes": 8113881088,
+        "precision": "bf16",
+        "selection": "largest combined_tokens; stable source order breaks ties",
+        "task_ids": [
+          "c887174d8826514de392ec70faf9b78bd309137d4fa1da02c7f3745f2303eca5",
+          "2deb10e15942418937356faba1af0de65b166883027a86ac692945b6551b60ce",
+          "ffa0169f1146267bab6fefac9999bda8c458019275ee7ecff0a3356d12f274d4",
+          "ee744c44fe88b210e6df940f10775dbb007fbfb81eacd403bbb291ebfcfbad48",
+          "8a3690cc750bc6794b0e74d79cf4b134a7c9c8bea30091aaacb1b54e4e4a23b6",
+          "d6423debef77959d65a1522a2d61a45d45baea541a6b5d3494363687e94bddf2",
+          "2fdd9c17fa1177c19b79e58583b7e8f20b1e7009667366afc88fb6e0a2bc73d9",
+          "0e8af9f71a78caf2c6c0fc8c3e9a40be07b0552c1a11af627c5dc8b35b3a8e28"
+        ],
+        "task_ids_digest": "sha256:8b0f35571b85ec8197139d2f98527ef43967647ff81d3b43f1c475ba901028e7"
+      },
+      "peak_torch_allocated_bytes": 7627957760,
+      "peak_torch_reserved_bytes": 8113881088,
+      "status": "passed",
+      "study_identity_digest": "sha256:96e168f487cb616f7d5800aac0b6643d6969f630d8ed05ae09dacda47b245b5a",
+      "study_protocol": {
+        "architecture": {
+          "arm_id": "opt-125m-scratch",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 4992,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+          "exact_trainable_parameters": 125265408,
+          "family": "opt",
+          "label": "OPT-style 125M scratch causal LM",
+          "parameter_error": 265408,
+          "parameter_error_fraction": 0.002123264,
+          "target_trainable_parameters": 125000000,
+          "vocab_size": 4196
+        },
+        "corpus_manifest_digest": "sha256:a3ba242346f5c43b081e498984380d471a67ee4b91c7c094612100622791916e",
+        "cublas_workspace_config": ":16:8",
+        "data_order_seed": 54002,
+        "gradient_accumulation_steps": 1,
+        "gradient_checkpointing": false,
+        "initialization_seed": 54001,
+        "max_length": 2048,
+        "optimizer": "adamw_torch",
+        "per_device_batch_size": 8,
+        "precision": "bf16",
+        "pythonhashseed": "0",
+        "retained_training_task_ids_digest": "sha256:a007b251911724b7ea0bca3078c3935f0f7f86b316755cf9d3dcd4fd3439ecf9",
+        "tokenizer_artifact_digest": "sha256:128279939a1e8e8acf533a474998dcf2a508726767ecbe2043cfed149f0be1ef"
+      },
+      "throughput": {
+        "elapsed_seconds": 46.26483681099489,
+        "examples_per_second_at_batch_8": 86.45875087252864,
+        "num_input_tokens_seen": 629792,
+        "optimizer_steps": 500,
+        "optimizer_steps_per_second": 10.80734385906608,
+        "passed": true,
+        "peak_torch_allocated_bytes": 4031142400,
+        "peak_torch_reserved_bytes": 6016729088,
+        "protocol_overhead": {
+          "checkpoint_bytes": 250866829,
+          "checkpoint_elapsed_seconds": 0.22585377201903611,
+          "factor_scope": "setup, online W&B, best-checkpoint reload, and final artifact serialization",
+          "full_validation_evaluations_measured": 1,
+          "passed": true,
+          "setup_wandb_and_best_reload_factor": 1.15,
+          "validation_elapsed_seconds": 117.86627860693261,
+          "validation_examples": 33910,
+          "validation_metrics": {
+            "eval_loss": 1.7959787845611572,
+            "eval_runtime": 114.9007,
+            "eval_samples_per_second": 295.124,
+            "eval_steps_per_second": 36.893
+          },
+          "weights_only_checkpoint_writes_measured": 1
+        },
+        "trainer_metrics": {
+          "total_flos": 455220509736960.0,
+          "train_loss": 2.1395318908691405,
+          "train_runtime": 43.8093,
+          "train_samples_per_second": 91.305,
+          "train_steps_per_second": 11.413
+        }
+      },
+      "throughput_initialization": {
+        "arm_id": "opt-125m-scratch",
+        "budget_dimension": "ffn_dim",
+        "budget_dimension_value": 4992,
+        "config_source": {
+          "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+          "repo_id": "facebook/opt-125m",
+          "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+        },
+        "creation_method": "AutoModelForCausalLM.from_config",
+        "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+        "exact_trainable_parameters": 125265408,
+        "family": "opt",
+        "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+        "initialization_seed": 54001,
+        "label": "OPT-style 125M scratch causal LM",
+        "parameter_error": 265408,
+        "parameter_error_fraction": 0.002123264,
+        "pretrained_weights_loaded": false,
+        "target_trainable_parameters": 125000000,
+        "vocab_size": 4196
+      }
+    },
+    {
+      "architecture": {
+        "arm_id": "smollm2-360m-scratch",
+        "budget_dimension": "intermediate_size",
+        "budget_dimension_value": 3008,
+        "config_source": {
+          "digest": "sha256:d1a55290377b2468628750c3a414e2a077f452f24a5e00e59cea4e6d3c208966",
+          "repo_id": "HuggingFaceTB/SmolLM2-360M",
+          "revision": "f8027fd0eaeea54caa13c31d31b9fdc459c38b49"
+        },
+        "effective_config_digest": "sha256:a31991d532098b0d2f8eacda51a1282ec538755be3e2349614d0eb5d64e845f4",
+        "exact_trainable_parameters": 359951040,
+        "family": "llama",
+        "label": "SmolLM2-style 360M scratch causal LM",
+        "parameter_error": 48960,
+        "parameter_error_fraction": 0.000136,
+        "target_trainable_parameters": 360000000,
+        "vocab_size": 4196
+      },
+      "arm_id": "smollm2-360m-scratch",
+      "gpu": {
+        "compute_capability": [
+          8,
+          9
+        ],
+        "cuda_runtime_version": "12.8",
+        "cudnn_version": 91002,
+        "identity_digest": "sha256:27b20075e16e7c2c943edee31bab87a2429fb1e50db332edb4769e56fd9d508f",
+        "logical_device": "cuda:0",
+        "name": "NVIDIA GeForce RTX 4090",
+        "physical_vram_bytes": 25756696576,
+        "torch_version": "2.8.0+cu128",
+        "uuid": "83281fc5-cbe5-acde-6699-b2058e4ebbb3",
+        "visible_cuda_devices": 1
+      },
+      "gpu_memory_telemetry": {
+        "baseline_observed_used_bytes": 3511681024,
+        "gpu_uuid": "83281fc5-cbe5-acde-6699-b2058e4ebbb3",
+        "limitation": "nvidia-smi exposed no compute-process row; the observed peak is the conservative total usage of the identified physical GPU",
+        "measurement_scope": "physical_gpu_total",
+        "namespace_pid": 638025,
+        "peak_observed_used_bytes": 25291653120,
+        "peak_physical_gpu_used_bytes": 25291653120,
+        "poll_interval_seconds": 0.1,
+        "samples": 4321,
+        "source": "nvidia-smi physical-GPU memory.used polling"
+      },
+      "initialization": {
+        "arm_id": "smollm2-360m-scratch",
+        "budget_dimension": "intermediate_size",
+        "budget_dimension_value": 3008,
+        "config_source": {
+          "digest": "sha256:d1a55290377b2468628750c3a414e2a077f452f24a5e00e59cea4e6d3c208966",
+          "repo_id": "HuggingFaceTB/SmolLM2-360M",
+          "revision": "f8027fd0eaeea54caa13c31d31b9fdc459c38b49"
+        },
+        "creation_method": "AutoModelForCausalLM.from_config",
+        "effective_config_digest": "sha256:a31991d532098b0d2f8eacda51a1282ec538755be3e2349614d0eb5d64e845f4",
+        "exact_trainable_parameters": 359951040,
+        "family": "llama",
+        "initial_state_digest": "sha256:3c46a9a2e4027412767ae3d8c6a614992ba2392266bd5ba19bcfc17ea0f74327",
+        "initialization_seed": 54001,
+        "label": "SmolLM2-style 360M scratch causal LM",
+        "parameter_error": 48960,
+        "parameter_error_fraction": 0.000136,
+        "pretrained_weights_loaded": false,
+        "target_trainable_parameters": 360000000,
+        "vocab_size": 4196
+      },
+      "longest_batch": {
+        "batch_size": 8,
+        "combined_token_lengths": [
+          1956,
+          1908,
+          1880,
+          1876,
+          1868,
+          1858,
+          1844,
+          1784
+        ],
+        "forward_backward_seconds": 35.19461512705311,
+        "loss": 8.639583587646484,
+        "padded_sequence_length": 1956,
+        "passed": true,
+        "peak_torch_allocated_bytes": 27468560896,
+        "peak_torch_reserved_bytes": 28064088064,
+        "precision": "bf16",
+        "selection": "largest combined_tokens; stable source order breaks ties",
+        "task_ids": [
+          "c887174d8826514de392ec70faf9b78bd309137d4fa1da02c7f3745f2303eca5",
+          "2deb10e15942418937356faba1af0de65b166883027a86ac692945b6551b60ce",
+          "ffa0169f1146267bab6fefac9999bda8c458019275ee7ecff0a3356d12f274d4",
+          "ee744c44fe88b210e6df940f10775dbb007fbfb81eacd403bbb291ebfcfbad48",
+          "8a3690cc750bc6794b0e74d79cf4b134a7c9c8bea30091aaacb1b54e4e4a23b6",
+          "d6423debef77959d65a1522a2d61a45d45baea541a6b5d3494363687e94bddf2",
+          "2fdd9c17fa1177c19b79e58583b7e8f20b1e7009667366afc88fb6e0a2bc73d9",
+          "0e8af9f71a78caf2c6c0fc8c3e9a40be07b0552c1a11af627c5dc8b35b3a8e28"
+        ],
+        "task_ids_digest": "sha256:8b0f35571b85ec8197139d2f98527ef43967647ff81d3b43f1c475ba901028e7"
+      },
+      "peak_torch_allocated_bytes": 27468560896,
+      "peak_torch_reserved_bytes": 28064088064,
+      "status": "passed",
+      "study_identity_digest": "sha256:133672ded3a28410667d3df0528cc821c2d9640c37bc32a9d8f0ec37f54fa76b",
+      "study_protocol": {
+        "architecture": {
+          "arm_id": "smollm2-360m-scratch",
+          "budget_dimension": "intermediate_size",
+          "budget_dimension_value": 3008,
+          "config_source": {
+            "digest": "sha256:d1a55290377b2468628750c3a414e2a077f452f24a5e00e59cea4e6d3c208966",
+            "repo_id": "HuggingFaceTB/SmolLM2-360M",
+            "revision": "f8027fd0eaeea54caa13c31d31b9fdc459c38b49"
+          },
+          "effective_config_digest": "sha256:a31991d532098b0d2f8eacda51a1282ec538755be3e2349614d0eb5d64e845f4",
+          "exact_trainable_parameters": 359951040,
+          "family": "llama",
+          "label": "SmolLM2-style 360M scratch causal LM",
+          "parameter_error": 48960,
+          "parameter_error_fraction": 0.000136,
+          "target_trainable_parameters": 360000000,
+          "vocab_size": 4196
+        },
+        "corpus_manifest_digest": "sha256:a3ba242346f5c43b081e498984380d471a67ee4b91c7c094612100622791916e",
+        "cublas_workspace_config": ":16:8",
+        "data_order_seed": 54002,
+        "gradient_accumulation_steps": 1,
+        "gradient_checkpointing": false,
+        "initialization_seed": 54001,
+        "max_length": 2048,
+        "optimizer": "adamw_torch",
+        "per_device_batch_size": 8,
+        "precision": "bf16",
+        "pythonhashseed": "0",
+        "retained_training_task_ids_digest": "sha256:a007b251911724b7ea0bca3078c3935f0f7f86b316755cf9d3dcd4fd3439ecf9",
+        "tokenizer_artifact_digest": "sha256:128279939a1e8e8acf533a474998dcf2a508726767ecbe2043cfed149f0be1ef"
+      },
+      "throughput": {
+        "elapsed_seconds": 139.8012209989829,
+        "examples_per_second_at_batch_8": 28.612053395650253,
+        "num_input_tokens_seen": 629792,
+        "optimizer_steps": 500,
+        "optimizer_steps_per_second": 3.5765066744562817,
+        "passed": true,
+        "peak_torch_allocated_bytes": 14321018368,
+        "peak_torch_reserved_bytes": 19415433216,
+        "protocol_overhead": {
+          "checkpoint_bytes": 720248270,
+          "checkpoint_elapsed_seconds": 0.6306705380557105,
+          "factor_scope": "setup, online W&B, best-checkpoint reload, and final artifact serialization",
+          "full_validation_evaluations_measured": 1,
+          "passed": true,
+          "setup_wandb_and_best_reload_factor": 1.15,
+          "validation_elapsed_seconds": 327.4051161209354,
+          "validation_examples": 33910,
+          "validation_metrics": {
+            "eval_loss": 1.5156683921813965,
+            "eval_runtime": 317.4732,
+            "eval_samples_per_second": 106.812,
+            "eval_steps_per_second": 13.352
+          },
+          "weights_only_checkpoint_writes_measured": 1
+        },
+        "trainer_metrics": {
+          "total_flos": 1344944294645760.0,
+          "train_loss": 1.950385208129883,
+          "train_runtime": 134.3259,
+          "train_samples_per_second": 29.778,
+          "train_steps_per_second": 3.722
+        }
+      },
+      "throughput_initialization": {
+        "arm_id": "smollm2-360m-scratch",
+        "budget_dimension": "intermediate_size",
+        "budget_dimension_value": 3008,
+        "config_source": {
+          "digest": "sha256:d1a55290377b2468628750c3a414e2a077f452f24a5e00e59cea4e6d3c208966",
+          "repo_id": "HuggingFaceTB/SmolLM2-360M",
+          "revision": "f8027fd0eaeea54caa13c31d31b9fdc459c38b49"
+        },
+        "creation_method": "AutoModelForCausalLM.from_config",
+        "effective_config_digest": "sha256:a31991d532098b0d2f8eacda51a1282ec538755be3e2349614d0eb5d64e845f4",
+        "exact_trainable_parameters": 359951040,
+        "family": "llama",
+        "initial_state_digest": "sha256:3c46a9a2e4027412767ae3d8c6a614992ba2392266bd5ba19bcfc17ea0f74327",
+        "initialization_seed": 54001,
+        "label": "SmolLM2-style 360M scratch causal LM",
+        "parameter_error": 48960,
+        "parameter_error_fraction": 0.000136,
+        "pretrained_weights_loaded": false,
+        "target_trainable_parameters": 360000000,
+        "vocab_size": 4196
+      }
+    }
+  ],
+  "artifact_digest": "sha256:9d7441faba83291cbb067548e8b37900761fe85b48fd1ff0c1db2e9aac75fe7f",
+  "artifact_type": "wandering-light-deep-corpus-v2-scratch-feasibility",
+  "completed_at_utc": "2026-08-26T21:12:42.802064+00:00",
+  "launch_gate": {
+    "all_arms_authorized": false,
+    "authorized_arm_ids": [
+      "scratch-10m",
+      "opt-125m-scratch"
+    ],
+    "blocked_arm_ids": [
+      "smollm2-360m-scratch"
+    ],
+    "diagnostic_totals": {
+      "authorized_effective_projected_hours": 5.967991924807114,
+      "baseline_projected_all_arms_hours": null,
+      "decision_scope": "per-arm; totals never reject an arm"
+    },
+    "hard_limit_hours": 16.0,
+    "launch_allowed": false,
+    "per_arm": {
+      "opt-125m-scratch": {
+        "baseline": {
+          "arm_id": "opt-125m-scratch",
+          "measured_elapsed_seconds": 46.26483681099489,
+          "measured_full_validation_seconds": 117.86627860693261,
+          "measured_optimizer_steps": 500,
+          "measured_weights_only_checkpoint_seconds": 0.22585377201903611,
+          "optimizer_steps_per_second": 10.80734385906608,
+          "pilot_runs": 3,
+          "projected_final_checkpoint_writes": 4,
+          "projected_final_hours": 2.872752237151735,
+          "projected_final_steps": 92085,
+          "projected_final_validations": 4,
+          "projected_pilot_checkpoint_writes_per_run": 2,
+          "projected_pilot_hours": 0.9068296059608424,
+          "projected_pilot_plus_final_hours": 3.779581843112577,
+          "projected_pilot_run_hours": 0.30227653532028076,
+          "projected_pilot_steps": 23022,
+          "projected_pilot_steps_per_run": 7674,
+          "projected_pilot_validations_per_run": 2,
+          "projection_includes": [
+            "all three quarter-epoch pilot training runs",
+            "one epoch-end plus one explicit validation per pilot",
+            "one epoch-end plus one final artifact write per pilot",
+            "three final epoch validations plus one explicit final validation",
+            "three final epoch checkpoint writes plus one final artifact write",
+            "15% setup/W&B/best-checkpoint-reload/final-artifact margin on every projected run"
+          ],
+          "seconds_per_optimizer_step": 0.09252967362198979,
+          "setup_wandb_and_best_reload_factor": 1.15
+        },
+        "hard_limit_hours": 16.0,
+        "launch_allowed": true,
+        "optimization": null,
+        "reason": null,
+        "route": "direct",
+        "runtime_hard_stop_required": true,
+        "soft_limit_hours": 14.0
+      },
+      "scratch-10m": {
+        "baseline": {
+          "arm_id": "scratch-10m",
+          "measured_elapsed_seconds": 26.548597214976326,
+          "measured_full_validation_seconds": 73.84217145096045,
+          "measured_optimizer_steps": 500,
+          "measured_weights_only_checkpoint_seconds": 0.03945645899511874,
+          "optimizer_steps_per_second": 18.833386786927676,
+          "pilot_runs": 3,
+          "projected_final_checkpoint_writes": 4,
+          "projected_final_hours": 1.656313586063976,
+          "projected_final_steps": 92085,
+          "projected_final_validations": 4,
+          "projected_pilot_checkpoint_writes_per_run": 2,
+          "projected_pilot_hours": 0.5320964956305607,
+          "projected_pilot_plus_final_hours": 2.1884100816945367,
+          "projected_pilot_run_hours": 0.17736549854352024,
+          "projected_pilot_steps": 23022,
+          "projected_pilot_steps_per_run": 7674,
+          "projected_pilot_validations_per_run": 2,
+          "projection_includes": [
+            "all three quarter-epoch pilot training runs",
+            "one epoch-end plus one explicit validation per pilot",
+            "one epoch-end plus one final artifact write per pilot",
+            "three final epoch validations plus one explicit final validation",
+            "three final epoch checkpoint writes plus one final artifact write",
+            "15% setup/W&B/best-checkpoint-reload/final-artifact margin on every projected run"
+          ],
+          "seconds_per_optimizer_step": 0.05309719442995265,
+          "setup_wandb_and_best_reload_factor": 1.15
+        },
+        "hard_limit_hours": 16.0,
+        "launch_allowed": true,
+        "optimization": null,
+        "reason": null,
+        "route": "direct",
+        "runtime_hard_stop_required": true,
+        "soft_limit_hours": 14.0
+      },
+      "smollm2-360m-scratch": {
+        "baseline": null,
+        "launch_allowed": false,
+        "optimization": null,
+        "reason": "Arm smollm2-360m-scratch has invalid longest_batch peak memory",
+        "route": "blocked"
+      }
+    },
+    "reason": "one or more arms are not feasible",
+    "runtime_hard_stop_required": true,
+    "soft_limit_hours": 14.0,
+    "step_plan": {
+      "arms": 3,
+      "effective_batch_size": 8,
+      "final_epoch_cap": 3.0,
+      "final_steps_per_arm": 92085,
+      "gradient_accumulation_steps": 1,
+      "per_device_batch_size": 8,
+      "pilot_epochs_per_run": 0.25,
+      "pilot_plus_final_steps_per_arm": 115107,
+      "pilot_runs_per_arm": 3,
+      "pilot_steps_per_arm": 23022,
+      "pilot_steps_per_run": 7674,
+      "retained_training_records": 245554,
+      "steps_per_epoch": 30695
+    }
+  },
+  "optimization_plan": null,
+  "probe_protocol": {
+    "arms": [
+      "scratch-10m",
+      "opt-125m-scratch",
+      "smollm2-360m-scratch"
+    ],
+    "data_order_seed": 54002,
+    "gradient_accumulation_steps": 1,
+    "initialization_seed": 54001,
+    "learning_rate": 0.0003,
+    "longest_batch_proof": "the stable eight largest retained combined-token sequences",
+    "max_length": 2048,
+    "optimizer_steps_per_arm": 500,
+    "per_device_batch_size": 8,
+    "precision": "bf16",
+    "projection_overhead": {
+      "factor_scope": "setup, online W&B, best-checkpoint reload, and final artifact serialization not present in the bounded local measurement",
+      "final_checkpoint_writes": 4,
+      "final_validations": 4,
+      "measured_full_validation_evaluations": 1,
+      "measured_weights_only_checkpoint_writes": 1,
+      "pilot_checkpoint_writes_per_run": 2,
+      "pilot_runs": 3,
+      "pilot_validations_per_run": 2,
+      "setup_wandb_and_best_reload_factor": 1.15
+    },
+    "projection_scope": "three quarter-epoch LR pilots plus one final at the three-epoch cap for every arm",
+    "throughput_deviations": [
+      "W&B disabled",
+      "scheduler horizon fixed to the 500-step probe"
+    ]
+  },
+  "retained_training_records": 245554,
+  "schema_version": 1,
+  "source_code": {
+    "commit": "ca0493962fc2cd4aa4f12923de1d5c3b5cf838b5",
+    "dirty": false,
+    "probe_runner": {
+      "path": "experiments/probe_deep_corpus_v2_scratch.py",
+      "sha256": "sha256:d0faeae363bc6fcd518a259ae5caeaa4bd48a287d3340e7a79f81ef518d0ec23"
+    },
+    "runner": {
+      "path": "experiments/train_deep_corpus_sft.py",
+      "sha256": "sha256:6e633151a59222fd4e0da5aa2f63774633a2cf4e659c074cf99043940f0f41d6"
+    },
+    "tracked_diff_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "untracked_files": [],
+    "untracked_files_digest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "source_data": {
+    "basis_set_digest": "sha256:ffc602fb24db249df7eb4f6b0d5ba38d5a5070b2c68c6c5f94c7f387de682494",
+    "basis_set_id": "wl-core-v1",
+    "corpus_dir": "/tmp/wandering-light-issue-54/wandering_light/training/data/deep_corpus_v2",
+    "corpus_hub": {
+      "repo_id": "abhishekraok/wandering-light-deep-corpus-v2",
+      "repo_type": "dataset",
+      "revision": "8a69a300dddbd2a65e107d0459c800e3f8429014"
+    },
+    "corpus_manifest_digest": "sha256:a3ba242346f5c43b081e498984380d471a67ee4b91c7c094612100622791916e",
+    "longest_retained_batch": {
+      "batch_size": 8,
+      "combined_token_lengths": [
+        1956,
+        1908,
+        1880,
+        1876,
+        1868,
+        1858,
+        1844,
+        1784
+      ],
+      "padded_sequence_length": 1956,
+      "selection": "largest combined_tokens; stable source order breaks ties",
+      "task_ids": [
+        "c887174d8826514de392ec70faf9b78bd309137d4fa1da02c7f3745f2303eca5",
+        "2deb10e15942418937356faba1af0de65b166883027a86ac692945b6551b60ce",
+        "ffa0169f1146267bab6fefac9999bda8c458019275ee7ecff0a3356d12f274d4",
+        "ee744c44fe88b210e6df940f10775dbb007fbfb81eacd403bbb291ebfcfbad48",
+        "8a3690cc750bc6794b0e74d79cf4b134a7c9c8bea30091aaacb1b54e4e4a23b6",
+        "d6423debef77959d65a1522a2d61a45d45baea541a6b5d3494363687e94bddf2",
+        "2fdd9c17fa1177c19b79e58583b7e8f20b1e7009667366afc88fb6e0a2bc73d9",
+        "0e8af9f71a78caf2c6c0fc8c3e9a40be07b0552c1a11af627c5dc8b35b3a8e28"
+      ],
+      "task_ids_digest": "sha256:8b0f35571b85ec8197139d2f98527ef43967647ff81d3b43f1c475ba901028e7"
+    },
+    "reference_corpora": [
+      {
+        "basis_set_digest": "sha256:ffc602fb24db249df7eb4f6b0d5ba38d5a5070b2c68c6c5f94c7f387de682494",
+        "basis_set_id": "wl-core-v1",
+        "hub_repo_id": "abhishekraok/wandering-light-deep-corpus-v1",
+        "hub_revision": "fd22029677638702b6b13c572757a71e2f81335b",
+        "manifest_digest": "sha256:0efed8ca6c57942c1672ed0a2e6e3abe87b009168f9b26140408458ded8f41af",
+        "root_digest_set_sha256": "sha256:6db92408975e463e28e4d07415381a64c301d6cfb9198e1e7d61fec53bb3b611",
+        "roots": 240,
+        "task_id_set_sha256": "sha256:9d492eba586843416c643ef14b4ff7cae2b22c392a0662e183cd0e378dcb328d",
+        "tasks": 31350
+      }
+    ],
+    "reference_corpora_digest": "sha256:a778859bf5c90a4bead995da77097004eca7b53436c297e28043172988cf37a9",
+    "task_roles": {
+      "discovery": {
+        "retained_records": 245554,
+        "retained_task_ids_digest": "sha256:a007b251911724b7ea0bca3078c3935f0f7f86b316755cf9d3dcd4fd3439ecf9",
+        "role": "training-only",
+        "selected_records": 245561,
+        "selected_task_ids_digest": "sha256:adc7e36373fa3494ccedc977ae3861c3448fa0a939069743b24b5089937365ed",
+        "split": "discovery"
+      },
+      "test": {
+        "records": 33966,
+        "role": "held-out-evaluation-only; never model-scored here",
+        "split": "test",
+        "task_ids_digest": "sha256:e708fe5a15c327c492ecb631ca58d5264c9222ef00282bdfae9765c189b73325"
+      },
+      "validation": {
+        "retained_records": 33910,
+        "retained_task_ids_digest": "sha256:9ed3f61e9972fe1d06a49bfbd502925b0128f956759bb7fbe02f8f1cf7422319",
+        "role": "loss-evaluation-and-tuning-only",
+        "selected_records": 33911,
+        "selected_task_ids_digest": "sha256:cd2787a3672135f1fb67c1fa7e70586b3fb160e70a384ad087af7f8f56dad839",
+        "split": "validation"
+      }
+    },
+    "tokenizer_artifact_digest": "sha256:128279939a1e8e8acf533a474998dcf2a508726767ecbe2043cfed149f0be1ef",
+    "tokenizer_source_manifest_digest": "sha256:a3ba242346f5c43b081e498984380d471a67ee4b91c7c094612100622791916e",
+    "verification": {
+      "all_witnesses_reexecuted": true,
+      "distance_histogram": {
+        "1": 18899,
+        "2": 47419,
+        "3": 48000,
+        "4": 48000,
+        "5": 48000,
+        "6": 47960,
+        "7": 47960,
+        "8": 7200
+      },
+      "ok": true,
+      "records": 313438,
+      "reference_root_digest_overlaps": [],
+      "reference_root_key_overlaps": [],
+      "reference_task_id_overlaps": [],
+      "root_digest_set_sha256": "sha256:cabeb60f94eed51289200bb06f8a8f918fca23a778d1cf7bd5d1dfd681f92677",
+      "target_contract_failures": [],
+      "task_id_set_sha256": "sha256:c54669327cb149b6476e943ca52885a5f11d68c06e56c7fe4bd40bea8ef3ecdf"
+    }
+  },
+  "started_at_utc": "2026-08-26T20:36:34.169053+00:00",
+  "status": "complete"
+}

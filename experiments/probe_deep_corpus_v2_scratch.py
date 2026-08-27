@@ -23,6 +23,7 @@ import math
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -34,6 +35,7 @@ from typing import TYPE_CHECKING, Any
 from wandering_light.training.deep_corpus_scratch import (
     ARM_SPECS,
     DATA_ORDER_SEED,
+    DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG,
     FEASIBILITY_HARD_LIMIT_HOURS,
     FEASIBILITY_SOFT_LIMIT_HOURS,
     FEASIBILITY_STEPS,
@@ -43,11 +45,14 @@ from wandering_light.training.deep_corpus_scratch import (
     PILOT_EPOCHS,
     TOKENIZER_MAX_LENGTH,
     assert_config_created_model,
+    build_scratch_study_identity,
+    configure_deterministic_cuda_environment,
     digest_json,
     initialize_model_from_config,
 )
 from wandering_light.training.deep_corpus_tokenizer import (
     DEFAULT_REFERENCE_CORPUS_DIR,
+    DETERMINISTIC_PYTHON_HASH_SEED,
     encode_training_row,
 )
 
@@ -74,6 +79,7 @@ PILOT_CHECKPOINT_WRITES_PER_RUN = 2
 FINAL_VALIDATIONS = math.ceil(MAX_FINAL_EPOCHS) + 1
 FINAL_CHECKPOINT_WRITES = math.ceil(MAX_FINAL_EPOCHS) + 1
 PROCESS_MEMORY_POLL_INTERVAL_SECONDS = 0.1
+NVIDIA_SMI_COMMAND_TIMEOUT_SECONDS = 5.0
 
 
 @dataclass(frozen=True)
@@ -132,7 +138,7 @@ def parse_nvidia_smi_process_memory(
             row_pid = int(raw_pid)
         except ValueError as error:
             raise ValueError("nvidia-smi returned a non-integer process ID") from error
-        if row_pid != pid or raw_uuid != gpu_uuid:
+        if row_pid != pid or not _gpu_uuids_match(raw_uuid, gpu_uuid):
             continue
         try:
             mebibytes = int(raw_mebibytes)
@@ -148,8 +154,56 @@ def parse_nvidia_smi_process_memory(
     return matches[0] if matches else None
 
 
-class NvidiaSmiProcessMemorySampler:
-    """Poll process-level physical GPU memory and fail closed without a sample."""
+def _canonical_gpu_uuid(value: str) -> str:
+    """Normalize the CUDA/nvidia-smi spelling of one physical GPU UUID."""
+
+    normalized = value.strip()
+    if normalized.casefold().startswith("gpu-"):
+        normalized = normalized[4:]
+    if not normalized:
+        raise ValueError("GPU UUID is empty after normalization")
+    return normalized.casefold()
+
+
+def _gpu_uuids_match(left: str, right: str) -> bool:
+    return _canonical_gpu_uuid(left) == _canonical_gpu_uuid(right)
+
+
+def parse_nvidia_smi_physical_gpu_memory(
+    output: str,
+    *,
+    gpu_uuid: str,
+) -> int | None:
+    """Return total used memory for one physical GPU from CSV output."""
+
+    if not isinstance(gpu_uuid, str) or not gpu_uuid.strip():
+        raise ValueError("GPU-memory sampling requires a physical GPU UUID")
+    matches: list[int] = []
+    for line in output.splitlines():
+        if not line.strip():
+            continue
+        columns = [column.strip() for column in line.split(",")]
+        if len(columns) != 2:
+            raise ValueError("nvidia-smi GPU memory output is malformed")
+        raw_uuid, raw_mebibytes = columns
+        if not _gpu_uuids_match(raw_uuid, gpu_uuid):
+            continue
+        try:
+            mebibytes = int(raw_mebibytes)
+        except ValueError as error:
+            raise ValueError(
+                "nvidia-smi did not report numeric physical GPU memory"
+            ) from error
+        if mebibytes < 0:
+            raise ValueError("nvidia-smi reported negative physical GPU memory")
+        matches.append(mebibytes * 1024 * 1024)
+    if len(matches) > 1:
+        raise ValueError("nvidia-smi returned duplicate rows for this physical GPU")
+    return matches[0] if matches else None
+
+
+class NvidiaSmiGpuMemorySampler:
+    """Poll physical VRAM, preferring process attribution when NVIDIA exposes it."""
 
     def __init__(
         self,
@@ -167,12 +221,13 @@ class NvidiaSmiProcessMemorySampler:
         self.pid = os.getpid() if pid is None else pid
         self.poll_interval_seconds = float(poll_interval_seconds)
         self._command_runner = command_runner
-        self._samples: list[int] = []
+        self._process_samples: list[int] = []
+        self._physical_gpu_samples: list[int] = []
         self._error: BaseException | None = None
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
 
-    def _query(self) -> int | None:
+    def _query_process(self) -> int | None:
         completed = self._command_runner(
             [
                 "nvidia-smi",
@@ -182,7 +237,7 @@ class NvidiaSmiProcessMemorySampler:
             check=True,
             capture_output=True,
             text=True,
-            timeout=5,
+            timeout=NVIDIA_SMI_COMMAND_TIMEOUT_SECONDS,
         )
         return parse_nvidia_smi_process_memory(
             completed.stdout,
@@ -190,15 +245,36 @@ class NvidiaSmiProcessMemorySampler:
             gpu_uuid=self.gpu_uuid,
         )
 
+    def _query_physical_gpu(self) -> int | None:
+        completed = self._command_runner(
+            [
+                "nvidia-smi",
+                "--query-gpu=uuid,memory.used",
+                "--format=csv,noheader,nounits",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=NVIDIA_SMI_COMMAND_TIMEOUT_SECONDS,
+        )
+        return parse_nvidia_smi_physical_gpu_memory(
+            completed.stdout,
+            gpu_uuid=self.gpu_uuid,
+        )
+
     def sample_now(self) -> int | None:
         try:
-            value = self._query()
+            process_value = self._query_process()
+            if process_value is not None:
+                self._process_samples.append(process_value)
+                return process_value
+            physical_gpu_value = self._query_physical_gpu()
         except (OSError, subprocess.SubprocessError, ValueError) as error:
             self._error = error
             return None
-        if value is not None:
-            self._samples.append(value)
-        return value
+        if physical_gpu_value is not None:
+            self._physical_gpu_samples.append(physical_gpu_value)
+        return physical_gpu_value
 
     def _poll(self) -> None:
         while not self._stop.wait(self.poll_interval_seconds):
@@ -206,37 +282,61 @@ class NvidiaSmiProcessMemorySampler:
 
     def start(self) -> None:
         if self._thread is not None:
-            raise RuntimeError("Process GPU-memory sampler was already started")
+            raise RuntimeError("GPU-memory sampler was already started")
         self.sample_now()
         self._thread = threading.Thread(
             target=self._poll,
-            name="nvidia-smi-process-memory",
+            name="nvidia-smi-gpu-memory",
             daemon=True,
         )
         self._thread.start()
 
     def stop(self) -> dict[str, Any]:
         if self._thread is None:
-            raise RuntimeError("Process GPU-memory sampler was not started")
-        self.sample_now()
+            raise RuntimeError("GPU-memory sampler was not started")
         self._stop.set()
-        self._thread.join(timeout=max(1.0, 2 * self.poll_interval_seconds))
+        self._thread.join(timeout=2 * NVIDIA_SMI_COMMAND_TIMEOUT_SECONDS + 1.0)
+        if self._thread.is_alive():
+            raise RuntimeError(
+                "GPU-memory polling thread did not stop after the nvidia-smi "
+                "command timeouts"
+            )
         self._thread = None
+        self.sample_now()
         if self._error is not None:
+            raise RuntimeError(f"GPU memory sampling failed: {self._error}") from (
+                self._error
+            )
+        if self._process_samples:
+            return {
+                "source": "nvidia-smi compute-apps used_gpu_memory polling",
+                "measurement_scope": "process",
+                "gpu_uuid": self.gpu_uuid,
+                "namespace_pid": self.pid,
+                "poll_interval_seconds": self.poll_interval_seconds,
+                "samples": len(self._process_samples),
+                "peak_observed_used_bytes": max(self._process_samples),
+                "peak_process_used_bytes": max(self._process_samples),
+            }
+        if not self._physical_gpu_samples:
             raise RuntimeError(
-                f"Process-level GPU memory sampling failed: {self._error}"
-            ) from self._error
-        if not self._samples:
-            raise RuntimeError(
-                "nvidia-smi never observed this process on the measured physical GPU"
+                "nvidia-smi exposed neither this process nor physical GPU memory "
+                "on the measured GPU"
             )
         return {
-            "source": "nvidia-smi compute-apps used_gpu_memory polling",
+            "source": "nvidia-smi physical-GPU memory.used polling",
+            "measurement_scope": "physical_gpu_total",
             "gpu_uuid": self.gpu_uuid,
-            "pid": self.pid,
+            "namespace_pid": self.pid,
             "poll_interval_seconds": self.poll_interval_seconds,
-            "samples": len(self._samples),
-            "peak_process_used_bytes": max(self._samples),
+            "samples": len(self._physical_gpu_samples),
+            "baseline_observed_used_bytes": self._physical_gpu_samples[0],
+            "peak_observed_used_bytes": max(self._physical_gpu_samples),
+            "peak_physical_gpu_used_bytes": max(self._physical_gpu_samples),
+            "limitation": (
+                "nvidia-smi exposed no compute-process row; the observed peak is "
+                "the conservative total usage of the identified physical GPU"
+            ),
         }
 
 
@@ -398,18 +498,37 @@ def _validate_arm_measurement(result: Mapping[str, Any]) -> None:
     physical = gpu.get("physical_vram_bytes")
     if type(physical) is not int or physical <= 0:
         raise ValueError(f"Arm {arm_id} has invalid physical VRAM")
-    process_memory = result.get("process_gpu_memory")
-    if not isinstance(process_memory, dict):
-        raise ValueError(f"Arm {arm_id} has no process-level peak GPU memory")
+    gpu_memory = result.get("gpu_memory_telemetry")
+    if not isinstance(gpu_memory, dict):
+        raise ValueError(f"Arm {arm_id} has no physical peak GPU memory")
+    measurement_scope = gpu_memory.get("measurement_scope")
     if (
-        process_memory.get("gpu_uuid") != gpu.get("uuid")
-        or type(process_memory.get("pid")) is not int
-        or type(process_memory.get("samples")) is not int
-        or process_memory["samples"] <= 0
-        or type(process_memory.get("peak_process_used_bytes")) is not int
-        or not 0 < process_memory["peak_process_used_bytes"] <= physical
+        gpu_memory.get("gpu_uuid") != gpu.get("uuid")
+        or measurement_scope not in {"process", "physical_gpu_total"}
+        or type(gpu_memory.get("namespace_pid")) is not int
+        or type(gpu_memory.get("samples")) is not int
+        or gpu_memory["samples"] <= 0
+        or type(gpu_memory.get("peak_observed_used_bytes")) is not int
+        or not 0 < gpu_memory["peak_observed_used_bytes"] <= physical
     ):
-        raise ValueError(f"Arm {arm_id} has invalid process-level peak GPU memory")
+        raise ValueError(f"Arm {arm_id} has invalid physical peak GPU memory")
+    if measurement_scope == "process" and (
+        gpu_memory.get("peak_process_used_bytes")
+        != gpu_memory["peak_observed_used_bytes"]
+    ):
+        raise ValueError(f"Arm {arm_id} has invalid process peak GPU memory")
+    if measurement_scope == "physical_gpu_total":
+        baseline = gpu_memory.get("baseline_observed_used_bytes")
+        peak = gpu_memory.get("peak_physical_gpu_used_bytes")
+        if (
+            type(baseline) is not int
+            or type(peak) is not int
+            or not 0 <= baseline <= peak <= physical
+            or peak != gpu_memory["peak_observed_used_bytes"]
+            or not isinstance(gpu_memory.get("limitation"), str)
+            or not gpu_memory["limitation"]
+        ):
+            raise ValueError(f"Arm {arm_id} has invalid physical-GPU-total peak memory")
     for section_name in ("longest_batch", "throughput"):
         section = result[section_name]
         allocated = section.get("peak_torch_allocated_bytes")
@@ -987,10 +1106,14 @@ def _gpu_identity(torch: Any) -> dict[str, Any]:
     }
 
 
-def _configure_gradient_checkpointing(model: Any, *, enabled: bool) -> None:
+def _configure_gradient_checkpointing(
+    model: Any, *, enabled: bool, kwargs: Mapping[str, Any]
+) -> None:
     if enabled:
         model.config.use_cache = False
-        model.gradient_checkpointing_enable()
+        model.gradient_checkpointing_enable(
+            gradient_checkpointing_kwargs=dict(kwargs)
+        )
 
 
 def _assert_bf16_model(model: Any, torch: Any) -> None:
@@ -1012,8 +1135,13 @@ def _longest_batch_proof(
     tokenizer: Any,
     selected: LongestRetainedBatch,
     gradient_checkpointing: bool,
+    gradient_checkpointing_kwargs: Mapping[str, Any],
 ) -> dict[str, Any]:
-    _configure_gradient_checkpointing(model, enabled=gradient_checkpointing)
+    _configure_gradient_checkpointing(
+        model,
+        enabled=gradient_checkpointing,
+        kwargs=gradient_checkpointing_kwargs,
+    )
     model.to("cuda")
     model.train()
     encoded_rows = [encode_training_row(tokenizer, row) for row in selected.rows]
@@ -1202,24 +1330,31 @@ def _arm_study_identity(
     data: Any,
     runner: Any,
 ) -> tuple[dict[str, Any], str]:
-    protocol = {
-        "architecture": resolved.identity_dict(),
-        "corpus_manifest_digest": data.corpus_manifest["manifest_digest"],
-        "tokenizer_artifact_digest": data.tokenizer_manifest["artifact_digest"],
-        "retained_training_task_ids_digest": data.train_audit[
+    protocol = build_scratch_study_identity(
+        architecture=resolved.identity_dict(),
+        corpus_manifest_digest=data.corpus_manifest["manifest_digest"],
+        tokenizer_artifact_digest=data.tokenizer_manifest["artifact_digest"],
+        retained_training_task_ids_digest=data.train_audit[
             "retained_task_ids_digest"
         ],
-        "per_device_batch_size": runner.PER_DEVICE_BATCH_SIZE,
-        "gradient_accumulation_steps": runner.GRADIENT_ACCUMULATION_STEPS,
-        "max_length": TOKENIZER_MAX_LENGTH,
-        "optimizer": "adamw_torch",
-        "precision": PROBE_PRECISION,
-        "gradient_checkpointing": (
+        per_device_batch_size=runner.PER_DEVICE_BATCH_SIZE,
+        gradient_accumulation_steps=runner.GRADIENT_ACCUMULATION_STEPS,
+        max_length=TOKENIZER_MAX_LENGTH,
+        optimizer="adamw_torch",
+        precision=PROBE_PRECISION,
+        gradient_checkpointing=(
             resolved.spec.arm_id in runner.GRADIENT_CHECKPOINTING_ARMS
         ),
-        "initialization_seed": INITIALIZATION_SEED,
-        "data_order_seed": DATA_ORDER_SEED,
-    }
+        gradient_checkpointing_kwargs=(
+            runner.GRADIENT_CHECKPOINTING_KWARGS
+            if resolved.spec.arm_id in runner.GRADIENT_CHECKPOINTING_ARMS
+            else {}
+        ),
+        cublas_workspace_config=DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG,
+        pythonhashseed=DETERMINISTIC_PYTHON_HASH_SEED,
+        initialization_seed=INITIALIZATION_SEED,
+        data_order_seed=DATA_ORDER_SEED,
+    )
     return protocol, digest_json(protocol)
 
 
@@ -1254,7 +1389,7 @@ def _execute_arm(
         },
         "throughput": None,
     }
-    sampler = NvidiaSmiProcessMemorySampler(gpu_uuid=str(gpu.get("uuid") or ""))
+    sampler = NvidiaSmiGpuMemorySampler(gpu_uuid=str(gpu.get("uuid") or ""))
     sampler.start()
     model = None
     try:
@@ -1271,6 +1406,11 @@ def _execute_arm(
             tokenizer=tokenizer,
             selected=selected,
             gradient_checkpointing=(arm_id in runner.GRADIENT_CHECKPOINTING_ARMS),
+            gradient_checkpointing_kwargs=(
+                runner.GRADIENT_CHECKPOINTING_KWARGS
+                if arm_id in runner.GRADIENT_CHECKPOINTING_ARMS
+                else {}
+            ),
         )
         result["longest_batch"] = proof
         sampler.sample_now()
@@ -1312,11 +1452,20 @@ def _execute_arm(
         }
         return result
     finally:
+        active_error = sys.exc_info()[1]
         if model is not None:
             del model
         gc.collect()
         torch.cuda.empty_cache()
-        result["process_gpu_memory"] = sampler.stop()
+        try:
+            result["gpu_memory_telemetry"] = sampler.stop()
+        except RuntimeError as sampling_error:
+            if active_error is None:
+                raise
+            result["gpu_memory_telemetry_failure"] = {
+                "type": type(sampling_error).__name__,
+                "message": str(sampling_error),
+            }
 
 
 def _write_json(path: Path, value: Any) -> None:
@@ -1428,6 +1577,7 @@ def run_probe(config: FeasibilityProbeConfig) -> dict[str, Any]:
             arm_results=planned_results,
         )
 
+    configure_deterministic_cuda_environment()
     import torch
     from transformers import PreTrainedTokenizerFast
 
