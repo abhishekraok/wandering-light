@@ -36,15 +36,15 @@
         "visible_cuda_devices": 1
       },
       "gpu_memory_telemetry": {
-        "baseline_observed_used_bytes": 684720128,
+        "baseline_observed_used_bytes": 2576351232,
         "gpu_uuid": "83281fc5-cbe5-acde-6699-b2058e4ebbb3",
         "limitation": "nvidia-smi exposed no compute-process row; the observed peak is the conservative total usage of the identified physical GPU",
         "measurement_scope": "physical_gpu_total",
-        "namespace_pid": 676392,
-        "peak_observed_used_bytes": 3804233728,
-        "peak_physical_gpu_used_bytes": 3804233728,
+        "namespace_pid": 747221,
+        "peak_observed_used_bytes": 5696913408,
+        "peak_physical_gpu_used_bytes": 5696913408,
         "poll_interval_seconds": 0.1,
-        "samples": 1860,
+        "samples": 1818,
         "source": "nvidia-smi physical-GPU memory.used polling"
       },
       "initialization": {
@@ -81,7 +81,7 @@
           1844,
           1784
         ],
-        "forward_backward_seconds": 0.5666115579660982,
+        "forward_backward_seconds": 0.5994934180052951,
         "loss": 8.339699745178223,
         "padded_sequence_length": 1956,
         "passed": true,
@@ -104,7 +104,7 @@
       "peak_torch_allocated_bytes": 2393878016,
       "peak_torch_reserved_bytes": 2640314368,
       "status": "passed",
-      "study_identity_digest": "sha256:7e54294b8314cd490a4e3ab001ffb439531eb168631002cca6c86a66e2471621",
+      "study_identity_digest": "sha256:a2f1742fc1f9a79106b62d4ec80de9ddf56420bb12ec46d8e54cdb1d4ed9e12e",
       "study_protocol": {
         "architecture": {
           "arm_id": "scratch-10m",
@@ -124,7 +124,7 @@
           "target_trainable_parameters": 10000000,
           "vocab_size": 4196
         },
-        "corpus_manifest_digest": "sha256:a3ba242346f5c43b081e498984380d471a67ee4b91c7c094612100622791916e",
+        "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
         "cublas_workspace_config": ":16:8",
         "data_order_seed": 54002,
         "gradient_accumulation_steps": 1,
@@ -137,40 +137,40 @@
         "precision": "bf16",
         "pythonhashseed": "0",
         "retained_training_task_ids_digest": "sha256:a007b251911724b7ea0bca3078c3935f0f7f86b316755cf9d3dcd4fd3439ecf9",
-        "tokenizer_artifact_digest": "sha256:128279939a1e8e8acf533a474998dcf2a508726767ecbe2043cfed149f0be1ef"
+        "tokenizer_artifact_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66"
       },
       "throughput": {
-        "elapsed_seconds": 28.363303783000447,
-        "examples_per_second_at_batch_8": 141.02729465519462,
+        "elapsed_seconds": 27.380753790959716,
+        "examples_per_second_at_batch_8": 146.088016076485,
         "num_input_tokens_seen": 629792,
         "optimizer_steps": 500,
-        "optimizer_steps_per_second": 17.628411831899328,
+        "optimizer_steps_per_second": 18.261002009560624,
         "passed": true,
         "peak_torch_allocated_bytes": 1008420352,
         "peak_torch_reserved_bytes": 2281701376,
         "protocol_overhead": {
           "checkpoint_bytes": 20486595,
-          "checkpoint_elapsed_seconds": 0.04947515798266977,
+          "checkpoint_elapsed_seconds": 0.04212199302855879,
           "factor_scope": "setup, online W&B, best-checkpoint reload, and final artifact serialization",
           "full_validation_evaluations_measured": 1,
           "passed": true,
           "setup_wandb_and_best_reload_factor": 1.15,
-          "validation_elapsed_seconds": 75.2747434549965,
+          "validation_elapsed_seconds": 76.34088622301351,
           "validation_examples": 33910,
           "validation_metrics": {
             "eval_loss": 1.8766975402832031,
-            "eval_runtime": 73.2993,
-            "eval_samples_per_second": 462.624,
-            "eval_steps_per_second": 57.831
+            "eval_runtime": 74.3314,
+            "eval_samples_per_second": 456.2,
+            "eval_steps_per_second": 57.028
           },
           "weights_only_checkpoint_writes_measured": 1
         },
         "trainer_metrics": {
           "total_flos": 32051072163840.0,
           "train_loss": 2.41932275390625,
-          "train_runtime": 26.891,
-          "train_samples_per_second": 148.749,
-          "train_steps_per_second": 18.594
+          "train_runtime": 25.8228,
+          "train_samples_per_second": 154.902,
+          "train_steps_per_second": 19.363
         }
       },
       "throughput_initialization": {
@@ -232,15 +232,15 @@
         "visible_cuda_devices": 1
       },
       "gpu_memory_telemetry": {
-        "baseline_observed_used_bytes": 1185939456,
+        "baseline_observed_used_bytes": 3062890496,
         "gpu_uuid": "83281fc5-cbe5-acde-6699-b2058e4ebbb3",
         "limitation": "nvidia-smi exposed no compute-process row; the observed peak is the conservative total usage of the identified physical GPU",
         "measurement_scope": "physical_gpu_total",
-        "namespace_pid": 676392,
-        "peak_observed_used_bytes": 9295626240,
-        "peak_physical_gpu_used_bytes": 9295626240,
+        "namespace_pid": 747221,
+        "peak_observed_used_bytes": 11172577280,
+        "peak_physical_gpu_used_bytes": 11172577280,
         "poll_interval_seconds": 0.1,
-        "samples": 2223,
+        "samples": 2188,
         "source": "nvidia-smi physical-GPU memory.used polling"
       },
       "initialization": {
@@ -277,7 +277,7 @@
           1844,
           1784
         ],
-        "forward_backward_seconds": 0.47622830409090966,
+        "forward_backward_seconds": 0.6197096479590982,
         "loss": 8.713937759399414,
         "padded_sequence_length": 1956,
         "passed": true,
@@ -300,7 +300,7 @@
       "peak_torch_allocated_bytes": 7627957760,
       "peak_torch_reserved_bytes": 8113881088,
       "status": "passed",
-      "study_identity_digest": "sha256:87266363eb4334d8ae1db827df6a2307ff02230f259fa7f6877f17ccff7f3904",
+      "study_identity_digest": "sha256:b3e5fb27ef116f72b0ef652e955b1b6302e5d295d8d99b6d224662e10e456e6a",
       "study_protocol": {
         "architecture": {
           "arm_id": "opt-125m-scratch",
@@ -320,7 +320,7 @@
           "target_trainable_parameters": 125000000,
           "vocab_size": 4196
         },
-        "corpus_manifest_digest": "sha256:a3ba242346f5c43b081e498984380d471a67ee4b91c7c094612100622791916e",
+        "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
         "cublas_workspace_config": ":16:8",
         "data_order_seed": 54002,
         "gradient_accumulation_steps": 1,
@@ -333,40 +333,40 @@
         "precision": "bf16",
         "pythonhashseed": "0",
         "retained_training_task_ids_digest": "sha256:a007b251911724b7ea0bca3078c3935f0f7f86b316755cf9d3dcd4fd3439ecf9",
-        "tokenizer_artifact_digest": "sha256:128279939a1e8e8acf533a474998dcf2a508726767ecbe2043cfed149f0be1ef"
+        "tokenizer_artifact_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66"
       },
       "throughput": {
-        "elapsed_seconds": 45.43790550599806,
-        "examples_per_second_at_batch_8": 88.0322267379155,
+        "elapsed_seconds": 48.48736022005323,
+        "examples_per_second_at_batch_8": 82.4957263469603,
         "num_input_tokens_seen": 629792,
         "optimizer_steps": 500,
-        "optimizer_steps_per_second": 11.004028342239437,
+        "optimizer_steps_per_second": 10.311965793370037,
         "passed": true,
         "peak_torch_allocated_bytes": 4031142400,
         "peak_torch_reserved_bytes": 6016729088,
         "protocol_overhead": {
           "checkpoint_bytes": 250866829,
-          "checkpoint_elapsed_seconds": 0.23250877601094544,
+          "checkpoint_elapsed_seconds": 0.24027139495592564,
           "factor_scope": "setup, online W&B, best-checkpoint reload, and final artifact serialization",
           "full_validation_evaluations_measured": 1,
           "passed": true,
           "setup_wandb_and_best_reload_factor": 1.15,
-          "validation_elapsed_seconds": 117.63466871692799,
+          "validation_elapsed_seconds": 119.10535410989542,
           "validation_examples": 33910,
           "validation_metrics": {
             "eval_loss": 1.7959787845611572,
-            "eval_runtime": 113.6121,
-            "eval_samples_per_second": 298.472,
-            "eval_steps_per_second": 37.311
+            "eval_runtime": 115.0424,
+            "eval_samples_per_second": 294.761,
+            "eval_steps_per_second": 36.847
           },
           "weights_only_checkpoint_writes_measured": 1
         },
         "trainer_metrics": {
           "total_flos": 455220509736960.0,
           "train_loss": 2.1395318908691405,
-          "train_runtime": 43.9419,
-          "train_samples_per_second": 91.029,
-          "train_steps_per_second": 11.379
+          "train_runtime": 46.9942,
+          "train_samples_per_second": 85.117,
+          "train_steps_per_second": 10.64
         }
       },
       "throughput_initialization": {
@@ -428,15 +428,15 @@
         "visible_cuda_devices": 1
       },
       "gpu_memory_telemetry": {
-        "baseline_observed_used_bytes": 1185939456,
+        "baseline_observed_used_bytes": 3062890496,
         "gpu_uuid": "83281fc5-cbe5-acde-6699-b2058e4ebbb3",
         "limitation": "nvidia-smi exposed no compute-process row; the observed peak is the conservative total usage of the identified physical GPU",
         "measurement_scope": "physical_gpu_total",
-        "namespace_pid": 676392,
-        "peak_observed_used_bytes": 6866075648,
-        "peak_physical_gpu_used_bytes": 6866075648,
+        "namespace_pid": 747221,
+        "peak_observed_used_bytes": 8733589504,
+        "peak_physical_gpu_used_bytes": 8733589504,
         "poll_interval_seconds": 0.1,
-        "samples": 4558,
+        "samples": 4390,
         "source": "nvidia-smi physical-GPU memory.used polling"
       },
       "initialization": {
@@ -473,7 +473,7 @@
           1844,
           1784
         ],
-        "forward_backward_seconds": 1.247692376957275,
+        "forward_backward_seconds": 1.2130877820309252,
         "loss": 8.639583587646484,
         "padded_sequence_length": 1956,
         "passed": true,
@@ -496,7 +496,7 @@
       "peak_torch_allocated_bytes": 3683218944,
       "peak_torch_reserved_bytes": 5674893312,
       "status": "passed",
-      "study_identity_digest": "sha256:03566ed5efa78f2ba5cb9ca548c2b289ea827610c11f2a866d3397adf8909524",
+      "study_identity_digest": "sha256:1ff5d696a40c4f690d06db72cbb3bed66138f13cfbd2dfd67cba892390cf0cf6",
       "study_protocol": {
         "architecture": {
           "arm_id": "smollm2-360m-scratch",
@@ -516,7 +516,7 @@
           "target_trainable_parameters": 360000000,
           "vocab_size": 4196
         },
-        "corpus_manifest_digest": "sha256:a3ba242346f5c43b081e498984380d471a67ee4b91c7c094612100622791916e",
+        "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
         "cublas_workspace_config": ":16:8",
         "data_order_seed": 54002,
         "gradient_accumulation_steps": 1,
@@ -531,40 +531,40 @@
         "precision": "bf16",
         "pythonhashseed": "0",
         "retained_training_task_ids_digest": "sha256:a007b251911724b7ea0bca3078c3935f0f7f86b316755cf9d3dcd4fd3439ecf9",
-        "tokenizer_artifact_digest": "sha256:128279939a1e8e8acf533a474998dcf2a508726767ecbe2043cfed149f0be1ef"
+        "tokenizer_artifact_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66"
       },
       "throughput": {
-        "elapsed_seconds": 217.41416787798516,
-        "examples_per_second_at_batch_8": 18.39806503431201,
+        "elapsed_seconds": 220.4208121120464,
+        "examples_per_second_at_batch_8": 18.147106716795335,
         "num_input_tokens_seen": 629792,
         "optimizer_steps": 500,
-        "optimizer_steps_per_second": 2.299758129289001,
+        "optimizer_steps_per_second": 2.268388339599417,
         "passed": true,
         "peak_torch_allocated_bytes": 3683218944,
         "peak_torch_reserved_bytes": 5674893312,
         "protocol_overhead": {
           "checkpoint_bytes": 720248270,
-          "checkpoint_elapsed_seconds": 0.609632465057075,
+          "checkpoint_elapsed_seconds": 0.7871794149978086,
           "factor_scope": "setup, online W&B, best-checkpoint reload, and final artifact serialization",
           "full_validation_evaluations_measured": 1,
           "passed": true,
           "setup_wandb_and_best_reload_factor": 1.15,
-          "validation_elapsed_seconds": 323.27794012392405,
+          "validation_elapsed_seconds": 334.80967517301906,
           "validation_examples": 33910,
           "validation_metrics": {
             "eval_loss": 1.5156683921813965,
-            "eval_runtime": 312.8796,
-            "eval_samples_per_second": 108.38,
-            "eval_steps_per_second": 13.548
+            "eval_runtime": 323.6463,
+            "eval_samples_per_second": 104.775,
+            "eval_steps_per_second": 13.098
           },
           "weights_only_checkpoint_writes_measured": 1
         },
         "trainer_metrics": {
           "total_flos": 1344944294645760.0,
           "train_loss": 1.950385208129883,
-          "train_runtime": 210.0213,
-          "train_samples_per_second": 19.046,
-          "train_steps_per_second": 2.381
+          "train_runtime": 212.8116,
+          "train_samples_per_second": 18.796,
+          "train_steps_per_second": 2.349
         }
       },
       "throughput_initialization": {
@@ -591,9 +591,9 @@
       }
     }
   ],
-  "artifact_digest": "sha256:83b42594f21fb573616e57ea48d775ee672300e27c32be9000f7e03f03ee1806",
+  "artifact_digest": "sha256:6b43b37535475cef0d96fd07591a74e7c5ecfc04802918dfb49cf9ecb5891271",
   "artifact_type": "wandering-light-deep-corpus-v2-scratch-feasibility",
-  "completed_at_utc": "2026-08-26T22:32:17.716162+00:00",
+  "completed_at_utc": "2026-08-27T01:47:56.827171+00:00",
   "launch_gate": {
     "all_arms_authorized": false,
     "authorized_arm_ids": [
@@ -604,8 +604,8 @@
       "smollm2-360m-scratch"
     ],
     "diagnostic_totals": {
-      "authorized_effective_projected_hours": 6.044523163823383,
-      "baseline_projected_all_arms_hours": 23.067928751383143,
+      "authorized_effective_projected_hours": 6.20462960737814,
+      "baseline_projected_all_arms_hours": 23.486550216616816,
       "decision_scope": "per-arm; totals never reject an arm"
     },
     "hard_limit_hours": 16.0,
@@ -614,20 +614,20 @@
       "opt-125m-scratch": {
         "baseline": {
           "arm_id": "opt-125m-scratch",
-          "measured_elapsed_seconds": 45.43790550599806,
-          "measured_full_validation_seconds": 117.63466871692799,
+          "measured_elapsed_seconds": 48.48736022005323,
+          "measured_full_validation_seconds": 119.10535410989542,
           "measured_optimizer_steps": 500,
-          "measured_weights_only_checkpoint_seconds": 0.23250877601094544,
-          "optimizer_steps_per_second": 11.004028342239437,
+          "measured_weights_only_checkpoint_seconds": 0.24027139495592564,
+          "optimizer_steps_per_second": 10.311965793370037,
           "pilot_runs": 3,
           "projected_final_checkpoint_writes": 4,
-          "projected_final_hours": 2.8238147033508696,
+          "projected_final_hours": 3.005109605224611,
           "projected_final_steps": 92085,
           "projected_final_validations": 4,
           "projected_pilot_checkpoint_writes_per_run": 2,
-          "projected_pilot_hours": 0.894235523329772,
-          "projected_pilot_plus_final_hours": 3.7180502266806412,
-          "projected_pilot_run_hours": 0.2980785077765907,
+          "projected_pilot_hours": 0.9419221200142847,
+          "projected_pilot_plus_final_hours": 3.947031725238895,
+          "projected_pilot_run_hours": 0.31397404000476153,
           "projected_pilot_steps": 23022,
           "projected_pilot_steps_per_run": 7674,
           "projected_pilot_validations_per_run": 2,
@@ -639,7 +639,7 @@
             "three final epoch checkpoint writes plus one final artifact write",
             "15% setup/W&B/best-checkpoint-reload/final-artifact margin on every projected run"
           ],
-          "seconds_per_optimizer_step": 0.09087581101199613,
+          "seconds_per_optimizer_step": 0.09697472044010647,
           "setup_wandb_and_best_reload_factor": 1.15
         },
         "hard_limit_hours": 16.0,
@@ -653,20 +653,20 @@
       "scratch-10m": {
         "baseline": {
           "arm_id": "scratch-10m",
-          "measured_elapsed_seconds": 28.363303783000447,
-          "measured_full_validation_seconds": 75.2747434549965,
+          "measured_elapsed_seconds": 27.380753790959716,
+          "measured_full_validation_seconds": 76.34088622301351,
           "measured_optimizer_steps": 500,
-          "measured_weights_only_checkpoint_seconds": 0.04947515798266977,
-          "optimizer_steps_per_second": 17.628411831899328,
+          "measured_weights_only_checkpoint_seconds": 0.04212199302855879,
+          "optimizer_steps_per_second": 18.261002009560624,
           "pilot_runs": 3,
           "projected_final_checkpoint_writes": 4,
-          "projected_final_hours": 1.7649198644422706,
+          "projected_final_hours": 1.7084672992575003,
           "projected_final_steps": 92085,
           "projected_final_validations": 4,
           "projected_pilot_checkpoint_writes_per_run": 2,
-          "projected_pilot_hours": 0.561553072700472,
-          "projected_pilot_plus_final_hours": 2.3264729371427424,
-          "projected_pilot_run_hours": 0.187184357566824,
+          "projected_pilot_hours": 0.5491305828817449,
+          "projected_pilot_plus_final_hours": 2.2575978821392453,
+          "projected_pilot_run_hours": 0.18304352762724826,
           "projected_pilot_steps": 23022,
           "projected_pilot_steps_per_run": 7674,
           "projected_pilot_validations_per_run": 2,
@@ -678,7 +678,7 @@
             "three final epoch checkpoint writes plus one final artifact write",
             "15% setup/W&B/best-checkpoint-reload/final-artifact margin on every projected run"
           ],
-          "seconds_per_optimizer_step": 0.05672660756600089,
+          "seconds_per_optimizer_step": 0.05476150758191943,
           "setup_wandb_and_best_reload_factor": 1.15
         },
         "hard_limit_hours": 16.0,
@@ -692,20 +692,20 @@
       "smollm2-360m-scratch": {
         "baseline": {
           "arm_id": "smollm2-360m-scratch",
-          "measured_elapsed_seconds": 217.41416787798516,
-          "measured_full_validation_seconds": 323.27794012392405,
+          "measured_elapsed_seconds": 220.4208121120464,
+          "measured_full_validation_seconds": 334.80967517301906,
           "measured_optimizer_steps": 500,
-          "measured_weights_only_checkpoint_seconds": 0.609632465057075,
-          "optimizer_steps_per_second": 2.299758129289001,
+          "measured_weights_only_checkpoint_seconds": 0.7871794149978086,
+          "optimizer_steps_per_second": 2.268388339599417,
           "pilot_runs": 3,
           "projected_final_checkpoint_writes": 4,
-          "projected_final_hours": 13.204784785197532,
+          "projected_final_hours": 13.39663378966161,
           "projected_final_steps": 92085,
           "projected_final_validations": 4,
           "projected_pilot_checkpoint_writes_per_run": 2,
-          "projected_pilot_hours": 3.8186208023622252,
-          "projected_pilot_plus_final_hours": 17.023405587559758,
-          "projected_pilot_run_hours": 1.2728736007874086,
+          "projected_pilot_hours": 3.8852868195770665,
+          "projected_pilot_plus_final_hours": 17.281920609238675,
+          "projected_pilot_run_hours": 1.295095606525689,
           "projected_pilot_steps": 23022,
           "projected_pilot_steps_per_run": 7674,
           "projected_pilot_validations_per_run": 2,
@@ -717,7 +717,7 @@
             "three final epoch checkpoint writes plus one final artifact write",
             "15% setup/W&B/best-checkpoint-reload/final-artifact margin on every projected run"
           ],
-          "seconds_per_optimizer_step": 0.43482833575597035,
+          "seconds_per_optimizer_step": 0.4408416242240928,
           "setup_wandb_and_best_reload_factor": 1.15
         },
         "hard_limit_hours": 16.0,
@@ -784,7 +784,7 @@
   "retained_training_records": 245554,
   "schema_version": 1,
   "source_code": {
-    "commit": "30e1e1ef12f270127cd081a4a9c3dde18eb1c9a8",
+    "commit": "32012c747cd6480416656889453e5d46ec7784b6",
     "dirty": false,
     "probe_runner": {
       "path": "experiments/probe_deep_corpus_v2_scratch.py",
@@ -805,9 +805,9 @@
     "corpus_hub": {
       "repo_id": "abhishekraok/wandering-light-deep-corpus-v2",
       "repo_type": "dataset",
-      "revision": "8a69a300dddbd2a65e107d0459c800e3f8429014"
+      "revision": "36753a013f3a4e965892b33bc44a8cc0fd567d99"
     },
-    "corpus_manifest_digest": "sha256:a3ba242346f5c43b081e498984380d471a67ee4b91c7c094612100622791916e",
+    "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
     "longest_retained_batch": {
       "batch_size": 8,
       "combined_token_lengths": [
@@ -872,8 +872,8 @@
         "split": "validation"
       }
     },
-    "tokenizer_artifact_digest": "sha256:128279939a1e8e8acf533a474998dcf2a508726767ecbe2043cfed149f0be1ef",
-    "tokenizer_source_manifest_digest": "sha256:a3ba242346f5c43b081e498984380d471a67ee4b91c7c094612100622791916e",
+    "tokenizer_artifact_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+    "tokenizer_source_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
     "verification": {
       "all_witnesses_reexecuted": true,
       "distance_histogram": {
@@ -896,6 +896,6 @@
       "task_id_set_sha256": "sha256:c54669327cb149b6476e943ca52885a5f11d68c06e56c7fe4bd40bea8ef3ecdf"
     }
   },
-  "started_at_utc": "2026-08-26T21:55:11.803511+00:00",
+  "started_at_utc": "2026-08-27T01:10:43.596754+00:00",
   "status": "complete"
 }
