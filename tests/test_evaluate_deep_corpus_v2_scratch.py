@@ -553,10 +553,423 @@ def _bfs_rows(records):
     ]
 
 
+def _generation_runtime():
+    return {
+        "seconds": 1.0,
+        "samples": 512,
+        "samples_per_second": 512.0,
+        "device": "unit-test",
+        "torch_version": "unit-test",
+        "cuda_version": "unit-test",
+        "cublas_workspace_config": ":16:8",
+        "pythonhashseed": "0",
+        "peak_torch_allocated_bytes": 1_000,
+        "peak_torch_reserved_bytes": 1_100,
+    }
+
+
+def _censor_last_bfs_row(rows, *, budget):
+    censored = deepcopy(rows)
+    censored[-1].update(
+        {
+            "success": False,
+            "executions": budget,
+            "solution_length": None,
+            "solution_function_names": [],
+            "termination": "budget",
+        }
+    )
+    return censored
+
+
+def test_validation_bfs_artifact_computes_once_and_reuses_exact_ceiling(
+    tmp_path, protocol
+):
+    records = [_record(distance, split="validation") for distance in range(1, 9)]
+    path = tmp_path / "shared" / "validation_bfs.json"
+    calls = Counter()
+
+    with pytest.raises(RuntimeError, match="simulated interrupted BFS"):
+        evaluate.load_or_create_validation_bfs_artifact(
+            path,
+            protocol_lock=protocol,
+            records=records,
+            available_functions=object(),
+            bfs_provider=lambda *_args, **_kwargs: (_ for _ in ()).throw(
+                RuntimeError("simulated interrupted BFS")
+            ),
+        )
+    interrupted = json.loads(path.read_text(encoding="utf-8"))
+    interrupted_digest = interrupted.pop(
+        evaluate.VALIDATION_BFS_ARTIFACT_DIGEST_FIELD
+    )
+    assert interrupted_digest == evaluate.sha256_json(interrupted)
+    assert interrupted["status"] == "in_progress"
+    assert interrupted["completed_task_ids"] == []
+    assert interrupted["rows"] == []
+
+    def provider(actual_records, **kwargs):
+        assert len(actual_records) == 1
+        calls[actual_records[0].task_id] += 1
+        assert kwargs["budget"] == protocol["bfs"]["budget"]
+        assert kwargs["max_depth"] == protocol["bfs"]["max_depth"]
+        assert kwargs["progress"] is False
+        rows = _bfs_rows(actual_records)
+        if actual_records[0].task_id == records[-1].task_id:
+            return _censor_last_bfs_row(rows, budget=kwargs["budget"])
+        return rows
+
+    first = evaluate.load_or_create_validation_bfs_artifact(
+        path,
+        protocol_lock=protocol,
+        records=records,
+        available_functions=object(),
+        bfs_provider=provider,
+    )
+    second = evaluate.load_or_create_validation_bfs_artifact(
+        path,
+        protocol_lock=protocol,
+        records=records,
+        available_functions=object(),
+        bfs_provider=lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("sealed validation BFS must be reused")
+        ),
+    )
+
+    artifact = json.loads(path.read_text(encoding="utf-8"))
+    digest = artifact.pop(evaluate.VALIDATION_BFS_ARTIFACT_DIGEST_FIELD)
+    assert digest == evaluate.sha256_json(artifact)
+    assert artifact["protocol_lock_sha256"] == protocol["protocol_lock_sha256"]
+    assert (
+        artifact["cohort_sha256"] == protocol["cohorts"]["validation"]["cohort_sha256"]
+    )
+    assert artifact["bfs_configuration"] == protocol["bfs"]
+    assert artifact["task_ids"] == [record.task_id for record in records]
+    assert artifact["completed_task_ids"] == artifact["task_ids"]
+    assert artifact["schema_version"] == 2
+    assert artifact["status"] == "complete"
+    assert artifact["rows_sha256"] == evaluate.sha256_json(first)
+    assert first == second
+    assert first[-1]["termination"] == "budget"
+    assert first[-1]["executions"] == protocol["bfs"]["budget"]
+    assert calls == Counter({record.task_id: 1 for record in records})
+    assert not list(path.parent.glob(f".{path.name}.publishing-*"))
+
+
+def test_validation_bfs_artifact_resumes_without_recomputing_completed_tasks(
+    tmp_path, protocol, capsys
+):
+    records = [_record(distance, split="validation") for distance in range(1, 5)]
+    path = tmp_path / "validation_bfs.json"
+    attempted = []
+
+    def interrupted_provider(actual_records, **_kwargs):
+        task_id = actual_records[0].task_id
+        attempted.append(task_id)
+        if task_id == records[2].task_id:
+            raise RuntimeError("simulated interruption after two rows")
+        return _bfs_rows(actual_records)
+
+    with pytest.raises(RuntimeError, match="after two rows"):
+        evaluate.load_or_create_validation_bfs_artifact(
+            path,
+            protocol_lock=protocol,
+            records=records,
+            available_functions=object(),
+            bfs_provider=interrupted_provider,
+        )
+
+    partial = json.loads(path.read_text(encoding="utf-8"))
+    partial_digest = partial.pop(evaluate.VALIDATION_BFS_ARTIFACT_DIGEST_FIELD)
+    assert partial_digest == evaluate.sha256_json(partial)
+    assert partial["status"] == "in_progress"
+    assert partial["completed_task_ids"] == [
+        record.task_id for record in records[:2]
+    ]
+    assert [row["task_id"] for row in partial["rows"]] == partial[
+        "completed_task_ids"
+    ]
+
+    resumed = []
+
+    def resumed_provider(actual_records, **_kwargs):
+        resumed.append(actual_records[0].task_id)
+        return _bfs_rows(actual_records)
+
+    completed = evaluate.load_or_create_validation_bfs_artifact(
+        path,
+        protocol_lock=protocol,
+        records=records,
+        available_functions=object(),
+        bfs_provider=resumed_provider,
+    )
+
+    assert attempted == [record.task_id for record in records[:3]]
+    assert resumed == [record.task_id for record in records[2:]]
+    assert completed == _bfs_rows(records)
+    final = json.loads(path.read_text(encoding="utf-8"))
+    assert final["status"] == "complete"
+    assert final["completed_task_ids"] == [record.task_id for record in records]
+    progress = capsys.readouterr().out
+    assert "[bfs] 1/4" in progress
+    assert "[bfs] 2/4" in progress
+    assert "[bfs] resuming after 2/4 completed tasks" in progress
+    assert "[bfs] 3/4" in progress
+    assert "[bfs] 4/4" in progress
+
+
+def test_validation_bfs_artifact_rejects_config_cohort_and_censoring_drift(
+    tmp_path, protocol
+):
+    records = [_record(distance, split="validation") for distance in range(1, 9)]
+    path = tmp_path / "validation_bfs.json"
+
+    def provider(actual_records, **kwargs):
+        rows = _bfs_rows(actual_records)
+        if actual_records[0].task_id == records[-1].task_id:
+            return _censor_last_bfs_row(rows, budget=kwargs["budget"])
+        return rows
+
+    evaluate.load_or_create_validation_bfs_artifact(
+        path,
+        protocol_lock=protocol,
+        records=records,
+        available_functions=object(),
+        bfs_provider=provider,
+    )
+
+    changed_protocol = deepcopy(protocol)
+    changed_protocol["bfs"]["max_depth"] -= 1
+    with pytest.raises(ValueError, match="another frozen configuration"):
+        evaluate.load_or_create_validation_bfs_artifact(
+            path,
+            protocol_lock=changed_protocol,
+            records=records,
+            available_functions=object(),
+        )
+
+    artifact = json.loads(path.read_text(encoding="utf-8"))
+    artifact.pop(evaluate.VALIDATION_BFS_ARTIFACT_DIGEST_FIELD)
+    artifact["task_ids"] = list(reversed(artifact["task_ids"]))
+    path.write_text(
+        json.dumps(evaluate._seal_validation_bfs_artifact(artifact)),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="another frozen task cohort"):
+        evaluate.load_or_create_validation_bfs_artifact(
+            path,
+            protocol_lock=protocol,
+            records=records,
+            available_functions=object(),
+        )
+
+    artifact["task_ids"] = [record.task_id for record in records]
+    artifact["rows"][-1]["certified_distance"] -= 1
+    artifact["rows_sha256"] = evaluate.sha256_json(artifact["rows"])
+    path.write_text(
+        json.dumps(evaluate._seal_validation_bfs_artifact(artifact)),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match=r"distance mismatch|row identity"):
+        evaluate.load_or_create_validation_bfs_artifact(
+            path,
+            protocol_lock=protocol,
+            records=records,
+            available_functions=object(),
+        )
+
+    artifact["rows"][-1]["certified_distance"] += 1
+    artifact["rows"][-1]["executions"] -= 1
+    artifact["rows_sha256"] = evaluate.sha256_json(artifact["rows"])
+    path.write_text(
+        json.dumps(evaluate._seal_validation_bfs_artifact(artifact)),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match=r"right-censoring|exact ceiling"):
+        evaluate.load_or_create_validation_bfs_artifact(
+            path,
+            protocol_lock=protocol,
+            records=records,
+            available_functions=object(),
+        )
+
+    artifact["rows"][-1]["executions"] += 1
+    artifact["rows"][0]["solution_length"] = protocol["bfs"]["max_depth"] + 1
+    artifact["rows"][0]["solution_function_names"] = ["inc"] * artifact["rows"][0][
+        "solution_length"
+    ]
+    artifact["rows_sha256"] = evaluate.sha256_json(artifact["rows"])
+    path.write_text(
+        json.dumps(evaluate._seal_validation_bfs_artifact(artifact)),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="frozen max depth"):
+        evaluate.load_or_create_validation_bfs_artifact(
+            path,
+            protocol_lock=protocol,
+            records=records,
+            available_functions=object(),
+        )
+
+
+@pytest.mark.parametrize("solution_length", [2, 4])
+def test_shared_bfs_rejects_solution_length_different_from_certified_distance(
+    protocol, solution_length
+):
+    record = _record(3, split="validation")
+    rows = _bfs_rows([record])
+    rows[0]["solution_length"] = solution_length
+    rows[0]["solution_function_names"] = ["inc"] * solution_length
+
+    with pytest.raises(ValueError, match="does not equal certified distance"):
+        evaluate._validate_shared_bfs_rows(
+            rows,
+            records=[record],
+            bfs=protocol["bfs"],
+        )
+
+
+def test_validation_reuses_shared_bfs_and_seals_one_copy_per_arm(
+    tmp_path, protocol, monkeypatch
+):
+    records = [_record(distance, split="validation") for distance in range(1, 9)]
+    basis = SimpleNamespace(as_function_set=object)
+    monkeypatch.setattr(evaluate, "load_protocol_lock", lambda *_, **__: protocol)
+    monkeypatch.setattr(
+        evaluate,
+        "load_frozen_cohort_records",
+        lambda **_kwargs: (basis, records, {"ok": True}),
+    )
+    monkeypatch.setattr(
+        evaluate,
+        "checkpoint_identity",
+        lambda _path, *, arm_id, protocol_lock: (
+            _checkpoint_identity(arm_id),
+            _training_manifest(arm_id),
+        ),
+    )
+    calls = Counter()
+
+    def candidates(actual_records, *, arm_id, **_kwargs):
+        return _candidate_rows(actual_records, arm_id), _generation_runtime()
+
+    def bfs(actual_records, **_kwargs):
+        assert len(actual_records) == 1
+        calls[actual_records[0].task_id] += 1
+        return _bfs_rows(actual_records)
+
+    result_dirs = []
+    summaries = []
+    for arm_id in ARM_IDS[:2]:
+        result_dir = tmp_path / arm_id
+        result = evaluate.run_validation_evaluation(
+            protocol_lock_path=tmp_path / "protocol.json",
+            corpus_dir=tmp_path / "corpus",
+            tokenizer_dir=tmp_path / "tokenizer",
+            arm_id=arm_id,
+            checkpoint_dir=tmp_path / arm_id / "checkpoint",
+            output_dir=result_dir,
+            reference_corpus_dirs=(tmp_path / "v1",),
+            candidate_provider=candidates,
+            bfs_provider=bfs,
+        )
+        result_dirs.append(result_dir)
+        summaries.append(result["summary"])
+
+    assert calls == Counter({record.task_id: 1 for record in records})
+    shared = tmp_path / "shared_bfs.json"
+    assert shared.is_file()
+    first_bfs = result_dirs[0] / evaluate.BFS_FILENAME
+    second_bfs = result_dirs[1] / evaluate.BFS_FILENAME
+    assert first_bfs.read_bytes() == second_bfs.read_bytes()
+    assert summaries[0]["artifacts"]["bfs"] == summaries[1]["artifacts"]["bfs"]
+    for result_dir, summary in zip(result_dirs, summaries, strict=True):
+        bfs_path = result_dir / evaluate.BFS_FILENAME
+        assert summary["artifacts"]["bfs"]["sha256"] == evaluate.sha256_file(bfs_path)
+        assert evaluate.read_jsonl_gz(bfs_path) == _bfs_rows(records)
+
+
+def test_held_out_shared_bfs_accepts_only_exact_ceiling_censoring(
+    tmp_path, protocol, records
+):
+    path = tmp_path / evaluate.BFS_FILENAME
+    rows = _censor_last_bfs_row(_bfs_rows(records), budget=protocol["bfs"]["budget"])
+    accepted = evaluate._atomic_shared_bfs(
+        path,
+        records=records,
+        available_functions=object(),
+        bfs=protocol["bfs"],
+        bfs_provider=lambda *_args, **_kwargs: rows,
+    )
+    assert accepted[-1]["termination"] == "budget"
+    assert (
+        evaluate._atomic_shared_bfs(
+            path,
+            records=records,
+            available_functions=object(),
+            bfs=protocol["bfs"],
+            bfs_provider=lambda *_args, **_kwargs: (_ for _ in ()).throw(
+                AssertionError("sealed held-out BFS must be reused")
+            ),
+        )
+        == accepted
+    )
+
+
+def test_validation_cli_accepts_optional_explicit_shared_bfs_artifact(tmp_path):
+    artifact = tmp_path / "validation_bfs.json"
+    base = [
+        "validation",
+        "--protocol-lock",
+        "protocol.json",
+        "--arm-id",
+        ARM_IDS[0],
+        "--checkpoint",
+        "checkpoint",
+        "--output-dir",
+        "result",
+    ]
+    assert evaluate._parser().parse_args(base).validation_bfs_artifact is None
+    assert (
+        evaluate._parser()
+        .parse_args([*base, "--validation-bfs-artifact", str(artifact)])
+        .validation_bfs_artifact
+        == artifact
+    )
+
+
+def test_validation_rejects_nested_shared_bfs_before_work_or_directory_creation(
+    tmp_path,
+):
+    output_dir = tmp_path / "arm-result"
+    calls = Counter()
+
+    def provider(*_args, **_kwargs):
+        calls["provider"] += 1
+        raise AssertionError("path validation must run before providers")
+
+    for artifact in (output_dir, output_dir / "artifacts" / "shared_bfs.json"):
+        with pytest.raises(ValueError, match="outside the arm output directory"):
+            evaluate.run_validation_evaluation(
+                protocol_lock_path=tmp_path / "missing-protocol.json",
+                corpus_dir=tmp_path / "missing-corpus",
+                tokenizer_dir=tmp_path / "missing-tokenizer",
+                arm_id=ARM_IDS[0],
+                checkpoint_dir=tmp_path / "missing-checkpoint",
+                output_dir=output_dir,
+                validation_bfs_artifact_path=artifact,
+                candidate_provider=provider,
+                bfs_provider=provider,
+            )
+
+    assert calls == Counter()
+    assert not output_dir.exists()
+
+
 def test_summary_seal_rejects_mutation(protocol):
     summary = evaluate._seal_summary(
         {
-            "schema_version": 1,
+            "schema_version": evaluate.SCHEMA_VERSION,
             "status": "complete",
             "split": "validation",
             "arm_id": ARM_IDS[0],
@@ -600,7 +1013,7 @@ def test_resealed_summary_rejects_wrong_or_missing_generation_runtime(
     protocol, field, replacement
 ):
     body = {
-        "schema_version": 1,
+        "schema_version": evaluate.SCHEMA_VERSION,
         "status": "complete",
         "split": "validation",
         "arm_id": ARM_IDS[0],

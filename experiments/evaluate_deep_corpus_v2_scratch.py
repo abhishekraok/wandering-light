@@ -16,6 +16,7 @@ validation selection lock.
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
 import math
 import os
@@ -88,7 +89,7 @@ from wandering_light.training.deep_corpus_tokenizer import (
     require_deterministic_python_hash_seed,
 )
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 SUMMARY_DIGEST_FIELD = "evaluation_summary_sha256"
 SUMMARY_FILENAME = "summary.json"
 CANDIDATES_FILENAME = "model_candidates.jsonl.gz"
@@ -99,6 +100,8 @@ TEST_READINESS_FILENAME = "test_readiness.json"
 TEST_SUMMARY_FILENAME = "test_summary.json"
 WANDB_RECEIPT_FILENAME = "wandb_evaluation_receipt.json"
 WANDB_RECEIPT_DIGEST_FIELD = "wandb_receipt_sha256"
+VALIDATION_BFS_ARTIFACT_SCHEMA_VERSION = 2
+VALIDATION_BFS_ARTIFACT_DIGEST_FIELD = "validation_bfs_artifact_sha256"
 DEFAULT_CORPUS_DIR = Path("wandering_light/training/data/deep_corpus_v2")
 DEFAULT_TOKENIZER_DIR = Path("wandering_light/training/tokenizers/deep_corpus_v2")
 
@@ -144,6 +147,22 @@ def _write_json_atomic_exclusive(path: Path, value: Mapping[str, Any]) -> None:
         # A same-directory hard link is both atomic and fail-if-present.  Unlike
         # os.replace, two publishers can never overwrite one another's receipt.
         os.link(temporary, path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
+def _write_json_atomic_replace(path: Path, value: Mapping[str, Any]) -> None:
+    """Atomically replace one resumable JSON artifact with a sealed successor."""
+
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.publishing-", dir=path.parent
+    )
+    os.close(descriptor)
+    temporary = Path(temporary_name)
+    try:
+        _write_json(temporary, value)
+        os.replace(temporary, path)
     finally:
         if temporary.exists():
             temporary.unlink()
@@ -850,12 +869,19 @@ def build_arm_summary(
         expected_records=records,
         sample_counts=SAMPLE_PREFIXES,
     )
-    bfs_by_distance = validate_bfs_rows(bfs_rows, records)
+    bfs_by_distance = validate_bfs_rows(
+        bfs_rows,
+        records,
+        allow_budget_censoring=True,
+        budget_ceiling=int(protocol_lock["bfs"]["budget"]),
+    )
     matched = matched_compute_comparison(
         per_task=per_task,
         bfs_rows=bfs_rows,
         records=records,
         sample_counts=SAMPLE_PREFIXES,
+        allow_budget_censoring=True,
+        budget_ceiling=int(protocol_lock["bfs"]["budget"]),
     )
     funnel = _arm_funnel(candidate_rows, arm_id=arm_id, task_ids=task_ids)
     overall = _overall_model_metrics(per_task)
@@ -988,12 +1014,27 @@ def run_validation_evaluation(
     arm_id: str,
     checkpoint_dir: str | Path,
     output_dir: str | Path,
+    validation_bfs_artifact_path: str | Path | None = None,
     reference_corpus_dirs: Sequence[str | Path] = (DEFAULT_REFERENCE_CORPUS_DIR,),
     repo_root: str | Path = REPO_ROOT,
     dry_run: bool = False,
     candidate_provider: CandidateProvider = generate_scratch_candidates,
     bfs_provider: BFSProvider = evaluate_bfs_records,
 ) -> dict[str, Any]:
+    resolved_output_dir = Path(output_dir).resolve()
+    resolved_validation_bfs_artifact = (
+        Path(validation_bfs_artifact_path).resolve()
+        if validation_bfs_artifact_path is not None
+        else resolved_output_dir.parent / "shared_bfs.json"
+    )
+    if resolved_validation_bfs_artifact == resolved_output_dir or (
+        resolved_validation_bfs_artifact.is_relative_to(resolved_output_dir)
+    ):
+        raise ValueError(
+            "Validation BFS artifact must be outside the arm output directory: "
+            f"artifact={resolved_validation_bfs_artifact}, "
+            f"output_dir={resolved_output_dir}"
+        )
     protocol = load_protocol_lock(
         protocol_lock_path, tokenizer_dir=tokenizer_dir, repo_root=repo_root
     )
@@ -1017,27 +1058,29 @@ def run_validation_evaluation(
         "tasks": len(records),
         "checkpoint": checkpoint,
         "verification": verification,
+        "validation_bfs_artifact": str(resolved_validation_bfs_artifact),
     }
     if dry_run:
         return plan
+    functions = basis.as_function_set()
+    bfs_rows = load_or_create_validation_bfs_artifact(
+        resolved_validation_bfs_artifact,
+        protocol_lock=protocol,
+        records=records,
+        available_functions=functions,
+        bfs_provider=bfs_provider,
+    )
     candidates, runtime = candidate_provider(
         records,
         arm_id=arm_id,
         checkpoint=Path(checkpoint_dir).resolve(),
         tokenizer_dir=Path(tokenizer_dir).resolve(),
-        available_functions=basis.as_function_set(),
+        available_functions=functions,
         generation=protocol["generation"],
         progress=True,
     )
-    bfs_rows = bfs_provider(
-        records,
-        available_functions=basis.as_function_set(),
-        budget=protocol["bfs"]["budget"],
-        max_depth=protocol["bfs"]["max_depth"],
-        progress=True,
-    )
     summary, selection = _atomic_arm_result(
-        Path(output_dir),
+        resolved_output_dir,
         split="validation",
         arm_id=arm_id,
         protocol_lock=protocol,
@@ -1654,6 +1697,277 @@ def _load_existing_test_arm(
     return summary, read_jsonl_gz(arm_dir / CANDIDATES_FILENAME)
 
 
+def _validate_shared_bfs_rows(
+    rows: Sequence[Mapping[str, Any]],
+    *,
+    records: Sequence[Any],
+    bfs: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    """Validate a reusable BFS result or ordered prefix against its records."""
+
+    budget = bfs.get("budget")
+    max_depth = bfs.get("max_depth")
+    if type(budget) is not int or budget <= 0:
+        raise ValueError("Frozen BFS budget must be a positive integer")
+    if type(max_depth) is not int or max_depth <= 0:
+        raise ValueError("Frozen BFS max depth must be a positive integer")
+    normalized = canonical_copy(list(rows))
+    if not all(isinstance(row, Mapping) for row in normalized):
+        raise ValueError("Shared BFS rows must be JSON objects")
+    expected_task_ids = [record.task_id for record in records]
+    actual_task_ids = [row.get("task_id") for row in normalized]
+    if actual_task_ids != expected_task_ids:
+        raise ValueError("Shared BFS rows do not match the frozen cohort order")
+    validate_bfs_rows(
+        normalized,
+        records,
+        allow_budget_censoring=True,
+        budget_ceiling=budget,
+    )
+    for row, record in zip(normalized, records, strict=True):
+        if (
+            row.get("split") != record.split
+            or row.get("certified_distance") != record.metadata["certified_distance"]
+            or row.get("root_digest") != record.metadata["root_digest"]
+        ):
+            raise ValueError(
+                f"Shared BFS row identity differs for task {record.task_id}"
+            )
+        executions = row.get("executions")
+        if type(executions) is not int or executions < 0 or executions > budget:
+            raise ValueError(
+                f"Shared BFS executions violate the frozen budget for task "
+                f"{record.task_id}"
+            )
+        success = row.get("success")
+        if type(success) is not bool:
+            raise ValueError(f"Shared BFS success is not boolean for {record.task_id}")
+        if success:
+            solution_length = row.get("solution_length")
+            solution_names = row.get("solution_function_names")
+            certified_distance = record.metadata["certified_distance"]
+            if row.get("termination") != "solved":
+                raise ValueError(
+                    f"Successful shared BFS row did not terminate solved for "
+                    f"{record.task_id}"
+                )
+            if (
+                type(solution_length) is not int
+                or solution_length != certified_distance
+                or not 0 <= solution_length <= max_depth
+                or not isinstance(solution_names, list)
+                or len(solution_names) != solution_length
+            ):
+                raise ValueError(
+                    f"Shared BFS solution length does not equal certified distance "
+                    f"or respect the frozen max depth for {record.task_id}"
+                )
+        if not success and (
+            row.get("termination") != "budget"
+            or executions != budget
+            or row.get("solution_length") is not None
+            or row.get("solution_function_names") != []
+        ):
+            raise ValueError(
+                f"Shared BFS censored row is not an exact ceiling row for "
+                f"{record.task_id}"
+            )
+    return [dict(row) for row in normalized]
+
+
+def _seal_validation_bfs_artifact(body: Mapping[str, Any]) -> dict[str, Any]:
+    value = canonical_copy(dict(body))
+    value[VALIDATION_BFS_ARTIFACT_DIGEST_FIELD] = sha256_json(value)
+    return value
+
+
+def _build_validation_bfs_artifact(
+    *,
+    protocol_lock: Mapping[str, Any],
+    records: Sequence[Any],
+    rows: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    if len(rows) > len(records):
+        raise ValueError("Validation BFS prefix is longer than the frozen cohort")
+    prefix_records = records[: len(rows)]
+    normalized = _validate_shared_bfs_rows(
+        rows,
+        records=prefix_records,
+        bfs=protocol_lock["bfs"],
+    )
+    task_ids = [record.task_id for record in records]
+    status = "complete" if len(normalized) == len(records) else "in_progress"
+    return _seal_validation_bfs_artifact(
+        {
+            "schema_version": VALIDATION_BFS_ARTIFACT_SCHEMA_VERSION,
+            "status": status,
+            "split": "validation",
+            "protocol_lock_sha256": protocol_lock["protocol_lock_sha256"],
+            "cohort_sha256": protocol_lock["cohorts"]["validation"]["cohort_sha256"],
+            "task_ids": task_ids,
+            "completed_task_ids": task_ids[: len(normalized)],
+            "bfs_configuration": canonical_copy(dict(protocol_lock["bfs"])),
+            "rows_sha256": sha256_json(normalized),
+            "rows": normalized,
+        }
+    )
+
+
+def _load_validation_bfs_artifact(
+    path: Path,
+    *,
+    protocol_lock: Mapping[str, Any],
+    records: Sequence[Any],
+) -> tuple[str, list[dict[str, Any]]]:
+    artifact = canonical_copy(_read_json(path, label="validation BFS artifact"))
+    recorded_digest = artifact.pop(VALIDATION_BFS_ARTIFACT_DIGEST_FIELD, None)
+    if recorded_digest != sha256_json(artifact):
+        raise ValueError("Validation BFS artifact changed after it was sealed")
+    expected_fields = {
+        "schema_version",
+        "status",
+        "split",
+        "protocol_lock_sha256",
+        "cohort_sha256",
+        "task_ids",
+        "completed_task_ids",
+        "bfs_configuration",
+        "rows_sha256",
+        "rows",
+    }
+    if set(artifact) != expected_fields:
+        raise ValueError("Validation BFS artifact has an unexpected resumable shape")
+    if (
+        artifact.get("schema_version") != VALIDATION_BFS_ARTIFACT_SCHEMA_VERSION
+        or artifact.get("status") not in {"in_progress", "complete"}
+        or artifact.get("split") != "validation"
+    ):
+        raise ValueError("Validation BFS artifact is not a resumable validation result")
+    if artifact.get("protocol_lock_sha256") != protocol_lock["protocol_lock_sha256"]:
+        raise ValueError("Validation BFS artifact belongs to another protocol")
+    if (
+        artifact.get("cohort_sha256")
+        != protocol_lock["cohorts"]["validation"]["cohort_sha256"]
+    ):
+        raise ValueError("Validation BFS artifact belongs to another cohort")
+    if artifact.get("bfs_configuration") != canonical_copy(dict(protocol_lock["bfs"])):
+        raise ValueError("Validation BFS artifact has another frozen configuration")
+    expected_task_ids = [record.task_id for record in records]
+    if artifact.get("task_ids") != expected_task_ids:
+        raise ValueError("Validation BFS artifact has another frozen task cohort")
+    rows = artifact.get("rows")
+    if not isinstance(rows, list) or artifact.get("rows_sha256") != sha256_json(rows):
+        raise ValueError("Validation BFS artifact row digest is invalid")
+    if len(rows) > len(records):
+        raise ValueError("Validation BFS artifact prefix exceeds the frozen cohort")
+    expected_completed_task_ids = expected_task_ids[: len(rows)]
+    if artifact.get("completed_task_ids") != expected_completed_task_ids:
+        raise ValueError("Validation BFS artifact is not an ordered task prefix")
+    expected_status = "complete" if len(rows) == len(records) else "in_progress"
+    if artifact["status"] != expected_status:
+        raise ValueError("Validation BFS artifact status disagrees with its prefix")
+    normalized = _validate_shared_bfs_rows(
+        rows,
+        records=records[: len(rows)],
+        bfs=protocol_lock["bfs"],
+    )
+    return artifact["status"], normalized
+
+
+def _print_shared_bfs_progress(
+    row: Mapping[str, Any], *, completed: int, tasks: int
+) -> None:
+    print(
+        f"[bfs] {completed}/{tasks} d={row['certified_distance']} "
+        f"termination={row['termination']} executions={int(row['executions']):,} "
+        f"seconds={float(row['seconds']):.1f}",
+        flush=True,
+    )
+
+
+def load_or_create_validation_bfs_artifact(
+    path: str | Path,
+    *,
+    protocol_lock: Mapping[str, Any],
+    records: Sequence[Any],
+    available_functions: Any,
+    bfs_provider: BFSProvider = evaluate_bfs_records,
+) -> list[dict[str, Any]]:
+    """Resume or create the one shared validation BFS artifact task by task."""
+
+    destination = Path(path).resolve()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = destination.with_name(f".{destination.name}.lock")
+    with lock_path.open("a+b") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        try:
+            if destination.exists():
+                status, rows = _load_validation_bfs_artifact(
+                    destination,
+                    protocol_lock=protocol_lock,
+                    records=records,
+                )
+            else:
+                initial = _build_validation_bfs_artifact(
+                    protocol_lock=protocol_lock,
+                    records=records,
+                    rows=[],
+                )
+                try:
+                    _write_json_atomic_exclusive(destination, initial)
+                except FileExistsError:
+                    status, rows = _load_validation_bfs_artifact(
+                        destination,
+                        protocol_lock=protocol_lock,
+                        records=records,
+                    )
+                else:
+                    status, rows = initial["status"], []
+            if status == "complete":
+                return rows
+            if rows:
+                print(
+                    f"[bfs] resuming after {len(rows)}/{len(records)} completed tasks",
+                    flush=True,
+                )
+
+            bfs = protocol_lock["bfs"]
+            for index in range(len(rows), len(records)):
+                produced = list(
+                    bfs_provider(
+                        [records[index]],
+                        available_functions=available_functions,
+                        budget=bfs["budget"],
+                        max_depth=bfs["max_depth"],
+                        progress=False,
+                    )
+                )
+                if len(produced) != 1:
+                    raise ValueError(
+                        "Resumable validation BFS must return one row per task"
+                    )
+                successor = _build_validation_bfs_artifact(
+                    protocol_lock=protocol_lock,
+                    records=records,
+                    rows=[*rows, produced[0]],
+                )
+                _write_json_atomic_replace(destination, successor)
+                status, rows = _load_validation_bfs_artifact(
+                    destination,
+                    protocol_lock=protocol_lock,
+                    records=records,
+                )
+                _print_shared_bfs_progress(
+                    rows[-1], completed=len(rows), tasks=len(records)
+                )
+
+            if status != "complete":
+                raise RuntimeError("Validation BFS artifact did not become complete")
+            return rows
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
 def _atomic_shared_bfs(
     path: Path,
     *,
@@ -1663,9 +1977,11 @@ def _atomic_shared_bfs(
     bfs_provider: BFSProvider,
 ) -> list[dict[str, Any]]:
     if path.exists():
-        rows = read_jsonl_gz(path)
-        validate_bfs_rows(rows, records)
-        return rows
+        return _validate_shared_bfs_rows(
+            read_jsonl_gz(path),
+            records=records,
+            bfs=bfs,
+        )
     temporary = path.with_name(f".{path.name}.building-{os.getpid()}")
     if temporary.exists():
         raise FileExistsError(f"BFS temporary artifact already exists: {temporary}")
@@ -1677,10 +1993,14 @@ def _atomic_shared_bfs(
             max_depth=bfs["max_depth"],
             progress=True,
         )
-        validate_bfs_rows(rows, records)
-        write_jsonl_gz(rows, temporary)
+        normalized = _validate_shared_bfs_rows(rows, records=records, bfs=bfs)
+        write_jsonl_gz(normalized, temporary)
         os.replace(temporary, path)
-        return rows
+        return _validate_shared_bfs_rows(
+            read_jsonl_gz(path),
+            records=records,
+            bfs=bfs,
+        )
     finally:
         if temporary.exists():
             temporary.unlink()
@@ -1954,6 +2274,14 @@ def _parser() -> argparse.ArgumentParser:
     validation.add_argument("--arm-id", choices=ARM_IDS, required=True)
     validation.add_argument("--checkpoint", type=Path, required=True)
     validation.add_argument("--output-dir", type=Path, required=True)
+    validation.add_argument(
+        "--validation-bfs-artifact",
+        type=Path,
+        help=(
+            "resume or create the shared frozen-validation BFS artifact; defaults "
+            "to OUTPUT_DIR/../shared_bfs.json"
+        ),
+    )
     validation.add_argument("--repo-root", type=Path, default=REPO_ROOT)
     validation.add_argument(
         "--reference-corpus-dir",
@@ -2010,6 +2338,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             arm_id=args.arm_id,
             checkpoint_dir=args.checkpoint,
             output_dir=args.output_dir,
+            validation_bfs_artifact_path=args.validation_bfs_artifact,
             reference_corpus_dirs=tuple(
                 args.reference_corpus_dir or (DEFAULT_REFERENCE_CORPUS_DIR,)
             ),

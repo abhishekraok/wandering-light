@@ -474,26 +474,29 @@ def test_source_amendment_copies_study_inputs_and_preserves_generator_binding(
     )
     successor = amended[freeze.PROTOCOL_LOCK_FILENAME]
 
-    assert successor["source_amendment"][
-        "predecessor_protocol_lock_sha256"
-    ] == predecessor["protocol_lock_sha256"]
-    assert successor["source_amendment"][
-        "training_evaluator_sources"
-    ] == training_sources
-    assert successor["corpus"]["generator_source"] == predecessor["corpus"][
-        "generator_source"
-    ]
+    assert (
+        successor["source_amendment"]["predecessor_protocol_lock_sha256"]
+        == predecessor["protocol_lock_sha256"]
+    )
+    assert (
+        successor["source_amendment"]["training_evaluator_sources"] == training_sources
+    )
+    assert (
+        successor["corpus"]["generator_source"]
+        == predecessor["corpus"]["generator_source"]
+    )
     for field in set(predecessor) - {
         "evaluator_sources",
         "protocol_lock_sha256",
     }:
         assert successor[field] == predecessor[field]
-    assert amended[freeze.VALIDATION_COHORT_FILENAME] == artifacts[
-        freeze.VALIDATION_COHORT_FILENAME
-    ]
-    assert amended[freeze.TEST_COHORT_FILENAME] == artifacts[
-        freeze.TEST_COHORT_FILENAME
-    ]
+    assert (
+        amended[freeze.VALIDATION_COHORT_FILENAME]
+        == artifacts[freeze.VALIDATION_COHORT_FILENAME]
+    )
+    assert (
+        amended[freeze.TEST_COHORT_FILENAME] == artifacts[freeze.TEST_COHORT_FILENAME]
+    )
     with pytest.raises(ValueError, match="cannot itself be amended"):
         freeze.build_amended_protocol_artifacts(
             amended,
@@ -517,9 +520,7 @@ def test_source_amendment_copies_study_inputs_and_preserves_generator_binding(
         evaluator_sources=training_sources,
     )
     tampered_amendment = freeze.build_source_amendment(
-        predecessor_protocol_lock_sha256=tampered_predecessor[
-            "protocol_lock_sha256"
-        ],
+        predecessor_protocol_lock_sha256=tampered_predecessor["protocol_lock_sha256"],
         training_evaluator_sources=training_sources,
         successor_evaluator_sources=successor_sources,
         reason="Suppress tokenizer token-type IDs before retrying validation.",
@@ -568,7 +569,10 @@ def test_historical_evaluator_sources_are_validated_from_git_objects(tmp_path):
     predecessor_sources = freeze.build_evaluator_source_identity(
         [source],
         root=repo,
-        metadata={"git_commit": predecessor_commit, "roots": ["experiments/evaluate.py"]},
+        metadata={
+            "git_commit": predecessor_commit,
+            "roots": ["experiments/evaluate.py"],
+        },
     )
     source.write_text("VALUE = 2\n", encoding="utf-8")
     subprocess.run(["git", "-C", str(repo), "commit", "-qam", "successor"], check=True)
@@ -580,14 +584,10 @@ def test_historical_evaluator_sources_are_validated_from_git_objects(tmp_path):
     ).stdout.strip()
 
     assert (
-        freeze._validate_evaluator_sources_from_git(
-            predecessor_sources, repo_root=repo
-        )
+        freeze._validate_evaluator_sources_from_git(predecessor_sources, repo_root=repo)
         == predecessor_sources
     )
-    assert freeze._git_commit_is_ancestor(
-        repo, predecessor_commit, successor_commit
-    )
+    assert freeze._git_commit_is_ancestor(repo, predecessor_commit, successor_commit)
     assert freeze._git_changed_paths(
         repo, predecessor=predecessor_commit, successor=successor_commit
     ) == ("experiments/evaluate.py",)
@@ -595,12 +595,13 @@ def test_historical_evaluator_sources_are_validated_from_git_objects(tmp_path):
     falsely_backdated = freeze.build_evaluator_source_identity(
         [source],
         root=repo,
-        metadata={"git_commit": predecessor_commit, "roots": ["experiments/evaluate.py"]},
+        metadata={
+            "git_commit": predecessor_commit,
+            "roots": ["experiments/evaluate.py"],
+        },
     )
     with pytest.raises(ValueError, match="recorded Git object"):
-        freeze._validate_evaluator_sources_from_git(
-            falsely_backdated, repo_root=repo
-        )
+        freeze._validate_evaluator_sources_from_git(falsely_backdated, repo_root=repo)
 
     added = repo / "experiments" / "new.py"
     added.write_text("VALUE = 3\n", encoding="utf-8")
@@ -667,12 +668,14 @@ def test_source_amendment_freezer_writes_atomic_successor(
     predecessor = artifacts[freeze.PROTOCOL_LOCK_FILENAME]
     assert result["status"] == "written"
     assert result["failure_evidence"] == freeze.SOURCE_AMENDMENT_FAILURE_EVIDENCE
-    assert successor["source_amendment"][
-        "predecessor_protocol_lock_sha256"
-    ] == predecessor["protocol_lock_sha256"]
-    assert successor["source_amendment"][
-        "training_evaluator_sources"
-    ] == predecessor["evaluator_sources"]
+    assert (
+        successor["source_amendment"]["predecessor_protocol_lock_sha256"]
+        == predecessor["protocol_lock_sha256"]
+    )
+    assert (
+        successor["source_amendment"]["training_evaluator_sources"]
+        == predecessor["evaluator_sources"]
+    )
     assert {path.name for path in output.iterdir()} == set(freeze.ARTIFACT_FILENAMES)
 
     predecessor_alias = tmp_path / "predecessor-alias"
@@ -696,6 +699,130 @@ def test_source_amendment_freezer_writes_atomic_successor(
                 "experiments/prepare_deep_corpus_v2.py",
                 "experiments/generate_deep_corpus.py",
             ),
+        )
+
+
+def test_chained_source_amendment_freezer_pins_lineage_and_absence_evidence(
+    tmp_path, artifacts, protocol_inputs, monkeypatch
+):
+    training_lock = artifacts[freeze.PROTOCOL_LOCK_FILENAME]
+    training_sources = training_lock["evaluator_sources"]
+    protocol_inputs["evaluator"].write_text("FIRST = True\n", encoding="utf-8")
+    first_sources = freeze.build_evaluator_source_identity(
+        [
+            protocol_inputs["evaluator"],
+            protocol_inputs["prepare"],
+            protocol_inputs["generator"],
+        ],
+        root=protocol_inputs["repo"],
+        metadata={**training_sources["metadata"], "git_commit": "b" * 40},
+    )
+    first_artifacts = freeze.build_amended_protocol_artifacts(
+        artifacts,
+        successor_evaluator_sources=first_sources,
+        reason="Suppress tokenizer token-type IDs before retrying validation.",
+        changed_source_allowlist=("evaluate.py",),
+    )
+    predecessor_dir = tmp_path / "amended-predecessor"
+    freeze.write_protocol_artifacts(
+        predecessor_dir,
+        first_artifacts,
+        repo_root=protocol_inputs["repo"],
+        tokenizer_dir=protocol_inputs["tokenizer"],
+        records=None,
+    )
+
+    protocol_inputs["evaluator"].write_text("SECOND = True\n", encoding="utf-8")
+    monkeypatch.setattr(freeze, "assert_clean_source_tree", lambda *_, **__: "c" * 40)
+    monkeypatch.setattr(
+        freeze,
+        "_validate_evaluator_sources_from_git",
+        lambda identity, **_kwargs: freeze.validate_evaluator_source_identity(identity),
+    )
+    compared_commits = {}
+
+    def changed_paths(_root, *, predecessor, successor):
+        compared_commits.update(predecessor=predecessor, successor=successor)
+        return ("evaluate.py",)
+
+    monkeypatch.setattr(freeze, "_git_changed_paths", changed_paths)
+    result_dir = tmp_path / "validation" / "scratch-10m"
+    evidence_paths = {
+        "failed_result_artifact": result_dir,
+        "failed_selection_lock_artifact": result_dir / "selection_lock.json",
+        "failed_wandb_receipt_artifact": (result_dir / "wandb_evaluation_receipt.json"),
+        "test_opening_ledger": tmp_path / "test" / "test_opening_ledger.json",
+    }
+    common = {
+        "predecessor_protocol_dir": predecessor_dir,
+        "tokenizer_dir": protocol_inputs["tokenizer"],
+        "reason": "Reuse completed validation BFS without changing its semantics.",
+        "changed_source_allowlist": ("evaluate.py",),
+        **evidence_paths,
+        "candidate_tasks": 96,
+        "generated_candidates": 6_144,
+        "bfs_rows": 96,
+        "bfs_budget_termination_task_id": (
+            "5ce61393fdc9d8461d00f7094a38ce145eb4ca2ad27079c07b7eda5954b7e46a"
+        ),
+        "bfs_budget_termination_distance": 8,
+        "bfs_budget_termination_executions": 20_000_000,
+        "test_access_count": 0,
+        "repo_root": protocol_inputs["repo"],
+        "evaluator_source_roots": ("evaluate.py",),
+        "evaluator_static_files": (
+            "experiments/prepare_deep_corpus_v2.py",
+            "experiments/generate_deep_corpus.py",
+        ),
+    }
+    output = tmp_path / "chained-successor"
+    result = freeze.freeze_protocol_chained_source_amendment(
+        output_dir=output,
+        **common,
+    )
+
+    successor = json.loads(
+        (output / freeze.PROTOCOL_LOCK_FILENAME).read_text(encoding="utf-8")
+    )
+    first = first_artifacts[freeze.PROTOCOL_LOCK_FILENAME]
+    assert result["status"] == "written"
+    assert compared_commits == {"predecessor": "b" * 40, "successor": "c" * 40}
+    assert result["failure_evidence"] == (
+        freeze.CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE
+    )
+    assert result["checked_absent_paths"] == {
+        label: str(path) for label, path in evidence_paths.items()
+    }
+    assert successor["source_amendment"]["schema_version"] == 2
+    assert (
+        successor["source_amendment"]["predecessor_protocol_lock_sha256"]
+        == first["protocol_lock_sha256"]
+    )
+    assert (
+        successor["source_amendment"]["predecessor_evaluator_sources"]
+        == first["evaluator_sources"]
+    )
+    assert (
+        successor["source_amendment"]["predecessor_source_amendment"]
+        == first["source_amendment"]
+    )
+    for field in ("corpus", "cohorts", "generation", "bfs", "tokenizer"):
+        assert successor[field] == first[field]
+    assert {path.name for path in output.iterdir()} == set(freeze.ARTIFACT_FILENAMES)
+
+    with pytest.raises(ValueError, match="BFS rows=96"):
+        freeze.freeze_protocol_chained_source_amendment(
+            output_dir=tmp_path / "wrong-count-successor",
+            **{**common, "bfs_rows": 95},
+        )
+    evidence_paths["failed_selection_lock_artifact"].parent.mkdir(
+        parents=True, exist_ok=True
+    )
+    evidence_paths["failed_selection_lock_artifact"].write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="refuses existing validation/test"):
+        freeze.freeze_protocol_chained_source_amendment(
+            output_dir=tmp_path / "existing-output-successor",
+            **common,
         )
 
 

@@ -37,10 +37,12 @@ from experiments.prepare_deep_corpus_v2 import (
     SEED as ISSUE_54_SEED,
 )
 from wandering_light.evals.deep_corpus_protocol import (
+    CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     COHORT_SIZE,
     SAMPLE_PREFIXES,
     SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     build_bfs_settings,
+    build_chained_source_amendment,
     build_evaluator_source_identity,
     build_frozen_cohorts,
     build_generation_config,
@@ -49,6 +51,7 @@ from wandering_light.evals.deep_corpus_protocol import (
     build_tokenizer_identity,
     canonical_copy,
     file_identity,
+    protocol_training_evaluator_sources,
     sha256_json,
     validate_evaluator_source_identity,
     validate_frozen_cohorts,
@@ -553,11 +556,9 @@ def _validate_preserved_generator_source_binding(
     predecessor_commit = training_evaluator_sources.get("metadata", {}).get(
         "git_commit"
     )
-    if (
-        binding.get("protocol_git_commit") != predecessor_commit
-        or binding.get("evaluator_source_sha256")
-        != training_evaluator_sources.get("source_sha256")
-    ):
+    if binding.get("protocol_git_commit") != predecessor_commit or binding.get(
+        "evaluator_source_sha256"
+    ) != training_evaluator_sources.get("source_sha256"):
         raise ValueError("Predecessor generator-source binding changed source identity")
     generator_commit = binding.get("git_commit")
     if (
@@ -583,8 +584,7 @@ def _validate_preserved_generator_source_binding(
             "sha256": row.get("sha256"),
         }
         if (
-            _git_file_identity(repo_root, generator_commit, row["path"])
-            != identity
+            _git_file_identity(repo_root, generator_commit, row["path"]) != identity
             or frozen_by_path.get(row["path"]) != identity
         ):
             raise ValueError("Predecessor generator-source file binding changed")
@@ -816,9 +816,7 @@ def build_amended_protocol_artifacts(
 
     if set(predecessor_artifacts) != set(ARTIFACT_FILENAMES):
         raise ValueError("Predecessor protocol artifact set is incomplete")
-    predecessor = validate_protocol_lock(
-        predecessor_artifacts[PROTOCOL_LOCK_FILENAME]
-    )
+    predecessor = validate_protocol_lock(predecessor_artifacts[PROTOCOL_LOCK_FILENAME])
     if "source_amendment" in predecessor:
         raise ValueError("A protocol source amendment cannot itself be amended")
     if (
@@ -852,7 +850,76 @@ def build_amended_protocol_artifacts(
         "protocol_lock_sha256",
     }:
         if successor[field] != predecessor[field]:
-            raise RuntimeError(f"Source amendment changed frozen protocol field: {field}")
+            raise RuntimeError(
+                f"Source amendment changed frozen protocol field: {field}"
+            )
+    validate_protocol_lock(successor)
+    return {
+        PROTOCOL_LOCK_FILENAME: successor,
+        VALIDATION_COHORT_FILENAME: canonical_copy(
+            predecessor_artifacts[VALIDATION_COHORT_FILENAME]
+        ),
+        TEST_COHORT_FILENAME: canonical_copy(
+            predecessor_artifacts[TEST_COHORT_FILENAME]
+        ),
+    }
+
+
+def build_chained_amended_protocol_artifacts(
+    predecessor_artifacts: Mapping[str, Any],
+    *,
+    successor_evaluator_sources: Mapping[str, Any],
+    reason: str,
+    changed_source_allowlist: Sequence[str],
+) -> dict[str, Any]:
+    """Build a v2 source-only successor around an amended predecessor."""
+
+    if set(predecessor_artifacts) != set(ARTIFACT_FILENAMES):
+        raise ValueError("Predecessor protocol artifact set is incomplete")
+    predecessor = validate_protocol_lock(predecessor_artifacts[PROTOCOL_LOCK_FILENAME])
+    predecessor_amendment = predecessor.get("source_amendment")
+    if not isinstance(predecessor_amendment, Mapping):
+        raise ValueError("A chained source amendment requires an amended predecessor")
+    if (
+        canonical_copy(predecessor_artifacts[VALIDATION_COHORT_FILENAME])
+        != predecessor["cohorts"]["validation"]
+        or canonical_copy(predecessor_artifacts[TEST_COHORT_FILENAME])
+        != predecessor["cohorts"]["test"]
+    ):
+        raise ValueError("Predecessor cohort artifacts differ from its protocol lock")
+    amendment = build_chained_source_amendment(
+        predecessor_protocol_lock_sha256=predecessor["protocol_lock_sha256"],
+        predecessor_evaluator_sources=predecessor["evaluator_sources"],
+        predecessor_source_amendment=predecessor_amendment,
+        successor_evaluator_sources=successor_evaluator_sources,
+        reason=reason,
+        changed_source_allowlist=changed_source_allowlist,
+        failure_evidence=CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+    )
+    successor = build_protocol_lock(
+        corpus_identity=predecessor["corpus"],
+        cohorts=predecessor["cohorts"],
+        generation=predecessor["generation"],
+        bfs=predecessor["bfs"],
+        tokenizer=predecessor["tokenizer"],
+        evaluator_sources=successor_evaluator_sources,
+        source_amendment=amendment,
+    )
+    if set(successor) != set(predecessor):
+        raise RuntimeError("Chained source amendment changed the protocol field set")
+    for field in set(predecessor) - {
+        "evaluator_sources",
+        "protocol_lock_sha256",
+        "source_amendment",
+    }:
+        if successor[field] != predecessor[field]:
+            raise RuntimeError(
+                f"Chained source amendment changed frozen protocol field: {field}"
+            )
+    if protocol_training_evaluator_sources(successor) != (
+        protocol_training_evaluator_sources(predecessor)
+    ):
+        raise RuntimeError("Chained source amendment changed training-source lineage")
     validate_protocol_lock(successor)
     return {
         PROTOCOL_LOCK_FILENAME: successor,
@@ -982,7 +1049,9 @@ def freeze_protocol_source_amendment(
     if test_ledger.name != "test_opening_ledger.json":
         raise ValueError("Test-opening evidence must name test_opening_ledger.json")
     if os.path.lexists(os.fspath(failed_result)):
-        raise ValueError("Source amendment refuses an existing evaluation result artifact")
+        raise ValueError(
+            "Source amendment refuses an existing evaluation result artifact"
+        )
     if os.path.lexists(os.fspath(test_ledger)):
         raise ValueError("Source amendment refuses an existing test-opening ledger")
     for evidence_path in (failed_result, test_ledger):
@@ -1067,12 +1136,8 @@ def freeze_protocol_source_amendment(
         "status": status,
         "output_dir": str(output),
         "protocol_lock_sha256": lock["protocol_lock_sha256"],
-        "predecessor_protocol_lock_sha256": predecessor[
-            "protocol_lock_sha256"
-        ],
-        "source_amendment_sha256": lock["source_amendment"][
-            "source_amendment_sha256"
-        ],
+        "predecessor_protocol_lock_sha256": predecessor["protocol_lock_sha256"],
+        "source_amendment_sha256": lock["source_amendment"]["source_amendment_sha256"],
         "evaluator_source_sha256": lock["evaluator_sources"]["source_sha256"],
         "git_commit": commit,
         "changed_source_allowlist": list(changed_source_allowlist),
@@ -1080,6 +1145,220 @@ def freeze_protocol_source_amendment(
         "checked_absent_paths": {
             "failed_result_artifact": str(failed_result),
             "test_opening_ledger": str(test_ledger),
+        },
+        "wrote_files": list(ARTIFACT_FILENAMES) if not dry_run else [],
+    }
+
+
+def freeze_protocol_chained_source_amendment(
+    *,
+    predecessor_protocol_dir: str | Path,
+    tokenizer_dir: str | Path,
+    output_dir: str | Path,
+    reason: str,
+    changed_source_allowlist: Sequence[str],
+    failed_result_artifact: str | Path,
+    failed_selection_lock_artifact: str | Path,
+    failed_wandb_receipt_artifact: str | Path,
+    test_opening_ledger: str | Path,
+    candidate_tasks: int,
+    generated_candidates: int,
+    bfs_rows: int,
+    bfs_budget_termination_task_id: str,
+    bfs_budget_termination_distance: int,
+    bfs_budget_termination_executions: int,
+    test_access_count: int,
+    repo_root: str | Path = REPO_ROOT,
+    dry_run: bool = False,
+    evaluator_source_roots: Sequence[str | Path] = EVALUATOR_SOURCE_ROOTS,
+    evaluator_static_files: Sequence[str | Path] = EVALUATOR_STATIC_FILES,
+    extra_evaluator_sources: Sequence[str | Path] = (),
+) -> dict[str, Any]:
+    """Freeze a v2 source-only successor after the completed-work failure."""
+
+    expected = CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE
+    termination = expected["bfs_budget_terminations"][0]
+    integer_evidence = {
+        "candidate tasks": (candidate_tasks, expected["candidate_tasks"]),
+        "generated candidates": (
+            generated_candidates,
+            expected["generated_candidates"],
+        ),
+        "BFS rows": (bfs_rows, expected["bfs_rows"]),
+        "BFS budget-termination distance": (
+            bfs_budget_termination_distance,
+            termination["certified_distance"],
+        ),
+        "BFS budget-termination executions": (
+            bfs_budget_termination_executions,
+            termination["executions"],
+        ),
+        "test access count": (test_access_count, expected["test_access_count"]),
+    }
+    for label, (actual, expected_value) in integer_evidence.items():
+        if type(actual) is not int or actual != expected_value:
+            raise ValueError(
+                f"Chained source amendment requires {label}={expected_value}"
+            )
+    if bfs_budget_termination_task_id != termination["task_id"]:
+        raise ValueError(
+            "Chained source amendment requires the exact BFS budget-termination task ID"
+        )
+
+    root = Path(repo_root).resolve()
+    predecessor_dir = Path(predecessor_protocol_dir).resolve()
+    tokenizer = Path(tokenizer_dir).resolve()
+    output = _fresh_output_destination(output_dir)
+    absent_paths = {
+        "failed_result_artifact": _absolute_path_without_resolving(
+            failed_result_artifact
+        ),
+        "failed_selection_lock_artifact": _absolute_path_without_resolving(
+            failed_selection_lock_artifact
+        ),
+        "failed_wandb_receipt_artifact": _absolute_path_without_resolving(
+            failed_wandb_receipt_artifact
+        ),
+        "test_opening_ledger": _absolute_path_without_resolving(test_opening_ledger),
+    }
+    expected_names = {
+        "failed_selection_lock_artifact": "selection_lock.json",
+        "failed_wandb_receipt_artifact": "wandb_evaluation_receipt.json",
+        "test_opening_ledger": "test_opening_ledger.json",
+    }
+    for label, expected_name in expected_names.items():
+        path = absent_paths[label]
+        if path.name != expected_name:
+            raise ValueError(
+                f"Chained source-amendment evidence must name {expected_name}"
+            )
+    result_path = absent_paths["failed_result_artifact"]
+    if any(
+        absent_paths[label].parent != result_path
+        for label in (
+            "failed_selection_lock_artifact",
+            "failed_wandb_receipt_artifact",
+        )
+    ):
+        raise ValueError("Failed validation artifacts must be inside its output path")
+    if len(set(absent_paths.values())) != len(absent_paths):
+        raise ValueError("Chained source-amendment evidence paths must be distinct")
+    appeared = [
+        str(path) for path in absent_paths.values() if os.path.lexists(os.fspath(path))
+    ]
+    if appeared:
+        raise ValueError(
+            "Chained source amendment refuses existing validation/test artifacts: "
+            + ", ".join(appeared)
+        )
+
+    if not predecessor_dir.is_dir():
+        raise FileNotFoundError(
+            f"Predecessor protocol directory is missing: {predecessor_dir}"
+        )
+    for immutable_dir in (predecessor_dir, tokenizer):
+        if _is_within(output, immutable_dir) or _is_within(immutable_dir, output):
+            raise ValueError(
+                "Successor output must be separate from predecessor/tokenizer inputs"
+            )
+    if {path.name for path in predecessor_dir.iterdir()} != set(ARTIFACT_FILENAMES):
+        raise ValueError("Predecessor protocol directory contains non-protocol outputs")
+    for path in absent_paths.values():
+        if _is_within(path, output) or _is_within(output, path):
+            raise ValueError("Failure-evidence paths must be outside successor output")
+
+    commit = assert_clean_source_tree(
+        root,
+        ignored_paths=(predecessor_dir, tokenizer, output),
+    )
+    predecessor_artifacts = _load_artifact_directory(predecessor_dir)
+    predecessor = validate_protocol_lock(
+        predecessor_artifacts[PROTOCOL_LOCK_FILENAME],
+        tokenizer_root=tokenizer,
+    )
+    if "source_amendment" not in predecessor:
+        raise ValueError("A chained source amendment requires an amended predecessor")
+    predecessor_sources = _validate_evaluator_sources_from_git(
+        predecessor["evaluator_sources"], repo_root=root
+    )
+    training_sources = _validate_evaluator_sources_from_git(
+        protocol_training_evaluator_sources(predecessor), repo_root=root
+    )
+    predecessor_commit = predecessor_sources["metadata"]["git_commit"]
+    if predecessor_commit == commit or not _git_commit_is_ancestor(
+        root, predecessor_commit, commit
+    ):
+        raise ValueError("Immediate predecessor commit is not a successor ancestor")
+    changed_paths = _git_changed_paths(
+        root,
+        predecessor=predecessor_commit,
+        successor=commit,
+    )
+    if tuple(changed_source_allowlist) != changed_paths:
+        raise ValueError(
+            "Changed-source allowlist must exactly match committed immediate-"
+            "predecessor diff"
+        )
+
+    source_roots = (
+        *(Path(path).as_posix() for path in evaluator_source_roots),
+        *(Path(path).as_posix() for path in extra_evaluator_sources),
+    )
+    if predecessor_sources["metadata"].get("roots") != list(source_roots):
+        raise ValueError("Chained source amendment changed evaluator dependency roots")
+    source_paths = evaluator_source_paths(
+        root,
+        source_roots=evaluator_source_roots,
+        static_files=evaluator_static_files,
+        extra_roots=extra_evaluator_sources,
+    )
+    successor_sources = build_evaluator_source_identity(
+        source_paths,
+        root=root,
+        metadata={**predecessor_sources["metadata"], "git_commit": commit},
+    )
+    _validate_evaluator_sources_from_git(successor_sources, repo_root=root)
+    _validate_preserved_generator_source_binding(
+        predecessor,
+        repo_root=root,
+        training_evaluator_sources=training_sources,
+    )
+    if (
+        predecessor["bfs"]["budget"] != termination["executions"]
+        or predecessor["bfs"]["max_depth"] < termination["certified_distance"]
+    ):
+        raise ValueError("Chained failure evidence differs from frozen BFS semantics")
+
+    artifacts = build_chained_amended_protocol_artifacts(
+        predecessor_artifacts,
+        successor_evaluator_sources=successor_sources,
+        reason=reason,
+        changed_source_allowlist=changed_source_allowlist,
+    )
+    lock = artifacts[PROTOCOL_LOCK_FILENAME]
+    status = "dry-run"
+    if not dry_run:
+        write_protocol_artifacts(
+            output,
+            artifacts,
+            repo_root=root,
+            tokenizer_dir=tokenizer,
+            records=None,
+            must_remain_absent=tuple(absent_paths.values()),
+        )
+        status = "written"
+    return {
+        "status": status,
+        "output_dir": str(output),
+        "protocol_lock_sha256": lock["protocol_lock_sha256"],
+        "predecessor_protocol_lock_sha256": predecessor["protocol_lock_sha256"],
+        "source_amendment_sha256": lock["source_amendment"]["source_amendment_sha256"],
+        "evaluator_source_sha256": lock["evaluator_sources"]["source_sha256"],
+        "git_commit": commit,
+        "changed_source_allowlist": list(changed_source_allowlist),
+        "failure_evidence": canonical_copy(CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE),
+        "checked_absent_paths": {
+            label: str(path) for label, path in absent_paths.items()
         },
         "wrote_files": list(ARTIFACT_FILENAMES) if not dry_run else [],
     }
@@ -1214,10 +1493,16 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
             "transitive source lock (repeatable)"
         ),
     )
-    parser.add_argument(
+    amendment_mode = parser.add_mutually_exclusive_group()
+    amendment_mode.add_argument(
         "--amend-predecessor-protocol-dir",
         type=Path,
         help="Existing three-file protocol directory to amend source-only",
+    )
+    amendment_mode.add_argument(
+        "--chain-amend-predecessor-protocol-dir",
+        type=Path,
+        help="Already amended three-file protocol directory to amend source-only",
     )
     parser.add_argument("--amendment-reason")
     parser.add_argument(
@@ -1236,15 +1521,71 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         type=Path,
         help="Expected test-opening ledger path; it must not exist",
     )
+    parser.add_argument("--failed-selection-lock-artifact", type=Path)
+    parser.add_argument("--failed-wandb-receipt-artifact", type=Path)
     parser.add_argument("--scored-tasks", type=int)
     parser.add_argument("--generated-candidates", type=int)
+    parser.add_argument("--candidate-tasks", type=int)
+    parser.add_argument("--bfs-rows", type=int)
+    parser.add_argument("--bfs-budget-termination-task-id")
+    parser.add_argument("--bfs-budget-termination-distance", type=int)
+    parser.add_argument("--bfs-budget-termination-executions", type=int)
+    parser.add_argument("--test-access-count", type=int)
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
-    if args.amend_predecessor_protocol_dir is not None:
+    if args.chain_amend_predecessor_protocol_dir is not None:
+        required = {
+            "amendment reason": args.amendment_reason,
+            "failed result artifact": args.failed_result_artifact,
+            "failed selection-lock artifact": args.failed_selection_lock_artifact,
+            "failed W&B receipt artifact": args.failed_wandb_receipt_artifact,
+            "test-opening ledger": args.test_opening_ledger,
+            "candidate tasks": args.candidate_tasks,
+            "generated candidates": args.generated_candidates,
+            "BFS rows": args.bfs_rows,
+            "BFS budget-termination task ID": (args.bfs_budget_termination_task_id),
+            "BFS budget-termination distance": (args.bfs_budget_termination_distance),
+            "BFS budget-termination executions": (
+                args.bfs_budget_termination_executions
+            ),
+            "test access count": args.test_access_count,
+        }
+        missing = [label for label, value in required.items() if value is None]
+        if not args.changed_source:
+            missing.append("changed source")
+        if missing:
+            raise ValueError(
+                "Chained protocol source amendment is missing required inputs: "
+                + ", ".join(missing)
+            )
+        if args.scored_tasks is not None:
+            raise ValueError("--scored-tasks applies only to the v1 source amendment")
+        result = freeze_protocol_chained_source_amendment(
+            predecessor_protocol_dir=args.chain_amend_predecessor_protocol_dir,
+            tokenizer_dir=args.tokenizer_dir,
+            output_dir=args.output_dir,
+            reason=args.amendment_reason,
+            changed_source_allowlist=tuple(args.changed_source),
+            failed_result_artifact=args.failed_result_artifact,
+            failed_selection_lock_artifact=args.failed_selection_lock_artifact,
+            failed_wandb_receipt_artifact=args.failed_wandb_receipt_artifact,
+            test_opening_ledger=args.test_opening_ledger,
+            candidate_tasks=args.candidate_tasks,
+            generated_candidates=args.generated_candidates,
+            bfs_rows=args.bfs_rows,
+            bfs_budget_termination_task_id=(args.bfs_budget_termination_task_id),
+            bfs_budget_termination_distance=(args.bfs_budget_termination_distance),
+            bfs_budget_termination_executions=(args.bfs_budget_termination_executions),
+            test_access_count=args.test_access_count,
+            repo_root=args.repo_root,
+            dry_run=args.dry_run,
+            extra_evaluator_sources=tuple(args.evaluator_source),
+        )
+    elif args.amend_predecessor_protocol_dir is not None:
         required = {
             "amendment reason": args.amendment_reason,
             "failed result artifact": args.failed_result_artifact,
@@ -1259,6 +1600,23 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ValueError(
                 "Protocol source amendment is missing required inputs: "
                 + ", ".join(missing)
+            )
+        if any(
+            value is not None
+            for value in (
+                args.failed_selection_lock_artifact,
+                args.failed_wandb_receipt_artifact,
+                args.candidate_tasks,
+                args.bfs_rows,
+                args.bfs_budget_termination_task_id,
+                args.bfs_budget_termination_distance,
+                args.bfs_budget_termination_executions,
+                args.test_access_count,
+            )
+        ):
+            raise ValueError(
+                "Chained amendment evidence requires "
+                "--chain-amend-predecessor-protocol-dir"
             )
         result = freeze_protocol_source_amendment(
             predecessor_protocol_dir=args.amend_predecessor_protocol_dir,
@@ -1275,16 +1633,27 @@ def main(argv: Sequence[str] | None = None) -> int:
             extra_evaluator_sources=tuple(args.evaluator_source),
         )
     else:
-        if any(
-            value is not None
-            for value in (
-                args.amendment_reason,
-                args.failed_result_artifact,
-                args.test_opening_ledger,
-                args.scored_tasks,
-                args.generated_candidates,
+        if (
+            any(
+                value is not None
+                for value in (
+                    args.amendment_reason,
+                    args.failed_result_artifact,
+                    args.test_opening_ledger,
+                    args.scored_tasks,
+                    args.generated_candidates,
+                    args.failed_selection_lock_artifact,
+                    args.failed_wandb_receipt_artifact,
+                    args.candidate_tasks,
+                    args.bfs_rows,
+                    args.bfs_budget_termination_task_id,
+                    args.bfs_budget_termination_distance,
+                    args.bfs_budget_termination_executions,
+                    args.test_access_count,
+                )
             )
-        ) or args.changed_source:
+            or args.changed_source
+        ):
             raise ValueError(
                 "Amendment-only arguments require --amend-predecessor-protocol-dir"
             )

@@ -70,7 +70,7 @@ from wandering_light.training.deep_corpus_tokenizer import (
     validate_frozen_tokenizer,
 )
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 REPORT_JSON_FILENAME = "report.json"
 REPORT_MARKDOWN_FILENAME = "report.md"
 REPORT_DIGEST_FIELD = "report_sha256"
@@ -173,9 +173,7 @@ def _study_arm_scope(
     return active, deferred
 
 
-def _deferred_arm_report(
-    arm_id: str, *, arm_gate: Mapping[str, Any]
-) -> dict[str, Any]:
+def _deferred_arm_report(arm_id: str, *, arm_gate: Mapping[str, Any]) -> dict[str, Any]:
     """Preserve why an arm was deferred and the non-destructive ways it can fit."""
 
     if arm_gate.get("launch_allowed") is not False:
@@ -676,6 +674,89 @@ def _distance_aggregate(
     }
 
 
+def _validate_capped_bfs_summary(bfs: Mapping[str, Any]) -> None:
+    """Cross-check every reported BFS aggregate for the fixed 96-task cohort."""
+
+    try:
+        overall = bfs["overall"]
+        censoring = bfs["censoring"]
+        termination_counts = bfs["termination_counts"]
+        by_distance = bfs["by_certified_distance"]
+    except (KeyError, TypeError) as error:
+        raise ValueError("Evaluation lacks complete capped-BFS aggregates") from error
+    if set(by_distance) != {str(distance) for distance in DISTANCES}:
+        raise ValueError("Capped-BFS summary must contain distances 1 through 8")
+    total_tasks = 0
+    total_solved = 0
+    total_censored = 0
+    total_executions = 0
+    aggregate_terminations: dict[str, int] = {}
+    for distance in DISTANCES:
+        row = by_distance[str(distance)]
+        try:
+            tasks = int(row["tasks"])
+            solved = int(row["solved"])
+            censored = int(row["censored"])
+            executions = int(row["total_executions"])
+            row_terminations = row["termination_counts"]
+            solve_rate = float(row["solve_rate"])
+            censoring_rate = float(row["censoring_rate"])
+            mean_executions = float(row["mean_executions"])
+        except (KeyError, TypeError, ValueError) as error:
+            raise ValueError(
+                f"Distance-{distance} capped-BFS aggregate is incomplete"
+            ) from error
+        expected_terminations = {
+            key: value
+            for key, value in (("budget", censored), ("solved", solved))
+            if value
+        }
+        if (
+            tasks != 12
+            or solved < 0
+            or censored < 0
+            or solved + censored != tasks
+            or executions < 0
+            or row_terminations != expected_terminations
+            or not math.isclose(solve_rate, solved / tasks)
+            or not math.isclose(censoring_rate, censored / tasks)
+            or not math.isclose(mean_executions, executions / tasks)
+        ):
+            raise ValueError(
+                f"Distance-{distance} capped-BFS counts or rates are inconsistent"
+            )
+        total_tasks += tasks
+        total_solved += solved
+        total_censored += censored
+        total_executions += executions
+        for termination, count in row_terminations.items():
+            aggregate_terminations[termination] = aggregate_terminations.get(
+                termination, 0
+            ) + int(count)
+    try:
+        overall_solve_rate = float(overall["solve_rate"])
+        overall_mean_executions = float(overall["mean_basis_executions"])
+        overall_censoring_rate = float(censoring["censoring_rate"])
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError("Overall capped-BFS aggregate is incomplete") from error
+    if (
+        total_tasks != 96
+        or overall.get("tasks") != total_tasks
+        or overall.get("solved") != total_solved
+        or overall.get("total_basis_executions") != total_executions
+        or not math.isclose(overall_solve_rate, total_solved / total_tasks)
+        or not math.isclose(overall_mean_executions, total_executions / total_tasks)
+        or censoring.get("enabled") is not True
+        or type(censoring.get("budget_ceiling")) is not int
+        or censoring["budget_ceiling"] <= 0
+        or censoring.get("tasks") != total_tasks
+        or censoring.get("censored") != total_censored
+        or not math.isclose(overall_censoring_rate, total_censored / total_tasks)
+        or termination_counts != dict(sorted(aggregate_terminations.items()))
+    ):
+        raise ValueError("Overall capped-BFS counts or rates are inconsistent")
+
+
 def _evaluation_view(
     *,
     model: Mapping[str, Any],
@@ -694,6 +775,7 @@ def _evaluation_view(
         str(value) for value in SAMPLE_PREFIXES
     }:
         raise ValueError("Evaluation is missing candidate funnels at 1/8/64")
+    _validate_capped_bfs_summary(bfs)
     return {
         "solve_at_k": canonical_copy(model["overall"]),
         "by_certified_distance_at_64": canonical_copy(
@@ -790,20 +872,85 @@ def _decision_rules(
     kill = {}
     for arm_id in active:
         try:
-            matched = test[arm_id]["matched_compute"]["7-8"]["matched"]["64"]
+            evaluation = test[arm_id]
+            group = evaluation["matched_compute"]["7-8"]
+            matched = group["matched"]["64"]
             cheaper = matched["model_cheaper_than_bfs_at_equal_or_higher_solve_count"]
         except (KeyError, TypeError) as error:
             raise ValueError(
                 "Evaluation lacks the frozen distance-7/8 kill metric"
             ) from error
-        if type(cheaper) is not bool:
-            raise ValueError("Distance-7/8 cheaper-than-BFS flag is invalid")
+        try:
+            bfs = evaluation["bfs"]
+            censoring = bfs["censoring"]
+            distance_rows = [
+                bfs["by_certified_distance"][str(distance)] for distance in (7, 8)
+            ]
+            observation = group["bfs_observation"]
+            expected_tasks = sum(int(row["tasks"]) for row in distance_rows)
+            expected_hits = sum(int(row["solved"]) for row in distance_rows)
+            expected_censored = sum(int(row["censored"]) for row in distance_rows)
+            total_censored = sum(
+                int(row["censored"]) for row in bfs["by_certified_distance"].values()
+            )
+            solved_target = int(matched["solved"])
+            covered = matched["bfs_equal_solve_rate_covered"]
+            inconclusive = matched["equal_solve_rate_inconclusive"]
+            reason = matched["equal_solve_rate_inconclusive_reason"]
+        except (KeyError, TypeError, ValueError) as error:
+            raise ValueError(
+                "Evaluation lacks explicit capped-BFS coverage evidence"
+            ) from error
+        if (
+            censoring.get("enabled") is not True
+            or type(censoring.get("budget_ceiling")) is not int
+            or censoring["budget_ceiling"] <= 0
+            or censoring.get("tasks") != bfs["overall"].get("tasks")
+            or censoring.get("censored") != total_censored
+            or observation
+            != {
+                "tasks": expected_tasks,
+                "observed_hits": expected_hits,
+                "censored": expected_censored,
+                "budget_ceiling": censoring["budget_ceiling"],
+            }
+            or matched.get("bfs_observed_hit_count") != expected_hits
+            or matched.get("bfs_censored_task_count") != expected_censored
+        ):
+            raise ValueError("Distance-7/8 capped-BFS evidence is inconsistent")
+        if type(covered) is not bool or type(inconclusive) is not bool:
+            raise ValueError("Distance-7/8 equal-solve coverage flag is invalid")
+        expected_covered = solved_target <= expected_hits
+        if covered != expected_covered or inconclusive != (not covered):
+            raise ValueError("Distance-7/8 equal-solve coverage contradicts BFS hits")
+        if inconclusive:
+            if (
+                cheaper is not None
+                or not isinstance(reason, str)
+                or not reason.strip()
+                or reason != reason.strip()
+            ):
+                raise ValueError(
+                    "An inconclusive distance-7/8 comparison needs a reason and no "
+                    "binary verdict"
+                )
+            status = "inconclusive"
+            triggered = None
+        else:
+            if type(cheaper) is not bool or reason is not None:
+                raise ValueError("Distance-7/8 cheaper-than-BFS flag is invalid")
+            status = "not-triggered" if cheaper else "triggered"
+            triggered = not cheaper
         kill[arm_id] = {
-            "triggered": not cheaper,
+            "status": status,
+            "triggered": triggered,
             "model_cheaper_than_bfs_at_equal_or_higher_solve_count": cheaper,
+            "equal_solve_rate_inconclusive": inconclusive,
+            "equal_solve_rate_inconclusive_reason": reason,
             "rule": (
-                "trigger when the model is not cheaper than exhaustive search at "
-                "equal or higher solve count on distance 7-8"
+                "trigger when the model is not cheaper than the frozen capped BFS "
+                "curve at equal or higher solve count on distance 7-8; report "
+                "inconclusive when observed BFS hits do not cover the model solve count"
             ),
         }
     capacity_mismatch = None
@@ -872,15 +1019,18 @@ def build_markdown(report: Mapping[str, Any]) -> str:
     active_arm_ids = tuple(scope.get("active_arm_ids", ARM_IDS))
     deferred_arm_ids = tuple(scope.get("deferred_arm_ids", ()))
     protocol = report["protocol"]
-    source_amendment_sections = (
-        (
-            "Training and feasibility remain pinned to the predecessor evaluator "
-            "sources; validation, held-out evaluation, and this report use the "
-            "sealed evaluation-only source amendment.",
+    source_amendment_sections: tuple[str, ...] = ()
+    if protocol.get("source_amendment_sha256") is not None:
+        source_amendment_sections = (
+            "Training and feasibility remain pinned to the original evaluator source "
+            f"identity `{protocol['training_evaluator_source_sha256']}`. The immediate "
+            "predecessor evaluation source identity is "
+            f"`{protocol['predecessor_evaluator_source_sha256']}` and the current "
+            f"identity is `{protocol['evaluator_source_sha256']}`. The sealed "
+            f"schema-v{protocol['source_amendment_schema_version']} source-amendment "
+            f"lineage records reason: {protocol['source_amendment_reason']} Failure "
+            f"boundary: `{protocol['source_amendment_failure_boundary']}`.",
         )
-        if protocol.get("source_amendment_sha256") is not None
-        else ()
-    )
 
     provenance_rows = []
     for arm_id in active_arm_ids:
@@ -1013,6 +1163,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                 "all",
                 overall_bfs["solved"],
                 overall_bfs["tasks"],
+                shared_bfs.get("censoring", {}).get("censored", 0),
                 overall_bfs["total_basis_executions"],
                 overall_bfs["mean_basis_executions"],
             ]
@@ -1025,6 +1176,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                     distance,
                     row["solved"],
                     row["tasks"],
+                    row.get("censored", 0),
                     row["total_executions"],
                     row["mean_executions"],
                 ]
@@ -1063,11 +1215,24 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                                 "bfs_uniform_budget_at_or_below_model_mean_execution_spend"
                             ],
                             row["bfs_solved_at_model_mean_execution_spend"],
-                            row["bfs_uniform_budget_for_at_least_model_solve_count"],
+                            (
+                                "n/a"
+                                if row[
+                                    "bfs_uniform_budget_for_at_least_model_solve_count"
+                                ]
+                                is None
+                                else row[
+                                    "bfs_uniform_budget_for_at_least_model_solve_count"
+                                ]
+                            ),
                             "n/a" if ratio is None else f"{float(ratio):.3f}x",
-                            row[
-                                "model_cheaper_than_bfs_at_equal_or_higher_solve_count"
-                            ],
+                            (
+                                "inconclusive"
+                                if row.get("equal_solve_rate_inconclusive", False)
+                                else row[
+                                    "model_cheaper_than_bfs_at_equal_or_higher_solve_count"
+                                ]
+                            ),
                         ]
                     )
     funnel_rows = []
@@ -1125,7 +1290,12 @@ def build_markdown(report: Mapping[str, Any]) -> str:
         for row in tokenizer["excluded_rows"]
     ]
     kill_lines = "\n".join(
-        f"- `{arm_id}`: **{'triggered' if value['triggered'] else 'not triggered'}**"
+        f"- `{arm_id}`: **{value['status']}**"
+        + (
+            f" ({value['equal_solve_rate_inconclusive_reason']})"
+            if value["status"] == "inconclusive"
+            else ""
+        )
         for arm_id, value in decisions["distance_7_8_kill_criterion"].items()
     )
     primary_headers = [
@@ -1275,13 +1445,14 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                     ],
                     solve_rows,
                 ),
-                "## Exhaustive BFS measured cost\n\n"
+                "## Frozen capped BFS measured cost\n\n"
                 + _table(
                     [
                         "split",
                         "distance",
                         "solved",
                         "tasks",
+                        "right-censored",
                         "total executions",
                         "mean executions",
                     ],
@@ -1337,16 +1508,24 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                 "random-init arms use basis names as atomic tokens, a non-negligible "
                 "unparseable rate is treated as a tokenizer or prompt-format bug before "
                 "drawing a capacity or data-scale conclusion.",
-                "## Predeclared decisions\n\n"
+                "## Decision-rule outcomes\n\n"
                 + decisions["long_distance_statement"]
                 + "\n\n"
                 + kill_lines
                 + "\n\n"
                 + capacity_statement,
+                "The target-distance and equal-solve criteria were predeclared. "
+                "Exact-ceiling right-censor handling was introduced by the sealed "
+                "post-failure evaluator amendment after the original exhaustive label "
+                "proved incompatible with the frozen 20M safety ceiling; it does not "
+                "change cohort membership, generation, or BFS settings.",
                 decisions["capacity_caveat"],
                 decisions["seed_caveat"],
-                "The 20M BFS budget is a per-task safety ceiling, not measured cost; all "
-                "cost claims above use observed row executions and the frozen matched curve.",
+                "The 20M BFS budget is a per-task safety ceiling, not an exhaustive-cost "
+                "claim. Exact-ceiling terminations are reported as right-censored; all "
+                "cost claims above use observed row executions and the frozen capped curve. "
+                "An equal-solve verdict is inconclusive when observed BFS hits do not cover "
+                "the model solve count.",
             ]
         )
         + "\n"
@@ -1413,9 +1592,7 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
         raise ValueError(
             "Validation results do not match the feasibility-authorized arms"
         )
-    validation_bfs = canonical_copy(
-        validation[active_arm_ids[0]]["summary"]["bfs"]
-    )
+    validation_bfs = canonical_copy(validation[active_arm_ids[0]]["summary"]["bfs"])
     if any(
         canonical_copy(validation[arm_id]["summary"]["bfs"]) != validation_bfs
         for arm_id in active_arm_ids[1:]
@@ -1536,6 +1713,18 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
     }
     training_evaluator_sources = protocol_training_evaluator_sources(protocol)
     source_amendment = protocol.get("source_amendment")
+    predecessor_evaluator_sources = (
+        source_amendment.get(
+            "predecessor_evaluator_sources", training_evaluator_sources
+        )
+        if isinstance(source_amendment, Mapping)
+        else protocol["evaluator_sources"]
+    )
+    source_amendment_evidence = (
+        source_amendment.get("failure_evidence", {})
+        if isinstance(source_amendment, Mapping)
+        else {}
+    )
     body: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "status": "complete",
@@ -1560,8 +1749,16 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
             "training_evaluator_source_sha256": training_evaluator_sources[
                 "source_sha256"
             ],
+            "predecessor_evaluator_source_sha256": predecessor_evaluator_sources[
+                "source_sha256"
+            ],
             "source_amendment_sha256": (
                 source_amendment["source_amendment_sha256"]
+                if isinstance(source_amendment, Mapping)
+                else None
+            ),
+            "source_amendment_schema_version": (
+                source_amendment["schema_version"]
                 if isinstance(source_amendment, Mapping)
                 else None
             ),
@@ -1569,6 +1766,21 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
                 source_amendment["predecessor_protocol_lock_sha256"]
                 if isinstance(source_amendment, Mapping)
                 else None
+            ),
+            "predecessor_source_amendment_sha256": (
+                source_amendment.get("predecessor_source_amendment", {}).get(
+                    "source_amendment_sha256"
+                )
+                if isinstance(source_amendment, Mapping)
+                else None
+            ),
+            "source_amendment_reason": (
+                source_amendment["reason"]
+                if isinstance(source_amendment, Mapping)
+                else None
+            ),
+            "source_amendment_failure_boundary": source_amendment_evidence.get(
+                "failure_boundary"
             ),
         },
         "corpus": {

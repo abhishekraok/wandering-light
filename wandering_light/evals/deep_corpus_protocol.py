@@ -80,6 +80,38 @@ SOURCE_AMENDMENT_FAILURE_EVIDENCE = {
     "test_access_count": 0,
 }
 
+CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE = {
+    "split": "validation",
+    "stage": "validation-summary-build",
+    "failure_boundary": (
+        "after-candidate-generation-and-bfs-before-atomic-result-publication"
+    ),
+    "exception": {
+        "type": "ValueError",
+        "reason": "non-exhaustive-bfs-budget-termination",
+    },
+    "candidate_generation_complete": True,
+    "candidate_tasks": 96,
+    "generated_candidates": 6_144,
+    "bfs_complete": True,
+    "bfs_rows": 96,
+    "bfs_budget_terminations": [
+        {
+            "task_id": (
+                "5ce61393fdc9d8461d00f7094a38ce145eb4ca2ad27079c07b7eda5954b7e46a"
+            ),
+            "certified_distance": 8,
+            "termination": "budget",
+            "executions": 20_000_000,
+        }
+    ],
+    "result_artifact_absent": True,
+    "selection_lock_artifact_absent": True,
+    "wandb_receipt_artifact_absent": True,
+    "test_access_count": 0,
+    "test_opening_ledger_absent": True,
+}
+
 
 def canonical_json(value: Any) -> str:
     """Serialize one JSON value canonically, rejecting NaN and non-JSON data."""
@@ -337,19 +369,64 @@ def _evaluator_files_by_path(identity: Mapping[str, Any]) -> dict[str, dict[str,
     return {row["path"]: row for row in identity["files"]}
 
 
+def _validate_evaluator_source_transition(
+    predecessor_sources: Mapping[str, Any],
+    successor_sources: Mapping[str, Any],
+    *,
+    changed_source_allowlist: Sequence[str],
+) -> None:
+    predecessor_metadata = predecessor_sources.get("metadata", {})
+    successor_metadata = successor_sources.get("metadata", {})
+    predecessor_commit = predecessor_metadata.get("git_commit")
+    successor_commit = successor_metadata.get("git_commit")
+    if (
+        not isinstance(predecessor_commit, str)
+        or _GIT_COMMIT_RE.fullmatch(predecessor_commit) is None
+        or not isinstance(successor_commit, str)
+        or _GIT_COMMIT_RE.fullmatch(successor_commit) is None
+        or predecessor_commit == successor_commit
+    ):
+        raise ValueError(
+            "protocol source amendment requires distinct predecessor/successor commits"
+        )
+    if {
+        key: value for key, value in predecessor_metadata.items() if key != "git_commit"
+    } != {
+        key: value for key, value in successor_metadata.items() if key != "git_commit"
+    }:
+        raise ValueError("protocol source amendment changed evaluator-source metadata")
+
+    predecessor_files = _evaluator_files_by_path(predecessor_sources)
+    successor_files = _evaluator_files_by_path(successor_sources)
+    if set(predecessor_files) != set(successor_files):
+        raise ValueError("protocol source amendment changed the evaluator file set")
+    changed_evaluator_files = {
+        path
+        for path in predecessor_files
+        if predecessor_files[path] != successor_files[path]
+    }
+    if not changed_evaluator_files:
+        raise ValueError("protocol source amendment did not change evaluator sources")
+    if not changed_evaluator_files.issubset(changed_source_allowlist):
+        raise ValueError(
+            "changed evaluator source is absent from the amendment allowlist"
+        )
+
+
 def validate_source_amendment(
     amendment: Mapping[str, Any],
     *,
     successor_evaluator_sources: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Validate the one permitted post-training evaluator-source amendment."""
+    """Validate a post-training, pre-test evaluator-source amendment."""
 
     normalized = _verify_seal(
         amendment,
         "source_amendment_sha256",
         label="protocol source amendment",
     )
-    expected_fields = {
+    schema_version = normalized.get("schema_version")
+    common_fields = {
         "schema_version",
         "predecessor_protocol_lock_sha256",
         "training_evaluator_sources",
@@ -358,63 +435,71 @@ def validate_source_amendment(
         "failure_evidence",
         "source_amendment_sha256",
     }
+    if schema_version == 1:
+        expected_fields = common_fields
+    elif schema_version == 2:
+        expected_fields = {
+            *common_fields,
+            "predecessor_evaluator_sources",
+            "predecessor_source_amendment",
+        }
+    else:
+        raise ValueError("unsupported protocol source-amendment schema")
     if set(normalized) != expected_fields:
         raise ValueError("protocol source amendment has unexpected fields")
-    if normalized.get("schema_version") != PROTOCOL_SCHEMA_VERSION:
-        raise ValueError("unsupported protocol source-amendment schema")
     _require_sha256(
         normalized.get("predecessor_protocol_lock_sha256"),
         label="predecessor protocol lock digest",
     )
     reason = normalized.get("reason")
     if not isinstance(reason, str) or not reason.strip() or reason != reason.strip():
-        raise ValueError("protocol source-amendment reason must be nonempty and trimmed")
+        raise ValueError(
+            "protocol source-amendment reason must be nonempty and trimmed"
+        )
     allowlist = _normalize_changed_source_allowlist(
         normalized.get("changed_source_allowlist", [])
     )
-    if normalized.get("failure_evidence") != SOURCE_AMENDMENT_FAILURE_EVIDENCE:
-        raise ValueError(
-            "protocol source amendment requires zero-output pre-forward failure evidence"
-        )
-
     training_sources = validate_evaluator_source_identity(
         normalized.get("training_evaluator_sources", {})
     )
     successor_sources = validate_evaluator_source_identity(successor_evaluator_sources)
-    training_metadata = training_sources.get("metadata", {})
-    successor_metadata = successor_sources.get("metadata", {})
-    training_commit = training_metadata.get("git_commit")
-    successor_commit = successor_metadata.get("git_commit")
-    if (
-        not isinstance(training_commit, str)
-        or _GIT_COMMIT_RE.fullmatch(training_commit) is None
-        or not isinstance(successor_commit, str)
-        or _GIT_COMMIT_RE.fullmatch(successor_commit) is None
-        or training_commit == successor_commit
-    ):
-        raise ValueError(
-            "protocol source amendment requires distinct predecessor/successor commits"
+    if schema_version == 1:
+        if normalized.get("failure_evidence") != SOURCE_AMENDMENT_FAILURE_EVIDENCE:
+            raise ValueError(
+                "protocol source amendment requires zero-output pre-forward failure "
+                "evidence"
+            )
+        predecessor_sources = training_sources
+    else:
+        if (
+            normalized.get("failure_evidence")
+            != CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE
+        ):
+            raise ValueError(
+                "chained protocol source amendment requires exact completed-work "
+                "pre-test failure evidence"
+            )
+        predecessor_sources = validate_evaluator_source_identity(
+            normalized.get("predecessor_evaluator_sources", {})
         )
-    if {
-        key: value for key, value in training_metadata.items() if key != "git_commit"
-    } != {
-        key: value for key, value in successor_metadata.items() if key != "git_commit"
-    }:
-        raise ValueError("protocol source amendment changed evaluator-source metadata")
+        predecessor_amendment = validate_source_amendment(
+            normalized.get("predecessor_source_amendment", {}),
+            successor_evaluator_sources=predecessor_sources,
+        )
+        if predecessor_amendment["schema_version"] != 1:
+            raise ValueError(
+                "v2 protocol source amendment requires the pinned v1 predecessor"
+            )
+        if predecessor_amendment["training_evaluator_sources"] != training_sources:
+            raise ValueError(
+                "chained protocol source amendment changed training-source lineage"
+            )
 
-    training_files = _evaluator_files_by_path(training_sources)
-    successor_files = _evaluator_files_by_path(successor_sources)
-    if set(training_files) != set(successor_files):
-        raise ValueError("protocol source amendment changed the evaluator file set")
-    changed_evaluator_files = {
-        path
-        for path in training_files
-        if training_files[path] != successor_files[path]
-    }
-    if not changed_evaluator_files:
-        raise ValueError("protocol source amendment did not change evaluator sources")
-    if not changed_evaluator_files.issubset(allowlist):
-        raise ValueError("changed evaluator source is absent from the amendment allowlist")
+    _validate_evaluator_source_transition(
+        predecessor_sources,
+        successor_sources,
+        changed_source_allowlist=allowlist,
+    )
     return normalized
 
 
@@ -433,6 +518,50 @@ def build_source_amendment(
             "predecessor_protocol_lock_sha256": predecessor_protocol_lock_sha256,
             "training_evaluator_sources": canonical_copy(
                 dict(training_evaluator_sources)
+            ),
+            "reason": reason,
+            "changed_source_allowlist": list(changed_source_allowlist),
+            "failure_evidence": canonical_copy(dict(failure_evidence)),
+        },
+        "source_amendment_sha256",
+    )
+    return validate_source_amendment(
+        amendment,
+        successor_evaluator_sources=successor_evaluator_sources,
+    )
+
+
+def build_chained_source_amendment(
+    *,
+    predecessor_protocol_lock_sha256: str,
+    predecessor_evaluator_sources: Mapping[str, Any],
+    predecessor_source_amendment: Mapping[str, Any],
+    successor_evaluator_sources: Mapping[str, Any],
+    reason: str,
+    changed_source_allowlist: Sequence[str],
+    failure_evidence: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Seal a v2 source-only amendment around an already amended predecessor."""
+
+    normalized_predecessor_sources = validate_evaluator_source_identity(
+        predecessor_evaluator_sources
+    )
+    normalized_predecessor_amendment = validate_source_amendment(
+        predecessor_source_amendment,
+        successor_evaluator_sources=normalized_predecessor_sources,
+    )
+    amendment = _seal(
+        {
+            "schema_version": 2,
+            "predecessor_protocol_lock_sha256": predecessor_protocol_lock_sha256,
+            "training_evaluator_sources": canonical_copy(
+                normalized_predecessor_amendment["training_evaluator_sources"]
+            ),
+            "predecessor_evaluator_sources": canonical_copy(
+                normalized_predecessor_sources
+            ),
+            "predecessor_source_amendment": canonical_copy(
+                normalized_predecessor_amendment
             ),
             "reason": reason,
             "changed_source_allowlist": list(changed_source_allowlist),
@@ -939,9 +1068,17 @@ def validate_protocol_lock(
             for key, value in normalized.items()
             if key not in {"protocol_lock_sha256", "source_amendment"}
         }
-        reconstructed_predecessor["evaluator_sources"] = canonical_copy(
-            training_sources
-        )
+        if amendment["schema_version"] == 1:
+            reconstructed_predecessor["evaluator_sources"] = canonical_copy(
+                training_sources
+            )
+        else:
+            reconstructed_predecessor["evaluator_sources"] = canonical_copy(
+                amendment["predecessor_evaluator_sources"]
+            )
+            reconstructed_predecessor["source_amendment"] = canonical_copy(
+                amendment["predecessor_source_amendment"]
+            )
         if sha256_json(reconstructed_predecessor) != amendment.get(
             "predecessor_protocol_lock_sha256"
         ):
@@ -953,12 +1090,11 @@ def validate_protocol_lock(
             raise ValueError(
                 "amended protocol corpus has no preserved generator-source binding"
             )
-        if (
-            generator_source.get("protocol_git_commit")
-            != training_sources["metadata"].get("git_commit")
-            or generator_source.get("evaluator_source_sha256")
-            != training_sources.get("source_sha256")
-        ):
+        if generator_source.get("protocol_git_commit") != training_sources[
+            "metadata"
+        ].get("git_commit") or generator_source.get(
+            "evaluator_source_sha256"
+        ) != training_sources.get("source_sha256"):
             raise ValueError(
                 "amended protocol corpus generator is not bound to training sources"
             )
@@ -1449,8 +1585,7 @@ def new_test_opening_ledger(
         "test_access_count": 0,
         "revision": 0,
         "arms": {
-            arm_id: {"status": "pending", "result_identity": None}
-            for arm_id in active
+            arm_id: {"status": "pending", "result_identity": None} for arm_id in active
         },
         "shared_bfs_identity": None,
         "history": [{"revision": 0, "event": "prepared"}],
@@ -1498,9 +1633,7 @@ def validate_test_opening_ledger(
     deferred = _deferred_arm_ids(active)
     if normalized.get("deferred_arm_ids") != list(deferred):
         raise ValueError("test-opening ledger has the wrong deferred arms")
-    if active_arm_ids is not None and active != validate_active_arm_ids(
-        active_arm_ids
-    ):
+    if active_arm_ids is not None and active != validate_active_arm_ids(active_arm_ids):
         raise ValueError("test-opening ledger active arms changed")
     if deferred_arm_ids is not None and tuple(deferred_arm_ids) != deferred:
         raise ValueError("test-opening ledger deferred arms changed")
@@ -1661,7 +1794,9 @@ def complete_test_opening(
     if current["status"] != "in_progress":
         raise ValueError("only an in-progress test opening can complete")
     if any(arm["status"] != "complete" for arm in current["arms"].values()):
-        raise ValueError("all active test arms must complete before sealing the opening")
+        raise ValueError(
+            "all active test arms must complete before sealing the opening"
+        )
     return _ledger_transition(
         current,
         event="test-opening-complete",
@@ -1752,6 +1887,7 @@ __all__ = [
     "ALLOWED_ARM_IDS",
     "ARM_IDS",
     "CERTIFIED_DISTANCES",
+    "CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE",
     "COHORT_SIZE",
     "PARSE_FAILURE_CATEGORIES",
     "PROTOCOL_SCHEMA_VERSION",
@@ -1763,6 +1899,7 @@ __all__ = [
     "aggregate_candidate_funnels",
     "begin_test_opening",
     "build_bfs_settings",
+    "build_chained_source_amendment",
     "build_evaluator_source_identity",
     "build_frozen_cohorts",
     "build_generation_config",

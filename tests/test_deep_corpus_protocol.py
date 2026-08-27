@@ -8,11 +8,13 @@ from wandering_light.basis_dataset import BasisTaskRecord
 from wandering_light.evals.deep_corpus_protocol import (
     ALLOWED_ARM_IDS,
     ARM_IDS,
+    CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     COHORT_SIZE,
     SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     aggregate_candidate_funnels,
     begin_test_opening,
     build_bfs_settings,
+    build_chained_source_amendment,
     build_evaluator_source_identity,
     build_frozen_cohorts,
     build_generation_config,
@@ -286,9 +288,7 @@ def test_protocol_source_amendment_preserves_training_sources_and_legacy_fallbac
         tokenizer=values["tokenizer"],
         evaluator_sources=training_sources,
     )
-    values["evaluator_file"].write_text(
-        "def evaluate(): return 2\n", encoding="utf-8"
-    )
+    values["evaluator_file"].write_text("def evaluate(): return 2\n", encoding="utf-8")
     successor_sources = build_evaluator_source_identity(
         [values["evaluator_file"]],
         root=values["root"],
@@ -312,12 +312,15 @@ def test_protocol_source_amendment_preserves_training_sources_and_legacy_fallbac
         source_amendment=amendment,
     )
 
-    assert validate_protocol_lock(
-        successor,
-        records=corpus_records,
-        tokenizer_root=values["root"],
-        evaluator_root=values["root"],
-    ) == successor
+    assert (
+        validate_protocol_lock(
+            successor,
+            records=corpus_records,
+            tokenizer_root=values["root"],
+            evaluator_root=values["root"],
+        )
+        == successor
+    )
     assert protocol_training_evaluator_sources(predecessor) == training_sources
     assert protocol_training_evaluator_sources(successor) == training_sources
     assert successor["evaluator_sources"] == successor_sources
@@ -406,6 +409,126 @@ def test_protocol_source_amendment_preserves_training_sources_and_legacy_fallbac
         )
         with pytest.raises(ValueError, match="does not reconstruct its predecessor"):
             validate_protocol_lock(changed_lock)
+
+
+def test_v2_source_amendment_pins_immediate_predecessor_and_frozen_inputs(
+    protocol_components, corpus_records
+):
+    values = protocol_components
+    metadata = {"git_commit": "a" * 40, "roots": ["evaluate.py"]}
+    training_sources = build_evaluator_source_identity(
+        [values["evaluator_file"]], root=values["root"], metadata=metadata
+    )
+    original = build_protocol_lock(
+        corpus_identity={
+            "manifest_digest": "sha256:" + "2" * 64,
+            "generator_source": {
+                "protocol_git_commit": metadata["git_commit"],
+                "evaluator_source_sha256": training_sources["source_sha256"],
+            },
+        },
+        cohorts=values["cohorts"],
+        generation=values["generation"],
+        bfs=values["bfs"],
+        tokenizer=values["tokenizer"],
+        evaluator_sources=training_sources,
+    )
+    values["evaluator_file"].write_text("def evaluate(): return 2\n", encoding="utf-8")
+    first_sources = build_evaluator_source_identity(
+        [values["evaluator_file"]],
+        root=values["root"],
+        metadata={**metadata, "git_commit": "b" * 40},
+    )
+    first_amendment = build_source_amendment(
+        predecessor_protocol_lock_sha256=original["protocol_lock_sha256"],
+        training_evaluator_sources=training_sources,
+        successor_evaluator_sources=first_sources,
+        reason="Suppress tokenizer token-type IDs before retrying validation.",
+        changed_source_allowlist=["evaluate.py"],
+        failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+    )
+    first = build_protocol_lock(
+        corpus_identity=original["corpus"],
+        cohorts=original["cohorts"],
+        generation=original["generation"],
+        bfs=original["bfs"],
+        tokenizer=original["tokenizer"],
+        evaluator_sources=first_sources,
+        source_amendment=first_amendment,
+    )
+
+    values["evaluator_file"].write_text("def evaluate(): return 3\n", encoding="utf-8")
+    second_sources = build_evaluator_source_identity(
+        [values["evaluator_file"]],
+        root=values["root"],
+        metadata={**metadata, "git_commit": "c" * 40},
+    )
+    second_amendment = build_chained_source_amendment(
+        predecessor_protocol_lock_sha256=first["protocol_lock_sha256"],
+        predecessor_evaluator_sources=first_sources,
+        predecessor_source_amendment=first_amendment,
+        successor_evaluator_sources=second_sources,
+        reason="Reuse the completed validation BFS without changing its semantics.",
+        changed_source_allowlist=["evaluate.py"],
+        failure_evidence=CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+    )
+    second = build_protocol_lock(
+        corpus_identity=first["corpus"],
+        cohorts=first["cohorts"],
+        generation=first["generation"],
+        bfs=first["bfs"],
+        tokenizer=first["tokenizer"],
+        evaluator_sources=second_sources,
+        source_amendment=second_amendment,
+    )
+
+    assert (
+        validate_protocol_lock(
+            second,
+            records=corpus_records,
+            tokenizer_root=values["root"],
+            evaluator_root=values["root"],
+        )
+        == second
+    )
+    assert second_amendment["schema_version"] == 2
+    assert (
+        second_amendment["predecessor_protocol_lock_sha256"]
+        == first["protocol_lock_sha256"]
+    )
+    assert second_amendment["predecessor_evaluator_sources"] == first_sources
+    assert second_amendment["predecessor_source_amendment"] == first_amendment
+    assert protocol_training_evaluator_sources(second) == training_sources
+    for field in ("corpus", "cohorts", "generation", "bfs", "tokenizer"):
+        assert second[field] == first[field]
+
+    changed_bfs = build_bfs_settings(budget=19_000_000)
+    semantic_change = build_protocol_lock(
+        corpus_identity=second["corpus"],
+        cohorts=second["cohorts"],
+        generation=second["generation"],
+        bfs=changed_bfs,
+        tokenizer=second["tokenizer"],
+        evaluator_sources=second_sources,
+        source_amendment=second_amendment,
+    )
+    with pytest.raises(ValueError, match="does not reconstruct its predecessor"):
+        validate_protocol_lock(semantic_change)
+
+    bad_evidence = {
+        **CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+        "generated_candidates": 6_143,
+    }
+    with pytest.raises(ValueError, match="exact completed-work"):
+        build_chained_source_amendment(
+            predecessor_protocol_lock_sha256=first["protocol_lock_sha256"],
+            predecessor_evaluator_sources=first_sources,
+            predecessor_source_amendment=first_amendment,
+            successor_evaluator_sources=second_sources,
+            reason="Reuse the completed validation BFS without changing its semantics.",
+            changed_source_allowlist=["evaluate.py"],
+            failure_evidence=bad_evidence,
+        )
 
 
 def test_protocol_source_amendment_rejects_output_evidence_and_unlisted_change(
@@ -682,12 +805,15 @@ def test_active_arms_and_selection_locks_accept_only_ordered_frozen_subsets(
 
     active = ARM_IDS[:2]
     assert validate_active_arm_ids(active) == active
-    assert tuple(
-        validate_selection_locks(
-            selection_locks[:2],
-            protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+    assert (
+        tuple(
+            validate_selection_locks(
+                selection_locks[:2],
+                protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+            )
         )
-    ) == active
+        == active
+    )
     for invalid in ((), (ARM_IDS[1], ARM_IDS[0]), (ARM_IDS[0], ARM_IDS[0])):
         with pytest.raises(ValueError):
             validate_active_arm_ids(invalid)
@@ -853,18 +979,19 @@ def test_two_active_arm_ledger_seals_deferred_arm_and_feasibility(
             arm_id=arm_id,
             result_identity={"sha256": f"active-{index}"},
         )
-    complete = complete_test_opening(
-        opened, shared_bfs_identity={"sha256": "shared"}
-    )
+    complete = complete_test_opening(opened, shared_bfs_identity={"sha256": "shared"})
     assert complete["status"] == "complete"
-    assert validate_test_opening_ledger(
-        complete,
-        protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
-        selection_locks=selection_locks[:2],
-        active_arm_ids=active,
-        deferred_arm_ids=deferred,
-        feasibility_artifact_digest=feasibility_digest,
-    ) == complete
+    assert (
+        validate_test_opening_ledger(
+            complete,
+            protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+            selection_locks=selection_locks[:2],
+            active_arm_ids=active,
+            deferred_arm_ids=deferred,
+            feasibility_artifact_digest=feasibility_digest,
+        )
+        == complete
+    )
 
     tampered = deepcopy(complete)
     tampered["active_arm_ids"].append(deferred[0])

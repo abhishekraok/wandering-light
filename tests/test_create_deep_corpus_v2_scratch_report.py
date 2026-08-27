@@ -11,14 +11,19 @@ import pytest
 from experiments import create_deep_corpus_v2_scratch_report as report
 from experiments import publish_deep_corpus_v2_scratch_report as publisher
 from experiments.evaluate_deep_corpus_v2_scratch import (
+    SCHEMA_VERSION as EVALUATION_SCHEMA_VERSION,
+)
+from experiments.evaluate_deep_corpus_v2_scratch import (
     SUMMARY_DIGEST_FIELD,
     _seal_summary,
     _training_outcomes,
 )
 from wandering_light.evals.deep_corpus_protocol import (
     ARM_IDS,
+    CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     begin_test_opening,
+    build_chained_source_amendment,
     build_selection_lock,
     build_source_amendment,
     complete_test_opening,
@@ -165,8 +170,19 @@ def _evaluation_summary(
                     "bfs_total_executions_for_at_least_model_solve_count": 0,
                     "bfs_to_model_total_execution_ratio": None,
                     "model_cheaper_than_bfs_at_equal_or_higher_solve_count": False,
+                    "bfs_equal_solve_rate_covered": True,
+                    "bfs_observed_hit_count": 24,
+                    "bfs_censored_task_count": 0,
+                    "equal_solve_rate_inconclusive": False,
+                    "equal_solve_rate_inconclusive_reason": None,
                 }
-            }
+            },
+            "bfs_observation": {
+                "tasks": 24,
+                "observed_hits": 24,
+                "censored": 0,
+                "budget_ceiling": 20_000_000,
+            },
         }
     }
     bfs_by_distance = {
@@ -174,6 +190,9 @@ def _evaluation_summary(
             "tasks": 12,
             "solved": 12,
             "solve_rate": 1.0,
+            "censored": 0,
+            "censoring_rate": 0.0,
+            "termination_counts": {"solved": 12},
             "total_executions": 1_200,
             "mean_executions": 100.0,
         }
@@ -181,7 +200,7 @@ def _evaluation_summary(
     }
     return _seal_summary(
         {
-            "schema_version": 1,
+            "schema_version": EVALUATION_SCHEMA_VERSION,
             "status": "complete",
             "split": split,
             "arm_id": arm_id,
@@ -213,6 +232,14 @@ def _evaluation_summary(
                     "mean_basis_executions": 100.0,
                 },
                 "by_certified_distance": bfs_by_distance,
+                "termination_counts": {"solved": 96},
+                "censoring": {
+                    "enabled": True,
+                    "budget_ceiling": 20_000_000,
+                    "tasks": 96,
+                    "censored": 0,
+                    "censoring_rate": 0.0,
+                },
             },
             "matched_compute": matched,
             "training": training,
@@ -245,9 +272,7 @@ def _study_identity(arm_id: str, architecture: dict, protocol: dict) -> str:
             "optimizer": protocol["optimizer"],
             "precision": protocol["precision"],
             "gradient_checkpointing": protocol["gradient_checkpointing"],
-            "gradient_checkpointing_kwargs": protocol[
-                "gradient_checkpointing_kwargs"
-            ],
+            "gradient_checkpointing_kwargs": protocol["gradient_checkpointing_kwargs"],
             "cublas_workspace_config": protocol["cublas_workspace_config"],
             "pythonhashseed": protocol["pythonhashseed"],
             "initialization_seed": 54_001,
@@ -277,9 +302,7 @@ def _training_manifest(
         "precision": "bf16",
         "gradient_checkpointing": arm_id == "smollm2-360m-scratch",
         "gradient_checkpointing_kwargs": (
-            {"use_reentrant": False}
-            if arm_id == "smollm2-360m-scratch"
-            else {}
+            {"use_reentrant": False} if arm_id == "smollm2-360m-scratch" else {}
         ),
         "cublas_workspace_config": ":16:8",
         "pythonhashseed": "0",
@@ -378,7 +401,7 @@ def _training_manifest(
 
 def _receipt(arm_id: str, split: str, summary: dict) -> dict:
     return {
-        "schema_version": 1,
+        "schema_version": EVALUATION_SCHEMA_VERSION,
         "status": "published",
         "split": split,
         "arm_id": arm_id,
@@ -657,7 +680,7 @@ def study(tmp_path, monkeypatch):
         json.dumps(ledger), encoding="utf-8"
     )
     combined_body = {
-        "schema_version": 1,
+        "schema_version": EVALUATION_SCHEMA_VERSION,
         "status": "complete",
         "split": "test",
         "protocol_lock_sha256": PROTOCOL_DIGEST,
@@ -755,7 +778,15 @@ def test_builds_atomic_deterministic_complete_json_and_markdown(study):
         == first_report["protocol"]["evaluator_source_sha256"]
     )
     assert first_report["protocol"]["source_amendment_sha256"] is None
+    assert first_report["protocol"]["source_amendment_schema_version"] is None
     assert first_report["protocol"]["predecessor_protocol_lock_sha256"] is None
+    assert first_report["protocol"]["predecessor_source_amendment_sha256"] is None
+    assert (
+        first_report["protocol"]["predecessor_evaluator_source_sha256"]
+        == first_report["protocol"]["evaluator_source_sha256"]
+    )
+    assert first_report["protocol"]["source_amendment_reason"] is None
+    assert first_report["protocol"]["source_amendment_failure_boundary"] is None
     assert first_report["decision_rules"]["all_models_zero_at_each_test_distance_5_8"]
     assert "0/12 at every distance from 5 through 8" in first_markdown
     assert (
@@ -763,7 +794,7 @@ def test_builds_atomic_deterministic_complete_json_and_markdown(study):
     )
     assert "Every excluded discovery row" in first_markdown
     assert "unknown_function:bogus" in first_markdown
-    assert "Exhaustive BFS measured cost" in first_markdown
+    assert "Frozen capped BFS measured cost" in first_markdown
     assert "Matched basis-execution comparison" in first_markdown
     assert "Generation runtime and memory diagnostics" in first_markdown
     assert "distance 7-8 (headline)" in first_markdown
@@ -861,13 +892,11 @@ def test_reports_two_active_arms_and_one_deferred_arm(study, monkeypatch):
     test_summaries = study["test_summaries"]
     combined = _seal_summary(
         {
-            "schema_version": 1,
+            "schema_version": EVALUATION_SCHEMA_VERSION,
             "status": "complete",
             "split": "test",
             "protocol_lock_sha256": PROTOCOL_DIGEST,
-            "test_cohort_sha256": study["protocol"]["cohorts"]["test"][
-                "cohort_sha256"
-            ],
+            "test_cohort_sha256": study["protocol"]["cohorts"]["test"]["cohort_sha256"],
             "active_arm_ids": list(active),
             "deferred_arm_ids": list(deferred),
             "feasibility_artifact_digest": FEASIBILITY_DIGEST,
@@ -904,9 +933,7 @@ def test_reports_two_active_arms_and_one_deferred_arm(study, monkeypatch):
         json.dumps(combined), encoding="utf-8"
     )
 
-    active_test_arms = {
-        arm_id: study["test_arms"][arm_id] for arm_id in active
-    }
+    active_test_arms = {arm_id: study["test_arms"][arm_id] for arm_id in active}
 
     def load_test_arms(*_args, active_arm_ids=ARM_IDS, **_kwargs):
         assert tuple(active_arm_ids) == active
@@ -943,9 +970,7 @@ def test_reports_two_active_arms_and_one_deferred_arm(study, monkeypatch):
         "learning_rate_pilots": 3,
         "full_final_epochs": 3,
         "margin_percent": 15,
-        "includes": gate["per_arm"][deferred[0]]["baseline"][
-            "projection_includes"
-        ],
+        "includes": gate["per_arm"][deferred[0]]["baseline"]["projection_includes"],
     }
     assert deferred_report["must_not_shrink"] == [
         "training data",
@@ -1127,9 +1152,7 @@ def test_rejects_training_wandb_and_feasibility_study_mismatch(study):
         ("pythonhashseed", "1"),
     ],
 )
-def test_rejects_training_runtime_that_differs_from_protocol(
-    study, field, replacement
-):
+def test_rejects_training_runtime_that_differs_from_protocol(study, field, replacement):
     inputs = study["inputs"]
     pilot_path = inputs.pilot_manifests[0]
     changed = json.loads(pilot_path.read_text(encoding="utf-8"))
@@ -1137,14 +1160,11 @@ def test_rejects_training_runtime_that_differs_from_protocol(
     final = study["validation"][changed["arm_id"]]["training_manifest"]
     rate = float(changed["learning_rate"])
     lock_row = next(
-        row for row in final["selection_lock"]["pilots"]
-        if row["learning_rate"] == rate
+        row for row in final["selection_lock"]["pilots"] if row["learning_rate"] == rate
     )
     lock_row["manifest_digest"] = sha256_json(changed)
     if final["selection_lock"]["selected_learning_rate"] == rate:
-        final["selection_lock"]["selected_pilot_manifest_digest"] = sha256_json(
-            changed
-        )
+        final["selection_lock"]["selected_pilot_manifest_digest"] = sha256_json(changed)
     pilot_path.write_text(json.dumps(changed), encoding="utf-8")
 
     with pytest.raises(ValueError, match="deterministic runtime differs"):
@@ -1180,24 +1200,177 @@ def test_amended_report_separates_training_and_evaluation_sources(study):
         training_evaluator_sources=training_sources,
         successor_evaluator_sources=successor_sources,
         reason="Suppress tokenizer token-type IDs before retrying validation.",
-        changed_source_allowlist=[
-            "experiments/probe_deep_corpus_v2_scratch.py"
-        ],
+        changed_source_allowlist=["experiments/probe_deep_corpus_v2_scratch.py"],
         failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     )
 
     built, markdown = report.build_report(study["inputs"])
 
-    assert built["protocol"]["evaluator_source_sha256"] == successor_sources[
-        "source_sha256"
+    assert (
+        built["protocol"]["evaluator_source_sha256"]
+        == successor_sources["source_sha256"]
+    )
+    assert (
+        built["protocol"]["training_evaluator_source_sha256"]
+        == training_sources["source_sha256"]
+    )
+    assert (
+        built["protocol"]["source_amendment_sha256"]
+        == protocol["source_amendment"]["source_amendment_sha256"]
+    )
+    assert built["protocol"]["source_amendment_schema_version"] == 1
+    assert built["protocol"]["predecessor_source_amendment_sha256"] is None
+    assert (
+        built["protocol"]["predecessor_evaluator_source_sha256"]
+        == training_sources["source_sha256"]
+    )
+    assert (
+        built["protocol"]["source_amendment_failure_boundary"]
+        == "before-first-model-forward"
+    )
+    assert "original evaluator source identity" in markdown
+
+
+def test_chained_amended_report_names_all_three_source_identities(study):
+    protocol = study["protocol"]
+    training_sources = deepcopy(protocol["evaluator_sources"])
+    predecessor_body = deepcopy(training_sources)
+    predecessor_body.pop("source_sha256")
+    predecessor_body["metadata"]["git_commit"] = "b" * 40
+    predecessor_body["files"][0]["sha256"] = "sha256:" + "c" * 64
+    predecessor_sources = {
+        **predecessor_body,
+        "source_sha256": sha256_json(predecessor_body),
+    }
+    predecessor_amendment = build_source_amendment(
+        predecessor_protocol_lock_sha256=protocol["protocol_lock_sha256"],
+        training_evaluator_sources=training_sources,
+        successor_evaluator_sources=predecessor_sources,
+        reason="Suppress tokenizer token-type IDs before retrying validation.",
+        changed_source_allowlist=["experiments/probe_deep_corpus_v2_scratch.py"],
+        failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+    )
+    successor_body = deepcopy(predecessor_sources)
+    successor_body.pop("source_sha256")
+    successor_body["metadata"]["git_commit"] = "c" * 40
+    successor_body["files"][0]["sha256"] = "sha256:" + "d" * 64
+    successor_sources = {
+        **successor_body,
+        "source_sha256": sha256_json(successor_body),
+    }
+    protocol["evaluator_sources"] = successor_sources
+    protocol["source_amendment"] = build_chained_source_amendment(
+        predecessor_protocol_lock_sha256="sha256:" + "9" * 64,
+        predecessor_evaluator_sources=predecessor_sources,
+        predecessor_source_amendment=predecessor_amendment,
+        successor_evaluator_sources=successor_sources,
+        reason="Retain exact-ceiling BFS rows as censored matched-cost evidence.",
+        changed_source_allowlist=["experiments/probe_deep_corpus_v2_scratch.py"],
+        failure_evidence=CHAINED_SOURCE_AMENDMENT_FAILURE_EVIDENCE,
+    )
+
+    built, markdown = report.build_report(study["inputs"])
+
+    identity = built["protocol"]
+    assert identity["source_amendment_schema_version"] == 2
+    assert (
+        identity["training_evaluator_source_sha256"]
+        == training_sources["source_sha256"]
+    )
+    assert (
+        identity["predecessor_evaluator_source_sha256"]
+        == predecessor_sources["source_sha256"]
+    )
+    assert identity["evaluator_source_sha256"] == successor_sources["source_sha256"]
+    assert (
+        identity["predecessor_source_amendment_sha256"]
+        == predecessor_amendment["source_amendment_sha256"]
+    )
+    assert (
+        identity["source_amendment_failure_boundary"]
+        == "after-candidate-generation-and-bfs-before-atomic-result-publication"
+    )
+    assert "immediate predecessor evaluation source identity" in markdown
+    assert "schema-v2 source-amendment lineage" in markdown
+
+
+def test_censored_bfs_equal_solve_verdict_is_explicitly_inconclusive(study):
+    built, _ = report.build_report(study["inputs"])
+    validation = deepcopy(built["evaluations"]["validation"])
+    test = deepcopy(built["evaluations"]["test"])
+    arm_id = "scratch-10m"
+    evaluation = test[arm_id]
+    distance_8 = evaluation["bfs"]["by_certified_distance"]["8"]
+    distance_8.update(
+        {
+            "solved": 11,
+            "solve_rate": 11 / 12,
+            "censored": 1,
+            "censoring_rate": 1 / 12,
+            "termination_counts": {"budget": 1, "solved": 11},
+        }
+    )
+    evaluation["bfs"]["overall"].update({"solved": 95, "solve_rate": 95 / 96})
+    evaluation["bfs"]["termination_counts"] = {"budget": 1, "solved": 95}
+    evaluation["bfs"]["censoring"].update({"censored": 1, "censoring_rate": 1 / 96})
+    group = evaluation["matched_compute"]["7-8"]
+    group["bfs_observation"].update({"observed_hits": 23, "censored": 1})
+    matched = group["matched"]["64"]
+    matched.update(
+        {
+            "solved": 24,
+            "solve_rate": 1.0,
+            "model_cheaper_than_bfs_at_equal_or_higher_solve_count": None,
+            "bfs_equal_solve_rate_covered": False,
+            "bfs_observed_hit_count": 23,
+            "bfs_censored_task_count": 1,
+            "equal_solve_rate_inconclusive": True,
+            "equal_solve_rate_inconclusive_reason": (
+                "model solve count exceeds observed BFS hits within the locked "
+                "execution ceiling"
+            ),
+        }
+    )
+
+    decisions = report._decision_rules(validation, test)
+
+    verdict = decisions["distance_7_8_kill_criterion"][arm_id]
+    assert verdict["status"] == "inconclusive"
+    assert verdict["triggered"] is None
+    assert verdict["model_cheaper_than_bfs_at_equal_or_higher_solve_count"] is None
+    built["decision_rules"] = decisions
+    markdown = report.build_markdown(built)
+    assert f"`{arm_id}`: **inconclusive**" in markdown
+    assert "right-censored" in markdown
+
+
+def test_report_rejects_missing_capped_bfs_coverage_evidence(study):
+    built, _ = report.build_report(study["inputs"])
+    validation = deepcopy(built["evaluations"]["validation"])
+    test = deepcopy(built["evaluations"]["test"])
+    del test["scratch-10m"]["matched_compute"]["7-8"]["matched"]["64"][
+        "bfs_equal_solve_rate_covered"
     ]
-    assert built["protocol"]["training_evaluator_source_sha256"] == training_sources[
-        "source_sha256"
-    ]
-    assert built["protocol"]["source_amendment_sha256"] == protocol[
-        "source_amendment"
-    ]["source_amendment_sha256"]
-    assert "evaluation-only source amendment" in markdown
+
+    with pytest.raises(ValueError, match="explicit capped-BFS coverage evidence"):
+        report._decision_rules(validation, test)
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        lambda bfs: bfs["by_certified_distance"]["8"].update(tasks=11),
+        lambda bfs: bfs["by_certified_distance"]["8"].update(censored=1),
+    ],
+    ids=("distance-task-deficit", "solved-plus-censored-mismatch"),
+)
+def test_report_rejects_inconsistent_capped_bfs_distance_aggregates(study, mutation):
+    built, _ = report.build_report(study["inputs"])
+    bfs = deepcopy(built["evaluations"]["test"]["scratch-10m"]["bfs"])
+    mutation(bfs)
+
+    with pytest.raises(ValueError, match="Distance-8 capped-BFS counts or rates"):
+        report._validate_capped_bfs_summary(bfs)
 
 
 def test_load_test_arms_requires_all_receipts_and_rebuilds_combined(study, monkeypatch):

@@ -28,7 +28,7 @@ import statistics
 import subprocess
 import sys
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -739,9 +739,39 @@ def evaluate_bfs_records(
     return rows
 
 
+def _validate_budget_censoring_options(
+    *, allow_budget_censoring: bool, budget_ceiling: int | None
+) -> None:
+    if allow_budget_censoring:
+        if type(budget_ceiling) is not int or budget_ceiling <= 0:
+            raise ValueError(
+                "Budget censoring requires a positive integer budget ceiling"
+            )
+    elif budget_ceiling is not None:
+        raise ValueError(
+            "A budget ceiling is only valid when budget censoring is enabled"
+        )
+
+
 def validate_bfs_rows(
-    bfs_rows: Sequence[Mapping[str, Any]], records: Sequence[BasisTaskRecord]
+    bfs_rows: Sequence[Mapping[str, Any]],
+    records: Sequence[BasisTaskRecord],
+    *,
+    allow_budget_censoring: bool = False,
+    budget_ceiling: int | None = None,
 ) -> dict[str, Any]:
+    """Validate matched BFS rows, optionally retaining exact-cap censoring.
+
+    Legacy callers require every task to be solved.  A frozen protocol may opt
+    into right-censoring, but only for a row that terminates at exactly its
+    declared execution ceiling.  Other unsolved terminations remain evidence of
+    a solver, cohort, or protocol error rather than a measured cost bound.
+    """
+
+    _validate_budget_censoring_options(
+        allow_budget_censoring=allow_budget_censoring,
+        budget_ceiling=budget_ceiling,
+    )
     expected_by_id = {record.task_id: record for record in records}
     actual_by_id = {row["task_id"]: row for row in bfs_rows}
     if len(actual_by_id) != len(bfs_rows) or set(actual_by_id) != set(expected_by_id):
@@ -750,34 +780,91 @@ def validate_bfs_rows(
         record = expected_by_id[task_id]
         if row["certified_distance"] != record.metadata["certified_distance"]:
             raise ValueError(f"BFS distance mismatch for task {task_id}")
-        if not row["success"]:
+        if not row["success"] and not allow_budget_censoring:
             raise ValueError(
                 f"BFS did not solve certified distance-{row['certified_distance']} "
                 f"task {task_id}: termination={row['termination']!r}. This is not "
                 "an exhaustive baseline; raise the budget before reporting."
+            )
+        if not row["success"] and (
+            row.get("termination") != "budget"
+            or type(row.get("executions")) is not int
+            or row["executions"] != budget_ceiling
+        ):
+            raise ValueError(
+                f"BFS did not solve certified distance-{row['certified_distance']} "
+                f"task {task_id} with valid right-censoring: "
+                f"termination={row.get('termination')!r}, "
+                f"executions={row.get('executions')!r}, "
+                f"budget_ceiling={budget_ceiling!r}"
             )
 
     by_distance: dict[str, Any] = {}
     for distance in range(1, 9):
         subset = [row for row in bfs_rows if row["certified_distance"] == distance]
         executions = [int(row["executions"]) for row in subset]
-        by_distance[str(distance)] = {
+        distance_summary = {
             "tasks": len(subset),
             "solved": sum(bool(row["success"]) for row in subset),
             "solve_rate": _mean([bool(row["success"]) for row in subset]),
+            "total_executions": sum(executions),
             "mean_executions": _mean(executions),
             "median_executions": statistics.median(executions) if executions else 0,
             "max_executions": max(executions, default=0),
             "mean_seconds": _mean([float(row["seconds"]) for row in subset]),
         }
-    return {"by_certified_distance": by_distance}
+        if allow_budget_censoring:
+            censored = sum(not bool(row["success"]) for row in subset)
+            distance_summary.update(
+                {
+                    "censored": censored,
+                    "censoring_rate": censored / len(subset) if subset else 0.0,
+                    "termination_counts": dict(
+                        sorted(
+                            Counter(str(row["termination"]) for row in subset).items()
+                        )
+                    ),
+                }
+            )
+        by_distance[str(distance)] = distance_summary
+
+    result = {"by_certified_distance": by_distance}
+    if allow_budget_censoring:
+        censored = sum(not bool(row["success"]) for row in bfs_rows)
+        result.update(
+            {
+                "termination_counts": dict(
+                    sorted(Counter(str(row["termination"]) for row in bfs_rows).items())
+                ),
+                "censoring": {
+                    "enabled": True,
+                    "budget_ceiling": budget_ceiling,
+                    "tasks": len(bfs_rows),
+                    "censored": censored,
+                    "censoring_rate": censored / len(bfs_rows) if bfs_rows else 0.0,
+                },
+            }
+        )
+    return result
 
 
 def _bfs_curve_for_group(
-    bfs_rows: Sequence[Mapping[str, Any]], task_ids: set[str]
+    bfs_rows: Sequence[Mapping[str, Any]],
+    task_ids: set[str],
+    *,
+    budget_ceiling: int | None = None,
 ) -> list[dict[str, Any]]:
     subset = [row for row in bfs_rows if row["task_id"] in task_ids]
     hit_costs = sorted({int(row["executions"]) for row in subset if row["success"]})
+    curve_budgets = list(hit_costs)
+    if (
+        budget_ceiling is not None
+        and subset
+        and any(not bool(row["success"]) for row in subset)
+        and budget_ceiling not in hit_costs
+    ):
+        curve_budgets.append(budget_ceiling)
+        curve_budgets.sort()
     curve = [
         {
             "method": "bfs",
@@ -788,7 +875,7 @@ def _bfs_curve_for_group(
             "tasks": len(subset),
         }
     ]
-    for budget in hit_costs:
+    for budget in curve_budgets:
         solved = sum(
             bool(row["success"]) and int(row["executions"]) <= budget for row in subset
         )
@@ -812,8 +899,17 @@ def matched_compute_comparison(
     bfs_rows: Sequence[Mapping[str, Any]],
     records: Sequence[BasisTaskRecord],
     sample_counts: Sequence[int],
+    allow_budget_censoring: bool = False,
+    budget_ceiling: int | None = None,
 ) -> dict[str, Any]:
     """Put model prefix points and BFS's cost CDF on one execution axis."""
+
+    validate_bfs_rows(
+        bfs_rows,
+        records,
+        allow_budget_censoring=allow_budget_censoring,
+        budget_ceiling=budget_ceiling,
+    )
 
     groups: dict[str, list[BasisTaskRecord]] = {
         str(distance): [
@@ -831,7 +927,15 @@ def matched_compute_comparison(
     for group_name, group_records in groups.items():
         task_ids = {record.task_id for record in group_records}
         group_bfs = [row for row in bfs_rows if row["task_id"] in task_ids]
-        bfs_curve = _bfs_curve_for_group(bfs_rows, task_ids)
+        bfs_curve = _bfs_curve_for_group(
+            bfs_rows,
+            task_ids,
+            budget_ceiling=budget_ceiling if allow_budget_censoring else None,
+        )
+        sorted_bfs_hits = sorted(
+            int(row["executions"]) for row in group_bfs if row["success"]
+        )
+        censored_bfs_tasks = sum(not bool(row["success"]) for row in group_bfs)
         model_points: list[dict[str, Any]] = []
         matched_rows: dict[str, Any] = {}
         for sample_count in sample_counts:
@@ -854,10 +958,8 @@ def matched_compute_comparison(
                 ),
             )
             solved_target = int(aggregate["solved"])
-            if solved_target:
-                sorted_bfs_hits = sorted(
-                    int(row["executions"]) for row in group_bfs if row["success"]
-                )
+            equal_solve_rate_covered = solved_target <= len(sorted_bfs_hits)
+            if solved_target and equal_solve_rate_covered:
                 matched_budget = sorted_bfs_hits[solved_target - 1]
                 bfs_spend = sum(
                     min(int(row["executions"]), matched_budget) for row in group_bfs
@@ -866,6 +968,10 @@ def matched_compute_comparison(
                     bool(row["success"]) and int(row["executions"]) <= matched_budget
                     for row in group_bfs
                 )
+            elif solved_target:
+                matched_budget = None
+                bfs_spend = None
+                bfs_solved = None
             else:
                 matched_budget = 0
                 bfs_spend = 0
@@ -873,7 +979,7 @@ def matched_compute_comparison(
             model_spend = int(aggregate["total_executions_spent"])
             ratio = (
                 bfs_spend / model_spend
-                if model_spend > 0 and solved_target > 0
+                if bfs_spend is not None and model_spend > 0 and solved_target > 0
                 else None
             )
             model_points.append(
@@ -886,7 +992,7 @@ def matched_compute_comparison(
                     "tasks": aggregate["tasks"],
                 }
             )
-            matched_rows[str(sample_count)] = {
+            matched_row = {
                 **aggregate,
                 "bfs_uniform_budget_at_or_below_model_mean_execution_spend": (
                     bfs_at_model_cost["budget"]
@@ -903,16 +1009,44 @@ def matched_compute_comparison(
                 "bfs_total_executions_for_at_least_model_solve_count": bfs_spend,
                 "bfs_to_model_total_execution_ratio": ratio,
                 "model_cheaper_than_bfs_at_equal_or_higher_solve_count": (
-                    bool(solved_target)
+                    None
+                    if not equal_solve_rate_covered
+                    else bool(solved_target)
                     and bfs_solved >= solved_target
                     and model_spend < bfs_spend
                 ),
             }
-        result[group_name] = {
+            if allow_budget_censoring:
+                matched_row.update(
+                    {
+                        "bfs_equal_solve_rate_covered": equal_solve_rate_covered,
+                        "bfs_observed_hit_count": len(sorted_bfs_hits),
+                        "bfs_censored_task_count": censored_bfs_tasks,
+                        "equal_solve_rate_inconclusive": not equal_solve_rate_covered,
+                        "equal_solve_rate_inconclusive_reason": (
+                            None
+                            if equal_solve_rate_covered
+                            else (
+                                "model solve count exceeds observed BFS hits within "
+                                "the locked execution ceiling"
+                            )
+                        ),
+                    }
+                )
+            matched_rows[str(sample_count)] = matched_row
+        group_result = {
             "model_points": model_points,
             "bfs_curve": bfs_curve,
             "matched": matched_rows,
         }
+        if allow_budget_censoring:
+            group_result["bfs_observation"] = {
+                "tasks": len(group_bfs),
+                "observed_hits": len(sorted_bfs_hits),
+                "censored": censored_bfs_tasks,
+                "budget_ceiling": budget_ceiling,
+            }
+        result[group_name] = group_result
     return result
 
 
