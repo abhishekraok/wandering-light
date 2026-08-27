@@ -6,7 +6,7 @@ or held-out scoring code is allowed to run:
 
 * deterministic, balanced validation and test cohorts;
 * content-addressed generation, tokenizer, evaluator, and BFS settings;
-* validation-selected identities for the three predeclared model arms;
+* validation-selected identities for an ordered subset of the predeclared arms;
 * candidate-level parse/execution funnels over nested sampling prefixes; and
 * a once-only test-opening ledger whose interrupted run can be resumed without
   creating a second test opening.
@@ -100,6 +100,29 @@ def sha256_file(path: str | Path) -> str:
         while chunk := input_file.read(1024 * 1024):
             digest.update(chunk)
     return "sha256:" + digest.hexdigest()
+
+
+def validate_active_arm_ids(active_arm_ids: Sequence[str]) -> tuple[str, ...]:
+    """Return a nonempty, canonical-order subset of the frozen arm IDs."""
+
+    if isinstance(active_arm_ids, (str, bytes)):
+        raise ValueError("active arm IDs must be a sequence, not a string")
+    normalized = tuple(active_arm_ids)
+    if not normalized:
+        raise ValueError("at least one active arm is required")
+    if len(set(normalized)) != len(normalized):
+        raise ValueError("active arm IDs must be distinct")
+    if any(arm_id not in ALLOWED_ARM_IDS for arm_id in normalized):
+        raise ValueError("active arm IDs contain an unexpected arm")
+    canonical = tuple(arm_id for arm_id in ARM_IDS if arm_id in normalized)
+    if normalized != canonical:
+        raise ValueError("active arm IDs must follow the frozen arm order")
+    return normalized
+
+
+def _deferred_arm_ids(active_arm_ids: Sequence[str]) -> tuple[str, ...]:
+    active = validate_active_arm_ids(active_arm_ids)
+    return tuple(arm_id for arm_id in ARM_IDS if arm_id not in active)
 
 
 def _require_sha256(value: Any, *, label: str) -> str:
@@ -1008,10 +1031,11 @@ def aggregate_candidate_funnels(
     candidate_rows: Sequence[Mapping[str, Any]],
     *,
     expected_task_ids: Sequence[str] | None = None,
+    active_arm_ids: Sequence[str] | None = None,
     sample_prefixes: Sequence[int] = SAMPLE_PREFIXES,
     top_n: int = 5,
 ) -> dict[str, Any]:
-    """Aggregate complete ordered candidate prefixes for all three model arms."""
+    """Aggregate complete ordered candidate prefixes for the active model arms."""
 
     if tuple(sample_prefixes) != SAMPLE_PREFIXES:
         raise ValueError("candidate funnels require prefixes 1, 8, and 64")
@@ -1023,16 +1047,18 @@ def aggregate_candidate_funnels(
     for raw_row in candidate_rows:
         row = _normalize_candidate(raw_row)
         grouped[row["arm_id"]][row["task_id"]].append(row)
-    if set(grouped) != ALLOWED_ARM_IDS:
-        raise ValueError(
-            "candidate rows must contain exactly the three predeclared arms"
-        )
+    inferred = tuple(arm_id for arm_id in ARM_IDS if arm_id in grouped)
+    active = validate_active_arm_ids(
+        inferred if active_arm_ids is None else active_arm_ids
+    )
+    if set(grouped) != set(active):
+        raise ValueError("candidate rows do not cover exactly the active arms")
 
     expected_ids = set(expected_task_ids) if expected_task_ids is not None else None
     if expected_task_ids is not None and len(expected_ids) != len(expected_task_ids):
         raise ValueError("expected task IDs must be unique")
     reference_tasks: set[str] | None = None
-    for arm_id in ARM_IDS:
+    for arm_id in active:
         arm_tasks = set(grouped[arm_id])
         if not arm_tasks:
             raise ValueError(f"candidate arm {arm_id!r} has no tasks")
@@ -1062,12 +1088,12 @@ def aggregate_candidate_funnels(
                 for sample_count in SAMPLE_PREFIXES
             },
         }
-        for arm_id in ARM_IDS
+        for arm_id in active
     }
     return {
         "schema_version": PROTOCOL_SCHEMA_VERSION,
         "sample_prefixes": list(SAMPLE_PREFIXES),
-        "arm_ids": list(ARM_IDS),
+        "arm_ids": list(active),
         "arms": arms,
     }
 
@@ -1129,10 +1155,15 @@ def validate_selection_lock(
 
 
 def validate_selection_locks(
-    selection_locks: Sequence[Mapping[str, Any]], *, protocol_lock_sha256: str
+    selection_locks: Sequence[Mapping[str, Any]],
+    *,
+    protocol_lock_sha256: str,
+    active_arm_ids: Sequence[str] | None = None,
 ) -> dict[str, dict[str, Any]]:
-    if len(selection_locks) != len(ARM_IDS):
-        raise ValueError("exactly three validation selection locks are required")
+    if not selection_locks:
+        raise ValueError("at least one validation selection lock is required")
+    if len(selection_locks) > len(ARM_IDS):
+        raise ValueError("too many validation selection locks")
     by_arm: dict[str, dict[str, Any]] = {}
     checkpoint_digests: set[str] = set()
     for value in selection_locks:
@@ -1147,11 +1178,13 @@ def validate_selection_locks(
         if checkpoint_digest in checkpoint_digests:
             raise ValueError("selection locks must identify distinct checkpoints")
         checkpoint_digests.add(checkpoint_digest)
-    if set(by_arm) != ALLOWED_ARM_IDS:
-        raise ValueError(
-            "selection locks must cover exactly the three predeclared arms"
-        )
-    return {arm_id: by_arm[arm_id] for arm_id in ARM_IDS}
+    inferred = tuple(arm_id for arm_id in ARM_IDS if arm_id in by_arm)
+    active = validate_active_arm_ids(
+        inferred if active_arm_ids is None else active_arm_ids
+    )
+    if set(by_arm) != set(active):
+        raise ValueError("selection locks must cover exactly the active arms")
+    return {arm_id: by_arm[arm_id] for arm_id in active}
 
 
 def _seal_ledger(body: Mapping[str, Any]) -> dict[str, Any]:
@@ -1163,25 +1196,39 @@ def new_test_opening_ledger(
     opening_id: str,
     protocol_lock_sha256: str,
     selection_locks: Sequence[Mapping[str, Any]],
+    active_arm_ids: Sequence[str] | None = None,
+    feasibility_artifact_digest: str | None = None,
 ) -> dict[str, Any]:
     if not isinstance(opening_id, str) or not opening_id.strip():
         raise ValueError("opening_id must be a non-empty string")
     by_arm = validate_selection_locks(
-        selection_locks, protocol_lock_sha256=protocol_lock_sha256
+        selection_locks,
+        protocol_lock_sha256=protocol_lock_sha256,
+        active_arm_ids=active_arm_ids,
     )
+    active = tuple(by_arm)
+    deferred = _deferred_arm_ids(active)
+    if feasibility_artifact_digest is not None:
+        _require_sha256(
+            feasibility_artifact_digest, label="feasibility artifact digest"
+        )
     body = {
         "schema_version": PROTOCOL_SCHEMA_VERSION,
         "study_id": STUDY_ID,
         "opening_id": opening_id,
         "protocol_lock_sha256": protocol_lock_sha256,
+        "active_arm_ids": list(active),
+        "deferred_arm_ids": list(deferred),
+        "feasibility_artifact_digest": feasibility_artifact_digest,
         "selection_lock_sha256_by_arm": {
-            arm_id: by_arm[arm_id]["selection_lock_sha256"] for arm_id in ARM_IDS
+            arm_id: by_arm[arm_id]["selection_lock_sha256"] for arm_id in active
         },
         "status": "prepared",
         "test_access_count": 0,
         "revision": 0,
         "arms": {
-            arm_id: {"status": "pending", "result_identity": None} for arm_id in ARM_IDS
+            arm_id: {"status": "pending", "result_identity": None}
+            for arm_id in active
         },
         "shared_bfs_identity": None,
         "history": [{"revision": 0, "event": "prepared"}],
@@ -1194,6 +1241,9 @@ def validate_test_opening_ledger(
     *,
     protocol_lock_sha256: str | None = None,
     selection_locks: Sequence[Mapping[str, Any]] | None = None,
+    active_arm_ids: Sequence[str] | None = None,
+    deferred_arm_ids: Sequence[str] | None = None,
+    feasibility_artifact_digest: str | None = None,
 ) -> dict[str, Any]:
     normalized = _verify_seal(ledger, "ledger_sha256", label="test-opening ledger")
     if (
@@ -1222,26 +1272,50 @@ def validate_test_opening_ledger(
     if (status == "prepared") != (access_count == 0):
         raise ValueError("test-opening ledger access count contradicts its status")
 
-    lock_digests = normalized.get("selection_lock_sha256_by_arm")
-    if not isinstance(lock_digests, dict) or set(lock_digests) != ALLOWED_ARM_IDS:
-        raise ValueError(
-            "test-opening ledger does not identify exactly three selections"
+    active = validate_active_arm_ids(normalized.get("active_arm_ids", ()))
+    deferred = _deferred_arm_ids(active)
+    if normalized.get("deferred_arm_ids") != list(deferred):
+        raise ValueError("test-opening ledger has the wrong deferred arms")
+    if active_arm_ids is not None and active != validate_active_arm_ids(
+        active_arm_ids
+    ):
+        raise ValueError("test-opening ledger active arms changed")
+    if deferred_arm_ids is not None and tuple(deferred_arm_ids) != deferred:
+        raise ValueError("test-opening ledger deferred arms changed")
+    recorded_feasibility = normalized.get("feasibility_artifact_digest")
+    if recorded_feasibility is not None:
+        _require_sha256(
+            recorded_feasibility, label="ledger feasibility artifact digest"
         )
+    if (
+        feasibility_artifact_digest is not None
+        and recorded_feasibility
+        != _require_sha256(
+            feasibility_artifact_digest, label="feasibility artifact digest"
+        )
+    ):
+        raise ValueError("test-opening ledger feasibility evidence changed")
+
+    lock_digests = normalized.get("selection_lock_sha256_by_arm")
+    if not isinstance(lock_digests, dict) or set(lock_digests) != set(active):
+        raise ValueError("test-opening ledger does not identify the active selections")
     for digest in lock_digests.values():
         _require_sha256(digest, label="selection lock digest")
     if selection_locks is not None:
         by_arm = validate_selection_locks(
-            selection_locks, protocol_lock_sha256=protocol_digest
+            selection_locks,
+            protocol_lock_sha256=protocol_digest,
+            active_arm_ids=active,
         )
         expected = {
-            arm_id: by_arm[arm_id]["selection_lock_sha256"] for arm_id in ARM_IDS
+            arm_id: by_arm[arm_id]["selection_lock_sha256"] for arm_id in active
         }
         if lock_digests != expected:
             raise ValueError("test-opening ledger selections changed")
 
     arms = normalized.get("arms")
-    if not isinstance(arms, dict) or set(arms) != ALLOWED_ARM_IDS:
-        raise ValueError("test-opening ledger does not contain exactly three arms")
+    if not isinstance(arms, dict) or set(arms) != set(active):
+        raise ValueError("test-opening ledger does not contain exactly the active arms")
     complete_arms = 0
     for arm_id, arm in arms.items():
         if not isinstance(arm, dict) or arm.get("status") not in _ARM_LEDGER_STATUSES:
@@ -1254,7 +1328,7 @@ def validate_test_opening_ledger(
         elif result is not None:
             raise ValueError(f"pending arm {arm_id!r} already has a result")
     if status == "complete":
-        if complete_arms != len(ARM_IDS):
+        if complete_arms != len(active):
             raise ValueError("completed test opening has incomplete arms")
         if (
             not isinstance(normalized.get("shared_bfs_identity"), dict)
@@ -1334,8 +1408,8 @@ def record_test_arm_result(
     current = validate_test_opening_ledger(ledger)
     if current["status"] != "in_progress":
         raise ValueError("test arm results require an in-progress opening")
-    if arm_id not in ALLOWED_ARM_IDS:
-        raise ValueError(f"unexpected arm ID: {arm_id!r}")
+    if arm_id not in current["active_arm_ids"]:
+        raise ValueError(f"arm {arm_id!r} is not active for this test opening")
     if not isinstance(result_identity, Mapping) or not result_identity:
         raise ValueError("result_identity must be a non-empty mapping")
     normalized_result = canonical_copy(dict(result_identity))
@@ -1365,7 +1439,7 @@ def complete_test_opening(
     if current["status"] != "in_progress":
         raise ValueError("only an in-progress test opening can complete")
     if any(arm["status"] != "complete" for arm in current["arms"].values()):
-        raise ValueError("all three test arms must complete before sealing the opening")
+        raise ValueError("all active test arms must complete before sealing the opening")
     return _ledger_transition(
         current,
         event="test-opening-complete",
@@ -1417,6 +1491,9 @@ def replace_test_opening_ledger_file(
         "study_id",
         "opening_id",
         "protocol_lock_sha256",
+        "active_arm_ids",
+        "deferred_arm_ids",
+        "feasibility_artifact_digest",
         "selection_lock_sha256_by_arm",
     )
     if any(normalized[field] != previous[field] for field in immutable_fields):
@@ -1485,6 +1562,7 @@ __all__ = [
     "sha256_bytes",
     "sha256_file",
     "sha256_json",
+    "validate_active_arm_ids",
     "validate_bfs_settings",
     "validate_evaluator_source_identity",
     "validate_frozen_cohort",

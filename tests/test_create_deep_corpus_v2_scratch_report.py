@@ -555,7 +555,13 @@ def study(tmp_path, monkeypatch):
             "corpus_manifest_digest": CORPUS_DIGEST,
             "tokenizer_artifact_digest": TOKENIZER_DIGEST,
         },
-        "launch_gate": {"launch_allowed": True, "per_arm": gates},
+        "launch_gate": {
+            "launch_allowed": True,
+            "all_arms_authorized": True,
+            "authorized_arm_ids": list(ARM_IDS),
+            "blocked_arm_ids": [],
+            "per_arm": gates,
+        },
         "arm_results": feasibility_results,
     }
 
@@ -736,6 +742,10 @@ def test_builds_atomic_deterministic_complete_json_and_markdown(study):
     assert "Exhaustive BFS measured cost" in first_markdown
     assert "Matched basis-execution comparison" in first_markdown
     assert "Generation runtime and memory diagnostics" in first_markdown
+    assert "distance 7-8 (headline)" in first_markdown
+    assert "unparseable" in first_markdown
+    assert "execution-correct | parseable" in first_markdown
+    assert "correct | executable" not in first_markdown
     assert (
         len(
             [
@@ -755,6 +765,192 @@ def test_builds_atomic_deterministic_complete_json_and_markdown(study):
     ) == first_markdown
     with pytest.raises(FileExistsError, match="fresh directory"):
         report.create_report(inputs)
+
+
+def test_reports_two_active_arms_and_one_deferred_arm(study, monkeypatch):
+    active = ARM_IDS[:2]
+    deferred = ARM_IDS[2:]
+    feasibility = study["feasibility"]
+    gate = feasibility["launch_gate"]
+    gate.update(
+        {
+            "launch_allowed": False,
+            "all_arms_authorized": False,
+            "authorized_arm_ids": list(active),
+            "blocked_arm_ids": list(deferred),
+            "reason": "one or more arms are not feasible",
+        }
+    )
+    gate["per_arm"][deferred[0]] = {
+        "launch_allowed": False,
+        "route": "blocked",
+        "reason": "baseline projection exceeds the 16-hour hard limit",
+        "runtime_hard_stop_required": True,
+        "baseline": {
+            "pilot_runs": 3,
+            "projected_pilot_run_hours": 1.0,
+            "projected_pilot_hours": 3.0,
+            "projected_final_hours": 14.02,
+            "projected_pilot_plus_final_hours": 17.02,
+            "projection_includes": [
+                "all three quarter-epoch pilot training runs",
+                "three final epoch validations plus one explicit final validation",
+                "15% setup/W&B/best-checkpoint-reload/final-artifact margin on every projected run",
+            ],
+        },
+    }
+
+    validation = {arm_id: study["validation"][arm_id] for arm_id in active}
+    selection_locks = [validation[arm_id]["selection_lock"] for arm_id in active]
+    monkeypatch.setattr(
+        report,
+        "load_validation_results",
+        lambda *_, **__: (validation, selection_locks),
+    )
+
+    ledger = new_test_opening_ledger(
+        opening_id="issue-54-partial-test",
+        protocol_lock_sha256=PROTOCOL_DIGEST,
+        selection_locks=selection_locks,
+        active_arm_ids=active,
+        feasibility_artifact_digest=FEASIBILITY_DIGEST,
+    )
+    ledger = begin_test_opening(ledger)
+    for arm_id in active:
+        summary = study["test_summaries"][arm_id]
+        ledger = record_test_arm_result(
+            ledger,
+            arm_id=arm_id,
+            result_identity={
+                "evaluation_summary_sha256": summary[SUMMARY_DIGEST_FIELD],
+                "checkpoint_sha256": summary["checkpoint"]["checkpoint_sha256"],
+                "candidates_sha256": summary["artifacts"]["candidates"]["sha256"],
+            },
+        )
+    ledger = complete_test_opening(
+        ledger, shared_bfs_identity=study["combined"]["shared_bfs"]
+    )
+    (study["inputs"].test_dir / report.TEST_LEDGER_FILENAME).write_text(
+        json.dumps(ledger), encoding="utf-8"
+    )
+
+    test_summaries = study["test_summaries"]
+    combined = _seal_summary(
+        {
+            "schema_version": 1,
+            "status": "complete",
+            "split": "test",
+            "protocol_lock_sha256": PROTOCOL_DIGEST,
+            "test_cohort_sha256": study["protocol"]["cohorts"]["test"][
+                "cohort_sha256"
+            ],
+            "active_arm_ids": list(active),
+            "deferred_arm_ids": list(deferred),
+            "feasibility_artifact_digest": FEASIBILITY_DIGEST,
+            "ledger_sha256": ledger["ledger_sha256"],
+            "test_access_count": 1,
+            "arm_summary_sha256_by_arm": {
+                arm_id: test_summaries[arm_id][SUMMARY_DIGEST_FIELD]
+                for arm_id in active
+            },
+            "candidate_funnels": {
+                "arm_ids": list(active),
+                "sample_prefixes": [1, 8, 64],
+                "arms": {
+                    arm_id: test_summaries[arm_id]["candidate_funnel"]
+                    for arm_id in active
+                },
+            },
+            "shared_bfs": study["combined"]["shared_bfs"],
+            "arms": {
+                arm_id: {
+                    "model": test_summaries[arm_id]["model"],
+                    "bfs": test_summaries[arm_id]["bfs"],
+                    "matched_compute": test_summaries[arm_id]["matched_compute"],
+                    "training": test_summaries[arm_id]["training"],
+                    "generation_runtime": test_summaries[arm_id]["generation"][
+                        "runtime"
+                    ],
+                }
+                for arm_id in active
+            },
+        }
+    )
+    (study["inputs"].test_dir / report.TEST_SUMMARY_FILENAME).write_text(
+        json.dumps(combined), encoding="utf-8"
+    )
+
+    active_test_arms = {
+        arm_id: study["test_arms"][arm_id] for arm_id in active
+    }
+
+    def load_test_arms(*_args, active_arm_ids=ARM_IDS, **_kwargs):
+        assert tuple(active_arm_ids) == active
+        return active_test_arms
+
+    monkeypatch.setattr(report, "_load_test_arms", load_test_arms)
+    pilot_paths = tuple(
+        path
+        for path in study["inputs"].pilot_manifests
+        if json.loads(path.read_text(encoding="utf-8"))["arm_id"] in active
+    )
+    inputs = report.ReportInputs(
+        **{
+            **study["inputs"].__dict__,
+            "validation_results": study["inputs"].validation_results[:2],
+            "pilot_manifests": pilot_paths,
+        }
+    )
+
+    value, markdown = report.build_report(inputs)
+
+    assert value["study_scope"] == {
+        "active_arm_ids": list(active),
+        "deferred_arm_ids": list(deferred),
+        "status": "partial-with-deferred-arms",
+        "feasibility_artifact_digest": FEASIBILITY_DIGEST,
+    }
+    assert set(value["training"]) == set(active)
+    assert set(value["evaluations"]["validation"]) == set(active)
+    assert set(value["evaluations"]["test"]) == set(active)
+    deferred_report = value["deferred_arms"][deferred[0]]
+    assert deferred_report["projection"]["projected_pilot_plus_final_hours"] == 17.02
+    assert deferred_report["projection_context"] == {
+        "learning_rate_pilots": 3,
+        "full_final_epochs": 3,
+        "margin_percent": 15,
+        "includes": gate["per_arm"][deferred[0]]["baseline"][
+            "projection_includes"
+        ],
+    }
+    assert deferred_report["must_not_shrink"] == [
+        "training data",
+        "epochs",
+        "context length",
+        "parameter count",
+    ]
+    assert {option["option"] for option in deferred_report["fit_options"]} == {
+        "fewer_learning_rate_pilots",
+        "own_night",
+    }
+    assert "SmolLM2 360M — deferred" in markdown
+    assert "17.02 hours" in markdown
+    assert "three learning-rate pilots" in markdown
+    assert "full three-epoch run" in markdown
+    assert "fewer learning-rate pilots" in markdown
+    assert "its own night" in markdown
+    assert (
+        "Do not shrink training data, epochs, context length, or parameter count"
+        in markdown
+    )
+    assert "SmolLM2 360M @64" not in markdown
+    assert "execution-correct | parseable" in markdown
+    assert "unknown_function:bogus" in markdown
+    assert (
+        f"| test | {active[0]} | 8 | 12.5% | 92.9% | 3.1% | 3.6% | "
+        "unknown_function:bogus (48) |"
+    ) in markdown
+    assert "Complete solve@64 by certified distance 1-8" in markdown
 
 
 def test_publishes_sealed_report_to_fixed_personal_wandb_project(

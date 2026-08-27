@@ -251,6 +251,7 @@ def _training_manifest(arm_id: str) -> dict:
         },
         "feasibility_gate": {
             "artifact_digest": "sha256:" + "f" * 64,
+            "artifact_path": "/sealed/feasibility_manifest.json",
             "arm_id": arm_id,
             "arm_gate": {
                 "launch_allowed": True,
@@ -258,6 +259,10 @@ def _training_manifest(arm_id: str) -> dict:
                 "runtime_hard_stop_required": True,
                 "baseline": {"projected_pilot_plus_final_hours": 13.5},
             },
+            "probe_gpu": {"identity_digest": "sha256:" + "1" * 64},
+            "run_gpu": {"identity_digest": "sha256:" + "1" * 64},
+            "probe_source": {"commit": "a" * 40},
+            "hard_stop_allocation": {"deadline_monotonic": 123.0},
             "study_identity_digest": digest_json(study),
         },
         "best_validation_loss": 0.5,
@@ -841,10 +846,10 @@ def test_wandb_publisher_keeps_sealed_result_immutable_and_writes_receipt(
         evaluate.validate_wandb_receipt(result_dir, summary=summary)
 
 
-def _selection_locks(protocol):
+def _selection_locks(protocol, arm_ids=ARM_IDS):
     locks = []
     validation = {}
-    for arm_id in ARM_IDS:
+    for arm_id in arm_ids:
         checkpoint = _checkpoint_identity(arm_id)
         summary_digest = "sha256:" + str(ARM_IDS.index(arm_id) + 4) * 64
         lock = build_selection_lock(
@@ -870,31 +875,51 @@ def _selection_locks(protocol):
     return validation, locks
 
 
-def _write_readiness(test_dir, protocol, validation):
-    body = {
-        "schema_version": 1,
-        "status": "locked-before-held-out-test",
-        "protocol_lock_sha256": protocol["protocol_lock_sha256"],
-        "test_cohort_sha256": protocol["cohorts"]["test"]["cohort_sha256"],
-        "selection_lock_sha256_by_arm": {
-            arm_id: validation[arm_id]["selection_lock"]["selection_lock_sha256"]
-            for arm_id in ARM_IDS
-        },
-        "validation_summary_sha256_by_arm": {
-            arm_id: validation[arm_id]["summary"][evaluate.SUMMARY_DIGEST_FIELD]
-            for arm_id in ARM_IDS
-        },
-        "validation_wandb_receipt_sha256_by_arm": {
-            arm_id: validation[arm_id]["wandb_receipt"][
-                evaluate.WANDB_RECEIPT_DIGEST_FIELD
-            ]
-            for arm_id in ARM_IDS
-        },
-        "final_checkpoint_sha256_by_arm": {
-            arm_id: validation[arm_id]["checkpoint"]["checkpoint_sha256"]
-            for arm_id in ARM_IDS
+def _feasibility_manifest(active_arm_ids=ARM_IDS):
+    active = tuple(active_arm_ids)
+    deferred = tuple(arm_id for arm_id in ARM_IDS if arm_id not in active)
+    artifact_digest = "sha256:" + "f" * 64
+    per_arm = {}
+    arm_results = []
+    for arm_id in ARM_IDS:
+        training_gate = _training_manifest(arm_id)["feasibility_gate"]
+        arm_results.append(
+            {
+                "arm_id": arm_id,
+                "study_identity_digest": training_gate["study_identity_digest"],
+            }
+        )
+        per_arm[arm_id] = (
+            training_gate["arm_gate"]
+            if arm_id in active
+            else {
+                "launch_allowed": False,
+                "route": "blocked",
+                "reason": "projected runtime exceeds the limit",
+            }
+        )
+    return {
+        "status": "complete",
+        "artifact_digest": artifact_digest,
+        "arm_results": arm_results,
+        "launch_gate": {
+            "authorized_arm_ids": list(active),
+            "blocked_arm_ids": list(deferred),
+            "per_arm": per_arm,
         },
     }
+
+
+def _write_readiness(test_dir, protocol, validation, feasibility=None):
+    feasibility = feasibility or _feasibility_manifest(tuple(validation))
+    identity = evaluate._validate_test_feasibility(
+        feasibility, validation_results=validation
+    )
+    body = evaluate._test_readiness_body(
+        protocol_lock=protocol,
+        validation_results=validation,
+        feasibility_identity=identity,
+    )
     value = {**body, "readiness_sha256": evaluate.sha256_json(body)}
     (test_dir / evaluate.TEST_READINESS_FILENAME).write_text(
         json.dumps(value), encoding="utf-8"
@@ -911,12 +936,17 @@ def test_prepare_test_opening_creates_prepared_zero_access_ledger(
         "load_validation_results",
         lambda *_, **__: (validation, locks),
     )
+    feasibility = _feasibility_manifest()
+    monkeypatch.setattr(
+        evaluate, "load_probe_manifest", lambda *_args, **_kwargs: feasibility
+    )
     test_dir = tmp_path / "held-out"
 
     result = evaluate.prepare_test_opening(
         protocol_lock_path=tmp_path / "protocol.json",
         tokenizer_dir=tmp_path / "tokenizer",
         validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
+        feasibility_manifest_path=tmp_path / "feasibility.json",
         test_dir=test_dir,
         opening_id="issue-54-final-test",
     )
@@ -931,6 +961,7 @@ def test_prepare_test_opening_creates_prepared_zero_access_ledger(
             test_dir,
             protocol_lock=protocol,
             validation_results=validation,
+            feasibility_manifest=feasibility,
         )["status"]
         == "locked-before-held-out-test"
     )
@@ -939,6 +970,7 @@ def test_prepare_test_opening_creates_prepared_zero_access_ledger(
             protocol_lock_path=tmp_path / "protocol.json",
             tokenizer_dir=tmp_path / "tokenizer",
             validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
+            feasibility_manifest_path=tmp_path / "feasibility.json",
             test_dir=test_dir,
             opening_id="another-opening",
         )
@@ -948,20 +980,25 @@ def test_test_opening_is_one_shared_atomic_access_and_recovers_without_rescoring
     tmp_path, protocol, records, monkeypatch
 ):
     validation, locks = _selection_locks(protocol)
+    feasibility = _feasibility_manifest()
     test_dir = tmp_path / "held-out"
     test_dir.mkdir()
     ledger = new_test_opening_ledger(
         opening_id="issue-54-final-test",
         protocol_lock_sha256=protocol["protocol_lock_sha256"],
         selection_locks=locks,
+        feasibility_artifact_digest=feasibility["artifact_digest"],
     )
     create_test_opening_ledger_file(test_dir / evaluate.TEST_LEDGER_FILENAME, ledger)
-    _write_readiness(test_dir, protocol, validation)
+    _write_readiness(test_dir, protocol, validation, feasibility)
     monkeypatch.setattr(evaluate, "load_protocol_lock", lambda *_, **__: protocol)
     monkeypatch.setattr(
         evaluate,
         "load_validation_results",
         lambda *_, **__: (validation, locks),
+    )
+    monkeypatch.setattr(
+        evaluate, "load_probe_manifest", lambda *_args, **_kwargs: feasibility
     )
 
     def load_records(*_args, **_kwargs):
@@ -996,6 +1033,7 @@ def test_test_opening_is_one_shared_atomic_access_and_recovers_without_rescoring
         "corpus_dir": tmp_path / "corpus",
         "tokenizer_dir": tmp_path / "tokenizer",
         "validation_result_dirs": [tmp_path / arm for arm in ARM_IDS],
+        "feasibility_manifest_path": tmp_path / "feasibility.json",
         "test_dir": test_dir,
         "reference_corpus_dirs": [tmp_path / "v1"],
         "candidate_provider": candidates,
@@ -1054,16 +1092,128 @@ def test_test_opening_is_one_shared_atomic_access_and_recovers_without_rescoring
         evaluate.run_test_opening(**common)
 
 
+def test_two_active_arms_open_once_and_deferred_arm_cannot_be_added(
+    tmp_path, protocol, records, monkeypatch
+):
+    active = ARM_IDS[:2]
+    deferred = ARM_IDS[2:]
+    validation, locks = _selection_locks(protocol, active)
+    feasibility = _feasibility_manifest(active)
+    monkeypatch.setattr(evaluate, "load_protocol_lock", lambda *_, **__: protocol)
+    monkeypatch.setattr(
+        evaluate,
+        "load_validation_results",
+        lambda *_, **__: (validation, locks),
+    )
+    monkeypatch.setattr(
+        evaluate, "load_probe_manifest", lambda *_args, **_kwargs: feasibility
+    )
+    test_dir = tmp_path / "held-out-two-active"
+    evaluate.prepare_test_opening(
+        protocol_lock_path=tmp_path / "protocol.json",
+        tokenizer_dir=tmp_path / "tokenizer",
+        validation_result_dirs=[tmp_path / arm_id for arm_id in active],
+        feasibility_manifest_path=tmp_path / "feasibility.json",
+        test_dir=test_dir,
+        opening_id="issue-54-two-active",
+    )
+    prepared = load_test_opening_ledger(test_dir / evaluate.TEST_LEDGER_FILENAME)
+    assert prepared["active_arm_ids"] == list(active)
+    assert prepared["deferred_arm_ids"] == list(deferred)
+    assert prepared["feasibility_artifact_digest"] == feasibility["artifact_digest"]
+    assert "artifact_path" in validation[active[0]]["training_manifest"][
+        "feasibility_gate"
+    ]
+    tampered_feasibility = deepcopy(feasibility)
+    tampered_feasibility["launch_gate"]["per_arm"][deferred[0]][
+        "launch_allowed"
+    ] = True
+    with pytest.raises(ValueError, match="not feasibility-blocked"):
+        evaluate._validate_test_feasibility(
+            tampered_feasibility, validation_results=validation
+        )
+
+    basis = SimpleNamespace(as_function_set=object)
+    monkeypatch.setattr(
+        evaluate,
+        "load_frozen_cohort_records",
+        lambda **_kwargs: (basis, records, {"ok": True}),
+    )
+    calls = Counter()
+
+    def candidates(records, *, arm_id, **_kwargs):
+        calls[arm_id] += 1
+        return _candidate_rows(records, arm_id), {
+            "seconds": 1.0,
+            "cublas_workspace_config": ":16:8",
+            "pythonhashseed": "0",
+            "peak_torch_allocated_bytes": 100,
+            "peak_torch_reserved_bytes": 110,
+        }
+
+    common = {
+        "protocol_lock_path": tmp_path / "protocol.json",
+        "corpus_dir": tmp_path / "corpus",
+        "tokenizer_dir": tmp_path / "tokenizer",
+        "validation_result_dirs": [tmp_path / arm_id for arm_id in active],
+        "feasibility_manifest_path": tmp_path / "feasibility.json",
+        "test_dir": test_dir,
+        "reference_corpus_dirs": [tmp_path / "v1"],
+        "candidate_provider": candidates,
+        "bfs_provider": lambda records, **_kwargs: _bfs_rows(records),
+    }
+    result = evaluate.run_test_opening(**common)
+    assert result["ledger"]["test_access_count"] == 1
+    assert result["summary"]["active_arm_ids"] == list(active)
+    assert result["summary"]["deferred_arm_ids"] == list(deferred)
+    assert result["summary"]["candidate_funnels"]["arm_ids"] == list(active)
+    assert set(result["summary"]["arms"]) == set(active)
+    assert calls == Counter(dict.fromkeys(active, 1))
+    assert not (test_dir / "arms" / deferred[0]).exists()
+
+    all_validation, all_locks = _selection_locks(protocol)
+    all_feasibility = _feasibility_manifest()
+    monkeypatch.setattr(
+        evaluate,
+        "load_validation_results",
+        lambda *_, **__: (all_validation, all_locks),
+    )
+    monkeypatch.setattr(
+        evaluate, "load_probe_manifest", lambda *_args, **_kwargs: all_feasibility
+    )
+    with pytest.raises(ValueError, match="frozen opening"):
+        evaluate.run_test_opening(
+            **{
+                **common,
+                "validation_result_dirs": [tmp_path / arm_id for arm_id in ARM_IDS],
+            }
+        )
+
+    monkeypatch.setattr(
+        evaluate,
+        "load_validation_results",
+        lambda *_, **__: (validation, locks),
+    )
+    monkeypatch.setattr(
+        evaluate, "load_probe_manifest", lambda *_args, **_kwargs: feasibility
+    )
+    (test_dir / "arms" / deferred[0]).mkdir(parents=True)
+    with pytest.raises(ValueError, match="cannot be added"):
+        evaluate.run_test_opening(**common)
+
+
 def test_complete_ledger_with_missing_arm_refuses_rescore(
     tmp_path, protocol, records, monkeypatch
 ):
     validation, locks = _selection_locks(protocol)
+    feasibility = _feasibility_manifest()
     test_dir = tmp_path / "held-out"
     test_dir.mkdir()
     ledger = new_test_opening_ledger(
         opening_id="opening",
         protocol_lock_sha256=PROTOCOL_DIGEST,
         selection_locks=locks,
+        feasibility_artifact_digest=feasibility["artifact_digest"],
     )
     ledger = begin_test_opening(ledger)
     for arm_id in ARM_IDS:
@@ -1077,12 +1227,15 @@ def test_complete_ledger_with_missing_arm_refuses_rescore(
         shared_bfs_identity={"sha256": "sha256:" + "b" * 64},
     )
     create_test_opening_ledger_file(test_dir / evaluate.TEST_LEDGER_FILENAME, ledger)
-    _write_readiness(test_dir, protocol, validation)
+    _write_readiness(test_dir, protocol, validation, feasibility)
     monkeypatch.setattr(evaluate, "load_protocol_lock", lambda *_, **__: protocol)
     monkeypatch.setattr(
         evaluate,
         "load_validation_results",
         lambda *_, **__: (validation, locks),
+    )
+    monkeypatch.setattr(
+        evaluate, "load_probe_manifest", lambda *_args, **_kwargs: feasibility
     )
     basis = SimpleNamespace(as_function_set=object)
     monkeypatch.setattr(
@@ -1097,6 +1250,7 @@ def test_complete_ledger_with_missing_arm_refuses_rescore(
             corpus_dir=tmp_path / "corpus",
             tokenizer_dir=tmp_path / "tokenizer",
             validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
+            feasibility_manifest_path=tmp_path / "feasibility.json",
             test_dir=test_dir,
             reference_corpus_dirs=[tmp_path / "v1"],
             candidate_provider=lambda *_args, **_kwargs: (_ for _ in ()).throw(

@@ -20,6 +20,7 @@ import shutil
 import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
@@ -62,7 +63,10 @@ from wandering_light.training.deep_corpus_scratch import (
     LR_GRID,
     PERSONAL_WANDB_ENTITY,
 )
-from wandering_light.training.deep_corpus_tokenizer import validate_frozen_tokenizer
+from wandering_light.training.deep_corpus_tokenizer import (
+    DETAIL_FILENAME,
+    validate_frozen_tokenizer,
+)
 
 SCHEMA_VERSION = 1
 REPORT_JSON_FILENAME = "report.json"
@@ -70,6 +74,17 @@ REPORT_MARKDOWN_FILENAME = "report.md"
 REPORT_DIGEST_FIELD = "report_sha256"
 DISTANCES = tuple(range(1, 9))
 TARGET_DISTANCES = tuple(range(5, 9))
+ARM_LABELS = {
+    "scratch-10m": "10M",
+    "opt-125m-scratch": "OPT 125M",
+    "smollm2-360m-scratch": "SmolLM2 360M",
+}
+FROZEN_WORKLOAD_INVARIANTS = (
+    "training data",
+    "epochs",
+    "context length",
+    "parameter count",
+)
 
 
 @dataclass(frozen=True)
@@ -129,6 +144,107 @@ def _validate_issue_54_protocol(protocol: Mapping[str, Any]) -> None:
         raise ValueError("Protocol BFS settings differ from issue #54")
 
 
+def _study_arm_scope(
+    feasibility: Mapping[str, Any],
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Return the canonical active/deferred partition sealed by feasibility."""
+
+    gate = feasibility.get("launch_gate")
+    if not isinstance(gate, Mapping):
+        raise ValueError("Feasibility manifest has no launch gate")
+    per_arm = gate.get("per_arm")
+    if not isinstance(per_arm, Mapping) or set(per_arm) != set(ARM_IDS):
+        raise ValueError("Feasibility launch gate must cover all three arms")
+    active = tuple(
+        arm_id
+        for arm_id in ARM_IDS
+        if isinstance(per_arm[arm_id], Mapping)
+        and per_arm[arm_id].get("launch_allowed") is True
+    )
+    deferred = tuple(arm_id for arm_id in ARM_IDS if arm_id not in active)
+    if not active:
+        raise ValueError("Feasibility manifest authorizes no reportable arm")
+    if gate.get("authorized_arm_ids") != list(active):
+        raise ValueError("Feasibility authorized-arm list differs from per-arm gates")
+    if gate.get("blocked_arm_ids") != list(deferred):
+        raise ValueError("Feasibility blocked-arm list differs from per-arm gates")
+    return active, deferred
+
+
+def _deferred_arm_report(
+    arm_id: str, *, arm_gate: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Preserve why an arm was deferred and the non-destructive ways it can fit."""
+
+    if arm_gate.get("launch_allowed") is not False:
+        raise ValueError(f"Deferred arm {arm_id} is unexpectedly launch-authorized")
+    if arm_gate.get("route") != "blocked":
+        raise ValueError(f"Deferred arm {arm_id} does not use the blocked route")
+    baseline = arm_gate.get("baseline")
+    if not isinstance(baseline, Mapping):
+        raise ValueError(f"Deferred arm {arm_id} has no runtime projection")
+    required = (
+        "projected_pilot_run_hours",
+        "projected_pilot_hours",
+        "projected_final_hours",
+        "projected_pilot_plus_final_hours",
+    )
+    projection = canonical_copy(dict(baseline))
+    for field in required:
+        projection[field] = _finite_number(
+            baseline.get(field), label=f"{arm_id} {field}", minimum=0
+        )
+    pilot_runs = baseline.get("pilot_runs", len(LR_GRID))
+    if type(pilot_runs) is not int or pilot_runs != len(LR_GRID):
+        raise ValueError(f"Deferred arm {arm_id} projection has the wrong pilot count")
+    projection["pilot_runs"] = pilot_runs
+    if not math.isclose(
+        projection["projected_pilot_hours"],
+        projection["projected_pilot_run_hours"] * pilot_runs,
+    ) or not math.isclose(
+        projection["projected_pilot_plus_final_hours"],
+        projection["projected_pilot_hours"] + projection["projected_final_hours"],
+    ):
+        raise ValueError(f"Deferred arm {arm_id} runtime projection is inconsistent")
+    projection_includes = baseline.get("projection_includes")
+    if (
+        not isinstance(projection_includes, list)
+        or not all(isinstance(item, str) for item in projection_includes)
+        or not any("quarter-epoch pilot" in item for item in projection_includes)
+        or not any("three final epoch" in item for item in projection_includes)
+        or not any("15%" in item for item in projection_includes)
+    ):
+        raise ValueError(f"Deferred arm {arm_id} projection context is incomplete")
+    return {
+        "status": "deferred",
+        "route": arm_gate.get("route"),
+        "reason": arm_gate.get("reason"),
+        "projection": projection,
+        "projection_context": {
+            "learning_rate_pilots": pilot_runs,
+            "full_final_epochs": 3,
+            "margin_percent": 15,
+            "includes": canonical_copy(projection_includes),
+        },
+        "fit_options": [
+            {
+                "option": "fewer_learning_rate_pilots",
+                "effect": (
+                    "reduce pilot overhead under a separately frozen LR-selection "
+                    "protocol"
+                ),
+                "requires_protocol_change": True,
+            },
+            {
+                "option": "own_night",
+                "effect": "run under its own separately authorized runtime envelope",
+                "requires_protocol_change": False,
+            },
+        ],
+        "must_not_shrink": list(FROZEN_WORKLOAD_INVARIANTS),
+    }
+
+
 def _validate_feasibility_producer(
     feasibility: Mapping[str, Any], *, protocol: Mapping[str, Any]
 ) -> None:
@@ -162,8 +278,15 @@ def _validate_feasibility_producer(
 
 
 def _validate_combined_test_summary(
-    summary: Mapping[str, Any], *, protocol: Mapping[str, Any]
+    summary: Mapping[str, Any],
+    *,
+    protocol: Mapping[str, Any],
+    active_arm_ids: Sequence[str] = ARM_IDS,
+    deferred_arm_ids: Sequence[str] = (),
+    feasibility_artifact_digest: str | None = None,
 ) -> dict[str, Any]:
+    active = tuple(active_arm_ids)
+    deferred = tuple(deferred_arm_ids)
     value = canonical_copy(dict(summary))
     recorded = value.pop(SUMMARY_DIGEST_FIELD, None)
     if recorded != sha256_json(value):
@@ -181,16 +304,26 @@ def _validate_combined_test_summary(
         raise ValueError("Combined test summary belongs to another test cohort")
     if value.get("test_access_count") != 1:
         raise ValueError("Combined test summary does not prove exactly one opening")
+    has_explicit_scope = "active_arm_ids" in value or "deferred_arm_ids" in value
+    if deferred or has_explicit_scope:
+        if value.get("active_arm_ids") != list(active) or value.get(
+            "deferred_arm_ids"
+        ) != list(deferred):
+            raise ValueError("Combined test summary changed its active/deferred scope")
+        if value.get("feasibility_artifact_digest") != feasibility_artifact_digest:
+            raise ValueError("Combined test summary used another feasibility artifact")
+    elif active != ARM_IDS:
+        raise ValueError("Partial combined test summary has no explicit arm scope")
     for field in ("arm_summary_sha256_by_arm", "arms"):
-        if not isinstance(value.get(field), dict) or set(value[field]) != set(ARM_IDS):
+        if not isinstance(value.get(field), dict) or set(value[field]) != set(active):
             raise ValueError(f"Combined test summary has invalid {field}")
     funnels = value.get("candidate_funnels", {})
     if (
         not isinstance(funnels, dict)
-        or funnels.get("arm_ids") != list(ARM_IDS)
+        or funnels.get("arm_ids") != list(active)
         or tuple(funnels.get("sample_prefixes", ())) != SAMPLE_PREFIXES
         or not isinstance(funnels.get("arms"), dict)
-        or set(funnels["arms"]) != set(ARM_IDS)
+        or set(funnels["arms"]) != set(active)
     ):
         raise ValueError("Combined test summary has incomplete candidate funnels")
     return value
@@ -203,9 +336,10 @@ def _load_test_arms(
     combined: Mapping[str, Any],
     validation: Mapping[str, Mapping[str, Any]],
     ledger: Mapping[str, Any],
+    active_arm_ids: Sequence[str] = ARM_IDS,
 ) -> dict[str, dict[str, Any]]:
     results: dict[str, dict[str, Any]] = {}
-    for arm_id in ARM_IDS:
+    for arm_id in active_arm_ids:
         root = test_dir / "arms" / arm_id
         summary = validate_evaluation_summary(
             _read_json(root / SUMMARY_FILENAME, label="test arm summary"),
@@ -477,16 +611,23 @@ def _load_pilot_outcomes(
     validation: Mapping[str, Mapping[str, Any]],
     feasibility: Mapping[str, Any],
     feasibility_results: Mapping[str, Mapping[str, Any]],
+    active_arm_ids: Sequence[str] = ARM_IDS,
 ) -> dict[str, list[dict[str, Any]]]:
-    if len(paths) != len(ARM_IDS) * len(LR_GRID):
-        raise ValueError("Exactly nine pilot training manifests are required")
+    active = tuple(active_arm_ids)
+    expected_count = len(active) * len(LR_GRID)
+    if len(paths) != expected_count:
+        count_label = "nine" if expected_count == 9 else str(expected_count)
+        raise ValueError(
+            f"Exactly {count_label} pilot training manifests are required for "
+            f"the active arms"
+        )
     manifests: dict[tuple[str, float], dict[str, Any]] = {}
     for path in paths:
         manifest = _read_json(path, label="pilot training manifest")
         arm_id = manifest.get("arm_id")
         rate = manifest.get("learning_rate")
         if (
-            arm_id not in ARM_IDS
+            arm_id not in active
             or isinstance(rate, bool)
             or not isinstance(rate, (int, float))
         ):
@@ -495,12 +636,12 @@ def _load_pilot_outcomes(
         if key in manifests:
             raise ValueError("Pilot manifests contain a duplicate arm/learning rate")
         manifests[key] = manifest
-    expected = {(arm_id, float(rate)) for arm_id in ARM_IDS for rate in LR_GRID}
+    expected = {(arm_id, float(rate)) for arm_id in active for rate in LR_GRID}
     if set(manifests) != expected:
-        raise ValueError("Pilots must cover every arm and predeclared learning rate")
+        raise ValueError("Pilots must cover every active arm and predeclared LR")
 
     outcomes: dict[str, list[dict[str, Any]]] = {}
-    for arm_id in ARM_IDS:
+    for arm_id in active:
         final = validation[arm_id]["training_manifest"]
         final_identity = _shared_training_identity(final)
         lock = final.get("selection_lock", {})
@@ -597,7 +738,9 @@ def _evaluation_view(
     }
 
 
-def _tokenizer_report(manifest: Mapping[str, Any]) -> dict[str, Any]:
+def _tokenizer_report(
+    manifest: Mapping[str, Any], *, tokenizer_dir: Path
+) -> dict[str, Any]:
     tokenizer = manifest.get("tokenizer", {})
     selection = manifest.get("selection", {})
     statistics = (
@@ -609,12 +752,30 @@ def _tokenizer_report(manifest: Mapping[str, Any]) -> dict[str, Any]:
         if isinstance(retained, Mapping)
         else {}
     )
+    excluded = selection.get("excluded") if isinstance(selection, Mapping) else None
+    if excluded is None and isinstance(selection, Mapping):
+        detail_identity = selection.get("detail_file")
+        if not isinstance(detail_identity, Mapping):
+            raise ValueError("Tokenizer artifact has no detached selection detail")
+        detail_path = tokenizer_dir.resolve() / DETAIL_FILENAME
+        if (
+            detail_identity.get("path") != DETAIL_FILENAME
+            or not detail_path.is_file()
+            or detail_path.stat().st_size != detail_identity.get("bytes")
+            or sha256_file(detail_path) != detail_identity.get("sha256")
+        ):
+            raise ValueError("Tokenizer selection detail changed after it was sealed")
+        detail = _read_json(detail_path, label="tokenizer selection detail")
+        detail_selection = detail.get("selection")
+        if not isinstance(detail_selection, Mapping):
+            raise ValueError("Tokenizer selection detail is incomplete")
+        excluded = detail_selection.get("excluded")
     if (
         not isinstance(tokenizer, Mapping)
         or tokenizer.get("max_length") != 2048
         or set(by_distance) != {str(value) for value in DISTANCES}
-        or not isinstance(selection.get("excluded"), list)
-        or selection.get("excluded_records") != len(selection["excluded"])
+        or not isinstance(excluded, list)
+        or selection.get("excluded_records") != len(excluded)
     ):
         raise ValueError("Tokenizer artifact lacks complete length/exclusion reporting")
     return {
@@ -626,7 +787,7 @@ def _tokenizer_report(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "retained_records": selection.get("retained_records"),
         "excluded_records": selection.get("excluded_records"),
         "retained_token_statistics_by_distance": canonical_copy(by_distance),
-        "excluded_rows": canonical_copy(selection["excluded"]),
+        "excluded_rows": canonical_copy(excluded),
         "token_id_digests": canonical_copy(selection.get("token_id_digests")),
     }
 
@@ -634,28 +795,30 @@ def _tokenizer_report(manifest: Mapping[str, Any]) -> dict[str, Any]:
 def _decision_rules(
     validation: Mapping[str, Mapping[str, Any]],
     test: Mapping[str, Mapping[str, Any]],
+    *,
+    active_arm_ids: Sequence[str] = ARM_IDS,
+    deferred_arm_ids: Sequence[str] = (),
 ) -> dict[str, Any]:
+    active = tuple(active_arm_ids)
+    deferred = tuple(deferred_arm_ids)
     validation_target = {
-        arm_id: validation[arm_id]["distance_5_8_at_64"] for arm_id in ARM_IDS
+        arm_id: validation[arm_id]["distance_5_8_at_64"] for arm_id in active
     }
-    test_target = {arm_id: test[arm_id]["distance_5_8_at_64"] for arm_id in ARM_IDS}
-    larger_helps = {
-        "opt-125m-scratch_vs_scratch-10m": (
-            validation_target["opt-125m-scratch"]["solve_rate"]
-            > validation_target["scratch-10m"]["solve_rate"]
-        ),
-        "smollm2-360m-scratch_vs_opt-125m-scratch": (
-            validation_target["smollm2-360m-scratch"]["solve_rate"]
-            > validation_target["opt-125m-scratch"]["solve_rate"]
-        ),
-    }
+    test_target = {arm_id: test[arm_id]["distance_5_8_at_64"] for arm_id in active}
+    larger_helps: dict[str, bool] = {}
+    for smaller, larger in pairwise(ARM_IDS):
+        if smaller in validation_target and larger in validation_target:
+            larger_helps[f"{larger}_vs_{smaller}"] = (
+                validation_target[larger]["solve_rate"]
+                > validation_target[smaller]["solve_rate"]
+            )
     all_zero = all(
         int(test[arm_id]["by_certified_distance_at_64"][str(distance)]["solved"]) == 0
-        for arm_id in ARM_IDS
+        for arm_id in active
         for distance in TARGET_DISTANCES
     )
     kill = {}
-    for arm_id in ARM_IDS:
+    for arm_id in active:
         try:
             matched = test[arm_id]["matched_compute"]["7-8"]["matched"]["64"]
             cheaper = matched["model_cheaper_than_bfs_at_equal_or_higher_solve_count"]
@@ -673,14 +836,22 @@ def _decision_rules(
                 "equal or higher solve count on distance 7-8"
             ),
         }
-    capacity_mismatch = test_target["smollm2-360m-scratch"]["solve_rate"] < max(
-        test_target["scratch-10m"]["solve_rate"],
-        test_target["opt-125m-scratch"]["solve_rate"],
-    )
+    capacity_mismatch = None
+    if set(ARM_IDS).issubset(test_target):
+        capacity_mismatch = test_target["smollm2-360m-scratch"]["solve_rate"] < max(
+            test_target["scratch-10m"]["solve_rate"],
+            test_target["opt-125m-scratch"]["solve_rate"],
+        )
     if all_zero:
+        scope = "All three models" if not deferred else "Both active models"
         long_distance_statement = (
-            "All three models remained 0/12 at every distance from 5 through 8; "
-            "10x data plus scratch scaling did not solve the long-distance regime."
+            f"{scope} remained 0/12 at every distance from 5 through 8; "
+            "the deferred arm is not evidence for or against the long-distance regime."
+            if deferred
+            else (
+                "All three models remained 0/12 at every distance from 5 through 8; "
+                "10x data plus scratch scaling did not solve the long-distance regime."
+            )
         )
     else:
         long_distance_statement = (
@@ -688,6 +859,8 @@ def _decision_rules(
             "see the per-distance table without tuning on test."
         )
     return {
+        "active_arm_ids": list(active),
+        "deferred_arm_ids": list(deferred),
         "validation_distance_5_8": validation_target,
         "larger_model_helps_on_validation_distance_5_8": larger_helps,
         "all_models_zero_at_each_test_distance_5_8": all_zero,
@@ -725,9 +898,12 @@ def build_markdown(report: Mapping[str, Any]) -> str:
     training = report["training"]
     tokenizer = report["tokenizer"]
     decisions = report["decision_rules"]
+    scope = report.get("study_scope", {})
+    active_arm_ids = tuple(scope.get("active_arm_ids", ARM_IDS))
+    deferred_arm_ids = tuple(scope.get("deferred_arm_ids", ()))
 
     provenance_rows = []
-    for arm_id in ARM_IDS:
+    for arm_id in active_arm_ids:
         identity = training[arm_id]["identity"]
         final = training[arm_id]["final"]
         provenance_rows.append(
@@ -745,14 +921,39 @@ def build_markdown(report: Mapping[str, Any]) -> str:
     for distance in DISTANCES:
         model_rows = [
             test[arm_id]["by_certified_distance_at_64"][str(distance)]
-            for arm_id in ARM_IDS
+            for arm_id in active_arm_ids
         ]
-        bfs = test[ARM_IDS[0]]["bfs"]["by_certified_distance"][str(distance)]
+        bfs = test[active_arm_ids[0]]["bfs"]["by_certified_distance"][str(distance)]
         distance_rows.append(
             [
                 distance,
                 *(f"{row['solved']}/{row['tasks']}" for row in model_rows),
                 f"{bfs['solved']}/{bfs['tasks']}",
+            ]
+        )
+    target_distance_rows = [
+        row for row in distance_rows if int(row[0]) in TARGET_DISTANCES
+    ]
+    headline_rows = []
+    for label, distances, field in (
+        ("distance 5-8", TARGET_DISTANCES, "distance_5_8_at_64"),
+        ("distance 7-8 (headline)", (7, 8), "distance_7_8_at_64"),
+    ):
+        aggregates = [test[arm_id][field] for arm_id in active_arm_ids]
+        bfs_rows_for_group = [
+            test[active_arm_ids[0]]["bfs"]["by_certified_distance"][str(distance)]
+            for distance in distances
+        ]
+        bfs_solved = sum(int(row["solved"]) for row in bfs_rows_for_group)
+        bfs_tasks = sum(int(row["tasks"]) for row in bfs_rows_for_group)
+        headline_rows.append(
+            [
+                label,
+                *(
+                    f"{row['solved']}/{row['tasks']} ({_pct(row['solve_rate'])})"
+                    for row in aggregates
+                ),
+                f"{bfs_solved}/{bfs_tasks} ({_pct(bfs_solved / bfs_tasks)})",
             ]
         )
     token_rows = []
@@ -770,7 +971,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
         )
     training_rows = []
     loss_rows = []
-    for arm_id in ARM_IDS:
+    for arm_id in active_arm_ids:
         for run in [*training[arm_id]["pilots"], training[arm_id]["final"]]:
             label = (
                 f"pilot lr={run['learning_rate']:g}"
@@ -805,7 +1006,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                 )
     solve_rows = []
     for split, evaluations in (("validation", validation), ("test", test)):
-        for arm_id in ARM_IDS:
+        for arm_id in active_arm_ids:
             for sample_count in SAMPLE_PREFIXES:
                 row = evaluations[arm_id]["solve_at_k"][str(sample_count)]
                 solve_rows.append(
@@ -824,7 +1025,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
     matched_rows = []
     generation_rows = []
     for split, evaluations in (("validation", validation), ("test", test)):
-        shared_bfs = evaluations[ARM_IDS[0]]["bfs"]
+        shared_bfs = evaluations[active_arm_ids[0]]["bfs"]
         overall_bfs = shared_bfs["overall"]
         bfs_rows.append(
             [
@@ -848,7 +1049,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                     row["mean_executions"],
                 ]
             )
-        for arm_id in ARM_IDS:
+        for arm_id in active_arm_ids:
             runtime = evaluations[arm_id]["generation_runtime"]
             generation_rows.append(
                 [
@@ -891,7 +1092,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                     )
     funnel_rows = []
     for split, evaluations in (("validation", validation), ("test", test)):
-        for arm_id in ARM_IDS:
+        for arm_id in active_arm_ids:
             for sample_count in SAMPLE_PREFIXES:
                 row = evaluations[arm_id]["candidate_funnel"]["by_k"][str(sample_count)]
                 funnel_rows.append(
@@ -899,10 +1100,10 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                         split,
                         arm_id,
                         sample_count,
-                        _pct(row["parseable_rate"]),
+                        _pct(row["unparseable_rate"]),
                         _pct(row["executable_given_parseable_rate"]),
                         _pct(row["type_mismatch_rate"]),
-                        _pct(row["correct_given_executable_rate"]),
+                        _pct(row["correct_given_parseable_rate"]),
                         ", ".join(
                             (
                                 f"{item['category']}"
@@ -925,7 +1126,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
         feasibility_rows.append(
             [
                 arm_id,
-                gate["route"],
+                "deferred" if arm_id in deferred_arm_ids else gate["route"],
                 projection["projected_pilot_hours"],
                 projection["projected_final_hours"],
                 projection["projected_pilot_plus_final_hours"],
@@ -947,16 +1148,58 @@ def build_markdown(report: Mapping[str, Any]) -> str:
         f"- `{arm_id}`: **{'triggered' if value['triggered'] else 'not triggered'}**"
         for arm_id, value in decisions["distance_7_8_kill_criterion"].items()
     )
+    primary_headers = [
+        "distance",
+        *(f"{ARM_LABELS[arm_id]} @64" for arm_id in active_arm_ids),
+        "BFS",
+    ]
+    deferred_sections = []
+    for arm_id in deferred_arm_ids:
+        deferred = report["deferred_arms"][arm_id]
+        projection = deferred["projection"]
+        deferred_sections.append(
+            "### "
+            + ARM_LABELS[arm_id]
+            + " — deferred\n\n"
+            + f"Projected total: **{projection['projected_pilot_plus_final_hours']:.2f} "
+            "hours**, including three learning-rate pilots, the full three-epoch "
+            "run, and the fixed 15% margin. It can fit by using fewer learning-rate "
+            "pilots under a separately frozen LR-selection protocol, or by assigning "
+            "it its own night. Do not shrink training data, epochs, context length, "
+            "or parameter count to force it into the current night."
+        )
+    deferred_markdown = (
+        "## Deferred arms\n\n" + "\n\n".join(deferred_sections)
+        if deferred_sections
+        else ""
+    )
+    capacity_mismatch = decisions[
+        "capacity_data_mismatch_360m_loses_on_test_distance_5_8"
+    ]
+    if capacity_mismatch is None:
+        capacity_statement = (
+            "The 360M arm was deferred, so this report makes no held-out 360M "
+            "capacity/data comparison."
+        )
+    elif capacity_mismatch:
+        capacity_statement = (
+            "The 360M arm lost to a smaller arm on held-out distance 5-8: report "
+            "this as a capacity/data mismatch and do not tune on test."
+        )
+    else:
+        capacity_statement = "No predeclared 360M capacity/data mismatch was triggered."
     return (
         "\n\n".join(
             [
                 "# Deep corpus v2 scratch scaling report (issue #54)",
                 decisions["long_distance_statement"],
-                "## Primary held-out comparison\n\n"
-                + _table(
-                    ["distance", "10M @64", "OPT 125M @64", "SmolLM2 360M @64", "BFS"],
-                    distance_rows,
-                ),
+                "## Primary held-out comparison: certified distance 5-8\n\n"
+                + "Distance 7-8 is the headline slice.\n\n"
+                + _table(primary_headers, target_distance_rows)
+                + "\n\n"
+                + _table(primary_headers, headline_rows),
+                "## Complete solve@64 by certified distance 1-8\n\n"
+                + _table(primary_headers, distance_rows),
                 "## Initialization and final checkpoint provenance\n\n"
                 + _table(
                     [
@@ -1009,6 +1252,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                     ["arm", "route", "pilot h", "final h", "total h", "hard stop"],
                     feasibility_rows,
                 ),
+                deferred_markdown,
                 "## Observed pilot and final training\n\n"
                 + _table(
                     [
@@ -1099,29 +1343,25 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                         "split",
                         "arm",
                         "k",
-                        "parse-valid",
+                        "unparseable",
                         "executable | parse",
                         "type mismatch",
-                        "correct | executable",
+                        "execution-correct | parseable",
                         "top reasons",
                     ],
                     funnel_rows,
                 ),
                 "Malformed candidates consume zero basis executions; neural generation cost "
-                "is not included in the matched BFS basis-execution unit.",
+                "is not included in the matched BFS basis-execution unit. Because these "
+                "random-init arms use basis names as atomic tokens, a non-negligible "
+                "unparseable rate is treated as a tokenizer or prompt-format bug before "
+                "drawing a capacity or data-scale conclusion.",
                 "## Predeclared decisions\n\n"
                 + decisions["long_distance_statement"]
                 + "\n\n"
                 + kill_lines
                 + "\n\n"
-                + (
-                    "The 360M arm lost to a smaller arm on held-out distance 5-8: report "
-                    "this as a capacity/data mismatch and do not tune on test."
-                    if decisions[
-                        "capacity_data_mismatch_360m_loses_on_test_distance_5_8"
-                    ]
-                    else "No predeclared 360M capacity/data mismatch was triggered."
-                ),
+                + capacity_statement,
                 decisions["capacity_caveat"],
                 decisions["seed_caveat"],
                 "The 20M BFS budget is a per-task safety ceiling, not measured cost; all "
@@ -1172,11 +1412,10 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
         != protocol["tokenizer"]["metadata"]["artifact_digest"]
     ):
         raise ValueError("Tokenizer artifact differs from the frozen protocol")
-    feasibility = load_probe_manifest(
-        inputs.feasibility_manifest, require_launch_allowed=True
-    )
+    feasibility = load_probe_manifest(inputs.feasibility_manifest)
     _validate_feasibility_producer(feasibility, protocol=protocol)
     feasibility_results = _study_result_by_arm(feasibility)
+    active_arm_ids, deferred_arm_ids = _study_arm_scope(feasibility)
     if feasibility.get("source_data", {}).get("corpus_manifest_digest") != corpus.get(
         "manifest_digest"
     ) or feasibility.get("source_data", {}).get(
@@ -1187,14 +1426,22 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
     validation, selection_locks = load_validation_results(
         inputs.validation_results, protocol_lock=protocol
     )
-    validation_bfs = canonical_copy(validation[ARM_IDS[0]]["summary"]["bfs"])
+    if tuple(validation) != active_arm_ids or len(selection_locks) != len(
+        active_arm_ids
+    ):
+        raise ValueError(
+            "Validation results do not match the feasibility-authorized arms"
+        )
+    validation_bfs = canonical_copy(
+        validation[active_arm_ids[0]]["summary"]["bfs"]
+    )
     if any(
         canonical_copy(validation[arm_id]["summary"]["bfs"]) != validation_bfs
-        for arm_id in ARM_IDS[1:]
+        for arm_id in active_arm_ids[1:]
     ):
         raise ValueError("Validation arms do not share one deterministic BFS result")
     final_outcomes: dict[str, dict[str, Any]] = {}
-    for arm_id in ARM_IDS:
+    for arm_id in active_arm_ids:
         manifest = validation[arm_id]["training_manifest"]
         _validate_feasibility_link(
             manifest,
@@ -1212,17 +1459,29 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
         validation=validation,
         feasibility=feasibility,
         feasibility_results=feasibility_results,
+        active_arm_ids=active_arm_ids,
     )
 
     test_dir = inputs.test_dir.resolve()
     combined = _validate_combined_test_summary(
         _read_json(test_dir / TEST_SUMMARY_FILENAME, label="combined test summary"),
         protocol=protocol,
+        active_arm_ids=active_arm_ids,
+        deferred_arm_ids=deferred_arm_ids,
+        feasibility_artifact_digest=feasibility["artifact_digest"],
     )
+    ledger_scope: dict[str, Any] = {}
+    if deferred_arm_ids or combined.get("feasibility_artifact_digest") is not None:
+        ledger_scope = {
+            "active_arm_ids": active_arm_ids,
+            "deferred_arm_ids": deferred_arm_ids,
+            "feasibility_artifact_digest": feasibility["artifact_digest"],
+        }
     ledger = validate_test_opening_ledger(
         _read_json(test_dir / TEST_LEDGER_FILENAME, label="test ledger"),
         protocol_lock_sha256=protocol["protocol_lock_sha256"],
         selection_locks=selection_locks,
+        **ledger_scope,
     )
     if ledger["status"] != "complete" or ledger["test_access_count"] != 1:
         raise ValueError("Held-out test ledger is not complete and once-opened")
@@ -1243,11 +1502,12 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
         combined=combined,
         validation=validation,
         ledger=ledger,
+        active_arm_ids=active_arm_ids,
     )
 
     validation_views: dict[str, dict[str, Any]] = {}
     test_views: dict[str, dict[str, Any]] = {}
-    for arm_id in ARM_IDS:
+    for arm_id in active_arm_ids:
         validation_summary = validation[arm_id]["summary"]
         validation_views[arm_id] = {
             **_evaluation_view(
@@ -1284,12 +1544,27 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
             "pilots": pilots[arm_id],
             "final": final_outcomes[arm_id],
         }
-        for arm_id in ARM_IDS
+        for arm_id in active_arm_ids
+    }
+    deferred_arms = {
+        arm_id: _deferred_arm_report(
+            arm_id,
+            arm_gate=feasibility["launch_gate"]["per_arm"][arm_id],
+        )
+        for arm_id in deferred_arm_ids
     }
     body: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "status": "complete",
         "study_id": "deep-corpus-v2-scratch-issue-54",
+        "study_scope": {
+            "active_arm_ids": list(active_arm_ids),
+            "deferred_arm_ids": list(deferred_arm_ids),
+            "status": "partial-with-deferred-arms"
+            if deferred_arm_ids
+            else "all-arms-complete",
+            "feasibility_artifact_digest": feasibility["artifact_digest"],
+        },
         "protocol": {
             "protocol_lock_sha256": protocol["protocol_lock_sha256"],
             "validation_cohort_sha256": protocol["cohorts"]["validation"][
@@ -1308,25 +1583,36 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
             "statistics": canonical_copy(corpus.get("statistics")),
             "target_contract": canonical_copy(corpus.get("target_contract")),
         },
-        "tokenizer": _tokenizer_report(tokenizer_manifest),
+        "tokenizer": _tokenizer_report(
+            tokenizer_manifest, tokenizer_dir=inputs.tokenizer_dir
+        ),
         "feasibility": {
             "artifact_digest": feasibility["artifact_digest"],
             "launch_gate": canonical_copy(feasibility["launch_gate"]),
             "arm_results": canonical_copy(feasibility["arm_results"]),
         },
         "training": training,
+        "deferred_arms": deferred_arms,
         "test_opening": {
             "ledger_sha256": ledger["ledger_sha256"],
             "opening_id": ledger["opening_id"],
             "test_access_count": ledger["test_access_count"],
             "shared_bfs": canonical_copy(ledger["shared_bfs_identity"]),
             "combined_summary_sha256": combined[SUMMARY_DIGEST_FIELD],
+            "active_arm_ids": list(active_arm_ids),
+            "deferred_arm_ids": list(deferred_arm_ids),
+            "feasibility_artifact_digest": feasibility["artifact_digest"],
         },
         "evaluations": {
             "validation": validation_views,
             "test": test_views,
         },
-        "decision_rules": _decision_rules(validation_views, test_views),
+        "decision_rules": _decision_rules(
+            validation_views,
+            test_views,
+            active_arm_ids=active_arm_ids,
+            deferred_arm_ids=deferred_arm_ids,
+        ),
         "report_builder_sha256": sha256_file(Path(__file__)),
     }
     preliminary = _seal_report(body)

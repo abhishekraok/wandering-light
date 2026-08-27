@@ -1,10 +1,12 @@
-"""Evaluate issue #54's three scratch arms under one frozen protocol.
+"""Evaluate issue #54's scratch arms under one frozen protocol.
 
 Validation is intentionally arm-local: each completed final checkpoint may be
 scored and locked independently.  Held-out test scoring is intentionally not.
-The test command accepts exactly the three validation result directories,
-atomically opens one shared ledger before loading the test cohort, evaluates or
-recovers all three arms, runs one shared BFS baseline, and seals the opening.
+The test command accepts a nonempty ordered subset of validation results whose
+complement the feasibility gate blocked, atomically opens one shared ledger
+before loading the test cohort, evaluates or recovers every active arm, runs one
+shared BFS baseline, and seals the opening.  Deferred arms can never be added to
+that opening.
 
 No command in this module trains a model or chooses a checkpoint.  The only
 checkpoint identity accepted for test is the one already sealed by that arm's
@@ -39,6 +41,7 @@ from experiments.freeze_deep_corpus_v2_protocol import REPO_ROOT
 from experiments.prepare_deep_corpus_v2 import (
     V1_CORPUS_DIR as DEFAULT_REFERENCE_CORPUS_DIR,
 )
+from experiments.probe_deep_corpus_v2_scratch import load_probe_manifest
 from experiments.train_deep_corpus_sft import (
     assert_weights_only_artifact,
     training_row_for_record,
@@ -62,6 +65,7 @@ from wandering_light.evals.deep_corpus_protocol import (
     resume_test_opening,
     sha256_file,
     sha256_json,
+    validate_active_arm_ids,
     validate_frozen_cohort,
     validate_protocol_lock,
     validate_selection_locks,
@@ -765,17 +769,10 @@ def generate_scratch_candidates(
 def _arm_funnel(
     rows: Sequence[Mapping[str, Any]], *, arm_id: str, task_ids: Sequence[str]
 ) -> dict[str, Any]:
-    # The protocol aggregator deliberately requires all three arms for cross-arm
-    # reports.  Validation is arm-local, so clone only the arm label to reuse its
-    # exact row validation and funnel arithmetic without weakening that contract.
-    synthetic = [
-        {**dict(row), "arm_id": synthetic_arm}
-        for synthetic_arm in ARM_IDS
-        for row in rows
-    ]
     return aggregate_candidate_funnels(
-        synthetic,
+        rows,
         expected_task_ids=task_ids,
+        active_arm_ids=(arm_id,),
     )["arms"][arm_id]
 
 
@@ -1288,8 +1285,8 @@ def load_validation_results(
     protocol_lock: Mapping[str, Any],
     require_wandb_receipts: bool = True,
 ) -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
-    if len(result_dirs) != len(ARM_IDS):
-        raise ValueError("Exactly three validation result directories are required")
+    if not 1 <= len(result_dirs) <= len(ARM_IDS):
+        raise ValueError("One to three validation result directories are required")
     by_arm: dict[str, dict[str, Any]] = {}
     locks: list[dict[str, Any]] = []
     for raw_dir in result_dirs:
@@ -1336,12 +1333,123 @@ def load_validation_results(
             "wandb_receipt": wandb_receipt,
         }
         locks.append(selection)
-    validate_selection_locks(
+    canonical_locks = validate_selection_locks(
         locks, protocol_lock_sha256=protocol_lock["protocol_lock_sha256"]
     )
-    if set(by_arm) != set(ARM_IDS):
-        raise ValueError("Validation results must cover all three arms")
-    return {arm_id: by_arm[arm_id] for arm_id in ARM_IDS}, locks
+    active = tuple(canonical_locks)
+    if set(by_arm) != set(active):
+        raise ValueError("Validation results do not match their active selection locks")
+    return {arm_id: by_arm[arm_id] for arm_id in active}, [
+        canonical_locks[arm_id] for arm_id in active
+    ]
+
+
+def _validate_test_feasibility(
+    feasibility_manifest: Mapping[str, Any],
+    *,
+    validation_results: Mapping[str, Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Bind an exact active/deferred split to one validated feasibility artifact."""
+
+    active = validate_active_arm_ids(tuple(validation_results))
+    deferred = tuple(arm_id for arm_id in ARM_IDS if arm_id not in active)
+    if feasibility_manifest.get("status") != "complete":
+        raise ValueError("Held-out test requires a complete feasibility manifest")
+    artifact_digest = _require_sha256(
+        feasibility_manifest.get("artifact_digest"),
+        label="Feasibility artifact digest",
+    )
+    gate = feasibility_manifest.get("launch_gate")
+    if not isinstance(gate, Mapping):
+        raise ValueError("Feasibility manifest has no launch gate")
+    if gate.get("authorized_arm_ids") != list(active) or gate.get(
+        "blocked_arm_ids"
+    ) != list(deferred):
+        raise ValueError(
+            "Feasibility authorization does not match the active/deferred arms"
+        )
+    per_arm = gate.get("per_arm")
+    if not isinstance(per_arm, Mapping) or set(per_arm) != set(ARM_IDS):
+        raise ValueError("Feasibility gate does not cover every frozen arm")
+    if any(not isinstance(per_arm[arm_id], Mapping) for arm_id in ARM_IDS):
+        raise ValueError("Feasibility per-arm gates must be mappings")
+    for arm_id in active:
+        if per_arm[arm_id].get("launch_allowed") is not True:
+            raise ValueError(f"Active arm {arm_id!r} is not feasibility-authorized")
+    for arm_id in deferred:
+        if per_arm[arm_id].get("launch_allowed") is not False or per_arm[
+            arm_id
+        ].get("route") != "blocked":
+            raise ValueError(f"Deferred arm {arm_id!r} is not feasibility-blocked")
+
+    arm_results = feasibility_manifest.get("arm_results")
+    if not isinstance(arm_results, list):
+        raise ValueError("Feasibility manifest has no arm results")
+    results_by_arm = {
+        row.get("arm_id"): row for row in arm_results if isinstance(row, Mapping)
+    }
+    if set(results_by_arm) != set(ARM_IDS) or len(arm_results) != len(ARM_IDS):
+        raise ValueError("Feasibility results do not cover every frozen arm exactly")
+    for arm_id in active:
+        training_manifest = validation_results[arm_id].get("training_manifest")
+        if not isinstance(training_manifest, Mapping):
+            raise ValueError(f"Active arm {arm_id!r} has no training manifest")
+        checkpoint_gate = _validate_checkpoint_feasibility_gate(
+            training_manifest, arm_id=arm_id
+        )
+        if (
+            checkpoint_gate["artifact_digest"] != artifact_digest
+            or checkpoint_gate["arm_gate"]
+            != canonical_copy(dict(per_arm[arm_id]))
+            or checkpoint_gate["study_identity_digest"]
+            != results_by_arm[arm_id].get("study_identity_digest")
+        ):
+            raise ValueError(
+                f"Active arm {arm_id!r} checkpoint used another feasibility gate"
+            )
+    return {
+        "artifact_digest": artifact_digest,
+        "active_arm_ids": list(active),
+        "deferred_arm_ids": list(deferred),
+    }
+
+
+def _test_readiness_body(
+    *,
+    protocol_lock: Mapping[str, Any],
+    validation_results: Mapping[str, Mapping[str, Any]],
+    feasibility_identity: Mapping[str, Any],
+) -> dict[str, Any]:
+    active = validate_active_arm_ids(feasibility_identity["active_arm_ids"])
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "status": "locked-before-held-out-test",
+        "protocol_lock_sha256": protocol_lock["protocol_lock_sha256"],
+        "test_cohort_sha256": protocol_lock["cohorts"]["test"]["cohort_sha256"],
+        "active_arm_ids": list(active),
+        "deferred_arm_ids": list(feasibility_identity["deferred_arm_ids"]),
+        "feasibility_artifact_digest": feasibility_identity["artifact_digest"],
+        "selection_lock_sha256_by_arm": {
+            arm_id: validation_results[arm_id]["selection_lock"][
+                "selection_lock_sha256"
+            ]
+            for arm_id in active
+        },
+        "validation_summary_sha256_by_arm": {
+            arm_id: validation_results[arm_id]["summary"][SUMMARY_DIGEST_FIELD]
+            for arm_id in active
+        },
+        "validation_wandb_receipt_sha256_by_arm": {
+            arm_id: validation_results[arm_id]["wandb_receipt"][
+                WANDB_RECEIPT_DIGEST_FIELD
+            ]
+            for arm_id in active
+        },
+        "final_checkpoint_sha256_by_arm": {
+            arm_id: validation_results[arm_id]["checkpoint"]["checkpoint_sha256"]
+            for arm_id in active
+        },
+    }
 
 
 def validate_test_readiness(
@@ -1349,6 +1457,7 @@ def validate_test_readiness(
     *,
     protocol_lock: Mapping[str, Any],
     validation_results: Mapping[str, Mapping[str, Any]],
+    feasibility_manifest: Mapping[str, Any],
 ) -> dict[str, Any]:
     value = _read_json(
         Path(test_dir) / TEST_READINESS_FILENAME, label="test readiness lock"
@@ -1357,34 +1466,16 @@ def validate_test_readiness(
     if recorded != sha256_json(value):
         raise ValueError("Test readiness lock changed after it was sealed")
     value["readiness_sha256"] = recorded
-    expected = {
-        "schema_version": SCHEMA_VERSION,
-        "status": "locked-before-held-out-test",
-        "protocol_lock_sha256": protocol_lock["protocol_lock_sha256"],
-        "test_cohort_sha256": protocol_lock["cohorts"]["test"]["cohort_sha256"],
-        "selection_lock_sha256_by_arm": {
-            arm_id: validation_results[arm_id]["selection_lock"][
-                "selection_lock_sha256"
-            ]
-            for arm_id in ARM_IDS
-        },
-        "validation_summary_sha256_by_arm": {
-            arm_id: validation_results[arm_id]["summary"][SUMMARY_DIGEST_FIELD]
-            for arm_id in ARM_IDS
-        },
-        "validation_wandb_receipt_sha256_by_arm": {
-            arm_id: validation_results[arm_id]["wandb_receipt"][
-                WANDB_RECEIPT_DIGEST_FIELD
-            ]
-            for arm_id in ARM_IDS
-        },
-        "final_checkpoint_sha256_by_arm": {
-            arm_id: validation_results[arm_id]["checkpoint"]["checkpoint_sha256"]
-            for arm_id in ARM_IDS
-        },
-    }
+    feasibility_identity = _validate_test_feasibility(
+        feasibility_manifest, validation_results=validation_results
+    )
+    expected = _test_readiness_body(
+        protocol_lock=protocol_lock,
+        validation_results=validation_results,
+        feasibility_identity=feasibility_identity,
+    )
     if {key: value.get(key) for key in expected} != expected:
-        raise ValueError("Test readiness lock no longer matches all three selections")
+        raise ValueError("Test readiness lock no longer matches the frozen opening")
     if set(value) != {*expected, "readiness_sha256"}:
         raise ValueError("Test readiness lock has unexpected fields")
     return value
@@ -1395,6 +1486,7 @@ def prepare_test_opening(
     protocol_lock_path: str | Path,
     tokenizer_dir: str | Path,
     validation_result_dirs: Sequence[str | Path],
+    feasibility_manifest_path: str | Path,
     test_dir: str | Path,
     opening_id: str,
     repo_root: str | Path = REPO_ROOT,
@@ -1405,10 +1497,17 @@ def prepare_test_opening(
     results, locks = load_validation_results(
         validation_result_dirs, protocol_lock=protocol
     )
+    feasibility_manifest = load_probe_manifest(feasibility_manifest_path)
+    feasibility_identity = _validate_test_feasibility(
+        feasibility_manifest, validation_results=results
+    )
+    active = tuple(feasibility_identity["active_arm_ids"])
     ledger = new_test_opening_ledger(
         opening_id=opening_id,
         protocol_lock_sha256=protocol["protocol_lock_sha256"],
         selection_locks=locks,
+        active_arm_ids=active,
+        feasibility_artifact_digest=feasibility_identity["artifact_digest"],
     )
     destination = Path(test_dir).resolve()
     if destination.exists():
@@ -1421,28 +1520,11 @@ def prepare_test_opening(
     )
     try:
         create_test_opening_ledger_file(temporary / TEST_LEDGER_FILENAME, ledger)
-        readiness_body = {
-            "schema_version": SCHEMA_VERSION,
-            "status": "locked-before-held-out-test",
-            "protocol_lock_sha256": protocol["protocol_lock_sha256"],
-            "test_cohort_sha256": protocol["cohorts"]["test"]["cohort_sha256"],
-            "selection_lock_sha256_by_arm": {
-                arm_id: results[arm_id]["selection_lock"]["selection_lock_sha256"]
-                for arm_id in ARM_IDS
-            },
-            "validation_summary_sha256_by_arm": {
-                arm_id: results[arm_id]["summary"][SUMMARY_DIGEST_FIELD]
-                for arm_id in ARM_IDS
-            },
-            "validation_wandb_receipt_sha256_by_arm": {
-                arm_id: results[arm_id]["wandb_receipt"][WANDB_RECEIPT_DIGEST_FIELD]
-                for arm_id in ARM_IDS
-            },
-            "final_checkpoint_sha256_by_arm": {
-                arm_id: results[arm_id]["checkpoint"]["checkpoint_sha256"]
-                for arm_id in ARM_IDS
-            },
-        }
+        readiness_body = _test_readiness_body(
+            protocol_lock=protocol,
+            validation_results=results,
+            feasibility_identity=feasibility_identity,
+        )
         readiness = {
             **readiness_body,
             "readiness_sha256": sha256_json(readiness_body),
@@ -1540,9 +1622,14 @@ def _write_combined_test_summary(
     bfs_path: Path,
     ledger: Mapping[str, Any],
 ) -> dict[str, Any]:
+    active = validate_active_arm_ids(ledger["active_arm_ids"])
+    deferred = tuple(ledger["deferred_arm_ids"])
+    if set(arm_summaries) != set(active):
+        raise ValueError("Combined test summary does not cover exactly the active arms")
     funnels = aggregate_candidate_funnels(
         all_candidates,
         expected_task_ids=task_ids,
+        active_arm_ids=active,
     )
     body = {
         "schema_version": SCHEMA_VERSION,
@@ -1552,8 +1639,11 @@ def _write_combined_test_summary(
         "test_cohort_sha256": protocol["cohorts"]["test"]["cohort_sha256"],
         "ledger_sha256": ledger["ledger_sha256"],
         "test_access_count": ledger["test_access_count"],
+        "active_arm_ids": list(active),
+        "deferred_arm_ids": list(deferred),
+        "feasibility_artifact_digest": ledger["feasibility_artifact_digest"],
         "arm_summary_sha256_by_arm": {
-            arm_id: arm_summaries[arm_id][SUMMARY_DIGEST_FIELD] for arm_id in ARM_IDS
+            arm_id: arm_summaries[arm_id][SUMMARY_DIGEST_FIELD] for arm_id in active
         },
         "candidate_funnels": funnels,
         "shared_bfs": {
@@ -1569,7 +1659,7 @@ def _write_combined_test_summary(
                 "training": arm_summaries[arm_id]["training"],
                 "generation_runtime": arm_summaries[arm_id]["generation"]["runtime"],
             }
-            for arm_id in ARM_IDS
+            for arm_id in active
         },
     }
     summary = _seal_summary(body)
@@ -1606,13 +1696,14 @@ def run_test_opening(
     corpus_dir: str | Path,
     tokenizer_dir: str | Path,
     validation_result_dirs: Sequence[str | Path],
+    feasibility_manifest_path: str | Path,
     test_dir: str | Path,
     reference_corpus_dirs: Sequence[str | Path] = (DEFAULT_REFERENCE_CORPUS_DIR,),
     repo_root: str | Path = REPO_ROOT,
     candidate_provider: CandidateProvider = generate_scratch_candidates,
     bfs_provider: BFSProvider = evaluate_bfs_records,
 ) -> dict[str, Any]:
-    """Open the held-out cohort once and finish or recover all three arms."""
+    """Open the held-out cohort once and finish or recover all active arms."""
 
     protocol = load_protocol_lock(
         protocol_lock_path, tokenizer_dir=tokenizer_dir, repo_root=repo_root
@@ -1620,19 +1711,29 @@ def run_test_opening(
     validation, locks = load_validation_results(
         validation_result_dirs, protocol_lock=protocol
     )
+    feasibility_manifest = load_probe_manifest(feasibility_manifest_path)
     root = Path(test_dir).resolve()
-    validate_test_readiness(
+    readiness = validate_test_readiness(
         root,
         protocol_lock=protocol,
         validation_results=validation,
+        feasibility_manifest=feasibility_manifest,
     )
+    active = validate_active_arm_ids(readiness["active_arm_ids"])
+    deferred = tuple(readiness["deferred_arm_ids"])
     ledger_path = root / TEST_LEDGER_FILENAME
     ledger = load_test_opening_ledger(ledger_path)
     validate_test_opening_ledger(
         ledger,
         protocol_lock_sha256=protocol["protocol_lock_sha256"],
         selection_locks=locks,
+        active_arm_ids=active,
+        deferred_arm_ids=deferred,
+        feasibility_artifact_digest=readiness["feasibility_artifact_digest"],
     )
+    for arm_id in deferred:
+        if (root / "arms" / arm_id).exists():
+            raise ValueError(f"Deferred arm {arm_id!r} cannot be added to this opening")
     if ledger["status"] == "prepared":
         ledger = _advance_ledger(ledger_path, ledger, begin_test_opening(ledger))
     elif ledger["status"] == "interrupted":
@@ -1662,7 +1763,7 @@ def run_test_opening(
         )
         summaries: dict[str, dict[str, Any]] = {}
         all_candidates: list[dict[str, Any]] = []
-        for arm_id in ARM_IDS:
+        for arm_id in active:
             arm_dir = root / "arms" / arm_id
             if ledger["arms"][arm_id]["status"] == "complete" and not (
                 arm_dir.is_dir()
@@ -1794,6 +1895,7 @@ def _parser() -> argparse.ArgumentParser:
     prepare.add_argument(
         "--validation-result", type=Path, action="append", required=True
     )
+    prepare.add_argument("--feasibility-manifest", type=Path, required=True)
     prepare.add_argument("--test-dir", type=Path, required=True)
     prepare.add_argument("--opening-id", required=True)
     prepare.add_argument("--repo-root", type=Path, default=REPO_ROOT)
@@ -1803,6 +1905,7 @@ def _parser() -> argparse.ArgumentParser:
     test.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)
     test.add_argument("--tokenizer-dir", type=Path, default=DEFAULT_TOKENIZER_DIR)
     test.add_argument("--validation-result", type=Path, action="append", required=True)
+    test.add_argument("--feasibility-manifest", type=Path, required=True)
     test.add_argument("--test-dir", type=Path, required=True)
     test.add_argument("--repo-root", type=Path, default=REPO_ROOT)
     test.add_argument(
@@ -1844,6 +1947,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             protocol_lock_path=args.protocol_lock,
             tokenizer_dir=args.tokenizer_dir,
             validation_result_dirs=tuple(args.validation_result),
+            feasibility_manifest_path=args.feasibility_manifest,
             test_dir=args.test_dir,
             opening_id=args.opening_id,
             repo_root=args.repo_root,
@@ -1854,6 +1958,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             corpus_dir=args.corpus_dir,
             tokenizer_dir=args.tokenizer_dir,
             validation_result_dirs=tuple(args.validation_result),
+            feasibility_manifest_path=args.feasibility_manifest,
             test_dir=args.test_dir,
             reference_corpus_dirs=tuple(
                 args.reference_corpus_dir or (DEFAULT_REFERENCE_CORPUS_DIR,)

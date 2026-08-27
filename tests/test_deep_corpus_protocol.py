@@ -30,6 +30,7 @@ from wandering_light.evals.deep_corpus_protocol import (
     replace_test_opening_ledger_file,
     resume_test_opening,
     sha256_json,
+    validate_active_arm_ids,
     validate_frozen_cohorts,
     validate_protocol_lock,
     validate_selection_locks,
@@ -448,12 +449,21 @@ def test_candidate_funnels_report_conditional_rates_and_top_reasons():
         assert at_64["solve_rate"] == 1.0
         assert at_64["exact_solve_rate"] == 1.0
 
+    active = ARM_IDS[:2]
+    partial = aggregate_candidate_funnels(
+        [row for row in _candidate_rows() if row["arm_id"] in active],
+        expected_task_ids=["task-1"],
+    )
+    assert partial["arm_ids"] == list(active)
+    assert set(partial["arms"]) == set(active)
+
 
 def test_candidate_funnels_reject_missing_arms_bad_order_and_bad_implications():
     rows = _candidate_rows()
-    with pytest.raises(ValueError, match="exactly the three"):
+    with pytest.raises(ValueError, match="exactly the active arms"):
         aggregate_candidate_funnels(
-            [row for row in rows if row["arm_id"] != ARM_IDS[-1]]
+            [row for row in rows if row["arm_id"] != ARM_IDS[-1]],
+            active_arm_ids=ARM_IDS,
         )
 
     disordered = deepcopy(rows)
@@ -473,7 +483,7 @@ def test_candidate_funnels_reject_missing_arms_bad_order_and_bad_implications():
         aggregate_candidate_funnels(invalid)
 
 
-def test_selection_locks_require_exactly_three_distinct_frozen_arms(
+def test_active_arms_and_selection_locks_accept_only_ordered_frozen_subsets(
     protocol_lock, selection_locks
 ):
     by_arm = validate_selection_locks(
@@ -482,10 +492,22 @@ def test_selection_locks_require_exactly_three_distinct_frozen_arms(
     )
     assert tuple(by_arm) == ARM_IDS
 
-    with pytest.raises(ValueError, match="exactly three"):
+    active = ARM_IDS[:2]
+    assert validate_active_arm_ids(active) == active
+    assert tuple(
         validate_selection_locks(
             selection_locks[:2],
             protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+        )
+    ) == active
+    for invalid in ((), (ARM_IDS[1], ARM_IDS[0]), (ARM_IDS[0], ARM_IDS[0])):
+        with pytest.raises(ValueError):
+            validate_active_arm_ids(invalid)
+    with pytest.raises(ValueError, match="active arms"):
+        validate_selection_locks(
+            selection_locks[:2],
+            protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+            active_arm_ids=(ARM_IDS[0], ARM_IDS[2]),
         )
     duplicate = [selection_locks[0], selection_locks[0], selection_locks[2]]
     with pytest.raises(ValueError, match="duplicate selection"):
@@ -560,7 +582,7 @@ def test_opening_cannot_complete_early_or_rescore_an_arm(
             selection_locks=selection_locks,
         )
     )
-    with pytest.raises(ValueError, match="all three"):
+    with pytest.raises(ValueError, match="all active"):
         complete_test_opening(ledger, shared_bfs_identity={"sha256": "x"})
 
     first = record_test_arm_result(
@@ -611,3 +633,94 @@ def test_ledger_mutation_is_rejected(protocol_lock, selection_locks):
     mutated["test_access_count"] = 1
     with pytest.raises(ValueError, match="changed after it was frozen"):
         validate_test_opening_ledger(mutated)
+
+
+def test_two_active_arm_ledger_seals_deferred_arm_and_feasibility(
+    protocol_lock, selection_locks
+):
+    active = ARM_IDS[:2]
+    deferred = ARM_IDS[2:]
+    feasibility_digest = "sha256:" + "f" * 64
+    ledger = new_test_opening_ledger(
+        opening_id="two-active-arms",
+        protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+        selection_locks=selection_locks[:2],
+        active_arm_ids=active,
+        feasibility_artifact_digest=feasibility_digest,
+    )
+    assert ledger["active_arm_ids"] == list(active)
+    assert ledger["deferred_arm_ids"] == list(deferred)
+    assert set(ledger["arms"]) == set(active)
+
+    opened = begin_test_opening(ledger)
+    with pytest.raises(ValueError, match="not active"):
+        record_test_arm_result(
+            opened,
+            arm_id=deferred[0],
+            result_identity={"sha256": "deferred"},
+        )
+    for index, arm_id in enumerate(active):
+        opened = record_test_arm_result(
+            opened,
+            arm_id=arm_id,
+            result_identity={"sha256": f"active-{index}"},
+        )
+    complete = complete_test_opening(
+        opened, shared_bfs_identity={"sha256": "shared"}
+    )
+    assert complete["status"] == "complete"
+    assert validate_test_opening_ledger(
+        complete,
+        protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+        selection_locks=selection_locks[:2],
+        active_arm_ids=active,
+        deferred_arm_ids=deferred,
+        feasibility_artifact_digest=feasibility_digest,
+    ) == complete
+
+    tampered = deepcopy(complete)
+    tampered["active_arm_ids"].append(deferred[0])
+    tampered["deferred_arm_ids"] = []
+    tampered["ledger_sha256"] = sha256_json(
+        {key: value for key, value in tampered.items() if key != "ledger_sha256"}
+    )
+    with pytest.raises(ValueError, match=r"active arms|active selections"):
+        validate_test_opening_ledger(
+            tampered,
+            active_arm_ids=active,
+            deferred_arm_ids=deferred,
+            feasibility_artifact_digest=feasibility_digest,
+        )
+
+
+def test_atomic_ledger_replace_cannot_add_a_deferred_arm(
+    tmp_path, protocol_lock, selection_locks
+):
+    active = ARM_IDS[:2]
+    ledger = new_test_opening_ledger(
+        opening_id="immutable-active-set",
+        protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+        selection_locks=selection_locks[:2],
+        active_arm_ids=active,
+        feasibility_artifact_digest="sha256:" + "f" * 64,
+    )
+    path = tmp_path / "ledger.json"
+    create_test_opening_ledger_file(path, ledger)
+    changed = deepcopy(ledger)
+    changed["active_arm_ids"] = list(ARM_IDS)
+    changed["deferred_arm_ids"] = []
+    changed["selection_lock_sha256_by_arm"][ARM_IDS[2]] = selection_locks[2][
+        "selection_lock_sha256"
+    ]
+    changed["arms"][ARM_IDS[2]] = {"status": "pending", "result_identity": None}
+    changed["revision"] = 1
+    changed["history"].append({"revision": 1, "event": "add-deferred"})
+    changed["ledger_sha256"] = sha256_json(
+        {key: value for key, value in changed.items() if key != "ledger_sha256"}
+    )
+    with pytest.raises(ValueError, match="identity cannot change"):
+        replace_test_opening_ledger_file(
+            path,
+            changed,
+            expected_previous_sha256=ledger["ledger_sha256"],
+        )
