@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-08-26
+Last updated: 2026-08-28
 
 ## What is true now
 
@@ -33,6 +33,7 @@ holds the argument.
 | **Policy probe, last action** | Learning pays here and barely does at the front: lookup 4.80 / 22.3%, conv encoder **3.43 / 42.1%** — 29% better rank, nearly double top-1. Masking is weaker at the back (25.88 functions produce a given output type against 9.87 consuming a given input type). Neither end degrades with distance. | #33 |
 | **Value probe, distance-to-go** | Labels are free and exact: every witness prefix is an exactly labelled `(state, target, remaining)` point, 137,140 of them. A conv encoder reaches **MAE 0.978 steps** against a type-pair dict's 1.232 — learning pays 21% — but is off by **1.66 / 2.08 / 2.51 at remaining distance 6 / 7 / 8**, against a pre-stated bar of ~1. Train MAE 0.830 says representation-limited, not undertrained. As an expansion orderer `h` scores mean rank 3.35, *worse* than the policy lookup table's 3.18. | [#33](../../issues/33) |
 | **Policy probe, inward** | The front/back asymmetry is a **first-step artifact**. `deep-corpus-v1` roots exclude `int`/`str`/`float`, so a task's input type is rare and masks to 9.50 of 118 functions; one op later states collapse onto `int`/`float`/`str` and the mask widens to 18.41, settling at 19.90. The back is flat at 25.87 → 26.87. So the dict matches the encoder at `k=0` only; at `k=1,2` on both ends the conv encoder beats it by 16–25% on rank and 23–88% on top-1. | [#33](../../issues/33) |
+| **Policy probe, untruncated** | The published encoder cut `input + "\0" + output` at 256 bytes, overrunning on **46.0%** of tasks — and truncation eats the *target*, so it starved only the end that needs one. The identical model at 1024 bytes moves the back probes **+1.06–1.46 mean rank and +14.6–17.2 top-1** and the front probes not measurably (+0.03–0.06, inside seed spread). Encoding a task as its 3–16 **aligned example pairs** beats the widened encoder at all six probes by **+0.25–0.61 rank**, including the two where nothing was truncated. Best back is 1.79 / 71.0%; the front stays at **2.45–2.78 bits/step**. 3 seeds, paired. | [#33](../../issues/33) |
 | **Learned solver, run 1** | Pretrained `facebook/opt-125m`, 3-epoch SFT: 14/96 at k=64 on held-out. Cheaper than BFS at distances 3–4; **0/12 at every distance 5–8**. | [#50](../../issues/50) |
 | **Learned solver, run 2** | Pretrained `HuggingFaceTB/SmolLM2-360M`, same corpus and locked 3-epoch protocol: 4/96 at k=64, no cost win at any distance, and **0/12 at every distance 5–8**. A stronger pretrained base did not move the target number. | [#50](../../issues/50) |
 | **Why run 2 regressed** | Measured from the saved generations, not inferred: **42.4% of SmolLM2 candidates are unparseable against opt-125m's 0.4%**, essentially all invented function names (`f_sqrt` for `f_abs_sqrt`, `str_to_int` for `int_to_str`, `list_sort`) because the prompt never states the 118-name vocabulary. But conditional on parsing it is still 3.5x worse (0.28% vs 0.98%), so vocabulary is not the whole gap. **Pretrained priors are a liability on an arbitrary closed vocabulary** — which is why #54 tests random initialisation rather than a better pretrained base. | #50 |
@@ -68,6 +69,15 @@ correction lands in one place instead of being chased across comment threads.
   on rank at both ends. Relatedly, **"type masking is worth ~3.9 bits"** is the
   first-step figure; the steady-state value is ~2.7 bits at the front and ~2.3
   at the back. See `reports/policy-probe-depth-20260825/`.
+- **"The back is not uniquely learnable; it is *uniformly* learnable, and the
+  front joins it one step in."** Measured with an encoder that could see the
+  target, this is wrong. The published back numbers (top-1 41–43%) were held
+  down by truncation, which starves the target end and so penalises only the
+  probe that has to produce it. Un-truncated, the back reaches **60–71% top-1
+  against the front's 32–48%** — a gap wider than the `k = 0` figure that was
+  discounted as an artifact, not narrower. What survives is that the *mask-width*
+  story is a first-step artifact; what does not is the inference that the two
+  ends are comparably learnable. See `reports/policy-probe-untruncated-20260827/`.
 - **"The autoregressive solver is finished on this substrate."** Overstated
   after run 1. A stronger pretrained SmolLM2-360M also remained 0/12 at every
   distance 5–8, which supports the bounded conclusion for this locked

@@ -16,3 +16,4 @@
     epoch 12  val loss 1.6840
   training front k=2 pairs_untyped seed 1...
     pairs_untyped encoder: 90374 parameters
+    epoch  1  val loss 2.2758
