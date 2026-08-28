@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-08-27
+Last updated: 2026-08-28
 
 ## What is true now
 
@@ -25,7 +25,8 @@ holds the argument.
 | **Branching, `wl-core-v1`** | 118 functions, 20.52 applicable, 4.292 bits/step. Type masking is worth ~3.9 bits, slightly better than #33 assumed. | #33 |
 | **Substrate comparison** | Both bases generate new behaviour at ~the same rate under composition — 5.87x/op against 5.77x. The stack machine's win is price: 73% of choice bits become new behaviour against 59%. It pays a **median 2.00x in program length**. | #42 |
 | **Stack corpus** | `stack_pbe_v2.jsonl.gz` — 1,857 PBE tasks certified shortest to depth 6 against `executable-26`, 1,502 train / 355 eval, 101 needing a loop. Split is a SHA-256 of the task, not a shuffle. | #42 |
-| **Stack BFS baseline** | 75.2% at a 10,000-node budget; median 1,119 nodes per solved task. Node cost grows ~7.5x per unit of program length. | `reports/stack-machine-basis/` |
+| **What the stack corpus contains** | Measured, not assumed: **0%** of programs build a quotation from op symbols — structural, since no op in `executable-26` pushes one. 36.6% of tasks are *handed* a quotation and **76.8% of those never execute it**. Only 11.8% of programs run code at all, 5.7% use a combinator, and **55.3% use no arithmetic, predicate or combinator whatsoever**. `experiments/stack_corpus_scope.py`. | [stack-corpus-no-higher-order (#59)](../../issues/59) |
+| **Stack BFS baseline** | 75.2% at a 10,000-node budget; median 1,119 nodes per solved task. Node cost grows ~7.5x per unit of program length. **Scope:** this and every stack-side solver number are measured on a corpus that is 55.3% stack rearrangement and builds no quotations, so they measure rearrangement rather than program synthesis in the sense the substrate can express. Quote them with that attached. | `reports/stack-machine-basis/`, [stack-corpus-no-higher-order (#59)](../../issues/59) |
 | **`deep-corpus-v1`** | 31,350 tasks, certified distances 1–8, 240 roots, split by root. BFS solve rate is a **step function**: 100% up to its depth cap, 0% beyond. Distance-8 answers cost it ~4.4M executions. | [#37](../../issues/37) |
 | **`deep-corpus-v2`** | 313,438 fresh certified tasks from 2,400 roots, split 1,880 / 260 / 260 with zero root/task overlap across splits or with v1. All witnesses re-execute. The tracked 42 KB manifest carries corpus identity and pins per-root telemetry published separately at HF revision `36753a013f3a4e965892b33bc44a8cc0fd567d99`. | [#54](../../issues/54) |
 | **Kt vs length** | Re-certifying the 101 loop tasks under `\|p\| + log2(fuel)` changed **0 labels, 0 bits**. A label needs ~26x less fuel for one extra op; four-element lists cannot vary that much. A fact about input sizes, not the metric. | [#45](../../issues/45) |
