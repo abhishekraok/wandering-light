@@ -137,12 +137,14 @@ def peel(corpus: Path, split: str, by_name, executor, depth: int, min_distance: 
 
 
 def run(names, splits, last: bool, label: str, epochs: int, seeds, device: str):
-    """The `policy_probe` ladder, on one end at one depth, both encoders.
+    """The `policy_probe` ladder, on one end at one depth, all three encoders.
 
-    Each encoder is trained once per seed. A ~90k-parameter model at 12 epochs
-    can have seed spread comparable to the effect being measured, so a single
-    run of each would not distinguish "the encoder sees more" from "this seed
-    landed better".
+    Each arm is trained once per seed. A ~90k-parameter model at 12 epochs can
+    have seed spread comparable to the effect being measured, so a single run of
+    each would not distinguish "the encoder sees more" from "this seed landed
+    better". Seeds are shared across arms, and `flat` and `wide` are the same
+    module, so seed `i` of each starts from the same weights and the arms can be
+    differenced pair by pair rather than pooled.
     """
     type_of, match_key = type_table(last)
     names_field = LAST if last else FIRST
