@@ -424,14 +424,32 @@ def encode_pairs(task) -> tuple[list[list[int]], str, str]:
     return pairs or [[SEP]], src["type"], dst["type"]
 
 
+def visible_target(task, budget: int) -> float:
+    """How much of the *target* a flat budget leaves visible, as a fraction.
+
+    The flat encoder is `f"{input}\x00{output}"[:budget]`, so truncation always
+    eats the target end first: a long input does not lose its own tail, it
+    starves the thing the model is being asked to find a route to. "Fraction of
+    tasks over budget" therefore understates the deprivation badly -- a task one
+    byte over budget and a task whose target is entirely absent both count once.
+    """
+    source = len(task["input"].encode("utf-8", "replace"))
+    target = len(task["output"].encode("utf-8", "replace"))
+    return min(max(budget - source - 1, 0), target) / target if target else 1.0
+
+
 def truncation_rates(tasks) -> dict[str, float]:
     """What fraction of each encoder's input does not fit in its budget."""
     over_task, over_wide, items, over_item, dropped = 0, 0, 0, 0, 0
+    seen, blind = [], 0
     for task in tasks:
         text = f"{task['input']}\x00{task['output']}"
         size = len(text.encode("utf-8", "replace"))
         over_task += size > MAX_LEN
         over_wide += size > WIDE_LEN
+        fraction = visible_target(task, MAX_LEN)
+        seen.append(fraction)
+        blind += fraction == 0.0
         src, dst = json.loads(task["input"]), json.loads(task["output"])
         pairs = list(zip(src["items"], dst["items"], strict=True))
         dropped += max(len(pairs) - MAX_ITEMS, 0)
@@ -443,6 +461,9 @@ def truncation_rates(tasks) -> dict[str, float]:
     return {
         "flat_tasks_over_budget": over_task / max(len(tasks), 1),
         "wide_tasks_over_budget": over_wide / max(len(tasks), 1),
+        # the dose: how much of the target the published budget actually showed
+        "flat_target_visible": sum(seen) / max(len(seen), 1),
+        "flat_target_invisible": blind / max(len(seen), 1),
         "pairs_items_over_budget": over_item / max(items, 1),
         # a whole example lost past MAX_ITEMS is a different failure from a
         # truncated one, and deep-corpus-v1 tops out exactly at the cap

@@ -107,6 +107,7 @@ from policy_probe import (  # noqa: E402
     MAX_LEN,
     PAD,
     SEP,
+    WIDE_LEN,
     build_encoder,
     encode_flat,
     encode_pairs,
@@ -378,8 +379,6 @@ def test_the_wide_arm_is_the_same_model_with_a_bigger_window():
     If `wide` differed from `flat` in any parameter, a gain over `flat` could
     be capacity rather than visibility, and the arm would answer nothing.
     """
-    from policy_probe import WIDE_LEN
-
     flat = build_encoder("flat", n_names=118, conv=True, n_types=12)
     wide = build_encoder("wide", n_names=118, conv=True, n_types=12)
     assert [p.shape for p in flat.parameters()] == [p.shape for p in wide.parameters()]
@@ -389,3 +388,28 @@ def test_the_wide_arm_is_the_same_model_with_a_bigger_window():
     assert len(encode_flat(task, WIDE_LEN)) == WIDE_LEN
     # the tail the published budget cuts is inside the wider one
     assert b"example-011" in bytes(b for b in encode_flat(task, WIDE_LEN) if b)
+
+
+def test_truncation_eats_the_target_before_the_input():
+    """The dose, not the count.
+
+    `encode_flat` is `f"{input}\\x00{output}"[:budget]`, so a long input does not
+    lose its own tail -- it starves the thing the model is being asked to find a
+    route to. A task one byte over budget and a task whose target is entirely
+    absent both count once under "over budget", and they are not the same case.
+    """
+    from policy_probe import visible_target
+
+    small = _pair_task([1], ["a"])
+    assert visible_target(small, MAX_LEN) == 1.0
+
+    # an input that alone fills the budget leaves nothing for the target
+    starved = _pair_task([10**40] * 8, list("abcdefgh"))
+    assert len(starved["input"].encode()) > MAX_LEN
+    assert visible_target(starved, MAX_LEN) == 0.0
+    # and the wider window brings it back
+    assert visible_target(starved, WIDE_LEN) == 1.0
+
+    rates = truncation_rates([small, starved])
+    assert rates["flat_target_invisible"] == 0.5
+    assert rates["flat_target_visible"] == 0.5
