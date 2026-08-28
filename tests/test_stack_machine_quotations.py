@@ -14,8 +14,11 @@ import sys
 import pytest
 
 from wandering_light.stack_machine import (
+    BASIS_OPS,
     CORE_OPS,
     FIRST_ORDER_OPS,
+    MARK,
+    MARK_OPS,
     NIL,
     OP_BY_NAME,
     OPS,
@@ -25,21 +28,29 @@ from wandering_light.stack_machine import (
     Int,
     Lst,
     MachineError,
+    Mark,
     Sym,
+    format_stack,
     format_value,
     legal_ops,
+    ops_for_basis,
     parse_program,
+    parse_stack,
     run,
     step,
     value_key,
 )
 
 
-def execute(source: str, config: Config | None = None) -> Config:
+def execute(source: str, config: Config | None = None, *, ops=OPS) -> Config:
     final = config if config is not None else Config()
-    for reached in run(parse_program(source), final):
+    for reached in run(parse_program(source, ops=ops), final):
         final = reached
     return final
+
+
+def execute_mark(source: str, config: Config | None = None) -> Config:
+    return execute(source, config, ops=MARK_OPS)
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +91,140 @@ def test_a_quotation_is_an_ordinary_list():
     assert format_value(final.stack[0]) == "(1 add)"
     # and it comes apart with the same ops
     assert execute("uncons", final).stack == (Lst((Sym("add"),)), Sym("1"))
+
+
+# ---------------------------------------------------------------------------
+# MARK quotations
+# ---------------------------------------------------------------------------
+
+
+def test_mark_is_a_structural_tagged_value():
+    assert Mark() == MARK
+    assert value_key(MARK) == ("mark",)
+    assert value_key(MARK) != value_key(Sym("MARK"))
+    assert Config((MARK,)).key == (("mark",),)
+    assert all(type(part) is str for part in value_key(MARK))
+    encoded = format_stack(Config((MARK,)))
+    assert parse_stack(encoded) == (Sym("MARK"),)
+    assert parse_stack(encoded, basis="mark-28") == (MARK,)
+
+
+def test_named_bases_are_stable_and_mark_28_has_28_ops():
+    assert BASIS_OPS["executable-26"] is CORE_OPS
+    assert BASIS_OPS["full-52"] is OPS
+    assert BASIS_OPS["mark-28"] is MARK_OPS
+    assert ops_for_basis("mark-28") is MARK_OPS
+    assert len(MARK_OPS) == 28
+    assert [op.name for op in MARK_OPS[-2:]] == ["[", "]"]
+
+
+def test_open_mark_is_always_structurally_legal():
+    open_mark = MARK_OPS[-2]
+    for stack in ((), (Int(7),), (NIL, Bool(False)), (MARK, Int(1))):
+        config = Config(stack)
+        assert open_mark.guard(config) is None
+        assert open_mark.apply(config) == ((*stack, MARK), 1)
+
+
+def test_close_mark_is_guarded_on_mark_presence():
+    close_mark = MARK_OPS[-1]
+    for stack in ((), (Int(1),), (Lst((MARK,)),)):
+        assert close_mark.guard(Config(stack)) == "no open quotation"
+    assert close_mark.guard(Config((Int(1), MARK, Int(0)))) is None
+
+
+def test_core_ops_capture_their_names_under_any_mark_and_run_without_one():
+    marked = Config((Int(2), MARK, Int(7)))
+    for op in MARK_OPS[:-2]:
+        if op.group == "literals":
+            continue
+        assert op.guard(marked) is None, op.name
+        assert op.apply(marked) == ((*marked.stack, Sym(op.name)), 1), op.name
+
+    add = next(op for op in MARK_OPS if op.name == "add")
+    assert step(Config((Int(2), Int(7))), add).stack == (Int(9),)
+
+
+def test_literals_remain_values_under_a_mark():
+    expected = {
+        "0": Int(0),
+        "1": Int(1),
+        "nil": NIL,
+        "true": Bool(True),
+        "false": Bool(False),
+    }
+    by_name = {op.name: op for op in MARK_OPS}
+    for name, value in expected.items():
+        assert step(Config((MARK,)), by_name[name]).stack == (MARK, value)
+
+
+def test_nested_close_uses_the_nearest_mark():
+    inner_closed = execute_mark("[ 1 [ 0 add ]")
+    assert inner_closed.stack == (
+        MARK,
+        Int(1),
+        Lst((Int(0), Sym("add"))),
+    )
+
+    final = execute_mark("true ]", inner_closed)
+    assert final.stack == (Lst((Int(1), Lst((Int(0), Sym("add"))), Bool(True))),)
+    assert execute_mark("[ ]").stack == (NIL,)
+
+
+def test_quote_open_config_key_is_visible_and_sufficient():
+    reached = execute_mark("[ add")
+    restored = Config((Mark(), Sym("add")), fuel=99)
+    different_body = execute_mark("[ sub")
+    closed = Config((Lst((Sym("add"),)),))
+
+    assert reached.key == restored.key
+    assert reached.key != different_body.key
+    assert reached.key != closed.key
+    assert legal_ops(reached, ops=MARK_OPS) == legal_ops(restored, ops=MARK_OPS)
+    for op in legal_ops(reached, ops=MARK_OPS):
+        assert op.apply(reached) == op.apply(restored), op.name
+
+
+def test_published_mark_28_program_costs_and_outputs():
+    full_predicate = (
+        "nil 'eq? cons 0 cons 'sub cons 'mul cons 'add cons 1 cons 1 cons "
+        "'div cons 'add cons 1 cons 1 cons 'dup cons"
+    )
+    mark_predicate = "[ dup 1 1 add div 1 1 add mul sub 0 eq? ]"
+    full_even_squares = (
+        f"{full_predicate} filter nil 'mul cons 'dup cons map 0 nil 'add cons fold"
+    )
+    mark_even_squares = f"{mark_predicate} filter [ dup mul ] map 0 [ add ] fold"
+    full_recursive_sum = (
+        "nil 'ifte cons nil 'i cons 'dup cons 'swap cons 'cons cons 'swap cons "
+        "'dip cons nil 'add cons cons 'swap cons 'uncons cons 'swap cons "
+        "'uncons cons 'swap cons cons nil 'drop cons 'swap cons 'uncons cons "
+        "'drop cons cons nil 'null? cons 'drop cons 'uncons cons 'over cons "
+        "cons dup i"
+    )
+    mark_recursive_sum = (
+        "[ [ over uncons drop null? ] [ drop uncons swap drop ] "
+        "[ swap uncons swap uncons swap [ add ] dip swap cons swap dup i ] "
+        "ifte ] dup i"
+    )
+    predicate = "[ (dup 1 1 add div 1 1 add mul sub 0 eq?) ]"
+    even_input = (Lst(tuple(Int(value) for value in (3, 4, 1, 2, 7, 6))),)
+    sum_input = (Lst(tuple(Int(value) for value in (0, 1, 2, 3, 4))),)
+    cases = (
+        (full_predicate, OPS, (), predicate, 25, 25),
+        (mark_predicate, MARK_OPS, (), predicate, 14, 14),
+        (full_even_squares, OPS, even_input, "[ 56 ]", 37, 118),
+        (mark_even_squares, MARK_OPS, even_input, "[ 56 ]", 25, 106),
+        (full_recursive_sum, OPS, sum_input, "[ 10 ]", 53, 149),
+        (mark_recursive_sum, MARK_OPS, sum_input, "[ 10 ]", 33, 129),
+    )
+
+    for source, ops, initial, expected, length, fuel in cases:
+        program = parse_program(source, ops)
+        final = execute(source, Config(initial), ops=ops)
+        assert len(program) == length
+        assert final.fuel == fuel
+        assert format_stack(final) == expected
 
 
 # ---------------------------------------------------------------------------
@@ -255,3 +400,24 @@ print(json.dumps(config.key))
         env={**os.environ, "PYTHONHASHSEED": seed},
     )
     assert result.stdout.strip() == json.dumps(execute(program).key)
+
+
+@pytest.mark.parametrize("seed", ["0", "1", "31337"])
+def test_open_quote_keys_are_identical_across_pythonhashseed(seed):
+    script = """
+import json, sys
+from wandering_light.stack_machine import Config, MARK_OPS, parse_program, run
+config = Config()
+for config in run(parse_program(sys.argv[1], ops=MARK_OPS), config):
+    pass
+print(json.dumps(config.key))
+"""
+    program = "[ add 1 [ mul"
+    result = subprocess.run(
+        [sys.executable, "-c", script, program],
+        capture_output=True,
+        text=True,
+        check=True,
+        env={**os.environ, "PYTHONHASHSEED": seed},
+    )
+    assert result.stdout.strip() == json.dumps(execute_mark(program).key)
