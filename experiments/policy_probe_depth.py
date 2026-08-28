@@ -50,7 +50,7 @@ effect to report.
 
     uv run python experiments/policy_probe_depth.py [corpus-dir] [--epochs=N]
         [--depths=0,1,2] [--seeds=0,1,2] [--device=cuda]
-        [--min-distance=3] [--out=PATH]
+        [--min-distance=3] [--out=PATH] [--arms=flat,wide,pairs]
 """
 
 from __future__ import annotations
@@ -136,7 +136,7 @@ def peel(corpus: Path, split: str, by_name, executor, depth: int, min_distance: 
     return front, back
 
 
-def run(names, splits, last: bool, label: str, epochs: int, seeds, device: str):
+def run(names, splits, last: bool, label: str, epochs: int, seeds, device: str, arms):
     """The `policy_probe` ladder, on one end at one depth, all three encoders.
 
     Each arm is trained once per seed. A ~90k-parameter model at 12 epochs can
@@ -149,8 +149,13 @@ def run(names, splits, last: bool, label: str, epochs: int, seeds, device: str):
     type_of, match_key = type_table(last)
     names_field = LAST if last else FIRST
     train, valid, test = splits
-    rows = baseline_ladder(names, train, test, type_of, match_key, names_field)
-    for encoder in ("flat", "wide", "pairs"):
+    # An ablation run asks for one arm and does not need the ladder reprinted.
+    rows = (
+        baseline_ladder(names, train, test, type_of, match_key, names_field)
+        if len(arms) > 1
+        else []
+    )
+    for encoder in arms:
         for seed in seeds:
             print(f"  training {label} {encoder} seed {seed}...", file=sys.stderr)
             row = evaluate(
@@ -242,6 +247,10 @@ def main() -> None:
         [0, 1, 2],
     )
     device = next((a.split("=")[1] for a in flags if a.startswith("--device=")), "cpu")
+    arms = next(
+        (tuple(a.split("=")[1].split(",")) for a in flags if a.startswith("--arms=")),
+        ("flat", "wide", "pairs"),
+    )
     out = next(
         (a.split("=")[1] for a in flags if a.startswith("--out=")),
         "policy_probe_depth.json",
@@ -281,7 +290,9 @@ def main() -> None:
                 f"tasks, pairs {rates['pairs_items_over_budget']:.2%} of items",
                 file=sys.stderr,
             )
-            all_rows.extend(run(names, splits, last, label, epochs, seeds, device))
+            all_rows.extend(
+                run(names, splits, last, label, epochs, seeds, device, arms)
+            )
 
     cells = collapse(all_rows)
     print(
