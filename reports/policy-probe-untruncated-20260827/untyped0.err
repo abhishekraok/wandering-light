@@ -1,0 +1,19 @@
+
+== front k=0: 19320 train / 2700 test   over budget: flat 48.9% of tasks, pairs 0.12% of items
+  training front k=0 pairs_untyped seed 0...
+    pairs_untyped encoder: 90374 parameters
+    epoch  1  val loss 1.7890
+    epoch  2  val loss 1.6633
+    epoch  3  val loss 1.6326
+    epoch  4  val loss 1.6213
+    epoch  5  val loss 1.6024
+    epoch  6  val loss 1.5989
+    epoch  7  val loss 1.5535
+    epoch  8  val loss 1.5625
+    epoch  9  val loss 1.5434
+    epoch 10  val loss 1.5383
+    epoch 11  val loss 1.5311
+    epoch 12  val loss 1.5262
+  training front k=0 pairs_untyped seed 1...
+    pairs_untyped encoder: 90374 parameters
+    epoch  1  val loss 1.7560

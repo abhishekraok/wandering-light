@@ -253,7 +253,7 @@ def main() -> None:
     )
     out = next(
         (a.split("=")[1] for a in flags if a.startswith("--out=")),
-        "policy_probe_depth.json",
+        "policy_probe_depth.json.gz",
     )
     # Every depth is scored on the same tasks, so a difference between rows is
     # depth and not task length. Passing it explicitly is what lets one depth be
@@ -312,12 +312,14 @@ def main() -> None:
         print(
             f"{cell['probe']:<14} {cell['predictor']:<20} {top1:>14} {rank:>14}{bits}"
         )
-    Path(out).write_text(
-        json.dumps(
-            {"truncation": budget, "cells": cells, "rows": all_rows},
-            indent=1,
-        )
-    )
+    # Rows carry a rank and an optimal-set mass per task, which is most of the
+    # file and the reason a `.gz` name is worth honouring.
+    blob = json.dumps({"truncation": budget, "cells": cells, "rows": all_rows}, indent=1)
+    if out.endswith(".gz"):
+        with gzip.open(out, "wt") as handle:
+            handle.write(blob)
+    else:
+        Path(out).write_text(blob)
 
 
 if __name__ == "__main__":
