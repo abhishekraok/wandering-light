@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 ## What is true now
 
@@ -36,7 +36,7 @@ holds the argument.
 | **Learned solver, run 1** | Pretrained `facebook/opt-125m`, 3-epoch SFT: 14/96 at k=64 on held-out. Cheaper than BFS at distances 3–4; **0/12 at every distance 5–8**. | [#50](../../issues/50) |
 | **Learned solver, run 2** | Pretrained `HuggingFaceTB/SmolLM2-360M`, same corpus and locked 3-epoch protocol: 4/96 at k=64, no cost win at any distance, and **0/12 at every distance 5–8**. A stronger pretrained base did not move the target number. | [#50](../../issues/50) |
 | **Why run 2 regressed** | Measured from the saved generations, not inferred: **42.4% of SmolLM2 candidates are unparseable against opt-125m's 0.4%**, essentially all invented function names (`f_sqrt` for `f_abs_sqrt`, `str_to_int` for `int_to_str`, `list_sort`) because the prompt never states the 118-name vocabulary. But conditional on parsing it is still 3.5x worse (0.28% vs 0.98%), so vocabulary is not the whole gap. **Pretrained priors are a liability on an arbitrary closed vocabulary** — which is why #54 tests random initialisation rather than a better pretrained base. | #50 |
-| **Scratch solver feasibility** | On one RTX 4090, the exact 10M and OPT-style 125M arms project to 2.258 h and 3.947 h for three pilots plus final. The required-checkpointed 360M arm fits VRAM but projects to **17.282 h**, above the 16 h hard limit. The three-arm study stopped before pilots, final training, generation evaluation, or test opening. | [#54](../../issues/54) |
+| **Scratch solver follow-up** | Under the corrected per-arm gate, 10M and OPT-style 125M projected to 2.315 h and 3.746 h and each completed three LR pilots plus a three-epoch final; both selected `3e-4`. The 360M arm remained deferred at **17.333 h**. Validation did not seal, both weights-only checkpoints were then lost with their `/tmp` worktree, and neither W&B run contains a model artifact. Frozen-test access stayed at **0**. Per owner instruction the arms will not be retrained, so #54 has no scratch solve-rate or scaling conclusion. | [#54](../../issues/54) |
 
 ## In flight
 
@@ -75,10 +75,14 @@ correction lands in one place instead of being chased across comment threads.
   training or other objectives; #54 is the scratch follow-up.
 - **"Runs 1 and 2 used random initialization."** False. Both call
   `AutoModelForCausalLM.from_pretrained`; neither is scratch evidence.
-- **"The feasible 10M and 125M scratch arms are pending while 360M is deferred
-  separately."** False under #54's locked three-arm comparison: the 360M arm's
-  failure of the predeclared hard gate stops all pilots and finals, so no
-  partial two-arm result is pending.
+- **"The 360M arm's failed gate stops the feasible 10M and 125M arms."**
+  Superseded by #54's per-arm launch instruction. Both feasible arms completed
+  their pilots and final training. That still did not complete the comparison:
+  validation failed to seal, the `/tmp`-only checkpoints were lost before test
+  evaluation, and no retraining will be performed.
+- **"Completed 10M and 125M training means the scratch comparison is
+  complete."** False. The exact checkpoints no longer exist locally or as W&B
+  artifacts, the frozen test was never opened, and no solve-rate result exists.
 - **"The TypedList eval harness is retired."** Reverted; nothing was deleted.
   `deep-corpus-v1` is the hard corpus and it lives on that harness.
 
