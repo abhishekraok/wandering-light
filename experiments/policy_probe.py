@@ -588,15 +588,21 @@ def build_encoder(kind: str, n_names: int, conv: bool, n_types: int):
         Items carry no order that matters -- the program acts on each
         independently -- so the cross-item pool is permutation invariant: mean
         for what holds across the examples, max for what any one of them
-        witnesses. The type tag per side restores the one field the flat
-        encoder read out of the JSON header for free.
+        witnesses.
+
+        The type tag per side is a second change riding along with the pooling,
+        so `pairs_untyped` drops it. The flat arms are not blind to type -- the
+        `{"type": "builtins.range"` header is the first thing in their window
+        and is never the part that gets cut -- so the tag is at most a cheaper
+        route to a field they already had, and the untyped arm says how much of
+        the pair encoder's margin is the pooling rather than the tag.
         """
 
-        def __init__(self):
+        def __init__(self, typed: bool):
             super().__init__()
             self.trunk = Trunk(258)  # 256 byte values, plus PAD and SEP
-            self.tags = nn.Embedding(n_types + 1, 16)
-            pooled = 2 * self.trunk.width + 32
+            self.tags = nn.Embedding(n_types + 1, 16) if typed else None
+            pooled = 2 * self.trunk.width + (32 if typed else 0)
             self.head = nn.Sequential(
                 nn.Linear(pooled, HIDDEN), nn.ReLU(), nn.Linear(HIDDEN, n_names)
             )
@@ -609,10 +615,14 @@ def build_encoder(kind: str, n_names: int, conv: bool, n_types: int):
             m = item_mask.unsqueeze(-1)
             mean = (dense * m).sum(dim=1) / m.sum(dim=1).clamp(min=1)
             peak = dense.masked_fill(~m, -1e9).max(dim=1).values
-            tag = self.tags(tags).flatten(1)
-            return self.head(torch.cat([mean, peak, tag], dim=1))
+            pooled = [mean, peak]
+            if self.tags is not None:
+                pooled.append(self.tags(tags).flatten(1))
+            return self.head(torch.cat(pooled, dim=1))
 
-    return PairEncoder() if kind == "pairs" else FlatEncoder()
+    if kind.startswith("pairs"):
+        return PairEncoder(typed=kind == "pairs")
+    return FlatEncoder()
 
 
 def train_learned(
@@ -639,6 +649,9 @@ def train_learned(
                0.22% overrun: truncation removed, architecture held fixed
         pairs  each aligned example pair encoded on its own, trunk run over
                items in the batch dimension, pooled across them
+        pairs_untyped
+               the same, without the type tag, which is the one other thing
+               `pairs` adds
 
     `wide` is what makes the result readable. Without it, `pairs` moves two
     things at once and a gain cannot be attributed to either.
@@ -651,7 +664,7 @@ def train_learned(
     vocab = type_vocab()
 
     def make_batch(tasks):
-        if encoder == "pairs":
+        if encoder.startswith("pairs"):
             inputs = pair_batch(tasks, vocab)
         else:
             inputs = flat_batch(tasks, MAX_LEN if encoder == "flat" else WIDE_LEN)

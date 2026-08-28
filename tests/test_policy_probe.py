@@ -103,6 +103,7 @@ def test_type_mask_uses_the_field_it_is_given():
 import json  # noqa: E402
 
 from policy_probe import (  # noqa: E402
+    HIDDEN,
     ITEM_CAP,
     MAX_LEN,
     PAD,
@@ -424,3 +425,21 @@ def test_evaluate_keeps_per_task_ranks_in_split_order():
     row = evaluate(lambda t: {"a": 1.0, "b": 0.0}, tasks, "x", FIRST)
     assert row["ranks"] == [1, 2, 1]
     assert row["mean_rank"] == pytest.approx(sum(row["ranks"]) / 3)
+
+
+def test_the_untyped_pair_arm_drops_only_the_type_tag():
+    """`pairs` adds two things to the flat arms at once: per-item pooling and an
+    explicit type tag. The flat arms are not blind to type -- the JSON header is
+    the first thing in their window and never the part that gets cut -- so the
+    tag is at most a cheaper route to a field they already had. This arm says
+    how much of the margin is the pooling."""
+    typed = build_encoder("pairs", n_names=118, conv=True, n_types=12)
+    untyped = build_encoder("pairs_untyped", n_names=118, conv=True, n_types=12)
+    assert typed.tags is not None and untyped.tags is None
+    # same trunk, and a head narrower by exactly the two 16-dim tags
+    assert [p.shape for p in typed.trunk.parameters()] == [
+        p.shape for p in untyped.trunk.parameters()
+    ]
+    typed_n = sum(p.numel() for p in typed.parameters())
+    untyped_n = sum(p.numel() for p in untyped.parameters())
+    assert typed_n - untyped_n == 32 * HIDDEN + (12 + 1) * 16
