@@ -202,6 +202,24 @@ most 0.05, because **no predictor puts zero mass on a reachable optimal op on
 any task** — the unreachable fraction is 0.0% everywhere, so the interpolation
 weight changes nothing here and the calibration diagnostic came back clean.)
 
+**Absolute bits are not portable; bits *saved over the type mask* are.** A
+singleton witness label and a graded optimal set put the same policy at
+different absolute bits, and the mask width differs by probe, so only the saving
+within a population compares across rows:
+
+| probe | mask | saved by flat | by wide | by pairs | `pairs` as compute at d=7 |
+|---|---|---|---|---|---|
+| front k=0 | 2.90 | 0.56 | 0.62 | 0.75 | 38x |
+| front k=1 | 4.07 | 1.09 | 1.09 | 1.29 | 523x |
+| front k=2 | 4.24 | 1.41 | 1.43 | 1.79 | 5,914x |
+| back k=0 | 4.56 | 1.90 | 2.61 | 3.08 | 3.1M x |
+| back k=1 | 4.61 | 1.95 | 2.69 | 3.20 | 5.5M x |
+| back k=2 | 4.60 | 1.80 | 2.67 | **3.25** | **7.1M x** |
+
+The last column is `2^(saved x 7)` — how much smaller a depth-7 enumeration
+gets, against a searcher that has the type mask and nothing else. The front buys
+two to four orders of magnitude; the back buys six to seven.
+
 **Reading the two columns.** `H` conditions on the type mask for every rung,
 because the mask is substrate rather than predictor — no real searcher
 enumerates 118 ops when most are type errors. So `uniform over all` and
@@ -245,11 +263,27 @@ sober version, for anything reading forward:
 Against the back's 1.35 at k=2, the front is a different regime, and a back
 number should not be quoted as evidence about a forward rollout.
 
-**Where the back result does pay is bidirectional search**, which was #33's
-original motivation. The back was always the harder end; a wider window takes it
-to 1.79 mean rank and 71.0% top-1, better than anything measured at the front.
-That is an argument for searching from the target which did not exist before
-this run, and it is outside this brief.
+## The back is now the best direction in the project
+
+`back k=2` with the pair encoder reaches **1.79 mean rank, 71.0% top-1, and 1.35
+bits/step** — 3.25 bits saved over its own type mask. That is the strongest
+policy number recorded anywhere in this repo, and it beats every front number by
+a wide margin: at d=7 it is worth ~7.1M x against the front's best ~5,900x.
+
+The back was the *harder* end in `reports/policy-probe-20260824/`. It looks that
+way only through an encoder that could not see the target, which is the one
+thing a backward prediction depends on.
+
+The design implication runs against a working assumption, so it is worth stating
+plainly rather than leaving in a caveat: **if a forward rollout is capped near
+2.5 bits/step while the backward direction reaches 1.35, the answer is not to
+make the front better — it is to search from the target, or from both ends.**
+Bidirectional search was #33's original motivation and has been dormant since
+`reports/policy-probe-depth-20260825/` concluded the asymmetry was a first-step
+artifact. That conclusion was about mask width and it still holds; the
+learnability conclusion drawn alongside it does not. This is outside the present
+brief and is not a result about search — no bidirectional search was run — but it
+is the largest thing this run changes about what to build next.
 
 ## An observation without a story
 
@@ -285,6 +319,16 @@ the published values for all arms, which may not suit all three equally.
 **Labels are witness-derived**, as in the published depth probe, so they are a
 subset of the optimal set — which understates every arm the same way. Within-run
 comparisons are safe; absolute numbers are not comparable across runs.
+
+**This prices the supervision these probes were given, not the supervision
+available.** Every arm here trains on one op per example — the op the witness
+happened to take. A graded label from backward BFS over the trajectory graph
+would score *every* applicable op by the true distance of its successor, roughly
+18 values per example instead of 1, and would label off-path states too. That is
+a different supervision regime, not a bigger model, and nothing here tests it. So
+"the front is capped near 2.45–2.78 bits/step" is a statement about this
+supervision at this scale. What the run does establish is narrower and still
+useful: **the front's ceiling is not raised by letting this encoder see more.**
 
 **Populations.** The 46.0% overrun and the dose figures quoted per probe are on
 the *peeled test splits* under `min_distance = 3`, not on the whole corpus. The
