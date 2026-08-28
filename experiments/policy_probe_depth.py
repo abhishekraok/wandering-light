@@ -37,14 +37,16 @@ complete-label numbers to size the gap before any `k = 1` number is read.
 All predictors and the scorer are imported from `policy_probe`, unchanged, so
 these numbers sit on the same scale as the published ones.
 
-**Both encoders, several seeds.** The learned rung runs twice over: once with
-the published truncating encoder and once with the per-item pair encoder that
-replaces it (see `policy_probe`), so the old/new difference is measured within
-one run on one device rather than against a published table produced on other
-hardware. Each is trained once per seed, because a ~90k-parameter model at 12
-epochs can have seed spread comparable to the effect being measured -- and if
-the gap between the encoders falls inside that spread, there is no effect to
-report.
+**Three encoders, several seeds.** The learned rung runs three times over: the
+published encoder cut at 256 bytes, the same model at 1024 bytes where almost
+nothing is cut, and the per-item pair encoder that replaces both (see
+`policy_probe`). The middle arm is the control -- identical architecture and
+identical parameter count, differing only in whether the task fits -- so "the
+model could not see the task" and "the per-item architecture is better" can be
+told apart instead of moving together. Each arm is trained once per seed,
+because a ~90k-parameter model at 12 epochs can have seed spread comparable to
+the effect being measured, and if a gap falls inside that spread there is no
+effect to report.
 
     uv run python experiments/policy_probe_depth.py [corpus-dir] [--epochs=N]
         [--depths=0,1,2] [--seeds=0,1,2] [--device=cuda]
@@ -146,7 +148,7 @@ def run(names, splits, last: bool, label: str, epochs: int, seeds, device: str):
     names_field = LAST if last else FIRST
     train, valid, test = splits
     rows = baseline_ladder(names, train, test, type_of, match_key, names_field)
-    for encoder in ("flat", "pairs"):
+    for encoder in ("flat", "wide", "pairs"):
         for seed in seeds:
             print(f"  training {label} {encoder} seed {seed}...", file=sys.stderr)
             row = evaluate(

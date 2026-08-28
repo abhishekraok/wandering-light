@@ -330,3 +330,62 @@ def test_unreachable_fraction_is_reported_beside_the_mean():
     assert out["0"]["unreachable"] == pytest.approx(0.5)
     assert out["0"]["mean"] == pytest.approx(1.0)  # over the finite tasks only
     assert out["0.1"]["unreachable"] == 0.0
+
+
+def test_the_pool_is_the_mean_and_max_of_the_items_it_claims_to_hold():
+    """Recompute the cross-item pool the long way and require the same answer.
+
+    `test_a_task_encodes_the_same_alone_as_in_a_mixed_batch` shows the pool is
+    *consistent*; it would still pass if every task pooled its neighbour's
+    items. This pins the value: split the trunk's output by item count with a
+    plain loop, take the mean and the max by hand, and push that through the
+    head. An off-by-one in the padding path is in range and would not raise --
+    it would just return a clean, plausible, wrong number.
+    """
+    import torch
+
+    torch.manual_seed(0)
+    model = build_encoder("pairs", n_names=5, conv=True, n_types=2).eval()
+    vocab = {"builtins.int": 1, "builtins.str": 2}
+    tasks = [
+        _pair_task([1, 2, 3], ["a", "b", "c"]),
+        _pair_task(list(range(9)), ["long-string-" * 4] * 9),
+        _pair_task([7, 8], ["yy", "zz"]),
+    ]
+    x, counts, item_mask, tags = pair_batch(tasks, vocab)
+
+    with torch.no_grad():
+        items = model.trunk(x, x != PAD)
+        start, mean, peak = 0, [], []
+        for n in counts.tolist():
+            group = items[start : start + n]
+            mean.append(group.mean(dim=0))
+            peak.append(group.max(dim=0).values)
+            start += n
+        assert start == items.shape[0]  # every item was claimed exactly once
+        by_hand = model.head(
+            torch.cat(
+                [torch.stack(mean), torch.stack(peak), model.tags(tags).flatten(1)],
+                dim=1,
+            )
+        )
+        assert torch.allclose(by_hand, model(x, counts, item_mask, tags), atol=1e-5)
+
+
+def test_the_wide_arm_is_the_same_model_with_a_bigger_window():
+    """The control that separates the two things the pair encoder changes.
+
+    If `wide` differed from `flat` in any parameter, a gain over `flat` could
+    be capacity rather than visibility, and the arm would answer nothing.
+    """
+    from policy_probe import WIDE_LEN
+
+    flat = build_encoder("flat", n_names=118, conv=True, n_types=12)
+    wide = build_encoder("wide", n_names=118, conv=True, n_types=12)
+    assert [p.shape for p in flat.parameters()] == [p.shape for p in wide.parameters()]
+
+    task = _pair_task(list(range(12)), [f"example-{i:03d}" for i in range(12)])
+    assert len(encode_flat(task, MAX_LEN)) == MAX_LEN
+    assert len(encode_flat(task, WIDE_LEN)) == WIDE_LEN
+    # the tail the published budget cuts is inside the wider one
+    assert b"example-011" in bytes(b for b in encode_flat(task, WIDE_LEN) if b)

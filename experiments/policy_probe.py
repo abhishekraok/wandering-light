@@ -371,7 +371,8 @@ def make_conditional(names, train, type_of, match_key, names_field):
 # The learned predictor
 # ---------------------------------------------------------------------------
 
-MAX_LEN = 256  # the flat encoder's byte budget, kept for the baseline row
+MAX_LEN = 256  # the published flat budget, kept for the baseline row
+WIDE_LEN = 1024  # the same encoder with the truncation lifted: 0.22% over
 ITEM_CAP = 96  # the pair encoder's byte budget per serialized item
 MAX_ITEMS = 16  # deep-corpus-v1 tops out at 16 items per task
 PAD, SEP = 256, 257  # outside the byte range, so padding is not a byte value
@@ -387,15 +388,20 @@ def type_vocab() -> dict[str, int]:
     return {t: i + 1 for i, t in enumerate(sorted(types))}
 
 
-def encode_flat(task) -> list[int]:
-    """The published encoder: one string pair, truncated to `MAX_LEN` bytes.
+def encode_flat(task, max_len: int = MAX_LEN) -> list[int]:
+    """The published encoder: one string pair, truncated to `max_len` bytes.
 
-    Retained unchanged so the pair encoder can be read against the model that
-    produced the published table, in the same run and on the same device.
+    Retained unchanged at `MAX_LEN` so the pair encoder can be read against the
+    model that produced the published table, in the same run and on the same
+    device. At `WIDE_LEN` it becomes the control that separates the two things
+    the pair encoder changes at once: the architecture is untouched and the
+    parameter count is identical -- a convolution and a pool do not know how
+    long their input is -- so the only difference from the published row is
+    that 46.0% of tasks stop being cut off, and 0.22% do instead.
     """
     text = f"{task['input']}\x00{task['output']}"
-    raw = text.encode("utf-8", "replace")[:MAX_LEN]
-    return list(raw) + [0] * (MAX_LEN - len(raw))
+    raw = text.encode("utf-8", "replace")[:max_len]
+    return list(raw) + [0] * (max_len - len(raw))
 
 
 def encode_pairs(task) -> tuple[list[list[int]], str, str]:
@@ -420,10 +426,12 @@ def encode_pairs(task) -> tuple[list[list[int]], str, str]:
 
 def truncation_rates(tasks) -> dict[str, float]:
     """What fraction of each encoder's input does not fit in its budget."""
-    over_task, items, over_item, dropped = 0, 0, 0, 0
+    over_task, over_wide, items, over_item, dropped = 0, 0, 0, 0, 0
     for task in tasks:
         text = f"{task['input']}\x00{task['output']}"
-        over_task += len(text.encode("utf-8", "replace")) > MAX_LEN
+        size = len(text.encode("utf-8", "replace"))
+        over_task += size > MAX_LEN
+        over_wide += size > WIDE_LEN
         src, dst = json.loads(task["input"]), json.loads(task["output"])
         pairs = list(zip(src["items"], dst["items"], strict=True))
         dropped += max(len(pairs) - MAX_ITEMS, 0)
@@ -434,6 +442,7 @@ def truncation_rates(tasks) -> dict[str, float]:
                 over_item += len(raw.encode("utf-8", "replace")) > ITEM_CAP
     return {
         "flat_tasks_over_budget": over_task / max(len(tasks), 1),
+        "wide_tasks_over_budget": over_wide / max(len(tasks), 1),
         "pairs_items_over_budget": over_item / max(items, 1),
         # a whole example lost past MAX_ITEMS is a different failure from a
         # truncated one, and deep-corpus-v1 tops out exactly at the cap
@@ -441,11 +450,12 @@ def truncation_rates(tasks) -> dict[str, float]:
     }
 
 
-def flat_batch(tasks):
-    """One row per task: the truncated concatenation, padded to `MAX_LEN`."""
+def flat_batch(tasks, max_len: int = MAX_LEN):
+    """One row per task: the truncated concatenation, padded to `max_len`."""
     import torch
 
-    return (torch.tensor([encode_flat(t) for t in tasks], dtype=torch.long),)
+    rows = [encode_flat(t, max_len) for t in tasks]
+    return (torch.tensor(rows, dtype=torch.long),)
 
 
 def pair_batch(tasks, vocab: dict[str, int]):
@@ -568,7 +578,7 @@ def build_encoder(kind: str, n_names: int, conv: bool, n_types: int):
             tag = self.tags(tags).flatten(1)
             return self.head(torch.cat([mean, peak, tag], dim=1))
 
-    return FlatEncoder() if kind == "flat" else PairEncoder()
+    return PairEncoder() if kind == "pairs" else FlatEncoder()
 
 
 def train_learned(
@@ -587,10 +597,17 @@ def train_learned(
     """A byte-level encoder over the task, as one string or as aligned pairs.
 
     Deliberately small: the point is to find out whether the signal exists, not
-    to squeeze it. `encoder="flat"` is the published model, which concatenates
-    the two serialized sides and truncates to 256 bytes; `encoder="pairs"`
-    encodes each aligned example pair separately, runs the same trunk over
-    items in the batch dimension and pools across them, so nothing is cut.
+    to squeeze it. Three arms, differing only in what the trunk is shown:
+
+        flat   the published model -- both sides concatenated, cut at 256 bytes,
+               which overruns on 46.0% of tasks
+        wide   the same model and the same parameters at 1024 bytes, where
+               0.22% overrun: truncation removed, architecture held fixed
+        pairs  each aligned example pair encoded on its own, trunk run over
+               items in the batch dimension, pooled across them
+
+    `wide` is what makes the result readable. Without it, `pairs` moves two
+    things at once and a gain cannot be attributed to either.
     """
     import torch
 
@@ -600,7 +617,10 @@ def train_learned(
     vocab = type_vocab()
 
     def make_batch(tasks):
-        inputs = flat_batch(tasks) if encoder == "flat" else pair_batch(tasks, vocab)
+        if encoder == "pairs":
+            inputs = pair_batch(tasks, vocab)
+        else:
+            inputs = flat_batch(tasks, MAX_LEN if encoder == "flat" else WIDE_LEN)
         y = torch.zeros(len(tasks), len(names))
         for row, task in enumerate(tasks):
             for name in task["metadata"][names_field]:
