@@ -24,29 +24,3 @@
     epoch  6  val loss 2.1853
     epoch  7  val loss 2.1638
     epoch  8  val loss 2.1497
-    epoch  9  val loss 2.1442
-    epoch 10  val loss 2.1604
-    epoch 11  val loss 2.1457
-    epoch 12  val loss 2.1317
-  training front k=1 flat seed 2...
-    flat encoder: 90582 parameters
-    epoch  1  val loss 2.4611
-    epoch  2  val loss 2.3380
-    epoch  3  val loss 2.2786
-    epoch  4  val loss 2.2171
-    epoch  5  val loss 2.2180
-    epoch  6  val loss 2.1750
-    epoch  7  val loss 2.1928
-    epoch  8  val loss 2.1773
-    epoch  9  val loss 2.1839
-    epoch 10  val loss 2.1542
-    epoch 11  val loss 2.1532
-    epoch 12  val loss 2.1612
-  training front k=1 wide seed 0...
-    wide encoder: 90582 parameters
-    epoch  1  val loss 2.5366
-    epoch  2  val loss 2.3166
-    epoch  3  val loss 2.2483
-    epoch  4  val loss 2.2264
-    epoch  5  val loss 2.1887
-    epoch  6  val loss 2.1582

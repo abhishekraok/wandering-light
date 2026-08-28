@@ -446,7 +446,11 @@ def visible_target(task, budget: int) -> float:
 
 
 def truncation_rates(tasks) -> dict[str, float]:
-    """What fraction of each encoder's input does not fit in its budget."""
+    """How much of the task each encoder's budget admits.
+
+    Two different questions, and they do not agree: how *often* a budget is
+    overrun, and how much of the target survives when it is.
+    """
     over_task, over_wide, items, over_item, dropped = 0, 0, 0, 0, 0
     seen, blind = [], 0
     for task in tasks:
@@ -489,11 +493,11 @@ def flat_batch(tasks, max_len: int = MAX_LEN):
 def pair_batch(tasks, vocab: dict[str, int]):
     """Items of every task stacked along the batch dimension.
 
-    Only *real* items are handed to the trunk -- `slot` says where each one
-    belongs in the (task, item) rectangle that the cross-item pool reads, and
-    `item_mask` marks which of those cells were filled. Padding after the trunk
-    rather than before it costs one 96-float row per empty cell instead of a
-    whole byte sequence, and it makes the pool exact rather than approximate.
+    Only *real* items are handed to the trunk. They stay grouped by task, so
+    `counts` alone recovers the (task, item) rectangle the cross-item pool
+    reads, and `item_mask` -- derived from the same counts -- marks which cells
+    were filled. Padding after the trunk rather than before it costs one
+    96-float row per empty cell instead of a whole byte sequence.
     """
     import torch
 
@@ -521,13 +525,15 @@ def pair_batch(tasks, vocab: dict[str, int]):
 
 
 def build_encoder(kind: str, n_names: int, conv: bool, n_types: int):
-    """The two encoders, sharing a trunk and differing only in what feeds it.
+    """The encoders, sharing a trunk and differing only in what feeds it.
 
-    Held to within 7% of each other on parameter count: the question is whether
-    the model can *see* more, not whether it is bigger. The trunk is
-    bit-identical to the published model's; the pair encoder pays for its wider
-    pooled input (mean and max across items, plus a type tag per side) by
-    narrowing the head from 256 to `HIDDEN`.
+    `flat` and `wide` are the same module -- a convolution and a max-pool do not
+    know how long their input is -- which is what makes the wider window a
+    control rather than a bigger model. The pair encoder is held to within 7% of
+    them on parameter count: the question is whether the model can *see* more,
+    not whether it is bigger. Its trunk is bit-identical to the published
+    model's, and it pays for its wider pooled input (mean and max across items,
+    plus a type tag per side) by narrowing the head from 256 to `HIDDEN`.
     """
     import torch
     from torch import nn
