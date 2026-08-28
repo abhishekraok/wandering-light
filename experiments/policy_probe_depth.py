@@ -314,7 +314,9 @@ def main() -> None:
         )
     # Rows carry a rank and an optimal-set mass per task, which is most of the
     # file and the reason a `.gz` name is worth honouring.
-    blob = json.dumps({"truncation": budget, "cells": cells, "rows": all_rows}, indent=1)
+    blob = json.dumps(
+        {"truncation": budget, "cells": cells, "rows": all_rows}, indent=1
+    )
     if out.endswith(".gz"):
         with gzip.open(out, "wt") as handle:
             handle.write(blob)
