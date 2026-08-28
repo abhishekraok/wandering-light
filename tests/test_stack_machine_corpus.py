@@ -13,7 +13,17 @@ from pathlib import Path
 
 import pytest
 
-from wandering_light.stack_machine import Config, Int, Op, format_stack, parse_stack
+from wandering_light.stack_machine import (
+    MARK_OPS,
+    Config,
+    Int,
+    Lst,
+    MachineError,
+    Op,
+    Sym,
+    format_stack,
+    parse_stack,
+)
 from wandering_light.stack_machine_corpus import (
     BASIS,
     FAMILIES,
@@ -192,6 +202,15 @@ def test_the_behaviour_is_reachable_at_exactly_that_length(tasks):
         assert found[target][0] == task["length"], task
 
 
+def test_mark_28_expansion_can_build_a_quotation():
+    found, complete = expand(((),), max_depth=3, ops=MARK_OPS)
+    target = behaviour_key(((Lst((Sym("add"),)),),))
+
+    assert complete
+    assert found[target][0] == 3
+    assert found[target][1] == ("[", "add", "]")
+
+
 def test_cost_expansion_trades_program_bits_for_log_fuel():
     desired = " ".join(["1"] * 16)
     source = " ".join(["0"] * 16)
@@ -277,6 +296,15 @@ def test_generator_is_deterministic():
     a, _ = generate(max_depth=3, per_depth=5, seed=1)
     b, _ = generate(max_depth=3, per_depth=5, seed=1)
     assert [t.program for t in a] == [t.program for t in b]
+
+
+def test_generator_selects_and_records_one_named_basis():
+    tasks, _ = generate(max_depth=1, per_depth=1, seed=1, basis="mark-28")
+
+    assert tasks
+    assert {task.basis for task in tasks} == {"mark-28"}
+    with pytest.raises(MachineError, match="unknown basis"):
+        generate(max_depth=0, per_depth=1, seed=1, basis="missing")
 
 
 @pytest.mark.slow

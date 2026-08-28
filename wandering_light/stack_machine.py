@@ -2,8 +2,8 @@
 
 Design in four sentences:
 
-1. A *value* is an arbitrary-precision integer, a boolean, or a list of values
-   (``nil`` is the empty list). Nothing else.
+1. A *value* is an arbitrary-precision integer, a boolean, a symbol, a list of
+   values (``nil`` is the empty list), or the quotation marker.
 2. A *config* is ``(stack, fuel)``: an immutable bottom-to-top tuple of values
    and the fuel spent so far.
 3. An *op* is a total-by-construction pair — ``guard(config)`` returns ``None``
@@ -21,6 +21,11 @@ Quotations are ordinary list values. An op's *name* is a value too -- ``Sym``
 that build any other list, and run with ``i``. Nothing here manipulates
 unevaluated program *text*: pushing ``Sym("add")`` materialises a value like
 any other push, which is what keeps every intermediate state a state.
+
+The optional ``mark-28`` basis adds ``[`` and ``]``. ``[`` places a structural
+``MARK`` value on the stack; until the nearest marker is collected by ``]``,
+executable ops materialise their names instead of running. Quote construction
+therefore remains entirely visible in the machine state.
 
 Combinators can loop, so the transition function is no longer total by
 construction. Every application that runs code carries a step budget, and
@@ -97,19 +102,25 @@ class Sym:
 
 
 @dataclass(frozen=True, slots=True)
+class Mark:
+    """The structural delimiter used by the optional ``mark-28`` basis."""
+
+
+@dataclass(frozen=True, slots=True)
 class Lst:
     """A list of values. The empty list is `nil`; a quotation is one of these."""
 
     items: tuple[Value, ...] = ()
 
 
-Value = Int | Bool | Sym | Lst
+Value = Int | Bool | Sym | Mark | Lst
 
 NIL = Lst(())
 TRUE = Bool(True)
 FALSE = Bool(False)
 ZERO = Int(0)
 ONE = Int(1)
+MARK = Mark()
 
 
 def value_key(value: Value) -> tuple:
@@ -125,6 +136,8 @@ def value_key(value: Value) -> tuple:
         return ("bool", value.value)
     if isinstance(value, Sym):
         return ("sym", value.name)
+    if isinstance(value, Mark):
+        return ("mark",)
     return ("list", tuple(value_key(item) for item in value.items))
 
 
@@ -141,6 +154,8 @@ def format_value(value: Value) -> str:
         return "true" if value.value else "false"
     if isinstance(value, Sym):
         return value.name
+    if isinstance(value, Mark):
+        return "MARK"
     if not value.items:
         return "nil"
     return "(" + " ".join(format_value(item) for item in value.items) + ")"
@@ -202,6 +217,11 @@ def remaining_fuel(config: Config) -> int:
     return max(0, limit - config.fuel)
 
 
+def quotation_open(stack: tuple[Value, ...]) -> bool:
+    """Whether a top-level ``MARK`` makes the stack a partial quotation."""
+    return any(isinstance(value, Mark) for value in stack)
+
+
 @dataclass(frozen=True, eq=False)
 class Op:
     """A single machine instruction: a guard and an application."""
@@ -212,6 +232,7 @@ class Op:
     _guard: Guard = field(repr=False)
     _apply: Apply = field(repr=False)
     _run: Runner | None = field(repr=False, default=None)
+    _capture_under_mark: bool = field(repr=False, default=True)
 
     @property
     def runs_code(self) -> bool:
@@ -222,6 +243,8 @@ class Op:
         """None when legal, else a short reason. Fuel is one such reason."""
         if config.fuel_limit is not None and config.fuel >= config.fuel_limit:
             return "out of fuel"
+        if self._capture_under_mark and quotation_open(config.stack):
+            return None
         if self._run is None:
             return self._guard(config)
         outcome = self._run(config.stack, remaining_fuel(config), 0)
@@ -229,6 +252,8 @@ class Op:
 
     def apply(self, config: Config) -> tuple[tuple[Value, ...], int]:
         """The new stack and the fuel this application costs."""
+        if self._capture_under_mark and quotation_open(config.stack):
+            return (*config.stack, Sym(self.name)), 1
         if self._run is None:
             return self._apply(config)
         outcome = self._run(config.stack, remaining_fuel(config), 0)
@@ -251,6 +276,8 @@ def step_raw(
     """Apply one op to a bare stack under a budget, or return why it cannot."""
     if budget <= 0:
         return "out of fuel"
+    if op._capture_under_mark and quotation_open(stack):
+        return (*stack, Sym(op.name)), 1
     if op._run is not None:
         return op._run(stack, budget, depth)
     config = Config(stack)
@@ -308,6 +335,7 @@ def _literal(name: str, value: Value) -> Op:
         effect=f"( -- {name} )",
         _guard=lambda config: None,
         _apply=lambda config: ((*config.stack, value), 1),
+        _capture_under_mark=False,
     )
 
 
@@ -462,6 +490,7 @@ def _symbol(name: str) -> Op:
         effect=f"( -- {name} )",
         _guard=lambda config: None,
         _apply=lambda config: ((*config.stack, Sym(name)), 1),
+        _capture_under_mark=False,
     )
 
 
@@ -679,19 +708,70 @@ OPS = (*CORE_OPS, *(_symbol(op.name) for op in CORE_OPS))
 OP_BY_NAME = {op.name: op for op in OPS}
 
 
+def _close_mark_guard(config: Config) -> str | None:
+    return None if quotation_open(config.stack) else "no open quotation"
+
+
+def _close_mark_apply(config: Config) -> tuple[tuple[Value, ...], int]:
+    marker = max(
+        index for index, value in enumerate(config.stack) if isinstance(value, Mark)
+    )
+    body = Lst(config.stack[marker + 1 :])
+    return (*config.stack[:marker], body), 1
+
+
+OPEN_MARK = Op(
+    "[",
+    "brackets",
+    "( -- MARK )",
+    lambda config: None,
+    lambda config: ((*config.stack, MARK), 1),
+    _capture_under_mark=False,
+)
+CLOSE_MARK = Op(
+    "]",
+    "brackets",
+    "( MARK ... -- (...) )",
+    _close_mark_guard,
+    _close_mark_apply,
+    _capture_under_mark=False,
+)
+
+# ``OPS`` remains the original full-52 tuple for API compatibility. Search and
+# corpus entry points select one of these named bases explicitly.
+MARK_OPS: tuple[Op, ...] = (*CORE_OPS, OPEN_MARK, CLOSE_MARK)
+DEFAULT_BASIS = "executable-26"
+BASIS_OPS: dict[str, tuple[Op, ...]] = {
+    DEFAULT_BASIS: CORE_OPS,
+    "full-52": OPS,
+    "mark-28": MARK_OPS,
+}
+
+
+def ops_for_basis(name: str = DEFAULT_BASIS) -> tuple[Op, ...]:
+    """Return the stable action ordering for a named stack-machine basis."""
+    try:
+        return BASIS_OPS[name]
+    except KeyError:
+        choices = ", ".join(BASIS_OPS)
+        raise MachineError(
+            f"unknown basis {name!r}; choose one of: {choices}"
+        ) from None
+
+
 # ---------------------------------------------------------------------------
 # Running
 # ---------------------------------------------------------------------------
 
 
-def legal_mask(config: Config) -> tuple[bool, ...]:
-    """One bool per op, in OPS order. The action mask a policy head consumes."""
-    return tuple(op.guard(config) is None for op in OPS)
+def legal_mask(config: Config, ops: tuple[Op, ...] = OPS) -> tuple[bool, ...]:
+    """One bool per op, in basis order. The action mask a policy head consumes."""
+    return tuple(op.guard(config) is None for op in ops)
 
 
-def legal_ops(config: Config) -> tuple[Op, ...]:
-    """The ops applicable in this config, in OPS order."""
-    return tuple(op for op in OPS if op.guard(config) is None)
+def legal_ops(config: Config, ops: tuple[Op, ...] = OPS) -> tuple[Op, ...]:
+    """The ops applicable in this config, in basis order."""
+    return tuple(op for op in ops if op.guard(config) is None)
 
 
 def step(config: Config, op: Op) -> Config:
@@ -703,14 +783,21 @@ def step(config: Config, op: Op) -> Config:
     return replace(config, stack=stack, fuel=config.fuel + cost)
 
 
-def parse_stack(text: str) -> tuple[Value, ...]:
+def parse_stack(text: str, *, basis: str | None = None) -> tuple[Value, ...]:
     """The inverse of `format_stack`: read a printed stack back into values.
 
     Input data is given, not built -- only 0 and 1 are literals, so there is no
     program that produces the stack `[ 3 5 ]`. Anything that is not a number,
     `nil`, `true`, `false` or a parenthesised list is an op name, and becomes a
     `Sym`, which is what makes a printed quotation readable back in.
+
+    ``MARK`` retains its legacy interpretation as a symbol unless ``basis`` is
+    ``mark-28``. Selecting that basis makes quote-open states round-trip while
+    leaving every existing parser call unchanged.
     """
+    if basis is not None:
+        ops_for_basis(basis)
+    read_mark = basis == "mark-28"
 
     def read_value(token: str, tokens: list[str]) -> Value:
         if token == "(":
@@ -730,6 +817,8 @@ def parse_stack(text: str) -> tuple[Value, ...]:
             return TRUE
         if token == "false":
             return FALSE
+        if token == "MARK" and read_mark:
+            return MARK
         try:
             return Int(int(token))
         except ValueError:
@@ -744,11 +833,12 @@ def parse_stack(text: str) -> tuple[Value, ...]:
     return tuple(stack)
 
 
-def parse_program(text: str) -> tuple[Op, ...]:
+def parse_program(text: str, ops: tuple[Op, ...] = OPS) -> tuple[Op, ...]:
     """Whitespace-separated op names. Search never needs this; humans do."""
+    by_name = {op.name: op for op in ops}
     program = []
     for token in text.split():
-        op = OP_BY_NAME.get(token)
+        op = by_name.get(token)
         if op is None:
             raise MachineError(f"unknown op {token!r}")
         program.append(op)
@@ -768,11 +858,11 @@ def run(program: tuple[Op, ...], config: Config | None = None) -> Iterator[Confi
 # ---------------------------------------------------------------------------
 
 
-def _trace_line(label: str, config: Config) -> str:
-    legal = sum(legal_mask(config))
+def _trace_line(label: str, config: Config, ops: tuple[Op, ...] = OPS) -> str:
+    legal = sum(legal_mask(config, ops))
     return (
         f"{label:<8}  {format_stack(config):<34}"
-        f"  fuel {config.fuel:>3}  legal {legal:>2}/{len(OPS)}"
+        f"  fuel {config.fuel:>3}  legal {legal:>2}/{len(ops)}"
     )
 
 
@@ -788,26 +878,33 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="refuse every op once this much fuel is spent",
     )
+    parser.add_argument(
+        "--basis",
+        choices=BASIS_OPS,
+        default="full-52",
+        help="action basis (default: full-52, preserving the original CLI)",
+    )
     args = parser.parse_args(argv)
+    ops = ops_for_basis(args.basis)
 
     try:
-        program = parse_program(args.program)
+        program = parse_program(args.program, ops)
     except MachineError as error:
         print(f"error: {error}", file=sys.stderr)
-        print(f"known ops: {' '.join(op.name for op in OPS)}", file=sys.stderr)
+        print(f"known ops: {' '.join(op.name for op in ops)}", file=sys.stderr)
         return 2
 
     config = Config(fuel_limit=args.fuel_limit)
     print("top of stack on the right")
     print(f"{'op':<8}  {'stack':<34}  {'fuel':<8}  legal")
-    print(_trace_line("(start)", config))
+    print(_trace_line("(start)", config, ops))
     for op in program:
         reason = op.guard(config)
         if reason is not None:
             print(f"{op.name:<8}  ILLEGAL: {reason}")
             return 1
         config = step(config, op)
-        print(_trace_line(op.name, config))
+        print(_trace_line(op.name, config, ops))
     return 0
 
 

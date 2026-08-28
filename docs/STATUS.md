@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 ## What is true now
 
@@ -17,10 +17,11 @@ holds the argument.
 
 | | | issue |
 |---|---|---|
-| **Stack machine** | 52 ops (26 executable + one symbol each). Guards return a reason or `None`; illegal is an *absent transition*, not an exception. | [#42](../../issues/42) |
+| **Stack machine** | Named bases are `executable-26` (corpus/search default), `full-52` (legacy program/CLI default), and optional `mark-28`. Guards return a reason or `None`; illegal is an *absent transition*, not an exception. | [replace-typedlist-states (#42)](../../issues/42), [solver-build-quotations (#60)](../../issues/60) |
 | **Identity is structural** | `value_key` builds nested tuples of str tags, ints and bools. No hash, no repr, no dict. Keys are byte-identical across `PYTHONHASHSEED`, pinned by a test running three seeds in subprocesses. | #42 |
 | **Fuel** | Every first-order op costs exactly 1, so `fuel == len(program)` there. Combinators break it: `map` costs `1 + body x len(input)`. Totality rests on the guard, not on structure. | #42 |
-| **Branching, stack machine** | first-order 18: `b_eff` 11.14, 3.464 bits/step. executable 26: 13.32, 3.712. full 52: 37.28, 5.220. | #42 |
+| **Branching, stack machine** | first-order 18: `b_eff` 11.14, 3.464 bits/step. The bounded published protocol reproduces executable 26 at 13.38 / 3.742 / 7.3x growth, full 52 at 37.33 / 5.222 / 32.4x, and mark 28 at 23.11 / 4.530 / 22.5x. The older executable/full measurements were 13.32 / 37.28. | [replace-typedlist-states (#42)](../../issues/42), [solver-build-quotations (#60)](../../issues/60) |
+| **`mark-28` reproduction** | Every requested measurement from solver-build-quotations (#60) reproduces: even-square sum 25 ops / fuel 106, its predicate 14 ops, recursive sum 33 ops / fuel 129. On the one-list frontier, quote-closed states are 721 / 1,842 at depth 3 and 6,298 / 37,312 at depth 4. This is implementation evidence, not an adoption result. | [report](../reports/mark-28-20260827/README.md), [solver-build-quotations (#60)](../../issues/60) |
 | **Branching, `wl-core-v1`** | 118 functions, 20.52 applicable, 4.292 bits/step. Type masking is worth ~3.9 bits, slightly better than #33 assumed. | #33 |
 | **Substrate comparison** | Both bases generate new behaviour at ~the same rate under composition — 5.87x/op against 5.77x. The stack machine's win is price: 73% of choice bits become new behaviour against 59%. It pays a **median 2.00x in program length**. | #42 |
 | **Stack corpus** | `stack_pbe_v2.jsonl.gz` — 1,857 PBE tasks certified shortest to depth 6 against `executable-26`, 1,502 train / 355 eval, 101 needing a loop. Split is a SHA-256 of the task, not a shuffle. | #42 |
