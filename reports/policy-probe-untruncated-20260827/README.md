@@ -244,6 +244,32 @@ search: a policy-weighted best-first search consumes path probability, so bits i
 its unit; a fixed-width beam only sees the top-*b* cut, so rank is. A method that
 sharpens without reordering helps the first and does nothing for the second.
 
+## The margin is the pooling, not the type tag
+
+`pairs` adds two things to `wide` at once: per-item pooling, and an explicit
+type-tag embedding per side. The flat arms were never blind to type — the
+`{"type": "builtins.range"` header is the first thing in their window and is
+never the part that gets cut — but "at most nothing" is not a measurement.
+`pairs_untyped` is `pairs` with the tag removed, run on the same population,
+seeds and epochs:
+
+| probe | wide | pairs_untyped | pairs | from pooling | from the tag |
+|---|---|---|---|---|---|
+| front k=0 | 3.21 / 41.1% | 2.94 / 45.6% | 2.96 / 45.8% | +0.27 (109%) | −0.02 |
+| front k=2 | 3.53 / 38.3% | 3.05 / 47.5% | 3.00 / 47.6% | +0.49 (92%) | +0.04 |
+| back k=0 | 2.35 / 56.0% | 1.85 / 64.7% | 1.84 / 65.2% | +0.49 (98%) | +0.01 |
+| back k=2 | 2.41 / 60.2% | 1.81 / 71.1% | 1.79 / 71.0% | +0.59 (97%) | +0.02 |
+
+**The tag is worth nothing — between −9% and +8% of the margin, which is noise.**
+The whole effect is the per-item pooling. In bits the untyped arm is within 0.02
+of `pairs` everywhere (back k=2: 1.37 against 1.35).
+
+This matters for the parameter argument as well as the mechanism. Dropping the
+tag puts the arm at **90,374 parameters against the published model's 90,582** —
+0.2% smaller. So the strongest claim in this report does not need the +6.2%: an
+encoder the same size as the published one, differing only in that it reads a
+task as aligned example pairs, is what produces the gain.
+
 ## What a forward solver gets from this
 
 A forward rollout predicts the *next* action from a materialized state, so it is
@@ -343,5 +369,7 @@ their target, against 19.3% on these test splits).
 
       uv run python experiments/policy_probe_strata.py <corpus> depth2.json.gz
 
+* `untyped{0,2}.json.gz` — the type-tag ablation, same population and seeds
+  (`--arms=pairs_untyped`).
 * `dose.json` — per-probe truncation and target-visibility on the peeled splits.
 * `depth{0,1,2}.err` — per-epoch validation loss for every arm and seed.
