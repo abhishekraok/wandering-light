@@ -413,3 +413,14 @@ def test_truncation_eats_the_target_before_the_input():
     rates = truncation_rates([small, starved])
     assert rates["flat_target_invisible"] == 0.5
     assert rates["flat_target_visible"] == 0.5
+
+
+def test_evaluate_keeps_per_task_ranks_in_split_order():
+    """Aggregates alone can only compare encoders over whole probes, where
+    visibility is confounded with which end is being predicted. Keeping the
+    per-task rank lets the same result be re-cut by how much of the target the
+    budget showed, within one probe, without retraining anything."""
+    tasks = [_task(1, ["a"]), _task(2, ["b"]), _task(2, ["a"])]
+    row = evaluate(lambda t: {"a": 1.0, "b": 0.0}, tasks, "x", FIRST)
+    assert row["ranks"] == [1, 2, 1]
+    assert row["mean_rank"] == pytest.approx(sum(row["ranks"]) / 3)

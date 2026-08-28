@@ -46,3 +46,6 @@
     wide encoder: 90582 parameters
     epoch  1  val loss 1.8429
     epoch  2  val loss 1.7183
+    epoch  3  val loss 1.6978
+    epoch  4  val loss 1.6740
+    epoch  5  val loss 1.6698

@@ -301,10 +301,17 @@ def evaluate(
         "median_rank": ordered[len(ordered) // 2],
         "p90_rank": ordered[int(len(ordered) * 0.9)],
         "by_distance": {d: sum(v) / len(v) for d, v in sorted(by_distance.items())},
+        # Per task, in the order the split was read, so a result can be
+        # re-cut afterwards by any property of the task -- how much of the
+        # target the budget showed, above all -- without retraining. Aggregates
+        # alone would make the encoders comparable only over whole probes,
+        # where visibility is confounded with which end is being predicted.
+        "ranks": ranks,
     }
     if records:
         row["bits"] = summarise_bits(records)
         row["mask_width"] = sum(w for _, _, w in records) / len(records)
+        row["mass"] = [round(m, 6) for m, _, _ in records]
     return row
 
 
