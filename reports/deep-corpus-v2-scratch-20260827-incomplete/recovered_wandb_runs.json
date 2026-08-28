@@ -1,0 +1,2248 @@
+{
+  "aggregate_runtime": {
+    "reported_train_runtime_hours": 4.859654361111112,
+    "reported_train_runtime_seconds": 17494.7557,
+    "scope": "six pilots plus two final runs; excludes feasibility work and CPU BFS validation",
+    "wandb_runtime_hours": 5.6299456157525,
+    "wandb_runtime_seconds": 20267.804216709
+  },
+  "arms": {
+    "opt-125m-scratch": {
+      "checkpoint_recovery": {
+        "hub_model_id": null,
+        "local_checkpoint_found": false,
+        "push_to_hub": false,
+        "recorded_output_dir": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/.final.staging-nwhrkr0p",
+        "retraining_authorized": false,
+        "wandb_model_artifact_found": false
+      },
+      "creation": {
+        "arm_id": "opt-125m-scratch",
+        "budget_dimension": "ffn_dim",
+        "budget_dimension_value": 4992,
+        "config_source": {
+          "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+          "repo_id": "facebook/opt-125m",
+          "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+        },
+        "creation_method": "AutoModelForCausalLM.from_config",
+        "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+        "exact_trainable_parameters": 125265408,
+        "family": "opt",
+        "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+        "initialization_seed": 54001,
+        "label": "OPT-style 125M scratch causal LM",
+        "parameter_error": 265408,
+        "parameter_error_fraction": 0.002123264,
+        "pretrained_weights_loaded": false,
+        "target_trainable_parameters": 125000000,
+        "vocab_size": 4196
+      },
+      "final": {
+        "best_validation_loss": 0.686474084854126,
+        "epochs": 3,
+        "eval_history": [
+          {
+            "epoch": 1.0,
+            "eval_loss": 0.7720386981964111,
+            "eval_mean_token_accuracy": 0.7297509273399466,
+            "eval_num_tokens": 21639985.0,
+            "eval_runtime": 120.0171,
+            "num_input_tokens_seen": 40126492
+          },
+          {
+            "epoch": 2.0,
+            "eval_loss": 0.6963292360305786,
+            "eval_mean_token_accuracy": 0.7568135812024402,
+            "eval_num_tokens": 43279970.0,
+            "eval_runtime": 118.0786,
+            "num_input_tokens_seen": 80220162
+          },
+          {
+            "epoch": 3.0,
+            "eval_loss": 0.686474084854126,
+            "eval_mean_token_accuracy": 0.7612356610049558,
+            "eval_num_tokens": 64919955.0,
+            "eval_runtime": 122.4302,
+            "num_input_tokens_seen": 120359106
+          }
+        ],
+        "exact_trainable_parameters": 125265408,
+        "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+        "learning_rate": 0.0003,
+        "optimizer_steps": 92085,
+        "reported_train_runtime_seconds": 8664.8025,
+        "run_id": "k6x0qelr",
+        "train_loss": 0.7945439721199811,
+        "training_tokens": 64893407.0,
+        "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/k6x0qelr",
+        "validation_mean_token_accuracy": 0.7612356610049558,
+        "wandb_runtime_seconds": 9040.448402359
+      },
+      "pilot_selection": {
+        "criterion": "minimum W&B best_validation_loss",
+        "runs": [
+          {
+            "best_validation_loss": 1.0059155225753784,
+            "learning_rate": 0.0001,
+            "reported_train_runtime_seconds": 793.0279,
+            "run_id": "rw6g30r8",
+            "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/rw6g30r8",
+            "validation_mean_token_accuracy": 0.6491357413460889,
+            "wandb_runtime_seconds": 1158.201986678
+          },
+          {
+            "best_validation_loss": 0.9640900492668152,
+            "learning_rate": 0.0003,
+            "reported_train_runtime_seconds": 796.6701,
+            "run_id": "9sluj815",
+            "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/9sluj815",
+            "validation_mean_token_accuracy": 0.6595104019732991,
+            "wandb_runtime_seconds": 1161.282369105
+          },
+          {
+            "best_validation_loss": 1.3762551546096802,
+            "learning_rate": 0.001,
+            "reported_train_runtime_seconds": 789.4349,
+            "run_id": "hx40xwh8",
+            "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/hx40xwh8",
+            "validation_mean_token_accuracy": 0.5306136963234727,
+            "wandb_runtime_seconds": 1155.869838671
+          }
+        ],
+        "selected_learning_rate": 0.0003,
+        "selected_run_id": "9sluj815"
+      }
+    },
+    "scratch-10m": {
+      "checkpoint_recovery": {
+        "hub_model_id": null,
+        "local_checkpoint_found": false,
+        "push_to_hub": false,
+        "recorded_output_dir": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/.final.staging-au31ekbo",
+        "retraining_authorized": false,
+        "wandb_model_artifact_found": false
+      },
+      "creation": {
+        "arm_id": "scratch-10m",
+        "budget_dimension": "ffn_dim",
+        "budget_dimension_value": 2240,
+        "config_source": {
+          "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+          "repo_id": "facebook/opt-125m",
+          "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+        },
+        "creation_method": "AutoModelForCausalLM.from_config",
+        "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+        "exact_trainable_parameters": 10080896,
+        "family": "opt",
+        "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+        "initialization_seed": 54001,
+        "label": "10M scratch causal LM",
+        "parameter_error": 80896,
+        "parameter_error_fraction": 0.0080896,
+        "pretrained_weights_loaded": false,
+        "target_trainable_parameters": 10000000,
+        "vocab_size": 4196
+      },
+      "final": {
+        "best_validation_loss": 0.7554848790168762,
+        "epochs": 3,
+        "eval_history": [
+          {
+            "epoch": 1.0,
+            "eval_loss": 0.8195342421531677,
+            "eval_mean_token_accuracy": 0.7266072277950774,
+            "eval_num_tokens": 21639985.0,
+            "eval_runtime": 78.6591,
+            "num_input_tokens_seen": 40126492
+          },
+          {
+            "epoch": 2.0,
+            "eval_loss": 0.7628676891326904,
+            "eval_mean_token_accuracy": 0.7490824479825037,
+            "eval_num_tokens": 43279970.0,
+            "eval_runtime": 75.9159,
+            "num_input_tokens_seen": 80220162
+          },
+          {
+            "epoch": 3.0,
+            "eval_loss": 0.7554848790168762,
+            "eval_mean_token_accuracy": 0.7521993538264143,
+            "eval_num_tokens": 64919955.0,
+            "eval_runtime": 82.512,
+            "num_input_tokens_seen": 120359106
+          }
+        ],
+        "exact_trainable_parameters": 10080896,
+        "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+        "learning_rate": 0.0003,
+        "optimizer_steps": 92085,
+        "reported_train_runtime_seconds": 5008.1107,
+        "run_id": "denrj1ok",
+        "train_loss": 0.8914341421542096,
+        "training_tokens": 64893407.0,
+        "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/denrj1ok",
+        "validation_mean_token_accuracy": 0.7521993538264143,
+        "wandb_runtime_seconds": 5332.159926384
+      },
+      "pilot_selection": {
+        "criterion": "minimum W&B best_validation_loss",
+        "runs": [
+          {
+            "best_validation_loss": 1.4618422985076904,
+            "learning_rate": 0.0001,
+            "reported_train_runtime_seconds": 477.0338,
+            "run_id": "piekprnm",
+            "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/piekprnm",
+            "validation_mean_token_accuracy": 0.5861847108688296,
+            "wandb_runtime_seconds": 800.163035233
+          },
+          {
+            "best_validation_loss": 1.0363733768463135,
+            "learning_rate": 0.0003,
+            "reported_train_runtime_seconds": 478.033,
+            "run_id": "yij1euys",
+            "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/yij1euys",
+            "validation_mean_token_accuracy": 0.6415871069745709,
+            "wandb_runtime_seconds": 805.392927555
+          },
+          {
+            "best_validation_loss": 1.084215760231018,
+            "learning_rate": 0.001,
+            "reported_train_runtime_seconds": 487.6428,
+            "run_id": "hmre6vte",
+            "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/hmre6vte",
+            "validation_mean_token_accuracy": 0.6090897087374226,
+            "wandb_runtime_seconds": 814.285730724
+          }
+        ],
+        "selected_learning_rate": 0.0003,
+        "selected_run_id": "yij1euys"
+      }
+    }
+  },
+  "artifact_digest": "sha256:2c99e6c4ccdca4659f9da8e619ab447f31703abc4fcd7f862968a6e8fde3c3ff",
+  "artifact_type": "wandering-light-deep-corpus-v2-incomplete-run-recovery",
+  "issue": {
+    "artifact_loss_comment": "https://github.com/abhishekraok/wandering-light/issues/54#issuecomment-5448609122",
+    "number": 54,
+    "url": "https://github.com/abhishekraok/wandering-light/issues/54",
+    "validation_failure_comment": "https://github.com/abhishekraok/wandering-light/issues/54#issuecomment-5443898611"
+  },
+  "recovered_at": "2026-08-28T05:03:50.728744+00:00",
+  "result_boundary": {
+    "lost_or_never_created": [
+      "pilot and final model weights",
+      "local training manifests and selection locks",
+      "sealed validation summaries and candidate artifacts",
+      "test-opening ledger and test evaluation",
+      "distance-stratified solve rates",
+      "parse-failure and conditional execution-correctness diagnostics"
+    ],
+    "recorded_test_access_count": 0,
+    "retraining_authorized": false,
+    "survived": [
+      "eight W&B run configurations",
+      "eight W&B run summaries",
+      "eight W&B output logs",
+      "pilot learning-rate comparison",
+      "final training loss and validation-loss curves",
+      "random-initialization and source-data provenance"
+    ],
+    "test_ledger_survived": false
+  },
+  "runs": {
+    "9sluj815": {
+      "config": {
+        "activation_dropout": 0,
+        "architecture": {
+          "arm_id": "opt-125m-scratch",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 4992,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+          "exact_trainable_parameters": 125265408,
+          "family": "opt",
+          "label": "OPT-style 125M scratch causal LM",
+          "parameter_error": 265408,
+          "parameter_error_fraction": 0.002123264,
+          "target_trainable_parameters": 125000000,
+          "vocab_size": 4196
+        },
+        "attention_dropout": 0,
+        "bf16": true,
+        "creation": {
+          "arm_id": "opt-125m-scratch",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 4992,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "creation_method": "AutoModelForCausalLM.from_config",
+          "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+          "exact_trainable_parameters": 125265408,
+          "family": "opt",
+          "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+          "initialization_seed": 54001,
+          "label": "OPT-style 125M scratch causal LM",
+          "parameter_error": 265408,
+          "parameter_error_fraction": 0.002123264,
+          "pretrained_weights_loaded": false,
+          "target_trainable_parameters": 125000000,
+          "vocab_size": 4196
+        },
+        "cublas_workspace_config": ":16:8",
+        "data_order_seed": 54002,
+        "data_seed": 54002,
+        "dropout": 0.1,
+        "effective_batch_size": 8,
+        "ffn_dim": 4992,
+        "gradient_accumulation_steps": 1,
+        "gradient_checkpointing": false,
+        "gradient_checkpointing_kwargs": null,
+        "held_out_split": "test",
+        "hidden_size": 768,
+        "hub_model_id": null,
+        "init_std": 0.02,
+        "initialization_seed": 54001,
+        "learning_rate": 0.0003,
+        "learning_rate_grid": [
+          0.0001,
+          0.0003,
+          0.001
+        ],
+        "load_best_model_at_end": true,
+        "max_position_embeddings": 2048,
+        "max_steps": -1,
+        "metric_for_best_model": "eval_loss",
+        "model_type": "opt",
+        "num_attention_heads": 12,
+        "num_hidden_layers": 12,
+        "num_train_epochs": 0.25,
+        "output_dir": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/pilots/.3e-4.staging-cpqjtq7j",
+        "per_device_train_batch_size": 8,
+        "phase": "pilot",
+        "precision": "bf16",
+        "primary_training_distribution": "all certified distances 1-8",
+        "push_to_hub": false,
+        "pythonhashseed": "0",
+        "resumption_supported": false,
+        "run_name": "issue-54-opt-125m-scratch-pilot-3e-4-2318603",
+        "save_only_model": true,
+        "seed": 54001,
+        "tie_word_embeddings": true,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "train_split": "discovery",
+        "validation_split": "validation",
+        "vocab_size": 4196,
+        "word_embed_proj_dim": 768
+      },
+      "created_at": "2026-08-27T08:16:08Z",
+      "downloaded_file_snapshots": {
+        "config.yaml": {
+          "bytes": 16550,
+          "sha256": "sha256:a8312f9177fc8e77221a2be8d3de709d65a4b2398f57e3e604bb38ac3cb6ebd7"
+        },
+        "output.log": {
+          "bytes": 40336,
+          "sha256": "sha256:2037f5bc6ac8c14ae06765424d1af4bc351f93ed7651bbf2507ea81262da0c55"
+        },
+        "requirements.txt": {
+          "bytes": 4306,
+          "sha256": "sha256:e7fcd0230eea61f0761072bc7bb2ed17e527717805565c5878fefade9418bf2e"
+        },
+        "wandb-metadata.json": {
+          "bytes": 2082,
+          "sha256": "sha256:d0c357cf67142af226fc284bdf8eb805f17867c32b52a2a062c4b521d52ac37e"
+        },
+        "wandb-summary.json": {
+          "bytes": 1606,
+          "sha256": "sha256:17254b37eb64c8d4d39496e42c8f093a783a4cfa5a3e523521772c8e770c2704"
+        }
+      },
+      "eval_history": [
+        {
+          "epoch": 0.25,
+          "eval_loss": 0.9640900492668152,
+          "eval_mean_token_accuracy": 0.6595104019732991,
+          "eval_num_tokens": 5406044.0,
+          "eval_runtime": 117.1312,
+          "num_input_tokens_seen": 10001368
+        }
+      ],
+      "execution_environment": {
+        "args": [
+          "train",
+          "--output-dir",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/pilots/3e-4",
+          "--corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v2",
+          "--reference-corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v1",
+          "--tokenizer-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/tokenizers/deep_corpus_v2",
+          "--arm-id",
+          "opt-125m-scratch",
+          "--phase",
+          "pilot",
+          "--learning-rate",
+          "3e-4",
+          "--num-train-epochs",
+          "0.25",
+          "--wandb-run-name",
+          "issue-54-opt-125m-scratch-pilot-3e-4-2318603",
+          "--feasibility-manifest",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/feasibility/feasibility_manifest.json"
+        ],
+        "cuda_version": "13.3",
+        "git": {
+          "commit": "2318603cb3e279c4d91af9a1071b177c92123da2",
+          "remote": "https://github.com/abhishekraok/wandering-light"
+        },
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "gpu_count": 1,
+        "gpu_memory_bytes": "25757220864",
+        "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "program": "-m experiments.train_deep_corpus_v2_scratch",
+        "python": "CPython 3.12.8"
+      },
+      "logged_artifacts": [],
+      "name": "issue-54-opt-125m-scratch-pilot-3e-4-2318603",
+      "remote_files": [
+        {
+          "bytes": 16550,
+          "name": "config.yaml"
+        },
+        {
+          "bytes": 40336,
+          "name": "output.log"
+        },
+        {
+          "bytes": 4306,
+          "name": "requirements.txt"
+        },
+        {
+          "bytes": 2082,
+          "name": "wandb-metadata.json"
+        },
+        {
+          "bytes": 1606,
+          "name": "wandb-summary.json"
+        }
+      ],
+      "run_id": "9sluj815",
+      "state": "finished",
+      "summary": {
+        "_runtime": 1161.282369105,
+        "_step": 155,
+        "_timestamp": 1787819730.1632297,
+        "_wandb": {
+          "runtime": 1164
+        },
+        "arm_id": "opt-125m-scratch",
+        "artifact_path": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/pilots/3e-4",
+        "best_validation_loss": 0.9640900492668152,
+        "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
+        "eval/loss": 0.9640900492668152,
+        "eval/mean_token_accuracy": 0.6595104019732991,
+        "eval/num_tokens": 5406044.0,
+        "eval/runtime": 117.1855,
+        "eval/samples_per_second": 289.37,
+        "eval/steps_per_second": 36.173,
+        "exact_trainable_parameters": 125265408,
+        "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+        "num_input_tokens_seen": 10001368,
+        "optimizer_steps": 7674,
+        "peak_observed_gpu_memory_bytes": 13564379136,
+        "peak_torch_allocated_bytes": 7324864000,
+        "peak_torch_reserved_bytes": 10332667904,
+        "phase": "pilot",
+        "planned_combined_training_tokens": 5409996.25,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "total_flos": 7229097605283840.0,
+        "train/epoch": 0.25000814464896565,
+        "train/global_step": 7674,
+        "train/grad_norm": 3,
+        "train/learning_rate": 1.007658202337767e-06,
+        "train/loss": 1.0021,
+        "train/mean_token_accuracy": 0.6456222760677338,
+        "train/num_input_tokens_seen": 10001368,
+        "train/num_tokens": 5389051.0,
+        "train/train_tokens_per_second": 14723.229,
+        "train_loss": 1.1698301895415997,
+        "train_runtime": 796.6701,
+        "train_samples_per_second": 77.056,
+        "train_steps_per_second": 9.633,
+        "training_examples": 245554,
+        "validation_examples": 33910
+      },
+      "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/9sluj815",
+      "used_artifacts": []
+    },
+    "denrj1ok": {
+      "config": {
+        "activation_dropout": 0,
+        "architecture": {
+          "arm_id": "scratch-10m",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 2240,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+          "exact_trainable_parameters": 10080896,
+          "family": "opt",
+          "label": "10M scratch causal LM",
+          "parameter_error": 80896,
+          "parameter_error_fraction": 0.0080896,
+          "target_trainable_parameters": 10000000,
+          "vocab_size": 4196
+        },
+        "attention_dropout": 0,
+        "bf16": true,
+        "creation": {
+          "arm_id": "scratch-10m",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 2240,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "creation_method": "AutoModelForCausalLM.from_config",
+          "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+          "exact_trainable_parameters": 10080896,
+          "family": "opt",
+          "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+          "initialization_seed": 54001,
+          "label": "10M scratch causal LM",
+          "parameter_error": 80896,
+          "parameter_error_fraction": 0.0080896,
+          "pretrained_weights_loaded": false,
+          "target_trainable_parameters": 10000000,
+          "vocab_size": 4196
+        },
+        "cublas_workspace_config": ":16:8",
+        "data_order_seed": 54002,
+        "data_seed": 54002,
+        "dropout": 0.1,
+        "effective_batch_size": 8,
+        "ffn_dim": 2240,
+        "gradient_accumulation_steps": 1,
+        "gradient_checkpointing": false,
+        "gradient_checkpointing_kwargs": null,
+        "held_out_split": "test",
+        "hidden_size": 256,
+        "hub_model_id": null,
+        "init_std": 0.02,
+        "initialization_seed": 54001,
+        "learning_rate": 0.0003,
+        "learning_rate_grid": [
+          0.0001,
+          0.0003,
+          0.001
+        ],
+        "load_best_model_at_end": true,
+        "max_position_embeddings": 2048,
+        "max_steps": -1,
+        "metric_for_best_model": "eval_loss",
+        "model_type": "opt",
+        "num_attention_heads": 4,
+        "num_hidden_layers": 6,
+        "num_train_epochs": 3,
+        "output_dir": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/.final.staging-au31ekbo",
+        "per_device_train_batch_size": 8,
+        "phase": "final",
+        "precision": "bf16",
+        "primary_training_distribution": "all certified distances 1-8",
+        "push_to_hub": false,
+        "pythonhashseed": "0",
+        "resumption_supported": false,
+        "run_name": "issue-54-scratch-10m-final-lr-3e-4-2318603",
+        "save_only_model": true,
+        "seed": 54001,
+        "tie_word_embeddings": true,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "train_split": "discovery",
+        "validation_split": "validation",
+        "vocab_size": 4196,
+        "word_embed_proj_dim": 256
+      },
+      "created_at": "2026-08-27T05:54:11Z",
+      "downloaded_file_snapshots": {
+        "config.yaml": {
+          "bytes": 16478,
+          "sha256": "sha256:127d54db0b20c92191986a4e2266effc86606c4bb49f210658bdeda3fa484fd3"
+        },
+        "output.log": {
+          "bytes": 485456,
+          "sha256": "sha256:e4d64d16a88f7d1801de9f8dd205c2cf2b2c2c16bf569990f03210befa11a3d1"
+        },
+        "requirements.txt": {
+          "bytes": 4306,
+          "sha256": "sha256:e7fcd0230eea61f0761072bc7bb2ed17e527717805565c5878fefade9418bf2e"
+        },
+        "wandb-metadata.json": {
+          "bytes": 2216,
+          "sha256": "sha256:30cc6bbe535350006964619dbc7f0104e3e43fc7cb1df40896139a2ede86831e"
+        },
+        "wandb-summary.json": {
+          "bytes": 1583,
+          "sha256": "sha256:bf3dd7f70223e320aa5041752ecc974d9b9415d2305d16213852ac5e179ac44f"
+        }
+      },
+      "eval_history": [
+        {
+          "epoch": 1.0,
+          "eval_loss": 0.8195342421531677,
+          "eval_mean_token_accuracy": 0.7266072277950774,
+          "eval_num_tokens": 21639985.0,
+          "eval_runtime": 78.6591,
+          "num_input_tokens_seen": 40126492
+        },
+        {
+          "epoch": 2.0,
+          "eval_loss": 0.7628676891326904,
+          "eval_mean_token_accuracy": 0.7490824479825037,
+          "eval_num_tokens": 43279970.0,
+          "eval_runtime": 75.9159,
+          "num_input_tokens_seen": 80220162
+        },
+        {
+          "epoch": 3.0,
+          "eval_loss": 0.7554848790168762,
+          "eval_mean_token_accuracy": 0.7521993538264143,
+          "eval_num_tokens": 64919955.0,
+          "eval_runtime": 82.512,
+          "num_input_tokens_seen": 120359106
+        }
+      ],
+      "execution_environment": {
+        "args": [
+          "train",
+          "--output-dir",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/final",
+          "--corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v2",
+          "--reference-corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v1",
+          "--tokenizer-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/tokenizers/deep_corpus_v2",
+          "--arm-id",
+          "scratch-10m",
+          "--phase",
+          "final",
+          "--learning-rate",
+          "3e-4",
+          "--num-train-epochs",
+          "3",
+          "--wandb-run-name",
+          "issue-54-scratch-10m-final-lr-3e-4-2318603",
+          "--selection-lock",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/selection_lock.json",
+          "--feasibility-manifest",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/feasibility/feasibility_manifest.json"
+        ],
+        "cuda_version": "13.3",
+        "git": {
+          "commit": "2318603cb3e279c4d91af9a1071b177c92123da2",
+          "remote": "https://github.com/abhishekraok/wandering-light"
+        },
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "gpu_count": 1,
+        "gpu_memory_bytes": "25757220864",
+        "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "program": "-m experiments.train_deep_corpus_v2_scratch",
+        "python": "CPython 3.12.8"
+      },
+      "logged_artifacts": [],
+      "name": "issue-54-scratch-10m-final-lr-3e-4-2318603",
+      "remote_files": [
+        {
+          "bytes": 16478,
+          "name": "config.yaml"
+        },
+        {
+          "bytes": 485456,
+          "name": "output.log"
+        },
+        {
+          "bytes": 4306,
+          "name": "requirements.txt"
+        },
+        {
+          "bytes": 2216,
+          "name": "wandb-metadata.json"
+        },
+        {
+          "bytes": 1583,
+          "name": "wandb-summary.json"
+        }
+      ],
+      "run_id": "denrj1ok",
+      "state": "finished",
+      "summary": {
+        "_runtime": 5332.159926384,
+        "_step": 1845,
+        "_timestamp": 1787815384.0095797,
+        "_wandb": {
+          "runtime": 5335
+        },
+        "arm_id": "scratch-10m",
+        "artifact_path": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/final",
+        "best_validation_loss": 0.7554848790168762,
+        "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
+        "eval/loss": 0.7554848790168762,
+        "eval/mean_token_accuracy": 0.7521993538264143,
+        "eval/num_tokens": 64919955.0,
+        "eval/runtime": 76.4428,
+        "eval/samples_per_second": 443.6,
+        "eval/steps_per_second": 55.453,
+        "exact_trainable_parameters": 10080896,
+        "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+        "num_input_tokens_seen": 120359106,
+        "optimizer_steps": 92085,
+        "peak_observed_gpu_memory_bytes": 7923040256,
+        "peak_torch_allocated_bytes": 2296569856,
+        "peak_torch_reserved_bytes": 4680843264,
+        "phase": "final",
+        "planned_combined_training_tokens": 64919955.0,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "total_flos": 6125257850181120.0,
+        "train/epoch": 3,
+        "train/global_step": 92085,
+        "train/grad_norm": 3.84375,
+        "train/learning_rate": 1.2091086182575399e-07,
+        "train/loss": 0.7622,
+        "train/mean_token_accuracy": 0.7548649311065674,
+        "train/num_input_tokens_seen": 120359106,
+        "train/num_tokens": 64893407.0,
+        "train/train_tokens_per_second": 24435.112,
+        "train_loss": 0.8914341421542096,
+        "train_runtime": 5008.1107,
+        "train_samples_per_second": 147.094,
+        "train_steps_per_second": 18.387,
+        "training_examples": 245554,
+        "validation_examples": 33910
+      },
+      "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/denrj1ok",
+      "used_artifacts": []
+    },
+    "hmre6vte": {
+      "config": {
+        "activation_dropout": 0,
+        "architecture": {
+          "arm_id": "scratch-10m",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 2240,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+          "exact_trainable_parameters": 10080896,
+          "family": "opt",
+          "label": "10M scratch causal LM",
+          "parameter_error": 80896,
+          "parameter_error_fraction": 0.0080896,
+          "target_trainable_parameters": 10000000,
+          "vocab_size": 4196
+        },
+        "attention_dropout": 0,
+        "bf16": true,
+        "creation": {
+          "arm_id": "scratch-10m",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 2240,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "creation_method": "AutoModelForCausalLM.from_config",
+          "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+          "exact_trainable_parameters": 10080896,
+          "family": "opt",
+          "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+          "initialization_seed": 54001,
+          "label": "10M scratch causal LM",
+          "parameter_error": 80896,
+          "parameter_error_fraction": 0.0080896,
+          "pretrained_weights_loaded": false,
+          "target_trainable_parameters": 10000000,
+          "vocab_size": 4196
+        },
+        "cublas_workspace_config": ":16:8",
+        "data_order_seed": 54002,
+        "data_seed": 54002,
+        "dropout": 0.1,
+        "effective_batch_size": 8,
+        "ffn_dim": 2240,
+        "gradient_accumulation_steps": 1,
+        "gradient_checkpointing": false,
+        "gradient_checkpointing_kwargs": null,
+        "held_out_split": "test",
+        "hidden_size": 256,
+        "hub_model_id": null,
+        "init_std": 0.02,
+        "initialization_seed": 54001,
+        "learning_rate": 0.001,
+        "learning_rate_grid": [
+          0.0001,
+          0.0003,
+          0.001
+        ],
+        "load_best_model_at_end": true,
+        "max_position_embeddings": 2048,
+        "max_steps": -1,
+        "metric_for_best_model": "eval_loss",
+        "model_type": "opt",
+        "num_attention_heads": 4,
+        "num_hidden_layers": 6,
+        "num_train_epochs": 0.25,
+        "output_dir": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/pilots/.1e-3.staging-cdpb9_25",
+        "per_device_train_batch_size": 8,
+        "phase": "pilot",
+        "precision": "bf16",
+        "primary_training_distribution": "all certified distances 1-8",
+        "push_to_hub": false,
+        "pythonhashseed": "0",
+        "resumption_supported": false,
+        "run_name": "issue-54-scratch-10m-pilot-1e-3-2318603",
+        "save_only_model": true,
+        "seed": 54001,
+        "tie_word_embeddings": true,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "train_split": "discovery",
+        "validation_split": "validation",
+        "vocab_size": 4196,
+        "word_embed_proj_dim": 256
+      },
+      "created_at": "2026-08-27T05:27:50Z",
+      "downloaded_file_snapshots": {
+        "config.yaml": {
+          "bytes": 16489,
+          "sha256": "sha256:cbf0da983e87a42ebee16ccee370357cb594f71d8202ee77c6d7af8e5c3be98f"
+        },
+        "output.log": {
+          "bytes": 40344,
+          "sha256": "sha256:435e2add9b415414550a172ce5bd772aaa8662918c0a6e4db6b24d404045689e"
+        },
+        "requirements.txt": {
+          "bytes": 4306,
+          "sha256": "sha256:e7fcd0230eea61f0761072bc7bb2ed17e527717805565c5878fefade9418bf2e"
+        },
+        "wandb-metadata.json": {
+          "bytes": 2062,
+          "sha256": "sha256:9b01058e5ba737cf9eeec312368cbc7bdc026d1e6263841089b8b1605ce79285"
+        },
+        "wandb-summary.json": {
+          "bytes": 1597,
+          "sha256": "sha256:66db3e1b5a20399c86158b3d1ef8e7c9b28b047f7078ca08f2cac4a04887f049"
+        }
+      },
+      "eval_history": [
+        {
+          "epoch": 0.25,
+          "eval_loss": 1.084215760231018,
+          "eval_mean_token_accuracy": 0.6090897087374226,
+          "eval_num_tokens": 5406044.0,
+          "eval_runtime": 80.6981,
+          "num_input_tokens_seen": 10001368
+        }
+      ],
+      "execution_environment": {
+        "args": [
+          "train",
+          "--output-dir",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/pilots/1e-3",
+          "--corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v2",
+          "--reference-corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v1",
+          "--tokenizer-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/tokenizers/deep_corpus_v2",
+          "--arm-id",
+          "scratch-10m",
+          "--phase",
+          "pilot",
+          "--learning-rate",
+          "1e-3",
+          "--num-train-epochs",
+          "0.25",
+          "--wandb-run-name",
+          "issue-54-scratch-10m-pilot-1e-3-2318603",
+          "--feasibility-manifest",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/feasibility/feasibility_manifest.json"
+        ],
+        "cuda_version": "13.3",
+        "git": {
+          "commit": "2318603cb3e279c4d91af9a1071b177c92123da2",
+          "remote": "https://github.com/abhishekraok/wandering-light"
+        },
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "gpu_count": 1,
+        "gpu_memory_bytes": "25757220864",
+        "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "program": "-m experiments.train_deep_corpus_v2_scratch",
+        "python": "CPython 3.12.8"
+      },
+      "logged_artifacts": [],
+      "name": "issue-54-scratch-10m-pilot-1e-3-2318603",
+      "remote_files": [
+        {
+          "bytes": 16489,
+          "name": "config.yaml"
+        },
+        {
+          "bytes": 40344,
+          "name": "output.log"
+        },
+        {
+          "bytes": 4306,
+          "name": "requirements.txt"
+        },
+        {
+          "bytes": 2062,
+          "name": "wandb-metadata.json"
+        },
+        {
+          "bytes": 1597,
+          "name": "wandb-summary.json"
+        }
+      ],
+      "run_id": "hmre6vte",
+      "state": "finished",
+      "summary": {
+        "_runtime": 814.285730724,
+        "_step": 155,
+        "_timestamp": 1787809284.5695162,
+        "_wandb": {
+          "runtime": 817
+        },
+        "arm_id": "scratch-10m",
+        "artifact_path": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/pilots/1e-3",
+        "best_validation_loss": 1.084215760231018,
+        "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
+        "eval/loss": 1.084215760231018,
+        "eval/mean_token_accuracy": 0.6090897087374226,
+        "eval/num_tokens": 5406044.0,
+        "eval/runtime": 77.4648,
+        "eval/samples_per_second": 437.747,
+        "eval/steps_per_second": 54.722,
+        "exact_trainable_parameters": 10080896,
+        "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+        "num_input_tokens_seen": 10001368,
+        "optimizer_steps": 7674,
+        "peak_observed_gpu_memory_bytes": 6840909824,
+        "peak_torch_allocated_bytes": 2067973120,
+        "peak_torch_reserved_bytes": 3609198592,
+        "phase": "pilot",
+        "planned_combined_training_tokens": 5409996.25,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "total_flos": 508984819599360.0,
+        "train/epoch": 0.25000814464896565,
+        "train/global_step": 7674,
+        "train/grad_norm": 1.9453125,
+        "train/learning_rate": 3.358860674459223e-06,
+        "train/loss": 1.117,
+        "train/mean_token_accuracy": 0.5976015865802765,
+        "train/num_input_tokens_seen": 10001368,
+        "train/num_tokens": 5389051.0,
+        "train/train_tokens_per_second": 24575.795,
+        "train_loss": 1.2825798338392236,
+        "train_runtime": 487.6428,
+        "train_samples_per_second": 125.888,
+        "train_steps_per_second": 15.737,
+        "training_examples": 245554,
+        "validation_examples": 33910
+      },
+      "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/hmre6vte",
+      "used_artifacts": []
+    },
+    "hx40xwh8": {
+      "config": {
+        "activation_dropout": 0,
+        "architecture": {
+          "arm_id": "opt-125m-scratch",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 4992,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+          "exact_trainable_parameters": 125265408,
+          "family": "opt",
+          "label": "OPT-style 125M scratch causal LM",
+          "parameter_error": 265408,
+          "parameter_error_fraction": 0.002123264,
+          "target_trainable_parameters": 125000000,
+          "vocab_size": 4196
+        },
+        "attention_dropout": 0,
+        "bf16": true,
+        "creation": {
+          "arm_id": "opt-125m-scratch",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 4992,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "creation_method": "AutoModelForCausalLM.from_config",
+          "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+          "exact_trainable_parameters": 125265408,
+          "family": "opt",
+          "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+          "initialization_seed": 54001,
+          "label": "OPT-style 125M scratch causal LM",
+          "parameter_error": 265408,
+          "parameter_error_fraction": 0.002123264,
+          "pretrained_weights_loaded": false,
+          "target_trainable_parameters": 125000000,
+          "vocab_size": 4196
+        },
+        "cublas_workspace_config": ":16:8",
+        "data_order_seed": 54002,
+        "data_seed": 54002,
+        "dropout": 0.1,
+        "effective_batch_size": 8,
+        "ffn_dim": 4992,
+        "gradient_accumulation_steps": 1,
+        "gradient_checkpointing": false,
+        "gradient_checkpointing_kwargs": null,
+        "held_out_split": "test",
+        "hidden_size": 768,
+        "hub_model_id": null,
+        "init_std": 0.02,
+        "initialization_seed": 54001,
+        "learning_rate": 0.001,
+        "learning_rate_grid": [
+          0.0001,
+          0.0003,
+          0.001
+        ],
+        "load_best_model_at_end": true,
+        "max_position_embeddings": 2048,
+        "max_steps": -1,
+        "metric_for_best_model": "eval_loss",
+        "model_type": "opt",
+        "num_attention_heads": 12,
+        "num_hidden_layers": 12,
+        "num_train_epochs": 0.25,
+        "output_dir": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/pilots/.1e-3.staging-zto7a3ph",
+        "per_device_train_batch_size": 8,
+        "phase": "pilot",
+        "precision": "bf16",
+        "primary_training_distribution": "all certified distances 1-8",
+        "push_to_hub": false,
+        "pythonhashseed": "0",
+        "resumption_supported": false,
+        "run_name": "issue-54-opt-125m-scratch-pilot-1e-3-2318603",
+        "save_only_model": true,
+        "seed": 54001,
+        "tie_word_embeddings": true,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "train_split": "discovery",
+        "validation_split": "validation",
+        "vocab_size": 4196,
+        "word_embed_proj_dim": 768
+      },
+      "created_at": "2026-08-27T08:48:02Z",
+      "downloaded_file_snapshots": {
+        "config.yaml": {
+          "bytes": 16549,
+          "sha256": "sha256:ef7528cac6d6c566dde29cd3e9bea7e658e83d2a17fd5af734a0788a1d3a94b5"
+        },
+        "output.log": {
+          "bytes": 40280,
+          "sha256": "sha256:087e1c3e986e622fd8e58f76bd718a7c97bbec6d0eb3b2100fbc82d654f67544"
+        },
+        "requirements.txt": {
+          "bytes": 4306,
+          "sha256": "sha256:e7fcd0230eea61f0761072bc7bb2ed17e527717805565c5878fefade9418bf2e"
+        },
+        "wandb-metadata.json": {
+          "bytes": 2082,
+          "sha256": "sha256:7a625134dd496017ef2602afdfa828ec5b655b1e20352dc7a6410905524a32c3"
+        },
+        "wandb-summary.json": {
+          "bytes": 1611,
+          "sha256": "sha256:197fe2430c3a50d588fd8b81bfe7e502731efad87cabb142cbd9a1888399e460"
+        }
+      },
+      "eval_history": [
+        {
+          "epoch": 0.25,
+          "eval_loss": 1.3762551546096802,
+          "eval_mean_token_accuracy": 0.5306136963234727,
+          "eval_num_tokens": 5406044.0,
+          "eval_runtime": 112.6439,
+          "num_input_tokens_seen": 10001368
+        }
+      ],
+      "execution_environment": {
+        "args": [
+          "train",
+          "--output-dir",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/pilots/1e-3",
+          "--corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v2",
+          "--reference-corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v1",
+          "--tokenizer-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/tokenizers/deep_corpus_v2",
+          "--arm-id",
+          "opt-125m-scratch",
+          "--phase",
+          "pilot",
+          "--learning-rate",
+          "1e-3",
+          "--num-train-epochs",
+          "0.25",
+          "--wandb-run-name",
+          "issue-54-opt-125m-scratch-pilot-1e-3-2318603",
+          "--feasibility-manifest",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/feasibility/feasibility_manifest.json"
+        ],
+        "cuda_version": "13.3",
+        "git": {
+          "commit": "2318603cb3e279c4d91af9a1071b177c92123da2",
+          "remote": "https://github.com/abhishekraok/wandering-light"
+        },
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "gpu_count": 1,
+        "gpu_memory_bytes": "25757220864",
+        "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "program": "-m experiments.train_deep_corpus_v2_scratch",
+        "python": "CPython 3.12.8"
+      },
+      "logged_artifacts": [],
+      "name": "issue-54-opt-125m-scratch-pilot-1e-3-2318603",
+      "remote_files": [
+        {
+          "bytes": 16549,
+          "name": "config.yaml"
+        },
+        {
+          "bytes": 40280,
+          "name": "output.log"
+        },
+        {
+          "bytes": 4306,
+          "name": "requirements.txt"
+        },
+        {
+          "bytes": 2082,
+          "name": "wandb-metadata.json"
+        },
+        {
+          "bytes": 1611,
+          "name": "wandb-summary.json"
+        }
+      ],
+      "run_id": "hx40xwh8",
+      "state": "finished",
+      "summary": {
+        "_runtime": 1155.869838671,
+        "_step": 155,
+        "_timestamp": 1787821637.9521987,
+        "_wandb": {
+          "runtime": 1158
+        },
+        "arm_id": "opt-125m-scratch",
+        "artifact_path": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/pilots/1e-3",
+        "best_validation_loss": 1.3762551546096802,
+        "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
+        "eval/loss": 1.3762551546096802,
+        "eval/mean_token_accuracy": 0.5306136963234727,
+        "eval/num_tokens": 5406044.0,
+        "eval/runtime": 117.1101,
+        "eval/samples_per_second": 289.557,
+        "eval/steps_per_second": 36.197,
+        "exact_trainable_parameters": 125265408,
+        "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+        "num_input_tokens_seen": 10001368,
+        "optimizer_steps": 7674,
+        "peak_observed_gpu_memory_bytes": 13564379136,
+        "peak_torch_allocated_bytes": 7324864000,
+        "peak_torch_reserved_bytes": 10332667904,
+        "phase": "pilot",
+        "planned_combined_training_tokens": 5409996.25,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "total_flos": 7229097605283840.0,
+        "train/epoch": 0.25000814464896565,
+        "train/global_step": 7674,
+        "train/grad_norm": 7.875,
+        "train/learning_rate": 3.358860674459223e-06,
+        "train/loss": 1.3906,
+        "train/mean_token_accuracy": 0.5252141153812409,
+        "train/num_input_tokens_seen": 10001368,
+        "train/num_tokens": 5389051.0,
+        "train/train_tokens_per_second": 14781.255,
+        "train_loss": 1.6028126812801406,
+        "train_runtime": 789.4349,
+        "train_samples_per_second": 77.763,
+        "train_steps_per_second": 9.721,
+        "training_examples": 245554,
+        "validation_examples": 33910
+      },
+      "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/hx40xwh8",
+      "used_artifacts": []
+    },
+    "k6x0qelr": {
+      "config": {
+        "activation_dropout": 0,
+        "architecture": {
+          "arm_id": "opt-125m-scratch",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 4992,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+          "exact_trainable_parameters": 125265408,
+          "family": "opt",
+          "label": "OPT-style 125M scratch causal LM",
+          "parameter_error": 265408,
+          "parameter_error_fraction": 0.002123264,
+          "target_trainable_parameters": 125000000,
+          "vocab_size": 4196
+        },
+        "attention_dropout": 0,
+        "bf16": true,
+        "creation": {
+          "arm_id": "opt-125m-scratch",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 4992,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "creation_method": "AutoModelForCausalLM.from_config",
+          "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+          "exact_trainable_parameters": 125265408,
+          "family": "opt",
+          "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+          "initialization_seed": 54001,
+          "label": "OPT-style 125M scratch causal LM",
+          "parameter_error": 265408,
+          "parameter_error_fraction": 0.002123264,
+          "pretrained_weights_loaded": false,
+          "target_trainable_parameters": 125000000,
+          "vocab_size": 4196
+        },
+        "cublas_workspace_config": ":16:8",
+        "data_order_seed": 54002,
+        "data_seed": 54002,
+        "dropout": 0.1,
+        "effective_batch_size": 8,
+        "ffn_dim": 4992,
+        "gradient_accumulation_steps": 1,
+        "gradient_checkpointing": false,
+        "gradient_checkpointing_kwargs": null,
+        "held_out_split": "test",
+        "hidden_size": 768,
+        "hub_model_id": null,
+        "init_std": 0.02,
+        "initialization_seed": 54001,
+        "learning_rate": 0.0003,
+        "learning_rate_grid": [
+          0.0001,
+          0.0003,
+          0.001
+        ],
+        "load_best_model_at_end": true,
+        "max_position_embeddings": 2048,
+        "max_steps": -1,
+        "metric_for_best_model": "eval_loss",
+        "model_type": "opt",
+        "num_attention_heads": 12,
+        "num_hidden_layers": 12,
+        "num_train_epochs": 3,
+        "output_dir": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/.final.staging-nwhrkr0p",
+        "per_device_train_batch_size": 8,
+        "phase": "final",
+        "precision": "bf16",
+        "primary_training_distribution": "all certified distances 1-8",
+        "push_to_hub": false,
+        "pythonhashseed": "0",
+        "resumption_supported": false,
+        "run_name": "issue-54-opt-125m-scratch-final-lr-3e-4-2318603-retry-3",
+        "save_only_model": true,
+        "seed": 54001,
+        "tie_word_embeddings": true,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "train_split": "discovery",
+        "validation_split": "validation",
+        "vocab_size": 4196,
+        "word_embed_proj_dim": 768
+      },
+      "created_at": "2026-08-27T14:56:41Z",
+      "downloaded_file_snapshots": {
+        "config.yaml": {
+          "bytes": 16546,
+          "sha256": "sha256:b788e90e1f2395b7fcb887ebc197823e5de656367b0d5d4a6ec5725d91342783"
+        },
+        "output.log": {
+          "bytes": 486063,
+          "sha256": "sha256:19c43305415421aa94d649520d01350b8b8be06f3c2384ceb0c31f9f194eb7d2"
+        },
+        "requirements.txt": {
+          "bytes": 4306,
+          "sha256": "sha256:e7fcd0230eea61f0761072bc7bb2ed17e527717805565c5878fefade9418bf2e"
+        },
+        "wandb-metadata.json": {
+          "bytes": 2249,
+          "sha256": "sha256:36544b85e55a311cb106b8138aeb6a6b4568a446a42cca45690e038c3913ecfa"
+        },
+        "wandb-summary.json": {
+          "bytes": 1597,
+          "sha256": "sha256:b6de844bc8784d02e748859df762382040f972fc6542e0da593cfc9724e77ac5"
+        }
+      },
+      "eval_history": [
+        {
+          "epoch": 1.0,
+          "eval_loss": 0.7720386981964111,
+          "eval_mean_token_accuracy": 0.7297509273399466,
+          "eval_num_tokens": 21639985.0,
+          "eval_runtime": 120.0171,
+          "num_input_tokens_seen": 40126492
+        },
+        {
+          "epoch": 2.0,
+          "eval_loss": 0.6963292360305786,
+          "eval_mean_token_accuracy": 0.7568135812024402,
+          "eval_num_tokens": 43279970.0,
+          "eval_runtime": 118.0786,
+          "num_input_tokens_seen": 80220162
+        },
+        {
+          "epoch": 3.0,
+          "eval_loss": 0.686474084854126,
+          "eval_mean_token_accuracy": 0.7612356610049558,
+          "eval_num_tokens": 64919955.0,
+          "eval_runtime": 122.4302,
+          "num_input_tokens_seen": 120359106
+        }
+      ],
+      "execution_environment": {
+        "args": [
+          "train",
+          "--output-dir",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/final",
+          "--corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v2",
+          "--reference-corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v1",
+          "--tokenizer-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/tokenizers/deep_corpus_v2",
+          "--arm-id",
+          "opt-125m-scratch",
+          "--phase",
+          "final",
+          "--learning-rate",
+          "3e-4",
+          "--num-train-epochs",
+          "3",
+          "--wandb-run-name",
+          "issue-54-opt-125m-scratch-final-lr-3e-4-2318603-retry-3",
+          "--selection-lock",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/selection_lock.json",
+          "--feasibility-manifest",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/feasibility/feasibility_manifest.json"
+        ],
+        "cuda_version": "13.3",
+        "git": {
+          "commit": "2318603cb3e279c4d91af9a1071b177c92123da2",
+          "remote": "https://github.com/abhishekraok/wandering-light"
+        },
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "gpu_count": 1,
+        "gpu_memory_bytes": "25757220864",
+        "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "program": "-m experiments.train_deep_corpus_v2_scratch",
+        "python": "CPython 3.12.8"
+      },
+      "logged_artifacts": [],
+      "name": "issue-54-opt-125m-scratch-final-lr-3e-4-2318603-retry-3",
+      "remote_files": [
+        {
+          "bytes": 16546,
+          "name": "config.yaml"
+        },
+        {
+          "bytes": 486063,
+          "name": "output.log"
+        },
+        {
+          "bytes": 4306,
+          "name": "requirements.txt"
+        },
+        {
+          "bytes": 2249,
+          "name": "wandb-metadata.json"
+        },
+        {
+          "bytes": 1597,
+          "name": "wandb-summary.json"
+        }
+      ],
+      "run_id": "k6x0qelr",
+      "state": "finished",
+      "summary": {
+        "_runtime": 9040.448402359,
+        "_step": 1845,
+        "_timestamp": 1787851642.388566,
+        "_wandb": {
+          "runtime": 9043
+        },
+        "arm_id": "opt-125m-scratch",
+        "artifact_path": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/final",
+        "best_validation_loss": 0.686474084854126,
+        "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
+        "eval/loss": 0.686474084854126,
+        "eval/mean_token_accuracy": 0.7612356610049558,
+        "eval/num_tokens": 64919955.0,
+        "eval/runtime": 117.1661,
+        "eval/samples_per_second": 289.418,
+        "eval/steps_per_second": 36.179,
+        "exact_trainable_parameters": 125265408,
+        "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+        "num_input_tokens_seen": 120359106,
+        "optimizer_steps": 92085,
+        "peak_observed_gpu_memory_bytes": 16494100480,
+        "peak_torch_allocated_bytes": 8029079040,
+        "peak_torch_reserved_bytes": 13090422784,
+        "phase": "final",
+        "planned_combined_training_tokens": 64919955.0,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "total_flos": 8.699687132387328e+16,
+        "train/epoch": 3,
+        "train/global_step": 92085,
+        "train/grad_norm": 3.703125,
+        "train/learning_rate": 1.2091086182575399e-07,
+        "train/loss": 0.6635,
+        "train/mean_token_accuracy": 0.7661174333095551,
+        "train/num_input_tokens_seen": 120359106,
+        "train/num_tokens": 64893407.0,
+        "train/train_tokens_per_second": 14088.387,
+        "train_loss": 0.7945439721199811,
+        "train_runtime": 8664.8025,
+        "train_samples_per_second": 85.018,
+        "train_steps_per_second": 10.627,
+        "training_examples": 245554,
+        "validation_examples": 33910
+      },
+      "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/k6x0qelr",
+      "used_artifacts": []
+    },
+    "piekprnm": {
+      "config": {
+        "activation_dropout": 0,
+        "architecture": {
+          "arm_id": "scratch-10m",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 2240,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+          "exact_trainable_parameters": 10080896,
+          "family": "opt",
+          "label": "10M scratch causal LM",
+          "parameter_error": 80896,
+          "parameter_error_fraction": 0.0080896,
+          "target_trainable_parameters": 10000000,
+          "vocab_size": 4196
+        },
+        "attention_dropout": 0,
+        "bf16": true,
+        "creation": {
+          "arm_id": "scratch-10m",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 2240,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "creation_method": "AutoModelForCausalLM.from_config",
+          "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+          "exact_trainable_parameters": 10080896,
+          "family": "opt",
+          "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+          "initialization_seed": 54001,
+          "label": "10M scratch causal LM",
+          "parameter_error": 80896,
+          "parameter_error_fraction": 0.0080896,
+          "pretrained_weights_loaded": false,
+          "target_trainable_parameters": 10000000,
+          "vocab_size": 4196
+        },
+        "cublas_workspace_config": ":16:8",
+        "data_order_seed": 54002,
+        "data_seed": 54002,
+        "dropout": 0.1,
+        "effective_batch_size": 8,
+        "ffn_dim": 2240,
+        "gradient_accumulation_steps": 1,
+        "gradient_checkpointing": false,
+        "gradient_checkpointing_kwargs": null,
+        "held_out_split": "test",
+        "hidden_size": 256,
+        "hub_model_id": null,
+        "init_std": 0.02,
+        "initialization_seed": 54001,
+        "learning_rate": 0.0001,
+        "learning_rate_grid": [
+          0.0001,
+          0.0003,
+          0.001
+        ],
+        "load_best_model_at_end": true,
+        "max_position_embeddings": 2048,
+        "max_steps": -1,
+        "metric_for_best_model": "eval_loss",
+        "model_type": "opt",
+        "num_attention_heads": 4,
+        "num_hidden_layers": 6,
+        "num_train_epochs": 0.25,
+        "output_dir": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/pilots/.1e-4.staging-dhqcmhez",
+        "per_device_train_batch_size": 8,
+        "phase": "pilot",
+        "precision": "bf16",
+        "primary_training_distribution": "all certified distances 1-8",
+        "push_to_hub": false,
+        "pythonhashseed": "0",
+        "resumption_supported": false,
+        "run_name": "issue-54-scratch-10m-pilot-1e-4-2318603",
+        "save_only_model": true,
+        "seed": 54001,
+        "tie_word_embeddings": true,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "train_split": "discovery",
+        "validation_split": "validation",
+        "vocab_size": 4196,
+        "word_embed_proj_dim": 256
+      },
+      "created_at": "2026-08-27T04:35:33Z",
+      "downloaded_file_snapshots": {
+        "config.yaml": {
+          "bytes": 16490,
+          "sha256": "sha256:c44344870e5a0ebd71741f615a7327f6ab59a29a33d3d20e57f66f8d405cc172"
+        },
+        "output.log": {
+          "bytes": 41261,
+          "sha256": "sha256:3d5f4e6e1433bff2a69102abda61fb1751be2c928bdd1cb4ae214ee706622fb4"
+        },
+        "requirements.txt": {
+          "bytes": 4306,
+          "sha256": "sha256:e7fcd0230eea61f0761072bc7bb2ed17e527717805565c5878fefade9418bf2e"
+        },
+        "wandb-metadata.json": {
+          "bytes": 2062,
+          "sha256": "sha256:31b6b6fbee451e288bcdf7d82cc8c16704d6327c17f35ed95adfe7fc13e8d187"
+        },
+        "wandb-summary.json": {
+          "bytes": 1600,
+          "sha256": "sha256:aa5a4ca9329d10858f944e2917d2e2389be767afa908613bb442b1e69f27f47d"
+        }
+      },
+      "eval_history": [
+        {
+          "epoch": 0.25,
+          "eval_loss": 1.4618422985076904,
+          "eval_mean_token_accuracy": 0.5861847108688296,
+          "eval_num_tokens": 5406044.0,
+          "eval_runtime": 76.6021,
+          "num_input_tokens_seen": 10001368
+        }
+      ],
+      "execution_environment": {
+        "args": [
+          "train",
+          "--output-dir",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/pilots/1e-4",
+          "--corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v2",
+          "--reference-corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v1",
+          "--tokenizer-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/tokenizers/deep_corpus_v2",
+          "--arm-id",
+          "scratch-10m",
+          "--phase",
+          "pilot",
+          "--learning-rate",
+          "1e-4",
+          "--num-train-epochs",
+          "0.25",
+          "--wandb-run-name",
+          "issue-54-scratch-10m-pilot-1e-4-2318603",
+          "--feasibility-manifest",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/feasibility/feasibility_manifest.json"
+        ],
+        "cuda_version": "13.3",
+        "git": {
+          "commit": "2318603cb3e279c4d91af9a1071b177c92123da2",
+          "remote": "https://github.com/abhishekraok/wandering-light"
+        },
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "gpu_count": 1,
+        "gpu_memory_bytes": "25757220864",
+        "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "program": "-m experiments.train_deep_corpus_v2_scratch",
+        "python": "CPython 3.12.8"
+      },
+      "logged_artifacts": [
+        {
+          "bytes": 16151,
+          "name": "run-piekprnm-history:v0",
+          "type": "wandb-history"
+        }
+      ],
+      "name": "issue-54-scratch-10m-pilot-1e-4-2318603",
+      "remote_files": [
+        {
+          "bytes": 0,
+          "name": "artifact/3438823448/wandb_manifest.json"
+        },
+        {
+          "bytes": 16490,
+          "name": "config.yaml"
+        },
+        {
+          "bytes": 41261,
+          "name": "output.log"
+        },
+        {
+          "bytes": 4306,
+          "name": "requirements.txt"
+        },
+        {
+          "bytes": 2062,
+          "name": "wandb-metadata.json"
+        },
+        {
+          "bytes": 1600,
+          "name": "wandb-summary.json"
+        }
+      ],
+      "run_id": "piekprnm",
+      "state": "finished",
+      "summary": {
+        "_runtime": 800.163035233,
+        "_step": 155,
+        "_timestamp": 1787806133.3017235,
+        "_wandb": {
+          "runtime": 802
+        },
+        "arm_id": "scratch-10m",
+        "artifact_path": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/pilots/1e-4",
+        "best_validation_loss": 1.4618422985076904,
+        "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
+        "eval/loss": 1.4618422985076904,
+        "eval/mean_token_accuracy": 0.5861847108688296,
+        "eval/num_tokens": 5406044.0,
+        "eval/runtime": 77.1762,
+        "eval/samples_per_second": 439.384,
+        "eval/steps_per_second": 54.926,
+        "exact_trainable_parameters": 10080896,
+        "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+        "num_input_tokens_seen": 10001368,
+        "optimizer_steps": 7674,
+        "peak_observed_gpu_memory_bytes": 6944718848,
+        "peak_torch_allocated_bytes": 2067973120,
+        "peak_torch_reserved_bytes": 3609198592,
+        "phase": "pilot",
+        "planned_combined_training_tokens": 5409996.25,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "total_flos": 508984819599360.0,
+        "train/epoch": 0.25000814464896565,
+        "train/global_step": 7674,
+        "train/grad_norm": 3.578125,
+        "train/learning_rate": 3.3588606744592235e-07,
+        "train/loss": 1.5003,
+        "train/mean_token_accuracy": 0.5693923711776734,
+        "train/num_input_tokens_seen": 10001368,
+        "train/num_tokens": 5389051.0,
+        "train/train_tokens_per_second": 24969.857,
+        "train_loss": 1.7238270359670615,
+        "train_runtime": 477.0338,
+        "train_samples_per_second": 128.688,
+        "train_steps_per_second": 16.087,
+        "training_examples": 245554,
+        "validation_examples": 33910
+      },
+      "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/piekprnm",
+      "used_artifacts": []
+    },
+    "rw6g30r8": {
+      "config": {
+        "activation_dropout": 0,
+        "architecture": {
+          "arm_id": "opt-125m-scratch",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 4992,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+          "exact_trainable_parameters": 125265408,
+          "family": "opt",
+          "label": "OPT-style 125M scratch causal LM",
+          "parameter_error": 265408,
+          "parameter_error_fraction": 0.002123264,
+          "target_trainable_parameters": 125000000,
+          "vocab_size": 4196
+        },
+        "attention_dropout": 0,
+        "bf16": true,
+        "creation": {
+          "arm_id": "opt-125m-scratch",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 4992,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "creation_method": "AutoModelForCausalLM.from_config",
+          "effective_config_digest": "sha256:2520f8ed0510099237ffa4b2a333554e8a48018c592d0b6a007d9f9b7f0cdd04",
+          "exact_trainable_parameters": 125265408,
+          "family": "opt",
+          "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+          "initialization_seed": 54001,
+          "label": "OPT-style 125M scratch causal LM",
+          "parameter_error": 265408,
+          "parameter_error_fraction": 0.002123264,
+          "pretrained_weights_loaded": false,
+          "target_trainable_parameters": 125000000,
+          "vocab_size": 4196
+        },
+        "cublas_workspace_config": ":16:8",
+        "data_order_seed": 54002,
+        "data_seed": 54002,
+        "dropout": 0.1,
+        "effective_batch_size": 8,
+        "ffn_dim": 4992,
+        "gradient_accumulation_steps": 1,
+        "gradient_checkpointing": false,
+        "gradient_checkpointing_kwargs": null,
+        "held_out_split": "test",
+        "hidden_size": 768,
+        "hub_model_id": null,
+        "init_std": 0.02,
+        "initialization_seed": 54001,
+        "learning_rate": 0.0001,
+        "learning_rate_grid": [
+          0.0001,
+          0.0003,
+          0.001
+        ],
+        "load_best_model_at_end": true,
+        "max_position_embeddings": 2048,
+        "max_steps": -1,
+        "metric_for_best_model": "eval_loss",
+        "model_type": "opt",
+        "num_attention_heads": 12,
+        "num_hidden_layers": 12,
+        "num_train_epochs": 0.25,
+        "output_dir": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/pilots/.1e-4.staging-wwp4kn2z",
+        "per_device_train_batch_size": 8,
+        "phase": "pilot",
+        "precision": "bf16",
+        "primary_training_distribution": "all certified distances 1-8",
+        "push_to_hub": false,
+        "pythonhashseed": "0",
+        "resumption_supported": false,
+        "run_name": "issue-54-opt-125m-scratch-pilot-1e-4-2318603",
+        "save_only_model": true,
+        "seed": 54001,
+        "tie_word_embeddings": true,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "train_split": "discovery",
+        "validation_split": "validation",
+        "vocab_size": 4196,
+        "word_embed_proj_dim": 768
+      },
+      "created_at": "2026-08-27T07:44:08Z",
+      "downloaded_file_snapshots": {
+        "config.yaml": {
+          "bytes": 16550,
+          "sha256": "sha256:85226e96112c17b5cdbf531f839465258dcb597a8ca1c8d7ff301d7c12c4089d"
+        },
+        "output.log": {
+          "bytes": 40229,
+          "sha256": "sha256:027f6f18364bb518e4b6390df46c39df7d0543a8f92c248d40560a165e9de4ae"
+        },
+        "requirements.txt": {
+          "bytes": 4306,
+          "sha256": "sha256:e7fcd0230eea61f0761072bc7bb2ed17e527717805565c5878fefade9418bf2e"
+        },
+        "wandb-metadata.json": {
+          "bytes": 2082,
+          "sha256": "sha256:27a66429c96000b490715400968073fcefc88d6f9b032dfa8fd744353afc4fb1"
+        },
+        "wandb-summary.json": {
+          "bytes": 1610,
+          "sha256": "sha256:505581f4e47bfa8c9637d868a677e05c16a101adf4f2f080ee06dffc46dc306f"
+        }
+      },
+      "eval_history": [
+        {
+          "epoch": 0.25,
+          "eval_loss": 1.0059155225753784,
+          "eval_mean_token_accuracy": 0.6491357413460889,
+          "eval_num_tokens": 5406044.0,
+          "eval_runtime": 115.3193,
+          "num_input_tokens_seen": 10001368
+        }
+      ],
+      "execution_environment": {
+        "args": [
+          "train",
+          "--output-dir",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/pilots/1e-4",
+          "--corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v2",
+          "--reference-corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v1",
+          "--tokenizer-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/tokenizers/deep_corpus_v2",
+          "--arm-id",
+          "opt-125m-scratch",
+          "--phase",
+          "pilot",
+          "--learning-rate",
+          "1e-4",
+          "--num-train-epochs",
+          "0.25",
+          "--wandb-run-name",
+          "issue-54-opt-125m-scratch-pilot-1e-4-2318603",
+          "--feasibility-manifest",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/feasibility/feasibility_manifest.json"
+        ],
+        "cuda_version": "13.3",
+        "git": {
+          "commit": "2318603cb3e279c4d91af9a1071b177c92123da2",
+          "remote": "https://github.com/abhishekraok/wandering-light"
+        },
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "gpu_count": 1,
+        "gpu_memory_bytes": "25757220864",
+        "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "program": "-m experiments.train_deep_corpus_v2_scratch",
+        "python": "CPython 3.12.8"
+      },
+      "logged_artifacts": [],
+      "name": "issue-54-opt-125m-scratch-pilot-1e-4-2318603",
+      "remote_files": [
+        {
+          "bytes": 16550,
+          "name": "config.yaml"
+        },
+        {
+          "bytes": 40229,
+          "name": "output.log"
+        },
+        {
+          "bytes": 4306,
+          "name": "requirements.txt"
+        },
+        {
+          "bytes": 2082,
+          "name": "wandb-metadata.json"
+        },
+        {
+          "bytes": 1610,
+          "name": "wandb-summary.json"
+        }
+      ],
+      "run_id": "rw6g30r8",
+      "state": "finished",
+      "summary": {
+        "_runtime": 1158.201986678,
+        "_step": 155,
+        "_timestamp": 1787817807.6675746,
+        "_wandb": {
+          "runtime": 1160
+        },
+        "arm_id": "opt-125m-scratch",
+        "artifact_path": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/opt-125m-scratch/pilots/1e-4",
+        "best_validation_loss": 1.0059155225753784,
+        "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
+        "eval/loss": 1.0059155225753784,
+        "eval/mean_token_accuracy": 0.6491357413460889,
+        "eval/num_tokens": 5406044.0,
+        "eval/runtime": 116.4475,
+        "eval/samples_per_second": 291.204,
+        "eval/steps_per_second": 36.403,
+        "exact_trainable_parameters": 125265408,
+        "initial_state_digest": "sha256:244f4e50a6c498b70d0885aaf4c8d7d1f7ea4fb651b1a4920ff4b00cb5af63dc",
+        "num_input_tokens_seen": 10001368,
+        "optimizer_steps": 7674,
+        "peak_observed_gpu_memory_bytes": 13564379136,
+        "peak_torch_allocated_bytes": 7324864000,
+        "peak_torch_reserved_bytes": 10332667904,
+        "phase": "pilot",
+        "planned_combined_training_tokens": 5409996.25,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "total_flos": 7229097605283840.0,
+        "train/epoch": 0.25000814464896565,
+        "train/global_step": 7674,
+        "train/grad_norm": 4.625,
+        "train/learning_rate": 3.3588606744592235e-07,
+        "train/loss": 1.0519,
+        "train/mean_token_accuracy": 0.6246825551986694,
+        "train/num_input_tokens_seen": 10001368,
+        "train/num_tokens": 5389051.0,
+        "train/train_tokens_per_second": 14767.14,
+        "train_loss": 1.2217486739189698,
+        "train_runtime": 793.0279,
+        "train_samples_per_second": 77.41,
+        "train_steps_per_second": 9.677,
+        "training_examples": 245554,
+        "validation_examples": 33910
+      },
+      "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/rw6g30r8",
+      "used_artifacts": []
+    },
+    "yij1euys": {
+      "config": {
+        "activation_dropout": 0,
+        "architecture": {
+          "arm_id": "scratch-10m",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 2240,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+          "exact_trainable_parameters": 10080896,
+          "family": "opt",
+          "label": "10M scratch causal LM",
+          "parameter_error": 80896,
+          "parameter_error_fraction": 0.0080896,
+          "target_trainable_parameters": 10000000,
+          "vocab_size": 4196
+        },
+        "attention_dropout": 0,
+        "bf16": true,
+        "creation": {
+          "arm_id": "scratch-10m",
+          "budget_dimension": "ffn_dim",
+          "budget_dimension_value": 2240,
+          "config_source": {
+            "digest": "sha256:32048f44e9a00aec4a5bdbd30f727cb7681cebb65b50b71e8b6fd6bfdb7c7a57",
+            "repo_id": "facebook/opt-125m",
+            "revision": "27dcfa74d334bc871f3234de431e71c6eeba5dd6"
+          },
+          "creation_method": "AutoModelForCausalLM.from_config",
+          "effective_config_digest": "sha256:2e40ac067ce9e8b1f370ac1658388f3b226c15ae02b39ed689b4825ce6a0f5ad",
+          "exact_trainable_parameters": 10080896,
+          "family": "opt",
+          "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+          "initialization_seed": 54001,
+          "label": "10M scratch causal LM",
+          "parameter_error": 80896,
+          "parameter_error_fraction": 0.0080896,
+          "pretrained_weights_loaded": false,
+          "target_trainable_parameters": 10000000,
+          "vocab_size": 4196
+        },
+        "cublas_workspace_config": ":16:8",
+        "data_order_seed": 54002,
+        "data_seed": 54002,
+        "dropout": 0.1,
+        "effective_batch_size": 8,
+        "ffn_dim": 2240,
+        "gradient_accumulation_steps": 1,
+        "gradient_checkpointing": false,
+        "gradient_checkpointing_kwargs": null,
+        "held_out_split": "test",
+        "hidden_size": 256,
+        "hub_model_id": null,
+        "init_std": 0.02,
+        "initialization_seed": 54001,
+        "learning_rate": 0.0003,
+        "learning_rate_grid": [
+          0.0001,
+          0.0003,
+          0.001
+        ],
+        "load_best_model_at_end": true,
+        "max_position_embeddings": 2048,
+        "max_steps": -1,
+        "metric_for_best_model": "eval_loss",
+        "model_type": "opt",
+        "num_attention_heads": 4,
+        "num_hidden_layers": 6,
+        "num_train_epochs": 0.25,
+        "output_dir": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/pilots/.3e-4.staging-pojswygy",
+        "per_device_train_batch_size": 8,
+        "phase": "pilot",
+        "precision": "bf16",
+        "primary_training_distribution": "all certified distances 1-8",
+        "push_to_hub": false,
+        "pythonhashseed": "0",
+        "resumption_supported": false,
+        "run_name": "issue-54-scratch-10m-pilot-3e-4-2318603",
+        "save_only_model": true,
+        "seed": 54001,
+        "tie_word_embeddings": true,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "train_split": "discovery",
+        "validation_split": "validation",
+        "vocab_size": 4196,
+        "word_embed_proj_dim": 256
+      },
+      "created_at": "2026-08-27T05:01:38Z",
+      "downloaded_file_snapshots": {
+        "config.yaml": {
+          "bytes": 16490,
+          "sha256": "sha256:83d4366847e43f54b29f68401afb21402fcd96beec62f27fe7a561dc908e7f7e"
+        },
+        "output.log": {
+          "bytes": 40381,
+          "sha256": "sha256:4a2d4cc9c3df2e108c1e33af9baf319b2863e2f88fa02452e4ac13a6b8742f0c"
+        },
+        "requirements.txt": {
+          "bytes": 4306,
+          "sha256": "sha256:e7fcd0230eea61f0761072bc7bb2ed17e527717805565c5878fefade9418bf2e"
+        },
+        "wandb-metadata.json": {
+          "bytes": 2062,
+          "sha256": "sha256:0f230c729aa7421e3609405e80c252746586a11888be960798d2e870ae64a6ed"
+        },
+        "wandb-summary.json": {
+          "bytes": 1596,
+          "sha256": "sha256:fa4753cf265d7da98a0b749296209fc2d4ffe9e6097ebf50ec37aeff1fba45c8"
+        }
+      },
+      "eval_history": [
+        {
+          "epoch": 0.25,
+          "eval_loss": 1.0363733768463135,
+          "eval_mean_token_accuracy": 0.6415871069745709,
+          "eval_num_tokens": 5406044.0,
+          "eval_runtime": 78.6011,
+          "num_input_tokens_seen": 10001368
+        }
+      ],
+      "execution_environment": {
+        "args": [
+          "train",
+          "--output-dir",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/pilots/3e-4",
+          "--corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v2",
+          "--reference-corpus-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/data/deep_corpus_v1",
+          "--tokenizer-dir",
+          "/tmp/wandering-light-issue-54-per-arm/wandering_light/training/tokenizers/deep_corpus_v2",
+          "--arm-id",
+          "scratch-10m",
+          "--phase",
+          "pilot",
+          "--learning-rate",
+          "3e-4",
+          "--num-train-epochs",
+          "0.25",
+          "--wandb-run-name",
+          "issue-54-scratch-10m-pilot-3e-4-2318603",
+          "--feasibility-manifest",
+          "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/feasibility/feasibility_manifest.json"
+        ],
+        "cuda_version": "13.3",
+        "git": {
+          "commit": "2318603cb3e279c4d91af9a1071b177c92123da2",
+          "remote": "https://github.com/abhishekraok/wandering-light"
+        },
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "gpu_count": 1,
+        "gpu_memory_bytes": "25757220864",
+        "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "program": "-m experiments.train_deep_corpus_v2_scratch",
+        "python": "CPython 3.12.8"
+      },
+      "logged_artifacts": [
+        {
+          "bytes": 16154,
+          "name": "run-yij1euys-history:v0",
+          "type": "wandb-history"
+        }
+      ],
+      "name": "issue-54-scratch-10m-pilot-3e-4-2318603",
+      "remote_files": [
+        {
+          "bytes": 0,
+          "name": "artifact/3438821116/wandb_manifest.json"
+        },
+        {
+          "bytes": 16490,
+          "name": "config.yaml"
+        },
+        {
+          "bytes": 40381,
+          "name": "output.log"
+        },
+        {
+          "bytes": 4306,
+          "name": "requirements.txt"
+        },
+        {
+          "bytes": 2062,
+          "name": "wandb-metadata.json"
+        },
+        {
+          "bytes": 1596,
+          "name": "wandb-summary.json"
+        }
+      ],
+      "run_id": "yij1euys",
+      "state": "finished",
+      "summary": {
+        "_runtime": 805.392927555,
+        "_step": 155,
+        "_timestamp": 1787807704.2974684,
+        "_wandb": {
+          "runtime": 808
+        },
+        "arm_id": "scratch-10m",
+        "artifact_path": "/tmp/wandering-light-issue-54-per-arm/results/deep-corpus-v2-issue-54-per-arm-2318603-run-001/training/scratch-10m/pilots/3e-4",
+        "best_validation_loss": 1.0363733768463135,
+        "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
+        "eval/loss": 1.0363733768463135,
+        "eval/mean_token_accuracy": 0.6415871069745709,
+        "eval/num_tokens": 5406044.0,
+        "eval/runtime": 78.9384,
+        "eval/samples_per_second": 429.575,
+        "eval/steps_per_second": 53.7,
+        "exact_trainable_parameters": 10080896,
+        "initial_state_digest": "sha256:32946ac288f5e915f8f679b0e835072c99e8aa2ddd78577156b4c7342c890167",
+        "num_input_tokens_seen": 10001368,
+        "optimizer_steps": 7674,
+        "peak_observed_gpu_memory_bytes": 6944718848,
+        "peak_torch_allocated_bytes": 2067973120,
+        "peak_torch_reserved_bytes": 3609198592,
+        "phase": "pilot",
+        "planned_combined_training_tokens": 5409996.25,
+        "tokenizer_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+        "total_flos": 508984819599360.0,
+        "train/epoch": 0.25000814464896565,
+        "train/global_step": 7674,
+        "train/grad_norm": 2.515625,
+        "train/learning_rate": 1.007658202337767e-06,
+        "train/loss": 1.0754,
+        "train/mean_token_accuracy": 0.6303389537334442,
+        "train/num_input_tokens_seen": 10001368,
+        "train/num_tokens": 5389051.0,
+        "train/train_tokens_per_second": 25032.936,
+        "train_loss": 1.2684881298809831,
+        "train_runtime": 478.033,
+        "train_samples_per_second": 128.419,
+        "train_steps_per_second": 16.053,
+        "training_examples": 245554,
+        "validation_examples": 33910
+      },
+      "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v2-scratch/runs/yij1euys",
+      "used_artifacts": []
+    }
+  },
+  "schema_version": 1,
+  "source_commit": "2318603cb3e279c4d91af9a1071b177c92123da2",
+  "source_data": {
+    "basis_set_digest": "sha256:ffc602fb24db249df7eb4f6b0d5ba38d5a5070b2c68c6c5f94c7f387de682494",
+    "basis_set_id": "wl-core-v1",
+    "corpus_hub": {
+      "repo_id": "abhishekraok/wandering-light-deep-corpus-v2",
+      "repo_type": "dataset",
+      "revision": "36753a013f3a4e965892b33bc44a8cc0fd567d99"
+    },
+    "corpus_manifest_digest": "sha256:37543f84d0bb376f285c1639ee6fe98bbdc693e41501741f5562424d3de1e4ee",
+    "reference_corpora": [
+      {
+        "basis_set_digest": "sha256:ffc602fb24db249df7eb4f6b0d5ba38d5a5070b2c68c6c5f94c7f387de682494",
+        "basis_set_id": "wl-core-v1",
+        "hub_repo_id": "abhishekraok/wandering-light-deep-corpus-v1",
+        "hub_revision": "fd22029677638702b6b13c572757a71e2f81335b",
+        "manifest_digest": "sha256:0efed8ca6c57942c1672ed0a2e6e3abe87b009168f9b26140408458ded8f41af",
+        "root_digest_set_sha256": "sha256:6db92408975e463e28e4d07415381a64c301d6cfb9198e1e7d61fec53bb3b611",
+        "roots": 240,
+        "task_id_set_sha256": "sha256:9d492eba586843416c643ef14b4ff7cae2b22c392a0662e183cd0e378dcb328d",
+        "tasks": 31350
+      }
+    ],
+    "task_roles": {
+      "discovery": {
+        "retained_records": 245554,
+        "retained_task_ids_digest": "sha256:a007b251911724b7ea0bca3078c3935f0f7f86b316755cf9d3dcd4fd3439ecf9",
+        "role": "training-only",
+        "selected_records": 245561,
+        "selected_task_ids_digest": "sha256:adc7e36373fa3494ccedc977ae3861c3448fa0a939069743b24b5089937365ed",
+        "split": "discovery"
+      },
+      "test": {
+        "records": 33966,
+        "role": "held-out-evaluation-only; never model-scored here",
+        "split": "test",
+        "task_ids_digest": "sha256:e708fe5a15c327c492ecb631ca58d5264c9222ef00282bdfae9765c189b73325"
+      },
+      "validation": {
+        "retained_records": 33910,
+        "retained_task_ids_digest": "sha256:9ed3f61e9972fe1d06a49bfbd502925b0128f956759bb7fbe02f8f1cf7422319",
+        "role": "loss-evaluation-and-tuning-only",
+        "selected_records": 33911,
+        "selected_task_ids_digest": "sha256:cd2787a3672135f1fb67c1fa7e70586b3fb160e70a384ad087af7f8f56dad839",
+        "split": "validation"
+      }
+    },
+    "tokenizer_artifact_digest": "sha256:d4736f3a1623a89945daeaa8495250f28b8b47725d60f4d678fa9a0c1d8d5f66",
+    "verification": {
+      "all_witnesses_reexecuted": true,
+      "distance_histogram": {
+        "1": 18899,
+        "2": 47419,
+        "3": 48000,
+        "4": 48000,
+        "5": 48000,
+        "6": 47960,
+        "7": 47960,
+        "8": 7200
+      },
+      "ok": true,
+      "records": 313438,
+      "reference_root_digest_overlaps": [],
+      "reference_root_key_overlaps": [],
+      "reference_task_id_overlaps": [],
+      "root_digest_set_sha256": "sha256:cabeb60f94eed51289200bb06f8a8f918fca23a778d1cf7bd5d1dfd681f92677",
+      "task_id_set_sha256": "sha256:c54669327cb149b6476e943ca52885a5f11d68c06e56c7fe4bd40bea8ef3ecdf"
+    }
+  },
+  "status": "incomplete-checkpoints-lost-no-retrain"
+}
