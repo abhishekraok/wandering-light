@@ -464,19 +464,20 @@ def pair_batch(tasks, vocab: dict[str, int]):
     # 8 bytes, so padding every pair out to 2 * ITEM_CAP + 1 would be almost
     # entirely padding.
     width = max(len(s) for pairs, _, _ in encoded for s in pairs)
-    items = max(len(pairs) for pairs, _, _ in encoded)
-    seqs, slot, tags = [], [], []
-    for row, (pairs, src_type, dst_type) in enumerate(encoded):
+    seqs, counts, tags = [], [], []
+    for pairs, src_type, dst_type in encoded:
         tags.append([vocab.get(src_type, 0), vocab.get(dst_type, 0)])
-        for i, seq in enumerate(pairs):
-            seqs.append(seq + [PAD] * (width - len(seq)))
-            slot.append(row * items + i)
-    mask = torch.zeros(len(tasks) * items, dtype=torch.bool)
-    mask[torch.tensor(slot)] = True
+        counts.append(len(pairs))
+        seqs += [seq + [PAD] * (width - len(seq)) for seq in pairs]
+    counts = torch.tensor(counts)
+    # Items stay grouped by task in `seqs`, so the cross-item pool can recover
+    # the rectangle with a split rather than a scatter -- one source of truth
+    # for which cells are real, and no index arithmetic to get wrong.
+    item_mask = torch.arange(int(counts.max()))[None, :] < counts[:, None]
     return (
         torch.tensor(seqs, dtype=torch.long),
-        torch.tensor(slot),
-        mask.view(len(tasks), items),
+        counts,
+        item_mask,
         torch.tensor(tags, dtype=torch.long),
     )
 
@@ -556,11 +557,11 @@ def build_encoder(kind: str, n_names: int, conv: bool, n_types: int):
                 nn.Linear(pooled, HIDDEN), nn.ReLU(), nn.Linear(HIDDEN, n_names)
             )
 
-        def forward(self, x, slot, item_mask, tags):
-            rows, items = item_mask.shape
+        def forward(self, x, counts, item_mask, tags):
             v = self.trunk(x, x != PAD)
-            dense = v.new_zeros(rows * items, v.shape[1])
-            dense = dense.index_copy(0, slot, v).view(rows, items, -1)
+            dense = nn.utils.rnn.pad_sequence(
+                v.split(counts.tolist()), batch_first=True
+            )
             m = item_mask.unsqueeze(-1)
             mean = (dense * m).sum(dim=1) / m.sum(dim=1).clamp(min=1)
             peak = dense.masked_fill(~m, -1e9).max(dim=1).values

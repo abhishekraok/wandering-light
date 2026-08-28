@@ -171,11 +171,13 @@ def test_pair_batch_marks_exactly_the_real_items():
     """The cross-item pool divides by the item count, so a padded cell counted
     as real would silently shrink every task batched beside a longer one."""
     tasks = [_pair_task([1, 2, 3], ["a", "b", "c"]), _pair_task([1], ["a"])]
-    x, slot, item_mask, tags = pair_batch(tasks, {"builtins.int": 1, "builtins.str": 2})
+    x, counts, item_mask, tags = pair_batch(
+        tasks, {"builtins.int": 1, "builtins.str": 2}
+    )
+    assert counts.tolist() == [3, 1]
     assert item_mask.shape == (2, 3)
     assert item_mask.tolist() == [[True, True, True], [True, False, False]]
     assert x.shape[0] == 4  # only real items reach the trunk
-    assert slot.tolist() == [0, 1, 2, 3]
     assert tags.tolist() == [[1, 2], [1, 2]]
 
 

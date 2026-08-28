@@ -1,0 +1,8 @@
+
+== front k=0: 19320 train / 2700 test   over budget: flat 48.9% of tasks, pairs 0.12% of items
+  training front k=0 flat seed 0...
+    flat encoder: 90582 parameters
+    epoch  1  val loss 1.8435
+    epoch  2  val loss 1.7564
+    epoch  3  val loss 1.7385
+    epoch  4  val loss 1.7126

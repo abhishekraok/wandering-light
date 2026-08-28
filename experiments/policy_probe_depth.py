@@ -48,6 +48,7 @@ report.
 
     uv run python experiments/policy_probe_depth.py [corpus-dir] [--epochs=N]
         [--depths=0,1,2] [--seeds=0,1,2] [--device=cuda]
+        [--min-distance=3] [--out=PATH]
 """
 
 from __future__ import annotations
@@ -237,9 +238,18 @@ def main() -> None:
         [0, 1, 2],
     )
     device = next((a.split("=")[1] for a in flags if a.startswith("--device=")), "cpu")
+    out = next(
+        (a.split("=")[1] for a in flags if a.startswith("--out=")),
+        "policy_probe_depth.json",
+    )
     # Every depth is scored on the same tasks, so a difference between rows is
-    # depth and not task length.
-    min_distance = max(depths) + 1
+    # depth and not task length. Passing it explicitly is what lets one depth be
+    # run on its own and still sit on the same population as the others -- the
+    # default would silently widen it to shorter tasks.
+    min_distance = next(
+        (int(a.split("=")[1]) for a in flags if a.startswith("--min-distance=")),
+        max(depths) + 1,
+    )
 
     corpus = resolve_corpus(argv)
     from wandering_light.basis_set import load_basis_set
@@ -287,7 +297,7 @@ def main() -> None:
         print(
             f"{cell['probe']:<14} {cell['predictor']:<20} {top1:>14} {rank:>14}{bits}"
         )
-    Path("policy_probe_depth.json").write_text(
+    Path(out).write_text(
         json.dumps(
             {"truncation": budget, "cells": cells, "rows": all_rows},
             indent=1,
