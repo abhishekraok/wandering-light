@@ -758,39 +758,49 @@ def main() -> None:
     )
     rates = truncation_rates(test)
     print(
-        f"over budget on test: flat {rates['flat_tasks_over_budget']:.1%} of tasks, "
+        f"over budget on test: flat {rates['flat_tasks_over_budget']:.1%} of "
+        f"tasks, wide {rates['wide_tasks_over_budget']:.2%} of tasks, "
         f"pairs {rates['pairs_items_over_budget']:.2%} of items",
         file=sys.stderr,
     )
 
     rows = baseline_ladder(names, train, test, type_of, match_key, names_field)
-    for pool, conv in (("mean-pool", False), ("conv", True)):
-        for encoder in ("flat", "pairs"):
-            label = f"learned ({pool}, {encoder})"
-            print(f"  training {label}...", file=sys.stderr)
-            rows.append(
-                evaluate(
-                    train_learned(
-                        names,
-                        train,
-                        valid,
-                        type_of,
-                        match_key,
-                        names_field,
-                        epochs=epochs,
-                        conv=conv,
-                        encoder=encoder,
-                        device=device,
-                    ),
-                    test,
-                    label,
+    # The two published rungs, then the conv trunk over the wider window and
+    # over aligned pairs. Mean-pooling is not run over the wider window: at
+    # 1024 bytes three quarters of the positions are padding, and a mean is
+    # diluted by them where a max is not.
+    arms = (
+        ("mean-pool", False, "flat"),
+        ("conv", True, "flat"),
+        ("conv", True, "wide"),
+        ("conv", True, "pairs"),
+    )
+    for pool, conv, encoder in arms:
+        label = f"learned ({pool}, {encoder})"
+        print(f"  training {label}...", file=sys.stderr)
+        rows.append(
+            evaluate(
+                train_learned(
+                    names,
+                    train,
+                    valid,
+                    type_of,
+                    match_key,
                     names_field,
-                    names=names,
-                    type_of=type_of,
-                    match_key=match_key,
-                    normalize="softmax",
-                )
+                    epochs=epochs,
+                    conv=conv,
+                    encoder=encoder,
+                    device=device,
+                ),
+                test,
+                label,
+                names_field,
+                names=names,
+                type_of=type_of,
+                match_key=match_key,
+                normalize="softmax",
             )
+        )
 
     print(f"\n{end.capitalize()}-action policy probe -- {len(test)} test tasks\n")
     header = (

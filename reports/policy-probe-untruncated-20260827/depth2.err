@@ -19,3 +19,7 @@
     epoch  1  val loss 2.5588
     epoch  2  val loss 2.3483
     epoch  3  val loss 2.2223
+    epoch  4  val loss 2.1744
+    epoch  5  val loss 2.1130
+    epoch  6  val loss 2.1236
+    epoch  7  val loss 2.1069
