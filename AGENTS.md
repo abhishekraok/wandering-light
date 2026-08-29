@@ -5,7 +5,8 @@
 
 ## Working with other agents
 
-Several agents and sessions touch this repo. 
+Several agents and sessions touch this repo. Work in a worktree so your work 
+doesn't collide. Don't put the worktree under /tmp.
 
 - **`docs/STATUS.md` records state; issues record argument.** Never both. If
   you establish something, add a row there — a claim that lives only in a
