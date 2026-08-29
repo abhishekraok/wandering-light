@@ -112,10 +112,16 @@ Note: pip won't respect `uv.lock`, so transitive versions may drift.
 
 ## Testing
 
-Run the full test suite with:
+Ordinary tests are offline by default:
 
 ```bash
 uv run pytest
+```
+
+The two model-download tests are explicit:
+
+```bash
+uv run pytest -m network
 ```
 # Code
 
@@ -168,11 +174,23 @@ Create an evaluation file
 python wandering_light/evals/create_data.py --save
 ```
 
-Run using an LLM API
+Run comparable random/BFS baselines on one frozen cohort:
+
 ```bash
-python wandering_light/evals/run_evaluation.py --eval_file=evals/data/eval_data_v20250831_160239.py --solver_names=["gemini"] --num_samples 100 --budget 1
+PYTHONHASHSEED=0 uv run python -m wandering_light.evals.run_evaluation \
+  --eval_file=wandering_light/evals/data/random_inputs.py \
+  --solver_names='["random","bfs"]' --num_samples=100 --budget=100 \
+  --random_path_lengths='[1,2,3,4]' --bfs_max_depth=4 \
+  --seeds='[0,1,2,3,4]'
 ```
-See `solver.py` for additional solver names (openai, ollama, local models, etc.).
+
+`budget` remains the solver's stopping knob: candidate programs for random/LLM
+solvers, basis-function executions for BFS. Every result records that unit and
+also reports a common `basis_function_executions` charge: every compatible BFS
+operation tried costs one; every parse-valid sampled program costs its full
+length. Random path lengths are sampled uniformly from the declared list. All
+ground-truth specs are validated before cohort sampling; an invalid corpus fails
+instead of changing the denominator. See `solver.py` for additional solvers.
 
 
 ## Training SFT

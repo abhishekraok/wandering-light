@@ -5,6 +5,7 @@ import pytest
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.solver import (
     ActionScorer,
+    PredictionCost,
     RolloutDepthTrace,
     RolloutPredictor,
     RolloutSearchResult,
@@ -411,6 +412,29 @@ def test_batch_predictions_have_independent_execution_budgets(monkeypatch):
         FunctionDefList([increment, increment]),
     ]
     assert [result.executions for result in recorded_results] == [1, 2]
+
+
+def test_batch_predictions_report_comparable_cost_and_search_config():
+    increment = make_function("increment", "return x + 1")
+    predictor = RolloutPredictor(
+        RecordingScorer(uniform_scores), beam_width=2, max_depth=3, budget=7
+    )
+
+    prediction = predictor.predict_functions_batch_with_cost(
+        [(TypedList([0]), TypedList([1]))],
+        FunctionDefSet([increment]),
+    )[0]
+
+    assert prediction.function_defs == FunctionDefList([increment])
+    assert prediction.cost == PredictionCost(1, None, "solved")
+    assert predictor.cost_metadata() == {
+        "cost_unit": "basis_function_executions",
+        "cost_definition": predictor.cost_definition,
+        "budget_unit": "basis_function_executions",
+        "budget_value": 7,
+        "beam_width": 2,
+        "max_depth": 3,
+    }
 
 
 def test_rollout_result_is_frozen():

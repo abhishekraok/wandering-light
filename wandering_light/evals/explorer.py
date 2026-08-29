@@ -225,13 +225,34 @@ def _find_solver_runs() -> list[tuple[str, str]]:
             continue
         if not os.path.exists(os.path.join(dir_path, "summary.json")):
             continue
-        for fname in os.listdir(dir_path):
-            if fname.endswith(".json") and fname != "summary.json":
-                path = os.path.join(dir_path, fname)
-                rel = os.path.relpath(path, RESULTS_ROOT)
-                runs.append((rel, path))
+        for root, dirs, files in os.walk(dir_path):
+            dirs[:] = [
+                directory
+                for directory in dirs
+                if directory not in {"llm_input_output", "solver_artifacts"}
+            ]
+            for fname in files:
+                if fname.endswith(".json") and fname != "summary.json":
+                    path = os.path.join(root, fname)
+                    rel = os.path.relpath(path, RESULTS_ROOT)
+                    runs.append((rel, path))
     runs.sort(key=lambda r: r[0], reverse=True)
     return runs
+
+
+def _find_summary_path(result_path: str) -> str | None:
+    """Find the enclosing run summary for old flat and new seeded results."""
+    root = os.path.abspath(RESULTS_ROOT)
+    current = os.path.abspath(os.path.dirname(result_path))
+    while os.path.commonpath([root, current]) == root:
+        candidate = os.path.join(current, "summary.json")
+        if os.path.exists(candidate):
+            return candidate
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
+    return None
 
 
 def _resolve_fn_names(
@@ -325,10 +346,9 @@ def _render_solver_tab() -> None:
             key="solver_run_idx",
         )
     solver_json_path = runs[run_idx][1]
-    run_dir = os.path.dirname(solver_json_path)
-    summary_path = os.path.join(run_dir, "summary.json")
-    if not os.path.exists(summary_path):
-        st.error(f"`summary.json` missing from `{run_dir}`.")
+    summary_path = _find_summary_path(solver_json_path)
+    if summary_path is None:
+        st.error(f"No enclosing `summary.json` found for `{solver_json_path}`.")
         return
 
     summary = load_json_file(summary_path)
@@ -348,7 +368,7 @@ def _render_solver_tab() -> None:
         return
 
     # Run-level metadata
-    m1, m2, m3, m4 = st.columns(4)
+    m1, m2, m3, m4, m5 = st.columns(5)
     success_rate = solver_data.get("success_rate")
     with m1:
         st.metric(
@@ -368,7 +388,16 @@ def _render_solver_tab() -> None:
             f"{avg_len:.2f}" if avg_len is not None else "—",
         )
     with m4:
-        st.metric("Budget", summary.get("budget", "—"))
+        budget_value = solver_data.get("budget_value", summary.get("budget"))
+        budget_unit = solver_data.get("budget_unit", "legacy-unspecified")
+        st.metric("Budget", f"{budget_value} {budget_unit}")
+    with m5:
+        mean_cost = solver_data.get("mean_charged_executions")
+        cost_unit = solver_data.get("cost_unit")
+        st.metric(
+            "Mean cost",
+            f"{mean_cost:.2f} {cost_unit}" if mean_cost is not None else "—",
+        )
 
     meta_bits = [
         f"**Timestamp:** `{summary.get('timestamp', '—')}`",

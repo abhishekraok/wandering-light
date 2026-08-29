@@ -249,12 +249,74 @@ class TestBatchProcessing:
         )
         predictor = TokenGeneratorPredictor(generator, budget=3)
 
-        predictions = predictor.predict_functions_batch(
+        prediction = predictor.predict_functions_batch_with_cost(
             [(TypedList([1]), TypedList([4]))], sample_functions
-        )
+        )[0]
 
         assert generator.call_count == 3
-        assert predictions[0].to_string() == "double, double"
+        assert prediction.function_defs.to_string() == "double, double"
+        assert prediction.cost.charged_executions == 5
+        assert prediction.cost.candidate_programs == 3
+        assert prediction.cost.termination == "solved"
+
+    def test_token_cost_treats_malformed_text_as_zero_not_empty_program(
+        self, sample_functions
+    ):
+        generator = MockTokenGenerator(["", "increment,", "not_in_basis"])
+        predictor = TokenGeneratorPredictor(generator, budget=3)
+
+        prediction = predictor.predict_functions_batch_with_cost(
+            [(TypedList([1]), TypedList([99]))], sample_functions
+        )[0]
+
+        assert prediction.function_defs == FunctionDefList()
+        assert prediction.cost.charged_executions == 0
+        assert prediction.cost.candidate_programs == 3
+        assert prediction.cost.termination == "candidate_budget"
+
+    def test_zero_token_budget_does_not_call_generator(self, sample_functions):
+        class RejectEmptyGenerator(MockTokenGenerator):
+            def generate_batch(self, prompts):
+                raise AssertionError("generator must not be called")
+
+        prediction = TokenGeneratorPredictor(
+            RejectEmptyGenerator([]), budget=0
+        ).predict_functions_batch_with_cost(
+            [(TypedList([1]), TypedList([2]))], sample_functions
+        )[0]
+
+        assert prediction.function_defs == FunctionDefList()
+        assert prediction.cost.charged_executions == 0
+        assert prediction.cost.candidate_programs == 0
+        assert prediction.cost.termination == "candidate_budget"
+
+    def test_token_charges_full_runtime_failing_program(self):
+        explode = FunctionDef(
+            name="explode",
+            input_type="builtins.int",
+            output_type="builtins.int",
+            code="return x / 0",
+        )
+        increment = FunctionDef(
+            name="increment",
+            input_type="builtins.int",
+            output_type="builtins.int",
+            code="return x + 1",
+        )
+        predictor = TokenGeneratorPredictor(
+            MockTokenGenerator(["explode, increment"]), budget=1
+        )
+
+        prediction = predictor.predict_functions_batch_with_cost(
+            [(TypedList([1]), TypedList([99]))],
+            FunctionDefSet([explode, increment]),
+        )[0]
+
+        assert prediction.cost.charged_executions == 2
+        assert prediction.cost.candidate_programs == 1
+        assert prediction.cost.termination == "candidate_budget"
+        assert predictor.cost_metadata()["budget_unit"] == "candidate_programs"
+        assert predictor.cost_metadata()["budget_value"] == 1
 
     def test_trained_llm_batch_generation(self):
         """Test that TrainedLLMTokenGenerator has proper batch generation."""

@@ -38,6 +38,21 @@ def load_evaluation_results() -> pd.DataFrame:
 
                 # Extract data for each solver in this run
                 for solver_name, solver_results in summary.get("results", {}).items():
+                    success_rate_ci = solver_results.get("success_rate_ci") or {}
+                    ci_lower = success_rate_ci.get("lower")
+                    ci_upper = success_rate_ci.get("upper")
+                    ci_label = "—"
+                    if ci_lower is not None and ci_upper is not None:
+                        ci_label = (
+                            f"{success_rate_ci.get('level', 0.95):.0%} "
+                            f"[{ci_lower:.1%}, {ci_upper:.1%}]"
+                        )
+                    budget_value = solver_results.get(
+                        "budget_value", summary.get("budget", 1)
+                    )
+                    budget_unit = solver_results.get(
+                        "budget_unit", "legacy-unspecified"
+                    )
                     result_row = {
                         "timestamp": summary.get("timestamp", os.path.basename(root)),
                         "relative_path": rel_path,
@@ -45,10 +60,22 @@ def load_evaluation_results() -> pd.DataFrame:
                         "solver": solver_name,
                         "eval_file": summary.get("eval_file", "Unknown"),
                         "num_samples": summary.get("num_samples"),
-                        "budget": summary.get("budget", 1),
+                        "budget": budget_value,
+                        "budget_unit": budget_unit,
+                        "budget_label": f"{budget_value} {budget_unit}",
                         "success_rate": solver_results.get("success_rate", 0),
+                        "success_rate_ci_lower": ci_lower,
+                        "success_rate_ci_upper": ci_upper,
+                        "success_rate_ci_label": ci_label,
                         "success_count": solver_results.get("success_count", 0),
                         "total_samples": solver_results.get("total_samples", 0),
+                        "cohort_size": solver_results.get(
+                            "cohort_size", solver_results.get("total_samples", 0)
+                        ),
+                        "mean_charged_executions": solver_results.get(
+                            "mean_charged_executions"
+                        ),
+                        "cost_unit": solver_results.get("cost_unit"),
                         "avg_solution_length": solver_results.get(
                             "avg_solution_length", 0
                         ),
@@ -60,10 +87,15 @@ def load_evaluation_results() -> pd.DataFrame:
                     # Parse timestamp for better sorting
                     try:
                         result_row["datetime"] = datetime.strptime(
-                            result_row["timestamp"], "%Y%m%d_%H%M%S"
+                            result_row["timestamp"], "%Y%m%d_%H%M%S_%f"
                         )
-                    except:
-                        result_row["datetime"] = datetime.now()
+                    except ValueError:
+                        try:
+                            result_row["datetime"] = datetime.strptime(
+                                result_row["timestamp"], "%Y%m%d_%H%M%S"
+                            )
+                        except ValueError:
+                            result_row["datetime"] = datetime.now()
 
                     results.append(result_row)
 
@@ -127,7 +159,7 @@ def main():
     selected_eval_file = st.sidebar.selectbox("Eval File", eval_files)
 
     # Budget filter
-    budgets = ["All", *sorted(df["budget"].unique().tolist())]
+    budgets = ["All", *sorted(df["budget_label"].unique().tolist())]
     selected_budget = st.sidebar.selectbox("Budget", budgets)
 
     # Model name filter
@@ -157,7 +189,7 @@ def main():
         ]
 
     if selected_budget != "All":
-        filtered_df = filtered_df[filtered_df["budget"] == selected_budget]
+        filtered_df = filtered_df[filtered_df["budget_label"] == selected_budget]
 
     if selected_model_name != "All":
         filtered_df = filtered_df[filtered_df["model_name"] == selected_model_name]
@@ -229,7 +261,14 @@ def main():
             x="avg_solution_length",
             y="success_rate",
             color="solver",
-            hover_data=["relative_path", "eval_file", "model_name", "budget"],
+            hover_data=[
+                "relative_path",
+                "eval_file",
+                "model_name",
+                "budget_label",
+                "mean_charged_executions",
+                "cost_unit",
+            ],
             title="Success Rate vs Solution Length",
             labels={
                 "avg_solution_length": "Average Solution Length",
@@ -244,7 +283,8 @@ def main():
 
     if not filtered_df.empty:
         # Prepare display dataframe
-        display_df = filtered_df.copy()
+        sorted_df = filtered_df.sort_values("relative_path", ascending=False)
+        display_df = sorted_df.copy()
         display_df["eval_file_short"] = display_df["eval_file"].apply(format_eval_file)
         display_df["success_rate_pct"] = (display_df["success_rate"] * 100).round(1)
         display_df["avg_solution_length"] = display_df["avg_solution_length"].round(2)
@@ -255,17 +295,18 @@ def main():
             "solver",
             "eval_file_short",
             "model_name",
-            "budget",
+            "budget_label",
             "success_rate_pct",
+            "success_rate_ci_label",
             "success_count",
+            "cohort_size",
             "total_samples",
+            "mean_charged_executions",
             "avg_solution_length",
             "failure_count",
         ]
 
-        display_df = display_df[display_columns].sort_values(
-            "relative_path", ascending=False
-        )
+        display_df = display_df[display_columns]
 
         # Rename columns for better display
         column_names = {
@@ -273,10 +314,13 @@ def main():
             "solver": "Solver",
             "eval_file_short": "Eval File",
             "model_name": "Model Name",
-            "budget": "Budget",
+            "budget_label": "Budget",
             "success_rate_pct": "Success Rate (%)",
+            "success_rate_ci_label": "Seed CI",
             "success_count": "Successes",
-            "total_samples": "Total Samples",
+            "cohort_size": "Cohort",
+            "total_samples": "Seed-Task Trials",
+            "mean_charged_executions": "Mean Executions",
             "avg_solution_length": "Avg Length",
             "failure_count": "Failures",
         }
@@ -297,7 +341,7 @@ def main():
         # Show selected run details
         if selected_rows["selection"]["rows"]:
             selected_idx = selected_rows["selection"]["rows"][0]
-            selected_run = filtered_df.iloc[selected_idx]
+            selected_run = sorted_df.iloc[selected_idx]
 
             st.header(f"🔍 Run Details: {selected_run['relative_path']}")
 
@@ -311,19 +355,28 @@ def main():
                 )
                 if selected_run["model_name"]:
                     st.write(f"**Model Name:** {selected_run['model_name']}")
-                st.write(f"**Budget:** {selected_run['budget']}")
-                st.write(f"**Total Samples:** {selected_run['total_samples']}")
+                st.write(f"**Budget:** {selected_run['budget_label']}")
+                st.write(f"**Cohort:** {selected_run['cohort_size']}")
+                st.write(f"**Seed-Task Trials:** {selected_run['total_samples']}")
                 if selected_run["command"]:
                     st.write(f"**Command:** `{selected_run['command']}`")
 
             with detail_col2:
                 st.subheader("Performance Metrics")
                 st.write(f"**Success Rate:** {selected_run['success_rate']:.1%}")
+                if selected_run["success_rate_ci_label"] != "—":
+                    st.write(f"**Seed CI:** {selected_run['success_rate_ci_label']}")
                 st.write(f"**Successes:** {selected_run['success_count']}")
                 st.write(f"**Failures:** {selected_run['failure_count']}")
                 st.write(
                     f"**Avg Solution Length:** {selected_run['avg_solution_length']:.2f}"
                 )
+                if selected_run["mean_charged_executions"] is not None:
+                    st.write(
+                        "**Mean Cost:** "
+                        f"{selected_run['mean_charged_executions']:.2f} "
+                        f"{selected_run['cost_unit']}"
+                    )
 
             # Link to detailed viewer
             viewer_path = "eval_viewer.html"
