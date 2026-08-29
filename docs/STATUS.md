@@ -17,12 +17,15 @@ holds the argument.
 
 | | | issue |
 |---|---|---|
-| **Stack machine** | Named bases are `executable-26` (corpus/search default), `full-52` (legacy program/CLI default), and optional `mark-28`. Guards return a reason or `None`; illegal is an *absent transition*, not an exception. | [replace-typedlist-states (#42)](../../issues/42), [solver-build-quotations (#60)](../../issues/60) |
+| **Stack machine** | Named bases are `executable-26` (search default), `full-52` (legacy program/CLI default), and `mark-28` (corpus default since v3). Guards return a reason or `None`; illegal is an *absent transition*, not an exception. | [replace-typedlist-states (#42)](../../issues/42), [solver-build-quotations (#60)](../../issues/60) |
 | **Identity is structural** | `value_key` builds nested tuples of str tags, ints and bools. No hash, no repr, no dict. Keys are byte-identical across `PYTHONHASHSEED`, pinned by a test running three seeds in subprocesses. | #42 |
 | **Fuel** | Every first-order op costs exactly 1, so `fuel == len(program)` there. Combinators break it: `map` costs `1 + body x len(input)`. Totality rests on the guard, not on structure. | #42 |
 | **Branching, stack machine** | first-order 18: `b_eff` 11.14, 3.464 bits/step. The bounded published protocol reproduces executable 26 at 13.38 / 3.742 / 7.3x growth, full 52 at 37.33 / 5.222 / 32.4x, and mark 28 at 23.11 / 4.530 / 22.5x. The older executable/full measurements were 13.32 / 37.28. | [replace-typedlist-states (#42)](../../issues/42), [solver-build-quotations (#60)](../../issues/60) |
 | **`mark-28` reproduction** | Every requested measurement from solver-build-quotations (#60) reproduces: even-square sum 25 ops / fuel 106, its predicate 14 ops, recursive sum 33 ops / fuel 129. On the one-list frontier, quote-closed states are 721 / 1,842 at depth 3 and 6,298 / 37,312 at depth 4. This is implementation evidence, not an adoption result. | [report](../reports/mark-28-20260827/README.md), [solver-build-quotations (#60)](../../issues/60) |
 | **`mark-28` corpus probe** | solver-build-quotations (#60) step 2, the gate on adopting it. **Not met.** Like-for-like at depth 5: combinator share moves **6.7% → 7.0%**, tasks running code at all do not move (12.4% both), for **10.5x the generation cost** (130 s → 1,364 s). At depths 2–4 the two corpora are *identical*. Quotation construction appears (0% → 4.3%) but is degenerate: bodies are 1–2 ops and **59 of 61 never execute what they built**. Cause: tasks are certified *shortest* and the families hand quotations over, so a built quotation can never beat a supplied one. **The lever is the generator, not the op set.** | [report](../reports/mark-28-corpus-20260828/README.md), [solver-build-quotations (#60)](../../issues/60) |
+| **Stack corpus, v3** | `stack_pbe_v3.jsonl.gz` — 1,600 PBE tasks over **40 hand-written behaviours**, 1,160 train / 440 eval, **split on the behaviour** so none spans both halves. Generated behaviour-first: a person writes the problem and a witness, and the machine is asked to meet it. Inputs are numbers and lists of numbers drawn fresh per example — **15,550 distinct input stacks** against v2's 17, and **0%** of task inputs contain a quotation against v2's 36.6%. **87.5%** of witnesses build a quotation and use a combinator, against v2's 0.0% and 5.7%. Every task carries **8 hidden held-out examples**, so a candidate is graded on data it was never shown. Witness lengths 1–35, median 6.5. Witnesses are **authored, not certified shortest**; each is cross-checked against an independently written Python reference on 500 fresh inputs. **No solver has been run on it.** | [report](../reports/stack-pbe-v3-20260828/README.md), [pbe-generator-behaviour-first (#67)](../../issues/67) |
+| **`mark-28` is forced once inputs carry no quotations** | Structural, and measured. No `executable-26` op puts an op *name* on the stack, so from a data-only root every reachable quotation is data — which `map` can only apply as the identity and which `filter` and `fold` reject. Depth-5 ball around four data-only roots: `executable-26` reaches 6,058 quotations, **0 executable**, and makes **33,468 legal applications** of `i`/`dip`/`map`/`filter`/`fold`/`ifte` of which **0 execute any op**; `mark-28` reaches 78,731 executable quotations and 2,289 working applications. This does not overturn #60's adoption gate, which measured the *harvesting* generator and whose own conclusion was "the lever is the generator, not the op set". | [report](../reports/stack-pbe-v3-20260828/README.md), [solver-build-quotations (#60)](../../issues/60) |
+| **v3 tasks are not under-determined** | Exhaustive `mark-28` sweeps from each task's input stacks, with every fit re-checked on that task's held-out examples. 40-task sample, fixed seed: at depth 4 **1/40** tasks admit a fit, at depth 5 **7/40** — and at both depths **0** admit a program that fits the shown examples while failing the held-out ones. **0** have a fit shorter than the authored witness, and every fit found *is* that witness. All seven are the 1–5 op floor (`sum`, `product`, `tail`, `double_each`, `square_each`, `keep_negative`); nothing with a 6+ op witness is reached. So 28 minutes of exhaustive `mark-28` search buys the easiest 17.5% of the sample and nothing else — BFS is used here as an auditor, not a solver. `experiments/stack_pbe_search_audit.py`. | [report](../reports/stack-pbe-v3-20260828/README.md), [pbe-generator-behaviour-first (#67)](../../issues/67) |
 | **Branching, `wl-core-v1`** | 118 functions, 20.52 applicable, 4.292 bits/step. Type masking is worth ~3.9 bits, slightly better than #33 assumed. | #33 |
 | **Substrate comparison** | Both bases generate new behaviour at ~the same rate under composition — 5.87x/op against 5.77x. The stack machine's win is price: 73% of choice bits become new behaviour against 59%. It pays a **median 2.00x in program length**. | #42 |
 | **`deep-corpus-v1`** | 31,350 tasks, certified distances 1–8, 240 roots, split by root. BFS solve rate is a **step function**: 100% up to its depth cap, 0% beyond. Distance-8 answers cost it ~4.4M executions. | [#37](../../issues/37) |
@@ -62,8 +65,9 @@ correction lands in one place instead of being chased across comment threads.
   history is intact, and `reports/stack-machine-basis/` and
   `reports/mark-28-corpus-20260828/` still describe what it contained. **The
   stack machine itself, its three bases, and every substrate measurement are
-  unaffected** and stay. What is missing is a generator that produces tasks
-  worth solving; until one exists there is no stack corpus.
+  unaffected** and stay. The replacement is `stack_pbe_v3.jsonl.gz`, generated
+  behaviour-first; see the row above. Nothing measured on v2 carries over to
+  it.
 
 - **"BFS solves 75.2% of the stack corpus at a 10,000-node budget."** The
   number is real; what it measures is not what it was quoted for. That corpus
@@ -93,7 +97,11 @@ correction lands in one place instead of being chased across comment threads.
   built. Tasks are certified **shortest** and the families supply quotations, so
   a built quotation can never win — the generator selects against the
   construction the basis was extended to allow. **The lever is the generator,
-  not the op set.**
+  not the op set.** Scope note: this is a statement about the *harvesting*
+  generator, and it does not license "`executable-26` is enough". Once the
+  generator stops supplying quotations, `executable-26` reaches no executable
+  quotation at all and `mark-28` becomes the floor rather than an upgrade —
+  see the v3 rows above.
 
 - **"Forward generation cannot produce problems that defeat forward search."**
   False. Generation pays `b^d` **once per root**, offline and amortised — 109

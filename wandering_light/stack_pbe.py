@@ -1,0 +1,944 @@
+"""Behaviour-first PBE task generation for the stack machine.
+
+The corpus this replaces was *harvested*: enumerate every program up to depth
+``d`` from a handful of seed stacks, keep the behaviourally-distinct ones, call
+each survivor a task. Three defects followed from that one decision and are
+recorded in ``docs/STATUS.md``: seventeen distinct input sets across 1,857
+tasks, quotations handed to the solver inside the task input, and a
+certified-shortest label that made building a quotation strictly dominated.
+The deeper problem is that "this task is useless" was not falsifiable, because
+usefulness was *defined* by reachability.
+
+This module inverts that. A person writes the behaviour; the machine is asked
+to meet it.
+
+* ``Behaviour`` pairs a plain-Python ``reference`` -- ``sum``, ``max``, keep
+  the evens -- with a ``witness`` program over the stack machine. The two are
+  written independently and every task checks that they agree, so a bug has to
+  occur twice, in two languages, to survive.
+* ``sample`` draws the input *data* fresh for every example of every task.
+  Inputs are numbers and lists of numbers. **Nothing in a task input is ever a
+  quotation**, which is what made the old corpus's higher-order share
+  meaningless.
+* A behaviour with no witness is informative: it marks the edge of what the
+  basis expresses, rather than being silently absent because no enumeration
+  happened to reach it.
+
+The basis is ``mark-28``, and that is forced, not chosen. Once quotations stop
+arriving in the input, a program can only obtain one by building it, and no op
+in ``executable-26`` puts an op *name* on the stack. Every quotation reachable
+there is therefore pure data, which ``map`` can only apply as the identity and
+which ``filter`` and ``fold`` reject outright. See
+``experiments/stack_pbe_basis_floor.py`` for the measurement.
+
+    uv run python -m wandering_light.stack_pbe --out corpus.jsonl.gz
+"""
+
+from __future__ import annotations
+
+import argparse
+import gzip
+import hashlib
+import json
+import math
+import random
+import sys
+import time
+from collections import Counter
+from dataclasses import asdict, dataclass, field
+from typing import TYPE_CHECKING
+
+from wandering_light.stack_machine import (
+    DEFAULT_FUEL_LIMIT,
+    MARK_OPS,
+    Config,
+    Int,
+    Lst,
+    MachineError,
+    Op,
+    Value,
+    format_stack,
+    step_raw,
+    value_key,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
+
+SCHEMA_VERSION = 1
+
+# Forced by the design, not preferred: see the module docstring.
+BASIS = "mark-28"
+OPS: tuple[Op, ...] = MARK_OPS
+OP_BY_NAME: dict[str, Op] = {op.name: op for op in OPS}
+
+TRAIN_FRACTION = 80  # out of 100
+
+# A task's arguments in plain Python: ints and lists of ints, bottom of the
+# stack first. The stack machine form is derived; this is what a person reads.
+Arg = int | list[int]
+Args = tuple[Arg, ...]
+Result = int | list[int]
+
+
+# ---------------------------------------------------------------------------
+# Plain Python <-> machine values
+# ---------------------------------------------------------------------------
+
+
+def to_value(arg: Arg) -> Value:
+    if isinstance(arg, bool):  # bool subclasses int; the machine keeps them apart
+        raise MachineError("task data is ints and lists of ints, not bools")
+    if isinstance(arg, int):
+        return Int(arg)
+    if isinstance(arg, list):
+        return Lst(tuple(to_value(item) for item in arg))
+    raise MachineError(f"cannot encode {arg!r} as a machine value")
+
+
+def to_stack(args: Args) -> tuple[Value, ...]:
+    return tuple(to_value(arg) for arg in args)
+
+
+def run_program(
+    program: Sequence[str], stack: tuple[Value, ...]
+) -> tuple[tuple[Value, ...], int] | str:
+    """Run a named program over a stack, returning ``(stack, fuel)`` or a reason.
+
+    Uses ``step_raw`` rather than ``run`` so a refusal comes back as a string
+    the way the machine's own guards report one, instead of an exception.
+    """
+    fuel = 0
+    for name in program:
+        op = OP_BY_NAME.get(name)
+        if op is None:
+            return f"unknown op {name!r}"
+        outcome = step_raw(op, stack, DEFAULT_FUEL_LIMIT - fuel, 0)
+        if isinstance(outcome, str):
+            return f"{name}: {outcome}"
+        stack, spent = outcome
+        fuel += spent
+    return stack, fuel
+
+
+# ---------------------------------------------------------------------------
+# Behaviours
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Behaviour:
+    """One hand-written problem: what it computes, and a program that does.
+
+    ``reference`` and ``witness`` are two independent statements of the same
+    function. ``verify`` checks them against each other on fresh data, which is
+    the only reason to trust either.
+    """
+
+    name: str
+    summary: str
+    witness: str
+    sample: Callable[[random.Random], Args]
+    reference: Callable[..., Result]
+    tags: frozenset[str] = field(default_factory=frozenset)
+    # Optional per-task guard on the drawn example set, for behaviours whose
+    # examples can be jointly uninformative in a way the generic guards miss.
+    accept: Callable[[list[Args], list[Result]], bool] | None = None
+
+    @property
+    def program(self) -> tuple[str, ...]:
+        return tuple(self.witness.split())
+
+    @property
+    def length(self) -> int:
+        return len(self.program)
+
+
+def _draw(rng: random.Random, pool: Sequence[int], lo: int, hi: int) -> list[int]:
+    return [rng.choice(pool) for _ in range(rng.randint(lo, hi))]
+
+
+SMALL = tuple(range(-9, 10))
+POSITIVE = tuple(range(1, 10))
+SPARSE = (0, 0, 0, 0, *range(-4, 5))  # zero-rich, for the zero predicates
+MIXED = (*range(-6, 0), *range(1, 7), 0)
+
+
+def _list_of(pool: Sequence[int], lo: int = 2, hi: int = 6):
+    return lambda rng: (_draw(rng, pool, lo, hi),)
+
+
+def _list_and_int(pool: Sequence[int], other: Sequence[int], lo: int = 2, hi: int = 6):
+    return lambda rng: (_draw(rng, pool, lo, hi), rng.choice(other))
+
+
+def _two_lists(pool: Sequence[int], lo: int = 1, hi: int = 4):
+    return lambda rng: (_draw(rng, pool, lo, hi), _draw(rng, pool, lo, hi))
+
+
+def _pair(pool: Sequence[int]):
+    return lambda rng: (rng.choice(pool), rng.choice(pool))
+
+
+def _shrinks(args_list: list[Args], results: list[Result]) -> bool:
+    """For the filters: some example must drop an item, and some must keep one.
+
+    Without this a drawn set can be all-pass or all-reject, which makes the
+    examples consistent with the identity or with `nil`, and so says nothing
+    about the predicate.
+    """
+    kept = [len(r) for r in results if isinstance(r, list)]
+    sizes = [len(a[0]) for a in args_list if isinstance(a[0], list)]
+    return any(k > 0 for k in kept) and any(
+        k < n for k, n in zip(kept, sizes, strict=True)
+    )
+
+
+def _even(value: int) -> bool:
+    # The witness computes `x - 2 * (x // 2)`, which is Python's floor
+    # semantics, so the reference must floor too rather than use `abs`.
+    return value - 2 * (value // 2) == 0
+
+
+CATALOGUE: tuple[Behaviour, ...] = (
+    # -- scalars, so the corpus has a floor that needs no combinator ---------
+    Behaviour(
+        name="add_pair",
+        summary="add two numbers",
+        witness="add",
+        sample=_pair(SMALL),
+        reference=lambda a, b: a + b,
+        tags=frozenset({"scalar"}),
+    ),
+    Behaviour(
+        name="max_pair",
+        summary="the larger of two numbers",
+        witness="[ over lt? ] [ drop ] [ swap drop ] ifte",
+        sample=_pair(SMALL),
+        reference=lambda a, b: max(a, b),
+        tags=frozenset({"scalar", "branch"}),
+    ),
+    Behaviour(
+        name="abs_diff_pair",
+        summary="how far apart two numbers are",
+        witness="sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte",
+        sample=_pair(SMALL),
+        reference=lambda a, b: abs(a - b),
+        tags=frozenset({"scalar", "branch"}),
+    ),
+    # -- list -> list, elementwise ------------------------------------------
+    Behaviour(
+        name="double_each",
+        summary="double every element",
+        witness="[ dup add ] map",
+        sample=_list_of(SMALL),
+        reference=lambda xs: [x + x for x in xs],
+        tags=frozenset({"map"}),
+    ),
+    Behaviour(
+        name="increment_each",
+        summary="add one to every element",
+        witness="[ 1 add ] map",
+        sample=_list_of(SMALL),
+        reference=lambda xs: [x + 1 for x in xs],
+        tags=frozenset({"map"}),
+    ),
+    Behaviour(
+        name="square_each",
+        summary="square every element",
+        witness="[ dup mul ] map",
+        sample=_list_of(SMALL),
+        reference=lambda xs: [x * x for x in xs],
+        tags=frozenset({"map"}),
+    ),
+    Behaviour(
+        name="negate_each",
+        summary="flip the sign of every element",
+        witness="[ 0 swap sub ] map",
+        sample=_list_of(SMALL),
+        reference=lambda xs: [-x for x in xs],
+        tags=frozenset({"map"}),
+    ),
+    Behaviour(
+        name="halve_each",
+        summary="halve every element, rounding down",
+        witness="[ 1 1 add div ] map",
+        sample=_list_of(SMALL),
+        reference=lambda xs: [x // 2 for x in xs],
+        tags=frozenset({"map"}),
+    ),
+    Behaviour(
+        name="abs_each",
+        summary="take the magnitude of every element",
+        witness="[ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map",
+        sample=_list_of(MIXED),
+        reference=lambda xs: [abs(x) for x in xs],
+        tags=frozenset({"map", "branch"}),
+    ),
+    Behaviour(
+        name="parity_each",
+        summary="replace every element by its remainder mod two",
+        witness="[ dup 1 1 add div 1 1 add mul sub ] map",
+        sample=_list_of(SMALL),
+        reference=lambda xs: [x - 2 * (x // 2) for x in xs],
+        tags=frozenset({"map"}),
+    ),
+    # -- list -> list, structural -------------------------------------------
+    Behaviour(
+        name="reverse",
+        summary="reverse the list",
+        witness="nil [ cons ] fold",
+        sample=_list_of(SMALL),
+        reference=lambda xs: list(reversed(xs)),
+        tags=frozenset({"fold"}),
+    ),
+    Behaviour(
+        name="tail",
+        summary="drop the first element",
+        witness="uncons drop",
+        sample=_list_of(SMALL),
+        reference=lambda xs: xs[1:],
+        tags=frozenset({"first-order"}),
+    ),
+    Behaviour(
+        name="prefix_sums",
+        summary="running total of the list so far, one entry per element",
+        witness=(
+            "nil "
+            "[ [ over null? ] [ cons ] [ over uncons swap drop add cons ] ifte ] fold "
+            "nil [ cons ] fold"
+        ),
+        sample=_list_of(SMALL),
+        reference=lambda xs: [sum(xs[: i + 1]) for i in range(len(xs))],
+        tags=frozenset({"fold", "branch"}),
+    ),
+    # -- list -> list, selection --------------------------------------------
+    Behaviour(
+        name="keep_zeros",
+        summary="keep only the zeros",
+        witness="[ 0 eq? ] filter",
+        sample=_list_of(SPARSE),
+        reference=lambda xs: [x for x in xs if x == 0],
+        tags=frozenset({"filter"}),
+        accept=_shrinks,
+    ),
+    Behaviour(
+        name="keep_negative",
+        summary="keep only the negative numbers",
+        witness="[ 0 lt? ] filter",
+        sample=_list_of(MIXED),
+        reference=lambda xs: [x for x in xs if x < 0],
+        tags=frozenset({"filter"}),
+        accept=_shrinks,
+    ),
+    Behaviour(
+        name="keep_positive",
+        summary="keep only the positive numbers",
+        witness="[ 0 swap lt? ] filter",
+        sample=_list_of(MIXED),
+        reference=lambda xs: [x for x in xs if x > 0],
+        tags=frozenset({"filter"}),
+        accept=_shrinks,
+    ),
+    Behaviour(
+        name="keep_evens",
+        summary="keep only the even numbers",
+        witness="[ dup 1 1 add div 1 1 add mul sub 0 eq? ] filter",
+        sample=_list_of(SMALL),
+        reference=lambda xs: [x for x in xs if _even(x)],
+        tags=frozenset({"filter"}),
+        accept=_shrinks,
+    ),
+    # -- list -> number, folds ----------------------------------------------
+    Behaviour(
+        name="sum",
+        summary="add the list up",
+        witness="0 [ add ] fold",
+        sample=_list_of(SMALL),
+        reference=lambda xs: sum(xs),
+        tags=frozenset({"fold"}),
+    ),
+    Behaviour(
+        name="product",
+        summary="multiply the list together",
+        witness="1 [ mul ] fold",
+        sample=_list_of(MIXED, lo=2, hi=4),
+        reference=lambda xs: math.prod(xs),
+        tags=frozenset({"fold"}),
+    ),
+    Behaviour(
+        name="length",
+        summary="how many elements the list has",
+        witness="0 [ drop 1 add ] fold",
+        sample=_list_of(SMALL, lo=1, hi=7),
+        reference=lambda xs: len(xs),
+        tags=frozenset({"fold"}),
+    ),
+    Behaviour(
+        name="head",
+        summary="the first element",
+        witness="uncons swap drop",
+        sample=_list_of(SMALL),
+        reference=lambda xs: xs[0],
+        tags=frozenset({"first-order"}),
+    ),
+    Behaviour(
+        name="last",
+        summary="the last element",
+        witness="0 [ swap drop ] fold",
+        sample=_list_of(SMALL),
+        reference=lambda xs: xs[-1],
+        tags=frozenset({"fold"}),
+    ),
+    Behaviour(
+        name="maximum",
+        summary="the largest element",
+        witness="uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+        sample=_list_of(SMALL),
+        reference=lambda xs: max(xs),
+        tags=frozenset({"fold", "branch"}),
+    ),
+    Behaviour(
+        name="minimum",
+        summary="the smallest element",
+        witness="uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold",
+        sample=_list_of(SMALL),
+        reference=lambda xs: min(xs),
+        tags=frozenset({"fold", "branch"}),
+    ),
+    Behaviour(
+        name="mean",
+        summary="the average of the list, rounded down",
+        witness="dup 0 [ add ] fold swap 0 [ drop 1 add ] fold div",
+        sample=_list_of(POSITIVE),
+        reference=lambda xs: sum(xs) // len(xs),
+        tags=frozenset({"fold"}),
+    ),
+    Behaviour(
+        name="span",
+        summary="the gap between the largest and smallest element",
+        witness=(
+            "dup uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold "
+            "swap uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold sub"
+        ),
+        sample=_list_of(SMALL),
+        reference=lambda xs: max(xs) - min(xs),
+        tags=frozenset({"fold", "branch"}),
+    ),
+    Behaviour(
+        name="sum_of_squares",
+        summary="square every element, then add them up",
+        witness="[ dup mul ] map 0 [ add ] fold",
+        sample=_list_of(SMALL),
+        reference=lambda xs: sum(x * x for x in xs),
+        tags=frozenset({"map", "fold"}),
+    ),
+    Behaviour(
+        name="sum_positive",
+        summary="add up only the positive numbers",
+        witness="[ 0 swap lt? ] filter 0 [ add ] fold",
+        sample=_list_of(MIXED),
+        reference=lambda xs: sum(x for x in xs if x > 0),
+        tags=frozenset({"filter", "fold"}),
+    ),
+    Behaviour(
+        name="count_zeros",
+        summary="how many zeros the list has",
+        witness="[ 0 eq? ] filter 0 [ drop 1 add ] fold",
+        sample=_list_of(SPARSE),
+        reference=lambda xs: sum(1 for x in xs if x == 0),
+        tags=frozenset({"filter", "fold"}),
+    ),
+    Behaviour(
+        name="count_negative",
+        summary="how many negative numbers the list has",
+        witness="[ 0 lt? ] filter 0 [ drop 1 add ] fold",
+        sample=_list_of(MIXED),
+        reference=lambda xs: sum(1 for x in xs if x < 0),
+        tags=frozenset({"filter", "fold"}),
+    ),
+    Behaviour(
+        name="count_evens",
+        summary="how many even numbers the list has",
+        witness=(
+            "[ dup 1 1 add div 1 1 add mul sub 0 eq? ] filter 0 [ drop 1 add ] fold"
+        ),
+        sample=_list_of(SMALL),
+        reference=lambda xs: sum(1 for x in xs if _even(x)),
+        tags=frozenset({"filter", "fold"}),
+    ),
+    # -- (list, number): the program must build a closure over the number ----
+    Behaviour(
+        name="scale_by",
+        summary="multiply every element by the given number",
+        witness="[ mul ] swap cons map",
+        sample=_list_and_int(SMALL, POSITIVE),
+        reference=lambda xs, n: [x * n for x in xs],
+        tags=frozenset({"map", "closure"}),
+    ),
+    Behaviour(
+        name="add_to_each",
+        summary="add the given number to every element",
+        witness="[ add ] swap cons map",
+        sample=_list_and_int(SMALL, SMALL),
+        reference=lambda xs, n: [x + n for x in xs],
+        tags=frozenset({"map", "closure"}),
+    ),
+    Behaviour(
+        name="n_minus_each",
+        summary="subtract every element from the given number",
+        witness="[ swap sub ] swap cons map",
+        sample=_list_and_int(SMALL, SMALL),
+        reference=lambda xs, n: [n - x for x in xs],
+        tags=frozenset({"map", "closure"}),
+    ),
+    Behaviour(
+        name="keep_below",
+        summary="keep the elements smaller than the given number",
+        witness="[ lt? ] swap cons filter",
+        sample=_list_and_int(SMALL, SMALL),
+        reference=lambda xs, n: [x for x in xs if x < n],
+        tags=frozenset({"filter", "closure"}),
+        accept=_shrinks,
+    ),
+    Behaviour(
+        name="keep_above",
+        summary="keep the elements larger than the given number",
+        witness="[ swap lt? ] swap cons filter",
+        sample=_list_and_int(SMALL, SMALL),
+        reference=lambda xs, n: [x for x in xs if x > n],
+        tags=frozenset({"filter", "closure"}),
+        accept=_shrinks,
+    ),
+    Behaviour(
+        name="count_equal",
+        summary="how many times the given number appears",
+        witness="[ eq? ] swap cons filter 0 [ drop 1 add ] fold",
+        sample=_list_and_int(SPARSE, SPARSE),
+        reference=lambda xs, n: sum(1 for x in xs if x == n),
+        tags=frozenset({"filter", "fold", "closure"}),
+    ),
+    Behaviour(
+        name="push_front",
+        summary="put the given number on the front of the list",
+        witness="cons",
+        sample=_list_and_int(SMALL, SMALL),
+        reference=lambda xs, n: [n, *xs],
+        tags=frozenset({"first-order"}),
+    ),
+    # -- two lists -----------------------------------------------------------
+    Behaviour(
+        name="append",
+        summary="join the two lists end to end",
+        witness="cat",
+        sample=_two_lists(SMALL),
+        reference=lambda xs, ys: [*xs, *ys],
+        tags=frozenset({"first-order"}),
+    ),
+    Behaviour(
+        name="sum_both",
+        summary="add up the numbers in both lists",
+        witness="cat 0 [ add ] fold",
+        sample=_two_lists(SMALL),
+        reference=lambda xs, ys: sum(xs) + sum(ys),
+        tags=frozenset({"fold"}),
+    ),
+)
+
+BY_NAME: dict[str, Behaviour] = {b.name: b for b in CATALOGUE}
+
+
+# ---------------------------------------------------------------------------
+# Agreement between the two statements of a behaviour
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Mismatch:
+    """One input on which the witness and the reference disagree."""
+
+    behaviour: str
+    args: Args
+    expected: str
+    got: str
+
+
+def apply_witness(behaviour: Behaviour, args: Args) -> tuple[Value, ...] | str:
+    """Run the witness and require it to leave exactly one value."""
+    outcome = run_program(behaviour.program, to_stack(args))
+    if isinstance(outcome, str):
+        return outcome
+    stack, _fuel = outcome
+    if len(stack) != 1:
+        return f"left {len(stack)} values, want 1"
+    return stack
+
+
+def check(behaviour: Behaviour, args: Args) -> Mismatch | None:
+    """Whether the witness reproduces the reference on one input."""
+    want = (to_value(behaviour.reference(*args)),)
+    got = apply_witness(behaviour, args)
+    if isinstance(got, str):
+        return Mismatch(behaviour.name, args, format_stack(Config(want)), got)
+    if tuple(value_key(v) for v in got) != tuple(value_key(v) for v in want):
+        return Mismatch(
+            behaviour.name, args, format_stack(Config(want)), format_stack(Config(got))
+        )
+    return None
+
+
+def verify(behaviour: Behaviour, trials: int, seed: int) -> Mismatch | None:
+    """Check witness against reference on fresh data. None means they agree.
+
+    This is the whole guarantee. Neither statement of the behaviour is
+    privileged: they were written separately, and agreement on data neither of
+    them chose is the evidence that the task is labelled correctly.
+    """
+    rng = random.Random(seed)
+    for _ in range(trials):
+        if (bad := check(behaviour, behaviour.sample(rng))) is not None:
+            return bad
+    return None
+
+
+def _name_seed(name: str) -> int:
+    """A per-behaviour seed that does not depend on `PYTHONHASHSEED`."""
+    return int(hashlib.sha256(name.encode()).hexdigest()[:8], 16)
+
+
+def verify_all(trials: int = 200, seed: int = 0) -> list[Mismatch]:
+    return [
+        bad
+        for b in CATALOGUE
+        if (bad := verify(b, trials, seed + _name_seed(b.name))) is not None
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Tasks
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Task:
+    """One PBE task: k example pairs, and a program that satisfies all of them.
+
+    ``held_out_inputs`` / ``held_out_outputs`` are drawn from the same sampler
+    and are *not* part of the prompt. A candidate program is scored on them,
+    which is what makes overfitting impossible rather than merely unmeasured:
+    a program that special-cases the shown examples has nothing to say about
+    data it was never given. The shown examples are what the solver reasons
+    from; the hidden ones are what it is graded on.
+    """
+
+    behaviour: str
+    summary: str
+    split: str
+    task_hash_split: str
+    inputs: tuple[str, ...]
+    outputs: tuple[str, ...]
+    held_out_inputs: tuple[str, ...]
+    held_out_outputs: tuple[str, ...]
+    program: tuple[str, ...]
+    length: int
+    examples: int
+    held_out: int
+    fuel: int
+    tags: tuple[str, ...]
+    basis: str = BASIS
+    witness_source: str = "authored"
+    schema_version: int = SCHEMA_VERSION
+
+
+def _bucket(payload: str) -> str:
+    digest = hashlib.sha256(payload.encode()).hexdigest()
+    return "train" if int(digest[:8], 16) % 100 < TRAIN_FRACTION else "eval"
+
+
+def assign_split(behaviour: str) -> str:
+    """Split on the *behaviour*, so no behaviour appears in both halves.
+
+    Splitting on the task -- which is what the previous corpus did -- leaves
+    the same behaviour on both sides of the boundary with different data. That
+    measures whether a solver can redo a problem it has already seen on fresh
+    inputs, which is a much weaker question than the one PBE is for. The
+    task-level split is still recorded as ``task_hash_split`` so the older
+    protocol stays reproducible.
+    """
+    return _bucket(behaviour)
+
+
+def assign_task_hash_split(inputs: tuple[str, ...], outputs: tuple[str, ...]) -> str:
+    return _bucket(json.dumps([list(inputs), list(outputs)], sort_keys=True))
+
+
+def encode_task(task: Task) -> dict[str, str]:
+    """The text form a sequence model would be trained on."""
+    pairs = " ; ".join(
+        f"{given} -> {wanted}"
+        for given, wanted in zip(task.inputs, task.outputs, strict=True)
+    )
+    return {"prompt": f"{pairs} =>", "completion": " " + " ".join(task.program)}
+
+
+def _informative(
+    args_list: list[Args], results: list[Result], stacks: list[tuple[Value, ...]]
+) -> bool:
+    """Reject example sets that a trivial program already satisfies.
+
+    Two ways a drawn set can fail to constrain anything: every output is the
+    same, so a constant fits; or every output is whatever sat at some fixed
+    position of the input stack, so a projection fits. Both were filters on the
+    old generator too -- they are about the *examples*, not about harvesting,
+    so they survive the inversion.
+    """
+    keys = [value_key(to_value(r)) for r in results]
+    if len(set(keys)) < 2:
+        return False
+    arity = len(stacks[0])
+    for position in range(arity):
+        if all(
+            value_key(stack[position]) == key
+            for stack, key in zip(stacks, keys, strict=True)
+        ):
+            return False
+    return True
+
+
+def _draw_distinct(
+    behaviour: Behaviour,
+    rng: random.Random,
+    count: int,
+    seen: set[str],
+    attempts: int,
+) -> list[Args] | None:
+    """`count` fresh inputs, none of them already in `seen`."""
+    drawn: list[Args] = []
+    for _ in range(count):
+        for _ in range(attempts):
+            args = behaviour.sample(rng)
+            key = json.dumps(args)
+            if key not in seen:
+                seen.add(key)
+                drawn.append(args)
+                break
+        else:
+            return None
+    return drawn
+
+
+@dataclass(frozen=True)
+class Drawn:
+    """The data for one task: what the solver sees, and what grades it."""
+
+    shown: list[Args]
+    shown_results: list[Result]
+    held_out: list[Args]
+    held_out_results: list[Result]
+
+
+def draw_task(
+    behaviour: Behaviour,
+    rng: random.Random,
+    examples: int,
+    held_out: int = 8,
+    attempts: int = 200,
+) -> Drawn:
+    """Draw an example set that is legal, distinct and non-trivial.
+
+    The held-out inputs come from the same sampler and exclude the shown ones,
+    so they are fresh in the only sense that matters: no program can have been
+    fitted to them.
+    """
+    for _ in range(attempts):
+        seen: set[str] = set()
+        shown = _draw_distinct(behaviour, rng, examples, seen, attempts)
+        if shown is None:
+            continue
+        stacks = [to_stack(a) for a in shown]
+        if len({len(stack) for stack in stacks}) != 1:
+            continue
+        try:
+            results = [behaviour.reference(*a) for a in shown]
+        except (ValueError, ZeroDivisionError, IndexError):
+            continue
+        if not _informative(shown, results, stacks):
+            continue
+        if behaviour.accept is not None and not behaviour.accept(shown, results):
+            continue
+        hidden = _draw_distinct(behaviour, rng, held_out, seen, attempts)
+        if hidden is None:
+            continue
+        hidden_results = [behaviour.reference(*a) for a in hidden]
+        return Drawn(shown, results, hidden, hidden_results)
+    raise MachineError(
+        f"{behaviour.name}: no informative example set in {attempts} draws"
+    )
+
+
+def _label(
+    behaviour: Behaviour, args_list: list[Args], results: list[Result]
+) -> tuple[tuple[str, ...], tuple[str, ...], int]:
+    """Run the witness on every input and check it against the reference.
+
+    Every task is labelled by execution, never by assertion: the pair is
+    re-derived here even though `verify` already checked the behaviour, because
+    a task that shipped with an output its own witness does not produce would
+    be a silent corpus bug.
+    """
+    inputs, outputs, fuel = [], [], 0
+    for args, want in zip(args_list, results, strict=True):
+        outcome = run_program(behaviour.program, to_stack(args))
+        if isinstance(outcome, str):
+            raise MachineError(f"{behaviour.name} on {args}: {outcome}")
+        stack, spent = outcome
+        if len(stack) != 1 or value_key(stack[0]) != value_key(to_value(want)):
+            raise MachineError(
+                f"{behaviour.name} on {args}: witness and reference disagree"
+            )
+        inputs.append(format_stack(Config(to_stack(args))))
+        outputs.append(format_stack(Config(stack)))
+        fuel += spent
+    return tuple(inputs), tuple(outputs), fuel
+
+
+def build_task(behaviour: Behaviour, drawn: Drawn) -> Task:
+    """Make the record, re-running the witness on every example to label it."""
+    encoded_in, encoded_out, fuel = _label(behaviour, drawn.shown, drawn.shown_results)
+    hidden_in, hidden_out, _ = _label(behaviour, drawn.held_out, drawn.held_out_results)
+    return Task(
+        behaviour=behaviour.name,
+        summary=behaviour.summary,
+        split=assign_split(behaviour.name),
+        task_hash_split=assign_task_hash_split(encoded_in, encoded_out),
+        inputs=encoded_in,
+        outputs=encoded_out,
+        held_out_inputs=hidden_in,
+        held_out_outputs=hidden_out,
+        program=behaviour.program,
+        length=behaviour.length,
+        examples=len(drawn.shown),
+        held_out=len(drawn.held_out),
+        fuel=fuel,
+        tags=tuple(sorted(behaviour.tags)),
+    )
+
+
+def generate(
+    per_behaviour: int,
+    seed: int,
+    *,
+    min_examples: int = 3,
+    max_examples: int = 6,
+    held_out: int = 8,
+    catalogue: Sequence[Behaviour] = CATALOGUE,
+) -> tuple[list[Task], dict]:
+    """One corpus. Every task's data is drawn fresh; no seed table exists."""
+    rng = random.Random(seed)
+    tasks: list[Task] = []
+    stats: dict = {}
+    for behaviour in catalogue:
+        seen: set[str] = set()
+        made = 0
+        for _ in range(per_behaviour * 20):
+            if made >= per_behaviour:
+                break
+            examples = rng.randint(min_examples, max_examples)
+            drawn = draw_task(behaviour, rng, examples, held_out=held_out)
+            key = json.dumps(drawn.shown, sort_keys=True)
+            if key in seen:
+                continue
+            seen.add(key)
+            tasks.append(build_task(behaviour, drawn))
+            made += 1
+        stats[behaviour.name] = {
+            "kept": made,
+            "length": behaviour.length,
+            "split": assign_split(behaviour.name),
+        }
+    return tasks, stats
+
+
+_TUPLE_FIELDS = (
+    "inputs",
+    "outputs",
+    "held_out_inputs",
+    "held_out_outputs",
+    "program",
+    "tags",
+)
+
+
+def load(path: str) -> list[Task]:
+    """Read a corpus back. JSON has no tuples, so restore them on the way in."""
+    with gzip.open(path, "rt") as handle:
+        return [
+            Task(**{**row, **{f: tuple(row[f]) for f in _TUPLE_FIELDS}})
+            for row in map(json.loads, handle)
+        ]
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="python -m wandering_light.stack_pbe")
+    parser.add_argument("--out", default="stack_pbe_v3.jsonl.gz")
+    parser.add_argument("--per-behaviour", type=int, default=40)
+    parser.add_argument("--seed", type=int, default=17)
+    parser.add_argument("--min-examples", type=int, default=3)
+    parser.add_argument("--max-examples", type=int, default=6)
+    parser.add_argument("--held-out", type=int, default=8)
+    parser.add_argument("--verify-trials", type=int, default=500)
+    args = parser.parse_args(argv)
+
+    started = time.time()
+    bad = verify_all(trials=args.verify_trials)
+    if bad:
+        for mismatch in bad:
+            print(
+                f"MISMATCH {mismatch.behaviour} on {mismatch.args}: "
+                f"want {mismatch.expected}, got {mismatch.got}",
+                file=sys.stderr,
+            )
+        return 1
+    print(
+        f"{len(CATALOGUE)} behaviours agree with their witness on "
+        f"{args.verify_trials} fresh inputs each",
+        file=sys.stderr,
+    )
+
+    tasks, stats = generate(
+        args.per_behaviour,
+        args.seed,
+        min_examples=args.min_examples,
+        max_examples=args.max_examples,
+        held_out=args.held_out,
+    )
+    with gzip.open(args.out, "wt") as handle:
+        for task in tasks:
+            handle.write(json.dumps(asdict(task), sort_keys=True) + "\n")
+
+    inputs = {i for task in tasks for i in (*task.inputs, *task.held_out_inputs)}
+    splits = Counter(task.split for task in tasks)
+    print(
+        f"wrote {len(tasks)} tasks to {args.out} in {time.time() - started:.1f}s",
+        file=sys.stderr,
+    )
+    print(
+        f"  {len(inputs):,} distinct input stacks, "
+        f"{sum(t.examples for t in tasks):,} shown + "
+        f"{sum(t.held_out for t in tasks):,} held-out examples, "
+        f"train {splits['train']} / eval {splits['eval']}",
+        file=sys.stderr,
+    )
+    lengths = Counter(task.length for task in tasks)
+    print(f"  witness lengths: {dict(sorted(lengths.items()))}", file=sys.stderr)
+    for name, s in stats.items():
+        print(
+            f"  {name:<18} {s['kept']:>3} tasks, witness {s['length']:>2} ops, "
+            f"{s['split']}",
+            file=sys.stderr,
+        )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
