@@ -25,12 +25,10 @@ holds the argument.
 | **`mark-28` corpus probe** | solver-build-quotations (#60) step 2, the gate on adopting it. **Not met.** Like-for-like at depth 5: combinator share moves **6.7% → 7.0%**, tasks running code at all do not move (12.4% both), for **10.5x the generation cost** (130 s → 1,364 s). At depths 2–4 the two corpora are *identical*. Quotation construction appears (0% → 4.3%) but is degenerate: bodies are 1–2 ops and **59 of 61 never execute what they built**. Cause: tasks are certified *shortest* and the families hand quotations over, so a built quotation can never beat a supplied one. **The lever is the generator, not the op set.** | [report](../reports/mark-28-corpus-20260828/README.md), [solver-build-quotations (#60)](../../issues/60) |
 | **Branching, `wl-core-v1`** | 118 functions, 20.52 applicable, 4.292 bits/step. Type masking is worth ~3.9 bits, slightly better than #33 assumed. | #33 |
 | **Substrate comparison** | Both bases generate new behaviour at ~the same rate under composition — 5.87x/op against 5.77x. The stack machine's win is price: 73% of choice bits become new behaviour against 59%. It pays a **median 2.00x in program length**. | #42 |
-| **Stack corpus** | `stack_pbe_v2.jsonl.gz` — 1,857 PBE tasks certified shortest to depth 6 against `executable-26`, 1,502 train / 355 eval, 101 needing a loop. Split is a SHA-256 of the task, not a shuffle. | #42 |
+| **Stack corpus** | `stack_pbe_v2.jsonl.gz` — 1,857 PBE tasks certified shortest to depth 6 against `executable-26`, 1,502 train / 355 eval, 101 needing a loop. Split is a SHA-256 of the task, not a shuffle. **The whole corpus runs on 17 distinct input sets** — `FAMILIES` hardcodes 1–2 per family — so it is 1,857 *programs* over seventeen input configurations. | #42, [stack-corpus-no-higher-order (#59)](../../issues/59) |
 | **What the stack corpus contains** | Measured, not assumed: **0%** of programs build a quotation from op symbols — structural, since no op in `executable-26` pushes one. 36.6% of tasks are *handed* a quotation and **76.8% of those never execute it**. Only 11.8% of programs run code at all, 5.7% use a combinator, and **55.3% use no arithmetic, predicate or combinator whatsoever**. `experiments/stack_corpus_scope.py`. | [stack-corpus-no-higher-order (#59)](../../issues/59) |
-| **Stack BFS baseline** | 75.2% at a 10,000-node budget; median 1,119 nodes per solved task. Node cost grows ~7.5x per unit of program length. **Scope:** this and every stack-side solver number are measured on a corpus that is 55.3% stack rearrangement and builds no quotations, so they measure rearrangement rather than program synthesis in the sense the substrate can express. Quote them with that attached. | `reports/stack-machine-basis/`, [stack-corpus-no-higher-order (#59)](../../issues/59) |
 | **`deep-corpus-v1`** | 31,350 tasks, certified distances 1–8, 240 roots, split by root. BFS solve rate is a **step function**: 100% up to its depth cap, 0% beyond. Distance-8 answers cost it ~4.4M executions. | [#37](../../issues/37) |
 | **`deep-corpus-v2`** | 313,438 fresh certified tasks from 2,400 roots, split 1,880 / 260 / 260 with zero root/task overlap across splits or with v1. All witnesses re-execute. The tracked 42 KB manifest carries corpus identity and pins per-root telemetry published separately at HF revision `36753a013f3a4e965892b33bc44a8cc0fd567d99`. | [#54](../../issues/54) |
-| **Kt vs length** | Re-certifying the 101 loop tasks under `\|p\| + log2(fuel)` changed **0 labels, 0 bits**. A label needs ~26x less fuel for one extra op; four-element lists cannot vary that much. A fact about input sizes, not the metric. | [#45](../../issues/45) |
 | **Basis growth by MDL** | Degenerate. Accepted 400 words without converging, basis 118 → 518, corpus −36.4%, **search 42,631x more expensive at depth 6**. Every candidate clearing the bar is length 2. | [#41](../../issues/41) |
 | **Policy probe, first action** | A lookup table on `(input type, output type)` reaches mean rank 3.18 and top-1 42.1%. Two byte-level encoders beat it by 10% on rank and tie on top-1. | [#33](../../issues/33) |
 | **Policy probe, last action** | Learning pays here and barely does at the front: lookup 4.80 / 22.3%, conv encoder **3.43 / 42.1%** — 29% better rank, nearly double top-1. Masking is weaker at the back (25.88 functions produce a given output type against 9.87 consuming a given input type). Neither end degrades with distance. | #33 |
@@ -54,6 +52,36 @@ holds the argument.
 
 Claims that were stated confidently and are wrong. Recorded here so a
 correction lands in one place instead of being chased across comment threads.
+
+- **"BFS solves 75.2% of the stack corpus at a 10,000-node budget."** The
+  number is real; what it measures is not what it was quoted for. That corpus
+  builds no quotations, is 55.3% stack rearrangement, and draws on **17
+  distinct input sets** across 1,857 tasks. So the figure describes search over
+  an enumeration of programs from seventeen starting stacks, not PBE solve rate.
+  Every stack-side solver number inherits this. Substrate measurements do
+  **not** — branching, identity, fuel and the `wl-core-v1` cost comparison are
+  measured by expanding from four fixed roots or from the ops themselves, and
+  never read the corpus. See `reports/mark-28-corpus-20260828/` and
+  [stack-corpus-no-higher-order (#59)](../../issues/59).
+
+- **"Re-certifying the 101 loop tasks under Kt changed 0 labels, 0 bits."**
+  Narrower than it sounds. `recertify_stack_machine_cost.py` selects
+  `LOOP_FAMILIES = {with_map, with_fold, with_filter}` — three of the four
+  families that **seed a quotation in the input**. So the tasks are loop-bearing
+  because a quotation was handed to them, and they draw on about four input
+  configurations. The mechanism argument survives (a label needs ~26x less fuel
+  for one extra op, and four-element lists cannot vary that much); the evidence
+  base does not support "101 tasks" as a general check. Re-run it on a corpus
+  whose generator does not supply quotations before quoting it again.
+
+- **"A richer basis will make the stack corpus more expressive."** The premise
+  of adopting `mark-28`. Measured and false: at depth 5 the combinator share
+  moves 6.7% -> 7.0% for 10.5x the generation cost, at depths 2-4 the corpora
+  are *identical*, and 59 of the 61 quotation builders never execute what they
+  built. Tasks are certified **shortest** and the families supply quotations, so
+  a built quotation can never win — the generator selects against the
+  construction the basis was extended to allow. **The lever is the generator,
+  not the op set.**
 
 - **"Forward generation cannot produce problems that defeat forward search."**
   False. Generation pays `b^d` **once per root**, offline and amortised — 109

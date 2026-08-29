@@ -369,6 +369,25 @@ def bits(*values: int) -> tuple[Value, ...]:
     return (Lst(tuple(Int(v) for v in values)),)
 
 
+# WARNING -- these seed inputs are the corpus's main defect. Measured 2026-08-28
+# and recorded in `docs/STATUS.md` under Superseded:
+#
+#   * There are **17 distinct input sets in total** across all families, 1-2
+#     each. So a generated corpus is ~1,857 *programs* over seventeen input
+#     configurations: tasks differ by program, not by data, which for PBE is
+#     backwards.
+#   * `with_map`, `with_filter`, `with_fold` and `with_apply` **hand a quotation
+#     to the solver in the input** (680 of 1,857 tasks). 76.8% of those never
+#     execute it -- they treat the quotation as list data.
+#   * Because tasks are certified *shortest* and a quotation is supplied free,
+#     no program can ever win by *building* one: `[ 1 add ] map` is five ops
+#     against `(1 add) map` at one. Enriching the basis does not help; measured
+#     against `mark-28`, the combinator share moved 6.7% -> 7.0% for 10.5x the
+#     generation cost (`reports/mark-28-corpus-20260828/`).
+#
+# Any solver number produced from this generator measures search over that
+# enumeration, not PBE. Fixing it means changing these families -- stop
+# supplying quotations, widen the input sets -- not changing the op set.
 FAMILIES: dict[str, list[Behaviour]] = {
     # one three-element list of bits per example
     "bitlist3": [
