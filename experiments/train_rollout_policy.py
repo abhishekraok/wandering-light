@@ -37,6 +37,7 @@ from wandering_light.basis_set import load_basis_set
 from wandering_light.executor import Executor
 from wandering_light.rollout_policy import (
     CONFIG_FILE,
+    MAX_PAIR_WIDTH,
     MODEL_FILE,
     TRAINER_STATE_FILE,
     TRAINING_MANIFEST_FILE,
@@ -338,7 +339,9 @@ def _examples_batch(
     device: torch.device,
 ) -> tuple[tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]:
     inputs = pair_batch(
-        [(example.state, example.target) for example in examples], device=device
+        [(example.state, example.target) for example in examples],
+        device=device,
+        sequence_width=MAX_PAIR_WIDTH,
     )
     labels = torch.tensor(
         [action_index[example.action_name] for example in examples],
@@ -626,6 +629,8 @@ def build_training_manifest(
             "optimizer": "torch.optim.Adam",
             "train_batch_size": config.train_batch_size,
             "validation_batch_size": config.validation_batch_size,
+            "sequence_width": MAX_PAIR_WIDTH,
+            "sequence_padding": "fixed-to-maximum-for-training",
             "seed": config.seed,
             "device": config.device,
             "selection": "minimum validation cross-entropy",

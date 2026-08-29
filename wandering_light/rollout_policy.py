@@ -43,6 +43,7 @@ ITEM_CAP = 96
 MAX_ITEMS = 16
 PAD = 256
 SEP = 257
+MAX_PAIR_WIDTH = 2 * ITEM_CAP + 1
 BYTE_EMBEDDING = 48
 CONV_CHANNELS = 96
 CONV_KERNEL = 5
@@ -164,13 +165,23 @@ def pair_batch(
     serialized_problems: Sequence[tuple[str, str]],
     *,
     device: torch.device | str | None = None,
+    sequence_width: int | None = None,
 ) -> tuple[Tensor, Tensor, Tensor]:
-    """Batch serialized ``(state, target)`` pairs for ``AlignedPairPolicy``."""
+    """Batch serialized pairs, optionally padding every item to a fixed width."""
 
     if not serialized_problems:
         raise ValueError("Cannot construct an empty policy batch")
     encoded = [_serialized_pair_items(*problem) for problem in serialized_problems]
-    width = max(len(sequence) for pairs in encoded for sequence in pairs)
+    natural_width = max(len(sequence) for pairs in encoded for sequence in pairs)
+    if sequence_width is None:
+        width = natural_width
+    elif not natural_width <= sequence_width <= MAX_PAIR_WIDTH:
+        raise ValueError(
+            f"sequence_width must be in [{natural_width}, {MAX_PAIR_WIDTH}], "
+            f"got {sequence_width}"
+        )
+    else:
+        width = sequence_width
     sequences: list[list[int]] = []
     counts = []
     for pairs in encoded:

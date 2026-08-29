@@ -28,6 +28,7 @@ from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDefSet
 from wandering_light.rollout_policy import (
     CONFIG_FILE,
+    MAX_PAIR_WIDTH,
     MODEL_FILE,
     TRAINER_STATE_FILE,
     TRAINING_MANIFEST_FILE,
@@ -131,6 +132,32 @@ def test_pair_batch_tracks_real_items_and_the_model_is_batch_invariant():
     assert (
         sum(parameter.numel() for parameter in AlignedPairPolicy(118).parameters())
         == 90_374
+    )
+
+
+def test_fixed_width_training_batch_preserves_logits_and_gradients():
+    problems = [
+        (_serialized([1]), _serialized([2])),
+        (_serialized([1, 22, 333]), _serialized([2, 44, 666])),
+    ]
+    torch.manual_seed(7)
+    dynamic = AlignedPairPolicy(5)
+    fixed = AlignedPairPolicy(5)
+    fixed.load_state_dict(dynamic.state_dict())
+
+    dynamic_logits = dynamic(*pair_batch(problems))
+    fixed_inputs = pair_batch(problems, sequence_width=MAX_PAIR_WIDTH)
+    fixed_logits = fixed(*fixed_inputs)
+    dynamic_logits.sum().backward()
+    fixed_logits.sum().backward()
+
+    assert fixed_inputs[0].shape[1] == MAX_PAIR_WIDTH == 193
+    assert torch.allclose(dynamic_logits, fixed_logits, atol=1e-6)
+    assert all(
+        torch.allclose(dynamic_parameter.grad, fixed_parameter.grad, atol=1e-6)
+        for dynamic_parameter, fixed_parameter in zip(
+            dynamic.parameters(), fixed.parameters(), strict=True
+        )
     )
 
 
