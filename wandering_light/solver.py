@@ -7,9 +7,11 @@ LLM-based solvers using ``TokenGenerator`` classes.
 """
 
 import abc
+import math
 import os
 from collections import deque
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from numbers import Real
 from typing import Literal
 
 import google.generativeai as genai
@@ -43,6 +45,25 @@ class BFSSearchResult:
     termination: Literal["solved", "budget", "max_depth", "frontier_exhausted"]
 
 
+@dataclass(frozen=True)
+class RolloutDepthTrace:
+    """The paths retained after one complete rollout layer."""
+
+    depth: int
+    retained_paths: tuple[tuple[str, ...], ...]
+    unique_successors: int
+
+
+@dataclass(frozen=True)
+class RolloutSearchResult:
+    """A rollout prediction together with the search cost and stop reason."""
+
+    function_defs: FunctionDefList
+    executions: int
+    termination: Literal["solved", "budget", "max_depth", "frontier_exhausted"]
+    trace: tuple[RolloutDepthTrace, ...] = field(default=(), compare=False)
+
+
 class FunctionPredictor(abc.ABC):
     """
     Base class for function prediction strategies.
@@ -67,6 +88,18 @@ class FunctionPredictor(abc.ABC):
         Returns:
             List of FunctionDefList predictions corresponding to each problem
         """
+
+
+class ActionScorer(abc.ABC):
+    """Score the next basis function from each materialized state and target."""
+
+    @abc.abstractmethod
+    def score_actions_batch(
+        self,
+        problems: list[tuple[TypedList, TypedList]],
+        available_functions: FunctionDefSet,
+    ) -> list[dict[str, float]]:
+        """Return one unnormalized score per available function and problem."""
 
 
 class TrajectorySolver:
@@ -367,6 +400,229 @@ class BFSPredictor(FunctionPredictor):
     def _is_type_compatible(self, func: FunctionDef, typed_list: TypedList) -> bool:
         """Check if a function's input type is compatible with the typed list's type."""
         return typed_list.item_type == func.input_type_cls()
+
+
+@dataclass(frozen=True)
+class _RolloutNode:
+    state: TypedList
+    function_defs: tuple[FunctionDef, ...]
+    log_probability: float
+    order: int
+
+
+class RolloutPredictor(FunctionPredictor):
+    """Beam search whose policy observes every materialized intermediate state."""
+
+    def __init__(
+        self,
+        action_scorer: ActionScorer,
+        beam_width: int = 8,
+        max_depth: int = 8,
+        budget: int = 100_000,
+    ):
+        self._validate_integer("beam_width", beam_width, minimum=1)
+        self._validate_integer("max_depth", max_depth, minimum=0)
+        self._validate_integer("budget", budget, minimum=0)
+        self.action_scorer = action_scorer
+        self.beam_width = beam_width
+        self.max_depth = max_depth
+        self.budget = budget
+
+    @staticmethod
+    def _validate_integer(name: str, value: int, *, minimum: int) -> None:
+        if type(value) is not int or value < minimum:
+            raise ValueError(f"{name} must be an integer >= {minimum}")
+
+    def predict_functions_batch(
+        self,
+        problems: list[tuple[TypedList, TypedList]],
+        available_functions: FunctionDefSet,
+    ) -> list[FunctionDefList]:
+        """Run an independent execution-budgeted rollout for each problem."""
+        return [
+            self.search_with_cost(
+                input_list, output_list, available_functions
+            ).function_defs
+            for input_list, output_list in problems
+        ]
+
+    def search_with_cost(
+        self,
+        input_list: TypedList,
+        output_list: TypedList,
+        available_functions: FunctionDefSet,
+    ) -> RolloutSearchResult:
+        """Search with a per-problem budget measured in basis executions.
+
+        The scorer supplies logits for the whole basis. The rollout applies the
+        exact input-type mask, normalizes each beam node separately, and orders
+        all transitions in a layer by cumulative log probability. Every
+        type-compatible transition attempted costs one, including functions
+        that raise on their input values.
+        """
+        if input_list == output_list:
+            return RolloutSearchResult(FunctionDefList(), 0, "solved")
+        if not available_functions.functions:
+            return RolloutSearchResult(FunctionDefList(), 0, "frontier_exhausted")
+        if self.budget == 0:
+            return RolloutSearchResult(FunctionDefList(), 0, "budget")
+        if self.max_depth == 0:
+            return RolloutSearchResult(FunctionDefList(), 0, "max_depth")
+
+        executor = Executor(available_functions)
+        beam = [_RolloutNode(input_list, (), 0.0, 0)]
+        executions = 0
+        trace: list[RolloutDepthTrace] = []
+
+        for depth in range(1, self.max_depth + 1):
+            score_rows = self.action_scorer.score_actions_batch(
+                [(node.state, output_list) for node in beam],
+                available_functions,
+            )
+            scores = self._validate_scores(score_rows, len(beam), available_functions)
+
+            expansions = []
+            for parent_index, (node, row) in enumerate(zip(beam, scores, strict=True)):
+                compatible = [
+                    (function_index, function)
+                    for function_index, function in enumerate(
+                        available_functions.functions
+                    )
+                    if node.state.item_type is function.input_type_cls()
+                ]
+                if not compatible:
+                    continue
+                top_score = max(row[function.name] for _, function in compatible)
+                log_normalizer = top_score + math.log(
+                    sum(
+                        math.exp(row[function.name] - top_score)
+                        for _, function in compatible
+                    )
+                )
+                for function_index, function in compatible:
+                    log_probability = (
+                        node.log_probability + row[function.name] - log_normalizer
+                    )
+                    expansions.append(
+                        (
+                            log_probability,
+                            parent_index,
+                            function_index,
+                            node,
+                            function,
+                        )
+                    )
+
+            if not expansions:
+                trace.append(RolloutDepthTrace(depth, (), 0))
+                return RolloutSearchResult(
+                    FunctionDefList(),
+                    executions,
+                    "frontier_exhausted",
+                    tuple(trace),
+                )
+
+            # The ordering matters if a solution is encountered or the budget
+            # binds partway through a layer. Basis order is the final stable
+            # tie-break, after the already deterministic beam order.
+            expansions.sort(key=lambda item: (-item[0], item[1], item[2]))
+            successors: dict[tuple, _RolloutNode] = {}
+            for order, (log_probability, _, _, node, function) in enumerate(expansions):
+                executions += 1
+                function_defs = (*node.function_defs, function)
+                try:
+                    state = executor.execute(function, node.state)
+                except Exception:
+                    if executions >= self.budget:
+                        return RolloutSearchResult(
+                            FunctionDefList(), executions, "budget", tuple(trace)
+                        )
+                    continue
+
+                if state == output_list:
+                    return RolloutSearchResult(
+                        FunctionDefList(list(function_defs)),
+                        executions,
+                        "solved",
+                        tuple(trace),
+                    )
+                if executions >= self.budget:
+                    return RolloutSearchResult(
+                        FunctionDefList(), executions, "budget", tuple(trace)
+                    )
+
+                state_key = state.search_key()
+                previous = successors.get(state_key)
+                if previous is None or log_probability > previous.log_probability:
+                    successors[state_key] = _RolloutNode(
+                        state, function_defs, log_probability, order
+                    )
+
+            beam = sorted(
+                successors.values(),
+                key=lambda node: (-node.log_probability, node.order),
+            )[: self.beam_width]
+            trace.append(
+                RolloutDepthTrace(
+                    depth=depth,
+                    retained_paths=tuple(
+                        tuple(function.name for function in node.function_defs)
+                        for node in beam
+                    ),
+                    unique_successors=len(successors),
+                )
+            )
+            if not beam:
+                return RolloutSearchResult(
+                    FunctionDefList(),
+                    executions,
+                    "frontier_exhausted",
+                    tuple(trace),
+                )
+
+        return RolloutSearchResult(
+            FunctionDefList(), executions, "max_depth", tuple(trace)
+        )
+
+    @staticmethod
+    def _validate_scores(
+        score_rows: list[dict[str, float]],
+        expected_rows: int,
+        available_functions: FunctionDefSet,
+    ) -> list[dict[str, float]]:
+        if not isinstance(score_rows, list) or len(score_rows) != expected_rows:
+            actual = (
+                len(score_rows) if isinstance(score_rows, list) else type(score_rows)
+            )
+            raise ValueError(
+                f"action scorer returned {actual} rows; expected {expected_rows}"
+            )
+
+        expected_names = {function.name for function in available_functions}
+        validated = []
+        for row_index, row in enumerate(score_rows):
+            if not isinstance(row, dict) or set(row) != expected_names:
+                actual_names = set(row) if isinstance(row, dict) else set()
+                missing = sorted(expected_names - actual_names)
+                unexpected = sorted(actual_names - expected_names)
+                raise ValueError(
+                    f"action scorer row {row_index} has wrong function names; "
+                    f"missing={missing}, unexpected={unexpected}"
+                )
+            clean_row = {}
+            for name, score in row.items():
+                if (
+                    isinstance(score, bool)
+                    or not isinstance(score, Real)
+                    or not math.isfinite(float(score))
+                ):
+                    raise ValueError(
+                        f"action scorer row {row_index} has non-finite or "
+                        f"non-numeric score for {name!r}: {score!r}"
+                    )
+                clean_row[name] = float(score)
+            validated.append(clean_row)
+        return validated
 
 
 class TokenGenerator(abc.ABC):
