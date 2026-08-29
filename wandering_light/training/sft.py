@@ -1,6 +1,7 @@
 import argparse
 import os
 
+import wandb
 from transformers import (
     AutoConfig,
     AutoModelForCausalLM,
@@ -11,7 +12,6 @@ from transformers import (
 from transformers.trainer_utils import get_last_checkpoint
 from trl import SFTConfig, SFTTrainer
 
-import wandb
 from wandering_light.constants import DEFAULT_EVAL_FILE, DEFAULT_SOLVER_CHECKPOINT, Task
 from wandering_light.evals.evaluate_proposer import evaluate_proposer
 from wandering_light.evals.model_eval import evaluate_model_checkpoint_with_trajectories

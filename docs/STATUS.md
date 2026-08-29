@@ -25,8 +25,6 @@ holds the argument.
 | **`mark-28` corpus probe** | solver-build-quotations (#60) step 2, the gate on adopting it. **Not met.** Like-for-like at depth 5: combinator share moves **6.7% → 7.0%**, tasks running code at all do not move (12.4% both), for **10.5x the generation cost** (130 s → 1,364 s). At depths 2–4 the two corpora are *identical*. Quotation construction appears (0% → 4.3%) but is degenerate: bodies are 1–2 ops and **59 of 61 never execute what they built**. Cause: tasks are certified *shortest* and the families hand quotations over, so a built quotation can never beat a supplied one. **The lever is the generator, not the op set.** | [report](../reports/mark-28-corpus-20260828/README.md), [solver-build-quotations (#60)](../../issues/60) |
 | **Branching, `wl-core-v1`** | 118 functions, 20.52 applicable, 4.292 bits/step. Type masking is worth ~3.9 bits, slightly better than #33 assumed. | #33 |
 | **Substrate comparison** | Both bases generate new behaviour at ~the same rate under composition — 5.87x/op against 5.77x. The stack machine's win is price: 73% of choice bits become new behaviour against 59%. It pays a **median 2.00x in program length**. | #42 |
-| **Stack corpus** | `stack_pbe_v2.jsonl.gz` — 1,857 PBE tasks certified shortest to depth 6 against `executable-26`, 1,502 train / 355 eval, 101 needing a loop. Split is a SHA-256 of the task, not a shuffle. **The whole corpus runs on 17 distinct input sets** — `FAMILIES` hardcodes 1–2 per family — so it is 1,857 *programs* over seventeen input configurations. | #42, [stack-corpus-no-higher-order (#59)](../../issues/59) |
-| **What the stack corpus contains** | Measured, not assumed: **0%** of programs build a quotation from op symbols — structural, since no op in `executable-26` pushes one. 36.6% of tasks are *handed* a quotation and **76.8% of those never execute it**. Only 11.8% of programs run code at all, 5.7% use a combinator, and **55.3% use no arithmetic, predicate or combinator whatsoever**. `experiments/stack_corpus_scope.py`. | [stack-corpus-no-higher-order (#59)](../../issues/59) |
 | **`deep-corpus-v1`** | 31,350 tasks, certified distances 1–8, 240 roots, split by root. BFS solve rate is a **step function**: 100% up to its depth cap, 0% beyond. Distance-8 answers cost it ~4.4M executions. | [#37](../../issues/37) |
 | **`deep-corpus-v2`** | 313,438 fresh certified tasks from 2,400 roots, split 1,880 / 260 / 260 with zero root/task overlap across splits or with v1. All witnesses re-execute. The tracked 42 KB manifest carries corpus identity and pins per-root telemetry published separately at HF revision `36753a013f3a4e965892b33bc44a8cc0fd567d99`. | [#54](../../issues/54) |
 | **Basis growth by MDL** | Degenerate. Accepted 400 words without converging, basis 118 → 518, corpus −36.4%, **search 42,631x more expensive at depth 6**. Every candidate clearing the bar is length 2. | [#41](../../issues/41) |
@@ -53,6 +51,19 @@ holds the argument.
 
 Claims that were stated confidently and are wrong. Recorded here so a
 correction lands in one place instead of being chased across comment threads.
+
+- **The committed stack corpus, `stack_pbe_v2.jsonl.gz`, is deleted** as of
+  2026-08-28, along with `stack_corpus_scope.py`,
+  `recertify_stack_machine_cost.py`, `stack_machine_baseline.py` and the tests
+  that read it. It was 1,857 *programs* over **17 distinct input sets**, handed
+  a quotation to the solver in 680 of them, and built none. Nothing derived from
+  it is quotable, so keeping it invited accidental citation. Recover it with
+  `git show 28e9518:wandering_light/evals/data/stack_pbe_v2.jsonl.gz` -- the
+  history is intact, and `reports/stack-machine-basis/` and
+  `reports/mark-28-corpus-20260828/` still describe what it contained. **The
+  stack machine itself, its three bases, and every substrate measurement are
+  unaffected** and stay. What is missing is a generator that produces tasks
+  worth solving; until one exists there is no stack corpus.
 
 - **"BFS solves 75.2% of the stack corpus at a 10,000-node budget."** The
   number is real; what it measures is not what it was quoted for. That corpus
