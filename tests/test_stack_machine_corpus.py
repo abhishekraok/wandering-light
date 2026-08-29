@@ -52,6 +52,15 @@ CORPUS = (
 
 @pytest.fixture(scope="module")
 def tasks() -> list[dict]:
+    """The committed corpus was deleted 2026-08-28; see STATUS under Superseded.
+
+    Tests that need real tasks now generate them, so they exercise the
+    generator rather than a frozen artifact with a known-degenerate task
+    distribution. Recover the old file with
+    `git show 28e9518:wandering_light/evals/data/stack_pbe_v2.jsonl.gz`.
+    """
+    if not CORPUS.exists():
+        pytest.skip("committed stack corpus deleted; generate one to run this")
     with gzip.open(CORPUS, "rt") as handle:
         return [json.loads(line) for line in handle]
 
