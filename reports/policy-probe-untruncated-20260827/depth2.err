@@ -1,0 +1,256 @@
+
+== front k=2: 19320 train / 2700 test   over budget: flat 15.9% of tasks, pairs 0.15% of items
+  training front k=2 flat seed 0...
+    flat encoder: 90582 parameters
+    epoch  1  val loss 2.5212
+    epoch  2  val loss 2.2853
+    epoch  3  val loss 2.2047
+    epoch  4  val loss 2.1648
+    epoch  5  val loss 2.1071
+    epoch  6  val loss 2.1119
+    epoch  7  val loss 2.0882
+    epoch  8  val loss 2.0888
+    epoch  9  val loss 2.0585
+    epoch 10  val loss 2.0439
+    epoch 11  val loss 2.0755
+    epoch 12  val loss 2.0369
+  training front k=2 flat seed 1...
+    flat encoder: 90582 parameters
+    epoch  1  val loss 2.5588
+    epoch  2  val loss 2.3483
+    epoch  3  val loss 2.2223
+    epoch  4  val loss 2.1744
+    epoch  5  val loss 2.1130
+    epoch  6  val loss 2.1236
+    epoch  7  val loss 2.1069
+    epoch  8  val loss 2.0643
+    epoch  9  val loss 2.0404
+    epoch 10  val loss 2.0414
+    epoch 11  val loss 2.0725
+    epoch 12  val loss 2.0299
+  training front k=2 flat seed 2...
+    flat encoder: 90582 parameters
+    epoch  1  val loss 2.5291
+    epoch  2  val loss 2.3012
+    epoch  3  val loss 2.1928
+    epoch  4  val loss 2.1332
+    epoch  5  val loss 2.0976
+    epoch  6  val loss 2.1030
+    epoch  7  val loss 2.0764
+    epoch  8  val loss 2.0706
+    epoch  9  val loss 2.0117
+    epoch 10  val loss 2.0362
+    epoch 11  val loss 2.0155
+    epoch 12  val loss 1.9827
+  training front k=2 wide seed 0...
+    wide encoder: 90582 parameters
+    epoch  1  val loss 2.5285
+    epoch  2  val loss 2.2810
+    epoch  3  val loss 2.2159
+    epoch  4  val loss 2.1492
+    epoch  5  val loss 2.1030
+    epoch  6  val loss 2.1005
+    epoch  7  val loss 2.0699
+    epoch  8  val loss 2.0655
+    epoch  9  val loss 2.0345
+    epoch 10  val loss 2.0165
+    epoch 11  val loss 2.0317
+    epoch 12  val loss 2.0026
+  training front k=2 wide seed 1...
+    wide encoder: 90582 parameters
+    epoch  1  val loss 2.5570
+    epoch  2  val loss 2.3393
+    epoch  3  val loss 2.2082
+    epoch  4  val loss 2.1604
+    epoch  5  val loss 2.1038
+    epoch  6  val loss 2.1067
+    epoch  7  val loss 2.0588
+    epoch  8  val loss 2.0546
+    epoch  9  val loss 2.0490
+    epoch 10  val loss 2.0433
+    epoch 11  val loss 2.0191
+    epoch 12  val loss 2.0016
+  training front k=2 wide seed 2...
+    wide encoder: 90582 parameters
+    epoch  1  val loss 2.5514
+    epoch  2  val loss 2.3085
+    epoch  3  val loss 2.2113
+    epoch  4  val loss 2.1457
+    epoch  5  val loss 2.1060
+    epoch  6  val loss 2.0886
+    epoch  7  val loss 2.0614
+    epoch  8  val loss 2.0868
+    epoch  9  val loss 2.0222
+    epoch 10  val loss 1.9835
+    epoch 11  val loss 2.0378
+    epoch 12  val loss 2.0192
+  training front k=2 pairs seed 0...
+    pairs encoder: 96214 parameters
+    epoch  1  val loss 2.1789
+    epoch  2  val loss 2.0041
+    epoch  3  val loss 1.9494
+    epoch  4  val loss 1.8545
+    epoch  5  val loss 1.8336
+    epoch  6  val loss 1.7982
+    epoch  7  val loss 1.7664
+    epoch  8  val loss 1.7249
+    epoch  9  val loss 1.7629
+    epoch 10  val loss 1.7218
+    epoch 11  val loss 1.7526
+    epoch 12  val loss 1.7139
+  training front k=2 pairs seed 1...
+    pairs encoder: 96214 parameters
+    epoch  1  val loss 2.2101
+    epoch  2  val loss 2.0693
+    epoch  3  val loss 1.9241
+    epoch  4  val loss 1.8452
+    epoch  5  val loss 1.8143
+    epoch  6  val loss 1.7685
+    epoch  7  val loss 1.7572
+    epoch  8  val loss 1.7539
+    epoch  9  val loss 1.7122
+    epoch 10  val loss 1.7126
+    epoch 11  val loss 1.7361
+    epoch 12  val loss 1.6909
+  training front k=2 pairs seed 2...
+    pairs encoder: 96214 parameters
+    epoch  1  val loss 2.2399
+    epoch  2  val loss 2.0198
+    epoch  3  val loss 1.9191
+    epoch  4  val loss 1.8608
+    epoch  5  val loss 1.8383
+    epoch  6  val loss 1.8262
+    epoch  7  val loss 1.7746
+    epoch  8  val loss 1.7652
+    epoch  9  val loss 1.7326
+    epoch 10  val loss 1.7189
+    epoch 11  val loss 1.8000
+    epoch 12  val loss 1.7278
+
+== back k=2: 19320 train / 2700 test   over budget: flat 45.6% of tasks, pairs 0.03% of items
+  training back k=2 flat seed 0...
+    flat encoder: 90582 parameters
+    epoch  1  val loss 2.6129
+    epoch  2  val loss 2.2895
+    epoch  3  val loss 2.1397
+    epoch  4  val loss 2.0697
+    epoch  5  val loss 1.9958
+    epoch  6  val loss 2.0039
+    epoch  7  val loss 1.9704
+    epoch  8  val loss 2.0177
+    epoch  9  val loss 2.0003
+    epoch 10  val loss 1.9698
+    epoch 11  val loss 1.9848
+    epoch 12  val loss 2.0891
+  training back k=2 flat seed 1...
+    flat encoder: 90582 parameters
+    epoch  1  val loss 2.6059
+    epoch  2  val loss 2.3019
+    epoch  3  val loss 2.1465
+    epoch  4  val loss 2.0560
+    epoch  5  val loss 2.0708
+    epoch  6  val loss 1.9473
+    epoch  7  val loss 1.9718
+    epoch  8  val loss 1.9376
+    epoch  9  val loss 1.8783
+    epoch 10  val loss 1.9149
+    epoch 11  val loss 1.8903
+    epoch 12  val loss 2.0325
+  training back k=2 flat seed 2...
+    flat encoder: 90582 parameters
+    epoch  1  val loss 2.6644
+    epoch  2  val loss 2.3051
+    epoch  3  val loss 2.1324
+    epoch  4  val loss 2.0749
+    epoch  5  val loss 2.0441
+    epoch  6  val loss 1.9863
+    epoch  7  val loss 2.0283
+    epoch  8  val loss 2.0063
+    epoch  9  val loss 1.9453
+    epoch 10  val loss 1.9873
+    epoch 11  val loss 2.0011
+    epoch 12  val loss 1.9864
+  training back k=2 wide seed 0...
+    wide encoder: 90582 parameters
+    epoch  1  val loss 2.2196
+    epoch  2  val loss 1.7849
+    epoch  3  val loss 1.5895
+    epoch  4  val loss 1.4269
+    epoch  5  val loss 1.4186
+    epoch  6  val loss 1.3731
+    epoch  7  val loss 1.3427
+    epoch  8  val loss 1.3599
+    epoch  9  val loss 1.3261
+    epoch 10  val loss 1.3481
+    epoch 11  val loss 1.3772
+    epoch 12  val loss 1.3840
+  training back k=2 wide seed 1...
+    wide encoder: 90582 parameters
+    epoch  1  val loss 2.1895
+    epoch  2  val loss 1.8347
+    epoch  3  val loss 1.6430
+    epoch  4  val loss 1.5064
+    epoch  5  val loss 1.4598
+    epoch  6  val loss 1.3857
+    epoch  7  val loss 1.4085
+    epoch  8  val loss 1.3775
+    epoch  9  val loss 1.3416
+    epoch 10  val loss 1.3490
+    epoch 11  val loss 1.3242
+    epoch 12  val loss 1.3166
+  training back k=2 wide seed 2...
+    wide encoder: 90582 parameters
+    epoch  1  val loss 2.2478
+    epoch  2  val loss 1.7512
+    epoch  3  val loss 1.5568
+    epoch  4  val loss 1.4462
+    epoch  5  val loss 1.3889
+    epoch  6  val loss 1.3660
+    epoch  7  val loss 1.3552
+    epoch  8  val loss 1.3576
+    epoch  9  val loss 1.3110
+    epoch 10  val loss 1.3414
+    epoch 11  val loss 1.3910
+    epoch 12  val loss 1.3634
+  training back k=2 pairs seed 0...
+    pairs encoder: 96214 parameters
+    epoch  1  val loss 1.8373
+    epoch  2  val loss 1.3585
+    epoch  3  val loss 1.1830
+    epoch  4  val loss 1.1034
+    epoch  5  val loss 1.0167
+    epoch  6  val loss 0.9876
+    epoch  7  val loss 0.9644
+    epoch  8  val loss 0.9343
+    epoch  9  val loss 0.8871
+    epoch 10  val loss 0.8992
+    epoch 11  val loss 0.9033
+    epoch 12  val loss 0.9227
+  training back k=2 pairs seed 1...
+    pairs encoder: 96214 parameters
+    epoch  1  val loss 1.7805
+    epoch  2  val loss 1.2960
+    epoch  3  val loss 1.1238
+    epoch  4  val loss 1.0327
+    epoch  5  val loss 1.0329
+    epoch  6  val loss 0.9608
+    epoch  7  val loss 0.9705
+    epoch  8  val loss 0.9282
+    epoch  9  val loss 0.9359
+    epoch 10  val loss 0.9351
+    epoch 11  val loss 0.9086
+    epoch 12  val loss 0.9200
+  training back k=2 pairs seed 2...
+    pairs encoder: 96214 parameters
+    epoch  1  val loss 1.7875
+    epoch  2  val loss 1.3156
+    epoch  3  val loss 1.1623
+    epoch  4  val loss 1.0777
+    epoch  5  val loss 1.0653
+    epoch  6  val loss 0.9965
+    epoch  7  val loss 1.0236
+    epoch  8  val loss 0.9746
+    epoch  9  val loss 0.9674
+    epoch 10  val loss 0.9266
+    epoch 11  val loss 0.9514
+    epoch 12  val loss 0.9433
