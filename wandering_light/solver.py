@@ -12,6 +12,7 @@ from collections import deque
 from dataclasses import dataclass
 from typing import Literal
 
+import anthropic
 import google.generativeai as genai
 import openai
 from dotenv import load_dotenv
@@ -413,6 +414,48 @@ class OpenAITokenGenerator(TokenGenerator):
         )
         self.llm_io_history.append((prompt, response.output_text))
         return response.output_text
+
+    def generate_batch(self, prompts: list[str]) -> list[str]:
+        """Generate responses for a batch of prompts. Uses sequential processing for API-based generation."""
+        return super().generate_batch(prompts)
+
+
+class AnthropicTokenGenerator(TokenGenerator):
+    """Claude, through the official Anthropic SDK.
+
+    Deliberately no `fallbacks` parameter. Server-side fallback would let a
+    refusal be answered by a different model inside the same call, which is
+    right for a product and wrong here: these generators exist to produce
+    benchmark numbers, and the model is the variable being measured. A silent
+    substitution would put two models' answers in one column. Refusals are
+    reported through `stop_reason` instead, so a run can say so.
+    """
+
+    def __init__(self, model: str = "claude-opus-5", effort: str = "high"):
+        self.model = model
+        self.effort = effort
+        load_dotenv()
+        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        self.llm_io_history = []
+
+    def generate(
+        self,
+        prompt: str,
+    ) -> str:
+        response = self.client.messages.create(
+            model=self.model,
+            max_tokens=4096,
+            output_config={"effort": self.effort},
+            messages=[{"role": "user", "content": prompt}],
+        )
+        if response.stop_reason == "refusal":
+            output = ""
+        else:
+            output = "".join(
+                block.text for block in response.content if block.type == "text"
+            )
+        self.llm_io_history.append((prompt, output))
+        return output
 
     def generate_batch(self, prompts: list[str]) -> list[str]:
         """Generate responses for a batch of prompts. Uses sequential processing for API-based generation."""

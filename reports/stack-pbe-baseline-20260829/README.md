@@ -1,0 +1,109 @@
+# First solver numbers on `stack_pbe_v3`, and what held-out examples change
+
+Date: 2026-08-29 · [pbe-generator-behaviour-first (#67)](../../issues/67) · corpus `stack_pbe_v3.jsonl.gz`
+
+Two things are being measured. What solves the corpus, and what the corpus's
+hidden examples catch that the old protocol could not.
+
+## The protocol
+
+A solver sees **only the shown examples** of a task — 3 to 6 input/output pairs.
+Whatever it returns is graded on that task's **8 held-out** pairs, which it never
+saw. `experiments/stack_pbe_baseline.py` never passes the held-out set to a
+backend, and `tests/test_stack_pbe_baseline.py` pins that by re-running BFS on a
+task with its held-out fields stripped and requiring the same answer.
+
+Two numbers come out of `wandering_light/stack_pbe_eval.py`:
+
+* **solved** — right on data it was not given. The only number worth quoting.
+* **shown-only** — what a grader without held-out examples would have reported.
+
+`stack_pbe_v2` could not report the second at all. Its data came from a
+seventeen-row table, so there was nothing left over to hold out, and every
+stack-side solver number in the project is a shown-only number.
+
+## BFS against a node budget
+
+Breadth-first over the product behaviour of the shown examples, stopping at the
+first program that fits them. Budgets are expansions, so 10,000 is comparable to
+the figure `stack_pbe_v2` was quoted against.
+
+The same forty eval tasks at three budgets, so the rows compare.
+
+| budget | solved | shown-only | memorised | wall clock |
+|---:|---:|---:|---:|---:|
+| 1,000 | **0/40 (0.0%)** | 2.5% | 1 | 30 s |
+| 10,000 | **3/40 (7.5%)** | 10.0% | 1 | 369 s |
+| 100,000 | **11/40 (27.5%)** | 30.0% | 1 | 3,326 s |
+
+Each 10x of budget costs 10x the wall clock and roughly triples the solves. The
+memorisation count does not move: it is the same single task at every budget.
+
+At 100,000 nodes — a hundred times the budget v2's 75.2% was quoted at — BFS
+solves **every** five-op behaviour in the sample and almost nothing else:
+
+| behaviour | witness ops | solved |
+|---|---:|---:|
+| `double_each` | 5 | 4/4 |
+| `sum` | 5 | 3/3 |
+| `keep_negative` | 5 | 3/3 |
+| `last` | 6 | 1/2 |
+| `scale_by` | 6 | 0/2 |
+| `sum_both` | 6 | 0/7 |
+| `keep_above` | 7 | 0/3 |
+| `count_negative` | 12 | 0/4 |
+| `maximum` | 16 | 0/6 |
+| `abs_each` | 16 | 0/4 |
+| `minimum` | 16 | 0/2 |
+
+The same step function `deep-corpus-v1` shows: everything up to the depth the
+budget reaches, nothing past it. The wall sits between 5 and 6 ops, and a 100x
+budget increase moved it by one op. At a measured ~19–24x branching per step,
+buying the next op costs roughly another 20x, and `span` at 35 ops is not on the
+same scale as anything purchasable.
+
+This is the property the old corpus lacked. Its 75.2% described search over an
+enumeration of what search already reaches.
+
+## What the held-out examples caught
+
+One memorisation at every budget, and it is the same task. BFS returns
+`uncons drop i` for a `last` task whose three shown examples are all
+**two-element** lists:
+
+```
+shown            [ (9 1) ]  -> [ 1 ]      [ (-2 -2) ] -> [ -2 ]   [ (4 -7) ] -> [ -7 ]
+held out         [ (-9 -4 -2 -3 7 6) ] -> want [ 6 ]   got [ -4 -2 -3 7 6 ]
+```
+
+The program drops the head and *runs the one-element tail as a program*, which
+returns the last element only when the list has length two. On a six-element list
+it leaves the tail. Under the old protocol this is a solve; here it is a failure,
+which is what it is.
+
+The overstatement is small on this corpus — 2.5 points at both budgets — but it
+is not zero, and it appeared in the first forty tasks anyone graded.
+
+**Part of it is a generator hole, not solver weakness.** 24 of the 1,480
+list-bearing tasks (1.6%) show only one list length across all their shown
+examples, almost all of them three-example tasks. Requiring at least two distinct
+list lengths among the shown examples would close it, and belongs in the next
+corpus rather than a silent regeneration of this one.
+
+## Not measured
+
+**No language model has been run.** No API credentials are present on this
+machine and no local model is pulled, so the arm that would say whether these
+behaviours are *hard* or merely *unfamiliar to search* is missing. The backend is
+written and tested — response parsing has its own tests — and needs only a key.
+Until then the only claim here is about search.
+
+`solver.py` has OpenAI, Gemini and Ollama generators and **no Anthropic one**.
+
+## Reproduce
+
+```bash
+uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 10000 --split eval
+uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 100000 --split eval --tasks 40
+uv run python experiments/stack_pbe_baseline.py --backend llm --provider gemini --model gemini-2.5-flash --tasks 40
+```
