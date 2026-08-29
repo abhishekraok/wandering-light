@@ -1,0 +1,3894 @@
+{
+  "bfs_reference": null,
+  "checkpoint": {
+    "artifact_files": [
+      {
+        "bytes": 362136,
+        "name": "model.safetensors",
+        "sha256": "sha256:1a1e0d5815691ca9b1104caf44926c8ff746514fb953b24c48a3a3ad558b9bd6"
+      },
+      {
+        "bytes": 21973,
+        "name": "policy_config.json",
+        "sha256": "sha256:ef04c2b5ec516f87f57cf5f1b7f8d1982927689e6abe6730993224da03e2d951"
+      },
+      {
+        "bytes": 2163,
+        "name": "trainer_state.json",
+        "sha256": "sha256:3157fefd923cd5cfb0f9d163c9676dfba2ca6c236264cb674b33f185328c2539"
+      },
+      {
+        "bytes": 9668,
+        "name": "training_manifest.json",
+        "sha256": "sha256:79124c8b374d115b3e5eec709573a155e9e7ff9cd3ad7ab8b1b5fd5985671c93"
+      },
+      {
+        "bytes": 101,
+        "name": "wandb_run.url",
+        "sha256": "sha256:ecd4c80e5464f237f266bce76b404770de2ae63f92fca0e8b37d1df890e0c8b2"
+      }
+    ],
+    "path": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-issue-55/checkpoints/issue-55-rollout-policy-seed0-20260829-retry1",
+    "policy_config_sha256": "sha256:ef04c2b5ec516f87f57cf5f1b7f8d1982927689e6abe6730993224da03e2d951",
+    "training": {
+      "artifacts": {
+        "model.safetensors": "sha256:1a1e0d5815691ca9b1104caf44926c8ff746514fb953b24c48a3a3ad558b9bd6",
+        "policy_config.json": "sha256:ef04c2b5ec516f87f57cf5f1b7f8d1982927689e6abe6730993224da03e2d951",
+        "trainer_state.json": "sha256:3157fefd923cd5cfb0f9d163c9676dfba2ca6c236264cb674b33f185328c2539",
+        "wandb_run.url": "sha256:ecd4c80e5464f237f266bce76b404770de2ae63f92fca0e8b37d1df890e0c8b2"
+      },
+      "basis_set": {
+        "basis_set_digest": "sha256:ffc602fb24db249df7eb4f6b0d5ba38d5a5070b2c68c6c5f94c7f387de682494",
+        "basis_set_id": "wl-core-v1",
+        "ordered_action_names": [
+          "inc",
+          "dec",
+          "double",
+          "half",
+          "square",
+          "mod2",
+          "neg",
+          "abs",
+          "sign",
+          "f_reciprocal",
+          "f_abs_sqrt",
+          "f_fraction",
+          "f_trunc",
+          "f_round",
+          "f_mod1",
+          "upper",
+          "lower",
+          "capitalize",
+          "title",
+          "strip",
+          "swapcase",
+          "reverse",
+          "repeat",
+          "duplicate",
+          "length",
+          "is_digit",
+          "is_alpha",
+          "count_a",
+          "startswith_a",
+          "endswith_z",
+          "contains_space",
+          "bool_not",
+          "bool_to_int",
+          "bool_to_str",
+          "identity_int",
+          "is_even",
+          "is_odd",
+          "int_to_bool",
+          "int_to_str",
+          "f_abs",
+          "f_floor",
+          "f_ceil",
+          "f_square",
+          "is_lower",
+          "is_upper",
+          "is_space",
+          "is_title",
+          "is_numeric",
+          "is_positive",
+          "is_negative",
+          "int_to_float",
+          "float_to_str",
+          "first_char",
+          "last_char",
+          "bool_identity",
+          "bool_to_float",
+          "list_length",
+          "list_reverse",
+          "list_sorted",
+          "list_unique",
+          "list_sum",
+          "list_is_empty",
+          "tuple_length",
+          "tuple_reverse",
+          "tuple_to_list",
+          "tuple_is_empty",
+          "set_size",
+          "set_is_empty",
+          "set_to_list",
+          "dict_keys",
+          "dict_values",
+          "dict_items",
+          "dict_length",
+          "dict_is_empty",
+          "dict_keyset",
+          "bytes_length",
+          "bytes_to_hex",
+          "bytes_upper",
+          "bytes_is_empty",
+          "bytearray_length",
+          "bytearray_to_bytes",
+          "bytearray_reverse",
+          "complex_real",
+          "complex_imag",
+          "complex_abs",
+          "range_length",
+          "range_list",
+          "range_sum",
+          "int_bit_length",
+          "int_popcount",
+          "int_is_power_of_two",
+          "int_clip_0_100",
+          "f_log10",
+          "f_exp",
+          "f_sin",
+          "f_is_integer",
+          "f_frac_percent",
+          "str_is_palindrome",
+          "str_count_vowels",
+          "str_remove_digits",
+          "str_reverse_words",
+          "str_to_list",
+          "str_hash",
+          "list_max",
+          "list_min",
+          "list_tail",
+          "list_median",
+          "tuple_count_none",
+          "tuple_to_index_dict",
+          "dict_freeze",
+          "dict_has_duplicate_values",
+          "dict_flip",
+          "bytes_reverse",
+          "bytes_is_ascii",
+          "complex_conjugate",
+          "complex_phase",
+          "range_max",
+          "set_hash"
+        ]
+      },
+      "completed_at_utc": "2026-08-29T06:35:01.826020+00:00",
+      "hyperparameters": {
+        "device": "cuda",
+        "epochs": 12,
+        "learning_rate": 0.002,
+        "optimizer": "torch.optim.Adam",
+        "resumption_supported": false,
+        "seed": 0,
+        "selection": "minimum validation cross-entropy",
+        "sequence_padding": "fixed-to-maximum-for-training",
+        "sequence_width": 193,
+        "train_batch_size": 256,
+        "validation_batch_size": 512,
+        "weights_only": true
+      },
+      "objective": "witness-next-action-cross-entropy",
+      "prefix_examples": {
+        "discovery": 107049,
+        "test": 0,
+        "validation": 15046
+      },
+      "runtime": {
+        "accelerator": {
+          "compute_capability": [
+            8,
+            9
+          ],
+          "index": 0,
+          "name": "NVIDIA GeForce RTX 4090",
+          "total_memory_bytes": 25756696576
+        },
+        "floating_parameter_dtypes": [
+          "torch.float32"
+        ],
+        "model": {
+          "architecture": "aligned-item-pairs-untyped-v1",
+          "parameters": 90374,
+          "trainable_parameters": 90374
+        },
+        "optimizer": {
+          "class": "torch.optim.Adam",
+          "defaults": {
+            "amsgrad": false,
+            "betas": [
+              0.9,
+              0.999
+            ],
+            "capturable": false,
+            "decoupled_weight_decay": false,
+            "differentiable": false,
+            "eps": 1e-08,
+            "foreach": null,
+            "fused": null,
+            "lr": 0.002,
+            "maximize": false,
+            "weight_decay": 0
+          }
+        },
+        "precision": "fp32",
+        "resolved_device": "cuda:0",
+        "software": {
+          "cuda_available": true,
+          "cuda_device_count": 1,
+          "cuda_runtime_version": "12.8",
+          "cudnn_version": 91002,
+          "torch_version": "2.8.0+cu128"
+        }
+      },
+      "schema_version": 1,
+      "source_code": {
+        "dirty": false,
+        "head_commit": "89ee868ddf20ab6126f4e7bd7d3284a380436932",
+        "runner": {
+          "path": "experiments/train_rollout_policy.py",
+          "sha256": "sha256:17d195975fef8942d343699522ee9623d89aee248041d97ea5caf5328363c4fb"
+        },
+        "tracked_diff_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked_files": [],
+        "untracked_files_digest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "source_corpus": {
+        "basis_set_digest": "sha256:ffc602fb24db249df7eb4f6b0d5ba38d5a5070b2c68c6c5f94c7f387de682494",
+        "basis_set_id": "wl-core-v1",
+        "hub": {
+          "repo_id": "abhishekraok/wandering-light-deep-corpus-v1",
+          "repo_type": "dataset",
+          "revision": "fd22029677638702b6b13c572757a71e2f81335b"
+        },
+        "manifest_digest": "sha256:0efed8ca6c57942c1672ed0a2e6e3abe87b009168f9b26140408458ded8f41af",
+        "manifest_file_sha256": "sha256:18953b74987142a667e3ab7d9d57c9d7fda537bd1a21b70f34979ba6b5be5079",
+        "manifest_path": "/home/abhishekrao/repos/wandering-light/wandering_light/training/data/deep_corpus_v1/manifest.json",
+        "root": "/home/abhishekrao/repos/wandering-light/wandering_light/training/data/deep_corpus_v1",
+        "split_policy": "by root: every task from one root shares that root's split",
+        "task_roles": {
+          "discovery": {
+            "records": 24498,
+            "role": "training-only",
+            "roots": 188,
+            "sha256": "sha256:b73909ef7bbbfe84985d5ccb7f89242651b6594bf7af0fed45426c0a8bdf47fb"
+          },
+          "test": {
+            "records": 3425,
+            "role": "held-out-evaluation-only; no test prefix examples constructed or used; payload read only for integrity",
+            "roots": 26,
+            "sha256": "sha256:a404e339ff429344991d9ab92f379886062e67da6ce120090021ee865da2dced"
+          },
+          "validation": {
+            "records": 3427,
+            "role": "model-selection-only",
+            "roots": 26,
+            "sha256": "sha256:c416f507bc930626faceaf603ebb48c31e6e21f4c0f146ba6728a7d27f3a5748"
+          }
+        },
+        "verification": {
+          "ok": true,
+          "roots_leaking_across_splits": [],
+          "witness_failures": []
+        }
+      },
+      "started_at_utc": "2026-08-29T06:24:55.614843+00:00",
+      "status": "complete",
+      "teacher_forcing": "every proper witness prefix; no off-path augmentation",
+      "trainer_state": {
+        "best_epoch": 12,
+        "best_validation_cross_entropy": 1.3934917173597323,
+        "epochs_completed": 12,
+        "history": [
+          {
+            "epoch": 1,
+            "train_cross_entropy": 2.1106615507456477,
+            "validation_cross_entropy": 1.7604977953676435
+          },
+          {
+            "epoch": 2,
+            "train_cross_entropy": 1.6784452105825953,
+            "validation_cross_entropy": 1.630745803202211
+          },
+          {
+            "epoch": 3,
+            "train_cross_entropy": 1.5635473855519582,
+            "validation_cross_entropy": 1.5567520224761253
+          },
+          {
+            "epoch": 4,
+            "train_cross_entropy": 1.4909106242659937,
+            "validation_cross_entropy": 1.528171497219724
+          },
+          {
+            "epoch": 5,
+            "train_cross_entropy": 1.4428799372509835,
+            "validation_cross_entropy": 1.4755722120944987
+          },
+          {
+            "epoch": 6,
+            "train_cross_entropy": 1.4032877304894544,
+            "validation_cross_entropy": 1.4279654250727456
+          },
+          {
+            "epoch": 7,
+            "train_cross_entropy": 1.3710414023077258,
+            "validation_cross_entropy": 1.4575874179534325
+          },
+          {
+            "epoch": 8,
+            "train_cross_entropy": 1.3408032240690018,
+            "validation_cross_entropy": 1.4190091913120078
+          },
+          {
+            "epoch": 9,
+            "train_cross_entropy": 1.3201665646612346,
+            "validation_cross_entropy": 1.4099564558011681
+          },
+          {
+            "epoch": 10,
+            "train_cross_entropy": 1.302217713045913,
+            "validation_cross_entropy": 1.4070533956284061
+          },
+          {
+            "epoch": 11,
+            "train_cross_entropy": 1.284845094570362,
+            "validation_cross_entropy": 1.4095204475156395
+          },
+          {
+            "epoch": 12,
+            "train_cross_entropy": 1.2688323974682871,
+            "validation_cross_entropy": 1.3934917173597323
+          }
+        ],
+        "optimizer": {
+          "class": "torch.optim.Adam",
+          "defaults": {
+            "amsgrad": false,
+            "betas": [
+              0.9,
+              0.999
+            ],
+            "capturable": false,
+            "decoupled_weight_decay": false,
+            "differentiable": false,
+            "eps": 1e-08,
+            "foreach": null,
+            "fused": null,
+            "lr": 0.002,
+            "maximize": false,
+            "weight_decay": 0
+          }
+        },
+        "train_prefixes": 107049,
+        "validation_prefixes": 15046
+      },
+      "wandb": {
+        "entity": "abhishekraok-na",
+        "project": "wandering-light-rollout-policy",
+        "run_name": "issue-55-rollout-policy-seed0-20260829-retry1",
+        "url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/4f4lqchn"
+      }
+    },
+    "training_manifest_sha256": "sha256:79124c8b374d115b3e5eec709573a155e9e7ff9cd3ad7ab8b1b5fd5985671c93",
+    "weights": {
+      "bytes": 362136,
+      "name": "model.safetensors",
+      "sha256": "sha256:1a1e0d5815691ca9b1104caf44926c8ff746514fb953b24c48a3a3ad558b9bd6"
+    }
+  },
+  "cohort": {
+    "by_certified_distance": {
+      "1": 12,
+      "2": 12,
+      "3": 12,
+      "4": 12,
+      "5": 12,
+      "6": 12,
+      "7": 12,
+      "8": 12
+    },
+    "seed": 20260816,
+    "selection": "distance-stratified-within-frozen-root-split",
+    "task_ids": [
+      "38633b2b698130971201dfab172fb539d6611f54d16c66f03f7084b0ee3b76cc",
+      "d8e8ea757669a721c830f0103065b8409e05202ae9684a975d339730c9bdf63c",
+      "d4c9f97bc36b2b876f6b2cc8a36c2b1f8cb9d9de88b2976997d965ea39d658e1",
+      "32dc5de8aa7221e3e203cd26a0fea912634e6a7882397f8ed81ccb99c7425555",
+      "bcd4174880f81cc2b41df4fee38f8285b98754e060f3bc3b55dd8a4d6eb8a5aa",
+      "be12ed8ab17692d6b2982869054b9f06ec49030ae27b7dcb6a9b0174788d1824",
+      "c7dc691a6f9e3b1539f925ea0c5c38512e91436a283233b03f3cf802e4d97c47",
+      "c341fb32ea062f017c0e52514e4662dda06bf729fa6c5bccae8b824e211a6204",
+      "d50fb335a288deba29acfb849ea3f780f20f4930d47a11332919be32200b796d",
+      "3a4fbb1dc242f1914830a41ab9b04c9cc24db77738fab0dbd63cfbc517518f43",
+      "42384cf29d5846dff9ae5796dd22827e71e401c7b3cb47b9fb3b1fbf88119f6e",
+      "143bbb5c5d90483f6fe3dad900acd6ac9ade620e2247337f7b3da1e200404a18",
+      "5e905fe89b155ea620036bd35c2909365d608ee9515de1094ac61e0bfdceb2b9",
+      "d827dd6ac4c48027cac58fcea196c977c38668c8952119806a69545b4d612247",
+      "39a2a47077e0d2c8519122f382d2fe30e52d97f8baf2be0602e542341fbec265",
+      "502ab254a51fec9b482b84eabf6ae6b964bd5f47152f337b464e76e8dd5b4d80",
+      "fd42b0a99b5c717ca0f6a431f8a265f492687378460f0d5420050d6ae3237fc9",
+      "38b3ed00ab735def189428747759d03e5d77c8771924adeaa20e4ad5ee487d58",
+      "4d1af7340509a7830ad6552906f6810afc88c0c7ce732052eca9e9b1e1dafd00",
+      "559232db10fd426fe02249494c6701e7f728fc16435a5ff2c9c0f72e0f348a45",
+      "1fb2f8c1d88ad567638381425d3887d66e4b5ac94f8c033dc538e62bf7782969",
+      "17d1cf28389d1c8f4267a00048958fb4e8a1a22ee46156bfb49be3a198fb3f07",
+      "166e2c06bb6ae0499b613562f434d5243fff67bc35f895bc4d0407b793bdc5f5",
+      "8c411590111aca2752587d3d9778ef49e0a96a007760593ffc65d987cabede8a",
+      "bf8b68d38d0f07111d15b0121f1260c940e25f5b23c56379856b9214dffb2ea1",
+      "948d7a7ad7d5eb6cecfc4266fe44617ccccfb5e3cd965fc4f95d082df043ea95",
+      "45fb1a0e3db5a304079956e43a66bfd51095441a193a236efa5050462c668679",
+      "3d955f9cad8183a7d653dcd9a29f9601332a2f8c20ff0d14c6a6c32d139298e5",
+      "ec5ad7f7878c8ca489f8e4983aa70cc8497cbd5ec7794a5e83d8b20939fe6515",
+      "f4c8c0e874812bb4f41955a5b2b34a93ae776d3de7ab2fe3cc1a55ebc4aece16",
+      "5a374229a2bd16ac3a8618344ce1be46d6fd684efd98affd25ceea23486575ae",
+      "7a14831706772a8744a964ff2a37d3929d57128857ab362dc4c06a0b7b42b912",
+      "aa7184f66768382fc432b0f038edce9995df81e8b08ae82301fbc5bee549c8ef",
+      "9fb0e5c5779b4037f9eccd08ce4e14e05ed57ae7db087a6d7cc3faea6363dd83",
+      "e3e4075aa78d4285d49513dc23c74423576235044f22a80e83626292add3cdf9",
+      "ada9621efe8258982e725ebdc0198d4ee8d8e4477d2baa87ea3392fa3b2b0ecf",
+      "24cd3abb9940282078718de457f07a219006a1aca81a93e63f5ab3a92db80146",
+      "a60dea74b10ae0f53525bed9d9ba527dc74cfed509b89f1de94b6f9f574ce47a",
+      "55421bcde293e6ce85977f841a90939a1f5b2b5326e5d880aa25d3813a317b03",
+      "8700d9404ab5b3755acedc17228c8668973f17d5703e4e08797def4c60b602f8",
+      "f1be0d4078a82a79b6b60f83b90329778de4a92ae25822b378ed65eff160a75b",
+      "4dbfadde8db1cb7632633bfa11fcd83ae1ba60dee118ac9df3d67ad500cc965c",
+      "12725fdd26d98a576de542f94aa3bc26cd7ad149a008ed5b1c234e80e6f8cd56",
+      "ddfb214f2d7937f4aae4639eb395e46dc82016ced905f6b0e82c1526db6eb78d",
+      "81fc1955679a4ae4f83a94eea36146353649d6589e009193e90508c7de7f5533",
+      "a5a87945cd60a89f08e33534e7560c00800a261a3787b58979df1621e89cdd7c",
+      "dd34944e2388161bd77586e21a783c1b06e67d2b337c276dd151ebbac2a39372",
+      "8cf132d0fb68d9003d7e96225f59455210d2d5c171700053af488c93085b11f0",
+      "3d29d4d15a07ab120b44ac5b89add8a6d0edc7a42665dd554677f1db93416a12",
+      "788fb64e33b4b94c45555255c23c25659712638199ca1a11b67efb283d789c01",
+      "0a8a6063026eca7afd888a72b12baafcf1e602a1d3125fa9797b24e2f659978f",
+      "f8d62f4203e771ea4171ebf27f98c6adb9ce179f5bf121e593666cd9f8f00f31",
+      "07b55c86f902085f97d02d7b36e95f5a5c4d7e11abca053d9ba413435ff1c119",
+      "50e464cd16e2e9b7311a332654f42955a2e3e5f95d066706af0e6a229002cb46",
+      "da8fd376d7df9c13c76954df09df3d0db98c69c3a6adb2c3faed6887511e4a99",
+      "57a2a0d25e1f74faf05c0aa5c6c9e44cbdbd12ff483eeb9570188996c761715a",
+      "9e51a554b8d50533d1d560104d9aa4c33b9439a0cf43a07dcffb865f7ece33ae",
+      "c31ed9bc88c7c897ec09f7f3264b21ae2d6af79a6326a8d574a009350e84d758",
+      "cef3574e19121b09731e1f8ff6ca38e4c7618fd3417e702fa831fc08c7171f30",
+      "57ee714de76e0d9349216ac06281e41d0a9d23030d669d7e8c27b4049ccefe56",
+      "0163f57cc020b11cddc8b94f303cc58112e7fbe829ba53d7f77b68d4043a53c7",
+      "f6148235f372596e426460a5e0c140441c765c09048c45d2be7d05574e243a83",
+      "0bf7df9b48a8114b287e26004f34518654bd2bb87445cf2895e864f0ae1311ab",
+      "1310c39127cc1172f8d5732a3229ce3ace6ba7ba369f63b113a0994dd0bdbef2",
+      "4117a1acfa1facdc1051936b5474aee70a8a852a5413ee9b0622351a635482db",
+      "7f5679077e28caaa48d3910ef4665b2d437fc616715e30bc3105dd69fb14e292",
+      "9ac5ddec8f86e0fa79f3540cfe9c1ac028c4f9064b2c4c317854e7720a8e96c4",
+      "d639c9eb084fd146815cf98f7390b0318a71114d1b7fc1d982fb4306eae6b98f",
+      "9105e9724639203bcd84c5067ad99d88b347adcdfdcca7d400ac2bc2ab7c33f4",
+      "05c5ea5c96c58f41b628046858d0558ce4a4aef2c7a9c45d70f8063afcde5826",
+      "4ccdb94d0278daf0ad4837365914311e975cfe9d622be1425b554ec48e203815",
+      "8ebeeeb4a4b4788d45402f4f2944b23791ed761a00ba0cba42ade4fe79374162",
+      "46b272cc103c6d59e683ddf6a07f7aded4b886789789537e02804b0c2728524f",
+      "b02beb398ebc8a7dab201abccd841b8d60d22832fcbbb3a22b4472d06f70325f",
+      "14f228d45e67a0d8196b6d8758727a377ddc9a435d3ccd69d2eae90ba3516d1e",
+      "bac20e482902558003d60bad8160065651bbf28e17b742a72b60aa2a33362b89",
+      "7fa46202b1eb2ec08773008f01b8980e517c0fac323fd10b357798373895ca09",
+      "6cee312ba567c326762b1e3d4d382e6353240bb381f27e8f55925293b785b527",
+      "e18172b892662d9e6346670141ca926613eb86255c0f577febf4ecee848db274",
+      "fbfe28ef151f99beeefc4859cd843a4b156ed54d516372bc04230335d0a74458",
+      "79383605f88b2e5dfe592f2fbc07c8b540a8c986c42d810f3111e615c107c834",
+      "b824453f821fea39c838d2fc3152e347242ecae1fbade30fb0d1eca6917a9940",
+      "3bff86266adba3052831d125c1259ba21a22f2c9d772e6111cda827e014b5026",
+      "d5b2666ed3da9c11608154c72056ef2d5f225692598c3ba271d7d1652cb76c17",
+      "0d52f9aed54080c9b38352755693d3842855a335bf923d2d65c45ca12e2fcaff",
+      "775dba551821710b2c7f143b3e6cdfe530a2d49362eb093677435e29ec3d4849",
+      "4c83042f2f1044750a084a45059d37fc6d04fb977b8c8f1dff6f96f0ed84b143",
+      "311bc6ab325a36b498010bd4e46a117221894d043c51c9986384d6bde8fd80b1",
+      "b9a067befea6bdd8a76380e50f5bd71e8dafc67d349b895e4acf72525fa2684a",
+      "5a23020da1fc9c90f724a848502483d80cf2600dceb4e27c18d748bce6e01131",
+      "3cebe12d1b8b0a334b4e9ec0260a9a272ea7c70eb03c67bd17499d2460e07ec7",
+      "5b8bd2e2608c7f10ba9bf5ee8a58974ee57ce61faf285a3f0a8d62ac0cc5df3f",
+      "4a5643f8c23ca7758b5eb8ca75d841154f73ea1ab170ffcf91593cb81748576d",
+      "7270582cd3ae764d65ecbbcfef3acc6709f983f498a292e669c610b38f12a573",
+      "c73b22058a6d7b5bc50683f73885d41370229fe2e7ba2dcc8abc86f7fd242adc",
+      "8eb5c7ba9ebc8af5a72c06569b953641504acb02c3c29226f762aacab369b971"
+    ],
+    "task_ids_digest": "sha256:b91d733faf23f517d6546dde17662f3d9748e79538a74a4917681f6bc8f77116",
+    "tasks": 96
+  },
+  "completed_at_utc": "2026-08-29T06:36:57.350095+00:00",
+  "corpus": {
+    "basis_set_digest": "sha256:ffc602fb24db249df7eb4f6b0d5ba38d5a5070b2c68c6c5f94c7f387de682494",
+    "basis_set_id": "wl-core-v1",
+    "hub": {
+      "repo_id": "abhishekraok/wandering-light-deep-corpus-v1",
+      "repo_type": "dataset",
+      "revision": "fd22029677638702b6b13c572757a71e2f81335b"
+    },
+    "manifest_digest": "sha256:0efed8ca6c57942c1672ed0a2e6e3abe87b009168f9b26140408458ded8f41af",
+    "manifest_file_sha256": "sha256:18953b74987142a667e3ab7d9d57c9d7fda537bd1a21b70f34979ba6b5be5079",
+    "manifest_path": "/home/abhishekrao/repos/wandering-light/wandering_light/training/data/deep_corpus_v1/manifest.json",
+    "root": "/home/abhishekrao/repos/wandering-light/wandering_light/training/data/deep_corpus_v1",
+    "split": "validation",
+    "split_file": {
+      "bytes": 617093,
+      "path": "/home/abhishekrao/repos/wandering-light/wandering_light/training/data/deep_corpus_v1/validation.jsonl.gz",
+      "records": 3427,
+      "sha256": "sha256:c416f507bc930626faceaf603ebb48c31e6e21f4c0f146ba6728a7d27f3a5748"
+    }
+  },
+  "diagnostics": {
+    "core_trace_available": true,
+    "note": "Completed-layer core traces are retained per task and aggregated by depth. Each depth rate is conditional on tasks that completed that layer; earlier solutions and mid-layer budget exits are right-censored. First-pruned counts likewise cover observed pruning only, not a complete failure-time distribution. Survival is against the recorded witness prefix, which is optimal but not the complete optimal-action set inward. Path survival can also understate state survival when structural deduplication keeps another path to the same state."
+  },
+  "matched_compute": null,
+  "primary": {
+    "by_width": {
+      "1": {
+        "diagnostic_rows": 48,
+        "exact_witness_matches": 2,
+        "max_executions": 184,
+        "mean_executions": 140.375,
+        "mean_hit_executions": 65.0,
+        "mean_seconds": 0.029238469583409216,
+        "mean_solution_length": 5.0,
+        "median_executions": 140.5,
+        "right_censored_trace_rows": 2,
+        "solve_rate": 0.041666666666666664,
+        "solved": 2,
+        "tasks": 48,
+        "termination_counts": {
+          "max_depth": 46,
+          "solved": 2
+        },
+        "total_executions": 6738,
+        "trace_by_depth": {
+          "1": {
+            "mean_unique_successors": 9.604166666666666,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 19,
+            "witness_prefix_survival_rate": 0.3958333333333333
+          },
+          "2": {
+            "mean_unique_successors": 16.270833333333332,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 6,
+            "witness_prefix_survival_rate": 0.125
+          },
+          "3": {
+            "mean_unique_successors": 13.895833333333334,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 2,
+            "witness_prefix_survival_rate": 0.041666666666666664
+          },
+          "4": {
+            "mean_unique_successors": 14.395833333333334,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 2,
+            "witness_prefix_survival_rate": 0.041666666666666664
+          },
+          "5": {
+            "mean_unique_successors": 14.543478260869565,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          },
+          "6": {
+            "mean_unique_successors": 13.5,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          },
+          "7": {
+            "mean_unique_successors": 14.043478260869565,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          },
+          "8": {
+            "mean_unique_successors": 14.0,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          }
+        },
+        "trace_supported_rows": 48,
+        "witness_first_pruned_depth_counts": {
+          "1": 29,
+          "2": 13,
+          "3": 4
+        }
+      },
+      "10": {
+        "diagnostic_rows": 48,
+        "exact_witness_matches": 2,
+        "max_executions": 1587,
+        "mean_executions": 1211.875,
+        "mean_hit_executions": 421.0,
+        "mean_seconds": 0.12208797541734384,
+        "mean_solution_length": 5.0,
+        "median_executions": 1179.0,
+        "right_censored_trace_rows": 2,
+        "solve_rate": 0.041666666666666664,
+        "solved": 2,
+        "tasks": 48,
+        "termination_counts": {
+          "max_depth": 46,
+          "solved": 2
+        },
+        "total_executions": 58170,
+        "trace_by_depth": {
+          "1": {
+            "mean_unique_successors": 9.604166666666666,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 44,
+            "witness_prefix_survival_rate": 0.9166666666666666
+          },
+          "2": {
+            "mean_unique_successors": 66.39583333333333,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 19,
+            "witness_prefix_survival_rate": 0.3958333333333333
+          },
+          "3": {
+            "mean_unique_successors": 108.41666666666667,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 10,
+            "witness_prefix_survival_rate": 0.20833333333333334
+          },
+          "4": {
+            "mean_unique_successors": 112.04166666666667,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 2,
+            "witness_prefix_survival_rate": 0.041666666666666664
+          },
+          "5": {
+            "mean_unique_successors": 112.93478260869566,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          },
+          "6": {
+            "mean_unique_successors": 109.80434782608695,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          },
+          "7": {
+            "mean_unique_successors": 106.34782608695652,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          },
+          "8": {
+            "mean_unique_successors": 104.3913043478261,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          }
+        },
+        "trace_supported_rows": 48,
+        "witness_first_pruned_depth_counts": {
+          "1": 4,
+          "2": 25,
+          "3": 9,
+          "4": 8
+        }
+      },
+      "64": {
+        "diagnostic_rows": 48,
+        "exact_witness_matches": 7,
+        "max_executions": 9196,
+        "mean_executions": 6457.083333333333,
+        "mean_hit_executions": 2418.4285714285716,
+        "mean_seconds": 0.5212746960636044,
+        "mean_solution_length": 5.0,
+        "median_executions": 6499.0,
+        "right_censored_trace_rows": 7,
+        "solve_rate": 0.14583333333333334,
+        "solved": 7,
+        "tasks": 48,
+        "termination_counts": {
+          "max_depth": 41,
+          "solved": 7
+        },
+        "total_executions": 309940,
+        "trace_by_depth": {
+          "1": {
+            "mean_unique_successors": 9.604166666666666,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 46,
+            "witness_prefix_survival_rate": 0.9583333333333334
+          },
+          "2": {
+            "mean_unique_successors": 79.20833333333333,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 41,
+            "witness_prefix_survival_rate": 0.8541666666666666
+          },
+          "3": {
+            "mean_unique_successors": 398.625,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 28,
+            "witness_prefix_survival_rate": 0.5833333333333334
+          },
+          "4": {
+            "mean_unique_successors": 566.6875,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 17,
+            "witness_prefix_survival_rate": 0.3541666666666667
+          },
+          "5": {
+            "mean_unique_successors": 631.4146341463414,
+            "tasks_observed": 41,
+            "witness_prefix_retained": 2,
+            "witness_prefix_survival_rate": 0.04878048780487805
+          },
+          "6": {
+            "mean_unique_successors": 629.0243902439024,
+            "tasks_observed": 41,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          },
+          "7": {
+            "mean_unique_successors": 616.8536585365854,
+            "tasks_observed": 41,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          },
+          "8": {
+            "mean_unique_successors": 607.2439024390244,
+            "tasks_observed": 41,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          }
+        },
+        "trace_supported_rows": 48,
+        "witness_first_pruned_depth_counts": {
+          "1": 2,
+          "2": 5,
+          "3": 13,
+          "4": 11,
+          "5": 8,
+          "6": 2
+        }
+      },
+      "8": {
+        "diagnostic_rows": 48,
+        "exact_witness_matches": 2,
+        "max_executions": 1285,
+        "mean_executions": 979.7708333333334,
+        "mean_hit_executions": 352.0,
+        "mean_seconds": 0.09432495254259265,
+        "mean_solution_length": 5.0,
+        "median_executions": 946.0,
+        "right_censored_trace_rows": 2,
+        "solve_rate": 0.041666666666666664,
+        "solved": 2,
+        "tasks": 48,
+        "termination_counts": {
+          "max_depth": 46,
+          "solved": 2
+        },
+        "total_executions": 47029,
+        "trace_by_depth": {
+          "1": {
+            "mean_unique_successors": 9.604166666666666,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 44,
+            "witness_prefix_survival_rate": 0.9166666666666666
+          },
+          "2": {
+            "mean_unique_successors": 61.395833333333336,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 19,
+            "witness_prefix_survival_rate": 0.3958333333333333
+          },
+          "3": {
+            "mean_unique_successors": 89.10416666666667,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 9,
+            "witness_prefix_survival_rate": 0.1875
+          },
+          "4": {
+            "mean_unique_successors": 92.25,
+            "tasks_observed": 48,
+            "witness_prefix_retained": 2,
+            "witness_prefix_survival_rate": 0.041666666666666664
+          },
+          "5": {
+            "mean_unique_successors": 92.08695652173913,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          },
+          "6": {
+            "mean_unique_successors": 89.8913043478261,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          },
+          "7": {
+            "mean_unique_successors": 86.71739130434783,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          },
+          "8": {
+            "mean_unique_successors": 85.04347826086956,
+            "tasks_observed": 46,
+            "witness_prefix_retained": 0,
+            "witness_prefix_survival_rate": 0.0
+          }
+        },
+        "trace_supported_rows": 48,
+        "witness_first_pruned_depth_counts": {
+          "1": 4,
+          "2": 25,
+          "3": 10,
+          "4": 7
+        }
+      }
+    },
+    "one_shot_reference": {
+      "opt_125m_solved_per_distance_5_8": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "smollm2_360m_solved_per_distance_5_8": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "question": "Does materialized-state rollout solve certified distance 5-8?",
+    "selected_width_distance_5_8": {
+      "diagnostic_rows": 48,
+      "exact_witness_matches": 7,
+      "max_executions": 9196,
+      "mean_executions": 6457.083333333333,
+      "mean_hit_executions": 2418.4285714285716,
+      "mean_seconds": 0.5212746960636044,
+      "mean_solution_length": 5.0,
+      "median_executions": 6499.0,
+      "right_censored_trace_rows": 7,
+      "solve_rate": 0.14583333333333334,
+      "solved": 7,
+      "tasks": 48,
+      "termination_counts": {
+        "max_depth": 41,
+        "solved": 7
+      },
+      "total_executions": 309940,
+      "trace_by_depth": {
+        "1": {
+          "mean_unique_successors": 9.604166666666666,
+          "tasks_observed": 48,
+          "witness_prefix_retained": 46,
+          "witness_prefix_survival_rate": 0.9583333333333334
+        },
+        "2": {
+          "mean_unique_successors": 79.20833333333333,
+          "tasks_observed": 48,
+          "witness_prefix_retained": 41,
+          "witness_prefix_survival_rate": 0.8541666666666666
+        },
+        "3": {
+          "mean_unique_successors": 398.625,
+          "tasks_observed": 48,
+          "witness_prefix_retained": 28,
+          "witness_prefix_survival_rate": 0.5833333333333334
+        },
+        "4": {
+          "mean_unique_successors": 566.6875,
+          "tasks_observed": 48,
+          "witness_prefix_retained": 17,
+          "witness_prefix_survival_rate": 0.3541666666666667
+        },
+        "5": {
+          "mean_unique_successors": 631.4146341463414,
+          "tasks_observed": 41,
+          "witness_prefix_retained": 2,
+          "witness_prefix_survival_rate": 0.04878048780487805
+        },
+        "6": {
+          "mean_unique_successors": 629.0243902439024,
+          "tasks_observed": 41,
+          "witness_prefix_retained": 0,
+          "witness_prefix_survival_rate": 0.0
+        },
+        "7": {
+          "mean_unique_successors": 616.8536585365854,
+          "tasks_observed": 41,
+          "witness_prefix_retained": 0,
+          "witness_prefix_survival_rate": 0.0
+        },
+        "8": {
+          "mean_unique_successors": 607.2439024390244,
+          "tasks_observed": 41,
+          "witness_prefix_retained": 0,
+          "witness_prefix_survival_rate": 0.0
+        }
+      },
+      "trace_supported_rows": 48,
+      "witness_first_pruned_depth_counts": {
+        "1": 2,
+        "2": 5,
+        "3": 13,
+        "4": 11,
+        "5": 8,
+        "6": 2
+      }
+    },
+    "selected_width_distance_7_8": {
+      "diagnostic_rows": 24,
+      "exact_witness_matches": 0,
+      "max_executions": 9196,
+      "mean_executions": 7133.291666666667,
+      "mean_hit_executions": null,
+      "mean_seconds": 0.5541239166674737,
+      "mean_solution_length": null,
+      "median_executions": 7105.0,
+      "right_censored_trace_rows": 0,
+      "solve_rate": 0.0,
+      "solved": 0,
+      "tasks": 24,
+      "termination_counts": {
+        "max_depth": 24
+      },
+      "total_executions": 171199,
+      "trace_by_depth": {
+        "1": {
+          "mean_unique_successors": 8.625,
+          "tasks_observed": 24,
+          "witness_prefix_retained": 23,
+          "witness_prefix_survival_rate": 0.9583333333333334
+        },
+        "2": {
+          "mean_unique_successors": 72.5,
+          "tasks_observed": 24,
+          "witness_prefix_retained": 20,
+          "witness_prefix_survival_rate": 0.8333333333333334
+        },
+        "3": {
+          "mean_unique_successors": 387.375,
+          "tasks_observed": 24,
+          "witness_prefix_retained": 12,
+          "witness_prefix_survival_rate": 0.5
+        },
+        "4": {
+          "mean_unique_successors": 569.5,
+          "tasks_observed": 24,
+          "witness_prefix_retained": 7,
+          "witness_prefix_survival_rate": 0.2916666666666667
+        },
+        "5": {
+          "mean_unique_successors": 640.25,
+          "tasks_observed": 24,
+          "witness_prefix_retained": 2,
+          "witness_prefix_survival_rate": 0.08333333333333333
+        },
+        "6": {
+          "mean_unique_successors": 636.6666666666666,
+          "tasks_observed": 24,
+          "witness_prefix_retained": 0,
+          "witness_prefix_survival_rate": 0.0
+        },
+        "7": {
+          "mean_unique_successors": 617.2916666666666,
+          "tasks_observed": 24,
+          "witness_prefix_retained": 0,
+          "witness_prefix_survival_rate": 0.0
+        },
+        "8": {
+          "mean_unique_successors": 607.5833333333334,
+          "tasks_observed": 24,
+          "witness_prefix_retained": 0,
+          "witness_prefix_survival_rate": 0.0
+        }
+      },
+      "trace_supported_rows": 24,
+      "witness_first_pruned_depth_counts": {
+        "1": 1,
+        "2": 3,
+        "3": 8,
+        "4": 5,
+        "5": 5,
+        "6": 2
+      }
+    },
+    "validation_selected_beam_width": 64
+  },
+  "protocol": {
+    "cost_definition": "One execution for every type-compatible basis function attempted, including transitions whose function raises. Each beam width is searched independently; a task stops charging when it solves or terminates.",
+    "device": "cuda",
+    "execution_budget": 100000,
+    "max_depth": 8,
+    "seed": 20260816,
+    "selection_rule": "Lexicographic: distance-5-8 solved, distance-7-8 solved, all-distance solved, lower distance-5-8 mean executions, then narrower beam.",
+    "tasks_per_distance": 12,
+    "wandb_entity": "abhishekraok-na",
+    "wandb_project": "wandering-light-deep-corpus-v1",
+    "widths": [
+      1,
+      8,
+      10,
+      64
+    ]
+  },
+  "rollout": {
+    "by_width": {
+      "1": {
+        "1": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 12,
+          "max_executions": 2,
+          "mean_executions": 1.0833333333333333,
+          "mean_hit_executions": 1.0833333333333333,
+          "mean_seconds": 0.038319550830541026,
+          "mean_solution_length": 1.0,
+          "median_executions": 1.0,
+          "right_censored_trace_rows": 12,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12,
+          "termination_counts": {
+            "solved": 12
+          },
+          "total_executions": 13,
+          "trace_by_depth": {},
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {}
+        },
+        "2": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 8,
+          "max_executions": 209,
+          "mean_executions": 45.666666666666664,
+          "mean_hit_executions": 7.777777777777778,
+          "mean_seconds": 0.012866519830519488,
+          "mean_solution_length": 2.0,
+          "median_executions": 7.0,
+          "right_censored_trace_rows": 9,
+          "solve_rate": 0.75,
+          "solved": 9,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 3,
+            "solved": 9
+          },
+          "total_executions": 548,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 6.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 8,
+              "witness_prefix_survival_rate": 0.6666666666666666
+            },
+            "2": {
+              "mean_unique_successors": 15.0,
+              "tasks_observed": 3,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "3": {
+              "mean_unique_successors": 17.666666666666668,
+              "tasks_observed": 3,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "4": {
+              "mean_unique_successors": 14.666666666666666,
+              "tasks_observed": 3,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 12.666666666666666,
+              "tasks_observed": 3,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 13.333333333333334,
+              "tasks_observed": 3,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 13.333333333333334,
+              "tasks_observed": 3,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 12.666666666666666,
+              "tasks_observed": 3,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 4
+          }
+        },
+        "3": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 5,
+          "max_executions": 157,
+          "mean_executions": 89.5,
+          "mean_hit_executions": 30.333333333333332,
+          "mean_seconds": 0.01943854641528257,
+          "mean_solution_length": 3.0,
+          "median_executions": 86.5,
+          "right_censored_trace_rows": 6,
+          "solve_rate": 0.5,
+          "solved": 6,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 6,
+            "solved": 6
+          },
+          "total_executions": 1074,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 6,
+              "witness_prefix_survival_rate": 0.5
+            },
+            "2": {
+              "mean_unique_successors": 15.0,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 5,
+              "witness_prefix_survival_rate": 0.4166666666666667
+            },
+            "3": {
+              "mean_unique_successors": 14.833333333333334,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "4": {
+              "mean_unique_successors": 15.333333333333334,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 14.666666666666666,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 16.833333333333332,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 15.333333333333334,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 16.833333333333332,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 6,
+            "2": 1
+          }
+        },
+        "4": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 1,
+          "max_executions": 232,
+          "mean_executions": 135.83333333333334,
+          "mean_hit_executions": 44.0,
+          "mean_seconds": 0.03133731591757775,
+          "mean_solution_length": 4.0,
+          "median_executions": 134.0,
+          "right_censored_trace_rows": 1,
+          "solve_rate": 0.08333333333333333,
+          "solved": 1,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 11,
+            "solved": 1
+          },
+          "total_executions": 1630,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.166666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 7,
+              "witness_prefix_survival_rate": 0.5833333333333334
+            },
+            "2": {
+              "mean_unique_successors": 14.583333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 1,
+              "witness_prefix_survival_rate": 0.08333333333333333
+            },
+            "3": {
+              "mean_unique_successors": 14.333333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 1,
+              "witness_prefix_survival_rate": 0.08333333333333333
+            },
+            "4": {
+              "mean_unique_successors": 14.818181818181818,
+              "tasks_observed": 11,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 14.909090909090908,
+              "tasks_observed": 11,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 14.272727272727273,
+              "tasks_observed": 11,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 14.454545454545455,
+              "tasks_observed": 11,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 14.181818181818182,
+              "tasks_observed": 11,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 5,
+            "2": 6
+          }
+        },
+        "5": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 2,
+          "max_executions": 184,
+          "mean_executions": 132.66666666666666,
+          "mean_hit_executions": 65.0,
+          "mean_seconds": 0.028926340249502875,
+          "mean_solution_length": 5.0,
+          "median_executions": 133.0,
+          "right_censored_trace_rows": 2,
+          "solve_rate": 0.16666666666666666,
+          "solved": 2,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 10,
+            "solved": 2
+          },
+          "total_executions": 1592,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 10.666666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 5,
+              "witness_prefix_survival_rate": 0.4166666666666667
+            },
+            "2": {
+              "mean_unique_successors": 17.833333333333332,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.16666666666666666
+            },
+            "3": {
+              "mean_unique_successors": 13.75,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.16666666666666666
+            },
+            "4": {
+              "mean_unique_successors": 13.0,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.16666666666666666
+            },
+            "5": {
+              "mean_unique_successors": 14.3,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 12.6,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 13.3,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 13.8,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 7,
+            "2": 3
+          }
+        },
+        "5-8": {
+          "diagnostic_rows": 48,
+          "exact_witness_matches": 2,
+          "max_executions": 184,
+          "mean_executions": 140.375,
+          "mean_hit_executions": 65.0,
+          "mean_seconds": 0.029238469583409216,
+          "mean_solution_length": 5.0,
+          "median_executions": 140.5,
+          "right_censored_trace_rows": 2,
+          "solve_rate": 0.041666666666666664,
+          "solved": 2,
+          "tasks": 48,
+          "termination_counts": {
+            "max_depth": 46,
+            "solved": 2
+          },
+          "total_executions": 6738,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 9.604166666666666,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 19,
+              "witness_prefix_survival_rate": 0.3958333333333333
+            },
+            "2": {
+              "mean_unique_successors": 16.270833333333332,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 6,
+              "witness_prefix_survival_rate": 0.125
+            },
+            "3": {
+              "mean_unique_successors": 13.895833333333334,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.041666666666666664
+            },
+            "4": {
+              "mean_unique_successors": 14.395833333333334,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.041666666666666664
+            },
+            "5": {
+              "mean_unique_successors": 14.543478260869565,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 13.5,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 14.043478260869565,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 14.0,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 48,
+          "witness_first_pruned_depth_counts": {
+            "1": 29,
+            "2": 13,
+            "3": 4
+          }
+        },
+        "6": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 176,
+          "mean_executions": 142.41666666666666,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.029498532163415803,
+          "mean_solution_length": null,
+          "median_executions": 140.5,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 1709,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 10.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 4,
+              "witness_prefix_survival_rate": 0.3333333333333333
+            },
+            "2": {
+              "mean_unique_successors": 14.916666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "3": {
+              "mean_unique_successors": 13.833333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "4": {
+              "mean_unique_successors": 15.166666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 14.916666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 14.916666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 14.666666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 14.333333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 8,
+            "2": 4
+          }
+        },
+        "7": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 184,
+          "mean_executions": 139.75,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.02843223191666766,
+          "mean_solution_length": null,
+          "median_executions": 141.0,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 1677,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 12.083333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 4,
+              "witness_prefix_survival_rate": 0.3333333333333333
+            },
+            "2": {
+              "mean_unique_successors": 14.75,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.16666666666666666
+            },
+            "3": {
+              "mean_unique_successors": 12.916666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "4": {
+              "mean_unique_successors": 14.0,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 13.416666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 12.083333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 12.25,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 12.416666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 8,
+            "2": 2,
+            "3": 2
+          }
+        },
+        "7-8": {
+          "diagnostic_rows": 24,
+          "exact_witness_matches": 0,
+          "max_executions": 184,
+          "mean_executions": 143.20833333333334,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.029264502960359096,
+          "mean_solution_length": null,
+          "median_executions": 146.0,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 24,
+          "termination_counts": {
+            "max_depth": 24
+          },
+          "total_executions": 3437,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.625,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 10,
+              "witness_prefix_survival_rate": 0.4166666666666667
+            },
+            "2": {
+              "mean_unique_successors": 16.166666666666668,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 4,
+              "witness_prefix_survival_rate": 0.16666666666666666
+            },
+            "3": {
+              "mean_unique_successors": 14.0,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "4": {
+              "mean_unique_successors": 14.708333333333334,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 14.458333333333334,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 13.166666666666666,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 14.041666666666666,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 13.916666666666666,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 24,
+          "witness_first_pruned_depth_counts": {
+            "1": 14,
+            "2": 6,
+            "3": 4
+          }
+        },
+        "8": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 169,
+          "mean_executions": 146.66666666666666,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.03009677400405053,
+          "mean_solution_length": null,
+          "median_executions": 151.0,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 1760,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 5.166666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 6,
+              "witness_prefix_survival_rate": 0.5
+            },
+            "2": {
+              "mean_unique_successors": 17.583333333333332,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.16666666666666666
+            },
+            "3": {
+              "mean_unique_successors": 15.083333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "4": {
+              "mean_unique_successors": 15.416666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 15.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 14.25,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 15.833333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 15.416666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 6,
+            "2": 4,
+            "3": 2
+          }
+        },
+        "all": {
+          "diagnostic_rows": 96,
+          "exact_witness_matches": 28,
+          "max_executions": 232,
+          "mean_executions": 104.19791666666667,
+          "mean_hit_executions": 14.633333333333333,
+          "mean_seconds": 0.02736447641594471,
+          "mean_solution_length": 2.066666666666667,
+          "median_executions": 128.0,
+          "right_censored_trace_rows": 30,
+          "solve_rate": 0.3125,
+          "solved": 30,
+          "tasks": 96,
+          "termination_counts": {
+            "max_depth": 66,
+            "solved": 30
+          },
+          "total_executions": 10003,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.797619047619047,
+              "tasks_observed": 84,
+              "witness_prefix_retained": 40,
+              "witness_prefix_survival_rate": 0.47619047619047616
+            },
+            "2": {
+              "mean_unique_successors": 15.746666666666666,
+              "tasks_observed": 75,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 0.16
+            },
+            "3": {
+              "mean_unique_successors": 14.217391304347826,
+              "tasks_observed": 69,
+              "witness_prefix_retained": 3,
+              "witness_prefix_survival_rate": 0.043478260869565216
+            },
+            "4": {
+              "mean_unique_successors": 14.558823529411764,
+              "tasks_observed": 68,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.029411764705882353
+            },
+            "5": {
+              "mean_unique_successors": 14.530303030303031,
+              "tasks_observed": 66,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 13.924242424242424,
+              "tasks_observed": 66,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 14.196969696969697,
+              "tasks_observed": 66,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 14.227272727272727,
+              "tasks_observed": 66,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 96,
+          "witness_first_pruned_depth_counts": {
+            "1": 44,
+            "2": 20,
+            "3": 4
+          }
+        }
+      },
+      "10": {
+        "1": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 12,
+          "max_executions": 2,
+          "mean_executions": 1.0833333333333333,
+          "mean_hit_executions": 1.0833333333333333,
+          "mean_seconds": 0.0029693668341982025,
+          "mean_solution_length": 1.0,
+          "median_executions": 1.0,
+          "right_censored_trace_rows": 12,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12,
+          "termination_counts": {
+            "solved": 12
+          },
+          "total_executions": 13,
+          "trace_by_depth": {},
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {}
+        },
+        "2": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 11,
+          "max_executions": 17,
+          "mean_executions": 8.75,
+          "mean_hit_executions": 8.75,
+          "mean_seconds": 0.009327650584358102,
+          "mean_solution_length": 2.0,
+          "median_executions": 7.0,
+          "right_censored_trace_rows": 12,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12,
+          "termination_counts": {
+            "solved": 12
+          },
+          "total_executions": 105,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 6.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {}
+        },
+        "3": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 11,
+          "max_executions": 235,
+          "mean_executions": 105.41666666666667,
+          "mean_hit_executions": 105.41666666666667,
+          "mean_seconds": 0.023870626333518885,
+          "mean_solution_length": 3.0,
+          "median_executions": 80.5,
+          "right_censored_trace_rows": 12,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12,
+          "termination_counts": {
+            "solved": 12
+          },
+          "total_executions": 1265,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "2": {
+              "mean_unique_successors": 58.833333333333336,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {}
+        },
+        "4": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 4,
+          "max_executions": 1531,
+          "mean_executions": 756.9166666666666,
+          "mean_hit_executions": 367.0,
+          "mean_seconds": 0.07602495425089728,
+          "mean_solution_length": 4.285714285714286,
+          "median_executions": 666.0,
+          "right_censored_trace_rows": 7,
+          "solve_rate": 0.5833333333333334,
+          "solved": 7,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 5,
+            "solved": 7
+          },
+          "total_executions": 9083,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.166666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "2": {
+              "mean_unique_successors": 55.25,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 9,
+              "witness_prefix_survival_rate": 0.75
+            },
+            "3": {
+              "mean_unique_successors": 110.08333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 4,
+              "witness_prefix_survival_rate": 0.3333333333333333
+            },
+            "4": {
+              "mean_unique_successors": 123.83333333333333,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 126.16666666666667,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 122.6,
+              "tasks_observed": 5,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 117.8,
+              "tasks_observed": 5,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 114.4,
+              "tasks_observed": 5,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "2": 3,
+            "3": 5
+          }
+        },
+        "5": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 2,
+          "max_executions": 1587,
+          "mean_executions": 1093.5833333333333,
+          "mean_hit_executions": 421.0,
+          "mean_seconds": 0.1257005656674058,
+          "mean_solution_length": 5.0,
+          "median_executions": 1113.0,
+          "right_censored_trace_rows": 2,
+          "solve_rate": 0.16666666666666666,
+          "solved": 2,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 10,
+            "solved": 2
+          },
+          "total_executions": 13123,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 10.666666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "2": {
+              "mean_unique_successors": 73.0,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 4,
+              "witness_prefix_survival_rate": 0.3333333333333333
+            },
+            "3": {
+              "mean_unique_successors": 107.33333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 3,
+              "witness_prefix_survival_rate": 0.25
+            },
+            "4": {
+              "mean_unique_successors": 106.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.16666666666666666
+            },
+            "5": {
+              "mean_unique_successors": 104.6,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 103.6,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 98.1,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 97.2,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "2": 8,
+            "3": 1,
+            "4": 1
+          }
+        },
+        "5-8": {
+          "diagnostic_rows": 48,
+          "exact_witness_matches": 2,
+          "max_executions": 1587,
+          "mean_executions": 1211.875,
+          "mean_hit_executions": 421.0,
+          "mean_seconds": 0.12208797541734384,
+          "mean_solution_length": 5.0,
+          "median_executions": 1179.0,
+          "right_censored_trace_rows": 2,
+          "solve_rate": 0.041666666666666664,
+          "solved": 2,
+          "tasks": 48,
+          "termination_counts": {
+            "max_depth": 46,
+            "solved": 2
+          },
+          "total_executions": 58170,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 9.604166666666666,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 44,
+              "witness_prefix_survival_rate": 0.9166666666666666
+            },
+            "2": {
+              "mean_unique_successors": 66.39583333333333,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 19,
+              "witness_prefix_survival_rate": 0.3958333333333333
+            },
+            "3": {
+              "mean_unique_successors": 108.41666666666667,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 10,
+              "witness_prefix_survival_rate": 0.20833333333333334
+            },
+            "4": {
+              "mean_unique_successors": 112.04166666666667,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.041666666666666664
+            },
+            "5": {
+              "mean_unique_successors": 112.93478260869566,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 109.80434782608695,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 106.34782608695652,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 104.3913043478261,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 48,
+          "witness_first_pruned_depth_counts": {
+            "1": 4,
+            "2": 25,
+            "3": 9,
+            "4": 8
+          }
+        },
+        "6": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 1547,
+          "mean_executions": 1264.6666666666667,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.1292823493349715,
+          "mean_solution_length": null,
+          "median_executions": 1223.5,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 15176,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 10.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 11,
+              "witness_prefix_survival_rate": 0.9166666666666666
+            },
+            "2": {
+              "mean_unique_successors": 70.25,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 5,
+              "witness_prefix_survival_rate": 0.4166666666666667
+            },
+            "3": {
+              "mean_unique_successors": 106.58333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 3,
+              "witness_prefix_survival_rate": 0.25
+            },
+            "4": {
+              "mean_unique_successors": 116.41666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 115.91666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 113.16666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 112.33333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 109.08333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 1,
+            "2": 6,
+            "3": 2,
+            "4": 3
+          }
+        },
+        "7": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 1585,
+          "mean_executions": 1232.1666666666667,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.12009479058300106,
+          "mean_solution_length": null,
+          "median_executions": 1180.0,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 14786,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 12.083333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 9,
+              "witness_prefix_survival_rate": 0.75
+            },
+            "2": {
+              "mean_unique_successors": 77.91666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 5,
+              "witness_prefix_survival_rate": 0.4166666666666667
+            },
+            "3": {
+              "mean_unique_successors": 111.33333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 1,
+              "witness_prefix_survival_rate": 0.08333333333333333
+            },
+            "4": {
+              "mean_unique_successors": 110.58333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 112.08333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 103.83333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 99.91666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 97.66666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 3,
+            "2": 4,
+            "3": 4,
+            "4": 1
+          }
+        },
+        "7-8": {
+          "diagnostic_rows": 24,
+          "exact_witness_matches": 0,
+          "max_executions": 1585,
+          "mean_executions": 1244.625,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.11668449333349902,
+          "mean_solution_length": null,
+          "median_executions": 1251.5,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 24,
+          "termination_counts": {
+            "max_depth": 24
+          },
+          "total_executions": 29871,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.625,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 21,
+              "witness_prefix_survival_rate": 0.875
+            },
+            "2": {
+              "mean_unique_successors": 61.166666666666664,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 10,
+              "witness_prefix_survival_rate": 0.4166666666666667
+            },
+            "3": {
+              "mean_unique_successors": 109.875,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 4,
+              "witness_prefix_survival_rate": 0.16666666666666666
+            },
+            "4": {
+              "mean_unique_successors": 112.625,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 114.91666666666667,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 110.70833333333333,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 106.79166666666667,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 105.04166666666667,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 24,
+          "witness_first_pruned_depth_counts": {
+            "1": 3,
+            "2": 11,
+            "3": 6,
+            "4": 4
+          }
+        },
+        "8": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 1443,
+          "mean_executions": 1257.0833333333333,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.11327419608399698,
+          "mean_solution_length": null,
+          "median_executions": 1315.0,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 15085,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 5.166666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "2": {
+              "mean_unique_successors": 44.416666666666664,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 5,
+              "witness_prefix_survival_rate": 0.4166666666666667
+            },
+            "3": {
+              "mean_unique_successors": 108.41666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 3,
+              "witness_prefix_survival_rate": 0.25
+            },
+            "4": {
+              "mean_unique_successors": 114.66666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 117.75,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 117.58333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 113.66666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 112.41666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "2": 7,
+            "3": 2,
+            "4": 3
+          }
+        },
+        "all": {
+          "diagnostic_rows": 96,
+          "exact_witness_matches": 40,
+          "max_executions": 1587,
+          "mean_executions": 714.9583333333334,
+          "mean_hit_executions": 106.53333333333333,
+          "mean_seconds": 0.07506806245904347,
+          "mean_solution_length": 2.488888888888889,
+          "median_executions": 1032.5,
+          "right_censored_trace_rows": 45,
+          "solve_rate": 0.46875,
+          "solved": 45,
+          "tasks": 96,
+          "termination_counts": {
+            "max_depth": 51,
+            "solved": 45
+          },
+          "total_executions": 68636,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.797619047619047,
+              "tasks_observed": 84,
+              "witness_prefix_retained": 80,
+              "witness_prefix_survival_rate": 0.9523809523809523
+            },
+            "2": {
+              "mean_unique_successors": 63.27777777777778,
+              "tasks_observed": 72,
+              "witness_prefix_retained": 40,
+              "witness_prefix_survival_rate": 0.5555555555555556
+            },
+            "3": {
+              "mean_unique_successors": 108.75,
+              "tasks_observed": 60,
+              "witness_prefix_retained": 14,
+              "witness_prefix_survival_rate": 0.23333333333333334
+            },
+            "4": {
+              "mean_unique_successors": 113.35185185185185,
+              "tasks_observed": 54,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.037037037037037035
+            },
+            "5": {
+              "mean_unique_successors": 114.46153846153847,
+              "tasks_observed": 52,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 111.05882352941177,
+              "tasks_observed": 51,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 107.47058823529412,
+              "tasks_observed": 51,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 105.37254901960785,
+              "tasks_observed": 51,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 96,
+          "witness_first_pruned_depth_counts": {
+            "1": 4,
+            "2": 28,
+            "3": 14,
+            "4": 8
+          }
+        }
+      },
+      "64": {
+        "1": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 12,
+          "max_executions": 2,
+          "mean_executions": 1.0833333333333333,
+          "mean_hit_executions": 1.0833333333333333,
+          "mean_seconds": 0.004235791417158907,
+          "mean_solution_length": 1.0,
+          "median_executions": 1.0,
+          "right_censored_trace_rows": 12,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12,
+          "termination_counts": {
+            "solved": 12
+          },
+          "total_executions": 13,
+          "trace_by_depth": {},
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {}
+        },
+        "2": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 11,
+          "max_executions": 17,
+          "mean_executions": 8.75,
+          "mean_hit_executions": 8.75,
+          "mean_seconds": 0.009992082751220247,
+          "mean_solution_length": 2.0,
+          "median_executions": 7.0,
+          "right_censored_trace_rows": 12,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12,
+          "termination_counts": {
+            "solved": 12
+          },
+          "total_executions": 105,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 6.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {}
+        },
+        "3": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 11,
+          "max_executions": 370,
+          "mean_executions": 133.33333333333334,
+          "mean_hit_executions": 133.33333333333334,
+          "mean_seconds": 0.048805964084749576,
+          "mean_solution_length": 3.0,
+          "median_executions": 80.5,
+          "right_censored_trace_rows": 12,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12,
+          "termination_counts": {
+            "solved": 12
+          },
+          "total_executions": 1600,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "2": {
+              "mean_unique_successors": 70.66666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {}
+        },
+        "4": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 6,
+          "max_executions": 3235,
+          "mean_executions": 1159.75,
+          "mean_hit_executions": 1159.75,
+          "mean_seconds": 0.14321029241546057,
+          "mean_solution_length": 4.083333333333333,
+          "median_executions": 938.5,
+          "right_censored_trace_rows": 12,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12,
+          "termination_counts": {
+            "solved": 12
+          },
+          "total_executions": 13917,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.166666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "2": {
+              "mean_unique_successors": 63.916666666666664,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 11,
+              "witness_prefix_survival_rate": 0.9166666666666666
+            },
+            "3": {
+              "mean_unique_successors": 330.0,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 7,
+              "witness_prefix_survival_rate": 0.5833333333333334
+            },
+            "4": {
+              "mean_unique_successors": 556.0,
+              "tasks_observed": 1,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "2": 1,
+            "3": 4
+          }
+        },
+        "5": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 7,
+          "max_executions": 8635,
+          "mean_executions": 4390.25,
+          "mean_hit_executions": 2418.4285714285716,
+          "mean_seconds": 0.3979308832507134,
+          "mean_solution_length": 5.0,
+          "median_executions": 3047.0,
+          "right_censored_trace_rows": 7,
+          "solve_rate": 0.5833333333333334,
+          "solved": 7,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 5,
+            "solved": 7
+          },
+          "total_executions": 52683,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 10.666666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "2": {
+              "mean_unique_successors": 88.83333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 11,
+              "witness_prefix_survival_rate": 0.9166666666666666
+            },
+            "3": {
+              "mean_unique_successors": 437.6666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 8,
+              "witness_prefix_survival_rate": 0.6666666666666666
+            },
+            "4": {
+              "mean_unique_successors": 560.0833333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 7,
+              "witness_prefix_survival_rate": 0.5833333333333334
+            },
+            "5": {
+              "mean_unique_successors": 584.2,
+              "tasks_observed": 5,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 572.8,
+              "tasks_observed": 5,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 564.6,
+              "tasks_observed": 5,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 570.8,
+              "tasks_observed": 5,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "2": 1,
+            "3": 3,
+            "4": 1
+          }
+        },
+        "5-8": {
+          "diagnostic_rows": 48,
+          "exact_witness_matches": 7,
+          "max_executions": 9196,
+          "mean_executions": 6457.083333333333,
+          "mean_hit_executions": 2418.4285714285716,
+          "mean_seconds": 0.5212746960636044,
+          "mean_solution_length": 5.0,
+          "median_executions": 6499.0,
+          "right_censored_trace_rows": 7,
+          "solve_rate": 0.14583333333333334,
+          "solved": 7,
+          "tasks": 48,
+          "termination_counts": {
+            "max_depth": 41,
+            "solved": 7
+          },
+          "total_executions": 309940,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 9.604166666666666,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 46,
+              "witness_prefix_survival_rate": 0.9583333333333334
+            },
+            "2": {
+              "mean_unique_successors": 79.20833333333333,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 41,
+              "witness_prefix_survival_rate": 0.8541666666666666
+            },
+            "3": {
+              "mean_unique_successors": 398.625,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 28,
+              "witness_prefix_survival_rate": 0.5833333333333334
+            },
+            "4": {
+              "mean_unique_successors": 566.6875,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 17,
+              "witness_prefix_survival_rate": 0.3541666666666667
+            },
+            "5": {
+              "mean_unique_successors": 631.4146341463414,
+              "tasks_observed": 41,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.04878048780487805
+            },
+            "6": {
+              "mean_unique_successors": 629.0243902439024,
+              "tasks_observed": 41,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 616.8536585365854,
+              "tasks_observed": 41,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 607.2439024390244,
+              "tasks_observed": 41,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 48,
+          "witness_first_pruned_depth_counts": {
+            "1": 2,
+            "2": 5,
+            "3": 13,
+            "4": 11,
+            "5": 8,
+            "6": 2
+          }
+        },
+        "6": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 8569,
+          "mean_executions": 7171.5,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.5789200676687566,
+          "mean_solution_length": null,
+          "median_executions": 6935.0,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 86058,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 10.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 11,
+              "witness_prefix_survival_rate": 0.9166666666666666
+            },
+            "2": {
+              "mean_unique_successors": 83.0,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 10,
+              "witness_prefix_survival_rate": 0.8333333333333334
+            },
+            "3": {
+              "mean_unique_successors": 382.0833333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 8,
+              "witness_prefix_survival_rate": 0.6666666666666666
+            },
+            "4": {
+              "mean_unique_successors": 567.6666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 3,
+              "witness_prefix_survival_rate": 0.25
+            },
+            "5": {
+              "mean_unique_successors": 633.4166666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 637.1666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 637.75,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 621.75,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 1,
+            "2": 1,
+            "3": 2,
+            "4": 5,
+            "5": 3
+          }
+        },
+        "7": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 9196,
+          "mean_executions": 7115.666666666667,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.5637247347525166,
+          "mean_solution_length": null,
+          "median_executions": 6887.5,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 85388,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 12.083333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 11,
+              "witness_prefix_survival_rate": 0.9166666666666666
+            },
+            "2": {
+              "mean_unique_successors": 100.58333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 8,
+              "witness_prefix_survival_rate": 0.6666666666666666
+            },
+            "3": {
+              "mean_unique_successors": 471.0833333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 4,
+              "witness_prefix_survival_rate": 0.3333333333333333
+            },
+            "4": {
+              "mean_unique_successors": 583.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 3,
+              "witness_prefix_survival_rate": 0.25
+            },
+            "5": {
+              "mean_unique_successors": 649.0833333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 1,
+              "witness_prefix_survival_rate": 0.08333333333333333
+            },
+            "6": {
+              "mean_unique_successors": 627.5833333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 596.25,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 588.0833333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 1,
+            "2": 3,
+            "3": 4,
+            "4": 1,
+            "5": 2,
+            "6": 1
+          }
+        },
+        "7-8": {
+          "diagnostic_rows": 24,
+          "exact_witness_matches": 0,
+          "max_executions": 9196,
+          "mean_executions": 7133.291666666667,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.5541239166674737,
+          "mean_solution_length": null,
+          "median_executions": 7105.0,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 24,
+          "termination_counts": {
+            "max_depth": 24
+          },
+          "total_executions": 171199,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.625,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 23,
+              "witness_prefix_survival_rate": 0.9583333333333334
+            },
+            "2": {
+              "mean_unique_successors": 72.5,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 20,
+              "witness_prefix_survival_rate": 0.8333333333333334
+            },
+            "3": {
+              "mean_unique_successors": 387.375,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 0.5
+            },
+            "4": {
+              "mean_unique_successors": 569.5,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 7,
+              "witness_prefix_survival_rate": 0.2916666666666667
+            },
+            "5": {
+              "mean_unique_successors": 640.25,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.08333333333333333
+            },
+            "6": {
+              "mean_unique_successors": 636.6666666666666,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 617.2916666666666,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 607.5833333333334,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 24,
+          "witness_first_pruned_depth_counts": {
+            "1": 1,
+            "2": 3,
+            "3": 8,
+            "4": 5,
+            "5": 5,
+            "6": 2
+          }
+        },
+        "8": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 8286,
+          "mean_executions": 7150.916666666667,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.544523098582431,
+          "mean_solution_length": null,
+          "median_executions": 7398.5,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 85811,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 5.166666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "2": {
+              "mean_unique_successors": 44.416666666666664,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "3": {
+              "mean_unique_successors": 303.6666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 8,
+              "witness_prefix_survival_rate": 0.6666666666666666
+            },
+            "4": {
+              "mean_unique_successors": 555.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 4,
+              "witness_prefix_survival_rate": 0.3333333333333333
+            },
+            "5": {
+              "mean_unique_successors": 631.4166666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 1,
+              "witness_prefix_survival_rate": 0.08333333333333333
+            },
+            "6": {
+              "mean_unique_successors": 645.75,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 638.3333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 627.0833333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "3": 4,
+            "4": 4,
+            "5": 3,
+            "6": 1
+          }
+        },
+        "all": {
+          "diagnostic_rows": 96,
+          "exact_witness_matches": 47,
+          "max_executions": 9196,
+          "mean_executions": 3391.40625,
+          "mean_hit_executions": 592.0727272727273,
+          "mean_seconds": 0.28641786436537586,
+          "mean_solution_length": 2.8363636363636364,
+          "median_executions": 2129.0,
+          "right_censored_trace_rows": 55,
+          "solve_rate": 0.5729166666666666,
+          "solved": 55,
+          "tasks": 96,
+          "termination_counts": {
+            "max_depth": 41,
+            "solved": 55
+          },
+          "total_executions": 325575,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.797619047619047,
+              "tasks_observed": 84,
+              "witness_prefix_retained": 82,
+              "witness_prefix_survival_rate": 0.9761904761904762
+            },
+            "2": {
+              "mean_unique_successors": 75.23611111111111,
+              "tasks_observed": 72,
+              "witness_prefix_retained": 64,
+              "witness_prefix_survival_rate": 0.8888888888888888
+            },
+            "3": {
+              "mean_unique_successors": 384.9,
+              "tasks_observed": 60,
+              "witness_prefix_retained": 35,
+              "witness_prefix_survival_rate": 0.5833333333333334
+            },
+            "4": {
+              "mean_unique_successors": 566.469387755102,
+              "tasks_observed": 49,
+              "witness_prefix_retained": 17,
+              "witness_prefix_survival_rate": 0.3469387755102041
+            },
+            "5": {
+              "mean_unique_successors": 631.4146341463414,
+              "tasks_observed": 41,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.04878048780487805
+            },
+            "6": {
+              "mean_unique_successors": 629.0243902439024,
+              "tasks_observed": 41,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 616.8536585365854,
+              "tasks_observed": 41,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 607.2439024390244,
+              "tasks_observed": 41,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 96,
+          "witness_first_pruned_depth_counts": {
+            "1": 2,
+            "2": 6,
+            "3": 17,
+            "4": 11,
+            "5": 8,
+            "6": 2
+          }
+        }
+      },
+      "8": {
+        "1": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 12,
+          "max_executions": 2,
+          "mean_executions": 1.0833333333333333,
+          "mean_hit_executions": 1.0833333333333333,
+          "mean_seconds": 0.0024920089175187363,
+          "mean_solution_length": 1.0,
+          "median_executions": 1.0,
+          "right_censored_trace_rows": 12,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12,
+          "termination_counts": {
+            "solved": 12
+          },
+          "total_executions": 13,
+          "trace_by_depth": {},
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {}
+        },
+        "2": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 11,
+          "max_executions": 17,
+          "mean_executions": 8.75,
+          "mean_hit_executions": 8.75,
+          "mean_seconds": 0.00929611066749203,
+          "mean_solution_length": 2.0,
+          "median_executions": 7.0,
+          "right_censored_trace_rows": 12,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12,
+          "termination_counts": {
+            "solved": 12
+          },
+          "total_executions": 105,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 6.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {}
+        },
+        "3": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 11,
+          "max_executions": 185,
+          "mean_executions": 95.16666666666667,
+          "mean_hit_executions": 95.16666666666667,
+          "mean_seconds": 0.02073958841720014,
+          "mean_solution_length": 3.0,
+          "median_executions": 80.5,
+          "right_censored_trace_rows": 12,
+          "solve_rate": 1.0,
+          "solved": 12,
+          "tasks": 12,
+          "termination_counts": {
+            "solved": 12
+          },
+          "total_executions": 1142,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "2": {
+              "mean_unique_successors": 54.916666666666664,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {}
+        },
+        "4": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 4,
+          "max_executions": 1245,
+          "mean_executions": 660.3333333333334,
+          "mean_hit_executions": 264.6666666666667,
+          "mean_seconds": 0.0644695573343294,
+          "mean_solution_length": 4.0,
+          "median_executions": 688.5,
+          "right_censored_trace_rows": 6,
+          "solve_rate": 0.5,
+          "solved": 6,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 6,
+            "solved": 6
+          },
+          "total_executions": 7924,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.166666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 11,
+              "witness_prefix_survival_rate": 0.9166666666666666
+            },
+            "2": {
+              "mean_unique_successors": 53.0,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 9,
+              "witness_prefix_survival_rate": 0.75
+            },
+            "3": {
+              "mean_unique_successors": 90.33333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 4,
+              "witness_prefix_survival_rate": 0.3333333333333333
+            },
+            "4": {
+              "mean_unique_successors": 104.16666666666667,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 104.83333333333333,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 97.5,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 93.83333333333333,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 90.0,
+              "tasks_observed": 6,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 1,
+            "2": 2,
+            "3": 5
+          }
+        },
+        "5": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 2,
+          "max_executions": 1285,
+          "mean_executions": 888.6666666666666,
+          "mean_hit_executions": 352.0,
+          "mean_seconds": 0.09143638908547776,
+          "mean_solution_length": 5.0,
+          "median_executions": 909.0,
+          "right_censored_trace_rows": 2,
+          "solve_rate": 0.16666666666666666,
+          "solved": 2,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 10,
+            "solved": 2
+          },
+          "total_executions": 10664,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 10.666666666666666,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "2": {
+              "mean_unique_successors": 68.08333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 4,
+              "witness_prefix_survival_rate": 0.3333333333333333
+            },
+            "3": {
+              "mean_unique_successors": 87.83333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 3,
+              "witness_prefix_survival_rate": 0.25
+            },
+            "4": {
+              "mean_unique_successors": 87.91666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.16666666666666666
+            },
+            "5": {
+              "mean_unique_successors": 87.6,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 84.7,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 80.4,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 80.9,
+              "tasks_observed": 10,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "2": 8,
+            "3": 1,
+            "4": 1
+          }
+        },
+        "5-8": {
+          "diagnostic_rows": 48,
+          "exact_witness_matches": 2,
+          "max_executions": 1285,
+          "mean_executions": 979.7708333333334,
+          "mean_hit_executions": 352.0,
+          "mean_seconds": 0.09432495254259265,
+          "mean_solution_length": 5.0,
+          "median_executions": 946.0,
+          "right_censored_trace_rows": 2,
+          "solve_rate": 0.041666666666666664,
+          "solved": 2,
+          "tasks": 48,
+          "termination_counts": {
+            "max_depth": 46,
+            "solved": 2
+          },
+          "total_executions": 47029,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 9.604166666666666,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 44,
+              "witness_prefix_survival_rate": 0.9166666666666666
+            },
+            "2": {
+              "mean_unique_successors": 61.395833333333336,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 19,
+              "witness_prefix_survival_rate": 0.3958333333333333
+            },
+            "3": {
+              "mean_unique_successors": 89.10416666666667,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 9,
+              "witness_prefix_survival_rate": 0.1875
+            },
+            "4": {
+              "mean_unique_successors": 92.25,
+              "tasks_observed": 48,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.041666666666666664
+            },
+            "5": {
+              "mean_unique_successors": 92.08695652173913,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 89.8913043478261,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 86.71739130434783,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 85.04347826086956,
+              "tasks_observed": 46,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 48,
+          "witness_first_pruned_depth_counts": {
+            "1": 4,
+            "2": 25,
+            "3": 10,
+            "4": 7
+          }
+        },
+        "6": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 1237,
+          "mean_executions": 1019.6666666666666,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.09393664408465459,
+          "mean_solution_length": null,
+          "median_executions": 989.5,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 12236,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 10.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 11,
+              "witness_prefix_survival_rate": 0.9166666666666666
+            },
+            "2": {
+              "mean_unique_successors": 63.666666666666664,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 5,
+              "witness_prefix_survival_rate": 0.4166666666666667
+            },
+            "3": {
+              "mean_unique_successors": 86.83333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 3,
+              "witness_prefix_survival_rate": 0.25
+            },
+            "4": {
+              "mean_unique_successors": 96.75,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 92.91666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 91.66666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 91.58333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 87.66666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 1,
+            "2": 6,
+            "3": 2,
+            "4": 3
+          }
+        },
+        "7": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 1267,
+          "mean_executions": 987.6666666666666,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.09366234658227768,
+          "mean_solution_length": null,
+          "median_executions": 938.5,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 11852,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 12.083333333333334,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 9,
+              "witness_prefix_survival_rate": 0.75
+            },
+            "2": {
+              "mean_unique_successors": 69.41666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 5,
+              "witness_prefix_survival_rate": 0.4166666666666667
+            },
+            "3": {
+              "mean_unique_successors": 89.25,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 1,
+              "witness_prefix_survival_rate": 0.08333333333333333
+            },
+            "4": {
+              "mean_unique_successors": 89.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 92.08333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 86.16666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 81.33333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 79.08333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "1": 3,
+            "2": 4,
+            "3": 4,
+            "4": 1
+          }
+        },
+        "7-8": {
+          "diagnostic_rows": 24,
+          "exact_witness_matches": 0,
+          "max_executions": 1267,
+          "mean_executions": 1005.375,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.09596338850011914,
+          "mean_solution_length": null,
+          "median_executions": 1005.5,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 24,
+          "termination_counts": {
+            "max_depth": 24
+          },
+          "total_executions": 24129,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.625,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 21,
+              "witness_prefix_survival_rate": 0.875
+            },
+            "2": {
+              "mean_unique_successors": 56.916666666666664,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 10,
+              "witness_prefix_survival_rate": 0.4166666666666667
+            },
+            "3": {
+              "mean_unique_successors": 90.875,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 3,
+              "witness_prefix_survival_rate": 0.125
+            },
+            "4": {
+              "mean_unique_successors": 92.16666666666667,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 93.54166666666667,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 91.16666666666667,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 86.91666666666667,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 85.45833333333333,
+              "tasks_observed": 24,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 24,
+          "witness_first_pruned_depth_counts": {
+            "1": 3,
+            "2": 11,
+            "3": 7,
+            "4": 3
+          }
+        },
+        "8": {
+          "diagnostic_rows": 12,
+          "exact_witness_matches": 0,
+          "max_executions": 1172,
+          "mean_executions": 1023.0833333333334,
+          "mean_hit_executions": null,
+          "mean_seconds": 0.09826443041796058,
+          "mean_solution_length": null,
+          "median_executions": 1074.5,
+          "right_censored_trace_rows": 0,
+          "solve_rate": 0.0,
+          "solved": 0,
+          "tasks": 12,
+          "termination_counts": {
+            "max_depth": 12
+          },
+          "total_executions": 12277,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 5.166666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 12,
+              "witness_prefix_survival_rate": 1.0
+            },
+            "2": {
+              "mean_unique_successors": 44.416666666666664,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 5,
+              "witness_prefix_survival_rate": 0.4166666666666667
+            },
+            "3": {
+              "mean_unique_successors": 92.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.16666666666666666
+            },
+            "4": {
+              "mean_unique_successors": 94.83333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "5": {
+              "mean_unique_successors": 95.0,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 96.16666666666667,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 92.5,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 91.83333333333333,
+              "tasks_observed": 12,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 12,
+          "witness_first_pruned_depth_counts": {
+            "2": 7,
+            "3": 3,
+            "4": 2
+          }
+        },
+        "all": {
+          "diagnostic_rows": 96,
+          "exact_witness_matches": 40,
+          "max_executions": 1285,
+          "mean_executions": 585.5520833333334,
+          "mean_hit_executions": 80.72727272727273,
+          "mean_seconds": 0.059287134438363864,
+          "mean_solution_length": 2.409090909090909,
+          "median_executions": 835.0,
+          "right_censored_trace_rows": 44,
+          "solve_rate": 0.4583333333333333,
+          "solved": 44,
+          "tasks": 96,
+          "termination_counts": {
+            "max_depth": 52,
+            "solved": 44
+          },
+          "total_executions": 56213,
+          "trace_by_depth": {
+            "1": {
+              "mean_unique_successors": 8.797619047619047,
+              "tasks_observed": 84,
+              "witness_prefix_retained": 79,
+              "witness_prefix_survival_rate": 0.9404761904761905
+            },
+            "2": {
+              "mean_unique_successors": 58.916666666666664,
+              "tasks_observed": 72,
+              "witness_prefix_retained": 40,
+              "witness_prefix_survival_rate": 0.5555555555555556
+            },
+            "3": {
+              "mean_unique_successors": 89.35,
+              "tasks_observed": 60,
+              "witness_prefix_retained": 13,
+              "witness_prefix_survival_rate": 0.21666666666666667
+            },
+            "4": {
+              "mean_unique_successors": 93.57407407407408,
+              "tasks_observed": 54,
+              "witness_prefix_retained": 2,
+              "witness_prefix_survival_rate": 0.037037037037037035
+            },
+            "5": {
+              "mean_unique_successors": 93.5576923076923,
+              "tasks_observed": 52,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "6": {
+              "mean_unique_successors": 90.76923076923077,
+              "tasks_observed": 52,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "7": {
+              "mean_unique_successors": 87.53846153846153,
+              "tasks_observed": 52,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            },
+            "8": {
+              "mean_unique_successors": 85.61538461538461,
+              "tasks_observed": 52,
+              "witness_prefix_retained": 0,
+              "witness_prefix_survival_rate": 0.0
+            }
+          },
+          "trace_supported_rows": 96,
+          "witness_first_pruned_depth_counts": {
+            "1": 5,
+            "2": 27,
+            "3": 15,
+            "4": 7
+          }
+        }
+      }
+    },
+    "widths": [
+      1,
+      8,
+      10,
+      64
+    ]
+  },
+  "runtime": {
+    "device": "cuda",
+    "searches": 384,
+    "searches_per_second": 8.918090884556534,
+    "seconds": 43.058543018996716
+  },
+  "schema_version": 1,
+  "source_code": {
+    "commit": "89ee868ddf20ab6126f4e7bd7d3284a380436932",
+    "dirty": false,
+    "runner": {
+      "path": "experiments/evaluate_rollout_policy.py",
+      "sha256": "sha256:b2fa415ad8af14df5c63c195fea606df873bf14bc0c42acc59128e7a09922ac6"
+    },
+    "status_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tracked_diff_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "status": "complete",
+  "test_access": null,
+  "verification": {
+    "corpus_dir": "/home/abhishekrao/repos/wandering-light/wandering_light/training/data/deep_corpus_v1",
+    "distance_histogram": {
+      "1": 1880,
+      "2": 4750,
+      "3": 4800,
+      "4": 4800,
+      "5": 4800,
+      "6": 4800,
+      "7": 4800,
+      "8": 720
+    },
+    "duplicate_task_ids": [],
+    "manifest_summary_failures": [],
+    "ok": true,
+    "provenance_failures": [],
+    "recertification_failures": [],
+    "recertification_inconclusive": [],
+    "recertified": [],
+    "records": 31350,
+    "reference_root_digest_overlaps": [],
+    "reference_root_key_overlaps": [],
+    "reference_task_id_overlaps": [],
+    "root_digest_set_sha256": "sha256:6db92408975e463e28e4d07415381a64c301d6cfb9198e1e7d61fec53bb3b611",
+    "roots_leaking_across_splits": [],
+    "target_contract_failures": [],
+    "task_id_set_sha256": "sha256:9d492eba586843416c643ef14b4ff7cae2b22c392a0662e183cd0e378dcb328d",
+    "tasks_leaking_across_splits": [],
+    "witness_failures": []
+  },
+  "wandb": {
+    "entity": "abhishekraok-na",
+    "project": "wandering-light-deep-corpus-v1",
+    "run_name": "issue-55-materialized-rollout-validation-20260829",
+    "url": "https://wandb.ai/abhishekraok-na/wandering-light-deep-corpus-v1/runs/vbfddpkl"
+  }
+}
