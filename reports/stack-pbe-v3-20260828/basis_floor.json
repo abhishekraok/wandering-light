@@ -1,0 +1,42 @@
+{
+  "depth": 5,
+  "roots": 4,
+  "bases": {
+    "executable-26": {
+      "states": 307707,
+      "quotations": 6058,
+      "executable_quotations": 0,
+      "legal": {
+        "dip": 14025,
+        "i": 14864,
+        "map": 2485,
+        "filter": 1370,
+        "fold": 629,
+        "ifte": 95
+      },
+      "ran_an_op": {},
+      "seconds": 6.8
+    },
+    "mark-28": {
+      "states": 4368089,
+      "quotations": 85333,
+      "executable_quotations": 78731,
+      "legal": {
+        "dip": 15001,
+        "i": 16293,
+        "map": 2749,
+        "filter": 1480,
+        "fold": 733,
+        "ifte": 95
+      },
+      "ran_an_op": {
+        "dip": 806,
+        "i": 1257,
+        "map": 96,
+        "fold": 104,
+        "filter": 26
+      },
+      "seconds": 60.2
+    }
+  }
+}

@@ -388,6 +388,11 @@ def bits(*values: int) -> tuple[Value, ...]:
 # Any solver number produced from this generator measures search over that
 # enumeration, not PBE. Fixing it means changing these families -- stop
 # supplying quotations, widen the input sets -- not changing the op set.
+#
+# That fix is `wandering_light/stack_pbe.py`, which writes the behaviours first
+# and searches second. Prefer it for anything new; this module is retained
+# because `experiments/mark28_corpus_probe.py` reproduces the null result above
+# and needs the generator that produced it.
 FAMILIES: dict[str, list[Behaviour]] = {
     # one three-element list of bits per example
     "bitlist3": [

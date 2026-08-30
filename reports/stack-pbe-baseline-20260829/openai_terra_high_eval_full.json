@@ -1,0 +1,186 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "tasks": 440,
+  "solved": 377,
+  "memorised": 12,
+  "shown_fit": 389,
+  "illegal": 29,
+  "solve_rate": 0.8568181818181818,
+  "shown_rate": 0.884090909090909,
+  "by_behaviour": {
+    "double_each": {
+      "witness_length": 5,
+      "tasks": 40,
+      "solved": 40,
+      "memorised": 0
+    },
+    "abs_each": {
+      "witness_length": 16,
+      "tasks": 40,
+      "solved": 34,
+      "memorised": 0
+    },
+    "keep_negative": {
+      "witness_length": 5,
+      "tasks": 40,
+      "solved": 39,
+      "memorised": 0
+    },
+    "sum": {
+      "witness_length": 5,
+      "tasks": 40,
+      "solved": 40,
+      "memorised": 0
+    },
+    "last": {
+      "witness_length": 6,
+      "tasks": 40,
+      "solved": 32,
+      "memorised": 2
+    },
+    "maximum": {
+      "witness_length": 16,
+      "tasks": 40,
+      "solved": 27,
+      "memorised": 6
+    },
+    "minimum": {
+      "witness_length": 16,
+      "tasks": 40,
+      "solved": 29,
+      "memorised": 4
+    },
+    "count_negative": {
+      "witness_length": 12,
+      "tasks": 40,
+      "solved": 31,
+      "memorised": 0
+    },
+    "scale_by": {
+      "witness_length": 6,
+      "tasks": 40,
+      "solved": 37,
+      "memorised": 0
+    },
+    "keep_above": {
+      "witness_length": 7,
+      "tasks": 40,
+      "solved": 29,
+      "memorised": 0
+    },
+    "sum_both": {
+      "witness_length": 6,
+      "tasks": 40,
+      "solved": 39,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "0 [ add ] fold",
+      40
+    ],
+    [
+      "[ 0 lt? ] filter",
+      39
+    ],
+    [
+      "[ dup add ] map",
+      35
+    ],
+    [
+      "quote [ mul ] cat map",
+      34
+    ],
+    [
+      "[ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map",
+      32
+    ],
+    [
+      "[ 0 lt? ] filter 0 [ drop 1 add ] fold",
+      31
+    ],
+    [
+      "quote [ swap lt? ] cat filter",
+      28
+    ],
+    [
+      "uncons [ [ over over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+      25
+    ],
+    [
+      "uncons [ [ over over lt? ] [ swap drop ] [ drop ] ifte ] fold",
+      24
+    ],
+    [
+      "0 [ swap drop ] fold",
+      21
+    ],
+    [
+      "0 [ add ] fold swap 0 [ add ] fold add",
+      15
+    ],
+    [
+      "cat 0 [ add ] fold",
+      11
+    ],
+    [
+      "0 [ add ] fold [ add ] fold",
+      11
+    ],
+    [
+      "nil [ swap drop ] fold",
+      8
+    ],
+    [
+      "[ 1 1 add mul ] map",
+      5
+    ],
+    [
+      "uncons [ swap drop ] fold",
+      3
+    ],
+    [
+      "0 [ [ over over lt? ] [ swap drop ] [ drop ] ifte ] fold",
+      3
+    ],
+    [
+      "[ [ 0 lt? ] [ 0 swap sub ] [ ] ifte ] map",
+      2
+    ],
+    [
+      "uncons [ [ lt? ] [ drop ] [ swap drop ] ifte ] fold",
+      2
+    ],
+    [
+      "swap 0 [ add ] fold swap 0 [ add ] fold add",
+      2
+    ],
+    [
+      "0 [ [ over over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+      1
+    ],
+    [
+      "uncons [ over over lt? quote [ drop ] [ swap drop ] ifte ] fold",
+      1
+    ],
+    [
+      "[ dup 1 eq? ] [ drop ] [ dup quote [ mul ] cat swap drop map ] ifte",
+      1
+    ],
+    [
+      "nil swap cons [ swap uncons dup [ swap ] dip [ [ mul ] dip ] dip [ swap cons ] dip cons ] fold uncons drop nil [ cons ] fold",
+      1
+    ],
+    [
+      "swap [ quote [ mul ] cat ] dip swap map",
+      1
+    ],
+    [
+      "quote nil cons [ swap uncons swap uncons swap drop dup [ [ [ dup ] dip ] dip swap [ swap ] dip [ lt? ] dip swap ] dip swap quote [ [ swap cons ] dip quote swap cons ] [ [ swap drop ] dip quote swap cons ] ifte ] fold uncons swap drop nil [ cons ] fold",
+      1
+    ]
+  ]
+}

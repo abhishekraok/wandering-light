@@ -1,0 +1,34 @@
+{
+  "basis": "mark-28",
+  "config": {
+    "held_out": 8,
+    "max_examples": 6,
+    "min_examples": 3,
+    "per_behaviour": 40,
+    "seed": 17
+  },
+  "corpus": "stack_pbe_v3",
+  "counts": {
+    "distinct_input_stacks": 15550,
+    "held_out_examples": 12800,
+    "shown_examples": 7123,
+    "tasks": 1600
+  },
+  "generator": "wandering_light.stack_pbe",
+  "generator_description": "Archived. Schema 1: split on the behaviour, one witness per behaviour, no list-length guard. Superseded by stack_pbe_v4; kept because the BFS and language-model baselines in reports/stack-pbe-baseline-20260829 were measured on these exact bytes.",
+  "hub": {
+    "repo_id": "abhishekraok/wandering-light-stack-pbe-v3",
+    "repo_type": "dataset",
+    "revision": "02644e0a969f4d695b6e6c6aa42bcb73eb38327c"
+  },
+  "schema_version": 1,
+  "split_policy": "behaviour",
+  "splits": {
+    "all": {
+      "bytes": 150256,
+      "path": "stack_pbe_v3.jsonl.gz",
+      "records": 1600,
+      "sha256": "sha256:50b80b2acc26d6dfe7590d9ad106e8849a66a3a957b673766c146a733745c0c6"
+    }
+  }
+}

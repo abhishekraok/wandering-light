@@ -194,3 +194,10 @@ wandering_light/training/tokenizers/deep_corpus_v*/tokenizer_detail.json
 reports/**/raw/
 reports/**/*.svg
 reports/**/*.csv
+
+# Generated corpus payloads. `wandering_light/corpus_hub.py` explains why these
+# are not committed: a corpus is a derived artifact, every regeneration is a
+# fresh gzip, and gzips do not delta-compress -- so committing them keeps every
+# superseded version in history forever. The manifest beside them is tracked
+# and pins the digests a `fetch_corpus` is checked against.
+wandering_light/evals/data/stack_pbe_v*/*.jsonl.gz
