@@ -1,6 +1,6 @@
 # Deep-corpus-v2 scratch follow-up: incomplete recovered evidence
 
-Issue [#54](https://github.com/abhishekraok/wandering-light/issues/54)
+[build-deep-corpus-v2 (#54)](https://github.com/abhishekraok/wandering-light/issues/54)
 did not reach a solve-rate result. This directory preserves everything that
 could be recovered durably from the eight W&B training runs after the local
 `/tmp` worktree and its checkpoints were lost.
@@ -85,8 +85,9 @@ Accordingly, none of the requested scientific outputs exists:
 The frozen test was never model-scored; the recorded access count remained
 zero and no opening ledger was created. The 360M arm remained deferred at a
 17.333-hour projection, including three pilots, the three-epoch final, and the
-15% margin. Per owner instruction, the lost 10M and 125M runs will not be
-retrained.
+15% margin, above the frozen 16-hour cap. This closeout does not authorize
+retraining; build-deep-corpus-v2 (#54) remains deferred, and resumption requires
+recreating the lost weights under a fresh, explicitly authorized protocol.
 
 This report is a recovery record of training evidence, not a substitute for
 the protocol's validation/test result.

@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from experiments import create_deep_corpus_v2_scratch_report as report
+from experiments import evaluate_deep_corpus_v2_scratch as evaluator
 from experiments import publish_deep_corpus_v2_scratch_report as publisher
 from experiments.evaluate_deep_corpus_v2_scratch import (
     SCHEMA_VERSION as EVALUATION_SCHEMA_VERSION,
@@ -414,6 +415,61 @@ def _receipt(arm_id: str, split: str, summary: dict) -> dict:
     }
 
 
+def _write_test_opening_authority(
+    *,
+    registry_root: Path,
+    test_dir: Path,
+    protocol: dict,
+    validation: dict,
+    feasibility: dict,
+    prepared_ledger: dict,
+) -> tuple[dict, Path, dict]:
+    active = tuple(validation)
+    readiness_body = evaluator._test_readiness_body(
+        protocol_lock=protocol,
+        validation_results=validation,
+        feasibility_identity={
+            "artifact_digest": feasibility["artifact_digest"],
+            "active_arm_ids": list(active),
+            "deferred_arm_ids": [arm_id for arm_id in ARM_IDS if arm_id not in active],
+        },
+        test_opening_registry_root=registry_root,
+    )
+    readiness = {
+        **readiness_body,
+        "readiness_sha256": sha256_json(readiness_body),
+    }
+    (test_dir / evaluator.TEST_READINESS_FILENAME).write_text(
+        json.dumps(readiness), encoding="utf-8"
+    )
+    claim_path, claim = evaluator._build_test_opening_claim(
+        test_opening_registry_root=registry_root,
+        protocol_lock_sha256=protocol["protocol_lock_sha256"],
+        test_dir=test_dir,
+        prepared_ledger=prepared_ledger,
+        readiness=readiness,
+    )
+    claim_path.write_text(json.dumps(claim), encoding="utf-8")
+    return readiness, claim_path, claim
+
+
+def _write_pilot_and_refresh_selection_lock(
+    study: dict, path: Path, value: dict
+) -> None:
+    final = study["validation"][value["arm_id"]]["training_manifest"]
+    learning_rate = float(value["learning_rate"])
+    lock_row = next(
+        row
+        for row in final["selection_lock"]["pilots"]
+        if row["learning_rate"] == learning_rate
+    )
+    digest = sha256_json(value)
+    lock_row["manifest_digest"] = digest
+    if final["selection_lock"]["selected_learning_rate"] == learning_rate:
+        final["selection_lock"]["selected_pilot_manifest_digest"] = digest
+    path.write_text(json.dumps(value), encoding="utf-8")
+
+
 @pytest.fixture
 def study(tmp_path, monkeypatch):
     corpus = {
@@ -578,6 +634,7 @@ def study(tmp_path, monkeypatch):
             path.write_text(json.dumps(pilot), encoding="utf-8")
             pilot_paths.append(path)
     feasibility = {
+        "status": "complete",
         "artifact_digest": FEASIBILITY_DIGEST,
         "source_code": {
             "commit": GIT_COMMIT,
@@ -649,6 +706,10 @@ def study(tmp_path, monkeypatch):
             target_solved=0,
         )
 
+    git_dir = tmp_path / ".git"
+    git_dir.mkdir()
+    registry_root = git_dir / evaluator.TEST_OPENING_REGISTRY_DIRNAME
+    registry_root.mkdir()
     test_dir = tmp_path / "test"
     test_dir.mkdir()
     bfs_path = test_dir / report.BFS_FILENAME
@@ -658,12 +719,21 @@ def study(tmp_path, monkeypatch):
         "bytes": bfs_path.stat().st_size,
         "sha256": sha256_file(bfs_path),
     }
-    ledger = new_test_opening_ledger(
+    prepared_ledger = new_test_opening_ledger(
         opening_id="issue-54-test",
         protocol_lock_sha256=PROTOCOL_DIGEST,
         selection_locks=selection_locks,
+        feasibility_artifact_digest=FEASIBILITY_DIGEST,
     )
-    ledger = begin_test_opening(ledger)
+    readiness, claim_path, claim = _write_test_opening_authority(
+        registry_root=registry_root,
+        test_dir=test_dir,
+        protocol=protocol,
+        validation=validation,
+        feasibility=feasibility,
+        prepared_ledger=prepared_ledger,
+    )
+    ledger = begin_test_opening(prepared_ledger)
     for arm_id in ARM_IDS:
         summary = test_summaries[arm_id]
         ledger = record_test_arm_result(
@@ -685,6 +755,9 @@ def study(tmp_path, monkeypatch):
         "split": "test",
         "protocol_lock_sha256": PROTOCOL_DIGEST,
         "test_cohort_sha256": protocol["cohorts"]["test"]["cohort_sha256"],
+        "active_arm_ids": list(ARM_IDS),
+        "deferred_arm_ids": [],
+        "feasibility_artifact_digest": FEASIBILITY_DIGEST,
         "ledger_sha256": ledger["ledger_sha256"],
         "test_access_count": 1,
         "arm_summary_sha256_by_arm": {
@@ -724,6 +797,7 @@ def study(tmp_path, monkeypatch):
     tokenizer_dir.mkdir()
     inputs = report.ReportInputs(
         protocol_lock=protocol_path,
+        test_opening_registry_root=registry_root,
         corpus_manifest=corpus_path,
         tokenizer_dir=tokenizer_dir,
         feasibility_manifest=feasibility_path,
@@ -758,6 +832,11 @@ def study(tmp_path, monkeypatch):
         "test_arms": test_arms,
         "combined": combined,
         "ledger": ledger,
+        "prepared_ledger": prepared_ledger,
+        "readiness": readiness,
+        "claim_path": claim_path,
+        "claim": claim,
+        "registry_root": registry_root,
         "feasibility": feasibility,
         "pilots": pilots_by_arm,
         "pilot_paths": pilot_paths,
@@ -773,6 +852,21 @@ def test_builds_atomic_deterministic_complete_json_and_markdown(study):
     assert first_report == second_report
     assert first_markdown == second_markdown
     assert first_report["test_opening"]["test_access_count"] == 1
+    assert first_report["test_opening"] == {
+        "test_opening_registry_root": str(study["registry_root"]),
+        "claim_path": str(study["claim_path"]),
+        "claim_sha256": study["claim"][evaluator.TEST_OPENING_CLAIM_DIGEST_FIELD],
+        "prepared_ledger_sha256": study["prepared_ledger"]["ledger_sha256"],
+        "readiness_sha256": study["readiness"]["readiness_sha256"],
+        "ledger_sha256": study["ledger"]["ledger_sha256"],
+        "opening_id": study["ledger"]["opening_id"],
+        "test_access_count": 1,
+        "shared_bfs": study["ledger"]["shared_bfs_identity"],
+        "combined_summary_sha256": study["combined"][SUMMARY_DIGEST_FIELD],
+        "active_arm_ids": list(ARM_IDS),
+        "deferred_arm_ids": [],
+        "feasibility_artifact_digest": FEASIBILITY_DIGEST,
+    }
     assert (
         first_report["protocol"]["training_evaluator_source_sha256"]
         == first_report["protocol"]["evaluator_source_sha256"]
@@ -822,6 +916,124 @@ def test_builds_atomic_deterministic_complete_json_and_markdown(study):
         report.create_report(inputs)
 
 
+def test_report_cli_requires_explicit_test_opening_registry(tmp_path):
+    registry_root = tmp_path / "registry"
+    argv = [
+        "--protocol-lock",
+        "protocol.json",
+        "--test-opening-registry",
+        str(registry_root),
+        "--corpus-manifest",
+        "corpus.json",
+        "--feasibility-manifest",
+        "feasibility.json",
+        "--validation-result",
+        "validation",
+        "--pilot-manifest",
+        "pilot.json",
+        "--test-dir",
+        "test",
+        "--output-dir",
+        "report",
+    ]
+
+    inputs = report._parse_args(argv)
+
+    assert inputs.test_opening_registry_root == registry_root
+    registry_index = argv.index("--test-opening-registry")
+    without_registry = argv[:registry_index] + argv[registry_index + 2 :]
+    with pytest.raises(SystemExit):
+        report._parse_args(without_registry)
+
+
+def test_report_rejects_noncanonical_or_missing_test_opening_registry(study, tmp_path):
+    alternate_registry = tmp_path / "alternate-registry"
+    alternate_registry.mkdir()
+    wrong_inputs = report.ReportInputs(
+        **{
+            **study["inputs"].__dict__,
+            "test_opening_registry_root": alternate_registry,
+        }
+    )
+    with pytest.raises(ValueError, match="fixed Git-common-dir authority"):
+        report.build_report(wrong_inputs)
+
+    study["claim_path"].unlink()
+    with pytest.raises(ValueError, match="no canonical test-opening claim"):
+        report.build_report(study["inputs"])
+
+
+@pytest.mark.parametrize(
+    ("field", "replacement", "message"),
+    [
+        ("test_dir", "/another/test", "another test directory"),
+        (
+            "prepared_ledger_sha256",
+            "sha256:" + "0" * 64,
+            "changed its prepared ledger",
+        ),
+    ],
+)
+def test_report_rejects_resealed_test_opening_claim_tampering(
+    study, field, replacement, message
+):
+    changed = deepcopy(study["claim"])
+    changed.pop(evaluator.TEST_OPENING_CLAIM_DIGEST_FIELD)
+    changed[field] = replacement
+    changed = evaluator._seal_test_opening_claim(changed)
+    study["claim_path"].write_text(json.dumps(changed), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=message):
+        report.build_report(study["inputs"])
+
+
+def test_report_ties_claim_opening_to_completed_ledger(study):
+    changed_prepared = new_test_opening_ledger(
+        opening_id="another-opening",
+        protocol_lock_sha256=PROTOCOL_DIGEST,
+        selection_locks=[
+            study["validation"][arm_id]["selection_lock"] for arm_id in ARM_IDS
+        ],
+        active_arm_ids=ARM_IDS,
+        feasibility_artifact_digest=FEASIBILITY_DIGEST,
+    )
+    changed = deepcopy(study["claim"])
+    changed.pop(evaluator.TEST_OPENING_CLAIM_DIGEST_FIELD)
+    changed.update(
+        {
+            "opening_id": changed_prepared["opening_id"],
+            "prepared_ledger_sha256": changed_prepared["ledger_sha256"],
+        }
+    )
+    changed = evaluator._seal_test_opening_claim(changed)
+    study["claim_path"].write_text(json.dumps(changed), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Completed test ledger differs"):
+        report.build_report(study["inputs"])
+
+
+def test_report_rejects_resealed_readiness_and_combined_ledger_tampering(study):
+    readiness = deepcopy(study["readiness"])
+    readiness.pop("readiness_sha256")
+    readiness["selection_lock_sha256_by_arm"][ARM_IDS[0]] = "sha256:" + "0" * 64
+    readiness["readiness_sha256"] = sha256_json(readiness)
+    readiness_path = study["inputs"].test_dir / evaluator.TEST_READINESS_FILENAME
+    readiness_path.write_text(json.dumps(readiness), encoding="utf-8")
+    with pytest.raises(ValueError, match="no longer matches the frozen opening"):
+        report.build_report(study["inputs"])
+
+    readiness_path.write_text(json.dumps(study["readiness"]), encoding="utf-8")
+    combined = deepcopy(study["combined"])
+    combined.pop(SUMMARY_DIGEST_FIELD)
+    combined["ledger_sha256"] = "sha256:" + "0" * 64
+    combined = _seal_summary(combined)
+    (study["inputs"].test_dir / report.TEST_SUMMARY_FILENAME).write_text(
+        json.dumps(combined), encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="another ledger revision"):
+        report.build_report(study["inputs"])
+
+
 def test_reports_two_active_arms_and_one_deferred_arm(study, monkeypatch):
     active = ARM_IDS[:2]
     deferred = ARM_IDS[2:]
@@ -843,10 +1055,10 @@ def test_reports_two_active_arms_and_one_deferred_arm(study, monkeypatch):
         "runtime_hard_stop_required": True,
         "baseline": {
             "pilot_runs": 3,
-            "projected_pilot_run_hours": 1.0,
-            "projected_pilot_hours": 3.0,
-            "projected_final_hours": 14.02,
-            "projected_pilot_plus_final_hours": 17.02,
+            "projected_pilot_run_hours": 1.111,
+            "projected_pilot_hours": 3.333,
+            "projected_final_hours": 14.0,
+            "projected_pilot_plus_final_hours": 17.333,
             "projection_includes": [
                 "all three quarter-epoch pilot training runs",
                 "three final epoch validations plus one explicit final validation",
@@ -863,14 +1075,22 @@ def test_reports_two_active_arms_and_one_deferred_arm(study, monkeypatch):
         lambda *_, **__: (validation, selection_locks),
     )
 
-    ledger = new_test_opening_ledger(
+    prepared_ledger = new_test_opening_ledger(
         opening_id="issue-54-partial-test",
         protocol_lock_sha256=PROTOCOL_DIGEST,
         selection_locks=selection_locks,
         active_arm_ids=active,
         feasibility_artifact_digest=FEASIBILITY_DIGEST,
     )
-    ledger = begin_test_opening(ledger)
+    _write_test_opening_authority(
+        registry_root=study["registry_root"],
+        test_dir=study["inputs"].test_dir,
+        protocol=study["protocol"],
+        validation=validation,
+        feasibility=feasibility,
+        prepared_ledger=prepared_ledger,
+    )
+    ledger = begin_test_opening(prepared_ledger)
     for arm_id in active:
         summary = study["test_summaries"][arm_id]
         ledger = record_test_arm_result(
@@ -965,7 +1185,7 @@ def test_reports_two_active_arms_and_one_deferred_arm(study, monkeypatch):
     assert set(value["evaluations"]["validation"]) == set(active)
     assert set(value["evaluations"]["test"]) == set(active)
     deferred_report = value["deferred_arms"][deferred[0]]
-    assert deferred_report["projection"]["projected_pilot_plus_final_hours"] == 17.02
+    assert deferred_report["projection"]["projected_pilot_plus_final_hours"] == 17.333
     assert deferred_report["projection_context"] == {
         "learning_rate_pilots": 3,
         "full_final_epochs": 3,
@@ -978,16 +1198,33 @@ def test_reports_two_active_arms_and_one_deferred_arm(study, monkeypatch):
         "context length",
         "parameter count",
     ]
-    assert {option["option"] for option in deferred_report["fit_options"]} == {
-        "fewer_learning_rate_pilots",
-        "own_night",
+    fit_options = {
+        option["option"]: option for option in deferred_report["fit_options"]
     }
+    assert set(fit_options) == {"fewer_learning_rate_pilots", "own_night"}
+    assert fit_options["fewer_learning_rate_pilots"]["requires_protocol_change"]
+    assert (
+        fit_options["fewer_learning_rate_pilots"]["protocol_change"]
+        == "learning_rate_selection"
+    )
+    assert fit_options["own_night"]["requires_protocol_change"]
+    assert fit_options["own_night"]["protocol_change"] == "compute_limit"
     assert "SmolLM2 360M — deferred" in markdown
-    assert "17.02 hours" in markdown
+    assert "17.33 hours" in markdown
     assert "three learning-rate pilots" in markdown
     assert "full three-epoch run" in markdown
-    assert "fewer learning-rate pilots" in markdown
-    assert "its own night" in markdown
+    assert "separately frozen LR-selection protocol" in markdown
+    assert "Assigning it its own night does not change the limit" in markdown
+    assert "separately authorizing a higher compute limit" in markdown
+    assert "or by assigning it its own night" not in markdown
+    assert (
+        "Every active arm (10M and OPT 125M) remained 0/12 at every distance "
+        "from 5 through 8"
+    ) in markdown
+    assert (
+        "The deferred arm (SmolLM2 360M) provides no held-out capacity/data evidence"
+        in markdown
+    )
     assert (
         "Do not shrink training data, epochs, context length, or parameter count"
         in markdown
@@ -1000,6 +1237,84 @@ def test_reports_two_active_arms_and_one_deferred_arm(study, monkeypatch):
         "unknown_function:bogus (48) |"
     ) in markdown
     assert "Complete solve@64 by certified distance 1-8" in markdown
+
+
+def test_singleton_scope_prose_names_the_actual_active_and_deferred_arms(study):
+    full_report, _ = report.build_report(study["inputs"])
+    active = ("smollm2-360m-scratch",)
+    deferred = ("scratch-10m", "opt-125m-scratch")
+    validation = {
+        arm_id: full_report["evaluations"]["validation"][arm_id] for arm_id in active
+    }
+    test = {arm_id: full_report["evaluations"]["test"][arm_id] for arm_id in active}
+
+    decisions = report._decision_rules(
+        validation,
+        test,
+        active_arm_ids=active,
+        deferred_arm_ids=deferred,
+    )
+
+    assert decisions["larger_model_helps_on_validation_distance_5_8"] == {}
+    assert decisions["capacity_data_comparator_arm_ids"] == []
+    assert decisions["capacity_data_mismatch_360m_loses_on_test_distance_5_8"] is None
+    assert decisions["capacity_data_mismatch_360m_loses_to_arm_ids"] == []
+    assert decisions["long_distance_statement"] == (
+        "Every active arm (SmolLM2 360M) remained 0/12 at every distance from 5 "
+        "through 8; The deferred arms (10M and OPT 125M) provide no evidence for "
+        "or against the long-distance regime."
+    )
+    assert decisions["capacity_caveat"].startswith("Only one arm was active")
+    assert "one active arm, not a scaling claim" in decisions["seed_caveat"]
+    assert report._capacity_statement(decisions) == (
+        "SmolLM2 360M was the only active arm, so no held-out smaller-model "
+        "capacity/data comparator is available. The deferred arms (10M and OPT "
+        "125M) provide no held-out capacity/data evidence."
+    )
+
+
+def test_non_prefix_scope_compares_only_available_arms(study):
+    full_report, _ = report.build_report(study["inputs"])
+    active = ("scratch-10m", "smollm2-360m-scratch")
+    deferred = ("opt-125m-scratch",)
+    validation = {
+        arm_id: deepcopy(full_report["evaluations"]["validation"][arm_id])
+        for arm_id in active
+    }
+    test = {
+        arm_id: deepcopy(full_report["evaluations"]["test"][arm_id])
+        for arm_id in active
+    }
+    solved_row = test["scratch-10m"]["by_certified_distance_at_64"]["5"]
+    solved_row["solved"] = 1
+    solved_row["solve_rate"] = 1 / solved_row["tasks"]
+    target = test["scratch-10m"]["distance_5_8_at_64"]
+    target["solved"] = 1
+    target["solve_rate"] = 1 / target["tasks"]
+
+    decisions = report._decision_rules(
+        validation,
+        test,
+        active_arm_ids=active,
+        deferred_arm_ids=deferred,
+    )
+
+    assert decisions["larger_model_helps_on_validation_distance_5_8"] == {
+        "smollm2-360m-scratch_vs_scratch-10m": True
+    }
+    assert decisions["capacity_data_comparator_arm_ids"] == ["scratch-10m"]
+    assert decisions["capacity_data_mismatch_360m_loses_on_test_distance_5_8"]
+    assert decisions["capacity_data_mismatch_360m_loses_to_arm_ids"] == ["scratch-10m"]
+    assert decisions["long_distance_statement"] == (
+        "At least one active arm (10M and SmolLM2 360M) solved a held-out "
+        "distance-5..8 task; see the per-distance table without tuning on test. "
+        "The deferred arm (OPT 125M) provides no held-out long-distance evidence."
+    )
+    assert report._capacity_statement(decisions) == (
+        "SmolLM2 360M lost to the active smaller arm (10M) on held-out distance "
+        "5-8: report this as a capacity/data mismatch and do not tune on test. "
+        "The deferred arm (OPT 125M) provides no held-out capacity/data evidence."
+    )
 
 
 def test_publishes_sealed_report_to_fixed_personal_wandb_project(
@@ -1169,6 +1484,56 @@ def test_rejects_training_runtime_that_differs_from_protocol(study, field, repla
 
     with pytest.raises(ValueError, match="deterministic runtime differs"):
         report.build_report(inputs)
+
+
+def test_reports_recovered_training_runtime_as_right_censored_lower_bound(study):
+    pilot_path = study["inputs"].pilot_manifests[0]
+    changed = json.loads(pilot_path.read_text(encoding="utf-8"))
+    environment = changed["execution_environment"]
+    censoring = {
+        "status": "right-censored-lower-bound",
+        "known_original_lower_bound_seconds": 8.0,
+        "recovery_elapsed_seconds": 2.0,
+        "combined_lower_bound_seconds": 10.0,
+        "omitted_interval_seconds": None,
+        "omitted_interval_scope": (
+            "pending-manifest measurement through recovery invocation start"
+        ),
+        "omitted_interval_reason": (
+            "producer tail and inter-invocation gap were not measured"
+        ),
+    }
+    environment.update(
+        {
+            "full_invocation_elapsed_seconds": 10.0,
+            "full_invocation_runtime_scope": (
+                "right-censored lower bound covering known producer prefix plus "
+                "recovery invocation"
+            ),
+            "full_invocation_runtime_censoring": censoring,
+        }
+    )
+    _write_pilot_and_refresh_selection_lock(study, pilot_path, changed)
+
+    value, markdown = report.build_report(study["inputs"])
+
+    run = next(
+        row
+        for row in value["training"][changed["arm_id"]]["pilots"]
+        if row["learning_rate"] == changed["learning_rate"]
+    )
+    assert run["runtime_seconds"] == 10.0
+    assert run["runtime_status"] == "right-censored-lower-bound"
+    assert run["runtime_censoring"] == censoring
+    assert ">=10.0 (right-censored)" in markdown
+    assert "omitted interval is unknown and is not treated as zero" in markdown
+
+    changed["execution_environment"]["full_invocation_runtime_censoring"][
+        "combined_lower_bound_seconds"
+    ] = 11.0
+    _write_pilot_and_refresh_selection_lock(study, pilot_path, changed)
+    with pytest.raises(ValueError, match="censoring provenance is inconsistent"):
+        report.build_report(study["inputs"])
 
 
 def test_rejects_feasibility_probe_from_another_source(study):

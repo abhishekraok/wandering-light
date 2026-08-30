@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -44,6 +45,81 @@ def test_run_contract_rejects_distribution_and_seed_drift(tmp_path):
         )
 
 
+def test_actual_run_requires_non_temporary_durable_output_root(tmp_path):
+    actual = {
+        "dry_run": False,
+        "wandb_run_name": "actual-run",
+        "feasibility_manifest": tmp_path / "gate.json",
+    }
+    with pytest.raises(ValueError, match="explicit durable output root"):
+        runner._validate_run_config(_config(tmp_path, **actual))
+    with pytest.raises(ValueError, match="canonical or configured transient tree"):
+        runner._validate_run_config(
+            _config(tmp_path, durable_output_root=tmp_path, **actual)
+        )
+
+
+def test_durable_output_root_requires_strict_containment(tmp_path, monkeypatch):
+    os_temp = tmp_path / "simulated-os-temp"
+    source_worktree = tmp_path / "simulated-worktree"
+    durable_root = tmp_path / "durable"
+    for path in (os_temp, source_worktree, durable_root):
+        path.mkdir()
+    monkeypatch.setattr(
+        runner,
+        "_CANONICAL_TRANSIENT_ROOTS",
+        (tmp_path / "canonical-tmp", tmp_path / "canonical-var-tmp"),
+    )
+
+    contract = runner._durable_output_contract(
+        durable_root / "arm-final",
+        durable_root,
+        configured_temp_root=os_temp,
+        source_worktree=source_worktree,
+    )
+    assert contract["declared_output_root"] == str(durable_root.resolve())
+    assert contract["artifact_relative_path"] == "arm-final"
+    with pytest.raises(ValueError, match="child of the durable output root"):
+        runner._durable_output_contract(
+            tmp_path / "outside",
+            durable_root,
+            configured_temp_root=os_temp,
+            source_worktree=source_worktree,
+        )
+    with pytest.raises(ValueError, match="canonical or configured transient tree"):
+        runner._durable_output_contract(
+            os_temp / "run",
+            os_temp,
+            configured_temp_root=os_temp,
+            source_worktree=source_worktree,
+        )
+    worktree_artifacts = source_worktree / "artifacts"
+    worktree_artifacts.mkdir()
+    with pytest.raises(ValueError, match="outside the source worktree"):
+        runner._durable_output_contract(
+            worktree_artifacts / "run",
+            worktree_artifacts,
+            configured_temp_root=os_temp,
+            source_worktree=source_worktree,
+        )
+
+
+@pytest.mark.parametrize("transient_root", [Path("/tmp"), Path("/var/tmp")])
+def test_canonical_transient_roots_are_rejected_independent_of_configured_temp(
+    tmp_path, transient_root
+):
+    configured_temp = tmp_path / "configured-temp-elsewhere"
+    configured_temp.mkdir()
+
+    with pytest.raises(ValueError, match="canonical or configured transient tree"):
+        runner._durable_output_contract(
+            transient_root / "wandering-light-test-artifact",
+            transient_root,
+            configured_temp_root=configured_temp,
+            source_worktree=tmp_path / "unrelated-worktree",
+        )
+
+
 def test_data_preparation_requires_frozen_python_hash_seed(tmp_path, monkeypatch):
     def reject_seed():
         raise RuntimeError("fixed Python hash seed required")
@@ -57,7 +133,7 @@ def test_data_preparation_requires_frozen_python_hash_seed(tmp_path, monkeypatch
         runner.prepare_scratch_data(_config(tmp_path))
 
 
-def test_final_requires_selection_lock_and_at_most_three_epochs(tmp_path):
+def test_final_requires_selection_lock_and_exactly_three_epochs(tmp_path):
     with pytest.raises(ValueError, match="requires a validation-only LR lock"):
         runner._validate_run_config(
             _config(tmp_path, phase="final", num_train_epochs=3)
@@ -71,15 +147,16 @@ def test_final_requires_selection_lock_and_at_most_three_epochs(tmp_path):
             selection_lock=lock,
         )
     )
-    with pytest.raises(ValueError, match="at most"):
-        runner._validate_run_config(
-            _config(
-                tmp_path,
-                phase="final",
-                num_train_epochs=3.1,
-                selection_lock=lock,
+    for epochs in (2.9, 3.1):
+        with pytest.raises(ValueError, match="exactly 3 epochs"):
+            runner._validate_run_config(
+                _config(
+                    tmp_path,
+                    phase="final",
+                    num_train_epochs=epochs,
+                    selection_lock=lock,
+                )
             )
-        )
 
 
 def test_sft_protocol_discloses_required_360m_checkpointing(tmp_path, monkeypatch):
@@ -326,6 +403,32 @@ def test_atomic_training_staging_publishes_only_complete_path(tmp_path):
         runner._create_training_staging_dir(destination)
 
 
+def test_atomic_training_publish_never_replaces_an_existing_destination(tmp_path):
+    destination = tmp_path / "artifact"
+    staging = runner._create_training_staging_dir(destination)
+    (staging / "marker").write_text("new", encoding="utf-8")
+    destination.mkdir()
+    (destination / "marker").write_text("existing", encoding="utf-8")
+
+    with pytest.raises(FileExistsError, match="already exists"):
+        runner._publish_training_staging(staging, destination)
+
+    assert (destination / "marker").read_text(encoding="utf-8") == "existing"
+    assert (staging / "marker").read_text(encoding="utf-8") == "new"
+
+
+def test_atomic_training_publish_fails_closed_without_renameat2(tmp_path):
+    source = tmp_path / "source"
+    source.mkdir()
+
+    with pytest.raises(RuntimeError, match="renameat2"):
+        runner._atomic_rename_noreplace(
+            source,
+            tmp_path / "destination",
+            libc=SimpleNamespace(),
+        )
+
+
 def test_failed_training_staging_is_cleaned_without_touching_stale(tmp_path):
     destination = tmp_path / "artifact"
     stale = tmp_path / ".artifact.staging-stale-prior-process"
@@ -358,6 +461,421 @@ def test_published_training_args_contain_no_deleted_staging_path(tmp_path):
     assert published["output_dir"] == str(destination)
     assert published["logging_dir"] == str(destination / "runs")
     assert str(staging) not in json.dumps(published)
+
+
+def _durable_checkpoint_fixture(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        runner,
+        "_CANONICAL_TRANSIENT_ROOTS",
+        (tmp_path / "canonical-tmp", tmp_path / "canonical-var-tmp"),
+    )
+    monkeypatch.setattr(
+        runner.tempfile,
+        "gettempdir",
+        lambda: str(tmp_path / "simulated-os-temp"),
+    )
+    durable_root = tmp_path / "durable"
+    durable_root.mkdir()
+    destination = durable_root / "artifact"
+    staging = runner._create_training_staging_dir(destination)
+    for name in runner._DURABLE_ARTIFACT_REQUIRED_FILES - {
+        "wandb_run.url",
+        runner.TOKENIZER_MANIFEST_FILENAME,
+    }:
+        path = staging / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(f"test payload for {name}".encode())
+    tokenizer_payload = {
+        "schema_version": 1,
+        "artifact_type": "wandering-light-deep-corpus-v2-tokenizer",
+        "tokenizer": {
+            "total_vocab_size": 4,
+            "files": {
+                name: {
+                    "bytes": (staging / name).stat().st_size,
+                    "sha256": runner._sha256_file(staging / name),
+                }
+                for name in runner.TOKENIZER_FILENAMES
+            },
+            "special_tokens": [
+                {"role": role, "content": content, "id": token_id}
+                for token_id, (role, content) in enumerate(runner.FIXED_SPECIAL_TOKENS)
+            ],
+        },
+    }
+    tokenizer_payload["artifact_digest"] = scratch.digest_json(tokenizer_payload)
+    (staging / runner.TOKENIZER_MANIFEST_FILENAME).write_text(
+        json.dumps(tokenizer_payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (staging / "model.safetensors").write_bytes(b"weights")
+    wandb_url = (
+        "https://wandb.ai/abhishekraok-na/"
+        "wandering-light-deep-corpus-v2-scratch/runs/durable-test"
+    )
+    (staging / "wandb_run.url").write_text(
+        f"[InternetShortcut]\nURL={wandb_url}\n",
+        encoding="utf-8",
+    )
+    spec = scratch.ARM_SPECS["scratch-10m"]
+    resolved = scratch.ResolvedScratchConfig(
+        spec=spec,
+        config=SimpleNamespace(
+            model_type="opt",
+            vocab_size=4,
+            ffn_dim=64,
+            bos_token_id=1,
+            eos_token_id=2,
+            pad_token_id=0,
+        ),
+        upstream_config_digest="sha256:" + "a" * 64,
+        effective_config_digest="sha256:" + "b" * 64,
+        exact_trainable_parameters=11,
+        parameter_error=1,
+    )
+    manifest = {
+        "schema_version": 1,
+        "status": runner._PENDING_DURABILITY_STATUS,
+        "phase": "final",
+        "arm_id": "scratch-10m",
+        "architecture": resolved.identity_dict(),
+        "exact_trainable_parameters": 11,
+        "tokenizer_digest": tokenizer_payload["artifact_digest"],
+        "execution_environment": {
+            "wall_clock_hard_stop": {
+                "elapsed_before_artifact_write_seconds": 12.5,
+            }
+        },
+        "durability_contract": runner._durable_output_contract(
+            destination,
+            durable_root,
+        ),
+        "wandb": {
+            "entity": scratch.PERSONAL_WANDB_ENTITY,
+            "project": scratch.DEFAULT_WANDB_PROJECT,
+            "url": wandb_url,
+        },
+        "checkpoint_identity": runner._checkpoint_content_identity(staging),
+    }
+    manifest = runner._seal_training_manifest(manifest)
+    (staging / runner.TRAINING_MANIFEST_FILENAME).write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    runner._publish_training_staging(staging, destination)
+    return destination, staging, durable_root, manifest, wandb_url
+
+
+def _durable_reload_fakes():
+    calls = []
+
+    class Parameter:
+        requires_grad = True
+
+        @staticmethod
+        def numel():
+            return 11
+
+    class ModelFactory:
+        @classmethod
+        def from_pretrained(cls, path, **kwargs):
+            calls.append(("model", path, kwargs))
+            return SimpleNamespace(
+                config=SimpleNamespace(
+                    model_type="opt",
+                    vocab_size=4,
+                    ffn_dim=64,
+                    bos_token_id=1,
+                    eos_token_id=2,
+                    pad_token_id=0,
+                ),
+                parameters=lambda: [Parameter()],
+            )
+
+    class LoadedTokenizer:
+        pad_token = "<|pad|>"
+        bos_token = "<|bos|>"
+        eos_token = "<|eos|>"
+        unk_token = "<|unk|>"
+        pad_token_id = 0
+        bos_token_id = 1
+        eos_token_id = 2
+        unk_token_id = 3
+
+        def __len__(self):
+            return 4
+
+    class TokenizerFactory:
+        @classmethod
+        def from_pretrained(cls, path, **kwargs):
+            calls.append(("tokenizer", path, kwargs))
+            return LoadedTokenizer()
+
+    return ModelFactory, TokenizerFactory, calls
+
+
+def test_completed_run_requires_post_publish_content_and_reload_gate(
+    tmp_path, monkeypatch
+):
+    destination, staging, durable_root, pending, _wandb_url = (
+        _durable_checkpoint_fixture(tmp_path, monkeypatch)
+    )
+    model_factory, tokenizer_factory, calls = _durable_reload_fakes()
+
+    prepared = runner._prepare_training_artifact_completion(
+        destination,
+        transient_staging=staging,
+        durable_output_root=durable_root,
+        completion_path="training",
+        pending_manifest=pending,
+        auto_model_class=model_factory,
+        tokenizer_class=tokenizer_factory,
+    )
+    assert "completed_at_utc" not in prepared
+    assert "full_invocation_elapsed_seconds" not in prepared["execution_environment"]
+    complete = runner._finalize_training_artifact_completion(
+        destination,
+        prepared,
+        completed_at_utc="2026-08-30T12:00:00+00:00",
+        runtime_provenance=runner._normal_runtime_provenance(20.0),
+    )
+
+    assert complete["status"] == "complete"
+    assert complete["durability_verification"]["status"] == "verified"
+    assert complete["completed_at_utc"] == "2026-08-30T12:00:00+00:00"
+    assert complete["execution_environment"]["full_invocation_elapsed_seconds"] == 20
+    assert (
+        complete["execution_environment"]["full_invocation_runtime_scope"]
+        == runner._NORMAL_RUNTIME_SCOPE
+    )
+    assert "full_invocation_runtime_censoring" not in complete["execution_environment"]
+    assert complete["durability_verification"]["wandb_finalization"] == {
+        "summary_write_performed": True,
+        "finish_performed": True,
+        "completed_before_manifest_transition": True,
+    }
+    assert (
+        complete["durability_verification"]["content_digest"]
+        == complete["checkpoint_identity"]["content_digest"]
+    )
+    assert [kind for kind, _path, _kwargs in calls] == ["model", "tokenizer"]
+    assert all(kwargs == {"local_files_only": True} for _kind, _path, kwargs in calls)
+    assert not staging.exists()
+    recorded_pending = json.loads(
+        (destination / runner.TRAINING_MANIFEST_FILENAME).read_text(encoding="utf-8")
+    )
+    assert recorded_pending["status"] == runner._PENDING_DURABILITY_STATUS
+    completion_lock = runner._acquire_checkpoint_completion_lock(destination)
+    try:
+        runner._write_completed_training_manifest(
+            destination,
+            complete,
+            completion_lock=completion_lock,
+        )
+    finally:
+        runner._release_checkpoint_completion_lock(completion_lock)
+    assert runner._validate_completed_training_artifact(destination) == complete
+
+    (destination / "model.safetensors").write_bytes(b"tampered weights")
+    with pytest.raises(RuntimeError, match="content identity mismatch"):
+        runner._validate_completed_training_artifact(destination)
+
+
+def test_reload_failure_leaves_published_checkpoint_incomplete(tmp_path, monkeypatch):
+    destination, staging, durable_root, pending, _wandb_url = (
+        _durable_checkpoint_fixture(tmp_path, monkeypatch)
+    )
+
+    class RejectReload:
+        @staticmethod
+        def from_pretrained(_path, **_kwargs):
+            raise RuntimeError("reload failed")
+
+    with pytest.raises(RuntimeError, match="reload failed"):
+        runner._prepare_training_artifact_completion(
+            destination,
+            transient_staging=staging,
+            durable_output_root=durable_root,
+            completion_path="training",
+            pending_manifest=pending,
+            auto_model_class=RejectReload,
+            tokenizer_class=RejectReload,
+        )
+
+    recorded = json.loads(
+        (destination / runner.TRAINING_MANIFEST_FILENAME).read_text(encoding="utf-8")
+    )
+    assert recorded["status"] == runner._PENDING_DURABILITY_STATUS
+    with pytest.raises(RuntimeError, match="has not passed durable verification"):
+        runner._validate_completed_training_artifact(destination)
+
+
+def test_recovery_locally_completes_a_sealed_pending_checkpoint(tmp_path, monkeypatch):
+    destination, _staging, durable_root, _pending, _wandb_url = (
+        _durable_checkpoint_fixture(tmp_path, monkeypatch)
+    )
+    model_factory, tokenizer_factory, calls = _durable_reload_fakes()
+    clock_values = iter((100.0, 104.25))
+
+    complete = runner.recover_pending_training_artifact(
+        destination,
+        durable_root,
+        auto_model_class=model_factory,
+        tokenizer_class=tokenizer_factory,
+        monotonic_clock=lambda: next(clock_values),
+        utc_now=lambda: datetime(2026, 8, 30, 13, 0, tzinfo=UTC),
+    )
+
+    assert complete["status"] == "complete"
+    assert complete["durability_verification"]["completion_path"] == "recovery"
+    assert complete["durability_verification"]["wandb_finalization"] == {
+        "summary_write_performed": False,
+        "finish_performed": False,
+        "reason": runner._RECOVERY_WANDB_REASON,
+    }
+    environment = complete["execution_environment"]
+    assert environment["full_invocation_elapsed_seconds"] == 16.75
+    assert environment["full_invocation_runtime_scope"] == (
+        runner._RECOVERY_RUNTIME_SCOPE
+    )
+    assert environment["full_invocation_runtime_censoring"] == {
+        "status": "right-censored-lower-bound",
+        "known_original_lower_bound_seconds": 12.5,
+        "recovery_elapsed_seconds": 4.25,
+        "combined_lower_bound_seconds": 16.75,
+        "omitted_interval_seconds": None,
+        "omitted_interval_scope": runner._RECOVERY_OMITTED_INTERVAL_SCOPE,
+        "omitted_interval_reason": runner._RECOVERY_OMITTED_INTERVAL_REASON,
+    }
+    assert all(kwargs == {"local_files_only": True} for _kind, _path, kwargs in calls)
+    assert runner._validate_completed_training_artifact(destination) == complete
+
+
+def test_recovery_refuses_a_live_producer_completion_lock(tmp_path, monkeypatch):
+    destination, _staging, durable_root, _pending, _wandb_url = (
+        _durable_checkpoint_fixture(tmp_path, monkeypatch)
+    )
+    model_factory, tokenizer_factory, calls = _durable_reload_fakes()
+    producer_lock = runner._acquire_checkpoint_completion_lock(destination)
+    try:
+        with pytest.raises(RuntimeError, match="completion is already in progress"):
+            runner.recover_pending_training_artifact(
+                destination,
+                durable_root,
+                auto_model_class=model_factory,
+                tokenizer_class=tokenizer_factory,
+            )
+    finally:
+        runner._release_checkpoint_completion_lock(producer_lock)
+
+    assert calls == []
+    recorded = json.loads(
+        (destination / runner.TRAINING_MANIFEST_FILENAME).read_text(encoding="utf-8")
+    )
+    assert recorded["status"] == runner._PENDING_DURABILITY_STATUS
+
+
+def test_second_recovery_cannot_overwrite_a_completed_manifest(tmp_path, monkeypatch):
+    destination, _staging, durable_root, _pending, _wandb_url = (
+        _durable_checkpoint_fixture(tmp_path, monkeypatch)
+    )
+    model_factory, tokenizer_factory, _calls = _durable_reload_fakes()
+    first_clock = iter((10.0, 11.0))
+    runner.recover_pending_training_artifact(
+        destination,
+        durable_root,
+        auto_model_class=model_factory,
+        tokenizer_class=tokenizer_factory,
+        monotonic_clock=lambda: next(first_clock),
+        utc_now=lambda: datetime(2026, 8, 30, 13, 0, tzinfo=UTC),
+    )
+    manifest_path = destination / runner.TRAINING_MANIFEST_FILENAME
+    first_bytes = manifest_path.read_bytes()
+
+    with pytest.raises(RuntimeError, match="marked complete"):
+        runner.recover_pending_training_artifact(
+            destination,
+            durable_root,
+            auto_model_class=model_factory,
+            tokenizer_class=tokenizer_factory,
+            monotonic_clock=lambda: 20.0,
+            utc_now=lambda: datetime(2026, 8, 30, 14, 0, tzinfo=UTC),
+        )
+
+    assert manifest_path.read_bytes() == first_bytes
+
+
+@pytest.mark.parametrize(
+    "invalid_field",
+    [
+        "local_files_only",
+        "budget_dimension",
+        "budget_dimension_value",
+        "special_token_ids",
+        "special_token_contents",
+    ],
+)
+def test_completed_acceptance_validates_full_reload_receipt(
+    tmp_path, monkeypatch, invalid_field
+):
+    destination, staging, durable_root, pending, _wandb_url = (
+        _durable_checkpoint_fixture(tmp_path, monkeypatch)
+    )
+    model_factory, tokenizer_factory, _calls = _durable_reload_fakes()
+    prepared = runner._prepare_training_artifact_completion(
+        destination,
+        transient_staging=staging,
+        durable_output_root=durable_root,
+        completion_path="training",
+        pending_manifest=pending,
+        auto_model_class=model_factory,
+        tokenizer_class=tokenizer_factory,
+    )
+    complete = runner._finalize_training_artifact_completion(
+        destination,
+        prepared,
+        completed_at_utc="2026-08-30T12:00:00+00:00",
+        runtime_provenance=runner._normal_runtime_provenance(20.0),
+    )
+    tampered = json.loads(json.dumps(complete))
+    reload_receipt = tampered["durability_verification"]["reload"]
+    if invalid_field == "local_files_only":
+        reload_receipt[invalid_field] = False
+    elif invalid_field in {"budget_dimension", "budget_dimension_value"}:
+        reload_receipt["model"][invalid_field] = "wrong"
+    elif invalid_field == "special_token_ids":
+        reload_receipt["tokenizer"][invalid_field]["bos_token"] = 3
+    else:
+        reload_receipt["tokenizer"][invalid_field]["bos_token"] = "wrong"
+    tampered = runner._seal_training_manifest(tampered)
+    completion_lock = runner._acquire_checkpoint_completion_lock(destination)
+    try:
+        runner._write_completed_training_manifest(
+            destination,
+            tampered,
+            completion_lock=completion_lock,
+        )
+    finally:
+        runner._release_checkpoint_completion_lock(completion_lock)
+
+    with pytest.raises(RuntimeError, match="receipt is inconsistent"):
+        runner._validate_completed_training_artifact(destination)
+
+
+def test_recover_cli_requires_checkpoint_and_durable_root(tmp_path):
+    arguments = runner._parse_args(
+        [
+            "recover",
+            "--checkpoint-dir",
+            str(tmp_path / "artifact"),
+            "--durable-output-root",
+            str(tmp_path / "durable"),
+        ]
+    )
+
+    assert arguments.mode == "recover"
+    assert arguments.checkpoint_dir == tmp_path / "artifact"
+    assert arguments.durable_output_root == tmp_path / "durable"
 
 
 def test_execution_environment_distinguishes_observed_peak_from_allocator():

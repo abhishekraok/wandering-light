@@ -949,6 +949,47 @@ def test_ledger_mutation_is_rejected(protocol_lock, selection_locks):
         validate_test_opening_ledger(mutated)
 
 
+def test_partial_ledger_requires_and_preserves_feasibility_evidence(
+    protocol_lock, selection_locks
+):
+    active = ARM_IDS[:2]
+    with pytest.raises(ValueError, match="require a feasibility artifact digest"):
+        new_test_opening_ledger(
+            opening_id="partial-without-feasibility",
+            protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+            selection_locks=selection_locks[:2],
+            active_arm_ids=active,
+        )
+
+    feasibility_digest = "sha256:" + "f" * 64
+    partial = new_test_opening_ledger(
+        opening_id="partial-with-feasibility",
+        protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+        selection_locks=selection_locks[:2],
+        active_arm_ids=active,
+        feasibility_artifact_digest=feasibility_digest,
+    )
+    assert begin_test_opening(partial)["feasibility_artifact_digest"] == (
+        feasibility_digest
+    )
+
+    stripped = deepcopy(partial)
+    stripped["feasibility_artifact_digest"] = None
+    stripped["ledger_sha256"] = sha256_json(
+        {key: value for key, value in stripped.items() if key != "ledger_sha256"}
+    )
+    with pytest.raises(ValueError, match="has no feasibility artifact digest"):
+        validate_test_opening_ledger(stripped)
+
+    complete_scope = new_test_opening_ledger(
+        opening_id="all-arms-without-feasibility",
+        protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+        selection_locks=selection_locks,
+    )
+    assert complete_scope["feasibility_artifact_digest"] is None
+    assert begin_test_opening(complete_scope)["feasibility_artifact_digest"] is None
+
+
 def test_two_active_arm_ledger_seals_deferred_arm_and_feasibility(
     protocol_lock, selection_locks
 ):

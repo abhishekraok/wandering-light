@@ -6,7 +6,8 @@ The test command accepts a nonempty ordered subset of validation results whose
 complement the feasibility gate blocked, atomically opens one shared ledger
 before loading the test cohort, evaluates or recovers every active arm, runs one
 shared BFS baseline, and seals the opening.  Deferred arms can never be added to
-that opening.
+that opening.  The once-only claim is authoritative within this repository's Git
+common directory; another clone is an explicit separate authority boundary.
 
 No command in this module trains a model or chooses a checkpoint.  The only
 checkpoint identity accepted for test is the one already sealed by that arm's
@@ -16,6 +17,7 @@ validation selection lock.
 from __future__ import annotations
 
 import argparse
+import errno
 import fcntl
 import json
 import math
@@ -82,6 +84,7 @@ from wandering_light.training.deep_corpus_scratch import (
     PERSONAL_WANDB_ENTITY,
     build_scratch_study_identity,
     configure_deterministic_cuda_environment,
+    digest_json,
     validate_final_restart,
 )
 from wandering_light.training.deep_corpus_tokenizer import (
@@ -96,6 +99,9 @@ CANDIDATES_FILENAME = "model_candidates.jsonl.gz"
 BFS_FILENAME = "bfs_results.jsonl.gz"
 SELECTION_LOCK_FILENAME = "selection_lock.json"
 TEST_LEDGER_FILENAME = "test_opening_ledger.json"
+TEST_OPENING_CLAIM_DIGEST_FIELD = "test_opening_claim_sha256"
+TEST_OPENING_CLAIM_FILENAME_PREFIX = "test_opening_claim"
+TEST_OPENING_REGISTRY_DIRNAME = "wandering-light-test-opening-registry"
 TEST_READINESS_FILENAME = "test_readiness.json"
 TEST_SUMMARY_FILENAME = "test_summary.json"
 WANDB_RECEIPT_FILENAME = "wandb_evaluation_receipt.json"
@@ -309,6 +315,113 @@ def _checkpoint_files(checkpoint: Path) -> list[dict[str, Any]]:
             }
         )
     return files
+
+
+def _checkpoint_content_identity(checkpoint: Path) -> dict[str, Any]:
+    files: list[dict[str, Any]] = []
+    for path in sorted(checkpoint.rglob("*")):
+        if path.is_symlink():
+            raise ValueError(f"Final checkpoint payload contains a symlink: {path}")
+        if not path.is_file():
+            continue
+        relative = path.relative_to(checkpoint).as_posix()
+        if relative == "training_manifest.json":
+            continue
+        files.append(
+            {
+                "path": relative,
+                "bytes": path.stat().st_size,
+                "sha256": sha256_file(path),
+            }
+        )
+    if not files:
+        raise ValueError("Final checkpoint has no identity-bearing payload files")
+    payload = {
+        "schema_version": 1,
+        "scope": "all regular files except training_manifest.json",
+        "files": files,
+    }
+    return {**payload, "content_digest": digest_json(payload)}
+
+
+def _validate_checkpoint_durability(
+    checkpoint: Path, manifest: Mapping[str, Any]
+) -> dict[str, Any]:
+    unsealed = dict(manifest)
+    recorded_manifest_digest = unsealed.pop("manifest_digest", None)
+    if recorded_manifest_digest != digest_json(unsealed):
+        raise ValueError("Final checkpoint training manifest digest mismatch")
+
+    recorded_identity = manifest.get("checkpoint_identity")
+    actual_identity = _checkpoint_content_identity(checkpoint)
+    if not isinstance(recorded_identity, Mapping) or dict(recorded_identity) != (
+        actual_identity
+    ):
+        raise ValueError("Final checkpoint content identity mismatch")
+
+    contract = manifest.get("durability_contract")
+    verification = manifest.get("durability_verification")
+    if not isinstance(contract, Mapping) or not isinstance(verification, Mapping):
+        raise ValueError("Final checkpoint lacks a verified durability receipt")
+    declared_root_value = contract.get("declared_output_root")
+    relative_value = contract.get("artifact_relative_path")
+    if (
+        contract.get("schema_version") != 1
+        or not isinstance(declared_root_value, str)
+        or not Path(declared_root_value).is_absolute()
+        or not isinstance(relative_value, str)
+    ):
+        raise ValueError("Final checkpoint durability contract is malformed")
+    relative_path = Path(relative_value)
+    if (
+        relative_path.is_absolute()
+        or not relative_path.parts
+        or ".." in relative_path.parts
+    ):
+        raise ValueError("Final checkpoint durability artifact path is unsafe")
+    declared_root = Path(declared_root_value).resolve()
+    if (declared_root / relative_path).resolve() != checkpoint:
+        raise ValueError(
+            "Final checkpoint lies outside its declared durable output root"
+        )
+
+    reload_receipt = verification.get("reload")
+    architecture = manifest.get("architecture")
+    if not isinstance(reload_receipt, Mapping) or not isinstance(architecture, Mapping):
+        raise ValueError("Final checkpoint durability reload receipt is malformed")
+    model_receipt = reload_receipt.get("model")
+    tokenizer_receipt = reload_receipt.get("tokenizer")
+    special_token_ids = (
+        tokenizer_receipt.get("special_token_ids")
+        if isinstance(tokenizer_receipt, Mapping)
+        else None
+    )
+    if (
+        verification.get("status") != "verified"
+        or verification.get("method") != "post-atomic-publish-local-reload"
+        or verification.get("published_outside_transient_staging") is not True
+        or verification.get("declared_output_root") != str(declared_root)
+        or verification.get("artifact_relative_path") != relative_value
+        or verification.get("content_digest") != actual_identity["content_digest"]
+        or not isinstance(verification.get("verified_at_utc"), str)
+        or not verification["verified_at_utc"].strip()
+        or reload_receipt.get("local_files_only") is not True
+        or not isinstance(model_receipt, Mapping)
+        or model_receipt.get("family") != architecture.get("family")
+        or model_receipt.get("exact_trainable_parameters")
+        != manifest.get("exact_trainable_parameters")
+        or model_receipt.get("vocab_size") != architecture.get("vocab_size")
+        or model_receipt.get("budget_dimension") != architecture.get("budget_dimension")
+        or model_receipt.get("budget_dimension_value")
+        != architecture.get("budget_dimension_value")
+        or not isinstance(tokenizer_receipt, Mapping)
+        or tokenizer_receipt.get("total_vocab_size") != architecture.get("vocab_size")
+        or not isinstance(special_token_ids, Mapping)
+        or set(special_token_ids) != {"bos_token", "eos_token", "pad_token"}
+        or any(type(value) is not int for value in special_token_ids.values())
+    ):
+        raise ValueError("Final checkpoint durability receipt is inconsistent")
+    return actual_identity
 
 
 def _training_outcomes(manifest: Mapping[str, Any]) -> dict[str, Any]:
@@ -599,6 +712,7 @@ def checkpoint_identity(
         arm_id,
     ):
         raise ValueError("Checkpoint is not the completed final artifact for its arm")
+    durable_content_identity = _validate_checkpoint_durability(checkpoint, manifest)
     corpus_manifest = _protocol_manifest(protocol_lock)
     source = manifest.get("source_data", {})
     if source.get("corpus_manifest_digest") != corpus_manifest.get("manifest_digest"):
@@ -654,6 +768,7 @@ def checkpoint_identity(
         "training_manifest_sha256": sha256_file(manifest_path),
         "files": files,
         "checkpoint_sha256": sha256_json(files),
+        "artifact_content_digest": durable_content_identity["content_digest"],
         "exact_trainable_parameters": manifest["exact_trainable_parameters"],
         "initial_state_digest": initial_digest,
         "effective_config_digest": manifest.get("effective_config_digest"),
@@ -1487,9 +1602,10 @@ def _validate_test_feasibility(
         if per_arm[arm_id].get("launch_allowed") is not True:
             raise ValueError(f"Active arm {arm_id!r} is not feasibility-authorized")
     for arm_id in deferred:
-        if per_arm[arm_id].get("launch_allowed") is not False or per_arm[
-            arm_id
-        ].get("route") != "blocked":
+        if (
+            per_arm[arm_id].get("launch_allowed") is not False
+            or per_arm[arm_id].get("route") != "blocked"
+        ):
             raise ValueError(f"Deferred arm {arm_id!r} is not feasibility-blocked")
 
     arm_results = feasibility_manifest.get("arm_results")
@@ -1509,8 +1625,7 @@ def _validate_test_feasibility(
         )
         if (
             checkpoint_gate["artifact_digest"] != artifact_digest
-            or checkpoint_gate["arm_gate"]
-            != canonical_copy(dict(per_arm[arm_id]))
+            or checkpoint_gate["arm_gate"] != canonical_copy(dict(per_arm[arm_id]))
             or checkpoint_gate["study_identity_digest"]
             != results_by_arm[arm_id].get("study_identity_digest")
         ):
@@ -1529,12 +1644,14 @@ def _test_readiness_body(
     protocol_lock: Mapping[str, Any],
     validation_results: Mapping[str, Mapping[str, Any]],
     feasibility_identity: Mapping[str, Any],
+    test_opening_registry_root: Path,
 ) -> dict[str, Any]:
     active = validate_active_arm_ids(feasibility_identity["active_arm_ids"])
     return {
         "schema_version": SCHEMA_VERSION,
         "status": "locked-before-held-out-test",
         "protocol_lock_sha256": protocol_lock["protocol_lock_sha256"],
+        "test_opening_registry_root": str(test_opening_registry_root),
         "test_cohort_sha256": protocol_lock["cohorts"]["test"]["cohort_sha256"],
         "active_arm_ids": list(active),
         "deferred_arm_ids": list(feasibility_identity["deferred_arm_ids"]),
@@ -1562,12 +1679,225 @@ def _test_readiness_body(
     }
 
 
+def _sha256_hex(value: Any, *, label: str) -> str:
+    prefix = "sha256:"
+    if (
+        not isinstance(value, str)
+        or not value.startswith(prefix)
+        or len(value) != len(prefix) + 64
+        or any(
+            character not in "0123456789abcdef" for character in value[len(prefix) :]
+        )
+    ):
+        raise ValueError(f"{label} must be a sha256:<64 lowercase hex> digest")
+    return value[len(prefix) :]
+
+
+def _repository_git_common_dir(repo_root: str | Path) -> Path:
+    """Resolve the Git authority shared by every linked worktree in this clone."""
+
+    root = Path(repo_root).resolve()
+    dot_git = root / ".git"
+    if dot_git.is_dir():
+        git_dir = dot_git.resolve()
+    elif dot_git.is_file():
+        marker = dot_git.read_text(encoding="utf-8").strip()
+        prefix = "gitdir:"
+        if not marker.lower().startswith(prefix):
+            raise ValueError(f"Repository Git marker is malformed: {dot_git}")
+        git_dir_value = marker[len(prefix) :].strip()
+        if not git_dir_value:
+            raise ValueError(f"Repository Git marker has no gitdir: {dot_git}")
+        git_dir_path = Path(git_dir_value)
+        if not git_dir_path.is_absolute():
+            git_dir_path = root / git_dir_path
+        git_dir = git_dir_path.resolve()
+    else:
+        raise ValueError(f"Repository root has no Git authority: {root}")
+    if not git_dir.is_dir():
+        raise ValueError(f"Repository Git directory does not exist: {git_dir}")
+
+    common_marker = git_dir / "commondir"
+    if common_marker.is_file():
+        common_value = common_marker.read_text(encoding="utf-8").strip()
+        if not common_value:
+            raise ValueError(f"Repository commondir marker is empty: {common_marker}")
+        common_path = Path(common_value)
+        if not common_path.is_absolute():
+            common_path = git_dir / common_path
+        common_dir = common_path.resolve()
+    else:
+        common_dir = git_dir
+    if not common_dir.is_dir():
+        raise ValueError(
+            f"Repository Git common directory does not exist: {common_dir}"
+        )
+    return common_dir
+
+
+def _canonical_test_opening_registry_root(repo_root: str | Path) -> Path:
+    """Return this clone's fixed, worktree-independent claim authority."""
+
+    return _repository_git_common_dir(repo_root) / TEST_OPENING_REGISTRY_DIRNAME
+
+
+def _resolve_test_opening_registry_root(
+    test_opening_registry_root: str | Path, *, repo_root: str | Path
+) -> Path:
+    """Require explicit use of this clone's pre-provisioned registry authority."""
+
+    supplied = Path(test_opening_registry_root)
+    if not supplied.is_absolute():
+        raise ValueError("Test-opening registry root must be an explicit absolute path")
+    expected = _canonical_test_opening_registry_root(repo_root).resolve()
+    try:
+        resolved = supplied.resolve(strict=True)
+    except FileNotFoundError as error:
+        raise ValueError(
+            "Test-opening registry root must already exist as a durable authority: "
+            f"{supplied}"
+        ) from error
+    if not resolved.is_dir():
+        raise ValueError(f"Test-opening registry root is not a directory: {resolved}")
+    if resolved != expected:
+        raise ValueError(
+            "Test-opening registry must be this repository clone's fixed Git-common-dir "
+            f"authority: expected {expected}, received {resolved}"
+        )
+    return resolved
+
+
+def _canonical_test_opening_claim_path(
+    test_opening_registry_root: Path, *, protocol_lock_sha256: str
+) -> Path:
+    """Map one protocol digest to one claim within the explicit clone authority."""
+
+    digest_hex = _sha256_hex(
+        protocol_lock_sha256, label="protocol lock digest for test-opening claim"
+    )
+    return test_opening_registry_root / (
+        f"{TEST_OPENING_CLAIM_FILENAME_PREFIX}-{digest_hex}.json"
+    )
+
+
+def _seal_test_opening_claim(body: Mapping[str, Any]) -> dict[str, Any]:
+    value = canonical_copy(dict(body))
+    value[TEST_OPENING_CLAIM_DIGEST_FIELD] = sha256_json(value)
+    return value
+
+
+def _validate_test_opening_claim(claim: Mapping[str, Any]) -> dict[str, Any]:
+    value = canonical_copy(dict(claim))
+    recorded = value.pop(TEST_OPENING_CLAIM_DIGEST_FIELD, None)
+    if recorded != sha256_json(value):
+        raise ValueError("Canonical test-opening claim changed after it was sealed")
+    _sha256_hex(recorded, label="test-opening claim digest")
+    expected_fields = {
+        "schema_version",
+        "status",
+        "protocol_lock_sha256",
+        "test_opening_registry_root",
+        "opening_id",
+        "test_dir",
+        "prepared_ledger_sha256",
+        "readiness_sha256",
+    }
+    if set(value) != expected_fields:
+        raise ValueError("Canonical test-opening claim has unexpected fields")
+    if value.get("schema_version") != SCHEMA_VERSION or value.get("status") != (
+        "claimed-before-held-out-test"
+    ):
+        raise ValueError("Canonical test-opening claim has the wrong schema or status")
+    _sha256_hex(value.get("protocol_lock_sha256"), label="claim protocol digest")
+    registry_root = value.get("test_opening_registry_root")
+    if not isinstance(registry_root, str) or not Path(registry_root).is_absolute():
+        raise ValueError("Canonical test-opening claim has no absolute registry root")
+    _sha256_hex(
+        value.get("prepared_ledger_sha256"), label="claim prepared-ledger digest"
+    )
+    _sha256_hex(value.get("readiness_sha256"), label="claim readiness digest")
+    if not isinstance(value.get("opening_id"), str) or not value["opening_id"].strip():
+        raise ValueError("Canonical test-opening claim has no opening ID")
+    test_dir = value.get("test_dir")
+    if not isinstance(test_dir, str) or not Path(test_dir).is_absolute():
+        raise ValueError(
+            "Canonical test-opening claim needs an absolute test directory"
+        )
+    value[TEST_OPENING_CLAIM_DIGEST_FIELD] = recorded
+    return value
+
+
+def _build_test_opening_claim(
+    *,
+    test_opening_registry_root: Path,
+    protocol_lock_sha256: str,
+    test_dir: Path,
+    prepared_ledger: Mapping[str, Any],
+    readiness: Mapping[str, Any],
+) -> tuple[Path, dict[str, Any]]:
+    destination = test_dir.resolve()
+    claim = _seal_test_opening_claim(
+        {
+            "schema_version": SCHEMA_VERSION,
+            "status": "claimed-before-held-out-test",
+            "protocol_lock_sha256": protocol_lock_sha256,
+            "test_opening_registry_root": str(test_opening_registry_root),
+            "opening_id": prepared_ledger["opening_id"],
+            "test_dir": str(destination),
+            "prepared_ledger_sha256": prepared_ledger["ledger_sha256"],
+            "readiness_sha256": readiness["readiness_sha256"],
+        }
+    )
+    return (
+        _canonical_test_opening_claim_path(
+            test_opening_registry_root,
+            protocol_lock_sha256=protocol_lock_sha256,
+        ),
+        _validate_test_opening_claim(claim),
+    )
+
+
+def _load_test_opening_claim(path: Path) -> dict[str, Any]:
+    if not path.is_file():
+        raise ValueError(
+            "Frozen protocol has no canonical test-opening claim; run prepare-test first"
+        )
+    claim = _validate_test_opening_claim(
+        _read_json(path, label="canonical test-opening claim")
+    )
+    if claim["test_opening_registry_root"] != str(path.resolve().parent):
+        raise ValueError(
+            "Canonical test-opening claim belongs to another registry authority"
+        )
+    return claim
+
+
+def _create_or_validate_test_opening_claim(
+    path: Path, claim: Mapping[str, Any]
+) -> tuple[dict[str, Any], bool]:
+    expected = _validate_test_opening_claim(claim)
+    try:
+        _write_json_atomic_exclusive(path, expected)
+    except FileExistsError:
+        existing = _load_test_opening_claim(path)
+        if existing != expected:
+            raise FileExistsError(
+                "Frozen protocol already has a held-out test opening claimed at "
+                f"{existing['test_dir']} with opening ID {existing['opening_id']!r}; "
+                f"refusing requested directory {expected['test_dir']} and opening ID "
+                f"{expected['opening_id']!r}"
+            ) from None
+        return existing, True
+    return expected, False
+
+
 def validate_test_readiness(
     test_dir: str | Path,
     *,
     protocol_lock: Mapping[str, Any],
     validation_results: Mapping[str, Mapping[str, Any]],
     feasibility_manifest: Mapping[str, Any],
+    test_opening_registry_root: Path,
 ) -> dict[str, Any]:
     value = _read_json(
         Path(test_dir) / TEST_READINESS_FILENAME, label="test readiness lock"
@@ -1585,6 +1915,7 @@ def validate_test_readiness(
         protocol_lock=protocol_lock,
         validation_results=validation_results,
         feasibility_identity=feasibility_identity,
+        test_opening_registry_root=test_opening_registry_root,
     )
     if {key: value.get(key) for key in expected} != expected:
         raise ValueError("Test readiness lock no longer matches the frozen opening")
@@ -1593,9 +1924,77 @@ def validate_test_readiness(
     return value
 
 
+def _load_existing_test_opening(
+    test_dir: Path,
+    *,
+    protocol_lock: Mapping[str, Any],
+    validation_results: Mapping[str, Mapping[str, Any]],
+    feasibility_manifest: Mapping[str, Any],
+    selection_locks: Sequence[Mapping[str, Any]],
+    expected_prepared_ledger: Mapping[str, Any],
+    expected_readiness: Mapping[str, Any],
+    test_opening_registry_root: Path,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    readiness = validate_test_readiness(
+        test_dir,
+        protocol_lock=protocol_lock,
+        validation_results=validation_results,
+        feasibility_manifest=feasibility_manifest,
+        test_opening_registry_root=test_opening_registry_root,
+    )
+    if readiness["readiness_sha256"] != expected_readiness["readiness_sha256"]:
+        raise ValueError("Existing test opening has another readiness identity")
+    ledger = load_test_opening_ledger(test_dir / TEST_LEDGER_FILENAME)
+    validate_test_opening_ledger(
+        ledger,
+        protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+        selection_locks=selection_locks,
+        active_arm_ids=expected_prepared_ledger["active_arm_ids"],
+        deferred_arm_ids=expected_prepared_ledger["deferred_arm_ids"],
+        feasibility_artifact_digest=expected_prepared_ledger[
+            "feasibility_artifact_digest"
+        ],
+    )
+    if ledger["opening_id"] != expected_prepared_ledger["opening_id"]:
+        raise ValueError("Existing test opening has another opening ID")
+    return ledger, readiness
+
+
+def _prepare_test_opening_directory(
+    destination: Path,
+    *,
+    ledger: Mapping[str, Any],
+    readiness: Mapping[str, Any],
+) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = Path(
+        tempfile.mkdtemp(
+            prefix=f".{destination.name}.preparing-", dir=destination.parent
+        )
+    )
+    try:
+        create_test_opening_ledger_file(temporary / TEST_LEDGER_FILENAME, ledger)
+        _write_json(temporary / TEST_READINESS_FILENAME, readiness, exclusive=True)
+        try:
+            temporary.rename(destination)
+        except OSError as error:
+            if (
+                error.errno not in {errno.EEXIST, errno.ENOTEMPTY}
+                or not destination.is_dir()
+                or destination.is_symlink()
+            ):
+                raise
+            # An identical concurrent preparer may have published the directory.
+            # The caller validates every winner artifact before accepting it.
+    finally:
+        if temporary.exists():
+            shutil.rmtree(temporary)
+
+
 def prepare_test_opening(
     *,
     protocol_lock_path: str | Path,
+    test_opening_registry_root: str | Path,
     tokenizer_dir: str | Path,
     validation_result_dirs: Sequence[str | Path],
     feasibility_manifest_path: str | Path,
@@ -1603,6 +2002,9 @@ def prepare_test_opening(
     opening_id: str,
     repo_root: str | Path = REPO_ROOT,
 ) -> dict[str, Any]:
+    registry_root = _resolve_test_opening_registry_root(
+        test_opening_registry_root, repo_root=repo_root
+    )
     protocol = load_protocol_lock(
         protocol_lock_path, tokenizer_dir=tokenizer_dir, repo_root=repo_root
     )
@@ -1624,35 +2026,64 @@ def prepare_test_opening(
         feasibility_artifact_digest=feasibility_identity["artifact_digest"],
     )
     destination = Path(test_dir).resolve()
-    if destination.exists():
-        raise FileExistsError(f"Test opening directory already exists: {destination}")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    temporary = Path(
-        tempfile.mkdtemp(
-            prefix=f".{destination.name}.preparing-", dir=destination.parent
-        )
+    readiness_body = _test_readiness_body(
+        protocol_lock=protocol,
+        validation_results=results,
+        feasibility_identity=feasibility_identity,
+        test_opening_registry_root=registry_root,
     )
-    try:
-        create_test_opening_ledger_file(temporary / TEST_LEDGER_FILENAME, ledger)
-        readiness_body = _test_readiness_body(
-            protocol_lock=protocol,
-            validation_results=results,
-            feasibility_identity=feasibility_identity,
+    readiness = {
+        **readiness_body,
+        "readiness_sha256": sha256_json(readiness_body),
+    }
+    claim_path, expected_claim = _build_test_opening_claim(
+        test_opening_registry_root=registry_root,
+        protocol_lock_sha256=protocol["protocol_lock_sha256"],
+        test_dir=destination,
+        prepared_ledger=ledger,
+        readiness=readiness,
+    )
+
+    if not claim_path.exists() and destination.exists():
+        raise FileExistsError(
+            "Test opening directory predates the canonical registry claim; refusing "
+            f"to adopt or claim it: {destination}"
         )
-        readiness = {
-            **readiness_body,
-            "readiness_sha256": sha256_json(readiness_body),
-        }
-        _write_json(temporary / TEST_READINESS_FILENAME, readiness, exclusive=True)
-        temporary.rename(destination)
-    finally:
-        if temporary.exists():
-            shutil.rmtree(temporary)
+
+    claim, claim_reused = _create_or_validate_test_opening_claim(
+        claim_path, expected_claim
+    )
+    if not destination.exists():
+        if claim_reused:
+            raise FileNotFoundError(
+                "Canonical test opening exists but its directory is missing; "
+                "refusing to recreate it because held-out access state cannot be "
+                f"recovered safely: {destination}"
+            )
+        _prepare_test_opening_directory(
+            destination,
+            ledger=ledger,
+            readiness=readiness,
+        )
+    durable_ledger, durable_readiness = _load_existing_test_opening(
+        destination,
+        protocol_lock=protocol,
+        validation_results=results,
+        feasibility_manifest=feasibility_manifest,
+        selection_locks=locks,
+        expected_prepared_ledger=ledger,
+        expected_readiness=readiness,
+        test_opening_registry_root=registry_root,
+    )
     return {
-        "status": "prepared",
+        "status": durable_ledger["status"],
         "test_dir": str(destination),
-        "ledger_sha256": ledger["ledger_sha256"],
-        "readiness_sha256": readiness["readiness_sha256"],
+        "ledger_sha256": durable_ledger["ledger_sha256"],
+        "readiness_sha256": durable_readiness["readiness_sha256"],
+        "claim_path": str(claim_path),
+        "test_opening_registry_root": str(registry_root),
+        "claim_sha256": claim[TEST_OPENING_CLAIM_DIGEST_FIELD],
+        "claim_reused": claim_reused,
     }
 
 
@@ -2084,6 +2515,7 @@ def _write_combined_test_summary(
 def run_test_opening(
     *,
     protocol_lock_path: str | Path,
+    test_opening_registry_root: str | Path,
     corpus_dir: str | Path,
     tokenizer_dir: str | Path,
     validation_result_dirs: Sequence[str | Path],
@@ -2096,6 +2528,9 @@ def run_test_opening(
 ) -> dict[str, Any]:
     """Open the held-out cohort once and finish or recover all active arms."""
 
+    registry_root = _resolve_test_opening_registry_root(
+        test_opening_registry_root, repo_root=repo_root
+    )
     protocol = load_protocol_lock(
         protocol_lock_path, tokenizer_dir=tokenizer_dir, repo_root=repo_root
     )
@@ -2104,14 +2539,41 @@ def run_test_opening(
     )
     feasibility_manifest = load_probe_manifest(feasibility_manifest_path)
     root = Path(test_dir).resolve()
+    claim_path = _canonical_test_opening_claim_path(
+        registry_root,
+        protocol_lock_sha256=protocol["protocol_lock_sha256"],
+    )
+    claim = _load_test_opening_claim(claim_path)
+    if claim["protocol_lock_sha256"] != protocol["protocol_lock_sha256"]:
+        raise ValueError("Canonical test-opening claim belongs to another protocol")
+    if claim["test_dir"] != str(root):
+        raise ValueError(
+            "Frozen protocol test opening is already claimed for "
+            f"{claim['test_dir']}; refusing caller-selected directory {root}"
+        )
     readiness = validate_test_readiness(
         root,
         protocol_lock=protocol,
         validation_results=validation,
         feasibility_manifest=feasibility_manifest,
+        test_opening_registry_root=registry_root,
     )
     active = validate_active_arm_ids(readiness["active_arm_ids"])
     deferred = tuple(readiness["deferred_arm_ids"])
+    expected_prepared_ledger = new_test_opening_ledger(
+        opening_id=claim["opening_id"],
+        protocol_lock_sha256=protocol["protocol_lock_sha256"],
+        selection_locks=locks,
+        active_arm_ids=active,
+        feasibility_artifact_digest=readiness["feasibility_artifact_digest"],
+    )
+    if (
+        claim["prepared_ledger_sha256"] != expected_prepared_ledger["ledger_sha256"]
+        or claim["readiness_sha256"] != readiness["readiness_sha256"]
+    ):
+        raise ValueError(
+            "Canonical test-opening claim no longer matches the frozen readiness"
+        )
     ledger_path = root / TEST_LEDGER_FILENAME
     ledger = load_test_opening_ledger(ledger_path)
     validate_test_opening_ledger(
@@ -2122,6 +2584,8 @@ def run_test_opening(
         deferred_arm_ids=deferred,
         feasibility_artifact_digest=readiness["feasibility_artifact_digest"],
     )
+    if ledger["opening_id"] != claim["opening_id"]:
+        raise ValueError("Local test ledger differs from the canonical opening claim")
     for arm_id in deferred:
         if (root / "arms" / arm_id).exists():
             raise ValueError(f"Deferred arm {arm_id!r} cannot be added to this opening")
@@ -2290,6 +2754,15 @@ def _parser() -> argparse.ArgumentParser:
 
     prepare = subparsers.add_parser("prepare-test")
     prepare.add_argument("--protocol-lock", type=Path, required=True)
+    prepare.add_argument(
+        "--test-opening-registry",
+        type=Path,
+        required=True,
+        help=(
+            "existing fixed registry under this clone's Git common directory; "
+            "once-only authority does not extend across separate clones"
+        ),
+    )
     prepare.add_argument("--tokenizer-dir", type=Path, default=DEFAULT_TOKENIZER_DIR)
     prepare.add_argument(
         "--validation-result", type=Path, action="append", required=True
@@ -2301,6 +2774,15 @@ def _parser() -> argparse.ArgumentParser:
 
     test = subparsers.add_parser("test")
     test.add_argument("--protocol-lock", type=Path, required=True)
+    test.add_argument(
+        "--test-opening-registry",
+        type=Path,
+        required=True,
+        help=(
+            "existing fixed registry under this clone's Git common directory; "
+            "must match prepare-test"
+        ),
+    )
     test.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)
     test.add_argument("--tokenizer-dir", type=Path, default=DEFAULT_TOKENIZER_DIR)
     test.add_argument("--validation-result", type=Path, action="append", required=True)
@@ -2345,6 +2827,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == "prepare-test":
         result = prepare_test_opening(
             protocol_lock_path=args.protocol_lock,
+            test_opening_registry_root=args.test_opening_registry,
             tokenizer_dir=args.tokenizer_dir,
             validation_result_dirs=tuple(args.validation_result),
             feasibility_manifest_path=args.feasibility_manifest,
@@ -2355,6 +2838,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == "test":
         result = run_test_opening(
             protocol_lock_path=args.protocol_lock,
+            test_opening_registry_root=args.test_opening_registry,
             corpus_dir=args.corpus_dir,
             tokenizer_dir=args.tokenizer_dir,
             validation_result_dirs=tuple(args.validation_result),
@@ -2386,6 +2870,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "summary_sha256": result.get("summary", {}).get(SUMMARY_DIGEST_FIELD),
         "ledger_sha256": result.get("ledger", {}).get("ledger_sha256")
         or result.get("ledger_sha256"),
+        "claim_path": result.get("claim_path"),
+        "claim_sha256": result.get("claim_sha256"),
+        "test_opening_registry_root": result.get("test_opening_registry_root"),
         "wandb_url": result.get("wandb_receipt", {}).get("url"),
         "wandb_receipt_sha256": result.get("wandb_receipt", {}).get(
             WANDB_RECEIPT_DIGEST_FIELD

@@ -215,6 +215,19 @@ def test_pilot_selection_is_validation_only_and_final_must_restart_pristine():
         },
         num_train_epochs=3,
     )
+    with pytest.raises(ValueError, match="exactly 3 epochs"):
+        scratch.validate_final_restart(
+            selection_lock=lock,
+            arm_id="scratch-10m",
+            learning_rate=3e-4,
+            initialization_provenance={
+                "initial_state_digest": "sha256:" + "1" * 64,
+                "initialization_seed": 54_001,
+                "effective_config_digest": "sha256:" + "4" * 64,
+                "exact_trainable_parameters": 10_000_001,
+            },
+            num_train_epochs=2.9,
+        )
     with pytest.raises(ValueError, match="validation-selected"):
         scratch.validate_final_restart(
             selection_lock=lock,

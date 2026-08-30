@@ -20,7 +20,7 @@ import shutil
 import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from itertools import pairwise
+from itertools import combinations
 from pathlib import Path
 from typing import Any
 
@@ -30,7 +30,11 @@ from experiments.evaluate_deep_corpus_v2_scratch import (
     SUMMARY_DIGEST_FIELD,
     SUMMARY_FILENAME,
     TEST_LEDGER_FILENAME,
+    TEST_OPENING_CLAIM_DIGEST_FIELD,
     TEST_SUMMARY_FILENAME,
+    _canonical_test_opening_claim_path,
+    _load_test_opening_claim,
+    _resolve_test_opening_registry_root,
     _training_outcomes,
     _validate_checkpoint_feasibility_gate,
     _validate_raw_artifacts,
@@ -38,6 +42,7 @@ from experiments.evaluate_deep_corpus_v2_scratch import (
     load_validation_results,
     validate_evaluation_summary,
     validate_feasibility_producer,
+    validate_test_readiness,
     validate_wandb_receipt,
 )
 from experiments.freeze_deep_corpus_v2_protocol import (
@@ -55,6 +60,7 @@ from wandering_light.evals.deep_corpus_protocol import (
     ARM_IDS,
     SAMPLE_PREFIXES,
     canonical_copy,
+    new_test_opening_ledger,
     protocol_training_evaluator_sources,
     sha256_file,
     sha256_json,
@@ -87,11 +93,13 @@ FROZEN_WORKLOAD_INVARIANTS = (
     "context length",
     "parameter count",
 )
+FROZEN_COMPUTE_LIMIT_HOURS = 16
 
 
 @dataclass(frozen=True)
 class ReportInputs:
     protocol_lock: Path
+    test_opening_registry_root: Path
     corpus_manifest: Path
     tokenizer_dir: Path
     feasibility_manifest: Path
@@ -119,6 +127,90 @@ def _finite_number(value: Any, *, label: str, minimum: float | None = None) -> f
     if not math.isfinite(parsed) or (minimum is not None and parsed < minimum):
         raise ValueError(f"{label} is outside its valid range")
     return parsed
+
+
+def _training_runtime_provenance(
+    environment: Mapping[str, Any], *, label: str
+) -> dict[str, Any]:
+    runtime = _finite_number(
+        environment.get("full_invocation_elapsed_seconds"),
+        label=f"{label} full invocation runtime",
+        minimum=0,
+    )
+    scope = environment.get("full_invocation_runtime_scope")
+    if not isinstance(scope, str) or not scope.strip():
+        raise ValueError(f"{label} lacks a full-runtime scope")
+    censoring = environment.get("full_invocation_runtime_censoring")
+    scope_lower = scope.casefold()
+    if censoring is None:
+        if "right-censored" in scope_lower or "lower bound" in scope_lower:
+            raise ValueError(f"{label} runtime scope lacks censoring provenance")
+        return {
+            "runtime_seconds": runtime,
+            "runtime_scope": scope,
+            "runtime_status": "exact",
+            "runtime_censoring": None,
+        }
+    if not isinstance(censoring, Mapping):
+        raise ValueError(f"{label} runtime censoring provenance is malformed")
+    expected_fields = {
+        "status",
+        "known_original_lower_bound_seconds",
+        "recovery_elapsed_seconds",
+        "combined_lower_bound_seconds",
+        "omitted_interval_seconds",
+        "omitted_interval_scope",
+        "omitted_interval_reason",
+    }
+    if set(censoring) != expected_fields or censoring.get("status") != (
+        "right-censored-lower-bound"
+    ):
+        raise ValueError(f"{label} runtime censoring provenance is malformed")
+    known_lower_bound = _finite_number(
+        censoring.get("known_original_lower_bound_seconds"),
+        label=f"{label} known original runtime lower bound",
+        minimum=0,
+    )
+    recovery_elapsed = _finite_number(
+        censoring.get("recovery_elapsed_seconds"),
+        label=f"{label} recovery runtime",
+        minimum=0,
+    )
+    combined_lower_bound = _finite_number(
+        censoring.get("combined_lower_bound_seconds"),
+        label=f"{label} combined runtime lower bound",
+        minimum=0,
+    )
+    omitted_scope = censoring.get("omitted_interval_scope")
+    omitted_reason = censoring.get("omitted_interval_reason")
+    if (
+        censoring.get("omitted_interval_seconds") is not None
+        or not isinstance(omitted_scope, str)
+        or not omitted_scope.strip()
+        or not isinstance(omitted_reason, str)
+        or not omitted_reason.strip()
+        or "right-censored" not in scope_lower
+        or "lower bound" not in scope_lower
+        or not math.isclose(
+            combined_lower_bound,
+            known_lower_bound + recovery_elapsed,
+            rel_tol=1e-12,
+            abs_tol=1e-9,
+        )
+        or not math.isclose(
+            runtime,
+            combined_lower_bound,
+            rel_tol=1e-12,
+            abs_tol=1e-9,
+        )
+    ):
+        raise ValueError(f"{label} runtime censoring provenance is inconsistent")
+    return {
+        "runtime_seconds": runtime,
+        "runtime_scope": scope,
+        "runtime_status": "right-censored-lower-bound",
+        "runtime_censoring": canonical_copy(dict(censoring)),
+    }
 
 
 def _validate_issue_54_protocol(protocol: Mapping[str, Any]) -> None:
@@ -234,11 +326,16 @@ def _deferred_arm_report(arm_id: str, *, arm_gate: Mapping[str, Any]) -> dict[st
                     "protocol"
                 ),
                 "requires_protocol_change": True,
+                "protocol_change": "learning_rate_selection",
             },
             {
                 "option": "own_night",
-                "effect": "run under its own separately authorized runtime envelope",
-                "requires_protocol_change": False,
+                "effect": (
+                    "run under a separately authorized compute limit above the frozen "
+                    f"{FROZEN_COMPUTE_LIMIT_HOURS}-hour cap"
+                ),
+                "requires_protocol_change": True,
+                "protocol_change": "compute_limit",
             },
         ],
         "must_not_shrink": list(FROZEN_WORKLOAD_INVARIANTS),
@@ -450,14 +547,7 @@ def _training_run_outcome(
         label=f"{arm_id} {phase} trainer runtime",
         minimum=0,
     )
-    runtime = _finite_number(
-        environment.get("full_invocation_elapsed_seconds"),
-        label=f"{arm_id} {phase} full invocation runtime",
-        minimum=0,
-    )
-    runtime_scope = environment.get("full_invocation_runtime_scope")
-    if not isinstance(runtime_scope, str) or not runtime_scope:
-        raise ValueError(f"{arm_id} {phase} lacks a full-runtime scope")
+    runtime = _training_runtime_provenance(environment, label=f"{arm_id} {phase}")
     allocated = environment.get("peak_torch_allocated_bytes")
     reserved = environment.get("peak_torch_reserved_bytes")
     observed_peak = environment.get("peak_observed_gpu_memory_bytes")
@@ -530,8 +620,7 @@ def _training_run_outcome(
         "planned_completion_loss_tokens": workload.get(
             "planned_completion_loss_tokens"
         ),
-        "runtime_seconds": runtime,
-        "runtime_scope": runtime_scope,
+        **runtime,
         "trainer_train_runtime_seconds": trainer_runtime,
         "peak_torch_allocated_bytes": allocated,
         "peak_torch_reserved_bytes": reserved,
@@ -844,6 +933,27 @@ def _tokenizer_report(
     }
 
 
+def _format_arm_labels(arm_ids: Sequence[str]) -> str:
+    labels = [ARM_LABELS[arm_id] for arm_id in arm_ids]
+    if not labels:
+        raise ValueError("At least one arm is required for report prose")
+    if len(labels) == 1:
+        return labels[0]
+    if len(labels) == 2:
+        return f"{labels[0]} and {labels[1]}"
+    return ", ".join(labels[:-1]) + f", and {labels[-1]}"
+
+
+def _deferred_no_evidence_statement(
+    deferred_arm_ids: Sequence[str], *, evidence: str
+) -> str:
+    deferred = tuple(deferred_arm_ids)
+    labels = _format_arm_labels(deferred)
+    if len(deferred) == 1:
+        return f"The deferred arm ({labels}) provides no {evidence}."
+    return f"The deferred arms ({labels}) provide no {evidence}."
+
+
 def _decision_rules(
     validation: Mapping[str, Mapping[str, Any]],
     test: Mapping[str, Mapping[str, Any]],
@@ -858,7 +968,7 @@ def _decision_rules(
     }
     test_target = {arm_id: test[arm_id]["distance_5_8_at_64"] for arm_id in active}
     larger_helps: dict[str, bool] = {}
-    for smaller, larger in pairwise(ARM_IDS):
+    for smaller, larger in combinations(ARM_IDS, 2):
         if smaller in validation_target and larger in validation_target:
             larger_helps[f"{larger}_vs_{smaller}"] = (
                 validation_target[larger]["solve_rate"]
@@ -953,28 +1063,45 @@ def _decision_rules(
                 "inconclusive when observed BFS hits do not cover the model solve count"
             ),
         }
+    capacity_arm = "smollm2-360m-scratch"
+    active_smaller_arms = tuple(
+        arm_id for arm_id in ARM_IDS[:-1] if arm_id in test_target
+    )
+    capacity_loses_to: tuple[str, ...] = ()
     capacity_mismatch = None
-    if set(ARM_IDS).issubset(test_target):
-        capacity_mismatch = test_target["smollm2-360m-scratch"]["solve_rate"] < max(
-            test_target["scratch-10m"]["solve_rate"],
-            test_target["opt-125m-scratch"]["solve_rate"],
+    if capacity_arm in test_target and active_smaller_arms:
+        capacity_loses_to = tuple(
+            arm_id
+            for arm_id in active_smaller_arms
+            if test_target[capacity_arm]["solve_rate"]
+            < test_target[arm_id]["solve_rate"]
         )
+        capacity_mismatch = bool(capacity_loses_to)
     if all_zero:
-        scope = "All three models" if not deferred else "Both active models"
-        long_distance_statement = (
-            f"{scope} remained 0/12 at every distance from 5 through 8; "
-            "the deferred arm is not evidence for or against the long-distance regime."
-            if deferred
-            else (
+        if deferred:
+            long_distance_statement = (
+                f"Every active arm ({_format_arm_labels(active)}) remained 0/12 at "
+                "every distance from 5 through 8; "
+                + _deferred_no_evidence_statement(
+                    deferred,
+                    evidence="evidence for or against the long-distance regime",
+                )
+            )
+        else:
+            long_distance_statement = (
                 "All three models remained 0/12 at every distance from 5 through 8; "
                 "10x data plus scratch scaling did not solve the long-distance regime."
             )
-        )
     else:
         long_distance_statement = (
-            "At least one predeclared model solved a held-out distance-5..8 task; "
+            f"At least one active arm ({_format_arm_labels(active)}) solved a held-out "
+            "distance-5..8 task; "
             "see the per-distance table without tuning on test."
         )
+        if deferred:
+            long_distance_statement += " " + _deferred_no_evidence_statement(
+                deferred, evidence="held-out long-distance evidence"
+            )
     return {
         "active_arm_ids": list(active),
         "deferred_arm_ids": list(deferred),
@@ -984,13 +1111,26 @@ def _decision_rules(
         "long_distance_statement": long_distance_statement,
         "distance_7_8_kill_criterion": kill,
         "capacity_data_mismatch_360m_loses_on_test_distance_5_8": capacity_mismatch,
+        "capacity_data_comparator_arm_ids": list(active_smaller_arms),
+        "capacity_data_mismatch_360m_loses_to_arm_ids": list(capacity_loses_to),
         "capacity_caveat": (
-            "The arms also differ in transformer family; this bounded comparison "
+            "The active arms also differ in transformer family; this bounded comparison "
             "cannot isolate parameter count as a pure causal scaling variable."
+            if len(active) > 1
+            else (
+                "Only one arm was active, so this report contains no within-study "
+                "architecture/capacity comparison."
+            )
         ),
         "seed_caveat": (
             "This is a one-seed bounded feasibility comparison, not a scaling law; "
             "validation-positive models require replication under additional seeds."
+            if len(active) > 1
+            else (
+                "This is a one-seed feasibility result for one active arm, not a "
+                "scaling claim; a validation-positive result requires replication "
+                "under additional seeds."
+            )
         ),
     }
 
@@ -1007,6 +1147,49 @@ def _table(headers: Sequence[str], rows: Sequence[Sequence[Any]]) -> str:
             *("| " + " | ".join(str(value) for value in row) + " |" for row in rows),
         ]
     )
+
+
+def _capacity_statement(decisions: Mapping[str, Any]) -> str:
+    active = tuple(decisions["active_arm_ids"])
+    deferred = tuple(decisions["deferred_arm_ids"])
+    capacity_arm = "smollm2-360m-scratch"
+    if capacity_arm not in active:
+        return (
+            f"The active arm set was {_format_arm_labels(active)}. "
+            + _deferred_no_evidence_statement(
+                deferred, evidence="held-out capacity/data evidence"
+            )
+            + " The predeclared 360M-versus-smaller comparison is incomplete."
+        )
+
+    comparators = tuple(decisions["capacity_data_comparator_arm_ids"])
+    if not comparators:
+        return (
+            "SmolLM2 360M was the only active arm, so no held-out smaller-model "
+            "capacity/data comparator is available. "
+            + _deferred_no_evidence_statement(
+                deferred, evidence="held-out capacity/data evidence"
+            )
+        )
+
+    loses_to = tuple(decisions["capacity_data_mismatch_360m_loses_to_arm_ids"])
+    if loses_to:
+        statement = (
+            "SmolLM2 360M lost to the active smaller "
+            + ("arm" if len(loses_to) == 1 else "arms")
+            + f" ({_format_arm_labels(loses_to)}) on held-out distance 5-8: report "
+            "this as a capacity/data mismatch and do not tune on test."
+        )
+    else:
+        statement = (
+            "SmolLM2 360M did not lose to any active smaller comparator "
+            f"({_format_arm_labels(comparators)}) on held-out distance 5-8."
+        )
+    if deferred:
+        statement += " " + _deferred_no_evidence_statement(
+            deferred, evidence="held-out capacity/data evidence"
+        )
+    return statement
 
 
 def build_markdown(report: Mapping[str, Any]) -> str:
@@ -1101,6 +1284,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
         )
     training_rows = []
     loss_rows = []
+    has_censored_training_runtime = False
     for arm_id in active_arm_ids:
         for run in [*training[arm_id]["pilots"], training[arm_id]["final"]]:
             label = (
@@ -1108,13 +1292,17 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                 if run["phase"] == "pilot"
                 else "final"
             )
+            runtime_cell = f"{run['runtime_seconds']:.1f}"
+            if run["runtime_status"] == "right-censored-lower-bound":
+                has_censored_training_runtime = True
+                runtime_cell = f">={run['runtime_seconds']:.1f} (right-censored)"
             training_rows.append(
                 [
                     arm_id,
                     label,
                     run["global_steps"],
                     run["num_input_tokens_seen"],
-                    f"{run['runtime_seconds']:.1f}",
+                    runtime_cell,
                     f"{run['trainer_train_runtime_seconds']:.1f}",
                     run["peak_torch_allocated_bytes"],
                     run["peak_torch_reserved_bytes"],
@@ -1307,15 +1495,31 @@ def build_markdown(report: Mapping[str, Any]) -> str:
     for arm_id in deferred_arm_ids:
         deferred = report["deferred_arms"][arm_id]
         projection = deferred["projection"]
+        projected_hours = projection["projected_pilot_plus_final_hours"]
+        if projected_hours > FROZEN_COMPUTE_LIMIT_HOURS:
+            fit_statement = (
+                f"This exceeds the frozen {FROZEN_COMPUTE_LIMIT_HOURS}-hour compute "
+                "limit. Reducing the pilot count could bring it within that limit only "
+                "under a separately frozen LR-selection protocol. Assigning it its own "
+                "night does not change the limit; that route requires separately "
+                "authorizing a higher compute limit."
+            )
+        else:
+            fit_statement = (
+                f"This does not exceed the frozen {FROZEN_COMPUTE_LIMIT_HOURS}-hour "
+                "compute limit, so the recorded gate reason—not night assignment—must "
+                "justify deferral. Any LR-selection or compute-limit change must be "
+                "separately frozen or authorized."
+            )
         deferred_sections.append(
             "### "
             + ARM_LABELS[arm_id]
             + " — deferred\n\n"
-            + f"Projected total: **{projection['projected_pilot_plus_final_hours']:.2f} "
+            + f"Projected total: **{projected_hours:.2f} "
             "hours**, including three learning-rate pilots, the full three-epoch "
-            "run, and the fixed 15% margin. It can fit by using fewer learning-rate "
-            "pilots under a separately frozen LR-selection protocol, or by assigning "
-            "it its own night. Do not shrink training data, epochs, context length, "
+            "run, and the fixed 15% margin. "
+            + fit_statement
+            + " Do not shrink training data, epochs, context length, "
             "or parameter count to force it into the current night."
         )
     deferred_markdown = (
@@ -1323,21 +1527,7 @@ def build_markdown(report: Mapping[str, Any]) -> str:
         if deferred_sections
         else ""
     )
-    capacity_mismatch = decisions[
-        "capacity_data_mismatch_360m_loses_on_test_distance_5_8"
-    ]
-    if capacity_mismatch is None:
-        capacity_statement = (
-            "The 360M arm was deferred, so this report makes no held-out 360M "
-            "capacity/data comparison."
-        )
-    elif capacity_mismatch:
-        capacity_statement = (
-            "The 360M arm lost to a smaller arm on held-out distance 5-8: report "
-            "this as a capacity/data mismatch and do not tune on test."
-        )
-    else:
-        capacity_statement = "No predeclared 360M capacity/data mismatch was triggered."
+    capacity_statement = _capacity_statement(decisions)
     return (
         "\n\n".join(
             [
@@ -1364,8 +1554,9 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                     ],
                     provenance_rows,
                 ),
-                "All embeddings and model weights started randomly via `from_config`; no "
-                "pretrained weights or previous task checkpoint were loaded.",
+                "Every active arm's embeddings and model weights started randomly via "
+                "`from_config`; no pretrained weights or previous task checkpoint were "
+                "loaded.",
                 "## Corpus and tokenizer\n\n"
                 f"Corpus manifest: `{report['corpus']['manifest_digest']}`. Tokenizer: "
                 f"`{tokenizer['artifact_digest']}`, vocabulary {tokenizer['total_vocab_size']}, "
@@ -1423,9 +1614,16 @@ def build_markdown(report: Mapping[str, Any]) -> str:
                 ),
                 "Allocated/reserved memory is PyTorch allocator telemetry; observed "
                 "peak carries an explicit process or physical-GPU-total scope; "
-                "physical capacity is reported separately. Runtime covers each invocation through its "
-                "model/tokenizer/config/trainer artifact writes; trainer runtime is "
-                "shown separately.",
+                "physical capacity is reported separately. Exact runtime covers each "
+                "invocation through its declared runtime scope; trainer runtime is shown "
+                "separately."
+                + (
+                    " Rows marked `>=` are right-censored lower bounds from recovered "
+                    "durable checkpoints; the explicitly recorded omitted interval is "
+                    "unknown and is not treated as zero."
+                    if has_censored_training_runtime
+                    else ""
+                ),
                 "### Train/validation loss and gap at every evaluation\n\n"
                 + _table(
                     ["arm", "run", "step", "train loss", "validation loss", "gap"],
@@ -1554,6 +1752,10 @@ def validate_report(report: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
+    test_opening_registry_root = _resolve_test_opening_registry_root(
+        inputs.test_opening_registry_root,
+        repo_root=inputs.repo_root,
+    )
     protocol = load_protocol_lock(
         inputs.protocol_lock,
         tokenizer_dir=inputs.tokenizer_dir,
@@ -1621,6 +1823,35 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
     )
 
     test_dir = inputs.test_dir.resolve()
+    readiness = validate_test_readiness(
+        test_dir,
+        protocol_lock=protocol,
+        validation_results=validation,
+        feasibility_manifest=feasibility,
+        test_opening_registry_root=test_opening_registry_root,
+    )
+    claim_path = _canonical_test_opening_claim_path(
+        test_opening_registry_root,
+        protocol_lock_sha256=protocol["protocol_lock_sha256"],
+    )
+    claim = _load_test_opening_claim(claim_path)
+    if claim["protocol_lock_sha256"] != protocol["protocol_lock_sha256"]:
+        raise ValueError("Canonical test-opening claim belongs to another protocol")
+    if claim["test_dir"] != str(test_dir):
+        raise ValueError(
+            "Canonical test-opening claim belongs to another test directory"
+        )
+    if claim["readiness_sha256"] != readiness["readiness_sha256"]:
+        raise ValueError("Canonical test-opening claim changed its readiness identity")
+    prepared_ledger = new_test_opening_ledger(
+        opening_id=claim["opening_id"],
+        protocol_lock_sha256=protocol["protocol_lock_sha256"],
+        selection_locks=selection_locks,
+        active_arm_ids=active_arm_ids,
+        feasibility_artifact_digest=feasibility["artifact_digest"],
+    )
+    if claim["prepared_ledger_sha256"] != prepared_ledger["ledger_sha256"]:
+        raise ValueError("Canonical test-opening claim changed its prepared ledger")
     combined = _validate_combined_test_summary(
         _read_json(test_dir / TEST_SUMMARY_FILENAME, label="combined test summary"),
         protocol=protocol,
@@ -1643,6 +1874,10 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
     )
     if ledger["status"] != "complete" or ledger["test_access_count"] != 1:
         raise ValueError("Held-out test ledger is not complete and once-opened")
+    if ledger["opening_id"] != claim["opening_id"]:
+        raise ValueError(
+            "Completed test ledger differs from the canonical opening claim"
+        )
     if combined["ledger_sha256"] != ledger["ledger_sha256"]:
         raise ValueError("Combined test summary belongs to another ledger revision")
     if combined["shared_bfs"] != ledger["shared_bfs_identity"]:
@@ -1802,6 +2037,11 @@ def build_report(inputs: ReportInputs) -> tuple[dict[str, Any], str]:
         "training": training,
         "deferred_arms": deferred_arms,
         "test_opening": {
+            "test_opening_registry_root": str(test_opening_registry_root),
+            "claim_path": str(claim_path),
+            "claim_sha256": claim[TEST_OPENING_CLAIM_DIGEST_FIELD],
+            "prepared_ledger_sha256": claim["prepared_ledger_sha256"],
+            "readiness_sha256": readiness["readiness_sha256"],
             "ledger_sha256": ledger["ledger_sha256"],
             "opening_id": ledger["opening_id"],
             "test_access_count": ledger["test_access_count"],
@@ -1891,6 +2131,15 @@ def _parse_args(argv: Sequence[str] | None = None) -> ReportInputs:
         ),
     )
     parser.add_argument("--protocol-lock", type=Path, required=True)
+    parser.add_argument(
+        "--test-opening-registry",
+        type=Path,
+        required=True,
+        help=(
+            "existing fixed registry under this clone's Git common directory; "
+            "must match the authority used by prepare-test and test"
+        ),
+    )
     parser.add_argument("--corpus-manifest", type=Path, required=True)
     parser.add_argument("--tokenizer-dir", type=Path, default=DEFAULT_TOKENIZER_DIR)
     parser.add_argument("--feasibility-manifest", type=Path, required=True)
@@ -1904,6 +2153,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> ReportInputs:
     args = parser.parse_args(argv)
     return ReportInputs(
         protocol_lock=args.protocol_lock,
+        test_opening_registry_root=args.test_opening_registry,
         corpus_manifest=args.corpus_manifest,
         tokenizer_dir=args.tokenizer_dir,
         feasibility_manifest=args.feasibility_manifest,

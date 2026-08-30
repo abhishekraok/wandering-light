@@ -10,6 +10,9 @@ selection lock and recreate the exact pristine initial state before training.
 from __future__ import annotations
 
 import argparse
+import ctypes
+import errno
+import fcntl
 import hashlib
 import json
 import math
@@ -18,7 +21,7 @@ import shutil
 import sys
 import tempfile
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -53,6 +56,7 @@ from wandering_light.training.deep_corpus_scratch import (
     classify_validation_trend,
     configure_deterministic_cuda_environment,
     digest_json,
+    exact_model_parameter_count,
     initialize_model_from_config,
     resolve_scratch_config,
     select_pilot_learning_rate,
@@ -61,6 +65,8 @@ from wandering_light.training.deep_corpus_scratch import (
 from wandering_light.training.deep_corpus_tokenizer import (
     DEFAULT_REFERENCE_CORPUS_DIR,
     DETERMINISTIC_PYTHON_HASH_SEED,
+    FIXED_SPECIAL_TOKENS,
+    TOKENIZER_FILENAMES,
     build_tokenization_audit,
     canonical_corpus_rows,
     require_deterministic_python_hash_seed,
@@ -91,6 +97,41 @@ LOGGING_STEPS = 50
 # recomputation while keeping the frozen batch and all model/data semantics.
 GRADIENT_CHECKPOINTING_ARMS = frozenset({"smollm2-360m-scratch"})
 GRADIENT_CHECKPOINTING_KWARGS = {"use_reentrant": False}
+TRAINING_MANIFEST_FILENAME = "training_manifest.json"
+_PENDING_DURABILITY_STATUS = "pending-durable-verification"
+_CANONICAL_TRANSIENT_ROOTS = (Path("/tmp"), Path("/var/tmp"))
+_AT_FDCWD = -100
+_RENAME_NOREPLACE = 1
+_NORMAL_RUNTIME_SCOPE = (
+    "exact elapsed time measured at the final durable completion transition, "
+    "after W&B summary and finish"
+)
+_RECOVERY_RUNTIME_SCOPE = (
+    "right-censored lower bound combining the known original invocation prefix "
+    "and measured recovery"
+)
+_RECOVERY_OMITTED_INTERVAL_SCOPE = (
+    "after the pending manifest's original runtime measurement through recovery start"
+)
+_RECOVERY_OMITTED_INTERVAL_REASON = (
+    "the producer tail and inter-invocation gap were not measured"
+)
+_RECOVERY_WANDB_REASON = "recovery performs no W&B write or finalization"
+_DURABLE_ARTIFACT_REQUIRED_FILES = frozenset(
+    {
+        "basis_set.json",
+        "config.json",
+        "corpus_manifest.json",
+        "special_tokens_map.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        TOKENIZER_MANIFEST_FILENAME,
+        "trainer_state.json",
+        "training_args.bin",
+        "training_args.json",
+        "wandb_run.url",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -102,6 +143,7 @@ class ScratchRunConfig:
     phase: str
     learning_rate: float
     num_train_epochs: float
+    durable_output_root: Path | None = None
     reference_corpus_dirs: tuple[Path, ...] = (DEFAULT_REFERENCE_CORPUS_DIR,)
     feasibility_manifest: Path | None = None
     wandb_run_name: str | None = None
@@ -111,6 +153,14 @@ class ScratchRunConfig:
     data_order_seed: int = DATA_ORDER_SEED
     wandb_entity: str = PERSONAL_WANDB_ENTITY
     wandb_project: str = DEFAULT_WANDB_PROJECT
+
+
+@dataclass
+class _CheckpointCompletionLock:
+    checkpoint_dir: Path
+    path: Path
+    descriptor: int
+    held: bool = True
 
 
 @dataclass(frozen=True)
@@ -239,6 +289,64 @@ def make_wall_clock_hard_stop_callback(deadline: WallClockDeadline) -> Any:
     return WallClockHardStopCallback()
 
 
+def _durable_output_contract(
+    destination: Path,
+    declared_root: Path,
+    *,
+    configured_temp_root: Path | None = None,
+    source_worktree: Path | None = None,
+) -> dict[str, Any]:
+    """Bind an actual checkpoint to an explicit non-transient output root."""
+
+    destination = destination.resolve()
+    declared_root = declared_root.resolve()
+    configured_temp_root = Path(
+        tempfile.gettempdir() if configured_temp_root is None else configured_temp_root
+    ).resolve()
+    transient_roots = tuple(
+        dict.fromkeys(
+            root.resolve()
+            for root in (*_CANONICAL_TRANSIENT_ROOTS, configured_temp_root)
+        )
+    )
+    source_worktree = (
+        Path(__file__).resolve().parents[1]
+        if source_worktree is None
+        else source_worktree.resolve()
+    )
+    if not declared_root.is_dir():
+        raise ValueError(
+            f"Durable output root must already exist as a directory: {declared_root}"
+        )
+    if any(
+        declared_root == transient_root or declared_root.is_relative_to(transient_root)
+        for transient_root in transient_roots
+    ):
+        raise ValueError(
+            "Durable output root must not be inside a canonical or configured "
+            "transient tree"
+        )
+    if declared_root == source_worktree or declared_root.is_relative_to(
+        source_worktree
+    ):
+        raise ValueError("Durable output root must be outside the source worktree")
+    if destination == declared_root or not destination.is_relative_to(declared_root):
+        raise ValueError("Training output must be a child of the durable output root")
+    if any(
+        destination == transient_root or destination.is_relative_to(transient_root)
+        for transient_root in transient_roots
+    ):
+        raise ValueError(
+            "Training output must not be inside a canonical or configured "
+            "transient tree"
+        )
+    return {
+        "schema_version": 1,
+        "declared_output_root": str(declared_root),
+        "artifact_relative_path": destination.relative_to(declared_root).as_posix(),
+    }
+
+
 def _validate_run_config(config: ScratchRunConfig) -> None:
     if config.arm_id not in ARM_SPECS:
         raise ValueError(f"Unknown scratch arm: {config.arm_id!r}")
@@ -262,8 +370,8 @@ def _validate_run_config(config: ScratchRunConfig) -> None:
         if config.selection_lock is not None:
             raise ValueError("A pilot must not consume a final selection lock")
     else:
-        if not 0 < config.num_train_epochs <= MAX_FINAL_EPOCHS:
-            raise ValueError(f"Final runs may use at most {MAX_FINAL_EPOCHS:g} epochs")
+        if config.num_train_epochs != MAX_FINAL_EPOCHS:
+            raise ValueError(f"Final runs must use exactly {MAX_FINAL_EPOCHS:g} epochs")
         if config.selection_lock is None:
             raise ValueError("Final training requires a validation-only LR lock")
     if not config.dry_run and (
@@ -272,6 +380,10 @@ def _validate_run_config(config: ScratchRunConfig) -> None:
         raise ValueError("An actual run requires a recoverable W&B run name")
     if not config.dry_run and config.feasibility_manifest is None:
         raise ValueError("An actual run requires a passing feasibility manifest")
+    if not config.dry_run:
+        if config.durable_output_root is None:
+            raise ValueError("An actual run requires an explicit durable output root")
+        _durable_output_contract(config.output_dir, config.durable_output_root)
 
 
 def _task_ids_digest(rows: Sequence[Mapping[str, Any]]) -> str:
@@ -749,6 +861,11 @@ def _build_manifest(
         "trainer_state": dict(trainer_state or {}),
         "validation_trend": trend,
         "execution_environment": dict(execution_environment or {}),
+        "durability_contract": (
+            _durable_output_contract(config.output_dir, config.durable_output_root)
+            if config.durable_output_root is not None
+            else None
+        ),
         "wandb": {
             "entity": PERSONAL_WANDB_ENTITY,
             "project": config.wandb_project,
@@ -975,6 +1092,100 @@ def _existing_training_staging_dirs(destination: Path) -> tuple[Path, ...]:
     )
 
 
+def _completion_lock_path(checkpoint_dir: Path) -> Path:
+    checkpoint_dir = checkpoint_dir.resolve()
+    return checkpoint_dir.parent / f".{checkpoint_dir.name}.completion.lock"
+
+
+def _acquire_checkpoint_completion_lock(
+    checkpoint_dir: Path,
+) -> _CheckpointCompletionLock:
+    """Acquire the producer/recovery exclusion lock without waiting."""
+
+    checkpoint_dir = checkpoint_dir.resolve()
+    path = _completion_lock_path(checkpoint_dir)
+    flags = os.O_CREAT | os.O_RDWR | getattr(os, "O_CLOEXEC", 0)
+    descriptor = os.open(path, flags, 0o600)
+    try:
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError as error:
+        os.close(descriptor)
+        raise RuntimeError(
+            f"Checkpoint completion is already in progress: {checkpoint_dir}"
+        ) from error
+    return _CheckpointCompletionLock(
+        checkpoint_dir=checkpoint_dir,
+        path=path,
+        descriptor=descriptor,
+    )
+
+
+def _release_checkpoint_completion_lock(lock: _CheckpointCompletionLock) -> None:
+    if not lock.held:
+        return
+    lock.held = False
+    # Closing the descriptor releases flock even if the process exits abruptly.
+    os.close(lock.descriptor)
+
+
+def _atomic_rename_noreplace(
+    source: Path,
+    destination: Path,
+    *,
+    libc: Any | None = None,
+) -> None:
+    """Atomically publish a directory without ever replacing an existing path."""
+
+    if sys.platform != "linux":
+        raise RuntimeError(
+            "Atomic no-replace checkpoint publication requires Linux renameat2"
+        )
+    library = ctypes.CDLL(None, use_errno=True) if libc is None else libc
+    renameat2 = getattr(library, "renameat2", None)
+    if renameat2 is None:
+        raise RuntimeError(
+            "Atomic no-replace checkpoint publication is unavailable: renameat2"
+        )
+    if libc is None:
+        renameat2.argtypes = (
+            ctypes.c_int,
+            ctypes.c_char_p,
+            ctypes.c_int,
+            ctypes.c_char_p,
+            ctypes.c_uint,
+        )
+        renameat2.restype = ctypes.c_int
+    ctypes.set_errno(0)
+    result = renameat2(
+        _AT_FDCWD,
+        os.fsencode(source),
+        _AT_FDCWD,
+        os.fsencode(destination),
+        _RENAME_NOREPLACE,
+    )
+    if result == 0:
+        return
+    error_number = ctypes.get_errno()
+    if error_number == errno.EEXIST:
+        raise FileExistsError(
+            error_number,
+            "Checkpoint destination already exists",
+            str(destination),
+        )
+    unsupported = {
+        errno.ENOSYS,
+        errno.EINVAL,
+        getattr(errno, "ENOTSUP", errno.EINVAL),
+        getattr(errno, "EOPNOTSUPP", errno.EINVAL),
+    }
+    if error_number in unsupported:
+        raise RuntimeError(
+            "Atomic no-replace checkpoint publication is unsupported by this "
+            "kernel or filesystem"
+        )
+    raise OSError(error_number, os.strerror(error_number), str(destination))
+
+
 def _publish_training_staging(staging: Path, destination: Path) -> None:
     staging = staging.resolve()
     destination = destination.resolve()
@@ -984,9 +1195,7 @@ def _publish_training_staging(staging: Path, destination: Path) -> None:
         raise ValueError("Training staging path is not scoped to its destination")
     if not staging.is_dir():
         raise FileNotFoundError(f"Training staging directory is missing: {staging}")
-    if destination.exists():
-        raise FileExistsError(f"Output appeared before atomic publish: {destination}")
-    staging.rename(destination)
+    _atomic_rename_noreplace(staging, destination)
 
 
 def _cleanup_training_staging(staging: Path, destination: Path) -> None:
@@ -1031,6 +1240,752 @@ def _published_training_args(
     return published
 
 
+def _seal_training_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    payload = dict(manifest)
+    payload.pop("manifest_digest", None)
+    return {**payload, "manifest_digest": digest_json(payload)}
+
+
+def _validate_training_manifest_seal(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    normalized = dict(manifest)
+    recorded = normalized.pop("manifest_digest", None)
+    if recorded != digest_json(normalized):
+        raise ValueError("Training manifest digest mismatch")
+    return {**normalized, "manifest_digest": recorded}
+
+
+def _read_json_object(path: Path, *, label: str) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"Could not read {label} {path}: {error}") from error
+    if not isinstance(value, dict):
+        raise ValueError(f"{label} must be a JSON object: {path}")
+    return value
+
+
+def _checkpoint_content_identity(checkpoint_dir: Path) -> dict[str, Any]:
+    """Hash every published payload file except the self-sealed manifest."""
+
+    checkpoint_dir = checkpoint_dir.resolve()
+    files: list[dict[str, Any]] = []
+    for path in sorted(checkpoint_dir.rglob("*")):
+        if path.is_symlink():
+            raise RuntimeError(f"Checkpoint payload contains a symlink: {path}")
+        if not path.is_file():
+            continue
+        relative = path.relative_to(checkpoint_dir).as_posix()
+        if relative == TRAINING_MANIFEST_FILENAME:
+            continue
+        files.append(
+            {
+                "path": relative,
+                "bytes": path.stat().st_size,
+                "sha256": _sha256_file(path),
+            }
+        )
+    if not files:
+        raise RuntimeError("Checkpoint payload contains no identity-bearing files")
+    payload = {
+        "schema_version": 1,
+        "scope": f"all regular files except {TRAINING_MANIFEST_FILENAME}",
+        "files": files,
+    }
+    return {**payload, "content_digest": digest_json(payload)}
+
+
+def _validate_checkpoint_content_identity(
+    checkpoint_dir: Path,
+    recorded: Mapping[str, Any],
+) -> dict[str, Any]:
+    actual = _checkpoint_content_identity(checkpoint_dir)
+    if dict(recorded) != actual:
+        raise RuntimeError("Published checkpoint content identity mismatch")
+    return actual
+
+
+def _validate_durable_checkpoint_files(checkpoint_dir: Path) -> None:
+    assert_weights_only_artifact(checkpoint_dir, require_complete=True)
+    missing = sorted(
+        name
+        for name in _DURABLE_ARTIFACT_REQUIRED_FILES
+        if not (checkpoint_dir / name).is_file()
+    )
+    if missing:
+        raise RuntimeError(
+            f"Published checkpoint is missing durable metadata: {missing}"
+        )
+
+
+def _validate_wandb_link(checkpoint_dir: Path, *, expected_url: str) -> None:
+    validate_wandb_url(expected_url, project=DEFAULT_WANDB_PROJECT)
+    path = checkpoint_dir / "wandb_run.url"
+    try:
+        value = path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise ValueError(
+            f"Could not read W&B checkpoint link {path}: {error}"
+        ) from error
+    if value != f"[InternetShortcut]\nURL={expected_url}\n":
+        raise ValueError("Published checkpoint W&B link changed")
+
+
+def _positive_int(value: Any, *, label: str) -> int:
+    if type(value) is not int or value <= 0:
+        raise RuntimeError(f"{label} must be a positive integer")
+    return value
+
+
+def _checkpoint_expected_identities(
+    checkpoint_dir: Path,
+    manifest: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+    """Read architecture and tokenizer identities only from durable payload data."""
+
+    arm_id = manifest.get("arm_id")
+    architecture = manifest.get("architecture")
+    if not isinstance(arm_id, str) or arm_id not in ARM_SPECS:
+        raise RuntimeError("Checkpoint manifest has an unknown scratch arm")
+    if not isinstance(architecture, Mapping):
+        raise RuntimeError("Checkpoint manifest has no architecture identity")
+    spec = ARM_SPECS[arm_id]
+    exact_parameters = _positive_int(
+        architecture.get("exact_trainable_parameters"),
+        label="Architecture exact_trainable_parameters",
+    )
+    vocab_size = _positive_int(
+        architecture.get("vocab_size"),
+        label="Architecture vocab_size",
+    )
+    budget_value = _positive_int(
+        architecture.get("budget_dimension_value"),
+        label="Architecture budget_dimension_value",
+    )
+    expected_architecture = {
+        "family": spec.family,
+        "exact_trainable_parameters": exact_parameters,
+        "vocab_size": vocab_size,
+        "budget_dimension": spec.budget_dimension,
+        "budget_dimension_value": budget_value,
+    }
+    if (
+        architecture.get("arm_id") != arm_id
+        or architecture.get("family") != expected_architecture["family"]
+        or architecture.get("budget_dimension")
+        != expected_architecture["budget_dimension"]
+        or manifest.get("exact_trainable_parameters") != exact_parameters
+    ):
+        raise RuntimeError("Checkpoint architecture identity is inconsistent")
+
+    tokenizer_manifest = _read_json_object(
+        checkpoint_dir / TOKENIZER_MANIFEST_FILENAME,
+        label="tokenizer manifest",
+    )
+    tokenizer_digest = tokenizer_manifest.get("artifact_digest")
+    digest_payload = dict(tokenizer_manifest)
+    digest_payload.pop("artifact_digest", None)
+    digest_payload.pop("hub", None)
+    if (
+        not isinstance(tokenizer_digest, str)
+        or tokenizer_digest != digest_json(digest_payload)
+        or manifest.get("tokenizer_digest") != tokenizer_digest
+    ):
+        raise RuntimeError("Checkpoint tokenizer artifact digest is inconsistent")
+    tokenizer_identity = tokenizer_manifest.get("tokenizer")
+    if not isinstance(tokenizer_identity, Mapping):
+        raise RuntimeError("Checkpoint tokenizer manifest has no tokenizer identity")
+    if tokenizer_identity.get("total_vocab_size") != vocab_size:
+        raise RuntimeError("Checkpoint tokenizer vocabulary identity is inconsistent")
+    files = tokenizer_identity.get("files")
+    if not isinstance(files, Mapping) or set(files) != set(TOKENIZER_FILENAMES):
+        raise RuntimeError("Checkpoint tokenizer file identity is incomplete")
+    for name in TOKENIZER_FILENAMES:
+        identity = files[name]
+        path = checkpoint_dir / name
+        if (
+            not isinstance(identity, Mapping)
+            or type(identity.get("bytes")) is not int
+            or identity["bytes"] < 0
+            or not isinstance(identity.get("sha256"), str)
+            or path.stat().st_size != identity["bytes"]
+            or _sha256_file(path) != identity["sha256"]
+        ):
+            raise RuntimeError(f"Checkpoint tokenizer file identity changed: {name}")
+
+    special_rows = tokenizer_identity.get("special_tokens")
+    if not isinstance(special_rows, list):
+        raise RuntimeError("Checkpoint tokenizer special-token identity is missing")
+    expected_contents = dict(FIXED_SPECIAL_TOKENS)
+    special_tokens: dict[str, dict[str, Any]] = {}
+    for row in special_rows:
+        if not isinstance(row, Mapping):
+            raise RuntimeError("Checkpoint tokenizer special-token row is malformed")
+        role = row.get("role")
+        content = row.get("content")
+        token_id = row.get("id")
+        if (
+            not isinstance(role, str)
+            or role in special_tokens
+            or expected_contents.get(role) != content
+            or type(token_id) is not int
+            or token_id < 0
+            or token_id >= vocab_size
+        ):
+            raise RuntimeError("Checkpoint tokenizer special-token identity changed")
+        special_tokens[role] = {"content": content, "id": token_id}
+    if set(special_tokens) != set(expected_contents):
+        raise RuntimeError("Checkpoint tokenizer special-token identity is incomplete")
+    return expected_architecture, special_tokens
+
+
+def _reload_published_checkpoint(
+    checkpoint_dir: Path,
+    *,
+    expected_architecture: Mapping[str, Any],
+    expected_special_tokens: Mapping[str, Mapping[str, Any]],
+    auto_model_class: Any | None = None,
+    tokenizer_class: Any | None = None,
+) -> dict[str, Any]:
+    """Reload the local checkpoint and verify its model/tokenizer identities."""
+
+    if auto_model_class is None or tokenizer_class is None:
+        from transformers import AutoModelForCausalLM, PreTrainedTokenizerFast
+
+        auto_model_class = auto_model_class or AutoModelForCausalLM
+        tokenizer_class = tokenizer_class or PreTrainedTokenizerFast
+
+    model = None
+    tokenizer = None
+    try:
+        model = auto_model_class.from_pretrained(
+            str(checkpoint_dir),
+            local_files_only=True,
+        )
+        tokenizer = tokenizer_class.from_pretrained(
+            str(checkpoint_dir),
+            local_files_only=True,
+        )
+        model_config = model.config
+        expected_config = {
+            "model_type": expected_architecture["family"],
+            "vocab_size": expected_architecture["vocab_size"],
+            expected_architecture["budget_dimension"]: expected_architecture[
+                "budget_dimension_value"
+            ],
+        }
+        for field, expected in expected_config.items():
+            if getattr(model_config, field, None) != expected:
+                raise RuntimeError(
+                    f"Reloaded checkpoint changed model config field {field!r}"
+                )
+        parameter_count = exact_model_parameter_count(model)
+        if parameter_count != expected_architecture["exact_trainable_parameters"]:
+            raise RuntimeError(
+                "Reloaded checkpoint changed the trainable parameter count: "
+                f"actual={parameter_count}, "
+                f"expected={expected_architecture['exact_trainable_parameters']}"
+            )
+        tokenizer_size = len(tokenizer)
+        if tokenizer_size != expected_architecture["vocab_size"]:
+            raise RuntimeError(
+                "Reloaded checkpoint changed tokenizer vocabulary size: "
+                f"actual={tokenizer_size}, "
+                f"expected={expected_architecture['vocab_size']}"
+            )
+        config_special_roles = frozenset({"bos_token", "eos_token", "pad_token"})
+        actual_specials: dict[str, int] = {}
+        actual_special_contents: dict[str, str] = {}
+        actual_special_identities: dict[str, dict[str, Any]] = {}
+        for role, identity in expected_special_tokens.items():
+            attribute = f"{role}_id"
+            expected_id = identity["id"]
+            expected_content = identity["content"]
+            actual_id = getattr(tokenizer, attribute, None)
+            actual_content = getattr(tokenizer, role, None)
+            if (
+                actual_id != expected_id
+                or actual_content != expected_content
+                or (
+                    role in config_special_roles
+                    and getattr(model_config, attribute, None) != expected_id
+                )
+            ):
+                raise RuntimeError(f"Reloaded checkpoint changed the {role} identity")
+            actual_special_identities[role] = {
+                "content": actual_content,
+                "id": actual_id,
+            }
+            if role in config_special_roles:
+                actual_specials[role] = actual_id
+                actual_special_contents[role] = actual_content
+        return {
+            "local_files_only": True,
+            "model": {
+                "family": expected_architecture["family"],
+                "exact_trainable_parameters": parameter_count,
+                "vocab_size": int(model_config.vocab_size),
+                "budget_dimension": expected_architecture["budget_dimension"],
+                "budget_dimension_value": int(
+                    getattr(model_config, expected_architecture["budget_dimension"])
+                ),
+            },
+            "tokenizer": {
+                "total_vocab_size": tokenizer_size,
+                "special_token_ids": actual_specials,
+                "special_token_contents": actual_special_contents,
+                "special_token_identities": actual_special_identities,
+            },
+        }
+    finally:
+        del tokenizer
+        del model
+
+
+def _write_json_atomic(path: Path, value: Mapping[str, Any]) -> None:
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        dir=path.parent,
+    )
+    os.close(descriptor)
+    temporary = Path(temporary_name)
+    try:
+        _write_json(temporary, value)
+        os.replace(temporary, path)
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
+
+
+def _write_completed_training_manifest(
+    checkpoint_dir: Path,
+    manifest: Mapping[str, Any],
+    *,
+    completion_lock: _CheckpointCompletionLock,
+) -> None:
+    """Compare-and-replace pending state while holding the checkpoint lock."""
+
+    checkpoint_dir = checkpoint_dir.resolve()
+    if not completion_lock.held or completion_lock.checkpoint_dir != checkpoint_dir:
+        raise RuntimeError("Completed manifest write requires its held checkpoint lock")
+    complete = _validate_training_manifest_seal(manifest)
+    if complete.get("status") != "complete":
+        raise RuntimeError("Final manifest write requires complete status")
+    verification = complete.get("durability_verification")
+    expected_pending_digest = (
+        verification.get("pending_manifest_digest")
+        if isinstance(verification, Mapping)
+        else None
+    )
+    pending = _validate_training_manifest_seal(
+        _read_json_object(
+            checkpoint_dir / TRAINING_MANIFEST_FILENAME,
+            label="pending training manifest",
+        )
+    )
+    if (
+        pending.get("status") != _PENDING_DURABILITY_STATUS
+        or pending.get("manifest_digest") != expected_pending_digest
+    ):
+        raise RuntimeError(
+            "Checkpoint completion state changed; refusing to overwrite its manifest"
+        )
+    _write_json_atomic(checkpoint_dir / TRAINING_MANIFEST_FILENAME, complete)
+
+
+def _runtime_seconds(value: Any, *, label: str) -> float:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(float(value))
+        or float(value) < 0
+    ):
+        raise RuntimeError(f"{label} must be finite non-negative seconds")
+    return float(value)
+
+
+def _validate_completion_runtime_provenance(
+    manifest: Mapping[str, Any],
+    *,
+    completion_path: str,
+) -> None:
+    environment = manifest.get("execution_environment")
+    if not isinstance(environment, Mapping):
+        raise RuntimeError("Completed checkpoint has no runtime provenance")
+    elapsed = _runtime_seconds(
+        environment.get("full_invocation_elapsed_seconds"),
+        label="full_invocation_elapsed_seconds",
+    )
+    censoring = environment.get("full_invocation_runtime_censoring")
+    if completion_path == "training":
+        if (
+            environment.get("full_invocation_runtime_scope") != _NORMAL_RUNTIME_SCOPE
+            or censoring is not None
+        ):
+            raise RuntimeError("Normal completion runtime must be exact")
+        return
+    if (
+        environment.get("full_invocation_runtime_scope") != _RECOVERY_RUNTIME_SCOPE
+        or not isinstance(censoring, Mapping)
+        or censoring.get("status") != "right-censored-lower-bound"
+        or censoring.get("omitted_interval_seconds") is not None
+        or censoring.get("omitted_interval_scope") != _RECOVERY_OMITTED_INTERVAL_SCOPE
+        or censoring.get("omitted_interval_reason") != _RECOVERY_OMITTED_INTERVAL_REASON
+    ):
+        raise RuntimeError("Recovery runtime censoring provenance is incomplete")
+    original = _runtime_seconds(
+        censoring.get("known_original_lower_bound_seconds"),
+        label="known_original_lower_bound_seconds",
+    )
+    recovery = _runtime_seconds(
+        censoring.get("recovery_elapsed_seconds"),
+        label="recovery_elapsed_seconds",
+    )
+    combined = _runtime_seconds(
+        censoring.get("combined_lower_bound_seconds"),
+        label="combined_lower_bound_seconds",
+    )
+    if not (
+        math.isclose(combined, original + recovery, rel_tol=0, abs_tol=1e-9)
+        and math.isclose(elapsed, combined, rel_tol=0, abs_tol=1e-9)
+    ):
+        raise RuntimeError("Recovery runtime lower bound is inconsistent")
+
+
+def _validate_completed_training_manifest(
+    checkpoint_dir: Path,
+    manifest: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Validate a completion candidate without requiring it to be on disk."""
+
+    checkpoint_dir = checkpoint_dir.resolve()
+    _validate_durable_checkpoint_files(checkpoint_dir)
+    manifest = _validate_training_manifest_seal(manifest)
+    if manifest.get("status") != "complete":
+        raise RuntimeError("Published checkpoint has not passed durable verification")
+    durability_contract = manifest.get("durability_contract")
+    if not isinstance(durability_contract, Mapping):
+        raise RuntimeError("Completed checkpoint has no durable output-root contract")
+    recorded_root = durability_contract.get("declared_output_root")
+    if not isinstance(recorded_root, str) or durability_contract != (
+        _durable_output_contract(checkpoint_dir, Path(recorded_root))
+    ):
+        raise RuntimeError("Completed checkpoint changed its durable output root")
+    identity = manifest.get("checkpoint_identity")
+    if not isinstance(identity, Mapping):
+        raise RuntimeError("Completed checkpoint has no content identity")
+    _validate_checkpoint_content_identity(checkpoint_dir, identity)
+    wandb = manifest.get("wandb")
+    if (
+        not isinstance(wandb, Mapping)
+        or wandb.get("entity") != PERSONAL_WANDB_ENTITY
+        or wandb.get("project") != DEFAULT_WANDB_PROJECT
+        or not isinstance(wandb.get("url"), str)
+    ):
+        raise RuntimeError("Completed checkpoint has no W&B run identity")
+    _validate_wandb_link(checkpoint_dir, expected_url=wandb["url"])
+    verification = manifest.get("durability_verification")
+    if not isinstance(verification, Mapping):
+        raise RuntimeError("Completed checkpoint has no durability receipt")
+    reload_receipt = verification.get("reload")
+    if not isinstance(reload_receipt, Mapping):
+        raise RuntimeError("Completed checkpoint has no reload receipt")
+    model_receipt = reload_receipt.get("model")
+    tokenizer_receipt = reload_receipt.get("tokenizer")
+    if not isinstance(model_receipt, Mapping) or not isinstance(
+        tokenizer_receipt, Mapping
+    ):
+        raise RuntimeError("Completed checkpoint reload receipt is incomplete")
+    expected_architecture, expected_special_tokens = _checkpoint_expected_identities(
+        checkpoint_dir, manifest
+    )
+    model_special_roles = {"bos_token", "eos_token", "pad_token"}
+    expected_special_ids = {
+        role: identity["id"]
+        for role, identity in expected_special_tokens.items()
+        if role in model_special_roles
+    }
+    expected_special_contents = {
+        role: identity["content"]
+        for role, identity in expected_special_tokens.items()
+        if role in model_special_roles
+    }
+    completion_path = verification.get("completion_path")
+    completed_at = manifest.get("completed_at_utc")
+    wandb_finalization = verification.get("wandb_finalization")
+    if completion_path == "training":
+        expected_wandb_finalization = {
+            "summary_write_performed": True,
+            "finish_performed": True,
+            "completed_before_manifest_transition": True,
+        }
+    else:
+        expected_wandb_finalization = {
+            "summary_write_performed": False,
+            "finish_performed": False,
+            "reason": _RECOVERY_WANDB_REASON,
+        }
+    if (
+        verification.get("status") != "verified"
+        or verification.get("method") != "post-atomic-publish-local-reload"
+        or completion_path not in {"training", "recovery"}
+        or not isinstance(verification.get("pending_manifest_digest"), str)
+        or not isinstance(completed_at, str)
+        or not completed_at.strip()
+        or wandb_finalization != expected_wandb_finalization
+        or verification.get("published_outside_transient_staging") is not True
+        or verification.get("declared_output_root") != recorded_root
+        or verification.get("artifact_relative_path")
+        != durability_contract.get("artifact_relative_path")
+        or verification.get("content_digest") != identity.get("content_digest")
+        or reload_receipt.get("local_files_only") is not True
+        or dict(model_receipt) != expected_architecture
+        or tokenizer_receipt.get("total_vocab_size")
+        != expected_architecture["vocab_size"]
+        or tokenizer_receipt.get("special_token_ids") != expected_special_ids
+        or tokenizer_receipt.get("special_token_contents") != expected_special_contents
+        or tokenizer_receipt.get("special_token_identities") != expected_special_tokens
+    ):
+        raise RuntimeError("Completed checkpoint durability receipt is inconsistent")
+    _validate_completion_runtime_provenance(
+        manifest,
+        completion_path=completion_path,
+    )
+    return manifest
+
+
+def _validate_completed_training_artifact(checkpoint_dir: Path) -> dict[str, Any]:
+    """Accept only a sealed, content-verified, post-reload checkpoint."""
+
+    checkpoint_dir = checkpoint_dir.resolve()
+    return _validate_completed_training_manifest(
+        checkpoint_dir,
+        _read_json_object(
+            checkpoint_dir / TRAINING_MANIFEST_FILENAME,
+            label="training manifest",
+        ),
+    )
+
+
+def _prepare_training_artifact_completion(
+    checkpoint_dir: Path,
+    *,
+    durable_output_root: Path,
+    completion_path: str,
+    transient_staging: Path | None = None,
+    pending_manifest: Mapping[str, Any] | None = None,
+    completion_check: Callable[[], None] | None = None,
+    auto_model_class: Any | None = None,
+    tokenizer_class: Any | None = None,
+) -> dict[str, Any]:
+    """Verify a pending artifact without assigning final time or runtime."""
+
+    checkpoint_dir = checkpoint_dir.resolve()
+    if completion_path not in {"training", "recovery"}:
+        raise ValueError("Unknown durable completion path")
+    if transient_staging is not None:
+        transient_staging = transient_staging.resolve()
+        if checkpoint_dir == transient_staging or transient_staging.exists():
+            raise RuntimeError(
+                "Durable verification must run after staging publication"
+            )
+    if not checkpoint_dir.is_dir():
+        raise FileNotFoundError(f"Published checkpoint is missing: {checkpoint_dir}")
+    durability_contract = _durable_output_contract(
+        checkpoint_dir,
+        durable_output_root,
+    )
+    recorded = _validate_training_manifest_seal(
+        _read_json_object(
+            checkpoint_dir / TRAINING_MANIFEST_FILENAME,
+            label="pending training manifest",
+        )
+    )
+    if pending_manifest is not None and recorded != dict(pending_manifest):
+        raise RuntimeError("Published checkpoint manifest changed during publication")
+    if recorded.get("status") != _PENDING_DURABILITY_STATUS:
+        raise RuntimeError("Checkpoint was marked complete before durable verification")
+    if recorded.get("durability_contract") != durability_contract:
+        raise RuntimeError(
+            "Published checkpoint changed its durable output-root contract"
+        )
+    _validate_durable_checkpoint_files(checkpoint_dir)
+    identity = recorded.get("checkpoint_identity")
+    if not isinstance(identity, Mapping):
+        raise RuntimeError("Pending checkpoint has no content identity")
+    _validate_checkpoint_content_identity(checkpoint_dir, identity)
+    wandb = recorded.get("wandb")
+    if (
+        not isinstance(wandb, Mapping)
+        or wandb.get("entity") != PERSONAL_WANDB_ENTITY
+        or wandb.get("project") != DEFAULT_WANDB_PROJECT
+        or not isinstance(wandb.get("url"), str)
+    ):
+        raise RuntimeError("Pending checkpoint has no W&B run identity")
+    _validate_wandb_link(checkpoint_dir, expected_url=wandb["url"])
+    expected_architecture, expected_special_tokens = _checkpoint_expected_identities(
+        checkpoint_dir, recorded
+    )
+    reload_receipt = _reload_published_checkpoint(
+        checkpoint_dir,
+        expected_architecture=expected_architecture,
+        expected_special_tokens=expected_special_tokens,
+        auto_model_class=auto_model_class,
+        tokenizer_class=tokenizer_class,
+    )
+    if completion_check is not None:
+        completion_check()
+
+    prepared = dict(recorded)
+    prepared.pop("manifest_digest", None)
+    prepared["durability_verification"] = {
+        "status": "verified",
+        "method": "post-atomic-publish-local-reload",
+        "completion_path": completion_path,
+        "pending_manifest_digest": recorded["manifest_digest"],
+        "published_outside_transient_staging": True,
+        "declared_output_root": durability_contract["declared_output_root"],
+        "artifact_relative_path": durability_contract["artifact_relative_path"],
+        "content_digest": identity["content_digest"],
+        "verified_at_utc": datetime.now(UTC).isoformat(),
+        "reload": reload_receipt,
+        "wandb_finalization": (
+            {
+                "summary_write_performed": True,
+                "finish_performed": True,
+                "completed_before_manifest_transition": True,
+            }
+            if completion_path == "training"
+            else {
+                "summary_write_performed": False,
+                "finish_performed": False,
+                "reason": _RECOVERY_WANDB_REASON,
+            }
+        ),
+    }
+    return prepared
+
+
+def _finalize_training_artifact_completion(
+    checkpoint_dir: Path,
+    prepared: Mapping[str, Any],
+    *,
+    completed_at_utc: str,
+    runtime_provenance: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Assign final-transition provenance and seal the completed manifest."""
+
+    if prepared.get("status") != _PENDING_DURABILITY_STATUS:
+        raise RuntimeError("Completion finalization requires pending prepared state")
+    complete = dict(prepared)
+    complete.pop("manifest_digest", None)
+    complete["status"] = "complete"
+    complete["completed_at_utc"] = completed_at_utc
+    environment = dict(complete.get("execution_environment", {}))
+    environment.pop("full_invocation_runtime_censoring", None)
+    complete["execution_environment"] = {
+        **environment,
+        **dict(runtime_provenance),
+    }
+    complete = _seal_training_manifest(complete)
+    return _validate_completed_training_manifest(checkpoint_dir, complete)
+
+
+def _normal_runtime_provenance(elapsed_seconds: float) -> dict[str, Any]:
+    return {
+        "full_invocation_elapsed_seconds": _runtime_seconds(
+            elapsed_seconds,
+            label="full_invocation_elapsed_seconds",
+        ),
+        "full_invocation_runtime_scope": _NORMAL_RUNTIME_SCOPE,
+    }
+
+
+def _recovery_runtime_provenance(
+    prepared: Mapping[str, Any],
+    *,
+    recovery_elapsed_seconds: float,
+) -> dict[str, Any]:
+    environment = prepared.get("execution_environment")
+    wall_clock = (
+        environment.get("wall_clock_hard_stop")
+        if isinstance(environment, Mapping)
+        else None
+    )
+    if not isinstance(wall_clock, Mapping):
+        raise RuntimeError("Pending checkpoint has no original runtime lower bound")
+    original = _runtime_seconds(
+        wall_clock.get("elapsed_before_artifact_write_seconds"),
+        label="elapsed_before_artifact_write_seconds",
+    )
+    recovery = _runtime_seconds(
+        recovery_elapsed_seconds,
+        label="recovery_elapsed_seconds",
+    )
+    combined = original + recovery
+    return {
+        "full_invocation_elapsed_seconds": combined,
+        "full_invocation_runtime_scope": _RECOVERY_RUNTIME_SCOPE,
+        "full_invocation_runtime_censoring": {
+            "status": "right-censored-lower-bound",
+            "known_original_lower_bound_seconds": original,
+            "recovery_elapsed_seconds": recovery,
+            "combined_lower_bound_seconds": combined,
+            "omitted_interval_seconds": None,
+            "omitted_interval_scope": _RECOVERY_OMITTED_INTERVAL_SCOPE,
+            "omitted_interval_reason": _RECOVERY_OMITTED_INTERVAL_REASON,
+        },
+    }
+
+
+def recover_pending_training_artifact(
+    checkpoint_dir: Path,
+    durable_output_root: Path,
+    *,
+    auto_model_class: Any | None = None,
+    tokenizer_class: Any | None = None,
+    monotonic_clock: Callable[[], float] | None = None,
+    utc_now: Callable[[], datetime] | None = None,
+) -> dict[str, Any]:
+    """Complete a sealed pending checkpoint without training or remote writes."""
+
+    monotonic_clock = time.monotonic if monotonic_clock is None else monotonic_clock
+    utc_now = (lambda: datetime.now(UTC)) if utc_now is None else utc_now
+    recovery_started = monotonic_clock()
+    checkpoint_dir = checkpoint_dir.resolve()
+    completion_lock = _acquire_checkpoint_completion_lock(checkpoint_dir)
+    try:
+        prepared = _prepare_training_artifact_completion(
+            checkpoint_dir,
+            durable_output_root=durable_output_root,
+            completion_path="recovery",
+            auto_model_class=auto_model_class,
+            tokenizer_class=tokenizer_class,
+        )
+        recovery_elapsed = monotonic_clock() - recovery_started
+        completed_at = utc_now()
+        if completed_at.tzinfo is None:
+            raise RuntimeError("Recovery completion timestamp must be timezone-aware")
+        complete = _finalize_training_artifact_completion(
+            checkpoint_dir,
+            prepared,
+            completed_at_utc=completed_at.astimezone(UTC).isoformat(),
+            runtime_provenance=_recovery_runtime_provenance(
+                prepared,
+                recovery_elapsed_seconds=recovery_elapsed,
+            ),
+        )
+        # The compare-and-replace status transition is the final artifact mutation.
+        _write_completed_training_manifest(
+            checkpoint_dir,
+            complete,
+            completion_lock=completion_lock,
+        )
+        return complete
+    finally:
+        _release_checkpoint_completion_lock(completion_lock)
+
+
 def _run_cuda_training(
     *,
     config: ScratchRunConfig,
@@ -1062,6 +2017,8 @@ def _run_cuda_training(
     active_ignored_paths = (*ignored_source_paths, staging)
     run = None
     sampler = None
+    staging_published = False
+    completion_lock = None
     try:
         if source_code.get("dirty"):
             raise RuntimeError("Actual scratch training requires a clean source tree")
@@ -1195,7 +2152,7 @@ def _run_cuda_training(
             resolved=resolved,
             initialization=initialization,
             source_code=source_code,
-            status="complete",
+            status=_PENDING_DURABILITY_STATUS,
             started_at_utc=started_at_utc,
             wandb_url=wandb_url,
             trainer_state=state,
@@ -1222,17 +2179,29 @@ def _run_cuda_training(
         )
         _write_wandb_link(staging / "wandb_run.url", wandb_url)
         _remove_intermediate_checkpoints(staging)
-        manifest["execution_environment"]["full_invocation_elapsed_seconds"] = (
-            deadline.elapsed_seconds()
-        )
-        manifest["execution_environment"]["full_invocation_runtime_scope"] = (
-            "run_training entry through model/tokenizer/config/trainer artifact writes; "
-            "excludes only manifest serialization, W&B summary finalization, and atomic rename"
-        )
-        manifest["completed_at_utc"] = datetime.now(UTC).isoformat()
-        _write_json(staging / "training_manifest.json", manifest)
+        manifest["checkpoint_identity"] = _checkpoint_content_identity(staging)
+        manifest = _seal_training_manifest(manifest)
+        _write_json(staging / TRAINING_MANIFEST_FILENAME, manifest)
         assert_weights_only_artifact(staging, require_complete=True)
         deadline.check("after_final_artifact_write")
+        _require_unchanged_source(
+            Path(__file__).resolve().parents[1],
+            source_code,
+            ignored_paths=active_ignored_paths,
+        )
+        deadline.check("before_atomic_publish")
+        completion_lock = _acquire_checkpoint_completion_lock(destination)
+        _publish_training_staging(staging, destination)
+        staging_published = True
+        assert config.durable_output_root is not None
+        manifest = _prepare_training_artifact_completion(
+            destination,
+            transient_staging=staging,
+            durable_output_root=config.durable_output_root,
+            completion_path="training",
+            pending_manifest=manifest,
+            completion_check=lambda: deadline.check("after_durable_checkpoint_reload"),
+        )
         _require_unchanged_source(
             Path(__file__).resolve().parents[1],
             source_code,
@@ -1241,6 +2210,10 @@ def _run_cuda_training(
         run.summary.update(
             {
                 "artifact_path": str(destination),
+                "artifact_content_digest": manifest["checkpoint_identity"][
+                    "content_digest"
+                ],
+                "durability_verified": True,
                 "arm_id": config.arm_id,
                 "phase": config.phase,
                 "exact_trainable_parameters": resolved.exact_trainable_parameters,
@@ -1268,9 +2241,21 @@ def _run_cuda_training(
         )
         run.finish()
         run = None
-        deadline.check("before_atomic_publish")
-        _publish_training_staging(staging, destination)
-        assert_weights_only_artifact(destination, require_complete=True)
+        deadline.check("before_durable_completion_transition")
+        manifest = _finalize_training_artifact_completion(
+            destination,
+            manifest,
+            completed_at_utc=datetime.now(UTC).isoformat(),
+            runtime_provenance=_normal_runtime_provenance(deadline.elapsed_seconds()),
+        )
+        # Every failure-capable validation and external mutation is complete.
+        # The on-disk status transition is the final artifact mutation.
+        assert completion_lock is not None
+        _write_completed_training_manifest(
+            destination,
+            manifest,
+            completion_lock=completion_lock,
+        )
         return manifest
     finally:
         active_error = sys.exc_info()[1]
@@ -1286,7 +2271,12 @@ def _run_cuda_training(
                 if run is not None:
                     run.finish()
             finally:
-                _cleanup_training_staging(staging, destination)
+                try:
+                    if not staging_published:
+                        _cleanup_training_staging(staging, destination)
+                finally:
+                    if completion_lock is not None:
+                        _release_checkpoint_completion_lock(completion_lock)
 
 
 def run_training(config: ScratchRunConfig) -> dict[str, Any]:
@@ -1368,6 +2358,14 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     subparsers = parser.add_subparsers(dest="mode", required=True)
     train = subparsers.add_parser("train")
     train.add_argument("--output-dir", type=Path, required=True)
+    train.add_argument(
+        "--durable-output-root",
+        type=Path,
+        help=(
+            "Existing non-temporary root that must contain --output-dir; "
+            "required for actual runs"
+        ),
+    )
     train.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)
     train.add_argument("--tokenizer-dir", type=Path, default=DEFAULT_TOKENIZER_DIR)
     train.add_argument(
@@ -1393,6 +2391,13 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     select.add_argument("--arm-id", choices=tuple(ARM_SPECS), required=True)
     select.add_argument("--pilot-manifest", type=Path, action="append", required=True)
     select.add_argument("--output", type=Path, required=True)
+
+    recover = subparsers.add_parser(
+        "recover",
+        help="Locally verify and complete a sealed pending durable checkpoint",
+    )
+    recover.add_argument("--checkpoint-dir", type=Path, required=True)
+    recover.add_argument("--durable-output-root", type=Path, required=True)
     return parser.parse_args(argv)
 
 
@@ -1404,10 +2409,16 @@ def main(argv: Sequence[str] | None = None) -> None:
             arguments.pilot_manifest,
             arguments.output,
         )
+    elif arguments.mode == "recover":
+        result = recover_pending_training_artifact(
+            arguments.checkpoint_dir,
+            arguments.durable_output_root,
+        )
     else:
         result = run_training(
             ScratchRunConfig(
                 output_dir=arguments.output_dir,
+                durable_output_root=arguments.durable_output_root,
                 corpus_dir=arguments.corpus_dir,
                 tokenizer_dir=arguments.tokenizer_dir,
                 reference_corpus_dirs=tuple(
