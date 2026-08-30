@@ -149,6 +149,52 @@ def skeleton(program: Sequence[str]) -> str:
     return " ".join("_" if op in INTERCHANGEABLE else op for op in program)
 
 
+def independent_groups(
+    catalogue: Sequence[Behaviour] = (),
+) -> dict[str, list[str]]:
+    """Behaviours grouped so that no group can be split without leaking.
+
+    Two behaviours belong together when they share a component idea -- when one
+    is `a_then_b` and the other is `a_then_c`, learning the first hands over
+    half of the second. A split may move a whole group but never divide one.
+
+    This exists because the skeleton count alone is gameable. Cross-producting
+    twelve predicates against twelve maps yields 144 genuinely distinct
+    skeletons from 24 ideas, every one of which passes `skeleton`, and the
+    result cannot be split at all: the compositions chain into a single group
+    holding half the catalogue. Report the group profile beside the skeleton
+    count, or the count will be believed.
+    """
+    catalogue = catalogue or CATALOGUE
+    parent = {b.name: b.name for b in catalogue}
+
+    def find(node: str) -> str:
+        while parent[node] != node:
+            parent[node] = parent[parent[node]]
+            node = parent[node]
+        return node
+
+    shared: dict[str, list[str]] = {}
+    for behaviour in catalogue:
+        components = (
+            behaviour.name.split("_then_")
+            if "_then_" in behaviour.name
+            else [behaviour.name]
+        )
+        for component in components:
+            shared.setdefault(component, []).append(behaviour.name)
+    for names in shared.values():
+        for name in names[1:]:
+            root_a, root_b = find(names[0]), find(name)
+            if root_a != root_b:
+                parent[root_a] = root_b
+
+    groups: dict[str, list[str]] = {}
+    for behaviour in catalogue:
+        groups.setdefault(find(behaviour.name), []).append(behaviour.name)
+    return groups
+
+
 @dataclass(frozen=True)
 class Behaviour:
     """One hand-written problem: what it computes, and programs that do.

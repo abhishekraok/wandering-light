@@ -21,7 +21,7 @@ import statistics
 from collections import Counter
 
 from wandering_light.stack_machine import Lst, Sym, Value, parse_stack
-from wandering_light.stack_pbe import BASIS, CATALOGUE, load
+from wandering_light.stack_pbe import BASIS, CATALOGUE, independent_groups, load
 
 COMBINATORS = {"map", "filter", "fold", "ifte"}
 RUNS_CODE = COMBINATORS | {"i", "dip"}
@@ -154,6 +154,24 @@ def main(argv: list[str] | None = None) -> int:
 
     witnesses = Counter(1 + len(task.alternative_programs) for task in tasks)
     print(f"\nwitnesses per task: {dict(sorted(witnesses.items()))}")
+
+    # Skeleton count alone is gameable: a cross product of predicates against
+    # maps yields one distinct skeleton per pair while carrying only as many
+    # ideas as it has factors, and the compositions chain into a group that
+    # cannot be split at all. Print the group profile next to the count.
+    groups = independent_groups(CATALOGUE)
+    sizes = sorted((len(v) for v in groups.values()), reverse=True)
+    largest = sizes[0] if sizes else 0
+    print(
+        f"\ninseparable groups: {len(groups)} across {len(CATALOGUE)} behaviours; "
+        f"largest holds {largest} ({largest / max(len(CATALOGUE), 1):.1%})"
+    )
+    print(f"  group sizes: {sizes[:8]}{' ...' if len(sizes) > 8 else ''}")
+    if largest > len(CATALOGUE) * 0.2:
+        print(
+            "  WARNING: the largest group exceeds a fifth of the catalogue, so "
+            "no split can hold it out without moving that whole share."
+        )
 
     missing = {b.name for b in CATALOGUE} - {task.behaviour for task in tasks}
     if missing:

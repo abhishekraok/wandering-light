@@ -41,6 +41,7 @@ from wandering_light.stack_pbe import (
     draw_task,
     encode_task,
     generate,
+    independent_groups,
     load,
     run_program,
     skeleton,
@@ -186,6 +187,33 @@ def test_split_is_on_the_skeleton_not_the_behaviour_or_the_task():
         )
     assert all(len(sides) == 1 for sides in by_skeleton.values())
     assert set().union(*by_skeleton.values()) == {"train", "eval"}
+
+
+def test_the_current_catalogue_has_no_large_inseparable_group():
+    """Every behaviour stands alone, so any split is possible."""
+    groups = independent_groups(CATALOGUE)
+    assert len(groups) == len(CATALOGUE)
+    assert max(len(names) for names in groups.values()) == 1
+
+
+def test_composed_behaviours_are_grouped_and_cannot_be_split_apart():
+    """The audit that a cross-product catalogue must fail.
+
+    Twelve predicates crossed with twelve maps give 144 distinct skeletons from
+    24 ideas. Each passes `skeleton`, so the count says the catalogue is large;
+    the groups say it is one blob that no split can hold out.
+    """
+    from dataclasses import replace
+
+    seed = BY_NAME["sum"]
+    grid = [
+        replace(seed, name=f"keep_{p}_then_{m}")
+        for p in ("even", "odd", "positive")
+        for m in ("double", "square", "negate")
+    ]
+    groups = independent_groups(grid)
+    assert len(groups) == 1
+    assert len(next(iter(groups.values()))) == len(grid)
 
 
 def test_skeleton_blanks_literals_and_interchangeable_ops():
