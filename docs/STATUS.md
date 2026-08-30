@@ -50,6 +50,7 @@ holds the argument.
 | **Undirected expansion drains, `wl-core-v1`** | 300 uniform-random walks of length 40 from each of six root types land on **43–56 distinct endpoint states**, with a near-identical endpoint type mix whatever the walk started from. Against a depth-6 ball of 233,585 states, an 80-step walk lands **within 6 of the root 99% of the time, modal true distance 2** — the same distribution a 4-step walk gives. Mechanism: 37 of 118 ops output `int` and 27 output `bool`, and applicable ops span 3 (`bytearray`) to 29 (`str`), so motion runs downhill into low-out-degree scalar types. The modal endpoint `TL<int>([0,0,0,0,0])` has a depth-4 ball of 297 states against the root's 5,559. `experiments/walk_collapse.py`. | [#55](../../issues/55) |
 | **Undirected expansion diffuses, `executable-26`** | The stack machine has the opposite pathology: **300/300 distinct endpoints** at walk length 40 and 80, every walk escapes the depth-5 ball (median first escape step 10–11), endpoint out-degree converges to ~12.9 = `b_eff`. Literals are always legal, giving ~0.36 items/step of stack growth; endpoint depth ~15 at length 40, ~29 at 80. Measured by the `reusing-solved-trajectories` session in a **separate implementation not in this repo**, sanity-checked against #41's pinned 9,503-state depth-5 empty-root ball. Not independently reproduced here. | [#60](../../issues/60) |
 | **What that licenses** | Both substrates defeat *undirected* expansion past the BFS horizon, for opposite reasons — one cannot leave home, the other cannot come home. Both measurements use a uniform-random walk policy, so they bound undirected expansion only. **Neither shows that any directed mechanism reaches further**; that is assumed by the macro-op and learned-policy programmes, not established. | [#55](../../issues/55) |
+| **Execution and inference cost** | The basis function is **~15%** of a charged `basis_function_executions` unit (4.1 us of 27 us); the rest is `search_key()` and search bookkeeping. Policy scoring at beam 64 scales ~linearly on CPU (~80x from 90K to 125M params) and is **flat on CUDA** (8.2-10.3 ms across the same range), so the device crossover sits between **~1M and ~10M parameters** and inference latency does not bound model size on GPU. The published rollout run used `device=cuda` at 90,374 params, on the CPU side of that crossover. Load-sensitive; reproduce with `experiments/inference_cost.py`. | [report](../reports/inference-cost-20260830/README.md), [compute-optimal-policy-size (#80)](../../issues/80) |
 
 ## In flight
 
@@ -154,6 +155,7 @@ correction lands in one place instead of being chased across comment threads.
 
 ## Where things live
 
+- `docs/metrics.md` — how cost and success are measured: units, the AUC solve-cost metric, the Kt bridge, calibration constants
 - `wandering_light/stack_machine.py` — the machine
 - `wandering_light/stack_machine_corpus.py` — PBE corpus generation, certified by BFS depth
 - `docs/stack_machine_explorer.html` — keyboard-driven explorer, self-checks against the Python core
