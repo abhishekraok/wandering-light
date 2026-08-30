@@ -1008,6 +1008,30 @@ def test_two_active_arm_ledger_seals_deferred_arm_and_feasibility(
         )
 
 
+def test_partial_ledger_requires_feasibility_evidence(protocol_lock, selection_locks):
+    with pytest.raises(ValueError, match="require a feasibility artifact digest"):
+        new_test_opening_ledger(
+            opening_id="partial-without-feasibility",
+            protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+            selection_locks=selection_locks[:2],
+            active_arm_ids=ARM_IDS[:2],
+        )
+
+    ledger = new_test_opening_ledger(
+        opening_id="partial-with-feasibility",
+        protocol_lock_sha256=protocol_lock["protocol_lock_sha256"],
+        selection_locks=selection_locks[:2],
+        active_arm_ids=ARM_IDS[:2],
+        feasibility_artifact_digest="sha256:" + "f" * 64,
+    )
+    ledger["feasibility_artifact_digest"] = None
+    ledger["ledger_sha256"] = sha256_json(
+        {key: value for key, value in ledger.items() if key != "ledger_sha256"}
+    )
+    with pytest.raises(ValueError, match="has no feasibility artifact digest"):
+        validate_test_opening_ledger(ledger)
+
+
 def test_atomic_ledger_replace_cannot_add_a_deferred_arm(
     tmp_path, protocol_lock, selection_locks
 ):

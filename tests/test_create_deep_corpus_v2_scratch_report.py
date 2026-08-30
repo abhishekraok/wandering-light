@@ -1002,6 +1002,39 @@ def test_reports_two_active_arms_and_one_deferred_arm(study, monkeypatch):
     assert "Complete solve@64 by certified distance 1-8" in markdown
 
 
+def test_decision_rules_derive_actual_active_scope(study):
+    built, _ = report.build_report(study["inputs"])
+    validation = built["evaluations"]["validation"]
+    test = built["evaluations"]["test"]
+
+    singleton = (ARM_IDS[2],)
+    singleton_decisions = report._decision_rules(
+        validation,
+        test,
+        active_arm_ids=singleton,
+        deferred_arm_ids=ARM_IDS[:2],
+    )
+    statement = singleton_decisions["long_distance_statement"]
+    assert f"The active model ({report.ARM_LABELS[singleton[0]]})" in statement
+    assert "the deferred arms" in statement
+    built["study_scope"] = {"active_arm_ids": list(singleton), "deferred_arm_ids": []}
+    built["decision_rules"] = singleton_decisions
+    markdown = report.build_markdown(built)
+    assert "No smaller active arm was available" in markdown
+    assert "The 360M arm was deferred" not in markdown
+
+    non_prefix = (ARM_IDS[0], ARM_IDS[2])
+    decisions = report._decision_rules(
+        validation,
+        test,
+        active_arm_ids=non_prefix,
+        deferred_arm_ids=(ARM_IDS[1],),
+    )
+    assert (
+        decisions["capacity_data_mismatch_360m_loses_on_test_distance_5_8"] is not None
+    )
+
+
 def test_publishes_sealed_report_to_fixed_personal_wandb_project(
     study, tmp_path, monkeypatch
 ):

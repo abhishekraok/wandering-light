@@ -953,23 +953,34 @@ def _decision_rules(
                 "inconclusive when observed BFS hits do not cover the model solve count"
             ),
         }
+    capacity_arm = "smollm2-360m-scratch"
+    active_smaller_arms = tuple(
+        arm_id for arm_id in ARM_IDS[:-1] if arm_id in test_target
+    )
     capacity_mismatch = None
-    if set(ARM_IDS).issubset(test_target):
-        capacity_mismatch = test_target["smollm2-360m-scratch"]["solve_rate"] < max(
-            test_target["scratch-10m"]["solve_rate"],
-            test_target["opt-125m-scratch"]["solve_rate"],
+    if capacity_arm in test_target and active_smaller_arms:
+        capacity_mismatch = test_target[capacity_arm]["solve_rate"] < max(
+            test_target[arm_id]["solve_rate"] for arm_id in active_smaller_arms
         )
     if all_zero:
-        scope = "All three models" if not deferred else "Both active models"
-        long_distance_statement = (
-            f"{scope} remained 0/12 at every distance from 5 through 8; "
-            "the deferred arm is not evidence for or against the long-distance regime."
-            if deferred
-            else (
+        if deferred:
+            active_labels = ", ".join(ARM_LABELS[arm_id] for arm_id in active)
+            deferred_labels = ", ".join(ARM_LABELS[arm_id] for arm_id in deferred)
+            model_noun = "model" if len(active) == 1 else "models"
+            arm_noun, verb = (
+                ("arm", "provides") if len(deferred) == 1 else ("arms", "provide")
+            )
+            long_distance_statement = (
+                f"The active {model_noun} ({active_labels}) remained 0/12 at every "
+                f"distance from 5 through 8; the deferred {arm_noun} "
+                f"({deferred_labels}) {verb} no evidence for or against the "
+                "long-distance regime."
+            )
+        else:
+            long_distance_statement = (
                 "All three models remained 0/12 at every distance from 5 through 8; "
                 "10x data plus scratch scaling did not solve the long-distance regime."
             )
-        )
     else:
         long_distance_statement = (
             "At least one predeclared model solved a held-out distance-5..8 task; "
@@ -1326,9 +1337,14 @@ def build_markdown(report: Mapping[str, Any]) -> str:
     capacity_mismatch = decisions[
         "capacity_data_mismatch_360m_loses_on_test_distance_5_8"
     ]
-    if capacity_mismatch is None:
+    if capacity_mismatch is None and "smollm2-360m-scratch" in deferred_arm_ids:
         capacity_statement = (
             "The 360M arm was deferred, so this report makes no held-out 360M "
+            "capacity/data comparison."
+        )
+    elif capacity_mismatch is None:
+        capacity_statement = (
+            "No smaller active arm was available for a held-out 360M "
             "capacity/data comparison."
         )
     elif capacity_mismatch:
