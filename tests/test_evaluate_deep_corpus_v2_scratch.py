@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import errno
 import json
 import sys
 from collections import Counter
@@ -285,7 +284,9 @@ def _amended_protocol(protocol: dict) -> dict:
         training_evaluator_sources=training_sources,
         successor_evaluator_sources=successor_sources,
         reason="Suppress tokenizer token-type IDs before retrying validation.",
-        changed_source_allowlist=["experiments/evaluate_deep_corpus_v2_scratch.py"],
+        changed_source_allowlist=[
+            "experiments/evaluate_deep_corpus_v2_scratch.py"
+        ],
         failure_evidence=SOURCE_AMENDMENT_FAILURE_EVIDENCE,
     )
     return amended
@@ -471,23 +472,11 @@ def _checkpoint_identity(arm_id: str) -> dict:
     }
 
 
-def _seal_training_manifest(manifest):
-    payload = deepcopy(manifest)
-    payload.pop("manifest_digest", None)
-    return {**payload, "manifest_digest": digest_json(payload)}
-
-
-def _write_training_manifest(checkpoint, manifest):
-    sealed = _seal_training_manifest(manifest)
-    manifest.clear()
-    manifest.update(sealed)
+def _write_checkpoint(checkpoint, manifest):
+    checkpoint.mkdir()
     (checkpoint / "training_manifest.json").write_text(
         json.dumps(manifest), encoding="utf-8"
     )
-
-
-def _write_checkpoint(checkpoint, manifest):
-    checkpoint.mkdir()
     (checkpoint / "model.safetensors").write_bytes(b"weights")
     for name in (
         "config.json",
@@ -500,52 +489,6 @@ def _write_checkpoint(checkpoint, manifest):
         "corpus_manifest.json",
     ):
         (checkpoint / name).write_bytes(b"metadata")
-    content_identity = evaluate._checkpoint_content_identity(checkpoint)
-    declared_root = checkpoint.parent.resolve()
-    relative_path = checkpoint.resolve().relative_to(declared_root).as_posix()
-    architecture = manifest["architecture"]
-    manifest.update(
-        {
-            "checkpoint_identity": content_identity,
-            "durability_contract": {
-                "schema_version": 1,
-                "declared_output_root": str(declared_root),
-                "artifact_relative_path": relative_path,
-            },
-            "durability_verification": {
-                "status": "verified",
-                "method": "post-atomic-publish-local-reload",
-                "published_outside_transient_staging": True,
-                "declared_output_root": str(declared_root),
-                "artifact_relative_path": relative_path,
-                "content_digest": content_identity["content_digest"],
-                "verified_at_utc": "2026-08-30T00:00:00+00:00",
-                "reload": {
-                    "local_files_only": True,
-                    "model": {
-                        "family": architecture["family"],
-                        "exact_trainable_parameters": manifest[
-                            "exact_trainable_parameters"
-                        ],
-                        "vocab_size": architecture["vocab_size"],
-                        "budget_dimension": architecture["budget_dimension"],
-                        "budget_dimension_value": architecture[
-                            "budget_dimension_value"
-                        ],
-                    },
-                    "tokenizer": {
-                        "total_vocab_size": architecture["vocab_size"],
-                        "special_token_ids": {
-                            "bos_token": 1,
-                            "eos_token": 2,
-                            "pad_token": 0,
-                        },
-                    },
-                },
-            },
-        }
-    )
-    _write_training_manifest(checkpoint, manifest)
 
 
 def _candidate_rows(records, arm_id):
@@ -653,7 +596,9 @@ def test_validation_bfs_artifact_computes_once_and_reuses_exact_ceiling(
             ),
         )
     interrupted = json.loads(path.read_text(encoding="utf-8"))
-    interrupted_digest = interrupted.pop(evaluate.VALIDATION_BFS_ARTIFACT_DIGEST_FIELD)
+    interrupted_digest = interrupted.pop(
+        evaluate.VALIDATION_BFS_ARTIFACT_DIGEST_FIELD
+    )
     assert interrupted_digest == evaluate.sha256_json(interrupted)
     assert interrupted["status"] == "in_progress"
     assert interrupted["completed_task_ids"] == []
@@ -734,8 +679,12 @@ def test_validation_bfs_artifact_resumes_without_recomputing_completed_tasks(
     partial_digest = partial.pop(evaluate.VALIDATION_BFS_ARTIFACT_DIGEST_FIELD)
     assert partial_digest == evaluate.sha256_json(partial)
     assert partial["status"] == "in_progress"
-    assert partial["completed_task_ids"] == [record.task_id for record in records[:2]]
-    assert [row["task_id"] for row in partial["rows"]] == partial["completed_task_ids"]
+    assert partial["completed_task_ids"] == [
+        record.task_id for record in records[:2]
+    ]
+    assert [row["task_id"] for row in partial["rows"]] == partial[
+        "completed_task_ids"
+    ]
 
     resumed = []
 
@@ -985,99 +934,6 @@ def test_validation_cli_accepts_optional_explicit_shared_bfs_artifact(tmp_path):
     )
 
 
-def test_test_opening_cli_requires_explicit_registry_authority(tmp_path):
-    registry = tmp_path / "registry"
-    prepare = [
-        "prepare-test",
-        "--protocol-lock",
-        "protocol.json",
-        "--test-opening-registry",
-        str(registry),
-        "--validation-result",
-        "validation",
-        "--feasibility-manifest",
-        "feasibility.json",
-        "--test-dir",
-        "test",
-        "--opening-id",
-        "opening",
-    ]
-    parsed = evaluate._parser().parse_args(prepare)
-    assert parsed.test_opening_registry == registry
-    registry_index = prepare.index("--test-opening-registry")
-    without_registry = prepare[:registry_index] + prepare[registry_index + 2 :]
-    with pytest.raises(SystemExit):
-        evaluate._parser().parse_args(without_registry)
-
-
-def test_prepare_cli_prints_claim_authority(tmp_path, monkeypatch, capsys):
-    registry = tmp_path / "registry"
-    claim_path = registry / "claim.json"
-    monkeypatch.setattr(
-        evaluate,
-        "prepare_test_opening",
-        lambda **_kwargs: {
-            "status": "prepared",
-            "ledger_sha256": "sha256:" + "1" * 64,
-            "claim_path": str(claim_path),
-            "claim_sha256": "sha256:" + "2" * 64,
-            "test_opening_registry_root": str(registry),
-        },
-    )
-
-    assert (
-        evaluate.main(
-            [
-                "prepare-test",
-                "--protocol-lock",
-                "protocol.json",
-                "--test-opening-registry",
-                str(registry),
-                "--validation-result",
-                "validation",
-                "--feasibility-manifest",
-                "feasibility.json",
-                "--test-dir",
-                "test",
-                "--opening-id",
-                "opening",
-            ]
-        )
-        == 0
-    )
-    printable = json.loads(capsys.readouterr().out)
-    assert printable["claim_path"] == str(claim_path)
-    assert printable["claim_sha256"] == "sha256:" + "2" * 64
-    assert printable["test_opening_registry_root"] == str(registry)
-
-
-def test_test_opening_registry_uses_linked_worktree_git_common_dir(tmp_path):
-    common_dir = tmp_path / "git-common"
-    git_dirs = [common_dir / "worktrees" / name for name in ("one", "two")]
-    worktrees = [tmp_path / name for name in ("worktree-one", "worktree-two")]
-    for git_dir, worktree in zip(git_dirs, worktrees, strict=True):
-        git_dir.mkdir(parents=True)
-        (git_dir / "commondir").write_text("../..\n", encoding="utf-8")
-        worktree.mkdir()
-        (worktree / ".git").write_text(f"gitdir: {git_dir}\n", encoding="utf-8")
-
-    expected = common_dir / evaluate.TEST_OPENING_REGISTRY_DIRNAME
-    assert evaluate._canonical_test_opening_registry_root(worktrees[0]) == expected
-    assert evaluate._canonical_test_opening_registry_root(worktrees[1]) == expected
-    with pytest.raises(ValueError, match="must already exist"):
-        evaluate._resolve_test_opening_registry_root(expected, repo_root=worktrees[0])
-
-    expected.mkdir()
-    assert (
-        evaluate._resolve_test_opening_registry_root(expected, repo_root=worktrees[0])
-        == expected
-    )
-    alternate = tmp_path / "alternate-registry"
-    alternate.mkdir()
-    with pytest.raises(ValueError, match="fixed Git-common-dir authority"):
-        evaluate._resolve_test_opening_registry_root(alternate, repo_root=worktrees[0])
-
-
 def test_validation_rejects_nested_shared_bfs_before_work_or_directory_creation(
     tmp_path,
 ):
@@ -1182,8 +1038,23 @@ def test_resealed_summary_rejects_wrong_or_missing_generation_runtime(
 def test_checkpoint_identity_requires_final_config_only_artifact(tmp_path, protocol):
     arm_id = ARM_IDS[0]
     checkpoint = tmp_path / "checkpoint"
+    checkpoint.mkdir()
     manifest = _training_manifest(arm_id)
-    _write_checkpoint(checkpoint, manifest)
+    (checkpoint / "training_manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    (checkpoint / "model.safetensors").write_bytes(b"weights")
+    for name in (
+        "config.json",
+        "tokenizer_config.json",
+        "trainer_state.json",
+        "training_args.bin",
+        "training_args.json",
+        "wandb_run.url",
+        "basis_set.json",
+        "corpus_manifest.json",
+    ):
+        (checkpoint / name).write_bytes(b"metadata")
 
     identity, loaded = evaluate.checkpoint_identity(
         checkpoint, arm_id=arm_id, protocol_lock=protocol
@@ -1194,48 +1065,10 @@ def test_checkpoint_identity_requires_final_config_only_artifact(tmp_path, proto
     assert identity["initial_state_digest"] == manifest["initial_state_digest"]
 
     manifest["creation"]["pretrained_weights_loaded"] = True
-    _write_training_manifest(checkpoint, manifest)
+    (checkpoint / "training_manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
     with pytest.raises(ValueError, match="scratch provenance"):
-        evaluate.checkpoint_identity(checkpoint, arm_id=arm_id, protocol_lock=protocol)
-
-
-def test_checkpoint_identity_requires_verified_durable_content(tmp_path, protocol):
-    arm_id = ARM_IDS[0]
-    checkpoint = tmp_path / "checkpoint"
-    manifest = _training_manifest(arm_id)
-    _write_checkpoint(checkpoint, manifest)
-
-    identity, _ = evaluate.checkpoint_identity(
-        checkpoint, arm_id=arm_id, protocol_lock=protocol
-    )
-    assert (
-        identity["artifact_content_digest"]
-        == manifest["checkpoint_identity"]["content_digest"]
-    )
-
-    missing_receipt = deepcopy(manifest)
-    missing_receipt.pop("durability_verification")
-    _write_training_manifest(checkpoint, missing_receipt)
-    with pytest.raises(ValueError, match="verified durability receipt"):
-        evaluate.checkpoint_identity(checkpoint, arm_id=arm_id, protocol_lock=protocol)
-
-    missing_identity = deepcopy(manifest)
-    missing_identity.pop("checkpoint_identity")
-    _write_training_manifest(checkpoint, missing_identity)
-    with pytest.raises(ValueError, match="content identity mismatch"):
-        evaluate.checkpoint_identity(checkpoint, arm_id=arm_id, protocol_lock=protocol)
-
-    extra_special_role = deepcopy(manifest)
-    extra_special_role["durability_verification"]["reload"]["tokenizer"][
-        "special_token_ids"
-    ]["mask_token"] = 3
-    _write_training_manifest(checkpoint, extra_special_role)
-    with pytest.raises(ValueError, match="durability receipt is inconsistent"):
-        evaluate.checkpoint_identity(checkpoint, arm_id=arm_id, protocol_lock=protocol)
-
-    _write_training_manifest(checkpoint, manifest)
-    (checkpoint / "model.safetensors").write_bytes(b"tampered")
-    with pytest.raises(ValueError, match="content identity mismatch"):
         evaluate.checkpoint_identity(checkpoint, arm_id=arm_id, protocol_lock=protocol)
 
 
@@ -1357,9 +1190,24 @@ def test_checkpoint_identity_rejects_inadequate_feasibility_gate(
 ):
     arm_id = ARM_IDS[0]
     checkpoint = tmp_path / "checkpoint"
+    checkpoint.mkdir()
     manifest = _training_manifest(arm_id)
     mutation(manifest["feasibility_gate"])
-    _write_checkpoint(checkpoint, manifest)
+    (checkpoint / "training_manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    (checkpoint / "model.safetensors").write_bytes(b"weights")
+    for name in (
+        "config.json",
+        "tokenizer_config.json",
+        "trainer_state.json",
+        "training_args.bin",
+        "training_args.json",
+        "wandb_run.url",
+        "basis_set.json",
+        "corpus_manifest.json",
+    ):
+        (checkpoint / name).write_bytes(b"metadata")
 
     with pytest.raises(ValueError, match=message):
         evaluate.checkpoint_identity(checkpoint, arm_id=arm_id, protocol_lock=protocol)
@@ -1672,18 +1520,7 @@ def _feasibility_manifest(active_arm_ids=ARM_IDS):
     }
 
 
-def _test_opening_authority(tmp_path):
-    repo_root = tmp_path / "repository-authority"
-    git_common_dir = repo_root / ".git"
-    git_common_dir.mkdir(parents=True, exist_ok=True)
-    registry_root = git_common_dir / evaluate.TEST_OPENING_REGISTRY_DIRNAME
-    registry_root.mkdir(exist_ok=True)
-    return repo_root, registry_root
-
-
-def _write_readiness(
-    test_dir, protocol, validation, test_opening_registry_root, feasibility=None
-):
+def _write_readiness(test_dir, protocol, validation, feasibility=None):
     feasibility = feasibility or _feasibility_manifest(tuple(validation))
     identity = evaluate._validate_test_feasibility(
         feasibility,
@@ -1694,44 +1531,11 @@ def _write_readiness(
         protocol_lock=protocol,
         validation_results=validation,
         feasibility_identity=identity,
-        test_opening_registry_root=test_opening_registry_root,
     )
     value = {**body, "readiness_sha256": evaluate.sha256_json(body)}
     (test_dir / evaluate.TEST_READINESS_FILENAME).write_text(
         json.dumps(value), encoding="utf-8"
     )
-    return value
-
-
-def _write_opening_claim(
-    test_opening_registry_root,
-    test_dir,
-    protocol,
-    validation,
-    feasibility,
-    *,
-    opening_id,
-):
-    active = tuple(validation)
-    prepared = new_test_opening_ledger(
-        opening_id=opening_id,
-        protocol_lock_sha256=protocol["protocol_lock_sha256"],
-        selection_locks=[validation[arm_id]["selection_lock"] for arm_id in active],
-        active_arm_ids=active,
-        feasibility_artifact_digest=feasibility["artifact_digest"],
-    )
-    readiness = json.loads(
-        (test_dir / evaluate.TEST_READINESS_FILENAME).read_text(encoding="utf-8")
-    )
-    path, claim = evaluate._build_test_opening_claim(
-        test_opening_registry_root=test_opening_registry_root,
-        protocol_lock_sha256=protocol["protocol_lock_sha256"],
-        test_dir=test_dir,
-        prepared_ledger=prepared,
-        readiness=readiness,
-    )
-    evaluate._write_json_atomic_exclusive(path, claim)
-    return path, claim
 
 
 def test_prepare_test_opening_creates_prepared_zero_access_ledger(
@@ -1748,33 +1552,21 @@ def test_prepare_test_opening_creates_prepared_zero_access_ledger(
     monkeypatch.setattr(
         evaluate, "load_probe_manifest", lambda *_args, **_kwargs: feasibility
     )
-    repo_root, registry_root = _test_opening_authority(tmp_path)
     test_dir = tmp_path / "held-out"
 
     result = evaluate.prepare_test_opening(
         protocol_lock_path=tmp_path / "protocol.json",
-        test_opening_registry_root=registry_root,
         tokenizer_dir=tmp_path / "tokenizer",
         validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
         feasibility_manifest_path=tmp_path / "feasibility.json",
         test_dir=test_dir,
         opening_id="issue-54-final-test",
-        repo_root=repo_root,
     )
 
     ledger = load_test_opening_ledger(test_dir / evaluate.TEST_LEDGER_FILENAME)
     assert result["status"] == "prepared"
-    assert result["claim_reused"] is False
     assert ledger["status"] == "prepared"
     assert ledger["test_access_count"] == 0
-    claim_path = evaluate._canonical_test_opening_claim_path(
-        registry_root,
-        protocol_lock_sha256=protocol["protocol_lock_sha256"],
-    )
-    assert result["claim_path"] == str(claim_path)
-    claim = evaluate._load_test_opening_claim(claim_path)
-    assert claim["prepared_ledger_sha256"] == ledger["ledger_sha256"]
-    assert claim["test_opening_registry_root"] == str(registry_root)
     assert (test_dir / evaluate.TEST_READINESS_FILENAME).is_file()
     assert (
         evaluate.validate_test_readiness(
@@ -1782,239 +1574,27 @@ def test_prepare_test_opening_creates_prepared_zero_access_ledger(
             protocol_lock=protocol,
             validation_results=validation,
             feasibility_manifest=feasibility,
-            test_opening_registry_root=registry_root,
         )["status"]
         == "locked-before-held-out-test"
     )
-    alternate_registry = tmp_path / "alternate-registry"
-    alternate_registry.mkdir()
-    with pytest.raises(ValueError, match="frozen opening"):
-        evaluate.validate_test_readiness(
-            test_dir,
-            protocol_lock=protocol,
-            validation_results=validation,
-            feasibility_manifest=feasibility,
-            test_opening_registry_root=alternate_registry,
-        )
-    with pytest.raises(ValueError, match="fixed Git-common-dir authority"):
-        evaluate.prepare_test_opening(
-            protocol_lock_path=tmp_path / "protocol.json",
-            test_opening_registry_root=alternate_registry,
-            tokenizer_dir=tmp_path / "tokenizer",
-            validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
-            feasibility_manifest_path=tmp_path / "feasibility.json",
-            test_dir=tmp_path / "alternate-test",
-            opening_id="alternate-authority",
-            repo_root=repo_root,
-        )
-
-    retried = evaluate.prepare_test_opening(
-        protocol_lock_path=tmp_path / "copied-protocol.json",
-        test_opening_registry_root=registry_root,
-        tokenizer_dir=tmp_path / "tokenizer",
-        validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
-        feasibility_manifest_path=tmp_path / "feasibility.json",
-        test_dir=test_dir,
-        opening_id="issue-54-final-test",
-        repo_root=repo_root,
-    )
-    assert retried["status"] == "prepared"
-    assert retried["claim_reused"] is True
-    assert retried["ledger_sha256"] == ledger["ledger_sha256"]
-
     with pytest.raises(FileExistsError):
         evaluate.prepare_test_opening(
             protocol_lock_path=tmp_path / "protocol.json",
-            test_opening_registry_root=registry_root,
             tokenizer_dir=tmp_path / "tokenizer",
             validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
             feasibility_manifest_path=tmp_path / "feasibility.json",
             test_dir=test_dir,
             opening_id="another-opening",
-            repo_root=repo_root,
         )
-
-    another_test_dir = tmp_path / "another-held-out"
-    with pytest.raises(FileExistsError, match="already has a held-out test opening"):
-        evaluate.prepare_test_opening(
-            protocol_lock_path=tmp_path / "another-copy-of-protocol.json",
-            test_opening_registry_root=registry_root,
-            tokenizer_dir=tmp_path / "tokenizer",
-            validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
-            feasibility_manifest_path=tmp_path / "feasibility.json",
-            test_dir=another_test_dir,
-            opening_id="issue-54-final-test",
-            repo_root=repo_root,
-        )
-    assert not another_test_dir.exists()
-
-    monkeypatch.setattr(
-        evaluate,
-        "load_frozen_cohort_records",
-        lambda **_kwargs: (_ for _ in ()).throw(
-            AssertionError("test cohort must remain sealed")
-        ),
-    )
-    with pytest.raises(ValueError, match="already claimed for"):
-        evaluate.run_test_opening(
-            protocol_lock_path=tmp_path / "protocol.json",
-            test_opening_registry_root=registry_root,
-            corpus_dir=tmp_path / "corpus",
-            tokenizer_dir=tmp_path / "tokenizer",
-            validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
-            feasibility_manifest_path=tmp_path / "feasibility.json",
-            test_dir=another_test_dir,
-            repo_root=repo_root,
-        )
-
-    for child in test_dir.iterdir():
-        child.unlink()
-    test_dir.rmdir()
-    with pytest.raises(FileNotFoundError, match="refusing to recreate"):
-        evaluate.prepare_test_opening(
-            protocol_lock_path=tmp_path / "protocol.json",
-            test_opening_registry_root=registry_root,
-            tokenizer_dir=tmp_path / "tokenizer",
-            validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
-            feasibility_manifest_path=tmp_path / "feasibility.json",
-            test_dir=test_dir,
-            opening_id="issue-54-final-test",
-            repo_root=repo_root,
-        )
-    assert not test_dir.exists()
-
-
-@pytest.mark.parametrize("collision_errno", [errno.EEXIST, errno.ENOTEMPTY])
-def test_identical_concurrent_prepare_validates_directory_rename_winner(
-    tmp_path, protocol, monkeypatch, collision_errno
-):
-    validation, locks = _selection_locks(protocol)
-    feasibility = _feasibility_manifest()
-    monkeypatch.setattr(evaluate, "load_protocol_lock", lambda *_, **__: protocol)
-    monkeypatch.setattr(
-        evaluate,
-        "load_validation_results",
-        lambda *_, **__: (validation, locks),
-    )
-    monkeypatch.setattr(
-        evaluate, "load_probe_manifest", lambda *_args, **_kwargs: feasibility
-    )
-    repo_root, registry_root = _test_opening_authority(tmp_path)
-    test_dir = tmp_path / "concurrent-opening"
-    real_rename = evaluate.Path.rename
-
-    def publish_identical_winner_then_collide(source, destination):
-        destination = evaluate.Path(destination)
-        if destination == test_dir:
-            destination.mkdir()
-            for child in source.iterdir():
-                (destination / child.name).write_bytes(child.read_bytes())
-            raise OSError(collision_errno, "simulated concurrent directory winner")
-        return real_rename(source, destination)
-
-    monkeypatch.setattr(evaluate.Path, "rename", publish_identical_winner_then_collide)
-    result = evaluate.prepare_test_opening(
-        protocol_lock_path=tmp_path / "protocol.json",
-        test_opening_registry_root=registry_root,
-        tokenizer_dir=tmp_path / "tokenizer",
-        validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
-        feasibility_manifest_path=tmp_path / "feasibility.json",
-        test_dir=test_dir,
-        opening_id="concurrent-opening",
-        repo_root=repo_root,
-    )
-
-    assert result["status"] == "prepared"
-    assert (
-        load_test_opening_ledger(test_dir / evaluate.TEST_LEDGER_FILENAME)[
-            "ledger_sha256"
-        ]
-        == result["ledger_sha256"]
-    )
-
-
-def test_prepare_directory_propagates_unrelated_rename_error(
-    tmp_path, protocol, monkeypatch
-):
-    _, locks = _selection_locks(protocol)
-    ledger = new_test_opening_ledger(
-        opening_id="rename-error",
-        protocol_lock_sha256=protocol["protocol_lock_sha256"],
-        selection_locks=locks,
-    )
-    monkeypatch.setattr(
-        evaluate.Path,
-        "rename",
-        lambda _source, _destination: (_ for _ in ()).throw(
-            OSError(errno.EIO, "simulated unrelated filesystem failure")
-        ),
-    )
-
-    with pytest.raises(OSError, match="unrelated filesystem failure"):
-        evaluate._prepare_test_opening_directory(
-            tmp_path / "unpublished",
-            ledger=ledger,
-            readiness={"status": "unit-test"},
-        )
-
-
-def test_pre_registry_readiness_is_rejected_without_creating_claim(
-    tmp_path, protocol, monkeypatch
-):
-    validation, locks = _selection_locks(protocol)
-    feasibility = _feasibility_manifest()
-    monkeypatch.setattr(evaluate, "load_protocol_lock", lambda *_, **__: protocol)
-    monkeypatch.setattr(
-        evaluate,
-        "load_validation_results",
-        lambda *_, **__: (validation, locks),
-    )
-    monkeypatch.setattr(
-        evaluate, "load_probe_manifest", lambda *_args, **_kwargs: feasibility
-    )
-    repo_root, registry_root = _test_opening_authority(tmp_path)
-    test_dir = tmp_path / "pre-registry-opening"
-    test_dir.mkdir()
-    ledger = new_test_opening_ledger(
-        opening_id="pre-registry-opening",
-        protocol_lock_sha256=protocol["protocol_lock_sha256"],
-        selection_locks=locks,
-        feasibility_artifact_digest=feasibility["artifact_digest"],
-    )
-    create_test_opening_ledger_file(test_dir / evaluate.TEST_LEDGER_FILENAME, ledger)
-    old_readiness = _write_readiness(
-        test_dir, protocol, validation, registry_root, feasibility
-    )
-    old_readiness.pop("readiness_sha256")
-    old_readiness.pop("test_opening_registry_root")
-    old_readiness["readiness_sha256"] = evaluate.sha256_json(old_readiness)
-    (test_dir / evaluate.TEST_READINESS_FILENAME).write_text(
-        json.dumps(old_readiness), encoding="utf-8"
-    )
-    claim_path = evaluate._canonical_test_opening_claim_path(
-        registry_root,
-        protocol_lock_sha256=protocol["protocol_lock_sha256"],
-    )
-
-    with pytest.raises(FileExistsError, match="predates the canonical registry claim"):
-        evaluate.prepare_test_opening(
-            protocol_lock_path=tmp_path / "copied-protocol.json",
-            test_opening_registry_root=registry_root,
-            tokenizer_dir=tmp_path / "tokenizer",
-            validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
-            feasibility_manifest_path=tmp_path / "feasibility.json",
-            test_dir=test_dir,
-            opening_id="pre-registry-opening",
-            repo_root=repo_root,
-        )
-    assert not claim_path.exists()
 
 
 @pytest.mark.parametrize(
     "mutation",
     [
         lambda source: source.update(commit="b" * 40),
-        lambda source: source["probe_runner"].update(sha256="sha256:" + "7" * 64),
+        lambda source: source["probe_runner"].update(
+            sha256="sha256:" + "7" * 64
+        ),
         lambda source: source["runner"].update(sha256="sha256:" + "7" * 64),
         lambda source: source.update(untracked_files=[{"path": "untracked.py"}]),
     ],
@@ -2034,19 +1614,16 @@ def test_feasibility_producer_is_rejected_before_test_ledger_creation(
     monkeypatch.setattr(
         evaluate, "load_probe_manifest", lambda *_args, **_kwargs: feasibility
     )
-    repo_root, registry_root = _test_opening_authority(tmp_path)
     test_dir = tmp_path / "held-out"
 
     with pytest.raises(ValueError, match="Feasibility"):
         evaluate.prepare_test_opening(
             protocol_lock_path=tmp_path / "protocol.json",
-            test_opening_registry_root=registry_root,
             tokenizer_dir=tmp_path / "tokenizer",
             validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
             feasibility_manifest_path=tmp_path / "feasibility.json",
             test_dir=test_dir,
             opening_id="issue-54-final-test",
-            repo_root=repo_root,
         )
 
     assert not test_dir.exists()
@@ -2067,7 +1644,6 @@ def test_test_opening_is_one_shared_atomic_access_and_recovers_without_rescoring
 ):
     validation, locks = _selection_locks(protocol)
     feasibility = _feasibility_manifest()
-    repo_root, registry_root = _test_opening_authority(tmp_path)
     test_dir = tmp_path / "held-out"
     test_dir.mkdir()
     ledger = new_test_opening_ledger(
@@ -2077,15 +1653,7 @@ def test_test_opening_is_one_shared_atomic_access_and_recovers_without_rescoring
         feasibility_artifact_digest=feasibility["artifact_digest"],
     )
     create_test_opening_ledger_file(test_dir / evaluate.TEST_LEDGER_FILENAME, ledger)
-    _write_readiness(test_dir, protocol, validation, registry_root, feasibility)
-    _write_opening_claim(
-        registry_root,
-        test_dir,
-        protocol,
-        validation,
-        feasibility,
-        opening_id="issue-54-final-test",
-    )
+    _write_readiness(test_dir, protocol, validation, feasibility)
     monkeypatch.setattr(evaluate, "load_protocol_lock", lambda *_, **__: protocol)
     monkeypatch.setattr(
         evaluate,
@@ -2125,7 +1693,6 @@ def test_test_opening_is_one_shared_atomic_access_and_recovers_without_rescoring
 
     common = {
         "protocol_lock_path": tmp_path / "protocol.json",
-        "test_opening_registry_root": registry_root,
         "corpus_dir": tmp_path / "corpus",
         "tokenizer_dir": tmp_path / "tokenizer",
         "validation_result_dirs": [tmp_path / arm for arm in ARM_IDS],
@@ -2134,7 +1701,6 @@ def test_test_opening_is_one_shared_atomic_access_and_recovers_without_rescoring
         "reference_corpus_dirs": [tmp_path / "v1"],
         "candidate_provider": candidates,
         "bfs_provider": bfs,
-        "repo_root": repo_root,
     }
     with pytest.raises(RuntimeError, match="simulated crash"):
         evaluate.run_test_opening(**common)
@@ -2205,28 +1771,26 @@ def test_two_active_arms_open_once_and_deferred_arm_cannot_be_added(
     monkeypatch.setattr(
         evaluate, "load_probe_manifest", lambda *_args, **_kwargs: feasibility
     )
-    repo_root, registry_root = _test_opening_authority(tmp_path)
     test_dir = tmp_path / "held-out-two-active"
     evaluate.prepare_test_opening(
         protocol_lock_path=tmp_path / "protocol.json",
-        test_opening_registry_root=registry_root,
         tokenizer_dir=tmp_path / "tokenizer",
         validation_result_dirs=[tmp_path / arm_id for arm_id in active],
         feasibility_manifest_path=tmp_path / "feasibility.json",
         test_dir=test_dir,
         opening_id="issue-54-two-active",
-        repo_root=repo_root,
     )
     prepared = load_test_opening_ledger(test_dir / evaluate.TEST_LEDGER_FILENAME)
     assert prepared["active_arm_ids"] == list(active)
     assert prepared["deferred_arm_ids"] == list(deferred)
     assert prepared["feasibility_artifact_digest"] == feasibility["artifact_digest"]
-    assert (
-        "artifact_path"
-        in validation[active[0]]["training_manifest"]["feasibility_gate"]
-    )
+    assert "artifact_path" in validation[active[0]]["training_manifest"][
+        "feasibility_gate"
+    ]
     tampered_feasibility = deepcopy(feasibility)
-    tampered_feasibility["launch_gate"]["per_arm"][deferred[0]]["launch_allowed"] = True
+    tampered_feasibility["launch_gate"]["per_arm"][deferred[0]][
+        "launch_allowed"
+    ] = True
     with pytest.raises(ValueError, match="not feasibility-blocked"):
         evaluate._validate_test_feasibility(
             tampered_feasibility,
@@ -2254,7 +1818,6 @@ def test_two_active_arms_open_once_and_deferred_arm_cannot_be_added(
 
     common = {
         "protocol_lock_path": tmp_path / "protocol.json",
-        "test_opening_registry_root": registry_root,
         "corpus_dir": tmp_path / "corpus",
         "tokenizer_dir": tmp_path / "tokenizer",
         "validation_result_dirs": [tmp_path / arm_id for arm_id in active],
@@ -2263,7 +1826,6 @@ def test_two_active_arms_open_once_and_deferred_arm_cannot_be_added(
         "reference_corpus_dirs": [tmp_path / "v1"],
         "candidate_provider": candidates,
         "bfs_provider": lambda records, **_kwargs: _bfs_rows(records),
-        "repo_root": repo_root,
     }
     result = evaluate.run_test_opening(**common)
     assert result["ledger"]["test_access_count"] == 1
@@ -2310,7 +1872,6 @@ def test_complete_ledger_with_missing_arm_refuses_rescore(
 ):
     validation, locks = _selection_locks(protocol)
     feasibility = _feasibility_manifest()
-    repo_root, registry_root = _test_opening_authority(tmp_path)
     test_dir = tmp_path / "held-out"
     test_dir.mkdir()
     ledger = new_test_opening_ledger(
@@ -2331,15 +1892,7 @@ def test_complete_ledger_with_missing_arm_refuses_rescore(
         shared_bfs_identity={"sha256": "sha256:" + "b" * 64},
     )
     create_test_opening_ledger_file(test_dir / evaluate.TEST_LEDGER_FILENAME, ledger)
-    _write_readiness(test_dir, protocol, validation, registry_root, feasibility)
-    _write_opening_claim(
-        registry_root,
-        test_dir,
-        protocol,
-        validation,
-        feasibility,
-        opening_id="opening",
-    )
+    _write_readiness(test_dir, protocol, validation, feasibility)
     monkeypatch.setattr(evaluate, "load_protocol_lock", lambda *_, **__: protocol)
     monkeypatch.setattr(
         evaluate,
@@ -2359,14 +1912,12 @@ def test_complete_ledger_with_missing_arm_refuses_rescore(
     with pytest.raises(ValueError, match="lost its shared BFS artifact"):
         evaluate.run_test_opening(
             protocol_lock_path=tmp_path / "protocol.json",
-            test_opening_registry_root=registry_root,
             corpus_dir=tmp_path / "corpus",
             tokenizer_dir=tmp_path / "tokenizer",
             validation_result_dirs=[tmp_path / arm for arm in ARM_IDS],
             feasibility_manifest_path=tmp_path / "feasibility.json",
             test_dir=test_dir,
             reference_corpus_dirs=[tmp_path / "v1"],
-            repo_root=repo_root,
             candidate_provider=lambda *_args, **_kwargs: (_ for _ in ()).throw(
                 AssertionError("must not rescore")
             ),

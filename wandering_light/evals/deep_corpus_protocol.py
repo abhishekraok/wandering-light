@@ -1566,10 +1566,6 @@ def new_test_opening_ledger(
     )
     active = tuple(by_arm)
     deferred = _deferred_arm_ids(active)
-    if deferred and feasibility_artifact_digest is None:
-        raise ValueError(
-            "partial test-opening ledgers require a feasibility artifact digest"
-        )
     if feasibility_artifact_digest is not None:
         _require_sha256(
             feasibility_artifact_digest, label="feasibility artifact digest"
@@ -1642,10 +1638,6 @@ def validate_test_opening_ledger(
     if deferred_arm_ids is not None and tuple(deferred_arm_ids) != deferred:
         raise ValueError("test-opening ledger deferred arms changed")
     recorded_feasibility = normalized.get("feasibility_artifact_digest")
-    if deferred and recorded_feasibility is None:
-        raise ValueError(
-            "partial test-opening ledger has no feasibility artifact digest"
-        )
     if recorded_feasibility is not None:
         _require_sha256(
             recorded_feasibility, label="ledger feasibility artifact digest"

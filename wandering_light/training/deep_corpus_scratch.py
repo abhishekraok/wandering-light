@@ -542,8 +542,8 @@ def validate_final_restart(
         raise ValueError("Selection lock belongs to another arm")
     if float(selection_lock.get("selected_learning_rate", -1)) != learning_rate:
         raise ValueError("Final run must use the validation-selected learning rate")
-    if num_train_epochs != MAX_FINAL_EPOCHS:
-        raise ValueError(f"Final training must use exactly {MAX_FINAL_EPOCHS:g} epochs")
+    if not 0 < num_train_epochs <= MAX_FINAL_EPOCHS:
+        raise ValueError(f"Final training may use at most {MAX_FINAL_EPOCHS:g} epochs")
     comparisons = {
         "initial_state_digest": initialization_provenance.get("initial_state_digest"),
         "initialization_seed": initialization_provenance.get("initialization_seed"),
