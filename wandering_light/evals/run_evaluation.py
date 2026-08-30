@@ -171,6 +171,15 @@ def _aggregate_seed_results(
         if all(value is not None for value in candidate_totals)
         else None
     )
+    wall_clock_totals = [result.total_wall_clock_seconds for result in results]
+    complete_wall_clock = all(value is not None for value in wall_clock_totals)
+    total_wall_clock = sum(wall_clock_totals) if complete_wall_clock else None
+    hosts = [result.evaluation_host for result in results]
+    if any(host != hosts[0] for host in hosts):
+        raise ValueError(
+            f"seed evaluations ran on different hosts, so wall-clock costs "
+            f"are not comparable: {hosts}"
+        )
 
     def consistent(field: str):
         values = {getattr(result, field) for result in results}
@@ -219,10 +228,22 @@ def _aggregate_seed_results(
         seed=bootstrap_seed + 1,
         seed_effective=seed_effective and complete_costs,
     )
+    wall_clock_ci = bootstrap_mean_confidence_interval(
+        [
+            result.mean_wall_clock_seconds
+            for result in results
+            if result.mean_wall_clock_seconds is not None
+        ],
+        confidence=confidence,
+        samples=bootstrap_samples,
+        seed=bootstrap_seed + 2,
+        seed_effective=seed_effective and complete_wall_clock,
+    )
     if not seed_effective:
         reason = "solver is deterministic or its generator is not seed-controlled"
         success_rate_ci["reason"] = reason
         execution_ci["reason"] = reason
+        wall_clock_ci["reason"] = reason
 
     solver_config = dict(results[0].solver_config)
     solver_config.pop("seed", None)
@@ -238,6 +259,16 @@ def _aggregate_seed_results(
         ),
         "failures": failures,
         "detailed_results": detailed_results,
+        "primary_cost_unit": consistent("primary_cost_unit"),
+        "primary_cost_definition": consistent("primary_cost_definition"),
+        "total_wall_clock_seconds": total_wall_clock,
+        "mean_wall_clock_seconds": (
+            total_wall_clock / total_samples
+            if total_wall_clock is not None and total_samples
+            else None
+        ),
+        "mean_wall_clock_seconds_ci": wall_clock_ci,
+        "evaluation_host": hosts[0],
         "cost_unit": consistent("cost_unit"),
         "cost_definition": consistent("cost_definition"),
         "budget_unit": consistent("budget_unit"),

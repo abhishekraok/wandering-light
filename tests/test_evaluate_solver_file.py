@@ -66,6 +66,15 @@ class TestEvaluateSolverFile:
         assert result.total_charged_executions == sum(
             detail.charged_executions for detail in result.detailed_results
         )
+        assert result.primary_cost_unit == "wall_clock_seconds"
+        assert result.total_wall_clock_seconds is not None
+        assert result.total_wall_clock_seconds > 0.0
+        assert result.mean_wall_clock_seconds is not None
+        assert "node" in result.evaluation_host
+        assert all(
+            detail.seconds is not None and detail.seconds >= 0.0
+            for detail in result.detailed_results
+        )
 
         # Test detailed results have correct function tracking
         assert len(result.detailed_results) == 3

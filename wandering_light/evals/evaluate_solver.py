@@ -4,7 +4,9 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+import platform
 import random
+import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any
@@ -14,6 +16,8 @@ import fire
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDef, FunctionDefSet
 from wandering_light.solver import (
+    WALL_CLOCK_COST_DEFINITION,
+    WALL_CLOCK_COST_UNIT,
     PredictionCost,
     TrajectorySolver,
     get_solver_by_name,
@@ -41,6 +45,7 @@ class DetailedEvalResult:
     charged_executions: int | None = None
     candidate_programs: int | None = None
     cost_termination: str | None = None
+    seconds: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization compatibility."""
@@ -65,6 +70,11 @@ class EvalResult:
     mean_charged_executions: float | None = None
     total_candidate_programs: int | None = None
     mean_candidate_programs: float | None = None
+    primary_cost_unit: str | None = None
+    primary_cost_definition: str | None = None
+    total_wall_clock_seconds: float | None = None
+    mean_wall_clock_seconds: float | None = None
+    evaluation_host: dict[str, Any] = field(default_factory=dict)
     solver_config: dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self):
@@ -93,9 +103,20 @@ class EvalResult:
             json.dump(self.to_dict(), f, indent=2)
 
 
+def _evaluation_host() -> dict[str, Any]:
+    """Identify the host so wall-clock numbers are never compared across hosts."""
+    return {
+        "node": platform.node(),
+        "machine": platform.machine(),
+        "processor": platform.processor() or None,
+        "python": platform.python_version(),
+    }
+
+
 def _cost_summary(
     solver: TrajectorySolver,
     costs: list[PredictionCost | None],
+    wall_clock_seconds: float | None = None,
 ) -> dict[str, Any]:
     metadata = solver.cost_metadata()
     reported = [cost for cost in costs if cost is not None]
@@ -107,6 +128,15 @@ def _cost_summary(
         if cost.candidate_programs is not None
     ]
     return {
+        "primary_cost_unit": WALL_CLOCK_COST_UNIT,
+        "primary_cost_definition": WALL_CLOCK_COST_DEFINITION,
+        "total_wall_clock_seconds": wall_clock_seconds,
+        "mean_wall_clock_seconds": (
+            wall_clock_seconds / len(costs)
+            if wall_clock_seconds is not None and costs
+            else None
+        ),
+        "evaluation_host": _evaluation_host(),
         "cost_unit": metadata.get("cost_unit"),
         "cost_definition": metadata.get("cost_definition"),
         "budget_unit": metadata.get("budget_unit"),
@@ -226,9 +256,12 @@ class EvaluateSolver:
 
         # Batch solve all problems at once
         if problems:
+            solve_started = time.perf_counter()
             batch_results = solver.solve_batch(problems, available_functions)
+            solve_seconds = time.perf_counter() - solve_started
         else:
             batch_results = []
+            solve_seconds = None
         if len(batch_results) != len(problems):
             raise ValueError(
                 f"solver returned {len(batch_results)} results for "
@@ -258,6 +291,7 @@ class EvaluateSolver:
                     detailed_result.charged_executions = result.cost.charged_executions
                     detailed_result.candidate_programs = result.cost.candidate_programs
                     detailed_result.cost_termination = result.cost.termination
+                    detailed_result.seconds = result.cost.seconds
 
                 if result.success and result.trajectory is not None:
                     successes += 1
@@ -299,7 +333,11 @@ class EvaluateSolver:
             avg_solution_length=avg_length,
             failures=failures,
             detailed_results=detailed_results,
-            **_cost_summary(solver, [result.cost for result in batch_results]),
+            **_cost_summary(
+                solver,
+                [result.cost for result in batch_results],
+                solve_seconds,
+            ),
         )
 
         if save_results:
@@ -337,6 +375,7 @@ class EvaluateSolver:
         failures: list[tuple[TrajectorySpec, Exception]] = []
         prediction_costs: list[PredictionCost | None] = []
         executor = Executor(available_functions)
+        solve_seconds = 0.0
 
         for _ in range(num_samples):
             input_list = random.choice(input_lists)
@@ -356,7 +395,9 @@ class EvaluateSolver:
                 prediction_costs.append(None)
                 continue
             # solver attempt
+            solve_started = time.perf_counter()
             result = solver.solve(input_list, true_output, available_functions)
+            solve_seconds += time.perf_counter() - solve_started
             prediction_costs.append(result.cost)
             # record success or failure from MaybeTrajectory
             if result.success and result.trajectory is not None:
@@ -373,7 +414,7 @@ class EvaluateSolver:
             success_rate=success_rate,
             avg_solution_length=avg_length,
             failures=failures,
-            **_cost_summary(solver, prediction_costs),
+            **_cost_summary(solver, prediction_costs, solve_seconds),
         )
 
 

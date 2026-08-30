@@ -72,6 +72,9 @@ def load_evaluation_results() -> pd.DataFrame:
                         "cohort_size": solver_results.get(
                             "cohort_size", solver_results.get("total_samples", 0)
                         ),
+                        "mean_wall_clock_seconds": solver_results.get(
+                            "mean_wall_clock_seconds"
+                        ),
                         "mean_charged_executions": solver_results.get(
                             "mean_charged_executions"
                         ),
@@ -266,6 +269,7 @@ def main():
                 "eval_file",
                 "model_name",
                 "budget_label",
+                "mean_wall_clock_seconds",
                 "mean_charged_executions",
                 "cost_unit",
             ],
@@ -301,6 +305,7 @@ def main():
             "success_count",
             "cohort_size",
             "total_samples",
+            "mean_wall_clock_seconds",
             "mean_charged_executions",
             "avg_solution_length",
             "failure_count",
@@ -320,6 +325,7 @@ def main():
             "success_count": "Successes",
             "cohort_size": "Cohort",
             "total_samples": "Seed-Task Trials",
+            "mean_wall_clock_seconds": "Mean Seconds",
             "mean_charged_executions": "Mean Executions",
             "avg_solution_length": "Avg Length",
             "failure_count": "Failures",

@@ -185,12 +185,17 @@ PYTHONHASHSEED=0 uv run python -m wandering_light.evals.run_evaluation \
 ```
 
 `budget` remains the solver's stopping knob: candidate programs for random/LLM
-solvers, basis-function executions for BFS. Every result records that unit and
-also reports a common `basis_function_executions` charge: every compatible BFS
-operation tried costs one; every parse-valid sampled program costs its full
-length. Random path lengths are sampled uniformly from the declared list. All
-ground-truth specs are validated before cohort sampling; an invalid corpus fails
-instead of changing the denominator. See `solver.py` for additional solvers.
+solvers, basis-function executions for BFS. The **primary comparable cost is
+`wall_clock_seconds`**: the timed solve call, which is the only unit that
+charges model inference, recorded per task where the solver runs tasks
+independently and per batch always, together with the evaluation host —
+wall-clock is never comparable across hosts. Every result still reports the
+hardware-independent `basis_function_executions` diagnostic: every compatible
+BFS or rollout operation tried costs one; every parse-valid sampled program
+costs its full length. Random path lengths are sampled uniformly from the
+declared list. All ground-truth specs are validated before cohort sampling; an
+invalid corpus fails instead of changing the denominator. See `solver.py` for
+additional solvers.
 
 
 ## Training SFT

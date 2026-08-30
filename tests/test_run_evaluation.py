@@ -185,6 +185,11 @@ def test_run_evaluation_freezes_cohort_and_aggregates_random_seeds(
             mean_charged_executions=solver.seed + 1,
             total_candidate_programs=(total if solver.name == "random" else None),
             mean_candidate_programs=(1.0 if solver.name == "random" else None),
+            primary_cost_unit="wall_clock_seconds",
+            primary_cost_definition="test primary cost",
+            total_wall_clock_seconds=0.5 * (solver.seed + 1),
+            mean_wall_clock_seconds=0.5 * (solver.seed + 1) / total,
+            evaluation_host={"node": "test-host"},
             solver_config={
                 "cost_unit": "basis_function_executions",
                 "budget_unit": budget_unit,
@@ -244,6 +249,12 @@ def test_run_evaluation_freezes_cohort_and_aggregates_random_seeds(
     assert random_result["mean_charged_executions_ci"]["lower"] is not None
     assert random_result["budget_unit"] == "candidate_programs"
     assert random_result["cost_unit"] == "basis_function_executions"
+    assert random_result["primary_cost_unit"] == "wall_clock_seconds"
+    assert random_result["total_wall_clock_seconds"] == pytest.approx(0.5 * (2 + 3 + 4))
+    assert random_result["mean_wall_clock_seconds"] == pytest.approx(0.5 * 9 / 9)
+    assert random_result["mean_wall_clock_seconds_ci"]["n"] == 3
+    assert random_result["mean_wall_clock_seconds_ci"]["lower"] is not None
+    assert random_result["evaluation_host"] == {"node": "test-host"}
 
     bfs_result = summary["results"]["bfs"]
     assert bfs_result["seeds"] == [1]
@@ -282,4 +293,28 @@ def test_run_evaluation_propagates_invalid_corpus_errors(monkeypatch, tmp_path):
             solver_names=["bfs"],
             output_dir=str(tmp_path),
             trusted_legacy_python=True,
+        )
+
+
+def test_aggregate_seed_results_rejects_mixed_hosts():
+    def make_result(host):
+        return EvalResult(
+            total_samples=2,
+            success_count=1,
+            success_rate=0.5,
+            avg_solution_length=1.0,
+            failures=[],
+            evaluation_host=host,
+        )
+
+    with pytest.raises(ValueError, match="different hosts"):
+        run_eval._aggregate_seed_results(
+            [
+                (0, make_result({"node": "host-a"}), "artifact-a"),
+                (1, make_result({"node": "host-b"}), "artifact-b"),
+            ],
+            seed_effective=True,
+            confidence=0.95,
+            bootstrap_samples=10,
+            bootstrap_seed=0,
         )
