@@ -178,7 +178,9 @@ that. This corpus makes the gap measurable; it does not close it.
 ## Reproduce
 
 ```bash
-uv run python -m wandering_light.stack_pbe --out wandering_light/evals/data/stack_pbe_v3.jsonl.gz --per-behaviour 40 --seed 17
+# The payload is on the Hub; the tracked manifest pins its digests.
+uv run python -c "from wandering_light.corpus_hub import fetch_corpus; fetch_corpus('wandering_light/evals/data/stack_pbe_v4/manifest.json')"
+uv run python -m wandering_light.stack_pbe --per-behaviour 40 --seed 17
 uv run python experiments/stack_pbe_scope.py
 uv run python experiments/stack_pbe_basis_floor.py --depth 5
 uv run python experiments/stack_pbe_search_audit.py --depth 4 --tasks 40

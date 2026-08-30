@@ -1,0 +1,49 @@
+{
+  "basis": "mark-28",
+  "catalogue": {
+    "behaviours": 40,
+    "digest": "sha256:6089f7ec7fc0bc66c906741d124154650cf4c946a5d4a7a8bfcd21be82b331fa",
+    "skeletons": 35
+  },
+  "config": {
+    "held_out": 8,
+    "max_examples": 6,
+    "min_examples": 3,
+    "per_behaviour": 40,
+    "seed": 17
+  },
+  "corpus": "stack_pbe_v4",
+  "counts": {
+    "distinct_input_stacks": 15588,
+    "held_out_examples": 12800,
+    "shown_examples": 7200,
+    "tasks": 1600
+  },
+  "generator": "wandering_light.stack_pbe",
+  "generator_description": "Behaviours are hand-written and paired with an independent Python reference; inputs are sampled fresh per example; no task input contains a quotation.",
+  "hub": {
+    "repo_id": "abhishekraok/wandering-light-stack-pbe-v4",
+    "repo_type": "dataset",
+    "revision": "4cd2455253f4e1d632da1e93f8de96778df5fd10"
+  },
+  "schema_version": 2,
+  "split_policy": "skeleton",
+  "splits": {
+    "eval": {
+      "behaviours": 8,
+      "bytes": 35691,
+      "path": "stack_pbe_v4_eval.jsonl.gz",
+      "records": 320,
+      "sha256": "sha256:767a10c3c1621d67ac4ca4d9c506743a3e8906ec28f6d2d614855a64f685bbee",
+      "skeletons": 7
+    },
+    "train": {
+      "behaviours": 32,
+      "bytes": 118944,
+      "path": "stack_pbe_v4_train.jsonl.gz",
+      "records": 1280,
+      "sha256": "sha256:a1f39c36372f57dae602d44ad01f6a0aec22bcd8d0b1da8c579ca2f2013cfec6",
+      "skeletons": 28
+    }
+  }
+}

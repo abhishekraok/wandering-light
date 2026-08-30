@@ -179,7 +179,12 @@ Until then the only claim here is about search.
 
 ## Reproduce
 
+The corpus payload is not in git. Fetch it first; the tracked manifest pins the
+digests the download is checked against.
+
 ```bash
+uv run python -c "from wandering_light.corpus_hub import fetch_corpus; fetch_corpus('wandering_light/evals/data/stack_pbe_v3/manifest.json')"
+
 uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 10000 --split eval
 uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 100000 --split eval --tasks 40
 uv run python experiments/stack_pbe_baseline.py --backend llm --provider gemini --model gemini-2.5-flash --tasks 40

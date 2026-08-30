@@ -54,7 +54,7 @@ def has_quotation(value: Value) -> bool:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--corpus", default="wandering_light/evals/data/stack_pbe_v3.jsonl.gz"
+        "--corpus", default="wandering_light/evals/data/stack_pbe_v4"
     )
     parser.add_argument("--out", default=None)
     args = parser.parse_args(argv)

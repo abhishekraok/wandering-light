@@ -36,6 +36,7 @@ from wandering_light.stack_pbe import (
     _informative,
     assign_split,
     build_task,
+    catalogue_digest,
     check,
     draw_task,
     encode_task,
@@ -46,11 +47,17 @@ from wandering_light.stack_pbe import (
     to_stack,
     to_value,
     verify,
+    write_corpus,
 )
 
+# The corpus payload lives on the Hub, not in git -- see `corpus_hub`'s
+# docstring for why. Tests read a small committed fixture instead, so the suite
+# stays offline and fast; the manifest machinery is exercised separately
+# against a corpus generated into tmp_path.
 DATA = Path(__file__).resolve().parent.parent / "wandering_light" / "evals" / "data"
-CORPUS = DATA / "stack_pbe_v4.jsonl.gz"
-CORPUS_V3 = DATA / "stack_pbe_v3.jsonl.gz"
+CORPUS = Path(__file__).resolve().parent / "test_data" / "stack_pbe_fixture.jsonl.gz"
+MANIFEST_V4 = DATA / "stack_pbe_v4" / "manifest.json"
+MANIFEST_V3 = DATA / "stack_pbe_v3" / "manifest.json"
 
 
 @pytest.fixture(scope="module")
@@ -237,8 +244,8 @@ print(json.dumps({b.name: assign_split(b.skeleton) for b in CATALOGUE}))
 # --------------------------------------------------------------------------
 
 
-def test_corpus_is_present_and_sized(tasks):
-    assert len(tasks) == 40 * 40
+def test_fixture_covers_every_behaviour(tasks):
+    assert {task.behaviour for task in tasks} == {b.name for b in CATALOGUE}
     assert {task.basis for task in tasks} == {BASIS}
     assert {task.witness_source for task in tasks} == {"authored"}
 
@@ -282,7 +289,7 @@ def test_held_out_examples_are_disjoint_from_shown_in_the_corpus(tasks):
 def test_corpus_data_is_varied(tasks):
     """The defect being fixed was 17 input sets across 1,857 tasks."""
     inputs = {i for task in tasks for i in (*task.inputs, *task.held_out_inputs)}
-    assert len(inputs) > 10_000
+    assert len(inputs) > 10 * len(tasks)
     assert len({tuple(task.inputs) for task in tasks}) == len(tasks)
 
 
@@ -323,11 +330,55 @@ def test_alternative_programs_also_solve_their_task(tasks):
     assert checked > 0
 
 
-def test_a_schema_1_corpus_still_loads():
-    """v3 is quoted by STATUS and by two reports; it must stay readable."""
-    old = load(str(CORPUS_V3))
-    assert old and {t.schema_version for t in old} == {1}
-    assert all(t.skeleton == "" and t.alternative_programs == () for t in old)
+def test_manifests_describe_a_corpus_that_is_not_in_git():
+    """Payloads live on the Hub; the manifest is what the repository keeps."""
+    for path, version, policy in (
+        (MANIFEST_V4, 2, "skeleton"),
+        (MANIFEST_V3, 1, "behaviour"),
+    ):
+        manifest = json.loads(path.read_text())
+        assert manifest["schema_version"] == version
+        assert manifest["split_policy"] == policy
+        assert manifest["basis"] == BASIS
+        assert manifest["counts"]["tasks"] > 0
+        assert manifest["splits"], path
+        for split in manifest["splits"].values():
+            assert split["sha256"].startswith("sha256:")
+            assert split["records"] > 0
+
+
+def test_written_corpus_verifies_against_its_manifest(tmp_path):
+    """The digest check `fetch_corpus` relies on, exercised end to end."""
+    from wandering_light.corpus_hub import verify_corpus_files
+
+    made, _stats = generate(per_behaviour=1, seed=5)
+    write_corpus(made, tmp_path, config={"per_behaviour": 1, "seed": 5})
+    checked = verify_corpus_files(tmp_path)
+    assert set(checked) == {task.split for task in made}
+    assert load(tmp_path) and len(load(tmp_path)) == len(made)
+
+
+def test_a_tampered_payload_is_refused(tmp_path):
+    """Without this check the Hub payload would be trusted, not verified."""
+    from wandering_light.corpus_hub import verify_corpus_files
+
+    made, _stats = generate(per_behaviour=1, seed=6)
+    write_corpus(made, tmp_path, config={})
+    manifest = json.loads((tmp_path / "manifest.json").read_text())
+    victim = next(iter(manifest["splits"].values()))["path"]
+    (tmp_path / victim).write_bytes(b"not the corpus")
+    with pytest.raises(ValueError, match="digest mismatch"):
+        verify_corpus_files(tmp_path)
+
+
+def test_catalogue_digest_tracks_the_witnesses():
+    """A changed witness changes the labels, so it must invalidate a manifest."""
+    from dataclasses import replace
+
+    before = catalogue_digest()
+    changed = [*CATALOGUE[:-1], replace(CATALOGUE[-1], witnesses=("drop",))]
+    assert catalogue_digest(changed) != before
+    assert catalogue_digest() == before
 
 
 def test_corpus_round_trips_through_load(tmp_path):

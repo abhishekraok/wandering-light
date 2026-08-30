@@ -209,7 +209,7 @@ def solve_with_llm(task: Task, generator, samples: int) -> list[str]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--corpus", default="wandering_light/evals/data/stack_pbe_v3.jsonl.gz"
+        "--corpus", default="wandering_light/evals/data/stack_pbe_v4"
     )
     parser.add_argument("--backend", choices=("bfs", "random", "llm"), default="bfs")
     parser.add_argument("--split", default="eval", choices=("eval", "train", "all"))

@@ -46,6 +46,7 @@ import sys
 import time
 from collections import Counter
 from dataclasses import asdict, dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wandering_light.stack_machine import (
@@ -954,6 +955,98 @@ def generate(
     return tasks, stats
 
 
+CORPUS_NAME = "stack_pbe_v4"
+HUB_REPO_ID = "abhishekraok/wandering-light-stack-pbe-v4"
+
+
+def catalogue_digest(catalogue: Sequence[Behaviour] = CATALOGUE) -> str:
+    """A digest over what the catalogue *says*, so a payload cannot drift from it.
+
+    Names, summaries and witnesses only -- samplers and references are Python
+    objects and cannot be hashed stably. Changing a witness changes the labels
+    in the corpus, so it must invalidate the manifest; changing a sampler
+    changes the data, which the payload digest already covers.
+    """
+    payload = json.dumps(
+        [[b.name, b.summary, list(b.witnesses)] for b in catalogue], sort_keys=True
+    )
+    return "sha256:" + hashlib.sha256(payload.encode()).hexdigest()
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    return f"sha256:{digest.hexdigest()}"
+
+
+def write_corpus(
+    tasks: Sequence[Task],
+    corpus_dir: str | Path,
+    *,
+    config: dict,
+    name: str = CORPUS_NAME,
+    catalogue: Sequence[Behaviour] = CATALOGUE,
+) -> Path:
+    """Write split payloads plus the manifest `corpus_hub` publishes and verifies.
+
+    Payloads do not go in git. `wandering_light/corpus_hub.py` gives the reason:
+    a generated corpus is a derived artifact, every regeneration is a fresh
+    gzip, and gzips do not delta-compress, so committing them puts every
+    superseded version in history forever. The manifest is what stays -- it
+    pins the digests a later `fetch_corpus` is checked against, which is the
+    whole point of the split.
+    """
+    root = Path(corpus_dir)
+    root.mkdir(parents=True, exist_ok=True)
+    splits: dict[str, dict] = {}
+    for split in sorted({task.split for task in tasks}):
+        rows = [task for task in tasks if task.split == split]
+        path = root / f"{name}_{split}.jsonl.gz"
+        with gzip.open(path, "wt") as handle:
+            for task in rows:
+                handle.write(json.dumps(asdict(task), sort_keys=True) + "\n")
+        splits[split] = {
+            "path": path.name,
+            "sha256": _sha256_file(path),
+            "bytes": path.stat().st_size,
+            "records": len(rows),
+            "skeletons": len({task.skeleton for task in rows}),
+            "behaviours": len({task.behaviour for task in rows}),
+        }
+
+    inputs = {i for task in tasks for i in (*task.inputs, *task.held_out_inputs)}
+    manifest = {
+        "schema_version": SCHEMA_VERSION,
+        "corpus": name,
+        "basis": BASIS,
+        "generator": "wandering_light.stack_pbe",
+        "generator_description": (
+            "Behaviours are hand-written and paired with an independent Python "
+            "reference; inputs are sampled fresh per example; no task input "
+            "contains a quotation."
+        ),
+        "config": config,
+        "split_policy": "skeleton",
+        "catalogue": {
+            "behaviours": len(catalogue),
+            "skeletons": len({b.skeleton for b in catalogue}),
+            "digest": catalogue_digest(catalogue),
+        },
+        "counts": {
+            "tasks": len(tasks),
+            "shown_examples": sum(task.examples for task in tasks),
+            "held_out_examples": sum(task.held_out for task in tasks),
+            "distinct_input_stacks": len(inputs),
+        },
+        "splits": splits,
+    }
+    path = root / "manifest.json"
+    path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", "utf-8")
+    return path
+
+
 _TUPLE_FIELDS = (
     "inputs",
     "outputs",
@@ -964,8 +1057,25 @@ _TUPLE_FIELDS = (
 )
 
 
-def load(path: str) -> list[Task]:
-    """Read a corpus back. JSON has no tuples, so restore them on the way in."""
+def load(path: str | Path) -> list[Task]:
+    """Read a corpus back, from a single payload or from a corpus directory.
+
+    A directory is read through its manifest, so the split files it names are
+    the ones loaded and nothing else in the directory is picked up by accident.
+    """
+    target = Path(path)
+    if target.is_dir():
+        manifest = json.loads((target / "manifest.json").read_text())
+        return [
+            task
+            for split in sorted(manifest["splits"])
+            for task in load(target / manifest["splits"][split]["path"])
+        ]
+    return _load_payload(target)
+
+
+def _load_payload(path: Path) -> list[Task]:
+    """JSON has no tuples, so restore them on the way in."""
     with gzip.open(path, "rt") as handle:
         return [
             Task(
@@ -983,7 +1093,11 @@ def load(path: str) -> list[Task]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m wandering_light.stack_pbe")
-    parser.add_argument("--out", default="stack_pbe_v3.jsonl.gz")
+    parser.add_argument(
+        "--corpus-dir",
+        default=f"wandering_light/evals/data/{CORPUS_NAME}",
+        help="written as split payloads plus a manifest; payloads are not committed",
+    )
     parser.add_argument("--per-behaviour", type=int, default=40)
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--min-examples", type=int, default=3)
@@ -1015,14 +1129,23 @@ def main(argv: list[str] | None = None) -> int:
         max_examples=args.max_examples,
         held_out=args.held_out,
     )
-    with gzip.open(args.out, "wt") as handle:
-        for task in tasks:
-            handle.write(json.dumps(asdict(task), sort_keys=True) + "\n")
+    manifest = write_corpus(
+        tasks,
+        args.corpus_dir,
+        config={
+            "per_behaviour": args.per_behaviour,
+            "seed": args.seed,
+            "min_examples": args.min_examples,
+            "max_examples": args.max_examples,
+            "held_out": args.held_out,
+        },
+    )
 
     inputs = {i for task in tasks for i in (*task.inputs, *task.held_out_inputs)}
     splits = Counter(task.split for task in tasks)
     print(
-        f"wrote {len(tasks)} tasks to {args.out} in {time.time() - started:.1f}s",
+        f"wrote {len(tasks)} tasks under {args.corpus_dir} in "
+        f"{time.time() - started:.1f}s; manifest {manifest}",
         file=sys.stderr,
     )
     print(
@@ -1034,10 +1157,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     lengths = Counter(task.length for task in tasks)
     print(f"  witness lengths: {dict(sorted(lengths.items()))}", file=sys.stderr)
+    print(
+        f"  {len(CATALOGUE)} behaviours, "
+        f"{len({b.skeleton for b in CATALOGUE})} skeletons",
+        file=sys.stderr,
+    )
     for name, s in stats.items():
         print(
             f"  {name:<18} {s['kept']:>3} tasks, witness {s['length']:>2} ops, "
-            f"{s['split']}",
+            f"{s['witnesses']} witness(es), {s['split']}",
             file=sys.stderr,
         )
     return 0
