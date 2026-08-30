@@ -1,0 +1,6 @@
+{
+  "evaluation_output_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-issue-55/reports/materialized-rollout-20260829/test",
+  "selection_lock_sha256": "sha256:7e26de0ad73ccb57da9fa4182eba0a639f9c6f64728a1a8f22e4f79403916038",
+  "status": "held-out-test-scoring-started",
+  "test_scoring_started_at_utc": "2026-08-29T06:39:01.655506+00:00"
+}
