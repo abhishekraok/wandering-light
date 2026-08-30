@@ -42,18 +42,15 @@ from wandering_light.stack_pbe import (
     generate,
     load,
     run_program,
+    skeleton,
     to_stack,
     to_value,
     verify,
 )
 
-CORPUS = (
-    Path(__file__).resolve().parent.parent
-    / "wandering_light"
-    / "evals"
-    / "data"
-    / "stack_pbe_v3.jsonl.gz"
-)
+DATA = Path(__file__).resolve().parent.parent / "wandering_light" / "evals" / "data"
+CORPUS = DATA / "stack_pbe_v4.jsonl.gz"
+CORPUS_V3 = DATA / "stack_pbe_v3.jsonl.gz"
 
 
 @pytest.fixture(scope="module")
@@ -87,6 +84,7 @@ def test_witness_agrees_with_reference_on_fresh_data(behaviour):
     in two languages, on inputs the sampler chose after both were written.
     """
     assert verify(behaviour, trials=120, seed=1234) is None
+    assert len(behaviour.witnesses) == len(set(behaviour.witnesses))
 
 
 @pytest.mark.parametrize("behaviour", CATALOGUE, ids=lambda b: b.name)
@@ -112,7 +110,7 @@ def test_a_wrong_witness_is_caught():
     """The agreement check has to be able to fail, or it proves nothing."""
     from dataclasses import replace
 
-    broken = replace(BY_NAME["sum"], witness="1 [ add ] fold")
+    broken = replace(BY_NAME["sum"], witnesses=("1 [ add ] fold",))
     assert verify(broken, trials=50, seed=3) is not None
 
 
@@ -155,9 +153,7 @@ def test_build_task_rejects_an_output_its_witness_does_not_produce():
 
     rng = random.Random(2)
     drawn = draw_task(BY_NAME["sum"], rng, examples=3, held_out=2)
-    corrupted = replace(
-        drawn, shown_results=[r + 1 for r in drawn.shown_results]
-    )
+    corrupted = replace(drawn, shown_results=[r + 1 for r in drawn.shown_results])
     with pytest.raises(MachineError, match="disagree"):
         build_task(BY_NAME["sum"], corrupted)
 
@@ -173,12 +169,48 @@ def test_build_task_rejects_an_output_its_witness_does_not_produce():
 # --------------------------------------------------------------------------
 
 
-def test_split_is_on_the_behaviour_not_the_task():
-    """No behaviour may appear in both halves, whatever its data."""
+def test_split_is_on_the_skeleton_not_the_behaviour_or_the_task():
+    """Behaviours sharing a program shape must land on the same side."""
+    by_skeleton: dict[str, set[str]] = {}
     for behaviour in CATALOGUE:
-        assert assign_split(behaviour.name) in {"train", "eval"}
-    both = {b.name: assign_split(b.name) for b in CATALOGUE}
-    assert set(both.values()) == {"train", "eval"}
+        assert assign_split(behaviour.skeleton) in {"train", "eval"}
+        by_skeleton.setdefault(behaviour.skeleton, set()).add(
+            assign_split(behaviour.skeleton)
+        )
+    assert all(len(sides) == 1 for sides in by_skeleton.values())
+    assert set().union(*by_skeleton.values()) == {"train", "eval"}
+
+
+def test_skeleton_blanks_literals_and_interchangeable_ops():
+    """`keep_zeros` and `keep_negative` are two functions of one shape."""
+    assert BY_NAME["keep_zeros"].skeleton == BY_NAME["keep_negative"].skeleton
+    assert skeleton(("[", "0", "eq?", "]", "filter")) == "[ _ _ ] filter"
+    assert BY_NAME["sum"].skeleton != BY_NAME["reverse"].skeleton
+    assert assign_split(BY_NAME["keep_zeros"].skeleton) == assign_split(
+        BY_NAME["keep_negative"].skeleton
+    )
+
+
+def test_every_witness_of_a_behaviour_is_checked():
+    """An alternative that is subtly wrong must not ride along on the first."""
+    from dataclasses import replace
+
+    behaviour = BY_NAME["sum"]
+    assert len(behaviour.witnesses) > 1
+    broken = replace(behaviour, witnesses=(behaviour.witness, "1 [ add ] fold"))
+    assert verify(broken, trials=80, seed=1) is not None
+
+
+def test_a_bare_string_of_witnesses_is_refused():
+    """`witnesses="add"` would iterate characters. Fail loudly instead."""
+    from dataclasses import replace
+
+    from wandering_light.stack_machine import MachineError
+
+    with pytest.raises(MachineError, match="tuple of programs"):
+        replace(BY_NAME["sum"], witnesses="0 [ add ] fold")
+    with pytest.raises(MachineError, match="at least one"):
+        replace(BY_NAME["sum"], witnesses=())
 
 
 @pytest.mark.parametrize("seed", ["0", "1", "31337"])
@@ -187,7 +219,7 @@ def test_split_does_not_depend_on_pythonhashseed(seed):
     script = """
 import json
 from wandering_light.stack_pbe import CATALOGUE, assign_split
-print(json.dumps({b.name: assign_split(b.name) for b in CATALOGUE}))
+print(json.dumps({b.name: assign_split(b.skeleton) for b in CATALOGUE}))
 """
     result = subprocess.run(
         [sys.executable, "-c", script],
@@ -196,7 +228,7 @@ print(json.dumps({b.name: assign_split(b.name) for b in CATALOGUE}))
         check=True,
         env={**os.environ, "PYTHONHASHSEED": seed},
     )
-    expected = {b.name: assign_split(b.name) for b in CATALOGUE}
+    expected = {b.name: assign_split(b.skeleton) for b in CATALOGUE}
     assert json.loads(result.stdout) == expected
 
 
@@ -254,11 +286,48 @@ def test_corpus_data_is_varied(tasks):
     assert len({tuple(task.inputs) for task in tasks}) == len(tasks)
 
 
-def test_no_behaviour_spans_both_splits(tasks):
-    by_behaviour: dict[str, set[str]] = {}
+def test_no_behaviour_or_skeleton_spans_both_splits(tasks):
+    for key in ("behaviour", "skeleton"):
+        grouped: dict[str, set[str]] = {}
+        for task in tasks:
+            grouped.setdefault(getattr(task, key), set()).add(task.split)
+        assert all(len(splits) == 1 for splits in grouped.values()), key
+
+
+def test_shown_examples_never_hold_list_length_fixed(tasks):
+    """The hole that produced v3's one repeated memorisation, closed."""
     for task in tasks:
-        by_behaviour.setdefault(task.behaviour, set()).add(task.split)
-    assert all(len(splits) == 1 for splits in by_behaviour.values())
+        shapes = {
+            tuple(
+                len(v.items)
+                for v in parse_stack(text, basis=BASIS)
+                if isinstance(v, Lst)
+            )
+            for text in task.inputs
+        }
+        if next(iter(shapes)):
+            assert len(shapes) > 1, task.behaviour
+
+
+def test_alternative_programs_also_solve_their_task(tasks):
+    """They are labels too, so they get executed like the canonical one."""
+    checked = 0
+    for task in tasks:
+        for program in task.alternative_programs:
+            for given, wanted in zip(task.inputs, task.outputs, strict=True):
+                outcome = run_program(program, parse_stack(given, basis=BASIS))
+                assert not isinstance(outcome, str), f"{task.behaviour}: {outcome}"
+                want = parse_stack(wanted, basis=BASIS)
+                assert tuple(map(value_key, outcome[0])) == tuple(map(value_key, want))
+            checked += 1
+    assert checked > 0
+
+
+def test_a_schema_1_corpus_still_loads():
+    """v3 is quoted by STATUS and by two reports; it must stay readable."""
+    old = load(str(CORPUS_V3))
+    assert old and {t.schema_version for t in old} == {1}
+    assert all(t.skeleton == "" and t.alternative_programs == () for t in old)
 
 
 def test_corpus_round_trips_through_load(tmp_path):
@@ -325,7 +394,7 @@ def test_executable_26_reaches_no_executable_quotation_from_data():
 def test_check_reports_the_input_it_disagreed_on():
     from dataclasses import replace
 
-    broken = replace(BY_NAME["reverse"], witness="nil [ swap cons ] fold")
+    broken = replace(BY_NAME["reverse"], witnesses=("nil [ swap cons ] fold",))
     bad = check(broken, ([1, 2, 3],))
     assert bad is not None
     assert bad.args == ([1, 2, 3],)

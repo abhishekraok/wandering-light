@@ -65,7 +65,7 @@ from wandering_light.stack_machine import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 # Forced by the design, not preferred: see the module docstring.
 BASIS = "mark-28"
@@ -126,18 +126,46 @@ def run_program(
 # ---------------------------------------------------------------------------
 
 
+# Ops that carry no structure: the literals a program can push, and the
+# arithmetic and predicates that are interchangeable with one another. Blanking
+# them turns a witness into its *shape*, which is what `skeleton` is for.
+INTERCHANGEABLE = frozenset(
+    {"0", "1", "add", "sub", "mul", "div", "eq?", "lt?", "null?"}
+)
+
+
+def skeleton(program: Sequence[str]) -> str:
+    """A witness with its literals and interchangeable ops blanked out.
+
+    `keep_zeros` is `[ 0 eq? ] filter` and `keep_negative` is `[ 0 lt? ]
+    filter`. Two different functions, one shape. Counting behaviours therefore
+    overstates how much a corpus contains, and splitting on behaviours leaks:
+    a solver that learns the shape in train gets its siblings in eval for free.
+
+    This is the unit the catalogue is sized and split by. Behaviour count is
+    reported alongside it, never instead of it.
+    """
+    return " ".join("_" if op in INTERCHANGEABLE else op for op in program)
+
+
 @dataclass(frozen=True)
 class Behaviour:
-    """One hand-written problem: what it computes, and a program that does.
+    """One hand-written problem: what it computes, and programs that do.
 
-    ``reference`` and ``witness`` are two independent statements of the same
+    ``reference`` and ``witnesses`` are independent statements of the same
     function. ``verify`` checks them against each other on fresh data, which is
-    the only reason to trust either.
+    the only reason to trust any of them.
+
+    ``witnesses`` is a tuple because a behaviour usually has more than one
+    correct program -- `sum` is both `0 [ add ] fold` and `uncons [ add ]
+    fold`. Recording only one makes a corpus look like it has a single right
+    answer per task, which is false, and invites scoring a solver on string
+    match. Every witness is verified; the first is the canonical label.
     """
 
     name: str
     summary: str
-    witness: str
+    witnesses: tuple[str, ...]
     sample: Callable[[random.Random], Args]
     reference: Callable[..., Result]
     tags: frozenset[str] = field(default_factory=frozenset)
@@ -145,13 +173,32 @@ class Behaviour:
     # examples can be jointly uninformative in a way the generic guards miss.
     accept: Callable[[list[Args], list[Result]], bool] | None = None
 
+    def __post_init__(self) -> None:
+        if isinstance(self.witnesses, str):  # a bare string is a silent bug
+            raise MachineError(f"{self.name}: witnesses must be a tuple of programs")
+        if not self.witnesses:
+            raise MachineError(f"{self.name}: needs at least one witness")
+
+    @property
+    def witness(self) -> str:
+        """The canonical program. Shortest first is a convention, not a claim."""
+        return self.witnesses[0]
+
     @property
     def program(self) -> tuple[str, ...]:
         return tuple(self.witness.split())
 
     @property
+    def programs(self) -> tuple[tuple[str, ...], ...]:
+        return tuple(tuple(w.split()) for w in self.witnesses)
+
+    @property
     def length(self) -> int:
         return len(self.program)
+
+    @property
+    def skeleton(self) -> str:
+        return skeleton(self.program)
 
 
 def _draw(rng: random.Random, pool: Sequence[int], lo: int, hi: int) -> list[int]:
@@ -205,7 +252,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="add_pair",
         summary="add two numbers",
-        witness="add",
+        witnesses=("add",),
         sample=_pair(SMALL),
         reference=lambda a, b: a + b,
         tags=frozenset({"scalar"}),
@@ -213,7 +260,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="max_pair",
         summary="the larger of two numbers",
-        witness="[ over lt? ] [ drop ] [ swap drop ] ifte",
+        witnesses=("[ over lt? ] [ drop ] [ swap drop ] ifte",),
         sample=_pair(SMALL),
         reference=lambda a, b: max(a, b),
         tags=frozenset({"scalar", "branch"}),
@@ -221,7 +268,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="abs_diff_pair",
         summary="how far apart two numbers are",
-        witness="sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte",
+        witnesses=("sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte",),
         sample=_pair(SMALL),
         reference=lambda a, b: abs(a - b),
         tags=frozenset({"scalar", "branch"}),
@@ -230,7 +277,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="double_each",
         summary="double every element",
-        witness="[ dup add ] map",
+        witnesses=("[ dup add ] map", "[ 1 1 add mul ] map"),
         sample=_list_of(SMALL),
         reference=lambda xs: [x + x for x in xs],
         tags=frozenset({"map"}),
@@ -238,7 +285,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="increment_each",
         summary="add one to every element",
-        witness="[ 1 add ] map",
+        witnesses=("[ 1 add ] map", "[ 1 swap add ] map"),
         sample=_list_of(SMALL),
         reference=lambda xs: [x + 1 for x in xs],
         tags=frozenset({"map"}),
@@ -246,7 +293,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="square_each",
         summary="square every element",
-        witness="[ dup mul ] map",
+        witnesses=("[ dup mul ] map",),
         sample=_list_of(SMALL),
         reference=lambda xs: [x * x for x in xs],
         tags=frozenset({"map"}),
@@ -254,7 +301,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="negate_each",
         summary="flip the sign of every element",
-        witness="[ 0 swap sub ] map",
+        witnesses=("[ 0 swap sub ] map", "[ 0 1 sub mul ] map"),
         sample=_list_of(SMALL),
         reference=lambda xs: [-x for x in xs],
         tags=frozenset({"map"}),
@@ -262,7 +309,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="halve_each",
         summary="halve every element, rounding down",
-        witness="[ 1 1 add div ] map",
+        witnesses=("[ 1 1 add div ] map",),
         sample=_list_of(SMALL),
         reference=lambda xs: [x // 2 for x in xs],
         tags=frozenset({"map"}),
@@ -270,7 +317,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="abs_each",
         summary="take the magnitude of every element",
-        witness="[ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map",
+        witnesses=("[ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map",),
         sample=_list_of(MIXED),
         reference=lambda xs: [abs(x) for x in xs],
         tags=frozenset({"map", "branch"}),
@@ -278,7 +325,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="parity_each",
         summary="replace every element by its remainder mod two",
-        witness="[ dup 1 1 add div 1 1 add mul sub ] map",
+        witnesses=("[ dup 1 1 add div 1 1 add mul sub ] map",),
         sample=_list_of(SMALL),
         reference=lambda xs: [x - 2 * (x // 2) for x in xs],
         tags=frozenset({"map"}),
@@ -287,7 +334,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="reverse",
         summary="reverse the list",
-        witness="nil [ cons ] fold",
+        witnesses=("nil [ cons ] fold",),
         sample=_list_of(SMALL),
         reference=lambda xs: list(reversed(xs)),
         tags=frozenset({"fold"}),
@@ -295,7 +342,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="tail",
         summary="drop the first element",
-        witness="uncons drop",
+        witnesses=("uncons drop",),
         sample=_list_of(SMALL),
         reference=lambda xs: xs[1:],
         tags=frozenset({"first-order"}),
@@ -303,10 +350,10 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="prefix_sums",
         summary="running total of the list so far, one entry per element",
-        witness=(
+        witnesses=(
             "nil "
             "[ [ over null? ] [ cons ] [ over uncons swap drop add cons ] ifte ] fold "
-            "nil [ cons ] fold"
+            "nil [ cons ] fold",
         ),
         sample=_list_of(SMALL),
         reference=lambda xs: [sum(xs[: i + 1]) for i in range(len(xs))],
@@ -316,7 +363,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="keep_zeros",
         summary="keep only the zeros",
-        witness="[ 0 eq? ] filter",
+        witnesses=("[ 0 eq? ] filter",),
         sample=_list_of(SPARSE),
         reference=lambda xs: [x for x in xs if x == 0],
         tags=frozenset({"filter"}),
@@ -325,7 +372,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="keep_negative",
         summary="keep only the negative numbers",
-        witness="[ 0 lt? ] filter",
+        witnesses=("[ 0 lt? ] filter",),
         sample=_list_of(MIXED),
         reference=lambda xs: [x for x in xs if x < 0],
         tags=frozenset({"filter"}),
@@ -334,7 +381,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="keep_positive",
         summary="keep only the positive numbers",
-        witness="[ 0 swap lt? ] filter",
+        witnesses=("[ 0 swap lt? ] filter",),
         sample=_list_of(MIXED),
         reference=lambda xs: [x for x in xs if x > 0],
         tags=frozenset({"filter"}),
@@ -343,7 +390,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="keep_evens",
         summary="keep only the even numbers",
-        witness="[ dup 1 1 add div 1 1 add mul sub 0 eq? ] filter",
+        witnesses=("[ dup 1 1 add div 1 1 add mul sub 0 eq? ] filter",),
         sample=_list_of(SMALL),
         reference=lambda xs: [x for x in xs if _even(x)],
         tags=frozenset({"filter"}),
@@ -353,7 +400,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="sum",
         summary="add the list up",
-        witness="0 [ add ] fold",
+        witnesses=("0 [ add ] fold", "uncons [ add ] fold"),
         sample=_list_of(SMALL),
         reference=lambda xs: sum(xs),
         tags=frozenset({"fold"}),
@@ -361,7 +408,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="product",
         summary="multiply the list together",
-        witness="1 [ mul ] fold",
+        witnesses=("1 [ mul ] fold", "uncons [ mul ] fold"),
         sample=_list_of(MIXED, lo=2, hi=4),
         reference=lambda xs: math.prod(xs),
         tags=frozenset({"fold"}),
@@ -369,7 +416,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="length",
         summary="how many elements the list has",
-        witness="0 [ drop 1 add ] fold",
+        witnesses=("0 [ drop 1 add ] fold", "[ drop 1 ] map 0 [ add ] fold"),
         sample=_list_of(SMALL, lo=1, hi=7),
         reference=lambda xs: len(xs),
         tags=frozenset({"fold"}),
@@ -377,7 +424,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="head",
         summary="the first element",
-        witness="uncons swap drop",
+        witnesses=("uncons swap drop",),
         sample=_list_of(SMALL),
         reference=lambda xs: xs[0],
         tags=frozenset({"first-order"}),
@@ -385,7 +432,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="last",
         summary="the last element",
-        witness="0 [ swap drop ] fold",
+        witnesses=("0 [ swap drop ] fold", "nil [ cons ] fold uncons swap drop"),
         sample=_list_of(SMALL),
         reference=lambda xs: xs[-1],
         tags=frozenset({"fold"}),
@@ -393,7 +440,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="maximum",
         summary="the largest element",
-        witness="uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+        witnesses=("uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",),
         sample=_list_of(SMALL),
         reference=lambda xs: max(xs),
         tags=frozenset({"fold", "branch"}),
@@ -401,7 +448,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="minimum",
         summary="the smallest element",
-        witness="uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold",
+        witnesses=("uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold",),
         sample=_list_of(SMALL),
         reference=lambda xs: min(xs),
         tags=frozenset({"fold", "branch"}),
@@ -409,7 +456,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="mean",
         summary="the average of the list, rounded down",
-        witness="dup 0 [ add ] fold swap 0 [ drop 1 add ] fold div",
+        witnesses=("dup 0 [ add ] fold swap 0 [ drop 1 add ] fold div",),
         sample=_list_of(POSITIVE),
         reference=lambda xs: sum(xs) // len(xs),
         tags=frozenset({"fold"}),
@@ -417,9 +464,9 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="span",
         summary="the gap between the largest and smallest element",
-        witness=(
+        witnesses=(
             "dup uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold "
-            "swap uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold sub"
+            "swap uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold sub",
         ),
         sample=_list_of(SMALL),
         reference=lambda xs: max(xs) - min(xs),
@@ -428,7 +475,9 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="sum_of_squares",
         summary="square every element, then add them up",
-        witness="[ dup mul ] map 0 [ add ] fold",
+        # The map/fold pair reads more naturally and is three ops longer; a
+        # single fold that squares as it accumulates is the shorter program.
+        witnesses=("0 [ dup mul add ] fold", "[ dup mul ] map 0 [ add ] fold"),
         sample=_list_of(SMALL),
         reference=lambda xs: sum(x * x for x in xs),
         tags=frozenset({"map", "fold"}),
@@ -436,7 +485,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="sum_positive",
         summary="add up only the positive numbers",
-        witness="[ 0 swap lt? ] filter 0 [ add ] fold",
+        witnesses=("[ 0 swap lt? ] filter 0 [ add ] fold",),
         sample=_list_of(MIXED),
         reference=lambda xs: sum(x for x in xs if x > 0),
         tags=frozenset({"filter", "fold"}),
@@ -444,7 +493,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="count_zeros",
         summary="how many zeros the list has",
-        witness="[ 0 eq? ] filter 0 [ drop 1 add ] fold",
+        witnesses=("[ 0 eq? ] filter 0 [ drop 1 add ] fold",),
         sample=_list_of(SPARSE),
         reference=lambda xs: sum(1 for x in xs if x == 0),
         tags=frozenset({"filter", "fold"}),
@@ -452,7 +501,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="count_negative",
         summary="how many negative numbers the list has",
-        witness="[ 0 lt? ] filter 0 [ drop 1 add ] fold",
+        witnesses=("[ 0 lt? ] filter 0 [ drop 1 add ] fold",),
         sample=_list_of(MIXED),
         reference=lambda xs: sum(1 for x in xs if x < 0),
         tags=frozenset({"filter", "fold"}),
@@ -460,8 +509,8 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="count_evens",
         summary="how many even numbers the list has",
-        witness=(
-            "[ dup 1 1 add div 1 1 add mul sub 0 eq? ] filter 0 [ drop 1 add ] fold"
+        witnesses=(
+            "[ dup 1 1 add div 1 1 add mul sub 0 eq? ] filter 0 [ drop 1 add ] fold",
         ),
         sample=_list_of(SMALL),
         reference=lambda xs: sum(1 for x in xs if _even(x)),
@@ -471,7 +520,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="scale_by",
         summary="multiply every element by the given number",
-        witness="[ mul ] swap cons map",
+        witnesses=("[ mul ] swap cons map",),
         sample=_list_and_int(SMALL, POSITIVE),
         reference=lambda xs, n: [x * n for x in xs],
         tags=frozenset({"map", "closure"}),
@@ -479,7 +528,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="add_to_each",
         summary="add the given number to every element",
-        witness="[ add ] swap cons map",
+        witnesses=("[ add ] swap cons map",),
         sample=_list_and_int(SMALL, SMALL),
         reference=lambda xs, n: [x + n for x in xs],
         tags=frozenset({"map", "closure"}),
@@ -487,7 +536,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="n_minus_each",
         summary="subtract every element from the given number",
-        witness="[ swap sub ] swap cons map",
+        witnesses=("[ swap sub ] swap cons map",),
         sample=_list_and_int(SMALL, SMALL),
         reference=lambda xs, n: [n - x for x in xs],
         tags=frozenset({"map", "closure"}),
@@ -495,7 +544,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="keep_below",
         summary="keep the elements smaller than the given number",
-        witness="[ lt? ] swap cons filter",
+        witnesses=("[ lt? ] swap cons filter",),
         sample=_list_and_int(SMALL, SMALL),
         reference=lambda xs, n: [x for x in xs if x < n],
         tags=frozenset({"filter", "closure"}),
@@ -504,7 +553,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="keep_above",
         summary="keep the elements larger than the given number",
-        witness="[ swap lt? ] swap cons filter",
+        witnesses=("[ swap lt? ] swap cons filter",),
         sample=_list_and_int(SMALL, SMALL),
         reference=lambda xs, n: [x for x in xs if x > n],
         tags=frozenset({"filter", "closure"}),
@@ -513,7 +562,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="count_equal",
         summary="how many times the given number appears",
-        witness="[ eq? ] swap cons filter 0 [ drop 1 add ] fold",
+        witnesses=("[ eq? ] swap cons filter 0 [ drop 1 add ] fold",),
         sample=_list_and_int(SPARSE, SPARSE),
         reference=lambda xs, n: sum(1 for x in xs if x == n),
         tags=frozenset({"filter", "fold", "closure"}),
@@ -521,7 +570,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="push_front",
         summary="put the given number on the front of the list",
-        witness="cons",
+        witnesses=("cons",),
         sample=_list_and_int(SMALL, SMALL),
         reference=lambda xs, n: [n, *xs],
         tags=frozenset({"first-order"}),
@@ -530,7 +579,7 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="append",
         summary="join the two lists end to end",
-        witness="cat",
+        witnesses=("cat",),
         sample=_two_lists(SMALL),
         reference=lambda xs, ys: [*xs, *ys],
         tags=frozenset({"first-order"}),
@@ -538,7 +587,10 @@ CATALOGUE: tuple[Behaviour, ...] = (
     Behaviour(
         name="sum_both",
         summary="add up the numbers in both lists",
-        witness="cat 0 [ add ] fold",
+        witnesses=(
+            "cat 0 [ add ] fold",
+            "0 [ add ] fold swap 0 [ add ] fold add",
+        ),
         sample=_two_lists(SMALL),
         reference=lambda xs, ys: sum(xs) + sum(ys),
         tags=frozenset({"fold"}),
@@ -563,9 +615,11 @@ class Mismatch:
     got: str
 
 
-def apply_witness(behaviour: Behaviour, args: Args) -> tuple[Value, ...] | str:
-    """Run the witness and require it to leave exactly one value."""
-    outcome = run_program(behaviour.program, to_stack(args))
+def apply_witness(
+    behaviour: Behaviour, args: Args, program: tuple[str, ...] | None = None
+) -> tuple[Value, ...] | str:
+    """Run a witness and require it to leave exactly one value."""
+    outcome = run_program(program or behaviour.program, to_stack(args))
     if isinstance(outcome, str):
         return outcome
     stack, _fuel = outcome
@@ -574,10 +628,12 @@ def apply_witness(behaviour: Behaviour, args: Args) -> tuple[Value, ...] | str:
     return stack
 
 
-def check(behaviour: Behaviour, args: Args) -> Mismatch | None:
-    """Whether the witness reproduces the reference on one input."""
+def check(
+    behaviour: Behaviour, args: Args, program: tuple[str, ...] | None = None
+) -> Mismatch | None:
+    """Whether a witness reproduces the reference on one input."""
     want = (to_value(behaviour.reference(*args)),)
-    got = apply_witness(behaviour, args)
+    got = apply_witness(behaviour, args, program)
     if isinstance(got, str):
         return Mismatch(behaviour.name, args, format_stack(Config(want)), got)
     if tuple(value_key(v) for v in got) != tuple(value_key(v) for v in want):
@@ -592,12 +648,17 @@ def verify(behaviour: Behaviour, trials: int, seed: int) -> Mismatch | None:
 
     This is the whole guarantee. Neither statement of the behaviour is
     privileged: they were written separately, and agreement on data neither of
-    them chose is the evidence that the task is labelled correctly.
+    them chose is the evidence that the task is labelled correctly. *Every*
+    witness is checked, so an alternative program that is subtly wrong -- right
+    on the shapes its author had in mind, wrong elsewhere -- cannot ride along
+    on the canonical one.
     """
     rng = random.Random(seed)
     for _ in range(trials):
-        if (bad := check(behaviour, behaviour.sample(rng))) is not None:
-            return bad
+        args = behaviour.sample(rng)
+        for program in behaviour.programs:
+            if (bad := check(behaviour, args, program)) is not None:
+                return bad
     return None
 
 
@@ -645,6 +706,9 @@ class Task:
     held_out: int
     fuel: int
     tags: tuple[str, ...]
+    # Defaults so a corpus written under schema 1 still loads.
+    skeleton: str = ""
+    alternative_programs: tuple[tuple[str, ...], ...] = ()
     basis: str = BASIS
     witness_source: str = "authored"
     schema_version: int = SCHEMA_VERSION
@@ -655,17 +719,23 @@ def _bucket(payload: str) -> str:
     return "train" if int(digest[:8], 16) % 100 < TRAIN_FRACTION else "eval"
 
 
-def assign_split(behaviour: str) -> str:
-    """Split on the *behaviour*, so no behaviour appears in both halves.
+def assign_split(skeleton_key: str) -> str:
+    """Split on the *skeleton*, so no program shape appears in both halves.
 
-    Splitting on the task -- which is what the previous corpus did -- leaves
-    the same behaviour on both sides of the boundary with different data. That
-    measures whether a solver can redo a problem it has already seen on fresh
-    inputs, which is a much weaker question than the one PBE is for. The
-    task-level split is still recorded as ``task_hash_split`` so the older
-    protocol stays reproducible.
+    Three units were available and the choice matters more than it looks.
+    Splitting on the *task* -- what `stack_pbe_v2` did -- leaves the same
+    behaviour on both sides with different data, which asks only whether a
+    solver can redo a problem it has seen. Splitting on the *behaviour* fixes
+    that but still leaks: `keep_zeros` and `keep_negative` are one shape,
+    `[ _ _ ] filter`, so learning either hands over the other.
+
+    Splitting on the skeleton closes both. It is the conservative choice --
+    `sum` and `product` land on the same side, which costs some eval mass --
+    and it is the only one under which a held-out score means the solver met a
+    shape it had not been shown. The task-level rule stays available as
+    ``task_hash_split`` so the older protocol remains reproducible.
     """
-    return _bucket(behaviour)
+    return _bucket(skeleton_key)
 
 
 def assign_task_hash_split(inputs: tuple[str, ...], outputs: tuple[str, ...]) -> str:
@@ -679,6 +749,25 @@ def encode_task(task: Task) -> dict[str, str]:
         for given, wanted in zip(task.inputs, task.outputs, strict=True)
     )
     return {"prompt": f"{pairs} =>", "completion": " " + " ".join(task.program)}
+
+
+def _lengths_vary(stacks: list[tuple[Value, ...]]) -> bool:
+    """Reject example sets where every list is the same length.
+
+    Measured, not hypothetical. On `stack_pbe_v3` a `last` task drew three
+    two-element lists, and BFS answered `uncons drop i` -- drop the head, then
+    run the one-element tail *as a program*. That is `last` only at length two,
+    and it was the corpus's single most-repeated memorisation. Examples that
+    hold list length fixed cannot distinguish a program that uses the length
+    from one that does not.
+
+    Vacuously true when no input carries a list, which is the scalar
+    behaviours.
+    """
+    shapes = {
+        tuple(len(v.items) for v in stack if isinstance(v, Lst)) for stack in stacks
+    }
+    return len(next(iter(shapes))) == 0 or len(shapes) > 1
 
 
 def _informative(
@@ -764,6 +853,8 @@ def draw_task(
             continue
         if not _informative(shown, results, stacks):
             continue
+        if not _lengths_vary(stacks):
+            continue
         if behaviour.accept is not None and not behaviour.accept(shown, results):
             continue
         hidden = _draw_distinct(behaviour, rng, held_out, seen, attempts)
@@ -809,7 +900,7 @@ def build_task(behaviour: Behaviour, drawn: Drawn) -> Task:
     return Task(
         behaviour=behaviour.name,
         summary=behaviour.summary,
-        split=assign_split(behaviour.name),
+        split=assign_split(behaviour.skeleton),
         task_hash_split=assign_task_hash_split(encoded_in, encoded_out),
         inputs=encoded_in,
         outputs=encoded_out,
@@ -821,6 +912,8 @@ def build_task(behaviour: Behaviour, drawn: Drawn) -> Task:
         held_out=len(drawn.held_out),
         fuel=fuel,
         tags=tuple(sorted(behaviour.tags)),
+        skeleton=behaviour.skeleton,
+        alternative_programs=behaviour.programs[1:],
     )
 
 
@@ -854,7 +947,9 @@ def generate(
         stats[behaviour.name] = {
             "kept": made,
             "length": behaviour.length,
-            "split": assign_split(behaviour.name),
+            "witnesses": len(behaviour.witnesses),
+            "skeleton": behaviour.skeleton,
+            "split": assign_split(behaviour.skeleton),
         }
     return tasks, stats
 
@@ -873,7 +968,15 @@ def load(path: str) -> list[Task]:
     """Read a corpus back. JSON has no tuples, so restore them on the way in."""
     with gzip.open(path, "rt") as handle:
         return [
-            Task(**{**row, **{f: tuple(row[f]) for f in _TUPLE_FIELDS}})
+            Task(
+                **{
+                    **row,
+                    **{f: tuple(row[f]) for f in _TUPLE_FIELDS},
+                    "alternative_programs": tuple(
+                        tuple(p) for p in row.get("alternative_programs", ())
+                    ),
+                }
+            )
             for row in map(json.loads, handle)
         ]
 

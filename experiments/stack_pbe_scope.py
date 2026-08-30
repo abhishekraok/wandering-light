@@ -78,6 +78,7 @@ def main(argv: list[str] | None = None) -> int:
         "corpus": args.corpus,
         "tasks": n,
         "behaviours": len({task.behaviour for task in tasks}),
+        "skeletons": len({task.skeleton for task in tasks if task.skeleton}),
         "distinct_input_stacks": len(shown | hidden),
         "distinct_shown_input_stacks": len(shown),
         "distinct_input_sets": len(input_sets),
@@ -97,7 +98,10 @@ def main(argv: list[str] | None = None) -> int:
         "median_fuel": statistics.median(task.fuel for task in tasks),
     }
 
-    print(f"{args.corpus}: {n:,} tasks over {stats['behaviours']} behaviours\n")
+    print(
+        f"{args.corpus}: {n:,} tasks over {stats['behaviours']} behaviours "
+        f"and {stats['skeletons']} distinct skeletons\n"
+    )
     rows = [
         ("distinct input stacks", stats["distinct_input_stacks"], V2["distinct_input_stacks"]),
         ("distinct input sets (one per task)", stats["distinct_input_sets"], V2["distinct_input_stacks"]),
@@ -129,15 +133,27 @@ def main(argv: list[str] | None = None) -> int:
 
     splits = Counter(task.split for task in tasks)
     by_split: dict[str, set[str]] = {}
+    shapes: dict[str, set[str]] = {}
     for task in tasks:
         by_split.setdefault(task.split, set()).add(task.behaviour)
-    print(f"\nsplit is on the behaviour, so no behaviour spans both halves:")
+        shapes.setdefault(task.split, set()).add(task.skeleton)
+    print("\nsplit is on the skeleton, so no program shape spans both halves:")
     for name in sorted(by_split):
         print(
-            f"  {name:<6}{splits[name]:>6,} tasks  {len(by_split[name]):>3} behaviours  "
-            f"{', '.join(sorted(by_split[name]))}"
+            f"  {name:<6}{splits[name]:>6,} tasks  {len(shapes[name]):>3} skeletons  "
+            f"{len(by_split[name]):>3} behaviours  {', '.join(sorted(by_split[name]))}"
         )
-    print(f"  overlap: {sorted(by_split.get('train', set()) & by_split.get('eval', set()))}")
+    print(
+        f"  behaviour overlap: "
+        f"{sorted(by_split.get('train', set()) & by_split.get('eval', set()))}"
+    )
+    print(
+        f"  skeleton overlap:  "
+        f"{sorted(shapes.get('train', set()) & shapes.get('eval', set()))}"
+    )
+
+    witnesses = Counter(1 + len(task.alternative_programs) for task in tasks)
+    print(f"\nwitnesses per task: {dict(sorted(witnesses.items()))}")
 
     missing = {b.name for b in CATALOGUE} - {task.behaviour for task in tasks}
     if missing:
