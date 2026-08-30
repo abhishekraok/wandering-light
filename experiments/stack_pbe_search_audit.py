@@ -122,9 +122,7 @@ def audit_one(task: Task, depth: int, basis: str) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--corpus", default="wandering_light/evals/data/stack_pbe_v4"
-    )
+    parser.add_argument("--corpus", default="wandering_light/evals/data/stack_pbe_v4")
     parser.add_argument("--depth", type=int, default=4)
     parser.add_argument("--tasks", type=int, default=40)
     parser.add_argument("--seed", type=int, default=17)
@@ -175,7 +173,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.out:
         with open(args.out, "w") as handle:
             json.dump(
-                {"depth": args.depth, "basis": args.basis, "rows": rows}, handle, indent=2
+                {"depth": args.depth, "basis": args.basis, "rows": rows},
+                handle,
+                indent=2,
             )
         print(f"wrote {args.out}")
     return 0

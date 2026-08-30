@@ -192,9 +192,7 @@ def test_probe_enables_non_reentrant_gradient_checkpointing():
     )
 
     assert model.config.use_cache is False
-    assert calls == [
-        {"gradient_checkpointing_kwargs": {"use_reentrant": False}}
-    ]
+    assert calls == [{"gradient_checkpointing_kwargs": {"use_reentrant": False}}]
 
 
 def test_step_projection_covers_every_lr_pilot_and_final_epoch_cap():

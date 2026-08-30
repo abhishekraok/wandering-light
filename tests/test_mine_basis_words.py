@@ -75,9 +75,7 @@ def reachable_rules(grammar: Sequitur) -> set:
         if rule in seen:
             continue
         seen.add(rule)
-        stack.extend(
-            symbol.rule for symbol in rule.body() if symbol.rule is not None
-        )
+        stack.extend(symbol.rule for symbol in rule.body() if symbol.rule is not None)
     return seen
 
 
@@ -227,17 +225,11 @@ class TestMdlDelta:
 
     def test_rejects_impossible_inputs(self):
         with pytest.raises(ValueError):
-            mdl_delta_bits(
-                total_ops=100, basis_size=10, occurrences=1, word_length=1
-            )
+            mdl_delta_bits(total_ops=100, basis_size=10, occurrences=1, word_length=1)
         with pytest.raises(ValueError):
-            mdl_delta_bits(
-                total_ops=100, basis_size=10, occurrences=-1, word_length=2
-            )
+            mdl_delta_bits(total_ops=100, basis_size=10, occurrences=-1, word_length=2)
         with pytest.raises(ValueError):
-            mdl_delta_bits(
-                total_ops=10, basis_size=10, occurrences=100, word_length=2
-            )
+            mdl_delta_bits(total_ops=10, basis_size=10, occurrences=100, word_length=2)
 
 
 class TestOccurrenceCounting:

@@ -654,9 +654,7 @@ def _study_identity_for_run(
         architecture=resolved.identity_dict(),
         corpus_manifest_digest=data.corpus_manifest["manifest_digest"],
         tokenizer_artifact_digest=data.tokenizer_manifest["artifact_digest"],
-        retained_training_task_ids_digest=data.train_audit[
-            "retained_task_ids_digest"
-        ],
+        retained_training_task_ids_digest=data.train_audit["retained_task_ids_digest"],
         per_device_batch_size=protocol["per_device_train_batch_size"],
         gradient_accumulation_steps=protocol["gradient_accumulation_steps"],
         max_length=protocol["max_length"],
@@ -1045,11 +1043,11 @@ def _run_cuda_training(
 ) -> dict[str, Any]:
     configure_deterministic_cuda_environment()
     import torch
+    import wandb
     from datasets import Dataset
     from transformers import PreTrainedTokenizerFast
     from trl import SFTTrainer
 
-    import wandb
     from experiments.probe_deep_corpus_v2_scratch import (
         NvidiaSmiGpuMemorySampler,
     )

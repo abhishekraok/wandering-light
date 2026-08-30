@@ -98,7 +98,11 @@ def test_every_provider_is_reachable_by_name():
     """The four backends exist and take a model name. No key needed to check."""
     import wandering_light.solver as solver_module
 
-    for name in ("OpenAITokenGenerator", "GeminiTokenGenerator", "OllamaTokenGenerator"):
+    for name in (
+        "OpenAITokenGenerator",
+        "GeminiTokenGenerator",
+        "OllamaTokenGenerator",
+    ):
         assert hasattr(solver_module, name)
     generator = solver_module.AnthropicTokenGenerator("claude-opus-5", effort="low")
     assert generator.model == "claude-opus-5"

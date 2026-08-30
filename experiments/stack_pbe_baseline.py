@@ -42,7 +42,7 @@ from wandering_light.stack_machine import (
     value_key,
 )
 from wandering_light.stack_pbe import BASIS, Task, load
-from wandering_light.stack_pbe_eval import Score, best, grade, summarise
+from wandering_light.stack_pbe_eval import Score, best, summarise
 
 OPS = ops_for_basis(BASIS)
 
@@ -208,9 +208,7 @@ def solve_with_llm(task: Task, generator, samples: int) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--corpus", default="wandering_light/evals/data/stack_pbe_v4"
-    )
+    parser.add_argument("--corpus", default="wandering_light/evals/data/stack_pbe_v4")
     parser.add_argument("--backend", choices=("bfs", "random", "llm"), default="bfs")
     parser.add_argument("--split", default="eval", choices=("eval", "train", "all"))
     parser.add_argument("--budget", type=int, default=10_000)

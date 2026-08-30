@@ -550,9 +550,7 @@ class BranchingModel:
         degree = Counter(self.in_degree)
         for input_type, _ in self.extra:
             degree[input_type] += 1
-        weighted = sum(
-            count * degree[name] for name, count in self.state_types.items()
-        )
+        weighted = sum(count * degree[name] for name, count in self.state_types.items())
         base = weighted / total
         if added is None:
             return base
@@ -814,9 +812,7 @@ def _net_multiplier(
     if not lengths:
         return float(depth), search_multiplier(b_old, b_new, depth)
     mean_depth = sum(lengths) / len(lengths)
-    return mean_depth, math.exp(
-        mean_depth * math.log(b_new) - depth * math.log(b_old)
-    )
+    return mean_depth, math.exp(mean_depth * math.log(b_new) - depth * math.log(b_old))
 
 
 def mine(

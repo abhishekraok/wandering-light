@@ -29,8 +29,7 @@ def test_nested_non_json_values_roundtrip():
 
 def test_legacy_tagged_serialization_still_loads():
     serialized = (
-        '{"type": "builtins.tuple", "items": '
-        '[{"__tuple__": [1, {"__bytes__": [97]}]}]}'
+        '{"type": "builtins.tuple", "items": [{"__tuple__": [1, {"__bytes__": [97]}]}]}'
     )
 
     assert TypedList.from_str(serialized) == TypedList([(1, b"a")], tuple)
@@ -39,9 +38,7 @@ def test_legacy_tagged_serialization_still_loads():
 def test_state_equality_handles_nan_and_dict_order():
     assert TypedList([float("nan")]) == TypedList([float("nan")])
     assert TypedList([-0.0]) == TypedList([0.0])
-    assert TypedList([{"a": 1, "b": 2}], dict) == TypedList(
-        [{"b": 2, "a": 1}], dict
-    )
+    assert TypedList([{"a": 1, "b": 2}], dict) == TypedList([{"b": 2, "a": 1}], dict)
 
 
 def test_search_key_separates_signed_zero_but_not_nan():

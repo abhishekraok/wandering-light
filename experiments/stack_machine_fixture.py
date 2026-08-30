@@ -247,7 +247,11 @@ def trace(source: str, start: tuple = ()) -> list[dict]:
     """The full observable trace: stack, fuel and legal mask at every prefix."""
     config = Config(start)
     rows = [
-        {"stack": format_stack(config), "fuel": config.fuel, "mask": mask_string(config)}
+        {
+            "stack": format_stack(config),
+            "fuel": config.fuel,
+            "mask": mask_string(config),
+        }
     ]
     for op in parse_program(source):
         config = step(config, op)
