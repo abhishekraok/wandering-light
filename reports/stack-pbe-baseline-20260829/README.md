@@ -208,13 +208,17 @@ the only tasks it loses are ones that were going to be lost anyway.
 
 ## Not measured
 
-**No language model has been run.** No API credentials are present on this
-machine and no local model is pulled, so the arm that would say whether these
-behaviours are *hard* or merely *unfamiliar to search* is missing. The backend is
-written and tested — response parsing has its own tests — and needs only a key.
-Until then the only claim here is about search.
+**Nothing here is a `stack_pbe_v4` number.** Every figure in this report is
+measured on v3's 40 behaviours. v4's eval split is 44 skeletons with a median
+witness of 43 ops against v3's 7 skeletons at 6.5, so the language-model figure
+in particular should be expected to move.
 
-`solver.py` has OpenAI, Gemini and Ollama generators and **no Anthropic one**.
+**Gemini is unrun.** Its free tier is 20 requests per day per model, below the
+floor of a single 40-task sample, so it cannot serve as a routine arm. The
+generator works; the quota does not permit a run.
+
+**One sample per task.** Every language-model number here is pass@1 at one
+sample. Nothing is said about what pass@k would give.
 
 ## Reproduce
 

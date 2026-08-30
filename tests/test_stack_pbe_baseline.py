@@ -18,6 +18,7 @@ from stack_pbe_baseline import (
     llm_prompt,
     parse_response,
     random_solve,
+    solve_with_llm,
 )
 
 from wandering_light.stack_pbe import BY_NAME, build_task, draw_task
@@ -107,3 +108,18 @@ def test_every_provider_is_reachable_by_name():
     generator = solver_module.AnthropicTokenGenerator("claude-opus-5", effort="low")
     assert generator.model == "claude-opus-5"
     assert generator.effort == "low"
+
+
+def test_a_failed_generation_costs_one_candidate_not_the_run(sum_task):
+    """The deadline that bounds a runaway must not end the evaluation itself.
+
+    Without this the first timeout propagates out of the task loop and the run
+    dies before writing any summary, which is worse than the hang it replaced.
+    """
+
+    class Exploding:
+        def generate(self, prompt):
+            raise TimeoutError("read timeout")
+
+    assert solve_with_llm(sum_task, Exploding(), samples=2) == ["", ""]
+    assert not grade("", sum_task).parsed
