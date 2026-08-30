@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 1
 ARTIFACT_TYPE = "wandering-light-deep-corpus-v2-scratch-wandb-report-receipt"
 RECEIPT_DIGEST_FIELD = "receipt_sha256"
 INTENT_DIGEST_FIELD = "intent_sha256"

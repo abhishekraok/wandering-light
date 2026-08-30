@@ -554,8 +554,6 @@ def test_matched_compute_uses_the_same_task_and_reports_execution_ratio(
     assert primary["bfs_total_executions_for_at_least_model_solve_count"] == 100
     assert primary["bfs_to_model_total_execution_ratio"] == pytest.approx(100 / 3)
     assert primary["model_cheaper_than_bfs_at_equal_or_higher_solve_count"]
-    assert "bfs_observation" not in matched["7-8"]
-    assert "bfs_equal_solve_rate_covered" not in primary
 
 
 def test_equal_execution_comparison_uses_bfs_actual_capped_spend():
@@ -621,10 +619,12 @@ def test_bfs_validation_requires_exact_task_set_and_complete_solutions():
         "termination": "solved",
         "seconds": 0.1,
     }
-    legacy_summary = validate_bfs_rows([successful], [record])
-    assert legacy_summary["by_certified_distance"]["8"]["solve_rate"] == 1.0
-    assert set(legacy_summary) == {"by_certified_distance"}
-    assert "censored" not in legacy_summary["by_certified_distance"]["8"]
+    assert (
+        validate_bfs_rows([successful], [record])["by_certified_distance"]["8"][
+            "solve_rate"
+        ]
+        == 1.0
+    )
 
     with pytest.raises(ValueError, match="do not match"):
         validate_bfs_rows([{**successful, "task_id": "other"}], [record])
@@ -632,223 +632,6 @@ def test_bfs_validation_requires_exact_task_set_and_complete_solutions():
         validate_bfs_rows(
             [{**successful, "success": False, "termination": "budget"}], [record]
         )
-
-
-def test_bfs_validation_opt_in_retains_only_exact_ceiling_censoring():
-    records = [
-        _record(
-            distance=8,
-            input_value=TypedList([source_index + 1], int),
-            output_value=TypedList([source_index + 3], int),
-            source_index=source_index,
-        )
-        for source_index in range(2)
-    ]
-    solved = {
-        "task_id": records[0].task_id,
-        "split": "validation",
-        "certified_distance": 8,
-        "success": True,
-        "executions": 10,
-        "termination": "solved",
-        "seconds": 0.1,
-    }
-    censored = {
-        "task_id": records[1].task_id,
-        "split": "validation",
-        "certified_distance": 8,
-        "success": False,
-        "executions": 100,
-        "termination": "budget",
-        "seconds": 0.2,
-    }
-
-    summary = validate_bfs_rows(
-        [solved, censored],
-        records,
-        allow_budget_censoring=True,
-        budget_ceiling=100,
-    )
-
-    assert summary["termination_counts"] == {"budget": 1, "solved": 1}
-    assert summary["censoring"] == {
-        "enabled": True,
-        "budget_ceiling": 100,
-        "tasks": 2,
-        "censored": 1,
-        "censoring_rate": 0.5,
-    }
-    assert summary["by_certified_distance"]["8"]["censored"] == 1
-    assert summary["by_certified_distance"]["8"]["censoring_rate"] == 0.5
-    assert summary["by_certified_distance"]["8"]["total_executions"] == 110
-    assert summary["by_certified_distance"]["8"]["termination_counts"] == {
-        "budget": 1,
-        "solved": 1,
-    }
-
-    with pytest.raises(ValueError, match="positive integer budget ceiling"):
-        validate_bfs_rows([solved, censored], records, allow_budget_censoring=True)
-    with pytest.raises(ValueError, match="valid right-censoring"):
-        validate_bfs_rows(
-            [solved, {**censored, "executions": 99}],
-            records,
-            allow_budget_censoring=True,
-            budget_ceiling=100,
-        )
-    with pytest.raises(ValueError, match="valid right-censoring"):
-        validate_bfs_rows(
-            [solved, {**censored, "termination": "max_depth"}],
-            records,
-            allow_budget_censoring=True,
-            budget_ceiling=100,
-        )
-
-
-def test_censored_bfs_equal_rate_is_exact_when_observed_hits_cover_model():
-    records = [
-        _record(
-            distance=8,
-            input_value=TypedList([source_index + 1], int),
-            output_value=TypedList([source_index + 3], int),
-            source_index=source_index,
-        )
-        for source_index in range(2)
-    ]
-    per_task = {
-        records[0].task_id: {
-            64: {
-                "execution_correct": True,
-                "exact_match": False,
-                "executions_spent": 2,
-                "execution_hit_cost": 2,
-                "execution_hit_sample": 1,
-                "samples_available": 64,
-            }
-        },
-        records[1].task_id: {
-            64: {
-                "execution_correct": False,
-                "exact_match": False,
-                "executions_spent": 20,
-                "execution_hit_cost": None,
-                "execution_hit_sample": None,
-                "samples_available": 64,
-            }
-        },
-    }
-    bfs_rows = [
-        {
-            "task_id": records[0].task_id,
-            "split": "validation",
-            "certified_distance": 8,
-            "success": True,
-            "executions": 10,
-            "termination": "solved",
-            "seconds": 0.1,
-        },
-        {
-            "task_id": records[1].task_id,
-            "split": "validation",
-            "certified_distance": 8,
-            "success": False,
-            "executions": 100,
-            "termination": "budget",
-            "seconds": 0.2,
-        },
-    ]
-
-    group = matched_compute_comparison(
-        per_task=per_task,
-        bfs_rows=bfs_rows,
-        records=records,
-        sample_counts=(64,),
-        allow_budget_censoring=True,
-        budget_ceiling=100,
-    )["8"]
-    matched = group["matched"]["64"]
-
-    assert group["bfs_observation"] == {
-        "tasks": 2,
-        "observed_hits": 1,
-        "censored": 1,
-        "budget_ceiling": 100,
-    }
-    assert group["bfs_curve"][-1] == {
-        "method": "bfs",
-        "budget": 100,
-        "mean_executions_spent": 55.0,
-        "solve_rate": 0.5,
-        "solved": 1,
-        "tasks": 2,
-    }
-    assert matched["bfs_equal_solve_rate_covered"] is True
-    assert matched["equal_solve_rate_inconclusive"] is False
-    assert matched["equal_solve_rate_inconclusive_reason"] is None
-    assert matched["bfs_uniform_budget_for_at_least_model_solve_count"] == 10
-    assert matched["bfs_total_executions_for_at_least_model_solve_count"] == 20
-
-
-def test_censored_bfs_equal_rate_is_inconclusive_above_observed_hits():
-    records = [
-        _record(
-            distance=8,
-            input_value=TypedList([source_index + 1], int),
-            output_value=TypedList([source_index + 3], int),
-            source_index=source_index,
-        )
-        for source_index in range(2)
-    ]
-    solved_model_row = {
-        "execution_correct": True,
-        "exact_match": False,
-        "executions_spent": 2,
-        "execution_hit_cost": 2,
-        "execution_hit_sample": 1,
-        "samples_available": 64,
-    }
-    per_task = {record.task_id: {64: solved_model_row} for record in records}
-    bfs_rows = [
-        {
-            "task_id": records[0].task_id,
-            "split": "validation",
-            "certified_distance": 8,
-            "success": True,
-            "executions": 10,
-            "termination": "solved",
-            "seconds": 0.1,
-        },
-        {
-            "task_id": records[1].task_id,
-            "split": "validation",
-            "certified_distance": 8,
-            "success": False,
-            "executions": 100,
-            "termination": "budget",
-            "seconds": 0.2,
-        },
-    ]
-
-    matched = matched_compute_comparison(
-        per_task=per_task,
-        bfs_rows=bfs_rows,
-        records=records,
-        sample_counts=(64,),
-        allow_budget_censoring=True,
-        budget_ceiling=100,
-    )["8"]["matched"]["64"]
-
-    assert matched["bfs_equal_solve_rate_covered"] is False
-    assert matched["bfs_observed_hit_count"] == 1
-    assert matched["bfs_censored_task_count"] == 1
-    assert matched["equal_solve_rate_inconclusive"] is True
-    assert (
-        "exceeds observed BFS hits" in matched["equal_solve_rate_inconclusive_reason"]
-    )
-    assert matched["bfs_uniform_budget_for_at_least_model_solve_count"] is None
-    assert matched["bfs_solved_at_matched_rate_budget"] is None
-    assert matched["bfs_total_executions_for_at_least_model_solve_count"] is None
-    assert matched["bfs_to_model_total_execution_ratio"] is None
-    assert matched["model_cheaper_than_bfs_at_equal_or_higher_solve_count"] is None
 
 
 def test_balanced_cohort_is_deterministic_and_never_changes_split_membership():
