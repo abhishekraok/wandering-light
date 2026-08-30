@@ -1,13 +1,19 @@
 import os
 import tempfile
 
+import pytest
+
 from wandering_light.evals.evaluate_solver import (
     EvaluateSolver,
     evaluate_solver_from_file,
 )
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.solver import BFSSolve, RandomSolve
-from wandering_light.trajectory import TrajectorySpec, TrajectorySpecList
+from wandering_light.trajectory import (
+    InvalidTrajectorySpecsError,
+    TrajectorySpec,
+    TrajectorySpecList,
+)
 from wandering_light.typed_list import TypedList
 
 
@@ -52,6 +58,14 @@ class TestEvaluateSolverFile:
         assert result.success_count == 3
         assert result.success_rate == 1.0
         assert result.avg_solution_length > 1.0
+        assert result.cost_unit == "basis_function_executions"
+        assert result.budget_unit == "basis_function_executions"
+        assert result.budget_value == 50
+        assert result.costed_samples == 3
+        assert result.uncosted_samples == 0
+        assert result.total_charged_executions == sum(
+            detail.charged_executions for detail in result.detailed_results
+        )
 
         # Test detailed results have correct function tracking
         assert len(result.detailed_results) == 3
@@ -347,10 +361,45 @@ class TestEvaluateSolverFile:
         spec_list = TrajectorySpecList([spec])
 
         solver = BFSSolve(budget=10)
-        # TODO: this should raise an error in the future
-        result = EvaluateSolver.evaluate_using_trajectory_specs(
-            solver, spec_list, available_functions=FunctionDefSet([error_func])
+        with pytest.raises(InvalidTrajectorySpecsError) as exc_info:
+            EvaluateSolver.evaluate_using_trajectory_specs(
+                solver, spec_list, available_functions=FunctionDefSet([error_func])
+            )
+
+        error = exc_info.value
+        assert error.total_specs == 1
+        assert len(error.failures) == 1
+        assert error.failures[0].index == 0
+        assert error.failures[0].failed_at_step == 0
+        assert "divide_by_zero" in str(error)
+
+    def test_invalid_specs_fail_before_cohort_sampling(self):
+        increment = FunctionDef(
+            name="increment",
+            input_type="builtins.int",
+            output_type="builtins.int",
+            code="return x + 1",
+        )
+        explode = FunctionDef(
+            name="explode",
+            input_type="builtins.int",
+            output_type="builtins.int",
+            code="return x / 0",
+        )
+        specs = TrajectorySpecList(
+            [
+                TrajectorySpec(TypedList([1]), FunctionDefList([increment])),
+                TrajectorySpec(TypedList([1]), FunctionDefList([explode])),
+            ]
         )
 
-        assert result.total_samples == 0
-        assert len(result.detailed_results) == 0
+        with pytest.raises(InvalidTrajectorySpecsError) as exc_info:
+            EvaluateSolver.evaluate_using_trajectory_specs(
+                BFSSolve(budget=10),
+                specs,
+                FunctionDefSet([increment, explode]),
+                num_samples=1,
+                sample_seed=0,
+            )
+
+        assert [failure.index for failure in exc_info.value.failures] == [1]

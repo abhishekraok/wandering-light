@@ -11,7 +11,10 @@ A Streamlit-based dashboard for viewing and analyzing evaluation results across 
 
 2. **Run some evaluations** (if you haven't already):
    ```bash
-   python -m wandering_light.evals.run_evaluation path/to/eval_file.py --solver_names random bfs
+   PYTHONHASHSEED=0 python -m wandering_light.evals.run_evaluation \
+     --eval_file=path/to/eval_file.py --solver_names='["random","bfs"]' \
+     --random_path_lengths='[1,2,3,4]' --seeds='[0,1,2,3,4]' \
+     --trusted_legacy_python=True
    ```
 
 3. **Launch the dashboard**:
@@ -38,7 +41,7 @@ A Streamlit-based dashboard for viewing and analyzing evaluation results across 
 - **Solver**: Filter by solver type (random, bfs, etc.)
 - **Eval File**: Filter by evaluation dataset
 - **Model Name**: Filter by model name extracted from command
-- **Budget**: Filter by solver budget
+- **Budget**: Filter by solver budget value; its unit is shown explicitly
 - **Date Range**: Filter by evaluation run date
 
 ### Visualizations
@@ -53,8 +56,8 @@ A Streamlit-based dashboard for viewing and analyzing evaluation results across 
 
 ### Detailed Run View
 When you click on a table row, see:
-- Run configuration (solver, eval file, model name, budget, samples)
-- Performance metrics (success rate, failures, solution length)
+- Run configuration (solver, eval file, model name, budget/unit, cohort)
+- Performance metrics (success rate, failures, solution length, execution cost)
 - Command used to generate the run
 - Link to sample-by-sample viewer
 
@@ -70,8 +73,9 @@ The dashboard searches for evaluation results in the root `results/` directory:
 results/                              # Root level results directory
 ├── 20240101_120000/                  # Timestamped run directory
 │   ├── summary.json                  # Run summary with metrics
-│   ├── RandomSolve_*.json            # Detailed results per solver
-│   └── llm_input_output/             # LLM interaction logs
+│   ├── random/seed-0.json             # Detailed result for one seed
+│   ├── bfs/seed-0.json
+│   └── solver_artifacts/              # Usage and LLM interaction logs
 ├── 20240101_130000/
 │   └── ...
 └── saved/                            # Saved evaluation runs (nested)
@@ -94,4 +98,4 @@ results/                              # Root level results directory
 
 - **wandering_light.evals.run_evaluation**: Generate evaluation runs
 - **wandering_light/evals/eval_viewer.html**: View individual runs sample-by-sample
-- **wandering_light.evals.evaluate_solver**: Core evaluation logic 
+- **wandering_light.evals.evaluate_solver**: Core evaluation logic

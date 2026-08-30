@@ -50,6 +50,7 @@ class TestRLGRPOMain:
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
 
+    @pytest.mark.network
     def test_rl_grpo_main_with_model_instance(
         self, tiny_model_and_tokenizer, temp_output_dir
     ):
@@ -256,6 +257,7 @@ class TestRLGRPOMain:
 
         print("✅ All training infrastructure components working correctly")
 
+    @pytest.mark.network
     @pytest.mark.slow
     def test_minimal_training_run(self, tiny_model_and_tokenizer):
         """Test an actual minimal training run to verify end-to-end functionality."""

@@ -13,9 +13,12 @@ import fire
 
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDef, FunctionDefSet
-from wandering_light.solver import TrajectorySolver, get_solver_by_name
+from wandering_light.solver import (
+    PredictionCost,
+    TrajectorySolver,
+    get_solver_by_name,
+)
 from wandering_light.trajectory import (
-    Trajectory,
     TrajectoryList,
     TrajectorySpec,
     TrajectorySpecList,
@@ -35,6 +38,9 @@ class DetailedEvalResult:
     golden_functions: list[str] | None = None
     solution_length: int | None = None
     error: str | None = None
+    charged_executions: int | None = None
+    candidate_programs: int | None = None
+    cost_termination: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization compatibility."""
@@ -49,6 +55,17 @@ class EvalResult:
     avg_solution_length: float
     failures: list[tuple[TrajectorySpec, Exception]]
     detailed_results: list[DetailedEvalResult] = field(default_factory=list)
+    cost_unit: str | None = None
+    cost_definition: str | None = None
+    budget_unit: str | None = None
+    budget_value: int | None = None
+    costed_samples: int = 0
+    uncosted_samples: int = 0
+    total_charged_executions: int | None = None
+    mean_charged_executions: float | None = None
+    total_candidate_programs: int | None = None
+    mean_candidate_programs: float | None = None
+    solver_config: dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self):
         return (
@@ -76,6 +93,46 @@ class EvalResult:
             json.dump(self.to_dict(), f, indent=2)
 
 
+def _cost_summary(
+    solver: TrajectorySolver,
+    costs: list[PredictionCost | None],
+) -> dict[str, Any]:
+    metadata = solver.cost_metadata()
+    reported = [cost for cost in costs if cost is not None]
+    complete = len(reported) == len(costs)
+    executions = [cost.charged_executions for cost in reported]
+    candidate_counts = [
+        cost.candidate_programs
+        for cost in reported
+        if cost.candidate_programs is not None
+    ]
+    return {
+        "cost_unit": metadata.get("cost_unit"),
+        "cost_definition": metadata.get("cost_definition"),
+        "budget_unit": metadata.get("budget_unit"),
+        "budget_value": metadata.get("budget_value"),
+        "costed_samples": len(reported),
+        "uncosted_samples": len(costs) - len(reported),
+        "total_charged_executions": sum(executions) if complete else None,
+        "mean_charged_executions": (
+            sum(executions) / len(executions)
+            if complete and executions
+            else (0.0 if complete else None)
+        ),
+        "total_candidate_programs": (
+            sum(candidate_counts)
+            if complete and len(candidate_counts) == len(reported)
+            else None
+        ),
+        "mean_candidate_programs": (
+            sum(candidate_counts) / len(candidate_counts)
+            if complete and len(candidate_counts) == len(reported) and candidate_counts
+            else None
+        ),
+        "solver_config": metadata,
+    }
+
+
 class EvaluateSolver:
     @staticmethod
     def evaluate_using_trajectory_specs(
@@ -85,6 +142,7 @@ class EvaluateSolver:
         num_samples: int | None = None,
         save_results: bool = False,
         output_dir: str = "results/solver/",
+        sample_seed: int | None = None,
     ) -> EvalResult:
         """
         Evaluate a solver on given trajectory specifications using batch processing.
@@ -100,37 +158,18 @@ class EvaluateSolver:
         Returns:
             EvalResult with stats on successes, avg length, and failures.
         """
-        executor = Executor(available_functions)
-
-        # Select samples to evaluate
-        specs_to_evaluate = trajectory_specs.specs
-        if num_samples is not None and num_samples < len(specs_to_evaluate):
-            specs_to_evaluate = random.sample(specs_to_evaluate, num_samples)
-
-        # Prepare batch problems by executing ground truth trajectories
-        trajectories = []
-        spec_to_ground_truth = {}
-        valid_specs = []
-
-        for spec in specs_to_evaluate:
-            # For ground truth, we use execute_trajectory which handles failures gracefully
-            result = executor.execute_trajectory(spec)
-            if result.success:
-                true_output = result.trajectory.output
-                trajectories.append(Trajectory(spec=spec, output=true_output))
-                spec_to_ground_truth[id(spec)] = true_output
-                valid_specs.append(spec)
-            else:
-                # Skip specs that fail during ground truth computation
-                continue
-
+        trajectories = TrajectoryList.from_trajectory_specs(
+            trajectory_specs,
+            available_functions,
+        )
         return EvaluateSolver.evaluate_using_trajectories(
             solver,
-            TrajectoryList(trajectories),
+            trajectories,
             available_functions,
             num_samples,
             save_results,
             output_dir,
+            sample_seed,
         )
 
     @staticmethod
@@ -141,6 +180,7 @@ class EvaluateSolver:
         num_samples: int | None = None,
         save_results: bool = False,
         output_dir: str = "results",
+        sample_seed: int | None = None,
     ) -> EvalResult:
         """
         Evaluate a solver on given pre-computed trajectories using batch processing.
@@ -162,7 +202,13 @@ class EvaluateSolver:
         # Select samples to evaluate
         trajs_to_evaluate = trajectories.trajectories
         if num_samples is not None and num_samples < len(trajs_to_evaluate):
-            trajs_to_evaluate = random.sample(trajs_to_evaluate, num_samples)
+            sampled_indices = sorted(
+                random.Random(sample_seed).sample(
+                    range(len(trajs_to_evaluate)),
+                    num_samples,
+                )
+            )
+            trajs_to_evaluate = [trajs_to_evaluate[index] for index in sampled_indices]
         if num_samples is not None and num_samples > len(trajs_to_evaluate):
             raise ValueError(
                 f"num_samples {num_samples} is greater than the number of trajectories {len(trajs_to_evaluate)}"
@@ -183,6 +229,11 @@ class EvaluateSolver:
             batch_results = solver.solve_batch(problems, available_functions)
         else:
             batch_results = []
+        if len(batch_results) != len(problems):
+            raise ValueError(
+                f"solver returned {len(batch_results)} results for "
+                f"{len(problems)} problems"
+            )
 
         # Process results
         successes = 0
@@ -190,7 +241,7 @@ class EvaluateSolver:
         failures: list[tuple[TrajectorySpec, Exception]] = []
         detailed_results: list[DetailedEvalResult] = []
 
-        for traj, result in zip(trajs_to_evaluate, batch_results, strict=False):
+        for traj, result in zip(trajs_to_evaluate, batch_results, strict=True):
             true_output = traj_to_ground_truth[id(traj)]
 
             detailed_result = DetailedEvalResult(
@@ -203,6 +254,10 @@ class EvaluateSolver:
                 # Record detailed result
                 detailed_result.success = result.success
                 detailed_result.error = result.error_msg
+                if result.cost is not None:
+                    detailed_result.charged_executions = result.cost.charged_executions
+                    detailed_result.candidate_programs = result.cost.candidate_programs
+                    detailed_result.cost_termination = result.cost.termination
 
                 if result.success and result.trajectory is not None:
                     successes += 1
@@ -244,6 +299,7 @@ class EvaluateSolver:
             avg_solution_length=avg_length,
             failures=failures,
             detailed_results=detailed_results,
+            **_cost_summary(solver, [result.cost for result in batch_results]),
         )
 
         if save_results:
@@ -279,6 +335,7 @@ class EvaluateSolver:
         successes = 0
         total_length = 0
         failures: list[tuple[TrajectorySpec, Exception]] = []
+        prediction_costs: list[PredictionCost | None] = []
         executor = Executor(available_functions)
 
         for _ in range(num_samples):
@@ -296,9 +353,11 @@ class EvaluateSolver:
                 true_output = result.trajectory.output
             else:
                 failures.append((spec, ValueError(result.error_msg)))
+                prediction_costs.append(None)
                 continue
             # solver attempt
             result = solver.solve(input_list, true_output, available_functions)
+            prediction_costs.append(result.cost)
             # record success or failure from MaybeTrajectory
             if result.success and result.trajectory is not None:
                 successes += 1
@@ -314,6 +373,7 @@ class EvaluateSolver:
             success_rate=success_rate,
             avg_solution_length=avg_length,
             failures=failures,
+            **_cost_summary(solver, prediction_costs),
         )
 
 
@@ -324,6 +384,10 @@ def evaluate_solver_from_file(
     budget: int = 10,
     variable_name: str = "eval_trajectory_specs",
     trusted_legacy_python: bool = False,
+    path_length: int = 4,
+    random_path_lengths: list[int] | None = None,
+    bfs_max_depth: int | None = None,
+    seed: int | None = None,
 ):
     """
     Evaluate a solver using trajectory specs loaded from a .py file.
@@ -335,6 +399,10 @@ def evaluate_solver_from_file(
         budget: Budget for the solver
         variable_name: Variable name in the eval file
         trusted_legacy_python: Explicit opt-in because ``.py`` data is executed
+        path_length: Backward-compatible fixed random length/BFS depth default
+        random_path_lengths: Uniform random-program length choices
+        bfs_max_depth: BFS depth cap independent of random path sampling
+        seed: Random solver and cohort-sampling seed
     """
     print(f"Loading evaluation data from {eval_file}...")
 
@@ -358,7 +426,14 @@ def evaluate_solver_from_file(
         return
 
     # Create solver
-    solver = get_solver_by_name(solver_name, budget=budget)
+    solver = get_solver_by_name(
+        solver_name,
+        budget=budget,
+        path_length=path_length,
+        path_lengths=random_path_lengths,
+        max_depth=bfs_max_depth,
+        seed=seed,
+    )
 
     # Evaluate
     print(f"Evaluating {solver_name} solver...")
@@ -373,7 +448,11 @@ def evaluate_solver_from_file(
         available_functions.extend(spec.function_defs)
 
     result = EvaluateSolver.evaluate_using_trajectory_specs(
-        solver, trajectory_specs, available_functions, num_samples
+        solver,
+        trajectory_specs,
+        available_functions,
+        num_samples,
+        sample_seed=seed,
     )
 
     # Print results
