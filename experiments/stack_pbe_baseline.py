@@ -226,6 +226,12 @@ def main(argv: list[str] | None = None) -> int:
         help="reasoning effort, for providers and models that accept one",
     )
     parser.add_argument(
+        "--ollama-timeout",
+        type=float,
+        default=300.0,
+        help="ollama only: per-request deadline, so a runaway answer cannot stall a run",
+    )
+    parser.add_argument(
         "--list-models",
         action="store_true",
         help="ask --provider what it serves, then exit",
@@ -254,7 +260,9 @@ def main(argv: list[str] | None = None) -> int:
                 args.model, effort=args.effort
             ),
             "gemini": lambda: solver_module.GeminiTokenGenerator(args.model),
-            "ollama": lambda: solver_module.OllamaTokenGenerator(args.model),
+            "ollama": lambda: solver_module.OllamaTokenGenerator(
+                args.model, timeout=args.ollama_timeout
+            ),
             "anthropic": lambda: solver_module.AnthropicTokenGenerator(
                 args.model, effort=args.effort
             ),

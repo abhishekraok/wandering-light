@@ -1039,10 +1039,21 @@ class OllamaTokenGenerator(TokenGenerator):
     def __init__(
         self,
         model: str = "phi3:mini",
+        timeout: float = 300.0,
     ):
+        """Bound a runaway generation by wall clock, not by token count.
+
+        Some local models answer in two seconds and then run for ten minutes on
+        the next prompt, stalling a whole evaluation. Capping `num_predict` does
+        stop that -- and also truncates a reasoning model mid-thought: measured
+        2026-08-30, `qwen3:30b-a3b` scores 25% on 40 tasks unbounded, 22.5%
+        under a 300 s deadline, and **5%** at a 4,096-token cap. A deadline
+        aborts the pathological case without shortening a legitimate answer.
+        """
         self.model = model
+        self.timeout = timeout
         load_dotenv()
-        self.client = Client(os.getenv("OLLAMA_BASE_URL"))
+        self.client = Client(os.getenv("OLLAMA_BASE_URL"), timeout=timeout)
         self.llm_io_history = []
 
     def generate(self, prompt: str) -> str:
