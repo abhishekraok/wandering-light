@@ -621,6 +621,7 @@ class _ElementPredicate:
 
 _ELEMENT_TRANSFORMS = (
     _ElementTransform("increment", "increment", "1 add", lambda x: x + 1),
+    _ElementTransform("double", "double", "dup add", lambda x: 2 * x),
     _ElementTransform("negate", "negate", "0 swap sub", lambda x: -x),
     _ElementTransform(
         "floor_half", "halve, rounding down", "1 1 add div", lambda x: x // 2
@@ -642,6 +643,12 @@ _ELEMENT_TRANSFORMS = (
         lambda x: x * (x + 1) // 2,
     ),
     _ElementTransform(
+        "ceiling_half",
+        "halve, rounding up",
+        "dup 1 1 add div sub",
+        lambda x: x - x // 2,
+    ),
+    _ElementTransform(
         "parity",
         "replace by its remainder modulo two",
         "dup 1 1 add div 1 1 add mul sub",
@@ -652,6 +659,42 @@ _ELEMENT_TRANSFORMS = (
         "replace by its nonnegative part",
         "[ dup 0 lt? ] [ drop 0 ] [ ] ifte",
         lambda x: max(x, 0),
+    ),
+    _ElementTransform(
+        "nonpositive_part",
+        "replace by its nonpositive part",
+        "[ dup 0 swap lt? ] [ drop 0 ] [ ] ifte",
+        lambda x: min(x, 0),
+    ),
+    _ElementTransform(
+        "signed_square",
+        "square while preserving its sign",
+        "dup [ over 0 lt? ] [ mul 0 swap sub ] [ mul ] ifte",
+        lambda x: (-1 if x < 0 else 1) * x * x,
+    ),
+    _ElementTransform(
+        "distance_from_one",
+        "replace by its distance from one",
+        "1 sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte",
+        lambda x: abs(x - 1),
+    ),
+    _ElementTransform(
+        "successor_square",
+        "increment, then square",
+        "1 add dup mul",
+        lambda x: (x + 1) ** 2,
+    ),
+    _ElementTransform(
+        "zero_safe_reciprocal",
+        "replace by one floor-divided by it, using zero at zero",
+        "[ dup 0 eq? ] [ drop 0 ] [ 1 swap div ] ifte",
+        lambda x: 0 if x == 0 else 1 // x,
+    ),
+    _ElementTransform(
+        "positive_indicator",
+        "replace by one when positive and zero otherwise",
+        "[ dup 0 swap lt? ] [ drop 1 ] [ drop 0 ] ifte",
+        lambda x: int(x > 0),
     ),
     _ElementTransform(
         "sign",
@@ -687,6 +730,12 @@ _ELEMENT_PREDICATES = (
         lambda x: x >= 0,
     ),
     _ElementPredicate(
+        "nonpositive",
+        "nonpositive",
+        "[ dup 0 swap lt? ] [ drop false ] [ drop true ] ifte",
+        lambda x: x <= 0,
+    ),
+    _ElementPredicate(
         "unit_magnitude", "magnitude-one", "dup mul 1 eq?", lambda x: abs(x) == 1
     ),
     _ElementPredicate(
@@ -694,6 +743,12 @@ _ELEMENT_PREDICATES = (
         "magnitude-below-three",
         "dup mul 1 1 add 1 add dup mul lt?",
         lambda x: abs(x) < 3,
+    ),
+    _ElementPredicate(
+        "magnitude_above_one",
+        "magnitude-above-one",
+        "dup mul 1 swap lt?",
+        lambda x: abs(x) > 1,
     ),
     _ElementPredicate(
         "multiple_of_three",
@@ -706,6 +761,20 @@ _ELEMENT_PREDICATES = (
         "zero-or-one",
         "dup 1 sub mul 0 eq?",
         lambda x: x in (0, 1),
+    ),
+    _ElementPredicate(
+        "negative_even",
+        "negative-even",
+        f"[ dup 0 lt? ] [ {_PARITY_BODY} 0 eq? ] [ drop false ] ifte",
+        lambda x: x < 0 and _even(x),
+    ),
+    _ElementPredicate(
+        "positive_odd",
+        "positive-odd",
+        f"[ dup 0 swap lt? ] "
+        f"[ [ {_PARITY_BODY} 0 eq? ] [ drop false ] [ drop true ] ifte ] "
+        "[ drop false ] ifte",
+        lambda x: x > 0 and not _even(x),
     ),
 )
 
@@ -762,27 +831,6 @@ def _filter_then_map(
     )
 
 
-def _map_then_filter(
-    transform: _ElementTransform, predicate: _ElementPredicate
-) -> Behaviour:
-    def reference(xs: list[int]) -> list[int]:
-        transformed = [transform.reference(x) for x in xs]
-        return [x for x in transformed if predicate.reference(x)]
-
-    return Behaviour(
-        name=f"{transform.name}_then_keep_{predicate.name}",
-        summary=(
-            f"{transform.action} each value, then keep the "
-            f"{predicate.description} results"
-        ),
-        witnesses=(f"[ {transform.body} ] map [ {predicate.body} ] filter",),
-        sample=_list_of(SMALL, hi=7),
-        reference=reference,
-        tags=_composed_tags(transform, predicate),
-        accept=_shrinks,
-    )
-
-
 def _filter_map_sum(
     transform: _ElementTransform, predicate: _ElementPredicate
 ) -> Behaviour:
@@ -805,65 +853,146 @@ def _filter_map_sum(
     )
 
 
-def _map_filter_sum(
-    transform: _ElementTransform, predicate: _ElementPredicate
-) -> Behaviour:
-    def reference(xs: list[int]) -> int:
-        transformed = (transform.reference(x) for x in xs)
-        return sum(x for x in transformed if predicate.reference(x))
-
-    return Behaviour(
-        name=f"sum_{predicate.name}_after_{transform.name}",
-        summary=(
-            f"{transform.action} each value, keep the {predicate.description} "
-            "results, then sum them"
-        ),
-        witnesses=(
-            f"[ {transform.body} ] map [ {predicate.body} ] filter 0 [ add ] fold",
-        ),
-        sample=_list_of(SMALL, hi=7),
-        reference=reference,
-        tags=_composed_tags(transform, predicate, fold=True),
-        accept=_filter_accept(transform, predicate),
-    )
-
-
-# These pairs would make the filtering stage constant on SMALL. They are not
-# behaviours: no example set could distinguish their filter from `nil` or the
-# identity, and `draw_task` would correctly refuse them.
-_CONSTANT_POST_FILTERS = frozenset(
+# Different pipelines can state the same function: absolute value after a
+# positive filter is just the positive filter, for example. Such programs are
+# alternative witnesses, not new behaviours. Keep one representative of each
+# per-element function and omit the aliases explicitly.
+_DUPLICATE_FILTER_MAPS = frozenset(
     {
         ("absolute", "negative"),
-        ("absolute", "nonnegative"),
-        ("fourth_power", "negative"),
-        ("fourth_power", "nonnegative"),
-        ("triangular", "negative"),
-        ("triangular", "nonnegative"),
-        ("parity", "negative"),
-        ("parity", "nonnegative"),
-        ("parity", "magnitude_below_three"),
-        ("parity", "zero_or_one"),
-        ("nonnegative_part", "negative"),
+        ("nonpositive_part", "negative"),
+        ("positive_indicator", "negative"),
+        ("sign", "negative"),
+        ("absolute", "positive"),
+        ("nonnegative_part", "positive"),
+        ("sign", "positive"),
+        ("ceiling_half", "even"),
         ("nonnegative_part", "nonnegative"),
-        ("sign", "magnitude_below_three"),
+        ("sign", "nonnegative"),
+        ("absolute", "nonpositive"),
+        ("positive_indicator", "nonpositive"),
+        ("sign", "nonpositive"),
+        ("fourth_power", "unit_magnitude"),
+        ("ceiling_half", "unit_magnitude"),
+        ("parity", "unit_magnitude"),
+        ("nonnegative_part", "unit_magnitude"),
+        ("nonpositive_part", "unit_magnitude"),
+        ("signed_square", "unit_magnitude"),
+        ("zero_safe_reciprocal", "unit_magnitude"),
+        ("positive_indicator", "unit_magnitude"),
+        ("sign", "unit_magnitude"),
+        ("cube", "zero_or_one"),
+        ("fourth_power", "zero_or_one"),
+        ("triangular", "zero_or_one"),
+        ("ceiling_half", "zero_or_one"),
+        ("parity", "zero_or_one"),
+        ("nonnegative_part", "zero_or_one"),
+        ("nonpositive_part", "zero_or_one"),
+        ("signed_square", "zero_or_one"),
+        ("zero_safe_reciprocal", "zero_or_one"),
+        ("positive_indicator", "zero_or_one"),
+        ("sign", "zero_or_one"),
+        ("absolute", "negative_even"),
+        ("ceiling_half", "negative_even"),
+        ("nonnegative_part", "negative_even"),
+        ("positive_indicator", "negative_even"),
+        ("sign", "negative_even"),
+        ("nonnegative_part", "positive_odd"),
+        ("positive_indicator", "positive_odd"),
+        ("sign", "positive_odd"),
     }
 )
 
-# A filtering stage may be informative while the following sum is identically
-# zero. Those pairs are omitted for the same reason.
-_ZERO_PRE_FILTER_SUMS = frozenset(
+_DUPLICATE_FILTER_MAP_SUMS = frozenset(
     {
+        ("absolute", "negative"),
         ("nonnegative_part", "negative"),
+        ("positive_indicator", "negative"),
+        ("sign", "negative"),
+        ("absolute", "positive"),
+        ("nonnegative_part", "positive"),
+        ("nonpositive_part", "positive"),
+        ("sign", "positive"),
+        ("ceiling_half", "even"),
         ("parity", "even"),
+        ("positive_indicator", "odd"),
+        ("parity", "nonzero"),
+        ("nonnegative_part", "nonzero"),
+        ("nonpositive_part", "nonzero"),
+        ("positive_indicator", "nonzero"),
+        ("double", "nonnegative"),
+        ("negate", "nonnegative"),
+        ("floor_half", "nonnegative"),
+        ("absolute", "nonnegative"),
+        ("cube", "nonnegative"),
+        ("fourth_power", "nonnegative"),
+        ("triangular", "nonnegative"),
+        ("ceiling_half", "nonnegative"),
+        ("parity", "nonnegative"),
+        ("nonnegative_part", "nonnegative"),
+        ("nonpositive_part", "nonnegative"),
+        ("signed_square", "nonnegative"),
+        ("zero_safe_reciprocal", "nonnegative"),
+        ("positive_indicator", "nonnegative"),
+        ("sign", "nonnegative"),
+        ("double", "nonpositive"),
+        ("negate", "nonpositive"),
+        ("floor_half", "nonpositive"),
+        ("absolute", "nonpositive"),
+        ("cube", "nonpositive"),
+        ("fourth_power", "nonpositive"),
+        ("triangular", "nonpositive"),
+        ("ceiling_half", "nonpositive"),
+        ("parity", "nonpositive"),
+        ("nonnegative_part", "nonpositive"),
+        ("nonpositive_part", "nonpositive"),
+        ("signed_square", "nonpositive"),
+        ("zero_safe_reciprocal", "nonpositive"),
+        ("positive_indicator", "nonpositive"),
+        ("sign", "nonpositive"),
+        ("fourth_power", "unit_magnitude"),
+        ("triangular", "unit_magnitude"),
+        ("ceiling_half", "unit_magnitude"),
+        ("parity", "unit_magnitude"),
+        ("nonnegative_part", "unit_magnitude"),
+        ("nonpositive_part", "unit_magnitude"),
+        ("signed_square", "unit_magnitude"),
+        ("zero_safe_reciprocal", "unit_magnitude"),
+        ("positive_indicator", "unit_magnitude"),
+        ("sign", "unit_magnitude"),
+        ("parity", "magnitude_below_three"),
+        ("double", "zero_or_one"),
         ("floor_half", "zero_or_one"),
+        ("absolute", "zero_or_one"),
+        ("cube", "zero_or_one"),
+        ("fourth_power", "zero_or_one"),
+        ("triangular", "zero_or_one"),
+        ("ceiling_half", "zero_or_one"),
+        ("parity", "zero_or_one"),
+        ("nonnegative_part", "zero_or_one"),
+        ("nonpositive_part", "zero_or_one"),
+        ("signed_square", "zero_or_one"),
+        ("distance_from_one", "zero_or_one"),
+        ("zero_safe_reciprocal", "zero_or_one"),
+        ("positive_indicator", "zero_or_one"),
+        ("sign", "zero_or_one"),
+        ("absolute", "negative_even"),
+        ("ceiling_half", "negative_even"),
+        ("parity", "negative_even"),
+        ("nonnegative_part", "negative_even"),
+        ("nonpositive_part", "negative_even"),
+        ("zero_safe_reciprocal", "negative_even"),
+        ("positive_indicator", "negative_even"),
+        ("sign", "negative_even"),
+        ("absolute", "positive_odd"),
+        ("parity", "positive_odd"),
+        ("nonnegative_part", "positive_odd"),
+        ("nonpositive_part", "positive_odd"),
+        ("zero_safe_reciprocal", "positive_odd"),
+        ("positive_indicator", "positive_odd"),
+        ("sign", "positive_odd"),
     }
 )
-_ZERO_POST_FILTER_SUMS = _CONSTANT_POST_FILTERS | {
-    ("parity", "even"),
-    ("parity", "multiple_of_three"),
-    ("sign", "even"),
-    ("sign", "multiple_of_three"),
-}
 
 
 def _composed_behaviours() -> tuple[Behaviour, ...]:
@@ -872,30 +1001,569 @@ def _composed_behaviours() -> tuple[Behaviour, ...]:
         for predicate in _ELEMENT_PREDICATES
         for transform in _ELEMENT_TRANSFORMS
     )
-    post_filter_pairs = tuple(
+    filter_map_pairs = tuple(
         pair
         for pair in pairs
-        if (pair[0].name, pair[1].name) not in _CONSTANT_POST_FILTERS
+        if (pair[0].name, pair[1].name) not in _DUPLICATE_FILTER_MAPS
     )
-    pre_sum_pairs = tuple(
+    filter_map_sum_pairs = tuple(
         pair
         for pair in pairs
-        if (pair[0].name, pair[1].name) not in _ZERO_PRE_FILTER_SUMS
-    )
-    post_sum_pairs = tuple(
-        pair
-        for pair in pairs
-        if (pair[0].name, pair[1].name) not in _ZERO_POST_FILTER_SUMS
+        if (pair[0].name, pair[1].name) not in _DUPLICATE_FILTER_MAP_SUMS
     )
     return (
-        *(_filter_then_map(*pair) for pair in pairs),
-        *(_map_then_filter(*pair) for pair in post_filter_pairs),
-        *(_filter_map_sum(*pair) for pair in pre_sum_pairs),
-        *(_map_filter_sum(*pair) for pair in post_sum_pairs),
+        *(_filter_then_map(*pair) for pair in filter_map_pairs),
+        *(_filter_map_sum(*pair) for pair in filter_map_sum_pairs),
     )
 
 
-CATALOGUE += _composed_behaviours()
+def _structural_behaviours() -> tuple[Behaviour, ...]:
+    """Authored list rearrangements whose top-level shapes are not pipelines."""
+
+    specs = (
+        (
+            "second",
+            "the second element",
+            "uncons drop uncons swap drop",
+            2,
+            lambda xs: xs[1],
+        ),
+        (
+            "penultimate",
+            "the next-to-last element",
+            "nil [ cons ] fold uncons drop uncons swap drop",
+            2,
+            lambda xs: xs[-2],
+        ),
+        (
+            "without_last",
+            "all but the last element",
+            "nil [ cons ] fold uncons drop nil [ cons ] fold",
+            2,
+            lambda xs: xs[:-1],
+        ),
+        (
+            "without_ends",
+            "all but the first and last elements",
+            "uncons drop nil [ cons ] fold uncons drop nil [ cons ] fold",
+            2,
+            lambda xs: xs[1:-1],
+        ),
+        (
+            "rotate_left",
+            "move the first element to the end",
+            "uncons quote cat",
+            1,
+            lambda xs: [*xs[1:], xs[0]],
+        ),
+        (
+            "rotate_right",
+            "move the last element to the front",
+            "nil [ cons ] fold uncons swap nil [ cons ] fold swap cons",
+            1,
+            lambda xs: [xs[-1], *xs[:-1]],
+        ),
+        (
+            "duplicate_first",
+            "prepend a second copy of the first element",
+            "dup uncons swap drop cons",
+            1,
+            lambda xs: [xs[0], *xs],
+        ),
+        (
+            "prepend_last",
+            "prepend a second copy of the last element",
+            "dup nil [ cons ] fold uncons swap drop cons",
+            1,
+            lambda xs: [xs[-1], *xs],
+        ),
+        (
+            "append_first",
+            "append a second copy of the first element",
+            "dup uncons swap drop quote cat",
+            1,
+            lambda xs: [*xs, xs[0]],
+        ),
+        (
+            "append_last",
+            "append a second copy of the last element",
+            "dup nil [ cons ] fold uncons swap drop quote cat",
+            1,
+            lambda xs: [*xs, xs[-1]],
+        ),
+        (
+            "repeat_list",
+            "repeat the whole list twice",
+            "dup cat",
+            1,
+            lambda xs: [*xs, *xs],
+        ),
+        (
+            "palindrome_forward",
+            "append the reverse of the list",
+            "dup nil [ cons ] fold cat",
+            1,
+            lambda xs: [*xs, *reversed(xs)],
+        ),
+        (
+            "palindrome_backward",
+            "prepend the reverse of the list",
+            "dup nil [ cons ] fold swap cat",
+            1,
+            lambda xs: [*reversed(xs), *xs],
+        ),
+        (
+            "singleton_head",
+            "a singleton list containing the first element",
+            "uncons swap drop quote",
+            1,
+            lambda xs: xs[:1],
+        ),
+        (
+            "singleton_last",
+            "a singleton list containing the last element",
+            "nil [ cons ] fold uncons swap drop quote",
+            1,
+            lambda xs: xs[-1:],
+        ),
+        (
+            "repeat_each_twice",
+            "repeat every element twice",
+            "nil [ dup [ cons ] dip cons ] fold nil [ cons ] fold",
+            1,
+            lambda xs: [item for x in xs for item in (x, x)],
+        ),
+        (
+            "zero_between",
+            "put a zero between consecutive elements",
+            "nil [ cons 0 cons ] fold nil [ cons ] fold "
+            "nil [ cons ] fold uncons drop nil [ cons ] fold",
+            1,
+            lambda xs: [item for x in xs for item in (x, 0)][:-1],
+        ),
+        (
+            "zero_wrapped",
+            "put zeros before, after, and between the elements",
+            "nil [ cons 0 cons ] fold nil [ cons ] fold 0 cons",
+            1,
+            lambda xs: [0, *[item for x in xs for item in (x, 0)]],
+        ),
+        (
+            "reverse_without_first",
+            "drop the first element, then reverse",
+            "uncons drop nil [ cons ] fold",
+            1,
+            lambda xs: list(reversed(xs[1:])),
+        ),
+        (
+            "reverse_without_last",
+            "reverse, then drop the original last element",
+            "nil [ cons ] fold uncons drop",
+            1,
+            lambda xs: list(reversed(xs))[1:],
+        ),
+        (
+            "list_then_tail",
+            "append the tail to the original list",
+            "dup uncons drop cat",
+            1,
+            lambda xs: [*xs, *xs[1:]],
+        ),
+        (
+            "tail_then_list",
+            "prepend the tail to the original list",
+            "dup uncons drop swap cat",
+            1,
+            lambda xs: [*xs[1:], *xs],
+        ),
+        (
+            "head_and_last",
+            "the first and last elements",
+            "dup uncons swap drop swap 0 [ swap drop ] fold nil swap cons swap cons",
+            1,
+            lambda xs: [xs[0], xs[-1]],
+        ),
+        (
+            "last_and_head",
+            "the last and first elements",
+            "dup uncons swap drop swap 0 [ swap drop ] fold "
+            "swap nil swap cons swap cons",
+            1,
+            lambda xs: [xs[-1], xs[0]],
+        ),
+        (
+            "reverse_repeat",
+            "reverse the list, then repeat it twice",
+            "nil [ cons ] fold dup cat",
+            1,
+            lambda xs: [*reversed(xs), *reversed(xs)],
+        ),
+    )
+    return tuple(
+        Behaviour(
+            name=name,
+            summary=summary,
+            witnesses=(witness,),
+            sample=_list_of(SMALL, lo=lo, hi=7),
+            reference=reference,
+            tags=frozenset(
+                {"structural", "fold"} if "fold" in witness else {"structural"}
+            ),
+        )
+        for name, summary, witness, lo, reference in specs
+    )
+
+
+def _closure_behaviours() -> tuple[Behaviour, ...]:
+    regular = _list_and_int(SMALL, SMALL, hi=7)
+    positive_n = _list_and_int(SMALL, POSITIVE, hi=7)
+    return (
+        Behaviour(
+            name="square_plus_n_each",
+            summary="square every element, then add the given number",
+            witnesses=("[ swap dup mul swap add ] swap cons map",),
+            sample=regular,
+            reference=lambda xs, n: [x * x + n for x in xs],
+            tags=frozenset({"map", "closure"}),
+        ),
+        Behaviour(
+            name="shifted_square_each",
+            summary="add the given number to every element, then square",
+            witnesses=("[ add dup mul ] swap cons map",),
+            sample=regular,
+            reference=lambda xs, n: [(x + n) ** 2 for x in xs],
+            tags=frozenset({"map", "closure"}),
+        ),
+        Behaviour(
+            name="squared_distance_each",
+            summary="the squared distance of every element from the given number",
+            witnesses=(
+                "[ sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte dup mul ] swap cons map",
+                "[ sub dup mul ] swap cons map",
+            ),
+            sample=regular,
+            reference=lambda xs, n: [(x - n) ** 2 for x in xs],
+            tags=frozenset({"map", "closure", "branch"}),
+        ),
+        Behaviour(
+            name="remainder_by_n_each",
+            summary="each element's remainder modulo the given positive number",
+            witnesses=("[ over over div mul sub ] swap cons map",),
+            sample=positive_n,
+            reference=lambda xs, n: [x - n * (x // n) for x in xs],
+            tags=frozenset({"map", "closure"}),
+        ),
+        Behaviour(
+            name="distance_from_n_each",
+            summary="the distance of every element from the given number",
+            witnesses=("[ sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] swap cons map",),
+            sample=regular,
+            reference=lambda xs, n: [abs(x - n) for x in xs],
+            tags=frozenset({"map", "closure", "branch"}),
+        ),
+        Behaviour(
+            name="minimum_with_n_each",
+            summary="the smaller of every element and the given number",
+            witnesses=(
+                "[ [ over over lt? ] [ drop ] [ swap drop ] ifte ] swap cons map",
+            ),
+            sample=regular,
+            reference=lambda xs, n: [min(x, n) for x in xs],
+            tags=frozenset({"map", "closure", "branch"}),
+        ),
+        Behaviour(
+            name="maximum_with_n_each",
+            summary="the larger of every element and the given number",
+            witnesses=(
+                "[ [ over over lt? ] [ swap drop ] [ drop ] ifte ] swap cons map",
+            ),
+            sample=regular,
+            reference=lambda xs, n: [max(x, n) for x in xs],
+            tags=frozenset({"map", "closure", "branch"}),
+        ),
+        Behaviour(
+            name="below_n_mask",
+            summary="one where an element is below the given number, else zero",
+            witnesses=(
+                "[ [ over over lt? ] [ drop drop 1 ] [ drop drop 0 ] ifte ] "
+                "swap cons map",
+            ),
+            sample=regular,
+            reference=lambda xs, n: [int(x < n) for x in xs],
+            tags=frozenset({"map", "closure", "branch"}),
+        ),
+        Behaviour(
+            name="multiply_below_add_other",
+            summary="multiply values below n by n and add n to the rest",
+            witnesses=("[ [ over over lt? ] [ mul ] [ add ] ifte ] swap cons map",),
+            sample=regular,
+            reference=lambda xs, n: [x * n if x < n else x + n for x in xs],
+            tags=frozenset({"map", "closure", "branch"}),
+        ),
+        Behaviour(
+            name="keep_multiples_of_n",
+            summary="keep the multiples of the given positive number",
+            witnesses=("[ over over div mul sub 0 eq? ] swap cons filter",),
+            sample=positive_n,
+            reference=lambda xs, n: [x for x in xs if x - n * (x // n) == 0],
+            tags=frozenset({"filter", "closure"}),
+            accept=_shrinks,
+        ),
+        Behaviour(
+            name="keep_abs_below_n",
+            summary="keep values whose magnitude is below the given positive number",
+            witnesses=(
+                "[ swap [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte swap lt? ] "
+                "swap cons filter",
+            ),
+            sample=positive_n,
+            reference=lambda xs, n: [x for x in xs if abs(x) < n],
+            tags=frozenset({"filter", "closure", "branch"}),
+            accept=_shrinks,
+        ),
+        Behaviour(
+            name="keep_square_above_n",
+            summary="keep values whose square is above the given positive number",
+            witnesses=("[ swap dup mul lt? ] swap cons filter",),
+            sample=positive_n,
+            reference=lambda xs, n: [x for x in xs if x * x > n],
+            tags=frozenset({"filter", "closure"}),
+            accept=_shrinks,
+        ),
+        Behaviour(
+            name="sum_distances_from_n",
+            summary="sum every element's distance from the given number",
+            witnesses=(
+                "[ sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] "
+                "swap cons map 0 [ add ] fold",
+            ),
+            sample=regular,
+            reference=lambda xs, n: sum(abs(x - n) for x in xs),
+            tags=frozenset({"map", "fold", "closure", "branch"}),
+        ),
+        Behaviour(
+            name="sum_squared_distances_from_n",
+            summary="sum every element's squared distance from the given number",
+            witnesses=("[ sub dup mul ] swap cons map 0 [ add ] fold",),
+            sample=regular,
+            reference=lambda xs, n: sum((x - n) ** 2 for x in xs),
+            tags=frozenset({"map", "fold", "closure"}),
+        ),
+        Behaviour(
+            name="maximum_distance_from_n",
+            summary="the largest distance from the given number",
+            witnesses=(
+                "[ sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] swap cons map "
+                "uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+            ),
+            sample=regular,
+            reference=lambda xs, n: max(abs(x - n) for x in xs),
+            tags=frozenset({"map", "fold", "closure", "branch"}),
+        ),
+        Behaviour(
+            name="keep_below_n_then_reverse",
+            summary="keep values below the given number, then reverse them",
+            witnesses=("[ lt? ] swap cons filter nil [ cons ] fold",),
+            sample=regular,
+            reference=lambda xs, n: list(reversed([x for x in xs if x < n])),
+            tags=frozenset({"filter", "fold", "closure"}),
+            accept=_shrinks,
+        ),
+        Behaviour(
+            name="sum_squares_below_n",
+            summary="sum the squares of values below the given number",
+            witnesses=("[ lt? ] swap cons filter [ dup mul ] map 0 [ add ] fold",),
+            sample=regular,
+            reference=lambda xs, n: sum(x * x for x in xs if x < n),
+            tags=frozenset({"filter", "map", "fold", "closure"}),
+        ),
+        Behaviour(
+            name="below_n_centered",
+            summary="keep values below n, then subtract n from each",
+            witnesses=(
+                "swap over [ lt? ] swap cons filter swap [ sub ] swap cons map",
+            ),
+            sample=regular,
+            reference=lambda xs, n: [x - n for x in xs if x < n],
+            tags=frozenset({"filter", "map", "closure"}),
+            accept=_shrinks,
+        ),
+        Behaviour(
+            name="multiples_n_quotients",
+            summary="divide each multiple of n by the given positive n",
+            witnesses=(
+                "swap over [ over over div mul sub 0 eq? ] swap cons filter "
+                "swap [ div ] swap cons map",
+            ),
+            sample=positive_n,
+            reference=lambda xs, n: [x // n for x in xs if x - n * (x // n) == 0],
+            tags=frozenset({"filter", "map", "closure"}),
+            accept=_shrinks,
+        ),
+    )
+
+
+def _scan_behaviours() -> tuple[Behaviour, ...]:
+    return (
+        Behaviour(
+            name="prefix_square_sums",
+            summary="running sum of the squares",
+            witnesses=(
+                "nil [ [ over null? ] [ dup mul cons ] "
+                "[ over uncons swap drop swap dup mul add cons ] ifte ] fold "
+                "nil [ cons ] fold",
+            ),
+            sample=_list_of(SMALL, lo=1, hi=7),
+            reference=lambda xs: [
+                sum(x * x for x in xs[:i]) for i in range(1, len(xs) + 1)
+            ],
+            tags=frozenset({"fold", "branch", "scan"}),
+        ),
+        Behaviour(
+            name="prefix_magnitudes",
+            summary="running sum of the magnitudes",
+            witnesses=(
+                "nil [ [ over null? ] "
+                "[ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte cons ] "
+                "[ over uncons swap drop swap [ dup 0 lt? ] "
+                "[ 0 swap sub ] [ ] ifte add cons ] ifte ] fold nil [ cons ] fold",
+            ),
+            sample=_list_of(SMALL, lo=1, hi=7),
+            reference=lambda xs: [
+                sum(abs(x) for x in xs[:i]) for i in range(1, len(xs) + 1)
+            ],
+            tags=frozenset({"fold", "branch", "scan"}),
+        ),
+        Behaviour(
+            name="prefix_maxima",
+            summary="running maximum",
+            witnesses=(
+                "nil [ [ over null? ] [ cons ] [ over uncons swap drop "
+                "[ over over lt? ] [ swap drop ] [ drop ] ifte cons ] ifte ] "
+                "fold nil [ cons ] fold",
+            ),
+            sample=_list_of(SMALL, lo=1, hi=7),
+            reference=lambda xs: [max(xs[:i]) for i in range(1, len(xs) + 1)],
+            tags=frozenset({"fold", "branch", "scan"}),
+        ),
+        Behaviour(
+            name="prefix_minima",
+            summary="running minimum",
+            witnesses=(
+                "nil [ [ over null? ] [ cons ] [ over uncons swap drop "
+                "[ over over lt? ] [ drop ] [ swap drop ] ifte cons ] ifte ] "
+                "fold nil [ cons ] fold",
+            ),
+            sample=_list_of(SMALL, lo=1, hi=7),
+            reference=lambda xs: [min(xs[:i]) for i in range(1, len(xs) + 1)],
+            tags=frozenset({"fold", "branch", "scan"}),
+        ),
+        Behaviour(
+            name="prefix_positive_counts",
+            summary="running count of positive values",
+            witnesses=(
+                "nil [ [ over null? ] [ [ dup 0 swap lt? ] "
+                "[ drop 1 cons ] [ drop 0 cons ] ifte ] "
+                "[ over uncons swap drop [ over 0 swap lt? ] "
+                "[ 1 add swap drop cons ] [ swap drop cons ] ifte ] ifte ] "
+                "fold nil [ cons ] fold",
+            ),
+            sample=_list_of(MIXED, lo=1, hi=7),
+            reference=lambda xs: [
+                sum(x > 0 for x in xs[:i]) for i in range(1, len(xs) + 1)
+            ],
+            tags=frozenset({"fold", "branch", "scan"}),
+        ),
+        Behaviour(
+            name="prefix_negative_counts",
+            summary="running count of negative values",
+            witnesses=(
+                "nil [ [ over null? ] [ [ dup 0 lt? ] "
+                "[ drop 1 cons ] [ drop 0 cons ] ifte ] "
+                "[ over uncons swap drop [ over 0 lt? ] "
+                "[ 1 add swap drop cons ] [ swap drop cons ] ifte ] ifte ] "
+                "fold nil [ cons ] fold",
+            ),
+            sample=_list_of(MIXED, lo=1, hi=7),
+            reference=lambda xs: [
+                sum(x < 0 for x in xs[:i]) for i in range(1, len(xs) + 1)
+            ],
+            tags=frozenset({"fold", "branch", "scan"}),
+        ),
+        Behaviour(
+            name="prefix_even_counts",
+            summary="running count of even values",
+            witnesses=(
+                "nil [ [ over null? ] "
+                "[ [ dup dup 1 1 add div 1 1 add mul sub 0 eq? ] "
+                "[ drop 1 cons ] [ drop 0 cons ] ifte ] "
+                "[ over uncons swap drop [ over dup 1 1 add div 1 1 add mul "
+                "sub 0 eq? ] [ 1 add swap drop cons ] [ swap drop cons ] ifte ] "
+                "ifte ] fold nil [ cons ] fold",
+            ),
+            sample=_list_of(SMALL, lo=1, hi=7),
+            reference=lambda xs: [
+                sum(_even(x) for x in xs[:i]) for i in range(1, len(xs) + 1)
+            ],
+            tags=frozenset({"fold", "branch", "scan"}),
+        ),
+        Behaviour(
+            name="prefix_nonzero_counts",
+            summary="running count of nonzero values",
+            witnesses=(
+                "nil [ [ over null? ] [ [ dup 0 eq? ] "
+                "[ drop 0 cons ] [ drop 1 cons ] ifte ] "
+                "[ over uncons swap drop [ over 0 eq? ] "
+                "[ swap drop cons ] [ 1 add swap drop cons ] ifte ] ifte ] "
+                "fold nil [ cons ] fold",
+            ),
+            sample=_list_of(SPARSE, lo=1, hi=7),
+            reference=lambda xs: [
+                sum(x != 0 for x in xs[:i]) for i in range(1, len(xs) + 1)
+            ],
+            tags=frozenset({"fold", "branch", "scan"}),
+        ),
+        Behaviour(
+            name="prefix_positive_sums",
+            summary="running sum of positive values",
+            witnesses=(
+                "nil [ [ over null? ] [ [ dup 0 swap lt? ] "
+                "[ cons ] [ drop 0 cons ] ifte ] "
+                "[ over uncons swap drop [ over 0 swap lt? ] "
+                "[ add cons ] [ swap drop cons ] ifte ] ifte ] "
+                "fold nil [ cons ] fold",
+            ),
+            sample=_list_of(MIXED, lo=1, hi=7),
+            reference=lambda xs: [
+                sum(x for x in xs[:i] if x > 0) for i in range(1, len(xs) + 1)
+            ],
+            tags=frozenset({"fold", "branch", "scan"}),
+        ),
+        Behaviour(
+            name="prefix_negative_magnitude_sums",
+            summary="running sum of negative magnitudes",
+            witnesses=(
+                "nil [ [ over null? ] [ [ dup 0 lt? ] "
+                "[ 0 swap sub cons ] [ drop 0 cons ] ifte ] "
+                "[ over uncons swap drop [ over 0 lt? ] "
+                "[ swap 0 swap sub add cons ] [ swap drop cons ] ifte ] ifte ] "
+                "fold nil [ cons ] fold",
+            ),
+            sample=_list_of(MIXED, lo=1, hi=7),
+            reference=lambda xs: [
+                sum(-x for x in xs[:i] if x < 0) for i in range(1, len(xs) + 1)
+            ],
+            tags=frozenset({"fold", "branch", "scan"}),
+        ),
+    )
+
+
+CATALOGUE += (
+    *_composed_behaviours(),
+    *_structural_behaviours(),
+    *_closure_behaviours(),
+    *_scan_behaviours(),
+)
 
 BY_NAME: dict[str, Behaviour] = {b.name: b for b in CATALOGUE}
 
