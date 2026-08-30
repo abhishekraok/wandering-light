@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import random
 import time
 from collections import Counter
@@ -115,6 +116,44 @@ def random_solve(
     return None
 
 
+def list_models(provider: str) -> int:
+    """Ask a provider what it actually serves.
+
+    Model names move faster than anything written down, and a run against a
+    guessed name either errors or silently hits a different model than the one
+    reported. Ask, then pick.
+    """
+    if provider == "openai":
+        import openai
+        from dotenv import load_dotenv
+
+        load_dotenv()
+        names = sorted(m.id for m in openai.OpenAI().models.list())
+    elif provider == "gemini":
+        import google.generativeai as genai
+        from dotenv import load_dotenv
+
+        load_dotenv()
+        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+        names = sorted(
+            m.name
+            for m in genai.list_models()
+            if "generateContent" in m.supported_generation_methods
+        )
+    elif provider == "ollama":
+        from ollama import Client
+
+        names = sorted(m["model"] for m in Client().list()["models"])
+    else:
+        import anthropic
+
+        names = sorted(m.id for m in anthropic.Anthropic().models.list())
+    for name in names:
+        print(f"  {name}")
+    print(f"{len(names)} models on {provider}")
+    return 0
+
+
 def op_reference() -> str:
     return "\n".join(f"  {op.name:<8} {op.effect}" for op in OPS)
 
@@ -186,11 +225,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--effort",
         default="high",
-        help="Anthropic only: low | medium | high | xhigh | max",
+        help="reasoning effort, for providers and models that accept one",
+    )
+    parser.add_argument(
+        "--list-models",
+        action="store_true",
+        help="ask --provider what it serves, then exit",
     )
     parser.add_argument("--samples", type=int, default=1)
     parser.add_argument("--out", default=None)
     args = parser.parse_args(argv)
+
+    if args.list_models:
+        return list_models(args.provider)
 
     tasks = load(args.corpus)
     if args.split != "all":
@@ -205,7 +252,9 @@ def main(argv: list[str] | None = None) -> int:
         import wandering_light.solver as solver_module
 
         builders = {
-            "openai": lambda: solver_module.OpenAITokenGenerator(args.model),
+            "openai": lambda: solver_module.OpenAITokenGenerator(
+                args.model, effort=args.effort
+            ),
             "gemini": lambda: solver_module.GeminiTokenGenerator(args.model),
             "ollama": lambda: solver_module.OllamaTokenGenerator(args.model),
             "anthropic": lambda: solver_module.AnthropicTokenGenerator(
@@ -275,6 +324,25 @@ def main(argv: list[str] | None = None) -> int:
             "solved_programs": Counter(
                 " ".join(s.program) for s in scores if s.solved
             ).most_common(),
+            # Every candidate, with its verdict. The memorised ones are the
+            # point of the corpus and a count alone cannot show what went
+            # wrong -- `uncons drop i` only reads as a near-miss for `last`
+            # once you can see it.
+            "candidates": [
+                {
+                    "behaviour": task.behaviour,
+                    "witness": " ".join(task.program),
+                    "candidate": " ".join(score.program),
+                    "verdict": (
+                        "solved"
+                        if score.solved
+                        else "memorised"
+                        if score.memorised
+                        else "failed"
+                    ),
+                }
+                for task, score in zip(tasks, scores, strict=True)
+            ],
         }
         with open(args.out, "w") as handle:
             json.dump(payload, handle, indent=2)

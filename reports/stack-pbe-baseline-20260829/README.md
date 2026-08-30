@@ -65,6 +65,51 @@ same scale as anything purchasable.
 This is the property the old corpus lacked. Its 75.2% described search over an
 enumeration of what search already reaches.
 
+## A language model against the same forty tasks
+
+`gpt-5.6-terra`, reasoning effort high, one sample per task, the same forty eval
+tasks the BFS sweep used.
+
+| solver | budget / effort | solved | shown-only | memorised |
+|---|---|---:|---:|---:|
+| BFS | 1,000 nodes | 0/40 (0.0%) | 2.5% | 1 |
+| BFS | 10,000 nodes | 3/40 (7.5%) | 10.0% | 1 |
+| BFS | 100,000 nodes | 11/40 (27.5%) | 30.0% | 1 |
+| `gpt-5.6-terra` | effort high | **33/40 (82.5%)** | 90.0% | **3** |
+
+Where they differ is the whole point. BFS stops dead between 5 and 6 ops; the
+model does not notice the boundary:
+
+| behaviour | witness ops | BFS @100k | `gpt-5.6-terra` |
+|---|---:|---:|---:|
+| `double_each` | 5 | 4/4 | 4/4 |
+| `sum` | 5 | 3/3 | 3/3 |
+| `keep_negative` | 5 | 3/3 | 3/3 |
+| `scale_by` | 6 | 0/2 | 2/2 |
+| `sum_both` | 6 | 0/7 | 5/7 |
+| `last` | 6 | 1/2 | 1/2 |
+| `keep_above` | 7 | 0/3 | 1/3 |
+| `count_negative` | 12 | 0/4 | 4/4 |
+| `maximum` | 16 | 0/6 | 4/6 |
+| `abs_each` | 16 | 0/4 | 4/4 |
+| `minimum` | 16 | 0/2 | 2/2 |
+
+`abs_each` and `minimum` are 16-op programs with a nested `ifte` inside a
+combinator body, at a search depth of roughly 10^20 nodes. The model writes them
+directly. Whatever it is doing is not search over this basis.
+
+**The overstatement grows with the solver.** BFS's shown-only number was 2.5
+points high; the model's is **7.5** — three times as much, from three memorised
+answers rather than one. A stronger solver produces more programs that fit five
+examples and miss the sixth, so the value of holding examples back rises exactly
+as the solver improves. Two of the three are `maximum`.
+
+**What this says about the catalogue.** 82.5% is too high for this to work as an
+LLM benchmark as it stands. That is a fact about the forty behaviours, not about
+the generator, and it is the number that should aim the v4 catalogue: the
+behaviours that survive (`keep_above` 1/3, `sum_both` 5/7, `maximum` 4/6) are
+where the difficulty is, and there should be many more of them.
+
 ## What the held-out examples caught
 
 One memorisation at every budget, and it is the same task. BFS returns

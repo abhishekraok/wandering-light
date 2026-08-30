@@ -398,8 +398,11 @@ class TokenGenerator(abc.ABC):
 
 
 class OpenAITokenGenerator(TokenGenerator):
-    def __init__(self, model: str):
+    def __init__(self, model: str, effort: str | None = None):
+        """`effort` is passed only when set, since it is rejected by models
+        that do not reason. Leaving it None keeps the original behaviour."""
         self.model = model
+        self.effort = effort
         load_dotenv()
         self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.llm_io_history = []
@@ -408,9 +411,11 @@ class OpenAITokenGenerator(TokenGenerator):
         self,
         prompt: str,
     ) -> str:
+        extra = {"reasoning": {"effort": self.effort}} if self.effort else {}
         response = self.client.responses.create(
             model=self.model,
             input=prompt,
+            **extra,
         )
         self.llm_io_history.append((prompt, response.output_text))
         return response.output_text
