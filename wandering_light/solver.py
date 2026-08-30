@@ -11,6 +11,7 @@ import hashlib
 import math
 import os
 import random
+import time
 from collections import deque
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -42,6 +43,13 @@ SAMPLED_PROGRAM_COST_DEFINITION = (
     "sequence length, including candidates that fail during execution. Malformed "
     "candidates cost zero and cannot solve."
 )
+WALL_CLOCK_COST_UNIT = "wall_clock_seconds"
+WALL_CLOCK_COST_DEFINITION = (
+    "Wall-clock seconds of the solve call on the evaluation host, including "
+    "model inference and search bookkeeping. This is the primary comparable "
+    "cost across solvers; charged executions remain the hardware-independent "
+    "diagnostic. Only comparable between runs on the same host."
+)
 
 
 @dataclass(frozen=True)
@@ -51,6 +59,7 @@ class PredictionCost:
     charged_executions: int
     candidate_programs: int | None
     termination: str
+    seconds: float | None = None
 
 
 @dataclass(frozen=True)
@@ -378,11 +387,12 @@ class RandomPredictor(FunctionPredictor):
         executor = Executor(available_functions)
 
         for input_list, output_list in problems:
+            started = time.perf_counter()
             if input_list == output_list:
                 results.append(
                     FunctionPrediction(
                         FunctionDefList(),
-                        PredictionCost(0, 0, "solved"),
+                        PredictionCost(0, 0, "solved", time.perf_counter() - started),
                     )
                 )
                 continue
@@ -390,7 +400,12 @@ class RandomPredictor(FunctionPredictor):
                 results.append(
                     FunctionPrediction(
                         FunctionDefList(),
-                        PredictionCost(0, 0, "frontier_exhausted"),
+                        PredictionCost(
+                            0,
+                            0,
+                            "frontier_exhausted",
+                            time.perf_counter() - started,
+                        ),
                     )
                 )
                 continue
@@ -422,6 +437,7 @@ class RandomPredictor(FunctionPredictor):
                         charged_executions,
                         candidates,
                         termination,
+                        time.perf_counter() - started,
                     ),
                 )
             )
@@ -491,9 +507,10 @@ class BFSPredictor(FunctionPredictor):
         problems: list[tuple[TypedList, TypedList]],
         available_functions: FunctionDefSet,
     ) -> list[FunctionPrediction]:
-        """Predict with independent per-problem execution counts."""
+        """Predict with independent per-problem execution counts and timings."""
         predictions = []
         for input_list, output_list in problems:
+            started = time.perf_counter()
             result = self.search_with_cost(
                 input_list,
                 output_list,
@@ -506,6 +523,7 @@ class BFSPredictor(FunctionPredictor):
                         result.executions,
                         None,
                         result.termination,
+                        time.perf_counter() - started,
                     ),
                 )
             )
@@ -682,9 +700,14 @@ class RolloutPredictor(FunctionPredictor):
         problems: list[tuple[TypedList, TypedList]],
         available_functions: FunctionDefSet,
     ) -> list[FunctionPrediction]:
-        """Run independent rollouts and preserve their exact execution costs."""
+        """Run independent rollouts and preserve their exact costs and timings.
+
+        The per-problem seconds include the action scorer's forward passes,
+        so wall-clock is the one cost that charges policy inference.
+        """
         predictions = []
         for input_list, output_list in problems:
+            started = time.perf_counter()
             result = self.search_with_cost(
                 input_list,
                 output_list,
@@ -697,6 +720,7 @@ class RolloutPredictor(FunctionPredictor):
                         result.executions,
                         None,
                         result.termination,
+                        time.perf_counter() - started,
                     ),
                 )
             )
@@ -1200,7 +1224,11 @@ class TokenGeneratorPredictor(FunctionPredictor):
         problems: list[tuple[TypedList, TypedList]],
         available_functions: FunctionDefSet,
     ) -> list[FunctionPrediction]:
-        """Return the shortest solution and charge every valid sampled program."""
+        """Return the shortest solution and charge every valid sampled program.
+
+        Generation is batched across problems, so per-problem ``seconds`` stays
+        ``None``; the evaluation layer times the whole batch instead.
+        """
         if not problems:
             return []
 

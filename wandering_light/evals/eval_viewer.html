@@ -262,7 +262,8 @@
                 <p><strong>Successes:</strong> ${results.success_count}</p>
                 <p><strong>Average Length:</strong> ${results.avg_solution_length.toFixed(1)}</p>
                 <p><strong>Budget:</strong> ${results.budget_value ?? data.summary.budget} ${budgetUnit}</p>
-                <p><strong>Mean Cost:</strong> ${results.mean_charged_executions ?? 'unreported'} ${costUnit}</p>
+                <p><strong>Mean Cost:</strong> ${results.mean_wall_clock_seconds == null ? 'unreported' : results.mean_wall_clock_seconds.toFixed(4)} ${results.primary_cost_unit || 'wall_clock_seconds'}</p>
+                <p><strong>Mean Executions:</strong> ${results.mean_charged_executions ?? 'unreported'} ${costUnit}</p>
                 ${data.summary.command ? `<p><strong>Command:</strong> <code style="background: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-size: 12px;">${data.summary.command}</code></p>` : ''}
             `;
             document.getElementById('summarySection').classList.remove('hidden');

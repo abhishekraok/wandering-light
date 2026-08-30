@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.function_usage import FunctionUsageTracker
 from wandering_light.solver import (
@@ -101,6 +103,8 @@ def test_random_predictor_retries_until_success(monkeypatch):
     assert result.cost.charged_executions == 2
     assert result.cost.candidate_programs == 2
     assert result.cost.termination == "solved"
+    assert result.cost.seconds is not None
+    assert result.cost.seconds >= 0.0
 
 
 def test_random_predictor_exhausts_budget(monkeypatch):
@@ -183,7 +187,7 @@ def test_random_path_length_sampling_is_seeded_and_reported(monkeypatch):
 
     assert first_lengths == observed_lengths
     assert set(first_lengths) == {1, 2, 3}
-    assert first.cost == second.cost
+    assert replace(first.cost, seconds=None) == replace(second.cost, seconds=None)
     assert first.cost.charged_executions == sum(first_lengths)
     assert first.cost.candidate_programs == 30
     metadata = RandomPredictor(path_lengths=[1, 3], seed=5).cost_metadata()
