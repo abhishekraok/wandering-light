@@ -1,0 +1,86 @@
+{
+  "backend": "bfs",
+  "split": "eval",
+  "budget": 10000,
+  "tasks": 440,
+  "solved": 39,
+  "memorised": 3,
+  "shown_fit": 42,
+  "illegal": 399,
+  "solve_rate": 0.08863636363636364,
+  "shown_rate": 0.09545454545454546,
+  "by_behaviour": {
+    "double_each": {
+      "witness_length": 5,
+      "tasks": 40,
+      "solved": 0,
+      "memorised": 0
+    },
+    "abs_each": {
+      "witness_length": 16,
+      "tasks": 40,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_negative": {
+      "witness_length": 5,
+      "tasks": 40,
+      "solved": 0,
+      "memorised": 0
+    },
+    "sum": {
+      "witness_length": 5,
+      "tasks": 40,
+      "solved": 39,
+      "memorised": 1
+    },
+    "last": {
+      "witness_length": 6,
+      "tasks": 40,
+      "solved": 0,
+      "memorised": 1
+    },
+    "maximum": {
+      "witness_length": 16,
+      "tasks": 40,
+      "solved": 0,
+      "memorised": 1
+    },
+    "minimum": {
+      "witness_length": 16,
+      "tasks": 40,
+      "solved": 0,
+      "memorised": 0
+    },
+    "count_negative": {
+      "witness_length": 12,
+      "tasks": 40,
+      "solved": 0,
+      "memorised": 0
+    },
+    "scale_by": {
+      "witness_length": 6,
+      "tasks": 40,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_above": {
+      "witness_length": 7,
+      "tasks": 40,
+      "solved": 0,
+      "memorised": 0
+    },
+    "sum_both": {
+      "witness_length": 6,
+      "tasks": 40,
+      "solved": 0,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "0 [ add ] fold",
+      39
+    ]
+  ]
+}

@@ -98,17 +98,49 @@ model does not notice the boundary:
 combinator body, at a search depth of roughly 10^20 nodes. The model writes them
 directly. Whatever it is doing is not search over this basis.
 
-**The overstatement grows with the solver.** BFS's shown-only number was 2.5
-points high; the model's is **7.5** — three times as much, from three memorised
-answers rather than one. A stronger solver produces more programs that fit five
-examples and miss the sixth, so the value of holding examples back rises exactly
-as the solver improves. Two of the three are `maximum`.
+## The whole eval split
 
-**What this says about the catalogue.** 82.5% is too high for this to work as an
-LLM benchmark as it stands. That is a fact about the forty behaviours, not about
-the generator, and it is the number that should aim the v4 catalogue: the
-behaviours that survive (`keep_above` 1/3, `sum_both` 5/7, `maximum` 4/6) are
-where the difficulty is, and there should be many more of them.
+Forty tasks is a small sample, and one of its numbers did not survive contact
+with the full 440. All 440 eval tasks:
+
+| solver | solved | shown-only | overstatement | memorised |
+|---|---:|---:|---:|---:|
+| BFS @ 10,000 nodes | 39/440 (8.9%) | 9.5% | +0.7 pts | 3 |
+| `qwen3:30b-a3b` (40-task sample) | 10/40 (25.0%) | 27.5% | +2.5 pts | 1 |
+| `gpt-5.6-terra`, effort high | **377/440 (85.7%)** | 88.4% | **+2.7 pts** | 12 |
+
+**Correction to the 40-task figure.** On the sample the model's overstatement
+looked like 7.5 points against BFS's 2.5. On 11x the data it is **2.7 against
+0.7** — the ratio holds at roughly 4x, the magnitude does not. Three
+memorisations out of forty was too thin to quote, and the 7.5 was noise around a
+smaller true value. The direction is what survives: **the stronger solver
+overstates about four times as much**, so holding examples back is worth more as
+solvers improve, not less.
+
+**Where the memorisations concentrate** is the more interesting half. All twelve
+land on three behaviours — `maximum` 6, `minimum` 4, `last` 2 — and the first two
+are exactly the `ifte`-inside-a-`fold` shape, the hardest structure in the
+catalogue. The model's near-misses are not spread evenly; they cluster where the
+program has a branch whose behaviour only shows up on particular data.
+
+**A 30B local model lands on top of a 100,000-node search.** `qwen3:30b-a3b`
+scores 25.0% against BFS's 27.5% on the same forty tasks, and like BFS it stops
+early — 5- and 6-op behaviours only, nothing at 7+. The frontier model is about
+3.4x either of them and shows no such wall. Whatever separates them is not
+model size alone.
+
+**One artifact worth naming.** At a 10,000-node budget BFS solves `sum` 39/40 and
+`double_each` 0/40, though both witnesses are five ops. The budget does not
+complete depth 5, so which five-op programs get found depends on the op ordering,
+not on depth. The 100,000-node column does not have this problem; read the 10,000
+row as order-dependent.
+
+**What this says about the catalogue.** 85.7% is too high for this to work as an
+LLM benchmark. That is a fact about the forty behaviours, not the generator, and
+it is the number that should aim the v4 catalogue. The behaviours that survive
+are specific: `maximum` 27/40, `minimum` 29/40, `keep_above` 29/40,
+`count_negative` 31/40 — branch-bearing and multi-stage — while every 5-op
+elementwise behaviour is at or near 40/40. v4 wants many more of the former.
 
 ## What the held-out examples caught
 

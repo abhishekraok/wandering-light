@@ -1,0 +1,17 @@
+bfs on eval, budget 10,000: 440 tasks, 5200s
+  39/440 solved (8.9%); shown-only would say 9.5% (+0.7%, 3 memorised)
+
+  behaviour          wit   solved  memorised
+  double_each          5    0/40           0
+  keep_negative        5    0/40           0
+  sum                  5   39/40           1
+  last                 6    0/40           1
+  scale_by             6    0/40           0
+  sum_both             6    0/40           0
+  keep_above           7    0/40           0
+  count_negative      12    0/40           0
+  abs_each            16    0/40           0
+  maximum             16    0/40           1
+  minimum             16    0/40           0
+
+wrote reports/stack-pbe-baseline-20260829/bfs_eval_10k_full.json
