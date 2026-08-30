@@ -1,9 +1,9 @@
 {
   "basis": "mark-28",
   "catalogue": {
-    "behaviours": 40,
-    "digest": "sha256:6089f7ec7fc0bc66c906741d124154650cf4c946a5d4a7a8bfcd21be82b331fa",
-    "skeletons": 35
+    "behaviours": 220,
+    "digest": "sha256:5645f2fb513d55550533f3c31f0ef144e9bda23d39b49524ba038317f7dff60e",
+    "skeletons": 215
   },
   "config": {
     "held_out": 8,
@@ -14,36 +14,36 @@
   },
   "corpus": "stack_pbe_v4",
   "counts": {
-    "distinct_input_stacks": 15588,
-    "held_out_examples": 12800,
-    "shown_examples": 7200,
-    "tasks": 1600
+    "distinct_input_stacks": 83488,
+    "held_out_examples": 70400,
+    "shown_examples": 39589,
+    "tasks": 8800
   },
   "generator": "wandering_light.stack_pbe",
   "generator_description": "Behaviours are hand-written and paired with an independent Python reference; inputs are sampled fresh per example; no task input contains a quotation.",
   "hub": {
     "repo_id": "abhishekraok/wandering-light-stack-pbe-v4",
     "repo_type": "dataset",
-    "revision": "4cd2455253f4e1d632da1e93f8de96778df5fd10"
+    "revision": "00c2a9996d32df8d1894b45f4246a66b6df46c25"
   },
   "schema_version": 2,
   "split_policy": "skeleton",
   "splits": {
     "eval": {
-      "behaviours": 8,
-      "bytes": 35691,
+      "behaviours": 45,
+      "bytes": 216659,
       "path": "stack_pbe_v4_eval.jsonl.gz",
-      "records": 320,
-      "sha256": "sha256:767a10c3c1621d67ac4ca4d9c506743a3e8906ec28f6d2d614855a64f685bbee",
-      "skeletons": 7
+      "records": 1800,
+      "sha256": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+      "skeletons": 44
     },
     "train": {
-      "behaviours": 32,
-      "bytes": 118944,
+      "behaviours": 175,
+      "bytes": 755377,
       "path": "stack_pbe_v4_train.jsonl.gz",
-      "records": 1280,
-      "sha256": "sha256:a1f39c36372f57dae602d44ad01f6a0aec22bcd8d0b1da8c579ca2f2013cfec6",
-      "skeletons": 28
+      "records": 7000,
+      "sha256": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+      "skeletons": 171
     }
   }
 }
