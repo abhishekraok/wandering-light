@@ -1004,10 +1004,14 @@ class AnthropicTokenGenerator(TokenGenerator):
 
 
 class GeminiTokenGenerator(TokenGenerator):
-    def __init__(self, model: str = "models/gemini-2.5-flash"):
+    def __init__(self, model: str = "models/gemini-2.5-flash", timeout: int = 120):
+        # The SDK has no default deadline, so an unreachable model hangs.
         self.model = model
+        self.timeout = timeout
         load_dotenv()
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+        genai.configure(
+            api_key=os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        )
         self.client = genai.GenerativeModel(self.model)
         self.llm_io_history = []
 
@@ -1015,7 +1019,9 @@ class GeminiTokenGenerator(TokenGenerator):
         self,
         prompt: str,
     ) -> str:
-        response = self.client.generate_content(prompt)
+        response = self.client.generate_content(
+            prompt, request_options={"timeout": self.timeout}
+        )
         output = response.text
         self.llm_io_history.append((prompt, output))
         return output
