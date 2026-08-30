@@ -598,6 +598,305 @@ CATALOGUE: tuple[Behaviour, ...] = (
     ),
 )
 
+
+@dataclass(frozen=True)
+class _ElementTransform:
+    """One independently stated integer transform for composed behaviours."""
+
+    name: str
+    action: str
+    body: str
+    reference: Callable[[int], int]
+
+
+@dataclass(frozen=True)
+class _ElementPredicate:
+    """One independently stated integer predicate for composed behaviours."""
+
+    name: str
+    description: str
+    body: str
+    reference: Callable[[int], bool]
+
+
+_ELEMENT_TRANSFORMS = (
+    _ElementTransform("increment", "increment", "1 add", lambda x: x + 1),
+    _ElementTransform("negate", "negate", "0 swap sub", lambda x: -x),
+    _ElementTransform(
+        "floor_half", "halve, rounding down", "1 1 add div", lambda x: x // 2
+    ),
+    _ElementTransform(
+        "absolute",
+        "take the magnitude of",
+        "[ dup 0 lt? ] [ 0 swap sub ] [ ] ifte",
+        abs,
+    ),
+    _ElementTransform("cube", "cube", "dup dup mul mul", lambda x: x**3),
+    _ElementTransform(
+        "fourth_power", "raise to the fourth power", "dup mul dup mul", lambda x: x**4
+    ),
+    _ElementTransform(
+        "triangular",
+        "replace by its triangular number",
+        "dup 1 add mul 1 1 add div",
+        lambda x: x * (x + 1) // 2,
+    ),
+    _ElementTransform(
+        "parity",
+        "replace by its remainder modulo two",
+        "dup 1 1 add div 1 1 add mul sub",
+        lambda x: x - 2 * (x // 2),
+    ),
+    _ElementTransform(
+        "nonnegative_part",
+        "replace by its nonnegative part",
+        "[ dup 0 lt? ] [ drop 0 ] [ ] ifte",
+        lambda x: max(x, 0),
+    ),
+    _ElementTransform(
+        "sign",
+        "replace by its sign",
+        "[ dup 0 lt? ] [ drop 0 1 sub ] "
+        "[ [ dup 0 eq? ] [ drop 0 ] [ drop 1 ] ifte ] ifte",
+        lambda x: int(x > 0) - int(x < 0),
+    ),
+)
+
+_PARITY_BODY = "dup 1 1 add div 1 1 add mul sub"
+
+_ELEMENT_PREDICATES = (
+    _ElementPredicate("negative", "negative", "0 lt?", lambda x: x < 0),
+    _ElementPredicate("positive", "positive", "0 swap lt?", lambda x: x > 0),
+    _ElementPredicate("even", "even", f"{_PARITY_BODY} 0 eq?", lambda x: _even(x)),
+    _ElementPredicate(
+        "odd",
+        "odd",
+        f"[ {_PARITY_BODY} 0 eq? ] [ drop false ] [ drop true ] ifte",
+        lambda x: not _even(x),
+    ),
+    _ElementPredicate(
+        "nonzero",
+        "nonzero",
+        "[ 0 eq? ] [ drop false ] [ drop true ] ifte",
+        lambda x: x != 0,
+    ),
+    _ElementPredicate(
+        "nonnegative",
+        "nonnegative",
+        "[ dup 0 lt? ] [ drop false ] [ drop true ] ifte",
+        lambda x: x >= 0,
+    ),
+    _ElementPredicate(
+        "unit_magnitude", "magnitude-one", "dup mul 1 eq?", lambda x: abs(x) == 1
+    ),
+    _ElementPredicate(
+        "magnitude_below_three",
+        "magnitude-below-three",
+        "dup mul 1 1 add 1 add dup mul lt?",
+        lambda x: abs(x) < 3,
+    ),
+    _ElementPredicate(
+        "multiple_of_three",
+        "multiples-of-three",
+        "dup 1 1 add 1 add div 1 1 add 1 add mul sub 0 eq?",
+        lambda x: x - 3 * (x // 3) == 0,
+    ),
+    _ElementPredicate(
+        "zero_or_one",
+        "zero-or-one",
+        "dup 1 sub mul 0 eq?",
+        lambda x: x in (0, 1),
+    ),
+)
+
+
+def _filter_accept(
+    transform: _ElementTransform | None, predicate: _ElementPredicate
+) -> Callable[[list[Args], list[Result]], bool]:
+    """Require a composed filter to both keep and reject sampled elements."""
+
+    def accept(args_list: list[Args], _results: list[Result]) -> bool:
+        decisions = [
+            predicate.reference(
+                transform.reference(value) if transform is not None else value
+            )
+            for args in args_list
+            for value in args[0]
+            if isinstance(value, int)
+        ]
+        return any(decisions) and not all(decisions)
+
+    return accept
+
+
+def _composed_tags(
+    transform: _ElementTransform,
+    predicate: _ElementPredicate,
+    *,
+    fold: bool = False,
+) -> frozenset[str]:
+    tags = {"filter", "map"}
+    if fold:
+        tags.add("fold")
+    if "ifte" in transform.body or "ifte" in predicate.body:
+        tags.add("branch")
+    return frozenset(tags)
+
+
+def _filter_then_map(
+    transform: _ElementTransform, predicate: _ElementPredicate
+) -> Behaviour:
+    def reference(xs: list[int]) -> list[int]:
+        return [transform.reference(x) for x in xs if predicate.reference(x)]
+
+    return Behaviour(
+        name=f"keep_{predicate.name}_then_{transform.name}",
+        summary=(
+            f"keep the {predicate.description} values, then {transform.action} each one"
+        ),
+        witnesses=(f"[ {predicate.body} ] filter [ {transform.body} ] map",),
+        sample=_list_of(SMALL, hi=7),
+        reference=reference,
+        tags=_composed_tags(transform, predicate),
+        accept=_shrinks,
+    )
+
+
+def _map_then_filter(
+    transform: _ElementTransform, predicate: _ElementPredicate
+) -> Behaviour:
+    def reference(xs: list[int]) -> list[int]:
+        transformed = [transform.reference(x) for x in xs]
+        return [x for x in transformed if predicate.reference(x)]
+
+    return Behaviour(
+        name=f"{transform.name}_then_keep_{predicate.name}",
+        summary=(
+            f"{transform.action} each value, then keep the "
+            f"{predicate.description} results"
+        ),
+        witnesses=(f"[ {transform.body} ] map [ {predicate.body} ] filter",),
+        sample=_list_of(SMALL, hi=7),
+        reference=reference,
+        tags=_composed_tags(transform, predicate),
+        accept=_shrinks,
+    )
+
+
+def _filter_map_sum(
+    transform: _ElementTransform, predicate: _ElementPredicate
+) -> Behaviour:
+    def reference(xs: list[int]) -> int:
+        return sum(transform.reference(x) for x in xs if predicate.reference(x))
+
+    return Behaviour(
+        name=f"sum_{transform.name}_of_{predicate.name}",
+        summary=(
+            f"keep the {predicate.description} values, {transform.action} each one, "
+            "then sum them"
+        ),
+        witnesses=(
+            f"[ {predicate.body} ] filter [ {transform.body} ] map 0 [ add ] fold",
+        ),
+        sample=_list_of(SMALL, hi=7),
+        reference=reference,
+        tags=_composed_tags(transform, predicate, fold=True),
+        accept=_filter_accept(None, predicate),
+    )
+
+
+def _map_filter_sum(
+    transform: _ElementTransform, predicate: _ElementPredicate
+) -> Behaviour:
+    def reference(xs: list[int]) -> int:
+        transformed = (transform.reference(x) for x in xs)
+        return sum(x for x in transformed if predicate.reference(x))
+
+    return Behaviour(
+        name=f"sum_{predicate.name}_after_{transform.name}",
+        summary=(
+            f"{transform.action} each value, keep the {predicate.description} "
+            "results, then sum them"
+        ),
+        witnesses=(
+            f"[ {transform.body} ] map [ {predicate.body} ] filter 0 [ add ] fold",
+        ),
+        sample=_list_of(SMALL, hi=7),
+        reference=reference,
+        tags=_composed_tags(transform, predicate, fold=True),
+        accept=_filter_accept(transform, predicate),
+    )
+
+
+# These pairs would make the filtering stage constant on SMALL. They are not
+# behaviours: no example set could distinguish their filter from `nil` or the
+# identity, and `draw_task` would correctly refuse them.
+_CONSTANT_POST_FILTERS = frozenset(
+    {
+        ("absolute", "negative"),
+        ("absolute", "nonnegative"),
+        ("fourth_power", "negative"),
+        ("fourth_power", "nonnegative"),
+        ("triangular", "negative"),
+        ("triangular", "nonnegative"),
+        ("parity", "negative"),
+        ("parity", "nonnegative"),
+        ("parity", "magnitude_below_three"),
+        ("parity", "zero_or_one"),
+        ("nonnegative_part", "negative"),
+        ("nonnegative_part", "nonnegative"),
+        ("sign", "magnitude_below_three"),
+    }
+)
+
+# A filtering stage may be informative while the following sum is identically
+# zero. Those pairs are omitted for the same reason.
+_ZERO_PRE_FILTER_SUMS = frozenset(
+    {
+        ("nonnegative_part", "negative"),
+        ("parity", "even"),
+        ("floor_half", "zero_or_one"),
+    }
+)
+_ZERO_POST_FILTER_SUMS = _CONSTANT_POST_FILTERS | {
+    ("parity", "even"),
+    ("parity", "multiple_of_three"),
+    ("sign", "even"),
+    ("sign", "multiple_of_three"),
+}
+
+
+def _composed_behaviours() -> tuple[Behaviour, ...]:
+    pairs = tuple(
+        (transform, predicate)
+        for predicate in _ELEMENT_PREDICATES
+        for transform in _ELEMENT_TRANSFORMS
+    )
+    post_filter_pairs = tuple(
+        pair
+        for pair in pairs
+        if (pair[0].name, pair[1].name) not in _CONSTANT_POST_FILTERS
+    )
+    pre_sum_pairs = tuple(
+        pair
+        for pair in pairs
+        if (pair[0].name, pair[1].name) not in _ZERO_PRE_FILTER_SUMS
+    )
+    post_sum_pairs = tuple(
+        pair
+        for pair in pairs
+        if (pair[0].name, pair[1].name) not in _ZERO_POST_FILTER_SUMS
+    )
+    return (
+        *(_filter_then_map(*pair) for pair in pairs),
+        *(_map_then_filter(*pair) for pair in post_filter_pairs),
+        *(_filter_map_sum(*pair) for pair in pre_sum_pairs),
+        *(_map_filter_sum(*pair) for pair in post_sum_pairs),
+    )
+
+
+CATALOGUE += _composed_behaviours()
+
 BY_NAME: dict[str, Behaviour] = {b.name: b for b in CATALOGUE}
 
 
