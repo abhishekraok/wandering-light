@@ -18,7 +18,9 @@ from __future__ import annotations
 import argparse
 import json
 import statistics
+import sys
 from collections import Counter
+from pathlib import Path
 
 from wandering_light.stack_machine import Lst, Sym, Value, parse_stack
 from wandering_light.stack_pbe import BASIS, CATALOGUE, independent_groups, load
@@ -58,6 +60,20 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--out", default=None)
     args = parser.parse_args(argv)
+
+    corpus = Path(args.corpus)
+    if corpus.is_dir() and not any(corpus.glob("*.jsonl.gz")):
+        # The manifest is tracked and the payload is not; say so, rather than
+        # failing with a missing-file error that looks like a broken checkout.
+        print(
+            f"{corpus} holds a manifest but no payload -- the corpus lives on the "
+            f"Hub, not in git. Fetch it with:\n\n"
+            f'  uv run python -c "from wandering_light.corpus_hub import '
+            f"fetch_corpus; fetch_corpus('{corpus}/manifest.json')\"\n\n"
+            f"or point --corpus at a directory you generated yourself.",
+            file=sys.stderr,
+        )
+        return 1
 
     tasks = load(args.corpus)
     n = len(tasks)
