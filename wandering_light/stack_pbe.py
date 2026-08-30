@@ -195,6 +195,44 @@ def independent_groups(
     return groups
 
 
+def scaffold_sharing(
+    catalogue: Sequence[Behaviour] = (), window: int = 8
+) -> list[tuple[float, str]]:
+    """How much of each witness is op-sequence another witness also contains.
+
+    The group audit asks whether two behaviours share an *idea*. This asks the
+    weaker and more awkward question of whether they share *code*, and the
+    answer on this substrate is: nearly all of it. Twenty-eight ops, no local
+    variables, and every non-trivial program a fold around a hand-rolled
+    accumulator means the same twenty-op preamble appears everywhere.
+
+    That is a property of the basis rather than of any catalogue -- the forty
+    behaviours written before this measurement existed score 66.7%, the later
+    ones 79.3%. It is recorded because it bounds what a held-out score means:
+    a solver may assemble much of an unseen witness from fragments of seen
+    ones, so success is evidence of composition, not of invention.
+    """
+    catalogue = catalogue or CATALOGUE
+    seen: dict[tuple[str, ...], set[str]] = {}
+    for behaviour in catalogue:
+        program = behaviour.program
+        for index in range(len(program) - window + 1):
+            seen.setdefault(program[index : index + window], set()).add(behaviour.name)
+
+    shares = []
+    for behaviour in catalogue:
+        program = behaviour.program
+        windows = [
+            program[index : index + window]
+            for index in range(len(program) - window + 1)
+        ]
+        if not windows:
+            continue
+        elsewhere = sum(1 for gram in windows if len(seen[gram]) > 1)
+        shares.append((elsewhere / len(windows), behaviour.name))
+    return sorted(shares, reverse=True)
+
+
 @dataclass(frozen=True)
 class Behaviour:
     """One hand-written problem: what it computes, and programs that do.

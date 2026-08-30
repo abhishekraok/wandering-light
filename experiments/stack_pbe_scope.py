@@ -23,7 +23,13 @@ from collections import Counter
 from pathlib import Path
 
 from wandering_light.stack_machine import Lst, Sym, Value, parse_stack
-from wandering_light.stack_pbe import BASIS, CATALOGUE, independent_groups, load
+from wandering_light.stack_pbe import (
+    BASIS,
+    CATALOGUE,
+    independent_groups,
+    load,
+    scaffold_sharing,
+)
 
 COMBINATORS = {"map", "filter", "fold", "ifte"}
 RUNS_CODE = COMBINATORS | {"i", "dip"}
@@ -183,6 +189,18 @@ def main(argv: list[str] | None = None) -> int:
         f"largest holds {largest} ({largest / max(len(CATALOGUE), 1):.1%})"
     )
     print(f"  group sizes: {sizes[:8]}{' ...' if len(sizes) > 8 else ''}")
+    shares = scaffold_sharing(CATALOGUE)
+    if shares:
+        middle = statistics.median(share for share, _ in shares)
+        print(
+            f"\nshared scaffolding: a witness's median share of 8-op windows that "
+            f"another witness also contains is {middle:.1%}"
+        )
+        print(
+            "  This is the basis, not the catalogue -- it bounds what a held-out "
+            "score means rather than invalidating one."
+        )
+
     if largest > len(CATALOGUE) * 0.2:
         print(
             "  WARNING: the largest group exceeds a fifth of the catalogue, so "
