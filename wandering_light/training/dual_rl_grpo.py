@@ -507,8 +507,12 @@ def dual_rl_grpo_main(
             final_logs["step"] = max(
                 induction_trainer.state.global_step, proposer_trainer.state.global_step
             )
-            final_logs["final/induction_global_step"] = induction_trainer.state.global_step
-            final_logs["final/proposer_global_step"] = proposer_trainer.state.global_step
+            final_logs["final/induction_global_step"] = (
+                induction_trainer.state.global_step
+            )
+            final_logs["final/proposer_global_step"] = (
+                proposer_trainer.state.global_step
+            )
             wandb.log(final_logs)
 
     # Finish wandb run

@@ -113,9 +113,7 @@ def test_sft_protocol_discloses_required_360m_checkpointing(tmp_path, monkeypatc
     )
     assert small_protocol["gradient_checkpointing_kwargs"] == {}
     assert large_protocol["gradient_checkpointing"]
-    assert large_protocol["gradient_checkpointing_kwargs"] == {
-        "use_reentrant": False
-    }
+    assert large_protocol["gradient_checkpointing_kwargs"] == {"use_reentrant": False}
 
 
 def _pilot(rate, loss):

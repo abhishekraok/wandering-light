@@ -242,9 +242,7 @@ def _study_identity(arm_id: str, architecture: dict, protocol: dict) -> str:
             "optimizer": protocol["optimizer"],
             "precision": protocol["precision"],
             "gradient_checkpointing": protocol["gradient_checkpointing"],
-            "gradient_checkpointing_kwargs": protocol[
-                "gradient_checkpointing_kwargs"
-            ],
+            "gradient_checkpointing_kwargs": protocol["gradient_checkpointing_kwargs"],
             "cublas_workspace_config": protocol["cublas_workspace_config"],
             "pythonhashseed": protocol["pythonhashseed"],
             "initialization_seed": 54_001,
@@ -274,9 +272,7 @@ def _training_manifest(
         "precision": "bf16",
         "gradient_checkpointing": arm_id == "smollm2-360m-scratch",
         "gradient_checkpointing_kwargs": (
-            {"use_reentrant": False}
-            if arm_id == "smollm2-360m-scratch"
-            else {}
+            {"use_reentrant": False} if arm_id == "smollm2-360m-scratch" else {}
         ),
         "cublas_workspace_config": ":16:8",
         "pythonhashseed": "0",
@@ -907,9 +903,7 @@ def test_rejects_training_wandb_and_feasibility_study_mismatch(study):
         ("pythonhashseed", "1"),
     ],
 )
-def test_rejects_training_runtime_that_differs_from_protocol(
-    study, field, replacement
-):
+def test_rejects_training_runtime_that_differs_from_protocol(study, field, replacement):
     inputs = study["inputs"]
     pilot_path = inputs.pilot_manifests[0]
     changed = json.loads(pilot_path.read_text(encoding="utf-8"))
@@ -917,14 +911,11 @@ def test_rejects_training_runtime_that_differs_from_protocol(
     final = study["validation"][changed["arm_id"]]["training_manifest"]
     rate = float(changed["learning_rate"])
     lock_row = next(
-        row for row in final["selection_lock"]["pilots"]
-        if row["learning_rate"] == rate
+        row for row in final["selection_lock"]["pilots"] if row["learning_rate"] == rate
     )
     lock_row["manifest_digest"] = sha256_json(changed)
     if final["selection_lock"]["selected_learning_rate"] == rate:
-        final["selection_lock"]["selected_pilot_manifest_digest"] = sha256_json(
-            changed
-        )
+        final["selection_lock"]["selected_pilot_manifest_digest"] = sha256_json(changed)
     pilot_path.write_text(json.dumps(changed), encoding="utf-8")
 
     with pytest.raises(ValueError, match="deterministic runtime differs"):

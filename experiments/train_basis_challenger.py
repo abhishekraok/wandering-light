@@ -1092,9 +1092,7 @@ def _git_identity(repo_root: Path) -> dict[str, Any]:
     }
 
 
-def _require_unchanged_source(
-    repo_root: Path, expected: Mapping[str, Any]
-) -> None:
+def _require_unchanged_source(repo_root: Path, expected: Mapping[str, Any]) -> None:
     if _git_identity(repo_root) != dict(expected):
         raise RuntimeError(
             "Repository source changed after the training process started; "
@@ -1293,11 +1291,10 @@ def _train(
 ) -> dict[str, Any]:
     """Perform one GPU-only SFT run; all heavy imports are below dry-run."""
     import torch
+    import wandb
     from datasets import Dataset
     from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
     from trl import SFTTrainer
-
-    import wandb
 
     if not torch.cuda.is_available():
         raise RuntimeError("Basis challenger training requires a CUDA GPU")

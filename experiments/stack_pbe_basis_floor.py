@@ -30,12 +30,11 @@ from collections import Counter
 
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
+    Config,
     Lst,
-    Op,
     Sym,
     Value,
     format_stack,
-    Config,
     ops_for_basis,
     quotation_open,
     step_raw,

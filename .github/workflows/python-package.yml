@@ -30,5 +30,7 @@ jobs:
       run: uv python install ${{ matrix.python-version }}
     - name: Install dependencies
       run: uv sync --frozen --extra dev --extra experiments
+    - name: Lint and formatting (ruff)
+      run: uv run ./lint.sh ci
     - name: Test with pytest
       run: uv run pytest

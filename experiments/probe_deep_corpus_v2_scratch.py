@@ -1111,9 +1111,7 @@ def _configure_gradient_checkpointing(
 ) -> None:
     if enabled:
         model.config.use_cache = False
-        model.gradient_checkpointing_enable(
-            gradient_checkpointing_kwargs=dict(kwargs)
-        )
+        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs=dict(kwargs))
 
 
 def _assert_bf16_model(model: Any, torch: Any) -> None:
@@ -1334,9 +1332,7 @@ def _arm_study_identity(
         architecture=resolved.identity_dict(),
         corpus_manifest_digest=data.corpus_manifest["manifest_digest"],
         tokenizer_artifact_digest=data.tokenizer_manifest["artifact_digest"],
-        retained_training_task_ids_digest=data.train_audit[
-            "retained_task_ids_digest"
-        ],
+        retained_training_task_ids_digest=data.train_audit["retained_task_ids_digest"],
         per_device_batch_size=runner.PER_DEVICE_BATCH_SIZE,
         gradient_accumulation_steps=runner.GRADIENT_ACCUMULATION_STEPS,
         max_length=TOKENIZER_MAX_LENGTH,

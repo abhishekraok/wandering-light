@@ -61,9 +61,7 @@ def has_quotation(value: Value) -> bool:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--corpus", default="wandering_light/evals/data/stack_pbe_v4"
-    )
+    parser.add_argument("--corpus", default="wandering_light/evals/data/stack_pbe_v4")
     parser.add_argument("--out", default=None)
     args = parser.parse_args(argv)
 
@@ -125,8 +123,16 @@ def main(argv: list[str] | None = None) -> int:
         f"and {stats['skeletons']} distinct skeletons\n"
     )
     rows = [
-        ("distinct input stacks", stats["distinct_input_stacks"], V2["distinct_input_stacks"]),
-        ("distinct input sets (one per task)", stats["distinct_input_sets"], V2["distinct_input_stacks"]),
+        (
+            "distinct input stacks",
+            stats["distinct_input_stacks"],
+            V2["distinct_input_stacks"],
+        ),
+        (
+            "distinct input sets (one per task)",
+            stats["distinct_input_sets"],
+            V2["distinct_input_stacks"],
+        ),
     ]
     print(f"{'':<38}{'v3':>12}{'v2 (#59)':>12}")
     for label, got, was in rows:
@@ -140,7 +146,9 @@ def main(argv: list[str] | None = None) -> int:
     ):
         label = key.replace("_", " ")
         print(f"{label:<38}{stats[key]:>11.1%}{V2[key]:>12.1%}")
-    print(f"{'builds a closure over task data':<38}{stats['builds_closure']:>11.1%}{'--':>12}")
+    print(
+        f"{'builds a closure over task data':<38}{stats['builds_closure']:>11.1%}{'--':>12}"
+    )
 
     print(
         f"\nwitness length: median {stats['median_length']}, max {stats['max_length']}; "
