@@ -154,6 +154,7 @@ correction lands in one place instead of being chased across comment threads.
 
 ## Where things live
 
+- `docs/metrics.md` — how cost and success are measured: units, the AUC solve-cost metric, the Kt bridge, calibration constants
 - `wandering_light/stack_machine.py` — the machine
 - `wandering_light/stack_machine_corpus.py` — PBE corpus generation, certified by BFS depth
 - `docs/stack_machine_explorer.html` — keyboard-driven explorer, self-checks against the Python core
