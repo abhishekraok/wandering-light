@@ -31,6 +31,7 @@ import argparse
 import json
 import os
 import random
+import sys
 import time
 from collections import Counter
 
@@ -202,8 +203,28 @@ def parse_response(text: str) -> str:
 
 
 def solve_with_llm(task: Task, generator, samples: int) -> list[str]:
+    """One candidate per sample, with a failed call scored as a failed answer.
+
+    Deliberately broad: the four backends raise unrelated exception types --
+    an httpx timeout, a Google 503, an OpenAI rate limit -- and a run over
+    hundreds of tasks must not die because one call did. Without this the
+    deadline added to bound a runaway generation would itself end the
+    evaluation before any summary or output file is written, which is worse
+    than the hang it replaced.
+    """
     prompt = llm_prompt(task)
-    return [parse_response(generator.generate(prompt)) for _ in range(samples)]
+    candidates = []
+    for _ in range(samples):
+        try:
+            candidates.append(parse_response(generator.generate(prompt)))
+        except Exception as error:  # broad on purpose - see docstring
+            print(
+                f"  {task.behaviour}: generation failed, scoring as unsolved "
+                f"({type(error).__name__}: {str(error)[:80]})",
+                file=sys.stderr,
+            )
+            candidates.append("")
+    return candidates
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -224,6 +245,12 @@ def main(argv: list[str] | None = None) -> int:
         "--effort",
         default="high",
         help="reasoning effort, for providers and models that accept one",
+    )
+    parser.add_argument(
+        "--ollama-timeout",
+        type=float,
+        default=300.0,
+        help="ollama only: per-request deadline, so a runaway answer cannot stall a run",
     )
     parser.add_argument(
         "--list-models",
@@ -254,7 +281,9 @@ def main(argv: list[str] | None = None) -> int:
                 args.model, effort=args.effort
             ),
             "gemini": lambda: solver_module.GeminiTokenGenerator(args.model),
-            "ollama": lambda: solver_module.OllamaTokenGenerator(args.model),
+            "ollama": lambda: solver_module.OllamaTokenGenerator(
+                args.model, timeout=args.ollama_timeout
+            ),
             "anthropic": lambda: solver_module.AnthropicTokenGenerator(
                 args.model, effort=args.effort
             ),

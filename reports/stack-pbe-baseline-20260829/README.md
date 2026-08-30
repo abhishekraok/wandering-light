@@ -167,15 +167,58 @@ examples, almost all of them three-example tasks. Requiring at least two distinc
 list lengths among the shown examples would close it, and belongs in the next
 corpus rather than a silent regeneration of this one.
 
+## Which local model can serve as a free arm
+
+Four models on one RTX 4090, same forty eval tasks, same protocol. The question
+is whether anything free can stand in for the paid arm as a routine regression.
+
+| model | size | solved / 40 | throughput |
+|---|---:|---:|---:|
+| **`qwen3:30b-a3b`** (MoE, ~3B active) | 18 GB | **9 (22.5%)** | 80.2 tok/s |
+| `gpt-oss:20b` | 13 GB | 1 of a 4-task sample | ~59 s/task |
+| `qwen3-coder:30b` (MoE) | 18 GB | 0 of a 4-task sample | 4 s/task |
+| `qwen3:32b` (dense) | 20 GB | never finished 4 tasks | **5.1 tok/s** |
+
+The dense 32B is the informative failure. Ten times the active parameters of
+the MoE, and unusable: 20 GB of weights plus a 32k KV cache exceeds 24 GB of
+VRAM, so it spills and runs at 5 tok/s. Forty tasks would take two hours
+against seventeen minutes. On this card MoE is not a compromise, it is the only
+workable shape. `qwen3-coder` is fast and does not understand the substrate --
+asked for `double_each` it answers `dup add` rather than `[ dup add ] map`.
+
+**So the best free arm lands on top of search.** 22.5% against a
+100,000-node BFS's 27.5% and `gpt-5.6-terra`'s 82.5%. That is useful as a free
+regression signal and is not a substitute for the measurement that matters.
+
+### Bounding a runaway generation: by clock, not by tokens
+
+`qwen3-coder:30b` answers some prompts in two seconds and runs past ten minutes
+on others, generating until it fills a 32k context, which stalls a whole run.
+The obvious fix is a `num_predict` cap. It is the wrong fix:
+
+| bound | solved / 40 | wall clock |
+|---|---:|---:|
+| none | 10 (25.0%) | 1,988 s |
+| 300 s deadline | 9 (22.5%) | 1,941 s |
+| 4,096-token cap | **2 (5.0%)** | 844 s |
+
+A token cap truncates a reasoning model mid-thought and costs eight of ten
+solves. A deadline costs one, inside sampling noise, at the same wall clock --
+the only tasks it loses are ones that were going to be lost anyway.
+
 ## Not measured
 
-**No language model has been run.** No API credentials are present on this
-machine and no local model is pulled, so the arm that would say whether these
-behaviours are *hard* or merely *unfamiliar to search* is missing. The backend is
-written and tested — response parsing has its own tests — and needs only a key.
-Until then the only claim here is about search.
+**Nothing here is a `stack_pbe_v4` number.** Every figure in this report is
+measured on v3's 40 behaviours. v4's eval split is 44 skeletons with a median
+witness of 43 ops against v3's 7 skeletons at 6.5, so the language-model figure
+in particular should be expected to move.
 
-`solver.py` has OpenAI, Gemini and Ollama generators and **no Anthropic one**.
+**Gemini is unrun.** Its free tier is 20 requests per day per model, below the
+floor of a single 40-task sample, so it cannot serve as a routine arm. The
+generator works; the quota does not permit a run.
+
+**One sample per task.** Every language-model number here is pass@1 at one
+sample. Nothing is said about what pass@k would give.
 
 ## Reproduce
 

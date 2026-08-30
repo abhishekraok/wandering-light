@@ -1,0 +1,332 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "tasks": 40,
+  "solved": 2,
+  "memorised": 0,
+  "shown_fit": 2,
+  "illegal": 38,
+  "solve_rate": 0.05,
+  "shown_rate": 0.05,
+  "by_behaviour": {
+    "count_negative": {
+      "witness_length": 12,
+      "tasks": 4,
+      "solved": 0,
+      "memorised": 0
+    },
+    "double_each": {
+      "witness_length": 5,
+      "tasks": 4,
+      "solved": 1,
+      "memorised": 0
+    },
+    "maximum": {
+      "witness_length": 16,
+      "tasks": 6,
+      "solved": 0,
+      "memorised": 0
+    },
+    "abs_each": {
+      "witness_length": 16,
+      "tasks": 4,
+      "solved": 0,
+      "memorised": 0
+    },
+    "sum": {
+      "witness_length": 5,
+      "tasks": 3,
+      "solved": 1,
+      "memorised": 0
+    },
+    "keep_above": {
+      "witness_length": 7,
+      "tasks": 3,
+      "solved": 0,
+      "memorised": 0
+    },
+    "scale_by": {
+      "witness_length": 6,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "sum_both": {
+      "witness_length": 6,
+      "tasks": 7,
+      "solved": 0,
+      "memorised": 0
+    },
+    "last": {
+      "witness_length": 6,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "minimum": {
+      "witness_length": 16,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_negative": {
+      "witness_length": 5,
+      "tasks": 3,
+      "solved": 0,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "[ dup add ] map",
+      1
+    ],
+    [
+      "0 [ add ] fold",
+      1
+    ]
+  ],
+  "candidates": [
+    {
+      "behaviour": "count_negative",
+      "witness": "[ 0 lt? ] filter 0 [ drop 1 add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "double_each",
+      "witness": "[ dup add ] map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "count_negative",
+      "witness": "[ 0 lt? ] filter 0 [ drop 1 add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "maximum",
+      "witness": "uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "maximum",
+      "witness": "uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "double_each",
+      "witness": "[ dup add ] map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "abs_each",
+      "witness": "[ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "sum",
+      "witness": "0 [ add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "keep_above",
+      "witness": "[ swap lt? ] swap cons filter",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "abs_each",
+      "witness": "[ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "scale_by",
+      "witness": "[ mul ] swap cons map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "maximum",
+      "witness": "uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "sum_both",
+      "witness": "cat 0 [ add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "last",
+      "witness": "0 [ swap drop ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "minimum",
+      "witness": "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "minimum",
+      "witness": "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "last",
+      "witness": "0 [ swap drop ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "count_negative",
+      "witness": "[ 0 lt? ] filter 0 [ drop 1 add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "count_negative",
+      "witness": "[ 0 lt? ] filter 0 [ drop 1 add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "sum_both",
+      "witness": "cat 0 [ add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "maximum",
+      "witness": "uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "scale_by",
+      "witness": "[ mul ] swap cons map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "keep_negative",
+      "witness": "[ 0 lt? ] filter",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "sum_both",
+      "witness": "cat 0 [ add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "maximum",
+      "witness": "uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "abs_each",
+      "witness": "[ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "keep_negative",
+      "witness": "[ 0 lt? ] filter",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "keep_above",
+      "witness": "[ swap lt? ] swap cons filter",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "keep_above",
+      "witness": "[ swap lt? ] swap cons filter",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "sum",
+      "witness": "0 [ add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "sum_both",
+      "witness": "cat 0 [ add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "maximum",
+      "witness": "uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "sum_both",
+      "witness": "cat 0 [ add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "keep_negative",
+      "witness": "[ 0 lt? ] filter",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "double_each",
+      "witness": "[ dup add ] map",
+      "candidate": "[ dup add ] map",
+      "verdict": "solved"
+    },
+    {
+      "behaviour": "abs_each",
+      "witness": "[ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "sum",
+      "witness": "0 [ add ] fold",
+      "candidate": "0 [ add ] fold",
+      "verdict": "solved"
+    },
+    {
+      "behaviour": "sum_both",
+      "witness": "cat 0 [ add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "sum_both",
+      "witness": "cat 0 [ add ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "double_each",
+      "witness": "[ dup add ] map",
+      "candidate": "[ dup 1 1 add mul ] map",
+      "verdict": "failed"
+    }
+  ]
+}
