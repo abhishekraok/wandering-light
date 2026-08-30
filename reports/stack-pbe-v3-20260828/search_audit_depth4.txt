@@ -1,0 +1,49 @@
+depth <= 4, 40 tasks, basis mark-28
+
+behaviour          k  wit  fits holds bogus    states
+sum_of_squares     5   10     0     0     0    40,745
+halve_each         5    7     0     0     0    40,851
+last               6    6     0     0     0    40,825
+max_pair           6   12     0     0     0    47,350
+add_to_each        5    6     0     0     0    43,396
+scale_by           4    6     0     0     0    43,061
+count_equal        4   13     0     0     0    43,618
+minimum            4   16     0     0     0    40,802
+length             4    7     0     0     0    39,680
+halve_each         6    7     0     0     0    41,337
+sum_of_squares     3   10     0     0     0    41,208
+count_zeros        5   12     0     0     0    41,119
+halve_each         6    7     0     0     0    40,825
+scale_by           6    6     0     0     0    43,102
+prefix_sums        3   25     0     0     0    41,290
+span               6   35     0     0     0    40,734
+sum                3    5     0     0     0    40,835
+prefix_sums        3   25     0     0     0    41,426
+last               4    6     0     0     0    40,841
+keep_negative      5    5     0     0     0    40,732
+abs_diff_pair      5   14     0     0     0    48,276
+double_each        5    5     0     0     0    40,785
+n_minus_each       3    7     0     0     0    43,432
+minimum            4   16     0     0     0    41,192
+keep_below         3    6     0     0     0    43,309
+keep_below         5    6     0     0     0    43,499
+square_each        5    5     0     0     0    41,261
+maximum            5   16     0     0     0    40,860
+count_evens        5   22     0     0     0    40,847
+count_zeros        4   12     0     0     0    40,727
+max_pair           4   12     0     0     0    47,936
+mean               3   15     0     0     0    40,738
+mean               6   15     0     0     0    40,819
+keep_negative      4    5     0     0     0    40,748
+sum_positive       5   11     0     0     0    40,841
+tail               6    2    20    20     0    41,120
+product            6    5     0     0     0    40,648
+keep_above         3    7     0     0     0    43,633
+negate_each        6    6     0     0     0    40,857
+length             4    7     0     0     0    41,407
+
+1/40 tasks admit a program of <= 4 ops fitting the shown examples
+0/40 admit one that fits the shown examples and fails the held-out ones
+0/40 have a fit shorter than the authored witness; 1 witnesses are within the swept depth and so certified shortest
+80s
+wrote reports/stack-pbe-v3-20260828/search_audit_depth4.json

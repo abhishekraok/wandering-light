@@ -1,0 +1,20 @@
+{
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "tasks": 8800,
+  "behaviours": 220,
+  "skeletons": 215,
+  "distinct_input_stacks": 83488,
+  "distinct_shown_input_stacks": 31914,
+  "distinct_input_sets": 8800,
+  "shown_examples": 39589,
+  "held_out_examples": 70400,
+  "quotation_in_input": 0.0,
+  "builds_quotation": 0.9681818181818181,
+  "runs_code": 0.9681818181818181,
+  "uses_combinator": 0.9545454545454546,
+  "no_computation": 0.02727272727272727,
+  "builds_closure": 0.23636363636363636,
+  "median_length": 43.0,
+  "max_length": 253,
+  "median_fuel": 444.0
+}

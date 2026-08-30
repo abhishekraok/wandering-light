@@ -180,9 +180,7 @@ def test_sft_resume_reuses_wandb_run(
         created_trainers.append(t)
         return t
 
-    with patch(
-        "wandering_light.training.sft.SFTTrainer", side_effect=trainer_factory
-    ):
+    with patch("wandering_light.training.sft.SFTTrainer", side_effect=trainer_factory):
         sft.sft_main(
             model_name=model_name,
             full_run=False,

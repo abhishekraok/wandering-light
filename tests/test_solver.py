@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.function_usage import FunctionUsageTracker
 from wandering_light.solver import (
@@ -84,7 +86,7 @@ def test_random_predictor_retries_until_success(monkeypatch):
     candidates = iter([dec, inc])
     calls = 0
 
-    def controlled_walk(input_list, path_length, available_functions):
+    def controlled_walk(input_list, path_length, available_functions, rng=None):
         nonlocal calls
         calls += 1
         return TrajectorySpec(input_list, FunctionDefList([next(candidates)]))
@@ -92,12 +94,17 @@ def test_random_predictor_retries_until_success(monkeypatch):
     monkeypatch.setattr(TrajectorySpec, "create_random_walk", controlled_walk)
     predictor = RandomPredictor(budget=3, path_length=1)
 
-    result = predictor.predict_functions_batch(
+    result = predictor.predict_functions_batch_with_cost(
         [(tl, target)], FunctionDefSet([inc, dec])
-    )
+    )[0]
 
     assert calls == 2
-    assert result == [FunctionDefList([inc])]
+    assert result.function_defs == FunctionDefList([inc])
+    assert result.cost.charged_executions == 2
+    assert result.cost.candidate_programs == 2
+    assert result.cost.termination == "solved"
+    assert result.cost.seconds is not None
+    assert result.cost.seconds >= 0.0
 
 
 def test_random_predictor_exhausts_budget(monkeypatch):
@@ -106,7 +113,7 @@ def test_random_predictor_exhausts_budget(monkeypatch):
     inc = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
     calls = 0
 
-    def controlled_walk(input_list, path_length, available_functions):
+    def controlled_walk(input_list, path_length, available_functions, rng=None):
         nonlocal calls
         calls += 1
         return TrajectorySpec(input_list, FunctionDefList([inc]))
@@ -114,10 +121,80 @@ def test_random_predictor_exhausts_budget(monkeypatch):
     monkeypatch.setattr(TrajectorySpec, "create_random_walk", controlled_walk)
     predictor = RandomPredictor(budget=3, path_length=1)
 
-    result = predictor.predict_functions_batch([(tl, target)], FunctionDefSet([inc]))
+    result = predictor.predict_functions_batch_with_cost(
+        [(tl, target)], FunctionDefSet([inc])
+    )[0]
 
     assert calls == 3
-    assert result == [FunctionDefList()]
+    assert result.function_defs == FunctionDefList()
+    assert result.cost.charged_executions == 3
+    assert result.cost.candidate_programs == 3
+    assert result.cost.termination == "candidate_budget"
+
+
+def test_random_charges_full_program_when_execution_fails(monkeypatch):
+    start = TypedList([1])
+    target = TypedList([99])
+    explode = make_function("explode", "builtins.int", "builtins.int", "return x / 0")
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+
+    def failing_walk(input_list, path_length, available_functions, rng=None):
+        return TrajectorySpec(input_list, FunctionDefList([explode, increment]))
+
+    monkeypatch.setattr(TrajectorySpec, "create_random_walk", failing_walk)
+    prediction = RandomPredictor(
+        budget=1,
+        path_length=2,
+    ).predict_functions_batch_with_cost(
+        [(start, target)], FunctionDefSet([explode, increment])
+    )[0]
+
+    assert prediction.cost.charged_executions == 2
+    assert prediction.cost.candidate_programs == 1
+    assert prediction.cost.termination == "candidate_budget"
+
+
+def test_random_path_length_sampling_is_seeded_and_reported(monkeypatch):
+    start = TypedList([0])
+    target = TypedList([999])
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    functions = FunctionDefSet([increment])
+    original_walk = TrajectorySpec.create_random_walk
+    observed_lengths = []
+
+    def recording_walk(input_list, path_length, available_functions, rng=None):
+        observed_lengths.append(path_length)
+        return original_walk(
+            input_list,
+            path_length,
+            available_functions,
+            rng=rng,
+        )
+
+    monkeypatch.setattr(TrajectorySpec, "create_random_walk", recording_walk)
+    first = RandomPredictor(
+        budget=30,
+        path_lengths=[1, 2, 3],
+        seed=17,
+    ).predict_functions_batch_with_cost([(start, target)], functions)[0]
+    first_lengths = list(observed_lengths)
+    observed_lengths.clear()
+    second = RandomPredictor(
+        budget=30,
+        path_lengths=[1, 2, 3],
+        seed=17,
+    ).predict_functions_batch_with_cost([(start, target)], functions)[0]
+
+    assert first_lengths == observed_lengths
+    assert set(first_lengths) == {1, 2, 3}
+    assert replace(first.cost, seconds=None) == replace(second.cost, seconds=None)
+    assert first.cost.charged_executions == sum(first_lengths)
+    assert first.cost.candidate_programs == 30
+    metadata = RandomPredictor(path_lengths=[1, 3], seed=5).cost_metadata()
+    assert metadata["budget_unit"] == "candidate_programs"
+    assert metadata["cost_unit"] == "basis_function_executions"
+    assert metadata["path_length_sampling"] == "uniform"
+    assert metadata["path_lengths"] == [1, 3]
 
 
 # BFS solver tests

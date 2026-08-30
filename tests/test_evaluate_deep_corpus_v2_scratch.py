@@ -329,9 +329,7 @@ def _training_manifest(arm_id: str) -> dict:
         "precision": "bf16",
         "gradient_checkpointing": arm_id == "smollm2-360m-scratch",
         "gradient_checkpointing_kwargs": (
-            {"use_reentrant": False}
-            if arm_id == "smollm2-360m-scratch"
-            else {}
+            {"use_reentrant": False} if arm_id == "smollm2-360m-scratch" else {}
         ),
         "cublas_workspace_config": ":16:8",
         "pythonhashseed": "0",
@@ -386,9 +384,7 @@ def _training_manifest(arm_id: str) -> dict:
             "precision": "bf16",
             "gradient_checkpointing": arm_id == "smollm2-360m-scratch",
             "gradient_checkpointing_kwargs": (
-                {"use_reentrant": False}
-                if arm_id == "smollm2-360m-scratch"
-                else {}
+                {"use_reentrant": False} if arm_id == "smollm2-360m-scratch" else {}
             ),
             "cublas_workspace_config": ":16:8",
             "pythonhashseed": "0",
@@ -1238,9 +1234,7 @@ def test_checkpoint_identity_binds_deterministic_runtime(
     _write_checkpoint(checkpoint, manifest)
 
     with pytest.raises(ValueError, match="study identity does not match"):
-        evaluate.checkpoint_identity(
-            checkpoint, arm_id=arm_id, protocol_lock=protocol
-        )
+        evaluate.checkpoint_identity(checkpoint, arm_id=arm_id, protocol_lock=protocol)
 
 
 @pytest.mark.parametrize(
@@ -1260,14 +1254,10 @@ def test_checkpoint_identity_cross_checks_observed_deterministic_runtime(
     _write_checkpoint(checkpoint, manifest)
 
     with pytest.raises(ValueError, match="deterministic runtime differs"):
-        evaluate.checkpoint_identity(
-            checkpoint, arm_id=arm_id, protocol_lock=protocol
-        )
+        evaluate.checkpoint_identity(checkpoint, arm_id=arm_id, protocol_lock=protocol)
 
 
-def test_360m_checkpoint_identity_binds_non_reentrant_checkpointing(
-    tmp_path, protocol
-):
+def test_360m_checkpoint_identity_binds_non_reentrant_checkpointing(tmp_path, protocol):
     arm_id = "smollm2-360m-scratch"
     manifest = _training_manifest(arm_id)
     manifest["training_protocol"]["gradient_checkpointing_kwargs"] = {
@@ -1277,9 +1267,7 @@ def test_360m_checkpoint_identity_binds_non_reentrant_checkpointing(
     _write_checkpoint(checkpoint, manifest)
 
     with pytest.raises(ValueError, match="study identity does not match"):
-        evaluate.checkpoint_identity(
-            checkpoint, arm_id=arm_id, protocol_lock=protocol
-        )
+        evaluate.checkpoint_identity(checkpoint, arm_id=arm_id, protocol_lock=protocol)
 
 
 def test_training_outcomes_fall_back_to_planned_token_workload():

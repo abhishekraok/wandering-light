@@ -3,18 +3,25 @@ import os
 import shutil
 from typing import Any
 
+import wandb
 from transformers import (
     AutoTokenizer,
     PreTrainedModel,
 )
 from trl import GRPOConfig, GRPOTrainer
 
-import wandb
 from wandering_light.constants import Task
 from wandering_light.function_def import FunctionDefSet
 from wandering_light.solver import (
     TrainedLLMTokenGenerator,
     create_token_solver,
+)
+from wandering_light.training.callbacks import (
+    OnlineEvaluator,
+    ProposerRewardWithLogging,
+    RewardEvaluationCallback,
+    TrainingSampleLogger,
+    logger,
 )
 from wandering_light.training.data_generator import (
     induction_dataset_rl,
@@ -30,13 +37,6 @@ from wandering_light.training.rl_grpo_config import (
 from wandering_light.training.wandb_utils import (
     WandbRunLinkCallback,
     define_wandb_step_metric,
-)
-from wandering_light.training.callbacks import (
-    RewardEvaluationCallback,
-    TrainingSampleLogger,
-    OnlineEvaluator,
-    ProposerRewardWithLogging,
-    logger,
 )
 
 
@@ -507,8 +507,12 @@ def dual_rl_grpo_main(
             final_logs["step"] = max(
                 induction_trainer.state.global_step, proposer_trainer.state.global_step
             )
-            final_logs["final/induction_global_step"] = induction_trainer.state.global_step
-            final_logs["final/proposer_global_step"] = proposer_trainer.state.global_step
+            final_logs["final/induction_global_step"] = (
+                induction_trainer.state.global_step
+            )
+            final_logs["final/proposer_global_step"] = (
+                proposer_trainer.state.global_step
+            )
             wandb.log(final_logs)
 
     # Finish wandb run
@@ -556,7 +560,7 @@ if __name__ == "__main__":
         "--num-train-steps",
         type=int,
         default=32,
-        help=f"Number of training steps (default: 12,000)",
+        help="Number of training steps (default: 12,000)",
     )
     parser.add_argument(
         "--learning-rate",

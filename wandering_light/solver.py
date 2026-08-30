@@ -7,11 +7,18 @@ LLM-based solvers using ``TokenGenerator`` classes.
 """
 
 import abc
+import hashlib
+import math
 import os
+import random
+import time
 from collections import deque
-from dataclasses import dataclass
+from collections.abc import Sequence
+from dataclasses import dataclass, field
+from numbers import Real
 from typing import Literal
 
+import anthropic
 import google.generativeai as genai
 import openai
 from dotenv import load_dotenv
@@ -26,12 +33,50 @@ from wandering_light.llm_utils import generate_eval_prompt
 from wandering_light.trajectory import Trajectory, TrajectorySpec
 from wandering_light.typed_list import TypedList
 
+BASIS_EXECUTION_COST_UNIT = "basis_function_executions"
+BFS_COST_DEFINITION = (
+    "One execution is charged for every type-compatible basis function tried, "
+    "including a function that raises. The successful path is not charged again "
+    "when the common solver wrapper verifies it."
+)
+SAMPLED_PROGRAM_COST_DEFINITION = (
+    "Each syntactically valid candidate program is charged its full function "
+    "sequence length, including candidates that fail during execution. Malformed "
+    "candidates cost zero and cannot solve."
+)
+WALL_CLOCK_COST_UNIT = "wall_clock_seconds"
+WALL_CLOCK_COST_DEFINITION = (
+    "Wall-clock seconds of the solve call on the evaluation host, including "
+    "model inference and search bookkeeping. This is the primary comparable "
+    "cost across solvers; charged executions remain the hardware-independent "
+    "diagnostic. Only comparable between runs on the same host."
+)
+
+
+@dataclass(frozen=True)
+class PredictionCost:
+    """Comparable search cost for one prediction."""
+
+    charged_executions: int
+    candidate_programs: int | None
+    termination: str
+    seconds: float | None = None
+
+
+@dataclass(frozen=True)
+class FunctionPrediction:
+    """A predicted program plus optional cost telemetry."""
+
+    function_defs: FunctionDefList
+    cost: PredictionCost | None = None
+
 
 @dataclass
 class MaybeTrajectory:
     success: bool
     trajectory: Trajectory | None = None
     error_msg: str | None = None
+    cost: PredictionCost | None = None
 
 
 @dataclass(frozen=True)
@@ -43,6 +88,25 @@ class BFSSearchResult:
     termination: Literal["solved", "budget", "max_depth", "frontier_exhausted"]
 
 
+@dataclass(frozen=True)
+class RolloutDepthTrace:
+    """The paths retained after one complete rollout layer."""
+
+    depth: int
+    retained_paths: tuple[tuple[str, ...], ...]
+    unique_successors: int
+
+
+@dataclass(frozen=True)
+class RolloutSearchResult:
+    """A rollout prediction together with the search cost and stop reason."""
+
+    function_defs: FunctionDefList
+    executions: int
+    termination: Literal["solved", "budget", "max_depth", "frontier_exhausted"]
+    trace: tuple[RolloutDepthTrace, ...] = field(default=(), compare=False)
+
+
 class FunctionPredictor(abc.ABC):
     """
     Base class for function prediction strategies.
@@ -50,6 +114,9 @@ class FunctionPredictor(abc.ABC):
     """
 
     track_function_usage = True
+    cost_unit: str | None = None
+    cost_definition: str | None = None
+    budget_unit: str | None = None
 
     @abc.abstractmethod
     def predict_functions_batch(
@@ -67,6 +134,41 @@ class FunctionPredictor(abc.ABC):
         Returns:
             List of FunctionDefList predictions corresponding to each problem
         """
+
+    def predict_functions_batch_with_cost(
+        self,
+        problems: list[tuple[TypedList, TypedList]],
+        available_functions: FunctionDefSet,
+    ) -> list[FunctionPrediction]:
+        """Predict with telemetry, preserving custom predictors without it."""
+        return [
+            FunctionPrediction(function_defs)
+            for function_defs in self.predict_functions_batch(
+                problems,
+                available_functions,
+            )
+        ]
+
+    def cost_metadata(self) -> dict[str, object]:
+        """Describe the predictor's budget and common reported cost."""
+        return {
+            "cost_unit": self.cost_unit,
+            "cost_definition": self.cost_definition,
+            "budget_unit": self.budget_unit,
+            "budget_value": getattr(self, "budget", None),
+        }
+
+
+class ActionScorer(abc.ABC):
+    """Score the next basis function from each materialized state and target."""
+
+    @abc.abstractmethod
+    def score_actions_batch(
+        self,
+        problems: list[tuple[TypedList, TypedList]],
+        available_functions: FunctionDefSet,
+    ) -> list[dict[str, float]]:
+        """Return one unnormalized score per available function and problem."""
 
 
 class TrajectorySolver:
@@ -113,14 +215,20 @@ class TrajectorySolver:
             self.function_usage.bind_basis(basis_set_id, basis_digest)
 
         # Get predictions for all problems
-        predictions = self.predictor.predict_functions_batch(
+        predictions = self.predictor.predict_functions_batch_with_cost(
             problems, available_functions
         )
 
         # Execute and compare using shared logic
         return [
-            self._process_response(pred, input_list, output_list, available_functions)
-            for pred, (input_list, output_list) in zip(
+            self._process_response(
+                prediction.function_defs,
+                input_list,
+                output_list,
+                available_functions,
+                prediction.cost,
+            )
+            for prediction, (input_list, output_list) in zip(
                 predictions, problems, strict=True
             )
         ]
@@ -143,6 +251,7 @@ class TrajectorySolver:
         input_list: TypedList,
         output_list: TypedList,
         available_functions: FunctionDefSet,
+        prediction_cost: PredictionCost | None = None,
     ) -> MaybeTrajectory:
         """
         Process a FunctionDefList into a MaybeTrajectory by executing and comparing results.
@@ -158,6 +267,7 @@ class TrajectorySolver:
                 success=False,
                 trajectory=None,
                 error_msg=result.error_msg,
+                cost=prediction_cost,
             )
 
         traj = result.trajectory
@@ -168,7 +278,11 @@ class TrajectorySolver:
                     basis_set_id=self.function_usage.basis_set_id,
                     basis_digest=self.function_usage.basis_digest,
                 )
-            return MaybeTrajectory(success=True, trajectory=traj)
+            return MaybeTrajectory(
+                success=True,
+                trajectory=traj,
+                cost=prediction_cost,
+            )
         # Check if this is an empty function list (no solution found case)
         elif len(function_def_list.functions) == 0 and traj.output == input_list:
             budget = getattr(self.predictor, "budget", "unknown")
@@ -176,13 +290,19 @@ class TrajectorySolver:
                 success=False,
                 trajectory=traj,
                 error_msg=f"No solution found for output {output_list} within budget {budget}",
+                cost=prediction_cost,
             )
         else:
             return MaybeTrajectory(
                 success=False,
                 trajectory=traj,
                 error_msg=f"Output mismatch: expected {output_list}, got {traj.output}",
+                cost=prediction_cost,
             )
+
+    def cost_metadata(self) -> dict[str, object]:
+        """Return the predictor's declared budget and cost semantics."""
+        return self.predictor.cost_metadata()
 
     def save(self, directory: str):
         """Save predictor-specific data and successful-solution usage."""
@@ -195,44 +315,156 @@ class TrajectorySolver:
 
 class RandomPredictor(FunctionPredictor):
     """
-    Randomly predicts function sequences of fixed length.
+    Randomly predicts programs with lengths sampled from an explicit set.
     """
 
     track_function_usage = False
+    cost_unit = BASIS_EXECUTION_COST_UNIT
+    cost_definition = SAMPLED_PROGRAM_COST_DEFINITION
+    budget_unit = "candidate_programs"
 
-    def __init__(self, budget: int = 100, path_length: int = 1):
+    def __init__(
+        self,
+        budget: int = 100,
+        path_length: int = 1,
+        *,
+        path_lengths: Sequence[int] | None = None,
+        seed: int | None = None,
+    ):
+        if budget < 0:
+            raise ValueError("budget must be non-negative")
+        sampled_lengths = (
+            (path_length,) if path_lengths is None else tuple(path_lengths)
+        )
+        if not sampled_lengths:
+            raise ValueError("path_lengths must contain at least one length")
+        if any(length < 0 for length in sampled_lengths):
+            raise ValueError("path lengths must be non-negative")
         self.budget = budget
         self.path_length = path_length
+        self.path_lengths = sampled_lengths
+        self.seed = seed
+        self._base_seed = (
+            seed if seed is not None else random.SystemRandom().getrandbits(128)
+        )
+
+    def _rng_for_problem(
+        self,
+        input_list: TypedList,
+        output_list: TypedList,
+    ) -> random.Random:
+        payload = "\0".join(
+            (
+                str(self._base_seed),
+                input_list.to_string(),
+                output_list.to_string(),
+            )
+        ).encode()
+        derived_seed = int.from_bytes(hashlib.sha256(payload).digest()[:16], "big")
+        return random.Random(derived_seed)
 
     def predict_functions_batch(
         self,
         problems: list[tuple[TypedList, TypedList]],
         available_functions: FunctionDefSet,
     ) -> list[FunctionDefList]:
-        """Try up to ``budget`` random sequences for each problem."""
-        results = []
+        """Return only programs for the legacy predictor API."""
+        return [
+            prediction.function_defs
+            for prediction in self.predict_functions_batch_with_cost(
+                problems,
+                available_functions,
+            )
+        ]
+
+    def predict_functions_batch_with_cost(
+        self,
+        problems: list[tuple[TypedList, TypedList]],
+        available_functions: FunctionDefSet,
+    ) -> list[FunctionPrediction]:
+        """Try at most ``budget`` candidates per problem and report their cost."""
+        results: list[FunctionPrediction] = []
         available_functions_list = available_functions.functions
         executor = Executor(available_functions)
 
         for input_list, output_list in problems:
-            prediction = FunctionDefList()
-            for _ in range(self.budget if available_functions_list else 0):
-                spec = TrajectorySpec.create_random_walk(
-                    input_list, self.path_length, available_functions_list
+            started = time.perf_counter()
+            if input_list == output_list:
+                results.append(
+                    FunctionPrediction(
+                        FunctionDefList(),
+                        PredictionCost(0, 0, "solved", time.perf_counter() - started),
+                    )
                 )
+                continue
+            if not available_functions_list:
+                results.append(
+                    FunctionPrediction(
+                        FunctionDefList(),
+                        PredictionCost(
+                            0,
+                            0,
+                            "frontier_exhausted",
+                            time.perf_counter() - started,
+                        ),
+                    )
+                )
+                continue
+
+            prediction = FunctionDefList()
+            rng = self._rng_for_problem(input_list, output_list)
+            charged_executions = 0
+            candidates = 0
+            termination = "candidate_budget"
+            for _ in range(self.budget):
+                path_length = rng.choice(self.path_lengths)
+                spec = TrajectorySpec.create_random_walk(
+                    input_list,
+                    path_length,
+                    available_functions_list,
+                    rng=rng,
+                )
+                candidates += 1
+                charged_executions += len(spec.function_defs)
                 execution = executor.execute_trajectory(spec)
                 if execution.success and execution.trajectory.output == output_list:
                     prediction = FunctionDefList(list(spec.function_defs))
+                    termination = "solved"
                     break
-            results.append(prediction)
+            results.append(
+                FunctionPrediction(
+                    prediction,
+                    PredictionCost(
+                        charged_executions,
+                        candidates,
+                        termination,
+                        time.perf_counter() - started,
+                    ),
+                )
+            )
 
         return results
+
+    def cost_metadata(self) -> dict[str, object]:
+        metadata = super().cost_metadata()
+        metadata.update(
+            {
+                "path_length_sampling": "uniform",
+                "path_lengths": list(self.path_lengths),
+                "seed": self.seed,
+            }
+        )
+        return metadata
 
 
 class BFSPredictor(FunctionPredictor):
     """
     Performs breadth-first search through function combinations up to a maximum depth.
     """
+
+    cost_unit = BASIS_EXECUTION_COST_UNIT
+    cost_definition = BFS_COST_DEFINITION
+    budget_unit = BASIS_EXECUTION_COST_UNIT
 
     def __init__(self, budget: int = 100, max_depth: int = 3):
         """`budget` counts **basis executions**, not trajectories.
@@ -245,22 +477,58 @@ class BFSPredictor(FunctionPredictor):
         `reports/deep-corpus-20260816/` -- are in the older unit and are not
         directly comparable.
         """
+        if budget < 0:
+            raise ValueError("budget must be non-negative")
+        if max_depth < 0:
+            raise ValueError("max_depth must be non-negative")
         self.budget = budget
         self.max_depth = max_depth
+
+    def cost_metadata(self) -> dict[str, object]:
+        metadata = super().cost_metadata()
+        metadata["max_depth"] = self.max_depth
+        return metadata
 
     def predict_functions_batch(
         self,
         problems: list[tuple[TypedList, TypedList]],
         available_functions: FunctionDefSet,
     ) -> list[FunctionDefList]:
-        """Predict function sequences using BFS for each problem."""
-        results = []
+        """Return only programs for the legacy predictor API."""
+        return [
+            prediction.function_defs
+            for prediction in self.predict_functions_batch_with_cost(
+                problems,
+                available_functions,
+            )
+        ]
 
+    def predict_functions_batch_with_cost(
+        self,
+        problems: list[tuple[TypedList, TypedList]],
+        available_functions: FunctionDefSet,
+    ) -> list[FunctionPrediction]:
+        """Predict with independent per-problem execution counts and timings."""
+        predictions = []
         for input_list, output_list in problems:
-            solution = self._bfs_search(input_list, output_list, available_functions)
-            results.append(solution)
-
-        return results
+            started = time.perf_counter()
+            result = self.search_with_cost(
+                input_list,
+                output_list,
+                available_functions,
+            )
+            predictions.append(
+                FunctionPrediction(
+                    result.function_defs,
+                    PredictionCost(
+                        result.executions,
+                        None,
+                        result.termination,
+                        time.perf_counter() - started,
+                    ),
+                )
+            )
+        return predictions
 
     def _bfs_search(
         self,
@@ -369,6 +637,275 @@ class BFSPredictor(FunctionPredictor):
         return typed_list.item_type == func.input_type_cls()
 
 
+@dataclass(frozen=True)
+class _RolloutNode:
+    state: TypedList
+    function_defs: tuple[FunctionDef, ...]
+    log_probability: float
+    order: int
+
+
+class RolloutPredictor(FunctionPredictor):
+    """Beam search whose policy observes every materialized intermediate state."""
+
+    cost_unit = BASIS_EXECUTION_COST_UNIT
+    cost_definition = BFS_COST_DEFINITION
+    budget_unit = BASIS_EXECUTION_COST_UNIT
+
+    def __init__(
+        self,
+        action_scorer: ActionScorer,
+        beam_width: int = 8,
+        max_depth: int = 8,
+        budget: int = 100_000,
+    ):
+        self._validate_integer("beam_width", beam_width, minimum=1)
+        self._validate_integer("max_depth", max_depth, minimum=0)
+        self._validate_integer("budget", budget, minimum=0)
+        self.action_scorer = action_scorer
+        self.beam_width = beam_width
+        self.max_depth = max_depth
+        self.budget = budget
+
+    def cost_metadata(self) -> dict[str, object]:
+        metadata = super().cost_metadata()
+        metadata.update(
+            {
+                "beam_width": self.beam_width,
+                "max_depth": self.max_depth,
+            }
+        )
+        return metadata
+
+    @staticmethod
+    def _validate_integer(name: str, value: int, *, minimum: int) -> None:
+        if type(value) is not int or value < minimum:
+            raise ValueError(f"{name} must be an integer >= {minimum}")
+
+    def predict_functions_batch(
+        self,
+        problems: list[tuple[TypedList, TypedList]],
+        available_functions: FunctionDefSet,
+    ) -> list[FunctionDefList]:
+        """Run an independent execution-budgeted rollout for each problem."""
+        return [
+            prediction.function_defs
+            for prediction in self.predict_functions_batch_with_cost(
+                problems,
+                available_functions,
+            )
+        ]
+
+    def predict_functions_batch_with_cost(
+        self,
+        problems: list[tuple[TypedList, TypedList]],
+        available_functions: FunctionDefSet,
+    ) -> list[FunctionPrediction]:
+        """Run independent rollouts and preserve their exact costs and timings.
+
+        The per-problem seconds include the action scorer's forward passes,
+        so wall-clock is the one cost that charges policy inference.
+        """
+        predictions = []
+        for input_list, output_list in problems:
+            started = time.perf_counter()
+            result = self.search_with_cost(
+                input_list,
+                output_list,
+                available_functions,
+            )
+            predictions.append(
+                FunctionPrediction(
+                    result.function_defs,
+                    PredictionCost(
+                        result.executions,
+                        None,
+                        result.termination,
+                        time.perf_counter() - started,
+                    ),
+                )
+            )
+        return predictions
+
+    def search_with_cost(
+        self,
+        input_list: TypedList,
+        output_list: TypedList,
+        available_functions: FunctionDefSet,
+    ) -> RolloutSearchResult:
+        """Search with a per-problem budget measured in basis executions.
+
+        The scorer supplies logits for the whole basis. The rollout applies the
+        exact input-type mask, normalizes each beam node separately, and orders
+        all transitions in a layer by cumulative log probability. Every
+        type-compatible transition attempted costs one, including functions
+        that raise on their input values.
+        """
+        if input_list == output_list:
+            return RolloutSearchResult(FunctionDefList(), 0, "solved")
+        if not available_functions.functions:
+            return RolloutSearchResult(FunctionDefList(), 0, "frontier_exhausted")
+        if self.budget == 0:
+            return RolloutSearchResult(FunctionDefList(), 0, "budget")
+        if self.max_depth == 0:
+            return RolloutSearchResult(FunctionDefList(), 0, "max_depth")
+
+        executor = Executor(available_functions)
+        beam = [_RolloutNode(input_list, (), 0.0, 0)]
+        executions = 0
+        trace: list[RolloutDepthTrace] = []
+
+        for depth in range(1, self.max_depth + 1):
+            score_rows = self.action_scorer.score_actions_batch(
+                [(node.state, output_list) for node in beam],
+                available_functions,
+            )
+            scores = self._validate_scores(score_rows, len(beam), available_functions)
+
+            expansions = []
+            for parent_index, (node, row) in enumerate(zip(beam, scores, strict=True)):
+                compatible = [
+                    (function_index, function)
+                    for function_index, function in enumerate(
+                        available_functions.functions
+                    )
+                    if node.state.item_type is function.input_type_cls()
+                ]
+                if not compatible:
+                    continue
+                top_score = max(row[function.name] for _, function in compatible)
+                log_normalizer = top_score + math.log(
+                    sum(
+                        math.exp(row[function.name] - top_score)
+                        for _, function in compatible
+                    )
+                )
+                for function_index, function in compatible:
+                    log_probability = (
+                        node.log_probability + row[function.name] - log_normalizer
+                    )
+                    expansions.append(
+                        (
+                            log_probability,
+                            parent_index,
+                            function_index,
+                            node,
+                            function,
+                        )
+                    )
+
+            if not expansions:
+                trace.append(RolloutDepthTrace(depth, (), 0))
+                return RolloutSearchResult(
+                    FunctionDefList(),
+                    executions,
+                    "frontier_exhausted",
+                    tuple(trace),
+                )
+
+            # The ordering matters if a solution is encountered or the budget
+            # binds partway through a layer. Basis order is the final stable
+            # tie-break, after the already deterministic beam order.
+            expansions.sort(key=lambda item: (-item[0], item[1], item[2]))
+            successors: dict[tuple, _RolloutNode] = {}
+            for order, (log_probability, _, _, node, function) in enumerate(expansions):
+                executions += 1
+                function_defs = (*node.function_defs, function)
+                try:
+                    state = executor.execute(function, node.state)
+                except Exception:
+                    if executions >= self.budget:
+                        return RolloutSearchResult(
+                            FunctionDefList(), executions, "budget", tuple(trace)
+                        )
+                    continue
+
+                if state == output_list:
+                    return RolloutSearchResult(
+                        FunctionDefList(list(function_defs)),
+                        executions,
+                        "solved",
+                        tuple(trace),
+                    )
+                if executions >= self.budget:
+                    return RolloutSearchResult(
+                        FunctionDefList(), executions, "budget", tuple(trace)
+                    )
+
+                state_key = state.search_key()
+                previous = successors.get(state_key)
+                if previous is None or log_probability > previous.log_probability:
+                    successors[state_key] = _RolloutNode(
+                        state, function_defs, log_probability, order
+                    )
+
+            beam = sorted(
+                successors.values(),
+                key=lambda node: (-node.log_probability, node.order),
+            )[: self.beam_width]
+            trace.append(
+                RolloutDepthTrace(
+                    depth=depth,
+                    retained_paths=tuple(
+                        tuple(function.name for function in node.function_defs)
+                        for node in beam
+                    ),
+                    unique_successors=len(successors),
+                )
+            )
+            if not beam:
+                return RolloutSearchResult(
+                    FunctionDefList(),
+                    executions,
+                    "frontier_exhausted",
+                    tuple(trace),
+                )
+
+        return RolloutSearchResult(
+            FunctionDefList(), executions, "max_depth", tuple(trace)
+        )
+
+    @staticmethod
+    def _validate_scores(
+        score_rows: list[dict[str, float]],
+        expected_rows: int,
+        available_functions: FunctionDefSet,
+    ) -> list[dict[str, float]]:
+        if not isinstance(score_rows, list) or len(score_rows) != expected_rows:
+            actual = (
+                len(score_rows) if isinstance(score_rows, list) else type(score_rows)
+            )
+            raise ValueError(
+                f"action scorer returned {actual} rows; expected {expected_rows}"
+            )
+
+        expected_names = {function.name for function in available_functions}
+        validated = []
+        for row_index, row in enumerate(score_rows):
+            if not isinstance(row, dict) or set(row) != expected_names:
+                actual_names = set(row) if isinstance(row, dict) else set()
+                missing = sorted(expected_names - actual_names)
+                unexpected = sorted(actual_names - expected_names)
+                raise ValueError(
+                    f"action scorer row {row_index} has wrong function names; "
+                    f"missing={missing}, unexpected={unexpected}"
+                )
+            clean_row = {}
+            for name, score in row.items():
+                if (
+                    isinstance(score, bool)
+                    or not isinstance(score, Real)
+                    or not math.isfinite(float(score))
+                ):
+                    raise ValueError(
+                        f"action scorer row {row_index} has non-finite or "
+                        f"non-numeric score for {name!r}: {score!r}"
+                    )
+                clean_row[name] = float(score)
+            validated.append(clean_row)
+        return validated
+
+
 class TokenGenerator(abc.ABC):
     """Interface for token generators."""
 
@@ -397,8 +934,11 @@ class TokenGenerator(abc.ABC):
 
 
 class OpenAITokenGenerator(TokenGenerator):
-    def __init__(self, model: str):
+    def __init__(self, model: str, effort: str | None = None):
+        """`effort` is passed only when set, since it is rejected by models
+        that do not reason. Leaving it None keeps the original behaviour."""
         self.model = model
+        self.effort = effort
         load_dotenv()
         self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.llm_io_history = []
@@ -407,9 +947,11 @@ class OpenAITokenGenerator(TokenGenerator):
         self,
         prompt: str,
     ) -> str:
+        extra = {"reasoning": {"effort": self.effort}} if self.effort else {}
         response = self.client.responses.create(
             model=self.model,
             input=prompt,
+            **extra,
         )
         self.llm_io_history.append((prompt, response.output_text))
         return response.output_text
@@ -419,11 +961,57 @@ class OpenAITokenGenerator(TokenGenerator):
         return super().generate_batch(prompts)
 
 
-class GeminiTokenGenerator(TokenGenerator):
-    def __init__(self, model: str = "models/gemini-2.5-flash"):
+class AnthropicTokenGenerator(TokenGenerator):
+    """Claude, through the official Anthropic SDK.
+
+    Deliberately no `fallbacks` parameter. Server-side fallback would let a
+    refusal be answered by a different model inside the same call, which is
+    right for a product and wrong here: these generators exist to produce
+    benchmark numbers, and the model is the variable being measured. A silent
+    substitution would put two models' answers in one column. Refusals are
+    reported through `stop_reason` instead, so a run can say so.
+    """
+
+    def __init__(self, model: str = "claude-opus-5", effort: str = "high"):
         self.model = model
+        self.effort = effort
         load_dotenv()
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        self.llm_io_history = []
+
+    def generate(
+        self,
+        prompt: str,
+    ) -> str:
+        response = self.client.messages.create(
+            model=self.model,
+            max_tokens=4096,
+            output_config={"effort": self.effort},
+            messages=[{"role": "user", "content": prompt}],
+        )
+        if response.stop_reason == "refusal":
+            output = ""
+        else:
+            output = "".join(
+                block.text for block in response.content if block.type == "text"
+            )
+        self.llm_io_history.append((prompt, output))
+        return output
+
+    def generate_batch(self, prompts: list[str]) -> list[str]:
+        """Generate responses for a batch of prompts. Uses sequential processing for API-based generation."""
+        return super().generate_batch(prompts)
+
+
+class GeminiTokenGenerator(TokenGenerator):
+    def __init__(self, model: str = "models/gemini-2.5-flash", timeout: int = 120):
+        # The SDK has no default deadline, so an unreachable model hangs.
+        self.model = model
+        self.timeout = timeout
+        load_dotenv()
+        genai.configure(
+            api_key=os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        )
         self.client = genai.GenerativeModel(self.model)
         self.llm_io_history = []
 
@@ -431,7 +1019,9 @@ class GeminiTokenGenerator(TokenGenerator):
         self,
         prompt: str,
     ) -> str:
-        response = self.client.generate_content(prompt)
+        response = self.client.generate_content(
+            prompt, request_options={"timeout": self.timeout}
+        )
         output = response.text
         self.llm_io_history.append((prompt, output))
         return output
@@ -619,6 +1209,10 @@ class TokenGeneratorPredictor(FunctionPredictor):
     Function predictor that uses a TokenGenerator (LLM) to predict function sequences.
     """
 
+    cost_unit = BASIS_EXECUTION_COST_UNIT
+    cost_definition = SAMPLED_PROGRAM_COST_DEFINITION
+    budget_unit = "candidate_programs"
+
     def __init__(self, token_generator: TokenGenerator, budget: int = 1):
         """
         Initialize the TokenGenerator predictor.
@@ -627,6 +1221,8 @@ class TokenGeneratorPredictor(FunctionPredictor):
             token_generator: a generic LLM interface
             budget: Number of attempts to make before giving up
         """
+        if budget < 0:
+            raise ValueError("budget must be non-negative")
         self.token_generator = token_generator
         self.budget = budget
 
@@ -650,15 +1246,77 @@ class TokenGeneratorPredictor(FunctionPredictor):
         problems: list[tuple[TypedList, TypedList]],
         available_functions: FunctionDefSet,
     ) -> list[FunctionDefList]:
-        """Return the shortest valid prediction from ``budget`` attempts."""
+        """Return only programs for the legacy predictor API."""
+        return [
+            prediction.function_defs
+            for prediction in self.predict_functions_batch_with_cost(
+                problems,
+                available_functions,
+            )
+        ]
+
+    @staticmethod
+    def _parse_candidate(
+        response: str,
+        available_functions: FunctionDefSet,
+    ) -> FunctionDefList | None:
+        """Strictly parse a comma-separated program; malformed text is not empty."""
+        response = remove_thinking(response).strip()
+        if not response:
+            return None
+        names = tuple(part.strip() for part in response.split(","))
+        if any(not name for name in names):
+            return None
+        if any(name not in available_functions.name_to_function for name in names):
+            return None
+        return FunctionDefList(
+            [available_functions.name_to_function[name] for name in names]
+        )
+
+    def predict_functions_batch_with_cost(
+        self,
+        problems: list[tuple[TypedList, TypedList]],
+        available_functions: FunctionDefSet,
+    ) -> list[FunctionPrediction]:
+        """Return the shortest solution and charge every valid sampled program.
+
+        Generation is batched across problems, so per-problem ``seconds`` stays
+        ``None``; the evaluation layer times the whole batch instead.
+        """
         if not problems:
             return []
-        if self.budget <= 0:
-            return [FunctionDefList() for _ in problems]
+
+        predictions: list[FunctionPrediction | None] = [None] * len(problems)
+        active_indices = []
+        for problem_index, (input_list, output_list) in enumerate(problems):
+            if input_list == output_list:
+                predictions[problem_index] = FunctionPrediction(
+                    FunctionDefList(),
+                    PredictionCost(0, 0, "solved"),
+                )
+            else:
+                active_indices.append(problem_index)
+
+        if not active_indices:
+            assert all(prediction is not None for prediction in predictions)
+            return [prediction for prediction in predictions if prediction is not None]
+
+        if self.budget == 0:
+            for problem_index in active_indices:
+                predictions[problem_index] = FunctionPrediction(
+                    FunctionDefList(),
+                    PredictionCost(0, 0, "candidate_budget"),
+                )
+            assert all(prediction is not None for prediction in predictions)
+            return [prediction for prediction in predictions if prediction is not None]
 
         prompts = [
-            self._generate_prompt(input_list, output_list, available_functions)
-            for input_list, output_list in problems
+            self._generate_prompt(
+                problems[problem_index][0],
+                problems[problem_index][1],
+                available_functions,
+            )
+            for problem_index in active_indices
         ]
         responses = self.token_generator.generate_batch(prompts * self.budget)
         expected = len(prompts) * self.budget
@@ -668,12 +1326,19 @@ class TokenGeneratorPredictor(FunctionPredictor):
             )
 
         executor = Executor(available_functions)
-        predictions = [FunctionDefList() for _ in problems]
+        best_predictions = [FunctionDefList() for _ in problems]
         best_lengths = [float("inf") for _ in problems]
+        charged_executions = [0 for _ in problems]
+        candidates = [0 for _ in problems]
         for response_index, response in enumerate(responses):
-            problem_index = response_index % len(problems)
+            active_index = response_index % len(active_indices)
+            problem_index = active_indices[active_index]
             input_list, output_list = problems[problem_index]
-            candidate = available_functions.parse_string(response)
+            candidates[problem_index] += 1
+            candidate = self._parse_candidate(response, available_functions)
+            if candidate is None:
+                continue
+            charged_executions[problem_index] += len(candidate)
             execution = executor.execute_trajectory(
                 TrajectorySpec(input_list, candidate)
             )
@@ -682,9 +1347,22 @@ class TokenGeneratorPredictor(FunctionPredictor):
                 and execution.trajectory.output == output_list
                 and len(candidate) < best_lengths[problem_index]
             ):
-                predictions[problem_index] = candidate
+                best_predictions[problem_index] = candidate
                 best_lengths[problem_index] = len(candidate)
-        return predictions
+
+        for problem_index in active_indices:
+            solved = best_lengths[problem_index] != float("inf")
+            predictions[problem_index] = FunctionPrediction(
+                best_predictions[problem_index],
+                PredictionCost(
+                    charged_executions[problem_index],
+                    candidates[problem_index],
+                    "solved" if solved else "candidate_budget",
+                ),
+            )
+
+        assert all(prediction is not None for prediction in predictions)
+        return [prediction for prediction in predictions if prediction is not None]
 
     def save(self, directory: str):
         """Save the LLM IO histories to the given directory."""
@@ -706,9 +1384,16 @@ def create_random_solver(
     path_length: int = 1,
     usage_tracker: FunctionUsageTracker | None = None,
     track_function_usage: bool | None = None,
+    path_lengths: Sequence[int] | None = None,
+    seed: int | None = None,
 ) -> TrajectorySolver:
     """Create a solver with random function prediction."""
-    predictor = RandomPredictor(budget=budget, path_length=path_length)
+    predictor = RandomPredictor(
+        budget=budget,
+        path_length=path_length,
+        path_lengths=path_lengths,
+        seed=seed,
+    )
     return TrajectorySolver(predictor, usage_tracker, track_function_usage)
 
 
@@ -741,6 +1426,9 @@ def get_solver_by_name(
     model_name: str = "checkpoints/latest",
     usage_tracker: FunctionUsageTracker | None = None,
     track_function_usage: bool | None = None,
+    path_lengths: Sequence[int] | None = None,
+    max_depth: int | None = None,
+    seed: int | None = None,
 ) -> TrajectorySolver:
     if name == "random":
         return create_random_solver(
@@ -748,11 +1436,13 @@ def get_solver_by_name(
             path_length=path_length,
             usage_tracker=usage_tracker,
             track_function_usage=track_function_usage,
+            path_lengths=path_lengths,
+            seed=seed,
         )
     elif name == "bfs":
         return create_bfs_solver(
             budget=budget,
-            max_depth=path_length,
+            max_depth=path_length if max_depth is None else max_depth,
             usage_tracker=usage_tracker,
             track_function_usage=track_function_usage,
         )

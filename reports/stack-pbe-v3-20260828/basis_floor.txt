@@ -1,0 +1,27 @@
+
+wrote reports/stack-pbe-v3-20260828/basis_floor.json
+4 data-only roots, depth 5
+  [ 7 4 ]
+  [ (-1 -6 -9 -2 3 4) ]
+  [ (-3 2 -9 9) 9 ]
+  [ (1 -3 -8) (-6 7 -9) ]
+
+executable-26: 307,707 states in 6.8s
+  distinct quotations reached 6,058, of which executable 0
+  op           legal     ran an op
+  i           14,864             0
+  dip         14,025             0
+  map          2,485             0
+  filter       1,370             0
+  fold           629             0
+  ifte            95             0
+
+mark-28: 4,368,089 states in 60.2s
+  distinct quotations reached 85,333, of which executable 78,731
+  op           legal     ran an op
+  i           16,293         1,257
+  dip         15,001           806
+  map          2,749            96
+  filter       1,480            26
+  fold           733           104
+  ifte            95             0

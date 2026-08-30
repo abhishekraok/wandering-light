@@ -50,11 +50,12 @@ class TestRLGRPOMain:
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
 
+    @pytest.mark.network
     def test_rl_grpo_main_with_model_instance(
         self, tiny_model_and_tokenizer, temp_output_dir
     ):
         """Test rl_grpo_main with a provided model instance."""
-        model, tokenizer, model_name = tiny_model_and_tokenizer
+        model, _tokenizer, model_name = tiny_model_and_tokenizer
 
         # Mock the heavy components to avoid config and training issues
         with (
@@ -256,10 +257,11 @@ class TestRLGRPOMain:
 
         print("✅ All training infrastructure components working correctly")
 
+    @pytest.mark.network
     @pytest.mark.slow
     def test_minimal_training_run(self, tiny_model_and_tokenizer):
         """Test an actual minimal training run to verify end-to-end functionality."""
-        model, tokenizer, model_name = tiny_model_and_tokenizer
+        model, _tokenizer, model_name = tiny_model_and_tokenizer
 
         # This test actually runs training for a few steps
         with patch("wandering_light.training.rl_grpo.wandb") as mock_wandb:

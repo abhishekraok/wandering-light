@@ -176,8 +176,7 @@ def _seal_summary(body: Mapping[str, Any]) -> dict[str, Any]:
 
 def _validate_generation_runtime(runtime: Any) -> None:
     if not isinstance(runtime, Mapping) or (
-        runtime.get("cublas_workspace_config")
-        != DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG
+        runtime.get("cublas_workspace_config") != DETERMINISTIC_CUBLAS_WORKSPACE_CONFIG
         or runtime.get("pythonhashseed") != DETERMINISTIC_PYTHON_HASH_SEED
     ):
         raise ValueError("Generation runtime differs from the deterministic protocol")
@@ -456,9 +455,7 @@ def _checkpoint_study_identity(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "optimizer": protocol.get("optimizer"),
         "precision": protocol.get("precision"),
         "gradient_checkpointing": protocol.get("gradient_checkpointing"),
-        "gradient_checkpointing_kwargs": protocol.get(
-            "gradient_checkpointing_kwargs"
-        ),
+        "gradient_checkpointing_kwargs": protocol.get("gradient_checkpointing_kwargs"),
         "cublas_workspace_config": protocol.get("cublas_workspace_config"),
         "pythonhashseed": protocol.get("pythonhashseed"),
         "initialization_seed": manifest.get("initialization_seed"),

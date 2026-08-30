@@ -13,8 +13,14 @@ States are keyed on the stack tuple. `tests/test_stack_machine.py` pins
 dataclass equality to `value_key`, so that key is the structural one.
 
     uv run python experiments/stack_machine_bfs.py > results.json
+
+The bounded ``mark-28`` basis comparison is a separate mode:
+
+    uv run python experiments/stack_machine_bfs.py \
+      --summary --basis mark-28 > mark-28.json
 """
 
+import argparse
 import json
 import math
 import sys
@@ -22,13 +28,17 @@ import time
 from collections import Counter, defaultdict
 
 from wandering_light.stack_machine import (
+    BASIS_OPS,
+    DEFAULT_BASIS,
     OPS,
     Config,
     Int,
     Lst,
     format_stack,
+    ops_for_basis,
     parse_program,
     run,
+    value_key,
 )
 
 ROOTS = {
@@ -62,7 +72,12 @@ def shape(stack: tuple) -> dict:
     }
 
 
-def deep_bfs(root: tuple, max_depth: int, deadline: float) -> dict:
+def quote_is_open(stack: tuple) -> bool:
+    """Whether the stack contains the structural MARK used by ``mark-28``."""
+    return any(value_key(value) == ("mark",) for value in stack)
+
+
+def deep_bfs(root: tuple, max_depth: int, deadline: float, ops=OPS) -> dict:
     """Grow the reachable set depth by depth until time or depth runs out."""
     seen = {root}
     frontier = [root]
@@ -77,7 +92,7 @@ def deep_bfs(root: tuple, max_depth: int, deadline: float) -> dict:
         for stack in frontier:
             config = Config(stack)
             legal_here = 0
-            for op in OPS:
+            for op in ops:
                 reason = op.guard(config)
                 if reason is not None:
                     refusal[op.name][reason] += 1
@@ -133,7 +148,7 @@ def deep_bfs(root: tuple, max_depth: int, deadline: float) -> dict:
     }
 
 
-def collapse(root: tuple, max_depth: int) -> list[dict]:
+def collapse(root: tuple, max_depth: int, ops=OPS) -> list[dict]:
     """Executable programs of length d against distinct states reached in d."""
     counts = {root: 1}
     rows = []
@@ -141,7 +156,7 @@ def collapse(root: tuple, max_depth: int) -> list[dict]:
         nxt = defaultdict(int)
         for stack, n in counts.items():
             config = Config(stack)
-            for op in OPS:
+            for op in ops:
                 if op.guard(config) is None:
                     new, _ = op.apply(config)
                     nxt[new] += n
@@ -160,7 +175,7 @@ def collapse(root: tuple, max_depth: int) -> list[dict]:
     return rows
 
 
-def graph(root: tuple, max_depth: int) -> dict:
+def graph(root: tuple, max_depth: int, ops=OPS) -> dict:
     """Full adjacency out to max_depth: in-degree, reversibility, hubs."""
     seen = {root: 0}
     frontier = [root]
@@ -170,7 +185,7 @@ def graph(root: tuple, max_depth: int) -> dict:
         nxt = []
         for stack in frontier:
             config = Config(stack)
-            for op in OPS:
+            for op in ops:
                 if op.guard(config) is None:
                     new, _ = op.apply(config)
                     out_edges[stack].add(new)
@@ -220,17 +235,17 @@ def reachable(ops, root: tuple, max_depth: int) -> int:
     return len(seen)
 
 
-def ablation(root: tuple, max_depth: int) -> list[dict]:
+def ablation(root: tuple, max_depth: int, ops=OPS) -> list[dict]:
     """Drop one op at a time and measure what the basis stops reaching.
 
     An op whose removal costs nothing is dead weight; one whose removal
     collapses the space is load-bearing. This is the measurement #41 needs to
     decide what a basis should contain.
     """
-    full = reachable(OPS, root, max_depth)
+    full = reachable(ops, root, max_depth)
     rows = []
-    for op in OPS:
-        kept = [o for o in OPS if o is not op]
+    for op in ops:
+        kept = [o for o in ops if o is not op]
         without = reachable(kept, root, max_depth)
         rows.append(
             {
@@ -276,10 +291,204 @@ def old_basis(max_depth: int, max_states: int) -> dict:
     return out
 
 
-def main() -> None:
-    budget = float(sys.argv[1]) if len(sys.argv) > 1 else 540.0
+SUMMARY_DEPTH = 4
+GROWTH_DEPTH = {
+    "executable-26": 5,
+    "full-52": 4,
+    "mark-28": 5,
+}
+
+
+def measure_frontiers(
+    root: tuple, max_depth: int, ops, *, track_quote_closed: bool = False
+) -> list[dict]:
+    """The bounded subset of ``deep_bfs`` needed for basis comparison.
+
+    Avoid retaining refusal histograms and reachable-value examples here. At
+    depth 4, ``full-52`` discovers more than a million states per root; those
+    diagnostics otherwise dominate the memory cost of this small measurement.
+    """
+    seen = {root}
+    frontier = [root]
+    rows = []
+    for depth in range(1, max_depth + 1):
+        nxt = []
+        edges = 0
+        for stack in frontier:
+            config = Config(stack)
+            for op in ops:
+                if op.guard(config) is not None:
+                    continue
+                edges += 1
+                new, _ = op.apply(config)
+                if new not in seen:
+                    seen.add(new)
+                    nxt.append(new)
+        rows.append(
+            {
+                "depth": depth,
+                "expanded": len(frontier),
+                "edges": edges,
+                "new": len(nxt),
+                "cumulative": len(seen),
+                "quote_closed_new": (
+                    sum(not quote_is_open(stack) for stack in nxt)
+                    if track_quote_closed
+                    else len(nxt)
+                ),
+            }
+        )
+        frontier = nxt
+        if not frontier:
+            break
+    return rows
+
+
+def basis_summary(basis: str, ops) -> dict:
+    """Return the bounded branching and quotation-frontier measurements.
+
+    ``b_eff`` pools every state expanded at depths 1--4 from all four roots.
+    Growth is the arithmetic mean of the last two frontier ratios from the
+    ``one list`` root. The full basis stops at depth 4; its depth-5 frontier is
+    tens of millions of states. The two smaller bases stop at depth 5.
+    """
+    growth_depth = GROWTH_DEPTH[basis]
+    roots = {}
+    pooled_edges = 0
+    pooled_expanded = 0
+
+    for name, program in ROOTS.items():
+        max_depth = growth_depth if name == "one list" else SUMMARY_DEPTH
+        levels = measure_frontiers(
+            root_stack(program),
+            max_depth,
+            ops,
+            track_quote_closed=basis == "mark-28",
+        )
+        roots[name] = {
+            "program": program,
+            "levels": [
+                {
+                    key: row[key]
+                    for key in (
+                        "depth",
+                        "expanded",
+                        "edges",
+                        "new",
+                        "cumulative",
+                        "quote_closed_new",
+                    )
+                }
+                for row in levels
+            ],
+        }
+        for row in levels[:SUMMARY_DEPTH]:
+            pooled_edges += row["edges"]
+            pooled_expanded += row["expanded"]
+
+    b_eff = pooled_edges / pooled_expanded
+    growth_levels = roots["one list"]["levels"][-2:]
+    growth_factors = [row["new"] / row["expanded"] for row in growth_levels]
+    growth = sum(growth_factors) / len(growth_factors)
+
+    out = {
+        "mode": "basis-summary",
+        "basis": basis,
+        "ops": len(ops),
+        "protocol": {
+            "b_eff": (
+                "legal edges / expanded states, pooled over all four roots "
+                "and depths 1 through 4"
+            ),
+            "bits_per_step": "log2(b_eff)",
+            "growth_per_depth": (
+                "arithmetic mean of the final two new/expanded frontier ratios "
+                "from the one-list root"
+            ),
+            "growth_max_depth": growth_depth,
+            "state_space_split": (
+                "new frontier states at the one-list root; quote-closed means "
+                "no structural MARK on the stack"
+            ),
+        },
+        "b_eff": b_eff,
+        "bits_per_step": math.log2(b_eff),
+        "growth_per_depth": growth,
+        "growth_factors": [
+            {
+                "depth": row["depth"],
+                "new": row["new"],
+                "expanded": row["expanded"],
+                "factor": factor,
+            }
+            for row, factor in zip(growth_levels, growth_factors, strict=True)
+        ],
+        "pooled": {
+            "max_depth": SUMMARY_DEPTH,
+            "edges": pooled_edges,
+            "expanded": pooled_expanded,
+        },
+        "roots": roots,
+    }
+    if basis == "mark-28":
+        by_depth = {row["depth"]: row for row in roots["one list"]["levels"]}
+        out["state_space_split"] = [
+            {
+                "depth": depth,
+                "all_states": by_depth[depth]["new"],
+                "quote_closed": by_depth[depth]["quote_closed_new"],
+                "closed_fraction": (
+                    by_depth[depth]["quote_closed_new"] / by_depth[depth]["new"]
+                ),
+            }
+            for depth in (3, 4)
+        ]
+    return out
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "budget",
+        nargs="?",
+        type=float,
+        default=540.0,
+        help="legacy full-analysis wall-clock budget in seconds",
+    )
+    parser.add_argument(
+        "--basis",
+        choices=sorted(BASIS_OPS),
+        default=None,
+        help=(
+            "stack-machine action basis (default: executable-26 for --summary; "
+            "full-52 for the legacy analysis)"
+        ),
+    )
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="run only the bounded deterministic basis measurements",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
+    basis = args.basis or (DEFAULT_BASIS if args.summary else "full-52")
+    ops = ops_for_basis(basis)
+    if args.summary:
+        json.dump(basis_summary(basis, ops), sys.stdout, sort_keys=True)
+        sys.stdout.write("\n")
+        return
+
+    budget = args.budget
     started = time.time()
-    out = {"budget_seconds": budget, "roots": {}}
+    out = {
+        "basis": basis,
+        "ops": len(ops),
+        "budget_seconds": budget,
+        "roots": {},
+    }
 
     share = {"empty": 0.55, "one list": 0.15, "two ints": 0.15, "list and int": 0.15}
     for name, program in ROOTS.items():
@@ -290,7 +499,7 @@ def main() -> None:
         out["roots"][name] = {
             "program": program,
             "stack": format_stack(Config(root)),
-            "bfs": deep_bfs(root, max_depth=14, deadline=deadline),
+            "bfs": deep_bfs(root, max_depth=14, deadline=deadline, ops=ops),
         }
         print(
             f"[{time.time() - started:6.1f}s] {name}: "
@@ -299,11 +508,11 @@ def main() -> None:
             file=sys.stderr,
         )
 
-    out["collapse"] = collapse(root_stack(""), max_depth=7)
+    out["collapse"] = collapse(root_stack(""), max_depth=7, ops=ops)
     print(f"[{time.time() - started:6.1f}s] collapse done", file=sys.stderr)
-    out["graph"] = graph(root_stack(""), max_depth=5)
+    out["graph"] = graph(root_stack(""), max_depth=5, ops=ops)
     print(f"[{time.time() - started:6.1f}s] graph done", file=sys.stderr)
-    out["ablation"] = ablation(root_stack(""), max_depth=7)
+    out["ablation"] = ablation(root_stack(""), max_depth=7, ops=ops)
     print(f"[{time.time() - started:6.1f}s] ablation done", file=sys.stderr)
     try:
         out["old_basis"] = old_basis(max_depth=4, max_states=400_000)
@@ -311,8 +520,8 @@ def main() -> None:
         out["old_basis"] = {"error": f"{type(error).__name__}: {error}"}
     print(f"[{time.time() - started:6.1f}s] old basis done", file=sys.stderr)
     out["bits"] = {
-        "uniform": math.log2(len(OPS)),
-        "ops": len(OPS),
+        "uniform": math.log2(len(ops)),
+        "ops": len(ops),
     }
     print(f"[{time.time() - started:6.1f}s] done", file=sys.stderr)
     json.dump(out, sys.stdout)

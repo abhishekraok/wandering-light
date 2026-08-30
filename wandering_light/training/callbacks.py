@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from typing import Any
 
+import wandb
 from transformers import (
     PreTrainedModel,
     TrainerCallback,
@@ -11,7 +12,6 @@ from transformers import (
     TrainerState,
 )
 
-import wandb
 from wandering_light.constants import DEFAULT_EVAL_FILE, Task
 from wandering_light.evals.evaluate_proposer import evaluate_proposer
 from wandering_light.evals.evaluate_solver import EvaluateSolver

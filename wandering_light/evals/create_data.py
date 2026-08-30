@@ -28,9 +28,7 @@ SUPPORTED_RANDOM_TYPES = [
 ]
 
 
-def _random_value_for_type(
-    t: type[Any], rng: random.Random | None = None
-) -> Any:
+def _random_value_for_type(t: type[Any], rng: random.Random | None = None) -> Any:
     """Generate a random value for a builtin type."""
     source = rng if rng is not None else random
     if t is int:
@@ -50,16 +48,11 @@ def _random_value_for_type(
     if t is set:
         return {source.randint(-5, 5) for _ in range(source.randint(0, 3))}
     if t is dict:
-        return {
-            chr(97 + i): source.randint(-5, 5)
-            for i in range(source.randint(0, 3))
-        }
+        return {chr(97 + i): source.randint(-5, 5) for i in range(source.randint(0, 3))}
     if t is bytes:
         return bytes(source.getrandbits(8) for _ in range(source.randint(0, 4)))
     if t is bytearray:
-        return bytearray(
-            source.getrandbits(8) for _ in range(source.randint(0, 4))
-        )
+        return bytearray(source.getrandbits(8) for _ in range(source.randint(0, 4)))
     if t is complex:
         return complex(source.randint(-5, 5), source.randint(-5, 5))
     if t is range:
@@ -131,9 +124,7 @@ def make_random_data(
             input_type = rng.choice(SUPPORTED_RANDOM_TYPES)
 
             list_len = 2 if input_type is bool else rng.randint(3, 5)
-            items = [
-                _random_value_for_type(input_type, rng) for _ in range(list_len)
-            ]
+            items = [_random_value_for_type(input_type, rng) for _ in range(list_len)]
             input_list = TypedList(items, item_type=input_type)
 
             trajectory = TrajectorySpec.create_random_walk(

@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 from typing import Any
 
+import wandb
 from transformers import (
     AutoTokenizer,
     TrainerCallback,
@@ -14,7 +15,6 @@ from transformers import (
 )
 from trl import GRPOConfig, GRPOTrainer
 
-import wandb
 from wandering_light.constants import DEFAULT_EVAL_FILE, DEFAULT_SOLVER_CHECKPOINT, Task
 from wandering_light.evals.evaluate_proposer import evaluate_proposer
 from wandering_light.evals.model_eval import evaluate_model_checkpoint_with_trajectories

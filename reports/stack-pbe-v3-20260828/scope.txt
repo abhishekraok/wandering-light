@@ -1,0 +1,22 @@
+wandering_light/evals/data/stack_pbe_v3.jsonl.gz: 1,600 tasks over 40 behaviours
+
+                                                v3    v2 (#59)
+distinct input stacks                       15,550          17
+distinct input sets (one per task)           1,600          17
+quotation in input                           0.0%       36.6%
+builds quotation                            87.5%        0.0%
+runs code                                   87.5%       11.8%
+uses combinator                             87.5%        5.7%
+no computation                              10.0%       55.3%
+builds a closure over task data             15.0%          --
+
+witness length: median 6.5, max 35; median fuel 74.0
+examples: 7,123 shown + 12,800 held out
+length histogram: {1: 120, 2: 40, 3: 40, 5: 320, 6: 280, 7: 160, 10: 40, 11: 40, 12: 120, 13: 80, 14: 40, 15: 80, 16: 120, 22: 40, 25: 40, 35: 40}
+
+split is on the behaviour, so no behaviour spans both halves:
+  eval     440 tasks   11 behaviours  abs_each, count_negative, double_each, keep_above, keep_negative, last, maximum, minimum, scale_by, sum, sum_both
+  train  1,160 tasks   29 behaviours  abs_diff_pair, add_pair, add_to_each, append, count_equal, count_evens, count_zeros, halve_each, head, increment_each, keep_below, keep_evens, keep_positive, keep_zeros, length, max_pair, mean, n_minus_each, negate_each, parity_each, prefix_sums, product, push_front, reverse, span, square_each, sum_of_squares, sum_positive, tail
+  overlap: []
+
+wrote reports/stack-pbe-v3-20260828/scope.json

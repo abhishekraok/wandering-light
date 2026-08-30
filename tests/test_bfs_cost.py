@@ -3,7 +3,7 @@ from dataclasses import FrozenInstanceError
 import pytest
 
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
-from wandering_light.solver import BFSPredictor, BFSSearchResult
+from wandering_light.solver import BFSPredictor, BFSSearchResult, BFSSolve
 from wandering_light.typed_list import TypedList
 
 
@@ -14,6 +14,15 @@ def make_function(name: str, input_type: str, output_type: str, code: str):
         output_type=output_type,
         code=code,
     )
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [({"budget": -1}, "budget"), ({"max_depth": -1}, "max_depth")],
+)
+def test_search_rejects_negative_limits(kwargs, message):
+    with pytest.raises(ValueError, match=message):
+        BFSPredictor(**kwargs)
 
 
 def test_zero_distance_is_solved_without_an_execution():
@@ -140,3 +149,24 @@ def test_repeated_and_batch_searches_have_independent_execution_counts(monkeypat
         FunctionDefList([increment, increment]),
         FunctionDefList([increment]),
     ]
+
+
+def test_solver_result_preserves_bfs_cost_without_charging_verification():
+    identity = make_function("identity", "builtins.int", "builtins.int", "return x")
+    increment = make_function(
+        "increment", "builtins.int", "builtins.int", "return x + 1"
+    )
+    solver = BFSSolve(budget=10, max_depth=1)
+
+    result = solver.solve(
+        TypedList([0]),
+        TypedList([1]),
+        FunctionDefSet([identity, increment]),
+    )
+
+    assert result.success
+    assert result.cost.charged_executions == 2
+    assert result.cost.candidate_programs is None
+    assert result.cost.termination == "solved"
+    assert solver.cost_metadata()["budget_unit"] == "basis_function_executions"
+    assert solver.cost_metadata()["max_depth"] == 1

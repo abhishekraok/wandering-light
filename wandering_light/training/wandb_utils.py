@@ -20,6 +20,7 @@ def define_wandb_step_metric() -> None:
     for prefix in ("training", "eval", "interval_metadata", "final"):
         wandb.define_metric(f"{prefix}/*", step_metric="step")
 
+
 URL_FILE_CONTENT = """[InternetShortcut]
 URL={wandb_url}
 """

@@ -35,18 +35,14 @@ class TrajectoryTree:
         return tree
 
     @classmethod
-    def from_trajectory(
-        cls, traj: Trajectory, executor: Executor
-    ) -> "TrajectoryTree":
+    def from_trajectory(cls, traj: Trajectory, executor: Executor) -> "TrajectoryTree":
         tree = cls.with_root(traj.input)
         parent_id = ROOT_ID
         for fn in traj.function_defs:
             parent_id = tree.append_child(parent_id, fn, executor)
         return tree
 
-    def append_child(
-        self, parent_id: int, fn: FunctionDef, executor: Executor
-    ) -> int:
+    def append_child(self, parent_id: int, fn: FunctionDef, executor: Executor) -> int:
         new_id = self._next_id
         self._next_id += 1
         self.nodes[new_id] = {

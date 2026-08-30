@@ -1,0 +1,17 @@
+llm on eval, budget 10,000: 440 tasks, 2231s
+  377/440 solved (85.7%); shown-only would say 88.4% (+2.7%, 12 memorised)
+
+  behaviour          wit   solved  memorised
+  double_each          5   40/40           0
+  keep_negative        5   39/40           0
+  sum                  5   40/40           0
+  last                 6   32/40           2
+  scale_by             6   37/40           0
+  sum_both             6   39/40           0
+  keep_above           7   29/40           0
+  count_negative      12   31/40           0
+  abs_each            16   34/40           0
+  maximum             16   27/40           6
+  minimum             16   29/40           4
+
+wrote reports/stack-pbe-baseline-20260829/openai_terra_high_eval_full.json

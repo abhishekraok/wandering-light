@@ -154,7 +154,15 @@
     </div>
 
     <script>
-        let data = { summary: null, detailed: null, llmFiles: {}, currentSample: 0, totalSamples: 0 };
+        let data = {
+            summary: null,
+            detailed: null,
+            solver: null,
+            seed: null,
+            llmFiles: {},
+            currentSample: 0,
+            totalSamples: 0
+        };
 
         function showStatus(msg, isError = false) {
             const status = document.getElementById('status');
@@ -178,16 +186,35 @@
 
                 data.summary = JSON.parse(await readFile(summaryFile));
 
-                // Load detailed results JSON
-                const detailFile = Array.from(files).find(f => f.name.endsWith('.json') && f.name !== 'summary.json');
+                // Select the first solver/seed recorded by the summary. Legacy
+                // flat runs fall back to their first non-summary JSON file.
+                data.solver = Object.keys(data.summary.results)[0];
+                const summaryResult = data.summary.results[data.solver];
+                const seedResult = (summaryResult.seed_results || [])[0];
+                const preferredArtifact = seedResult && seedResult.artifact;
+                data.seed = seedResult && seedResult.seed;
+                const resultFiles = Array.from(files).filter(
+                    f => f.name.endsWith('.json') && f.name !== 'summary.json'
+                );
+                const preferredFile = preferredArtifact
+                    ? resultFiles.find(f =>
+                        f.webkitRelativePath.endsWith('/' + preferredArtifact)
+                    )
+                    : null;
+                const detailFile = preferredFile || resultFiles[0];
                 if (detailFile) {
                     data.detailed = JSON.parse(await readFile(detailFile));
                     data.totalSamples = data.detailed.detailed_results.length;
                 }
 
                 // Load LLM files
+                const artifactDirectory = data.seed === null || data.seed === undefined
+                    ? null
+                    : `solver_artifacts/${data.solver}/seed-${data.seed}/`;
                 const llmFiles = Array.from(files).filter(f =>
-                    f.webkitRelativePath.includes('llm_input_output') &&
+                    (f.webkitRelativePath.includes('llm_input_output') ||
+                     f.webkitRelativePath.includes('solver_artifacts')) &&
+                    (!artifactDirectory || f.webkitRelativePath.includes(artifactDirectory)) &&
                     (f.name.endsWith('_input.txt') || f.name.endsWith('_output.txt'))
                 );
 
@@ -222,15 +249,21 @@
         }
 
         function displaySummary() {
-            const solver = Object.keys(data.summary.results)[0];
-            const results = data.summary.results[solver];
+            const solver = data.solver;
+            const results = data.detailed || data.summary.results[solver];
+            const budgetUnit = results.budget_unit || 'legacy-unspecified';
+            const costUnit = results.cost_unit || 'unreported';
 
             document.getElementById('summaryContent').innerHTML = `
                 <p><strong>Solver:</strong> ${solver}</p>
+                ${data.seed === null || data.seed === undefined ? '' : `<p><strong>Seed:</strong> ${data.seed}</p>`}
                 <p><strong>Total Samples:</strong> ${results.total_samples}</p>
                 <p><strong>Success Rate:</strong> ${(results.success_rate * 100).toFixed(1)}%</p>
                 <p><strong>Successes:</strong> ${results.success_count}</p>
                 <p><strong>Average Length:</strong> ${results.avg_solution_length.toFixed(1)}</p>
+                <p><strong>Budget:</strong> ${results.budget_value ?? data.summary.budget} ${budgetUnit}</p>
+                <p><strong>Mean Cost:</strong> ${results.mean_wall_clock_seconds == null ? 'unreported' : results.mean_wall_clock_seconds.toFixed(4)} ${results.primary_cost_unit || 'wall_clock_seconds'}</p>
+                <p><strong>Mean Executions:</strong> ${results.mean_charged_executions ?? 'unreported'} ${costUnit}</p>
                 ${data.summary.command ? `<p><strong>Command:</strong> <code style="background: #f8f9fa; padding: 2px 4px; border-radius: 3px; font-size: 12px;">${data.summary.command}</code></p>` : ''}
             `;
             document.getElementById('summarySection').classList.remove('hidden');

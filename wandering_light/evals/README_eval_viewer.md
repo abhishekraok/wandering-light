@@ -67,11 +67,13 @@ Tested on Chrome, Firefox, and Safari.
 
 1. Run evaluation:
    ```bash
-   python evals/run_evaluation.py --eval_file=evals/data/eval_data.py --solver_names=["trained_local"] --num_samples=100
+   PYTHONHASHSEED=0 python -m wandering_light.evals.run_evaluation \
+     --eval_file=wandering_light/evals/data/random_inputs.py \
+     --solver_names='["trained_local"]' --num_samples=100
    ```
 
 2. Open `eval_viewer.html` in browser
 
 3. Select the generated results directory (e.g., `evals/results/20250626_172205/`)
 
-4. Browse through samples to analyze LLM performance and errors 
+4. Browse through samples to analyze LLM performance and errors

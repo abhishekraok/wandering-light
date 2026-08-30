@@ -1,0 +1,19 @@
+{
+  "corpus": "wandering_light/evals/data/stack_pbe_v3.jsonl.gz",
+  "tasks": 1600,
+  "behaviours": 40,
+  "distinct_input_stacks": 15550,
+  "distinct_shown_input_stacks": 6108,
+  "distinct_input_sets": 1600,
+  "shown_examples": 7123,
+  "held_out_examples": 12800,
+  "quotation_in_input": 0.0,
+  "builds_quotation": 0.875,
+  "runs_code": 0.875,
+  "uses_combinator": 0.875,
+  "no_computation": 0.1,
+  "builds_closure": 0.15,
+  "median_length": 6.5,
+  "max_length": 35,
+  "median_fuel": 74.0
+}

@@ -13,7 +13,17 @@ from pathlib import Path
 
 import pytest
 
-from wandering_light.stack_machine import Config, Int, Op, format_stack, parse_stack
+from wandering_light.stack_machine import (
+    MARK_OPS,
+    Config,
+    Int,
+    Lst,
+    MachineError,
+    Op,
+    Sym,
+    format_stack,
+    parse_stack,
+)
 from wandering_light.stack_machine_corpus import (
     BASIS,
     FAMILIES,
@@ -42,6 +52,15 @@ CORPUS = (
 
 @pytest.fixture(scope="module")
 def tasks() -> list[dict]:
+    """The committed corpus was deleted 2026-08-28; see STATUS under Superseded.
+
+    Tests that need real tasks now generate them, so they exercise the
+    generator rather than a frozen artifact with a known-degenerate task
+    distribution. Recover the old file with
+    `git show 28e9518:wandering_light/evals/data/stack_pbe_v2.jsonl.gz`.
+    """
+    if not CORPUS.exists():
+        pytest.skip("committed stack corpus deleted; generate one to run this")
     with gzip.open(CORPUS, "rt") as handle:
         return [json.loads(line) for line in handle]
 
@@ -192,6 +211,15 @@ def test_the_behaviour_is_reachable_at_exactly_that_length(tasks):
         assert found[target][0] == task["length"], task
 
 
+def test_mark_28_expansion_can_build_a_quotation():
+    found, complete = expand(((),), max_depth=3, ops=MARK_OPS)
+    target = behaviour_key(((Lst((Sym("add"),)),),))
+
+    assert complete
+    assert found[target][0] == 3
+    assert found[target][1] == ("[", "add", "]")
+
+
 def test_cost_expansion_trades_program_bits_for_log_fuel():
     desired = " ".join(["1"] * 16)
     source = " ".join(["0"] * 16)
@@ -277,6 +305,15 @@ def test_generator_is_deterministic():
     a, _ = generate(max_depth=3, per_depth=5, seed=1)
     b, _ = generate(max_depth=3, per_depth=5, seed=1)
     assert [t.program for t in a] == [t.program for t in b]
+
+
+def test_generator_selects_and_records_one_named_basis():
+    tasks, _ = generate(max_depth=1, per_depth=1, seed=1, basis="mark-28")
+
+    assert tasks
+    assert {task.basis for task in tasks} == {"mark-28"}
+    with pytest.raises(MachineError, match="unknown basis"):
+        generate(max_depth=0, per_depth=1, seed=1, basis="missing")
 
 
 @pytest.mark.slow

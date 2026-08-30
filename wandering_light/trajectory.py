@@ -1,5 +1,6 @@
 import os
 import random
+from dataclasses import dataclass
 from datetime import datetime
 
 from wandering_light.executor import Executor
@@ -289,6 +290,38 @@ class Trajectory:
         return TrajectorySpec(self.input, self.function_defs)
 
 
+@dataclass(frozen=True)
+class InvalidTrajectorySpec:
+    """One ground-truth trajectory that could not be executed."""
+
+    index: int
+    spec: TrajectorySpec
+    error_msg: str
+    failed_at_step: int | None
+
+
+class InvalidTrajectorySpecsError(ValueError):
+    """Raised when an evaluation corpus contains invalid ground truth."""
+
+    def __init__(
+        self,
+        failures: list[InvalidTrajectorySpec],
+        *,
+        total_specs: int,
+    ):
+        self.failures = tuple(failures)
+        self.total_specs = total_specs
+        details = "; ".join(
+            f"index {failure.index}, step {failure.failed_at_step}: "
+            f"{failure.error_msg} ({failure.spec})"
+            for failure in failures
+        )
+        super().__init__(
+            f"{len(failures)} of {total_specs} trajectory specs failed "
+            f"ground-truth execution: {details}"
+        )
+
+
 class TrajectoryList:
     """
     A collection of Trajectory objects with pre-computed outputs.
@@ -346,13 +379,27 @@ class TrajectoryList:
 
         executor = Executor(available_functions)
         trajectories = []
+        failures = []
 
-        for spec in trajectory_specs.specs:
+        for index, spec in enumerate(trajectory_specs.specs):
             result = executor.execute_trajectory(spec)
             if result.success:
                 trajectories.append(result.trajectory)
             else:
-                print(f"Warning: Failed to execute spec {spec}: {result.error_msg}")
+                failures.append(
+                    InvalidTrajectorySpec(
+                        index=index,
+                        spec=spec,
+                        error_msg=result.error_msg or "Unknown execution error",
+                        failed_at_step=result.failed_at_step,
+                    )
+                )
+
+        if failures:
+            raise InvalidTrajectorySpecsError(
+                failures,
+                total_specs=len(trajectory_specs),
+            )
 
         return cls(trajectories)
 

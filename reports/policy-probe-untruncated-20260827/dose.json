@@ -1,0 +1,50 @@
+{
+ "front k=0": {
+  "flat_tasks_over_budget": 0.4885185185185185,
+  "wide_tasks_over_budget": 0.001851851851851852,
+  "flat_target_visible": 0.6246095368526854,
+  "flat_target_invisible": 0.1925925925925926,
+  "pairs_items_over_budget": 0.0011904761904761906,
+  "pairs_items_dropped": 0.0
+ },
+ "back k=0": {
+  "flat_tasks_over_budget": 0.4885185185185185,
+  "wide_tasks_over_budget": 0.001851851851851852,
+  "flat_target_visible": 0.6246095368526854,
+  "flat_target_invisible": 0.1925925925925926,
+  "pairs_items_over_budget": 0.0011904761904761906,
+  "pairs_items_dropped": 0.0
+ },
+ "front k=1": {
+  "flat_tasks_over_budget": 0.16925925925925925,
+  "wide_tasks_over_budget": 0.001851851851851852,
+  "flat_target_visible": 0.9238640244108945,
+  "flat_target_invisible": 0.02666666666666667,
+  "pairs_items_over_budget": 0.0013835263835263836,
+  "pairs_items_dropped": 0.0
+ },
+ "back k=1": {
+  "flat_tasks_over_budget": 0.4696296296296296,
+  "wide_tasks_over_budget": 0.00037037037037037035,
+  "flat_target_visible": 0.6361875662894253,
+  "flat_target_invisible": 0.1925925925925926,
+  "pairs_items_over_budget": 0.00032175032175032174,
+  "pairs_items_dropped": 0.0
+ },
+ "front k=2": {
+  "flat_tasks_over_budget": 0.15925925925925927,
+  "wide_tasks_over_budget": 0.0014814814814814814,
+  "flat_target_visible": 0.9409666219558654,
+  "flat_target_invisible": 0.003703703703703704,
+  "pairs_items_over_budget": 0.0014800514800514801,
+  "pairs_items_dropped": 0.0
+ },
+ "back k=2": {
+  "flat_tasks_over_budget": 0.4562962962962963,
+  "wide_tasks_over_budget": 0.0,
+  "flat_target_visible": 0.643995053500561,
+  "flat_target_invisible": 0.1925925925925926,
+  "pairs_items_over_budget": 0.0002574002574002574,
+  "pairs_items_dropped": 0.0
+ }
+}
