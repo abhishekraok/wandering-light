@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Watch the solver think</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=Instrument+Serif&display=swap">
+<style>
+:root {
+  --ground:#E5E6E2; --panel:#F1F2EE; --well:#D9DBD5; --raise:#FAFBF8;
+  --ink:#1B1E20; --ink-dim:#5C6469; --ink-ghost:#A5ACAD; --rule:#C6C9C3;
+  --gold:#8A6410; --gold-soft:#C9A44E; --blue:#2F5C87;
+  --refuse:#9A3B2E; --allow:#4A7238;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:#141719; --panel:#1C2023; --well:#0F1214; --raise:#232829;
+    --ink:#E6E4DE; --ink-dim:#8A9096; --ink-ghost:#4E5659; --rule:#2A2F33;
+    --gold:#D8A54A; --gold-soft:#8C7233; --blue:#6E9BC9;
+    --refuse:#C2685C; --allow:#7FA86B;
+  }
+}
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+body {
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:13.5px; line-height:1.45; -webkit-font-smoothing:antialiased;
+}
+.label {
+  font-family:"IBM Plex Sans Condensed","Helvetica Neue",sans-serif;
+  font-weight:600; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-dim);
+}
+.machine { height:100dvh; min-height:560px; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; }
+
+/* plate */
+.plate { display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
+  padding:12px 18px 10px; border-bottom:1px solid var(--rule); background:var(--panel); }
+.plate .name { font-family:"Instrument Serif",Georgia,serif; font-size:25px; line-height:1; }
+.plate .sub { color:var(--ink-dim); font-size:11.5px; }
+.readouts { margin-left:auto; display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+.readout { display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
+.readout .v { font-size:14px; font-weight:600; font-variant-numeric:tabular-nums; }
+.readout.exec .v { color:var(--blue); }
+.readout.depth .v { color:var(--gold); }
+.badge { font-size:11px; padding:3px 8px; border:1px solid var(--rule); border-radius:2px;
+  color:var(--ink-dim); white-space:nowrap; }
+.badge.ok { color:var(--allow); border-color:color-mix(in srgb,var(--allow) 45%,transparent); }
+.badge.bad { color:var(--refuse); border-color:color-mix(in srgb,var(--refuse) 55%,transparent); }
+
+/* task strip */
+.strip { display:grid; grid-template-columns:1fr 1fr auto; gap:14px; align-items:center;
+  padding:9px 18px; border-bottom:1px solid var(--rule); background:var(--well); }
+.strip .cellrow { min-width:0; display:flex; align-items:baseline; gap:9px; }
+.strip .v { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12.5px; }
+.type { font-size:10.5px; color:var(--gold); }
+
+/* bench */
+.bench { display:grid; grid-template-columns:minmax(210px,.85fr) minmax(0,1.5fr) minmax(250px,1.05fr);
+  min-height:0; }
+.col { min-height:0; display:flex; flex-direction:column; border-right:1px solid var(--rule); }
+.col:last-child { border-right:none; }
+.col > .head { padding:8px 14px 6px; border-bottom:1px solid var(--rule);
+  display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.col > .body { flex:1; min-height:0; overflow-y:auto; padding:10px 14px 14px; scrollbar-width:thin; }
+
+/* beam list */
+.node { padding:6px 8px; border:1px solid var(--rule); border-left:3px solid var(--rule);
+  border-radius:2px; background:var(--raise); margin-bottom:5px; cursor:pointer; }
+.node:hover { border-color:var(--gold-soft); }
+.node.sel { border-left-color:var(--gold); background:color-mix(in srgb,var(--gold) 8%,var(--raise)); }
+.node.witness { border-left-color:var(--allow); }
+.node .top { display:flex; align-items:baseline; gap:8px; }
+.node .r { font-size:10px; color:var(--ink-dim); min-width:20px; }
+.node .lp { margin-left:auto; font-size:11px; color:var(--blue); font-variant-numeric:tabular-nums; }
+.node .p { font-size:11.5px; color:var(--ink-dim); overflow-wrap:anywhere; }
+.node .val { font-size:11.5px; overflow-wrap:anywhere; color:var(--ink); }
+
+/* expansion tape */
+.exp { display:grid; grid-template-columns:auto 1fr auto auto; gap:8px; align-items:baseline;
+  padding:4px 7px; border-radius:2px; border:1px solid transparent; font-size:12px; }
+.exp.cur { border-color:var(--gold); background:color-mix(in srgb,var(--gold) 9%,transparent); }
+.exp .o { font-size:10px; color:var(--ink-ghost); font-variant-numeric:tabular-nums; }
+.exp .fn { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.exp .lp { font-size:11px; color:var(--blue); font-variant-numeric:tabular-nums; }
+.exp .oc { font-size:10px; letter-spacing:.06em; text-transform:uppercase; }
+.oc.retained { color:var(--allow); }
+.oc.duplicate { color:var(--ink-ghost); }
+.oc.raised { color:var(--refuse); }
+.oc.solved { color:var(--gold); font-weight:600; }
+.oc.budget { color:var(--refuse); }
+.exp .succ { grid-column:2/5; font-size:11px; color:var(--ink-dim); overflow-wrap:anywhere; }
+
+/* inspector */
+.kv { display:grid; grid-template-columns:auto 1fr; gap:3px 10px; font-size:12px; margin-bottom:10px; }
+.kv .k { color:var(--ink-dim); }
+.kv .v { overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.bar { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center;
+  font-size:12px; padding:2px 0; }
+.bar .track { position:relative; height:14px; background:var(--well); border-radius:2px; overflow:hidden; }
+.bar .fill { position:absolute; inset:0 auto 0 0; background:color-mix(in srgb,var(--blue) 45%,transparent); }
+.bar .nm { position:absolute; left:5px; top:0; line-height:14px; font-size:11px; }
+.bar .pc { font-size:11px; color:var(--ink-dim); font-variant-numeric:tabular-nums; min-width:52px; text-align:right; }
+.bar.incompatible .fill { background:color-mix(in srgb,var(--refuse) 22%,transparent); }
+.bar.picked .fill { background:color-mix(in srgb,var(--gold) 50%,transparent); }
+.keycap { display:inline-block; min-width:15px; text-align:center; font-size:10px; padding:0 3px;
+  border:1px solid var(--rule); border-bottom-width:2px; border-radius:3px; background:var(--raise);
+  color:var(--gold); margin-right:5px; }
+h4.sec { margin:12px 0 6px; font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:600;
+  font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-dim);
+  border-top:1px solid var(--rule); padding-top:9px; }
+h4.sec:first-child { border-top:none; margin-top:0; padding-top:0; }
+
+/* map */
+.map { width:100%; height:190px; border:1px solid var(--rule); border-radius:2px; background:var(--well); }
+.map .pt { transition:cx .28s ease, cy .28s ease; }
+
+/* keys */
+.keys { padding:8px 18px; border-top:1px solid var(--rule); background:var(--panel);
+  display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:11px; color:var(--ink-dim); }
+.keys kbd { font-family:inherit; font-size:11px; padding:1px 5px; margin-right:4px;
+  border:1px solid var(--rule); border-bottom-width:2px; border-radius:3px;
+  background:var(--raise); color:var(--ink); }
+.spin { color:var(--gold); }
+.err { color:var(--refuse); }
+mark { background:color-mix(in srgb,var(--gold) 28%,transparent); color:inherit; }
+</style>
+</head>
+<body>
+<div class="machine">
+
+  <div class="plate">
+    <span class="name">Watch the solver think</span>
+    <span class="sub" id="taskline">loading…</span>
+    <div class="readouts">
+      <div class="readout depth"><span class="label">depth</span><span class="v" id="r-depth">–</span></div>
+      <div class="readout exec"><span class="label">executions</span><span class="v" id="r-exec">–</span></div>
+      <div class="readout"><span class="label">beam</span><span class="v" id="r-beam">–</span></div>
+      <span class="badge" id="r-term">–</span>
+      <span class="badge" id="r-mode">replay</span>
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="cellrow"><span class="label">input</span><span class="type" id="in-type"></span><span class="v" id="in-val"></span></div>
+    <div class="cellrow"><span class="label">target</span><span class="type" id="out-type"></span><span class="v" id="out-val"></span></div>
+    <div class="cellrow"><span class="label">witness</span><span class="v" id="witness"></span></div>
+  </div>
+
+  <div class="bench">
+    <div class="col">
+      <div class="head"><span class="label">beam</span><span class="sub" id="beam-sub"></span></div>
+      <div class="body" id="beam"></div>
+    </div>
+    <div class="col">
+      <div class="head"><span class="label">expansions</span><span class="sub" id="exp-sub"></span></div>
+      <div class="body" id="tape"></div>
+    </div>
+    <div class="col">
+      <div class="head"><span class="label" id="insp-title">node</span><span class="sub" id="insp-sub"></span></div>
+      <div class="body" id="insp"></div>
+    </div>
+  </div>
+
+  <div class="keys" id="keys"></div>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const DRIVE_KEYS = ["a","s","d","f","g","h","j","k","l"];
+
+const S = {
+  session: null, map: null, basis: new Map(),
+  depth: 0, cursor: 0, node: 0,
+  playing: false, timer: null,
+  mode: "replay", showIncompatible: false, showWitness: true,
+  logits: null, encoding: null, panel: "actions",
+  drive: null, driveHistory: [], busy: false, error: null,
+};
+
+const fmt = (x, n = 3) => (x === null || x === undefined) ? "–" : Number(x).toFixed(n);
+const pct = (x) => (100 * x).toFixed(1) + "%";
+const layers = () => S.session ? S.session.trace.layers : [];
+const layer = () => layers()[S.depth] || null;
+
+function params() {
+  const q = new URLSearchParams(location.search);
+  const out = {};
+  for (const key of ["task_id","distance","input_type","seed","beam_width","max_depth","budget"]) {
+    if (q.has(key)) out[key] = q.get(key);
+  }
+  return out;
+}
+
+// The deep link is the reproduction receipt: whatever is on screen can be
+// reopened from the URL alone.
+function syncURL() {
+  if (!S.session) return;
+  const q = new URLSearchParams();
+  q.set("task_id", S.session.task_id);
+  q.set("beam_width", S.session.settings.beam_width);
+  q.set("max_depth", S.session.settings.max_depth);
+  q.set("budget", S.session.settings.budget);
+  const sel = S.session.provenance.selection || {};
+  if (sel.seed !== undefined && sel.seed !== null) q.set("seed", sel.seed);
+  history.replaceState(null, "", "?" + q.toString());
+}
+
+async function api(path, query) {
+  const q = new URLSearchParams(query || {});
+  const response = await fetch(path + (q.toString() ? "?" + q : ""));
+  if (!response.ok) {
+    let detail = response.statusText;
+    try { detail = (await response.json()).detail || detail; } catch (_) {}
+    throw new Error(detail);
+  }
+  return response.json();
+}
+
+async function loadSession(query) {
+  S.busy = true; S.error = null; render();
+  try {
+    const session = await api("/api/session", query);
+    S.session = session;
+    S.map = session.map || null;
+    S.basis = new Map((session.basis || []).map((f) => [f.name, f]));
+    S.depth = 0; S.cursor = 0; S.node = 0;
+    S.logits = null; S.encoding = null; S.panel = "actions";
+    S.mode = "replay"; S.drive = null; S.driveHistory = [];
+    syncURL();
+  } catch (error) {
+    S.error = error.message;
+  } finally {
+    S.busy = false; render();
+  }
+}
+
+/* ---------------- replay navigation: pure index moves, no network -------- */
+
+function setDepth(next) {
+  const total = layers().length;
+  if (!total) return;
+  S.depth = Math.max(0, Math.min(total - 1, next));
+  S.cursor = 0; S.node = 0; S.logits = null; S.encoding = null;
+  render();
+}
+function step(delta) {
+  const current = layer();
+  if (!current) return;
+  const next = S.cursor + delta;
+  if (next < 0) {
+    if (S.depth > 0) { setDepth(S.depth - 1); const l = layer();
+      S.cursor = Math.max(0, l.expansions.length - 1); render(); }
+    return;
+  }
+  if (next >= current.expansions.length) {
+    if (S.depth < layers().length - 1) setDepth(S.depth + 1);
+    return;
+  }
+  S.cursor = next; render();
+}
+function play() {
+  S.playing = !S.playing;
+  clearInterval(S.timer);
+  if (S.playing) S.timer = setInterval(() => {
+    const current = layer();
+    if (!current) return;
+    if (S.cursor + 1 >= current.expansions.length && S.depth >= layers().length - 1) {
+      S.playing = false; clearInterval(S.timer); render(); return;
+    }
+    step(1);
+  }, 90);
+  render();
+}
+function reset() { S.playing = false; clearInterval(S.timer); setDepth(0); }
+
+/* ---------------- on-demand panels --------------------------------------- */
+
+function currentPath() {
+  if (S.mode === "drive") return S.driveHistory;
+  const l = layer();
+  if (!l || !l.nodes[S.node]) return [];
+  return l.nodes[S.node].path;
+}
+async function loadLogits() {
+  S.panel = "logits";
+  if (!S.session) return;
+  S.busy = true; render();
+  try {
+    S.logits = await api("/api/logits",
+      { task_id: S.session.task_id, path: currentPath().join(",") });
+  } catch (error) { S.error = error.message; }
+  finally { S.busy = false; render(); }
+}
+async function loadEncoding() {
+  S.panel = "encoding";
+  if (!S.session) return;
+  S.busy = true; render();
+  try {
+    S.encoding = await api("/api/encoding",
+      { task_id: S.session.task_id, path: currentPath().join(",") });
+  } catch (error) { S.error = error.message; }
+  finally { S.busy = false; render(); }
+}
+
+/* ---------------- drive mode --------------------------------------------- */
+
+async function driveTo(path) {
+  if (!S.session) return;
+  S.busy = true; S.error = null; render();
+  try {
+    S.drive = await api("/api/drive",
+      { task_id: S.session.task_id, path: path.join(",") });
+    S.driveHistory = path;
+  } catch (error) { S.error = error.message; }
+  finally { S.busy = false; render(); }
+}
+async function enterDrive() {
+  S.mode = "drive"; S.playing = false; clearInterval(S.timer);
+  S.panel = "actions";
+  await driveTo([]);
+}
+function exitDrive() { S.mode = "replay"; S.panel = "actions"; render(); }
+async function driveApply(rank) {
+  if (!S.drive || !S.drive.actions[rank]) return;
+  await driveTo([...S.driveHistory, S.drive.actions[rank].function]);
+}
+async function driveUndo() {
+  if (!S.driveHistory.length) return;
+  await driveTo(S.driveHistory.slice(0, -1));
+}
+
+/* ---------------- rendering ---------------------------------------------- */
+
+function esc(text) {
+  return String(text).replace(/[&<>"]/g, (c) =>
+    ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+}
+
+function renderHeader() {
+  const s = S.session;
+  if (!s) { $("taskline").textContent = S.error ? "error" : "loading…"; return; }
+  $("taskline").innerHTML =
+    `task <span title="${esc(s.task_id)}">${esc(s.task_id.slice(0, 12))}</span> · ` +
+    `certified ${s.certified_distance ?? "?"} · ${esc(s.provenance.corpus.split)} split`;
+  $("in-type").textContent = "TL<" + s.input.item_type + ">";
+  $("in-val").textContent = s.input.value;
+  $("in-val").title = s.input.value;
+  $("out-type").textContent = "TL<" + s.target.item_type + ">";
+  $("out-val").textContent = s.target.value;
+  $("out-val").title = s.target.value;
+  $("witness").innerHTML = S.showWitness
+    ? esc(s.witness.join(" → ")) : "<span class='label'>hidden</span>";
+  $("r-beam").textContent = s.settings.beam_width;
+  $("r-exec").textContent = (S.mode === "drive")
+    ? S.driveHistory.length : s.executions.toLocaleString();
+  $("r-depth").textContent = (S.mode === "drive")
+    ? S.driveHistory.length : `${layer() ? layer().depth : 0}/${s.settings.max_depth}`;
+  const term = $("r-term");
+  term.textContent = s.termination;
+  term.className = "badge " + (s.termination === "solved" ? "ok" : "bad");
+  $("r-mode").textContent = S.mode + (S.busy ? " ·" : "");
+  $("r-mode").className = "badge" + (S.mode === "drive" ? " ok" : "");
+}
+
+function renderBeam() {
+  const host = $("beam");
+  if (S.mode === "drive") {
+    $("beam-sub").textContent = "driven path";
+    const steps = S.driveHistory.map((name, index) =>
+      `<div class="node"><div class="top"><span class="r">${index + 1}</span>
+       <span>${esc(name)}</span></div></div>`).join("");
+    host.innerHTML = steps || "<div class='label'>at the input state</div>";
+    return;
+  }
+  const l = layer();
+  if (!l) { host.innerHTML = ""; return; }
+  const overlay = (S.session.witness_overlay || [])[S.depth];
+  $("beam-sub").textContent =
+    `${l.retained.length} of ${l.unique_successors} unique` +
+    (l.pruned_by_width.length ? ` · ${l.pruned_by_width.length} pruned by width` : "");
+  host.innerHTML = l.nodes.map((node, index) => {
+    const isWitness = S.showWitness && overlay && overlay.survives &&
+      JSON.stringify(node.path) === JSON.stringify(overlay.prefix);
+    return `<div class="node ${index === S.node ? "sel" : ""} ${isWitness ? "witness" : ""}"
+      data-node="${index}">
+      <div class="top"><span class="r">${index + 1}</span>
+        <span class="p">${esc(node.path.join(" → ")) || "input"}</span>
+        <span class="lp">${fmt(node.log_probability)}</span></div>
+      <div class="val">${esc(node.state.value)}</div>
+    </div>`;
+  }).join("");
+  host.querySelectorAll("[data-node]").forEach((element) => {
+    element.onclick = () => {
+      S.node = Number(element.dataset.node);
+      S.logits = null; S.encoding = null; render();
+    };
+  });
+}
+
+function renderTape() {
+  const host = $("tape");
+  if (S.mode === "drive") {
+    $("exp-sub").textContent = "drive mode — press a key to apply an action";
+    host.innerHTML = "<div class='label'>the inspector lists what each key does</div>";
+    return;
+  }
+  const l = layer();
+  if (!l) { host.innerHTML = ""; return; }
+  const elided = l.expansions_elided
+    ? ` · ${l.expansions_elided.toLocaleString()} not recorded` : "";
+  $("exp-sub").textContent =
+    `${S.cursor + 1}/${l.expansions.length} of ${l.expansions_attempted.toLocaleString()} attempted${elided}`;
+  const from = Math.max(0, S.cursor - 40), to = Math.min(l.expansions.length, S.cursor + 60);
+  host.innerHTML = l.expansions.slice(from, to).map((entry, offset) => {
+    const index = from + offset;
+    const current = index === S.cursor;
+    const successor = entry.successor
+      ? `<div class="succ">→ ${esc(entry.successor.value)}</div>`
+      : (entry.error ? `<div class="succ">✗ ${esc(entry.error)}</div>` : "");
+    return `<div class="exp ${current ? "cur" : ""}" data-exp="${index}">
+      <span class="o">${entry.order}</span>
+      <span class="fn">${esc(entry.function)} <span class="o">from #${entry.parent_index + 1}</span></span>
+      <span class="lp">${fmt(entry.log_probability)}</span>
+      <span class="oc ${entry.outcome}">${entry.outcome}</span>
+      ${current ? successor : ""}
+    </div>`;
+  }).join("");
+  host.querySelectorAll("[data-exp]").forEach((element) => {
+    element.onclick = () => { S.cursor = Number(element.dataset.exp); render(); };
+  });
+  const current = host.querySelector(".exp.cur");
+  if (current) current.scrollIntoView({ block: "nearest" });
+}
+
+function actionBars(entries, pickedName) {
+  const top = Math.max(...entries.map((e) => e.probability || Math.exp(e.log_probability)));
+  return entries.map((entry, index) => {
+    const probability = entry.probability ?? Math.exp(entry.log_probability);
+    const width = top > 0 ? (100 * probability / top) : 0;
+    const key = index < DRIVE_KEYS.length && S.mode === "drive"
+      ? `<span class="keycap">${DRIVE_KEYS[index]}</span>` : "";
+    const picked = entry.function === pickedName ? " picked" : "";
+    return `<div class="bar${picked}">
+      <div class="track"><div class="fill" style="width:${width}%"></div>
+        <span class="nm">${key}${esc(entry.function)}</span></div>
+      <span class="pc">${pct(probability)}</span></div>`;
+  }).join("");
+}
+
+function renderInspector() {
+  const host = $("insp");
+  if (!S.session) { host.innerHTML = ""; return; }
+
+  if (S.mode === "drive") {
+    const drive = S.drive;
+    $("insp-title").textContent = "drive";
+    $("insp-sub").textContent = drive ? `${drive.mask_size} of ${drive.basis_size} compatible` : "";
+    if (!drive) { host.innerHTML = "<div class='label'>scoring…</div>"; return; }
+    host.innerHTML =
+      `<div class="kv">
+        <span class="k">state</span><span class="v">${esc(drive.state.value)}</span>
+        <span class="k">type</span><span class="v">TL&lt;${esc(drive.state.item_type)}&gt;</span>
+        <span class="k">steps</span><span class="v">${S.driveHistory.length}</span>
+        <span class="k">solved</span><span class="v">${drive.solved ? "yes" : "no"}</span>
+      </div>
+      <h4 class="sec">policy ranking — press the key</h4>
+      ${actionBars(drive.actions.slice(0, 14))}`;
+    return;
+  }
+
+  const l = layer();
+  const node = l ? l.nodes[S.node] : null;
+  if (!node) { host.innerHTML = ""; return; }
+  const expansion = l.expansions[S.cursor];
+  const picked = expansion && expansion.parent_index === S.node ? expansion.function : null;
+  $("insp-title").textContent = "node #" + (S.node + 1);
+  $("insp-sub").textContent = `${node.mask_size} of ${S.basis.size} compatible`;
+
+  if (S.panel === "logits") {
+    const rows = S.logits ? S.logits.logits : [];
+    const shown = S.showIncompatible ? rows : rows.filter((r) => r.compatible);
+    host.innerHTML =
+      `<h4 class="sec">raw logits — unnormalized, whole basis</h4>
+       <div class="label">${shown.length} rows · x toggles incompatible · e encoding · q back</div>
+       ${shown.slice(0, 60).map((row) => `<div class="bar ${row.compatible ? "" : "incompatible"}">
+          <div class="track"><span class="nm">${esc(row.function)}</span></div>
+          <span class="pc">${fmt(row.logit)}</span></div>`).join("")}`;
+    return;
+  }
+
+  if (S.panel === "encoding") {
+    const enc = S.encoding;
+    if (!enc) { host.innerHTML = "<div class='label'>encoding…</div>"; return; }
+    host.innerHTML =
+      `<h4 class="sec">exact model input</h4>
+       <div class="kv">
+         <span class="k">sequences</span><span class="v">[${enc.tensor_shapes.sequences.join(", ")}]</span>
+         <span class="k">counts</span><span class="v">[${enc.tensor_shapes.counts.join(", ")}]</span>
+         <span class="k">item mask</span><span class="v">[${enc.tensor_shapes.item_mask.join(", ")}]</span>
+         <span class="k">pad token</span><span class="v">${enc.pad_token}</span>
+         <span class="k">separator</span><span class="v">${enc.separator_token}</span>
+         <span class="k">pad cells</span><span class="v">${enc.padding}</span>
+         <span class="k">item cap</span><span class="v">${enc.item_cap} bytes</span>
+         <span class="k">items dropped</span><span class="v">${enc.items_dropped}</span>
+       </div>
+       <h4 class="sec">aligned item pairs</h4>
+       ${enc.aligned.map((pair) => `<div class="kv">
+          <span class="k">${pair.index}</span>
+          <span class="v">${esc(pair.state_text)} <span class="type">‖</span> ${esc(pair.target_text)}
+            <span class="label">${pair.state_bytes}+${pair.target_bytes}B${
+              pair.state_truncated || pair.target_truncated ? " · TRUNCATED" : ""}</span>
+          </span></div>`).join("")}
+       <div class="label">q back</div>`;
+    return;
+  }
+
+  const bars = actionBars(node.compatible.slice(0, 14), picked);
+  const unmasked = node.unmasked_top.slice(0, 6).map((entry) => {
+    const compatible = node.compatible.some((c) => c.function === entry.function);
+    return `<div class="bar ${compatible ? "" : "incompatible"}">
+      <div class="track"><span class="nm">${esc(entry.function)}</span></div>
+      <span class="pc">${fmt(entry.logit)}</span></div>`;
+  }).join("");
+  host.innerHTML =
+    `<div class="kv">
+      <span class="k">path</span><span class="v">${esc(node.path.join(" → ")) || "input"}</span>
+      <span class="k">state</span><span class="v">${esc(node.state.value)}</span>
+      <span class="k">beam log p</span><span class="v">${fmt(node.log_probability)}</span>
+      <span class="k">normalizer</span><span class="v">${fmt(node.log_normalizer)}</span>
+    </div>
+    <h4 class="sec">type-normalized probability — over the ${node.mask_size} compatible</h4>
+    ${bars}
+    <h4 class="sec">raw policy score — top of the whole basis, before masking</h4>
+    ${unmasked}
+    <div class="label" style="margin-top:8px">v full logits · e encoding</div>
+    ${renderMap()}`;
+}
+
+function renderMap() {
+  if (!S.map || !S.map.points.length) return "";
+  const points = S.map.points;
+  const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const spanX = (maxX - minX) || 1, spanY = (maxY - minY) || 1;
+  const sx = (x) => 8 + 284 * (x - minX) / spanX;
+  const sy = (y) => 172 - 156 * (y - minY) / spanY;
+  const depth = layer() ? layer().depth : 0;
+  const dots = points.map((point) => {
+    if (point.kind === "target")
+      return `<g><circle class="pt" cx="${sx(point.x)}" cy="${sy(point.y)}" r="6"
+        fill="none" stroke="var(--gold)" stroke-width="1.6"/>
+        <circle cx="${sx(point.x)}" cy="${sy(point.y)}" r="1.8" fill="var(--gold)"/></g>`;
+    if (point.kind === "start")
+      return `<circle class="pt" cx="${sx(point.x)}" cy="${sy(point.y)}" r="3.4"
+        fill="none" stroke="var(--ink-dim)" stroke-width="1.4"/>`;
+    const current = point.depth === depth;
+    const faded = point.depth > depth;
+    if (faded) return "";
+    return `<circle class="pt" cx="${sx(point.x)}" cy="${sy(point.y)}"
+      r="${current ? 3.6 : 2}" fill="${current ? "var(--blue)" : "var(--ink-ghost)"}"
+      opacity="${current ? 1 : 0.45}"/>`;
+  }).join("");
+  const [first, second] = S.map.explained_variance;
+  return `<h4 class="sec">the policy's own space — PCA of ${S.map.dimensions}-d encoding</h4>
+    <svg class="map" viewBox="0 0 300 190" preserveAspectRatio="none">${dots}</svg>
+    <div class="label">ring = target · ${pct(first)} + ${pct(second)} of variance shown</div>`;
+}
+
+function renderKeys() {
+  const replay = [
+    ["← →", "expansion"], ["↑ ↓", "layer"], ["1–9", "beam node"],
+    ["space", "run/pause"], ["r", "reset"], ["v", "logits"], ["e", "encoding"],
+    ["x", "incompatible"], ["t", "witness"], ["m", "drive"], ["n", "new task"],
+  ];
+  const drive = [
+    ["asdfghjkl", "apply rank 1–9"], ["w", "undo"], ["m", "back to replay"],
+    ["e", "encoding"], ["v", "logits"], ["n", "new task"],
+  ];
+  const set = S.mode === "drive" ? drive : replay;
+  $("keys").innerHTML =
+    set.map(([key, what]) => `<span><kbd>${key}</kbd>${what}</span>`).join("") +
+    (S.busy ? "<span class='spin'>working…</span>" : "") +
+    (S.error ? `<span class="err">${esc(S.error)}</span>` : "");
+}
+
+function render() {
+  renderHeader(); renderBeam(); renderTape(); renderInspector(); renderKeys();
+}
+
+/* ---------------- keyboard ------------------------------------------------ */
+
+document.addEventListener("keydown", async (event) => {
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+  const key = event.key;
+
+  if (S.mode === "drive") {
+    const rank = DRIVE_KEYS.indexOf(key.toLowerCase());
+    if (rank >= 0) { event.preventDefault(); await driveApply(rank); return; }
+    if (key.toLowerCase() === "w") { event.preventDefault(); await driveUndo(); return; }
+  }
+
+  switch (key.toLowerCase()) {
+    case "arrowright": event.preventDefault(); step(1); break;
+    case "arrowleft": event.preventDefault(); step(-1); break;
+    case "arrowdown": event.preventDefault(); setDepth(S.depth + 1); break;
+    case "arrowup": event.preventDefault(); setDepth(S.depth - 1); break;
+    case " ": event.preventDefault(); if (S.mode === "replay") play(); break;
+    case "r": reset(); break;
+    case "v": await loadLogits(); break;
+    case "e": await loadEncoding(); break;
+    case "q": S.panel = "actions"; render(); break;
+    case "x": S.showIncompatible = !S.showIncompatible; render(); break;
+    case "t": S.showWitness = !S.showWitness; render(); break;
+    case "m": if (S.mode === "drive") exitDrive(); else await enterDrive(); break;
+    case "n": {
+      // A fresh sample keeps the search settings and the filters, and drops
+      // the pinned task and seed so the server draws a new one.
+      const next = params();
+      delete next.task_id; delete next.seed;
+      await loadSession(next);
+      break;
+    }
+    default:
+      if (/^[1-9]$/.test(key) && S.mode === "replay") {
+        const index = Number(key) - 1;
+        const l = layer();
+        if (l && l.nodes[index]) {
+          S.node = index; S.logits = null; S.encoding = null; render();
+        }
+      }
+  }
+});
+
+loadSession(params());
+</script>
+</body>
+</html>
