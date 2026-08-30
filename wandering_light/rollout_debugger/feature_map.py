@@ -66,6 +66,50 @@ def project_to_plane(features: np.ndarray) -> tuple[np.ndarray, list[float]]:
     return coordinates.astype(np.float32), explained
 
 
+def progress_frame(
+    policy: RolloutPolicy,
+    start: TypedList,
+    target: TypedList,
+    states: Sequence[TypedList],
+) -> dict[str, Any]:
+    """Place states on a start-to-target axis, with their departure from it.
+
+    PCA needs a population to fit and its axes turn as that population grows,
+    which makes it wrong for a walk being driven one step at a time -- points
+    would move because the fit moved. Two anchors give a frame that does not:
+    ``x`` is progress along phi(start, target) -> phi(target, target), where 0
+    is the input and 1 is solved, and ``y`` is how far off that line the state
+    sits. Both are stateless, so a step needs no cached basis.
+    """
+
+    pairs = [(start, target), (target, target), *((state, target) for state in states)]
+    features = pooled_features(policy, pairs)
+    origin, destination = features[0], features[1]
+    axis = destination - origin
+    length = float(np.linalg.norm(axis))
+    unit = np.zeros_like(axis) if length == 0 else axis / length
+
+    points = []
+    for feature in features[2:]:
+        offset = feature - origin
+        along = float(offset @ unit)
+        residual = offset - along * unit
+        points.append(
+            {
+                "x": round(along / length if length else 0.0, 4),
+                "y": round(float(np.linalg.norm(residual)) / (length or 1.0), 4),
+                "distance_to_target": round(
+                    float(np.linalg.norm(feature - destination)), 4
+                ),
+            }
+        )
+    return {
+        "points": points,
+        "axis_length": round(length, 4),
+        "start_distance": round(length, 4),
+    }
+
+
 def session_map(
     policy: RolloutPolicy,
     target: TypedList,

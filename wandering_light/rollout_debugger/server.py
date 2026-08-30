@@ -234,6 +234,11 @@ def create_app(context: DebugContext) -> FastAPI:
         state = _replay(context, record, steps)
         target = record.output_value
         ranked = _ranked_actions(context, state, target)
+        # Every state the walk has passed through, so the map can draw a trail
+        # rather than a single dot with no history.
+        trail = [
+            _replay(context, record, steps[:index]) for index in range(len(steps) + 1)
+        ]
         return {
             "path": steps,
             "state": {
@@ -242,10 +247,29 @@ def create_app(context: DebugContext) -> FastAPI:
                 "length": len(state.items),
             },
             "solved": state == target,
+            "progress": _progress(context, record, trail),
             **ranked,
         }
 
     return app
+
+
+def _has_encoder(context: DebugContext) -> bool:
+    return hasattr(getattr(context.policy, "model", None), "pooled_features")
+
+
+def _progress(
+    context: DebugContext, record: BasisTaskRecord, trail: list[TypedList]
+) -> dict[str, Any] | None:
+    """Where the driven walk sits on the start-to-target axis."""
+
+    if not _has_encoder(context):
+        return None
+    from wandering_light.rollout_debugger.feature_map import progress_frame
+
+    return progress_frame(
+        context.policy, record.input_value, record.output_value, trail
+    )
 
 
 def _session_map(
@@ -261,8 +285,7 @@ def _session_map(
 
     from wandering_light.rollout_debugger.feature_map import session_map
 
-    model = getattr(context.policy, "model", None)
-    if not hasattr(model, "pooled_features"):
+    if not _has_encoder(context):
         return None
 
     layers = payload["trace"]["layers"]

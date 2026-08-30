@@ -49,6 +49,15 @@ the model was actually fed.
 **The witness cannot reach the search.** It is read from the corpus record after
 the search finishes, and the overlay is computed from the finished trace.
 
+**The page itself is tested.** `tests/test_rollout_debugger_browser.py` drives
+it in headless Chromium -- keys, panels, drive steps, painted geometry, console
+errors -- and skips when playwright is absent. `tests/ui/browser_check.py` is
+the same checks as a script against a running server, and writes screenshots:
+
+```bash
+uv run --with playwright python tests/ui/browser_check.py http://127.0.0.1:8000 shots
+```
+
 ## Why it is arranged this way
 
 A session runs the whole search eagerly and ships the trace to the browser
@@ -65,14 +74,23 @@ rather than shipped with every session.
 Node state is recomputed from its path rather than cached. A path plus the task
 fully describes a node, so there is no session store to grow or go stale.
 
-## The 2D map
+## The 2D maps
 
 Depth and cumulative log-probability are honest axes but say nothing about
-whether a state is getting *closer*. The map instead projects the policy's own
-pooled `(state, target)` encoding -- what the action head reads -- onto its
-first two principal components, anchored at φ(target, target), where a solved
-state lands. PCA is fitted per session, so the axes describe one task's search
-and are not comparable across tasks.
+whether a state is getting *closer*. Both maps instead use the policy's own
+pooled `(state, target)` encoding -- what the action head reads.
+
+**Replay** projects the retained beam onto the first two principal components
+of the visited states, anchored at φ(target, target), where a solved state
+lands. PCA is fitted per session, so the axes describe one task's search and
+are not comparable across tasks.
+
+**Drive** uses a fixed frame instead: `x` is progress along
+φ(start, target) → φ(target, target), where 0 is the input and 1 is solved, and
+`y` is how far off that line the state sits. PCA would be wrong here, because
+refitting as the walk grows moves points for reasons that have nothing to do
+with the step just taken. Two anchors cannot rotate, so a step moves the dot
+only when the state moved.
 
 The map is the only feature needing more than the `ActionScorer` interface. A
 search driven by a scorer with no encoder is still fully debuggable; the map is

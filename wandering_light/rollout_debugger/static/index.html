@@ -359,9 +359,17 @@ function renderHeader() {
     ? S.driveHistory.length : s.executions.toLocaleString();
   $("r-depth").textContent = (S.mode === "drive")
     ? S.driveHistory.length : `${layer() ? layer().depth : 0}/${s.settings.max_depth}`;
+  // In drive mode the search's termination is not what is on screen, and
+  // showing "solved" over a walk that has solved nothing reads as a result.
   const term = $("r-term");
-  term.textContent = s.termination;
-  term.className = "badge " + (s.termination === "solved" ? "ok" : "bad");
+  if (S.mode === "drive") {
+    const solved = S.drive && S.drive.solved;
+    term.textContent = solved ? "reached target" : "driving";
+    term.className = "badge" + (solved ? " ok" : "");
+  } else {
+    term.textContent = s.termination;
+    term.className = "badge " + (s.termination === "solved" ? "ok" : "bad");
+  }
   $("r-mode").textContent = S.mode + (S.busy ? " ·" : "");
   $("r-mode").className = "badge" + (S.mode === "drive" ? " ok" : "");
 }
@@ -405,7 +413,7 @@ function renderTape() {
   const host = $("tape");
   if (S.mode === "drive") {
     $("exp-sub").textContent = "drive mode — press a key to apply an action";
-    host.innerHTML = "<div class='label'>the inspector lists what each key does</div>";
+    host.innerHTML = renderProgress();
     return;
   }
   const l = layer();
@@ -540,6 +548,55 @@ function renderInspector() {
     ${renderMap()}`;
 }
 
+// Drive mode's map. The axis is the start-to-target direction in the policy's
+// own encoding, so x is literally "how far toward solved" and needs no fit:
+// the frame cannot rotate as the walk grows, the way a refitted PCA would.
+function renderProgress() {
+  const progress = S.drive && S.drive.progress;
+  if (!progress || !progress.points.length) {
+    return "<div class='label'>press a key to take a step</div>";
+  }
+  const points = progress.points;
+  const offAxis = Math.max(0.35, ...points.map((p) => Math.abs(p.y)));
+  const sx = (x) => 40 + 470 * Math.max(-0.05, Math.min(1.12, x)) / 1.12;
+  const sy = (y) => 150 - 105 * (y / offAxis);
+
+  const trail = points.map((point, index) => {
+    const current = index === points.length - 1;
+    return `<circle class="pt" cx="${sx(point.x)}" cy="${sy(point.y)}"
+      r="${current ? 6 : 3}"
+      fill="${current ? "var(--blue)" : "var(--ink-ghost)"}"
+      opacity="${current ? 1 : 0.5}"/>`;
+  }).join("");
+  const line = points.map((point, index) =>
+    `${index ? "L" : "M"}${sx(point.x)},${sy(point.y)}`).join(" ");
+  const last = points[points.length - 1];
+
+  return `<svg viewBox="0 0 550 200" style="width:100%;height:260px">
+      <line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(1)}" y2="${sy(0)}"
+        stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 4"/>
+      <circle cx="${sx(0)}" cy="${sy(0)}" r="4" fill="none"
+        stroke="var(--ink-dim)" stroke-width="1.4"/>
+      <text x="${sx(0)}" y="${sy(0) + 22}" fill="var(--ink-dim)"
+        font-size="11" text-anchor="middle">input</text>
+      <circle cx="${sx(1)}" cy="${sy(0)}" r="8" fill="none"
+        stroke="var(--gold)" stroke-width="1.8"/>
+      <circle cx="${sx(1)}" cy="${sy(0)}" r="2" fill="var(--gold)"/>
+      <text x="${sx(1)}" y="${sy(0) + 26}" fill="var(--gold)"
+        font-size="11" text-anchor="middle">target</text>
+      <path d="${line}" fill="none" stroke="var(--blue)" stroke-width="1.4"
+        opacity=".55"/>
+      ${trail}
+    </svg>
+    <div class="kv">
+      <span class="k">progress</span><span class="v">${pct(last.x)} of the way</span>
+      <span class="k">off axis</span><span class="v">${fmt(last.y, 3)}</span>
+      <span class="k">distance</span><span class="v">${fmt(last.distance_to_target, 2)}
+        of ${fmt(progress.start_distance, 2)}</span>
+    </div>
+    <div class="label">the policy's own encoding, projected on input → target</div>`;
+}
+
 function renderMap() {
   if (!S.map || !S.map.points.length) return "";
   const points = S.map.points;
@@ -547,8 +604,9 @@ function renderMap() {
   const minX = Math.min(...xs), maxX = Math.max(...xs);
   const minY = Math.min(...ys), maxY = Math.max(...ys);
   const spanX = (maxX - minX) || 1, spanY = (maxY - minY) || 1;
-  const sx = (x) => 8 + 284 * (x - minX) / spanX;
-  const sy = (y) => 172 - 156 * (y - minY) / spanY;
+  // Padded so the target ring is not clipped at the edge.
+  const sx = (x) => 16 + 268 * (x - minX) / spanX;
+  const sy = (y) => 168 - 146 * (y - minY) / spanY;
   const depth = layer() ? layer().depth : 0;
   const dots = points.map((point) => {
     if (point.kind === "target")
@@ -566,8 +624,9 @@ function renderMap() {
       opacity="${current ? 1 : 0.45}"/>`;
   }).join("");
   const [first, second] = S.map.explained_variance;
+  // No preserveAspectRatio="none": stretching turns every dot into an ellipse.
   return `<h4 class="sec">the policy's own space — PCA of ${S.map.dimensions}-d encoding</h4>
-    <svg class="map" viewBox="0 0 300 190" preserveAspectRatio="none">${dots}</svg>
+    <svg class="map" viewBox="0 0 300 190">${dots}</svg>
     <div class="label">ring = target · ${pct(first)} + ${pct(second)} of variance shown</div>`;
 }
 
