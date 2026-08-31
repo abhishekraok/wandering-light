@@ -1,3 +1,15 @@
+---
+configs:
+- config_name: default
+  data_files:
+  - split: discovery
+    path: discovery.jsonl.gz
+  - split: validation
+    path: validation.jsonl.gz
+  - split: test
+    path: test.jsonl.gz
+---
+
 # A corpus with long certified shortest paths
 
 Date: 2026-08-16
@@ -407,7 +419,7 @@ cost is itself informative — proving a distance-8 label means exhausting depth
 Every one of those expansions ran to completion, so each absence is a proof
 rather than a budget exhaustion.
 
-Full output: [`verification.json`](verification.json).
+Full output: [`verification.json`](https://github.com/abhishekraok/wandering-light/blob/main/reports/deep-corpus-20260816/verification.json).
 
 ## Artifacts
 
@@ -438,9 +450,9 @@ corpus is, wherever the bytes are served from.
 - `manifest.json` — tracked in git; full per-root record, including every
   root's certified depth, stop reason, shell sizes and rejection counts, plus
   the digest of each payload file.
-- [`verification.json`](verification.json) — witness re-execution and
+- [`verification.json`](https://github.com/abhishekraok/wandering-light/blob/main/reports/deep-corpus-20260816/verification.json) — witness re-execution and
   independent re-certification results.
-- [`bfs_curve.json`](bfs_curve.json) — the reference curve, depths 1 through 7.
+- [`bfs_curve.json`](https://github.com/abhishekraok/wandering-light/blob/main/reports/deep-corpus-20260816/bfs_curve.json) — the reference curve, depths 1 through 7.
 - [`deep_corpus.png`](deep_corpus.png) — the three panels above.
 
 Reproduce with `experiments/generate_deep_corpus.py`; the exact invocations are
