@@ -1,0 +1,2596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>stack_pbe_v4 corpus overview</title>
+<style>
+:root {
+  --bg: #f6f3ec; --surface: #fffdf8; --ink: #24231f; --muted: #68645b;
+  --line: #d9d2c5; --accent: #1c6b62; --accent-soft: #dcebe6;
+  --eval: #a44a37; --eval-soft: #f3ded7; --grid: #ded8cd;
+  --series-1: #1c6b62; --series-2: #a44a37; --series-3: #8267a8;
+  --series-4: #b57b16; --series-5: #4775a5;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #181917; --surface: #22231f; --ink: #efede6; --muted: #bcb7aa;
+    --line: #45463f; --accent: #75c3b6; --accent-soft: #243e39;
+    --eval: #ee9b86; --eval-soft: #472f2a; --grid: #3c3d38;
+    --series-1: #75c3b6; --series-2: #ee9b86; --series-3: #b9a1d8;
+    --series-4: #e1b65d; --series-5: #8eb5dd;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+main { width: min(1160px, calc(100% - 36px)); margin: 0 auto; padding: 54px 0 80px; }
+h1, h2, h3 { line-height: 1.15; letter-spacing: -0.025em; }
+h1 { margin: 0; font-size: clamp(2.25rem, 6vw, 4.8rem); max-width: 900px; }
+h2 { margin: 0 0 10px; font-size: clamp(1.6rem, 3vw, 2.25rem); }
+h3 { margin: 0; font-size: 1.05rem; }
+p { max-width: 78ch; }
+a { color: var(--accent); text-underline-offset: 3px; }
+code { font: .88em/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; font-weight: 700; }
+.lead { color: var(--muted); font-size: 1.12rem; max-width: 760px; margin: 18px 0 8px; }
+.source-line { color: var(--muted); font-size: .9rem; margin: 0; }
+.stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 34px 0 0; }
+.stat { padding: 17px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.stat b { display: block; font-size: 1.65rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: .83rem; }
+section { padding-top: 64px; }
+.section-head { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
+.section-head p { color: var(--muted); margin: 0; }
+.chart { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .bar { fill: var(--accent); }
+.chart .grid { stroke: var(--grid); stroke-width: 1; }
+.chart .axis-line, .chart .tick { stroke: var(--muted); stroke-width: 1; }
+.chart .axis, .chart .axis-title, .chart .annotation { fill: var(--muted); font: 12px ui-sans-serif, system-ui, sans-serif; }
+.chart .axis-title, .chart .annotation { fill: var(--ink); }
+.chart .median { stroke: var(--eval); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: -4px 0 8px; font-size: .86rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.swatch { width: 18px; height: 3px; display: inline-block; border-radius: 2px; background: currentColor; }
+circle.series-1, circle.series-2, circle.series-3, circle.series-4, circle.series-5 { stroke: var(--bg); stroke-width: 1; }
+.series-1 { color: var(--series-1); stroke: var(--series-1); fill: var(--series-1); }
+.series-2 { color: var(--series-2); stroke: var(--series-2); fill: var(--series-2); }
+.series-3 { color: var(--series-3); stroke: var(--series-3); fill: var(--series-3); }
+.series-4 { color: var(--series-4); stroke: var(--series-4); fill: var(--series-4); }
+.series-5 { color: var(--series-5); stroke: var(--series-5); fill: var(--series-5); }
+.tag-line { fill: none; stroke-width: 2; }
+.table-wrap { overflow-x: auto; border-top: 1px solid var(--line); }
+table { width: 100%; border-collapse: collapse; font-size: .91rem; }
+th, td { text-align: left; vertical-align: top; padding: 11px 12px; border-bottom: 1px solid var(--line); }
+thead th { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+tbody th { font-weight: 600; }
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mini-track { height: 3px; width: 100%; max-width: 260px; margin-top: 7px; background: var(--line); }
+.mini-track span { display: block; height: 100%; background: var(--accent); }
+.split-grid, .scaffold-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.split-panel, .scaffold-panel { padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.split-panel dl { display: grid; grid-template-columns: 1fr auto; gap: 7px 20px; margin: 16px 0 0; }
+.split-panel dt { color: var(--muted); }
+.split-panel dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 650; }
+.zero-overlap { margin-top: 18px; padding: 13px 16px; background: var(--accent-soft); border-left: 4px solid var(--accent); }
+.zero-overlap b { color: var(--accent); }
+.scaffold-panel header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.scaffold-panel header b { color: var(--accent); font-size: 1.45rem; }
+.scaffold-panel p { color: var(--muted); font-size: .88rem; margin: 5px 0 0; }
+.scaffold-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.scaffold-facts div { border-top: 1px solid var(--line); padding-top: 8px; }
+.scaffold-facts b { display: block; font-variant-numeric: tabular-nums; }
+.scaffold-facts span { color: var(--muted); font-size: .75rem; }
+.group-note { display: flex; gap: 18px; align-items: baseline; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 17px 0; margin: 28px 0 0; }
+.group-note b { font-size: 1.35rem; white-space: nowrap; }
+.group-note span { color: var(--muted); }
+.filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 20px 0 12px; }
+.filters label { color: var(--muted); font-size: .84rem; }
+input, select { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 9px 11px; }
+input { min-width: min(360px, 100%); flex: 1; }
+.result-count { color: var(--muted); font-size: .84rem; margin-left: auto; }
+.behaviour-table th:first-child { min-width: 245px; }
+.row-summary { display: block; color: var(--muted); font-size: .78rem; font-weight: 400; margin-top: 3px; max-width: 40ch; }
+.split { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: .75rem; font-weight: 650; }
+.split-train { color: var(--accent); background: var(--accent-soft); }
+.split-eval { color: var(--eval); background: var(--eval-soft); }
+.provenance-list { display: grid; grid-template-columns: 160px 1fr; gap: 9px 18px; margin: 22px 0; }
+.provenance-list dt { color: var(--muted); }
+.provenance-list dd { margin: 0; min-width: 0; }
+.digest { overflow-wrap: anywhere; }
+.note { color: var(--muted); font-size: .86rem; }
+@media (max-width: 820px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .split-grid, .scaffold-grid { grid-template-columns: 1fr; }
+  .section-head { display: block; } .section-head p { margin-top: 8px; }
+}
+@media (max-width: 520px) {
+  main { width: min(100% - 24px, 1160px); padding-top: 34px; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .stat { padding: 13px; } .stat b { font-size: 1.35rem; }
+  section { padding-top: 48px; }
+  .provenance-list { grid-template-columns: 1fr; gap: 2px; }
+  .provenance-list dd { margin-bottom: 10px; }
+  .group-note { display: block; }
+  .result-count { width: 100%; margin-left: 0; }
+}
+@media print {
+  :root { --bg: white; --surface: white; --ink: black; --muted: #444; --line: #bbb; }
+  main { width: 100%; padding: 0; } section { break-inside: avoid; }
+  .filters { display: none; }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="eyebrow">verified corpus snapshot</div>
+  <h1><code>stack_pbe_v4</code><br>corpus overview</h1>
+  <p class="lead">A behaviour-first program-synthesis corpus with fresh task instances,
+    a skeleton-disjoint train/eval split, and long witnesses built from a 28-op basis.</p>
+  <p class="source-line">Pinned to <a href="https://huggingface.co/datasets/abhishekraok/wandering-light-stack-pbe-v4/tree/00c2a9996d32df8d1894b45f4246a66b6df46c25">abhishekraok/wandering-light-stack-pbe-v4 @ 00c2a9996d32</a>.</p>
+  <div class="stats" aria-label="Corpus headline statistics">
+    <div class="stat"><b>8,800</b><span>tasks</span></div>
+    <div class="stat"><b>220</b><span>behaviours</span></div>
+    <div class="stat"><b>215</b><span>program skeletons</span></div>
+    <div class="stat"><b>1-253</b><span>witness length</span></div>
+    <div class="stat"><b>43</b><span>median witness length</span></div>
+  </div>
+</header>
+
+<section aria-labelledby="length-heading">
+  <div class="section-head">
+    <div><h2 id="length-heading">Witness length</h2><p>Exact task counts; each behaviour contributes 40 independently drawn tasks.</p></div>
+  </div>
+  <svg class="chart length-chart" viewBox="0 0 960 290" role="img"
+     aria-labelledby="length-title length-desc">
+  <title id="length-title">Witness length distribution</title>
+  <desc id="length-desc">Task counts for every witness length from 1 to
+    253 operations. The median is 43 operations.</desc>
+  <line class="grid" x1="54" y1="248.00" x2="942" y2="248.00"/><text class="axis" x="46" y="252.00" text-anchor="end">0</text><line class="grid" x1="54" y1="133.00" x2="942" y2="133.00"/><text class="axis" x="46" y="137.00" text-anchor="end">180</text><line class="grid" x1="54" y1="18.00" x2="942" y2="18.00"/><text class="axis" x="46" y="22.00" text-anchor="end">360</text>
+  <line class="axis-line" x1="54" y1="248"
+        x2="942" y2="248"/>
+  <rect class="bar" x="52.56" y="171.33" width="2.88" height="76.67"><title>1 ops: 120 tasks</title></rect><rect class="bar" x="56.08" y="222.44" width="2.88" height="25.56"><title>2 ops: 40 tasks</title></rect><rect class="bar" x="59.61" y="222.44" width="2.88" height="25.56"><title>3 ops: 40 tasks</title></rect><rect class="bar" x="63.13" y="222.44" width="2.88" height="25.56"><title>4 ops: 40 tasks</title></rect><rect class="bar" x="66.66" y="18.00" width="2.88" height="230.00"><title>5 ops: 360 tasks</title></rect><rect class="bar" x="70.18" y="43.56" width="2.88" height="204.44"><title>6 ops: 320 tasks</title></rect><rect class="bar" x="73.70" y="120.22" width="2.88" height="127.78"><title>7 ops: 200 tasks</title></rect><rect class="bar" x="77.23" y="222.44" width="2.88" height="25.56"><title>8 ops: 40 tasks</title></rect><rect class="bar" x="87.80" y="196.89" width="2.88" height="51.11"><title>11 ops: 80 tasks</title></rect><rect class="bar" x="91.32" y="94.67" width="2.88" height="153.33"><title>12 ops: 240 tasks</title></rect><rect class="bar" x="94.85" y="145.78" width="2.88" height="102.22"><title>13 ops: 160 tasks</title></rect><rect class="bar" x="98.37" y="222.44" width="2.88" height="25.56"><title>14 ops: 40 tasks</title></rect><rect class="bar" x="101.89" y="94.67" width="2.88" height="153.33"><title>15 ops: 240 tasks</title></rect><rect class="bar" x="105.42" y="120.22" width="2.88" height="127.78"><title>16 ops: 200 tasks</title></rect><rect class="bar" x="108.94" y="171.33" width="2.88" height="76.67"><title>17 ops: 120 tasks</title></rect><rect class="bar" x="112.47" y="120.22" width="2.88" height="127.78"><title>18 ops: 200 tasks</title></rect><rect class="bar" x="115.99" y="222.44" width="2.88" height="25.56"><title>19 ops: 40 tasks</title></rect><rect class="bar" x="119.51" y="222.44" width="2.88" height="25.56"><title>20 ops: 40 tasks</title></rect><rect class="bar" x="126.56" y="120.22" width="2.88" height="127.78"><title>22 ops: 200 tasks</title></rect><rect class="bar" x="130.08" y="222.44" width="2.88" height="25.56"><title>23 ops: 40 tasks</title></rect><rect class="bar" x="133.61" y="222.44" width="2.88" height="25.56"><title>24 ops: 40 tasks</title></rect><rect class="bar" x="137.13" y="171.33" width="2.88" height="76.67"><title>25 ops: 120 tasks</title></rect><rect class="bar" x="140.66" y="196.89" width="2.88" height="51.11"><title>26 ops: 80 tasks</title></rect><rect class="bar" x="144.18" y="222.44" width="2.88" height="25.56"><title>27 ops: 40 tasks</title></rect><rect class="bar" x="147.70" y="196.89" width="2.88" height="51.11"><title>28 ops: 80 tasks</title></rect><rect class="bar" x="151.23" y="222.44" width="2.88" height="25.56"><title>29 ops: 40 tasks</title></rect><rect class="bar" x="158.28" y="196.89" width="2.88" height="51.11"><title>31 ops: 80 tasks</title></rect><rect class="bar" x="161.80" y="171.33" width="2.88" height="76.67"><title>32 ops: 120 tasks</title></rect><rect class="bar" x="165.32" y="222.44" width="2.88" height="25.56"><title>33 ops: 40 tasks</title></rect><rect class="bar" x="168.85" y="222.44" width="2.88" height="25.56"><title>34 ops: 40 tasks</title></rect><rect class="bar" x="172.37" y="196.89" width="2.88" height="51.11"><title>35 ops: 80 tasks</title></rect><rect class="bar" x="175.89" y="120.22" width="2.88" height="127.78"><title>36 ops: 200 tasks</title></rect><rect class="bar" x="182.94" y="222.44" width="2.88" height="25.56"><title>38 ops: 40 tasks</title></rect><rect class="bar" x="186.47" y="171.33" width="2.88" height="76.67"><title>39 ops: 120 tasks</title></rect><rect class="bar" x="189.99" y="171.33" width="2.88" height="76.67"><title>40 ops: 120 tasks</title></rect><rect class="bar" x="193.51" y="196.89" width="2.88" height="51.11"><title>41 ops: 80 tasks</title></rect><rect class="bar" x="197.04" y="120.22" width="2.88" height="127.78"><title>42 ops: 200 tasks</title></rect><rect class="bar" x="200.56" y="145.78" width="2.88" height="102.22"><title>43 ops: 160 tasks</title></rect><rect class="bar" x="204.08" y="171.33" width="2.88" height="76.67"><title>44 ops: 120 tasks</title></rect><rect class="bar" x="211.13" y="145.78" width="2.88" height="102.22"><title>46 ops: 160 tasks</title></rect><rect class="bar" x="214.66" y="171.33" width="2.88" height="76.67"><title>47 ops: 120 tasks</title></rect><rect class="bar" x="218.18" y="196.89" width="2.88" height="51.11"><title>48 ops: 80 tasks</title></rect><rect class="bar" x="221.70" y="120.22" width="2.88" height="127.78"><title>49 ops: 200 tasks</title></rect><rect class="bar" x="225.23" y="145.78" width="2.88" height="102.22"><title>50 ops: 160 tasks</title></rect><rect class="bar" x="228.75" y="171.33" width="2.88" height="76.67"><title>51 ops: 120 tasks</title></rect><rect class="bar" x="232.28" y="222.44" width="2.88" height="25.56"><title>52 ops: 40 tasks</title></rect><rect class="bar" x="235.80" y="171.33" width="2.88" height="76.67"><title>53 ops: 120 tasks</title></rect><rect class="bar" x="239.32" y="196.89" width="2.88" height="51.11"><title>54 ops: 80 tasks</title></rect><rect class="bar" x="242.85" y="222.44" width="2.88" height="25.56"><title>55 ops: 40 tasks</title></rect><rect class="bar" x="246.37" y="222.44" width="2.88" height="25.56"><title>56 ops: 40 tasks</title></rect><rect class="bar" x="249.89" y="196.89" width="2.88" height="51.11"><title>57 ops: 80 tasks</title></rect><rect class="bar" x="253.42" y="196.89" width="2.88" height="51.11"><title>58 ops: 80 tasks</title></rect><rect class="bar" x="256.94" y="196.89" width="2.88" height="51.11"><title>59 ops: 80 tasks</title></rect><rect class="bar" x="260.47" y="171.33" width="2.88" height="76.67"><title>60 ops: 120 tasks</title></rect><rect class="bar" x="263.99" y="222.44" width="2.88" height="25.56"><title>61 ops: 40 tasks</title></rect><rect class="bar" x="267.51" y="222.44" width="2.88" height="25.56"><title>62 ops: 40 tasks</title></rect><rect class="bar" x="271.04" y="222.44" width="2.88" height="25.56"><title>63 ops: 40 tasks</title></rect><rect class="bar" x="274.56" y="171.33" width="2.88" height="76.67"><title>64 ops: 120 tasks</title></rect><rect class="bar" x="278.08" y="145.78" width="2.88" height="102.22"><title>65 ops: 160 tasks</title></rect><rect class="bar" x="281.61" y="171.33" width="2.88" height="76.67"><title>66 ops: 120 tasks</title></rect><rect class="bar" x="285.13" y="222.44" width="2.88" height="25.56"><title>67 ops: 40 tasks</title></rect><rect class="bar" x="292.18" y="145.78" width="2.88" height="102.22"><title>69 ops: 160 tasks</title></rect><rect class="bar" x="295.70" y="222.44" width="2.88" height="25.56"><title>70 ops: 40 tasks</title></rect><rect class="bar" x="299.23" y="222.44" width="2.88" height="25.56"><title>71 ops: 40 tasks</title></rect><rect class="bar" x="302.75" y="196.89" width="2.88" height="51.11"><title>72 ops: 80 tasks</title></rect><rect class="bar" x="306.28" y="196.89" width="2.88" height="51.11"><title>73 ops: 80 tasks</title></rect><rect class="bar" x="309.80" y="171.33" width="2.88" height="76.67"><title>74 ops: 120 tasks</title></rect><rect class="bar" x="313.32" y="222.44" width="2.88" height="25.56"><title>75 ops: 40 tasks</title></rect><rect class="bar" x="316.85" y="171.33" width="2.88" height="76.67"><title>76 ops: 120 tasks</title></rect><rect class="bar" x="323.89" y="196.89" width="2.88" height="51.11"><title>78 ops: 80 tasks</title></rect><rect class="bar" x="327.42" y="222.44" width="2.88" height="25.56"><title>79 ops: 40 tasks</title></rect><rect class="bar" x="330.94" y="171.33" width="2.88" height="76.67"><title>80 ops: 120 tasks</title></rect><rect class="bar" x="337.99" y="222.44" width="2.88" height="25.56"><title>82 ops: 40 tasks</title></rect><rect class="bar" x="341.51" y="196.89" width="2.88" height="51.11"><title>83 ops: 80 tasks</title></rect><rect class="bar" x="345.04" y="196.89" width="2.88" height="51.11"><title>84 ops: 80 tasks</title></rect><rect class="bar" x="352.08" y="196.89" width="2.88" height="51.11"><title>86 ops: 80 tasks</title></rect><rect class="bar" x="359.13" y="222.44" width="2.88" height="25.56"><title>88 ops: 40 tasks</title></rect><rect class="bar" x="373.23" y="222.44" width="2.88" height="25.56"><title>92 ops: 40 tasks</title></rect><rect class="bar" x="380.28" y="222.44" width="2.88" height="25.56"><title>94 ops: 40 tasks</title></rect><rect class="bar" x="394.37" y="222.44" width="2.88" height="25.56"><title>98 ops: 40 tasks</title></rect><rect class="bar" x="397.89" y="222.44" width="2.88" height="25.56"><title>99 ops: 40 tasks</title></rect><rect class="bar" x="404.94" y="222.44" width="2.88" height="25.56"><title>101 ops: 40 tasks</title></rect><rect class="bar" x="426.08" y="222.44" width="2.88" height="25.56"><title>107 ops: 40 tasks</title></rect><rect class="bar" x="436.66" y="196.89" width="2.88" height="51.11"><title>110 ops: 80 tasks</title></rect><rect class="bar" x="440.18" y="222.44" width="2.88" height="25.56"><title>111 ops: 40 tasks</title></rect><rect class="bar" x="457.80" y="222.44" width="2.88" height="25.56"><title>116 ops: 40 tasks</title></rect><rect class="bar" x="461.32" y="222.44" width="2.88" height="25.56"><title>117 ops: 40 tasks</title></rect><rect class="bar" x="464.85" y="222.44" width="2.88" height="25.56"><title>118 ops: 40 tasks</title></rect><rect class="bar" x="468.37" y="222.44" width="2.88" height="25.56"><title>119 ops: 40 tasks</title></rect><rect class="bar" x="482.47" y="222.44" width="2.88" height="25.56"><title>123 ops: 40 tasks</title></rect><rect class="bar" x="485.99" y="222.44" width="2.88" height="25.56"><title>124 ops: 40 tasks</title></rect><rect class="bar" x="496.56" y="222.44" width="2.88" height="25.56"><title>127 ops: 40 tasks</title></rect><rect class="bar" x="545.89" y="222.44" width="2.88" height="25.56"><title>141 ops: 40 tasks</title></rect><rect class="bar" x="574.08" y="222.44" width="2.88" height="25.56"><title>149 ops: 40 tasks</title></rect><rect class="bar" x="662.18" y="222.44" width="2.88" height="25.56"><title>174 ops: 40 tasks</title></rect><rect class="bar" x="693.89" y="222.44" width="2.88" height="25.56"><title>183 ops: 40 tasks</title></rect><rect class="bar" x="711.51" y="222.44" width="2.88" height="25.56"><title>188 ops: 40 tasks</title></rect><rect class="bar" x="774.94" y="222.44" width="2.88" height="25.56"><title>206 ops: 40 tasks</title></rect><rect class="bar" x="940.56" y="222.44" width="2.88" height="25.56"><title>253 ops: 40 tasks</title></rect>
+  <line class="median" x1="202.00" y1="18"
+        x2="202.00" y2="248"/>
+  <text class="annotation" x="207.00" y="31">median 43</text>
+  <line class="tick" x1="54.00" y1="248" x2="54.00" y2="253"/><text class="axis" x="54.00" y="275" text-anchor="middle">1</text><line class="tick" x1="226.67" y1="248" x2="226.67" y2="253"/><text class="axis" x="226.67" y="275" text-anchor="middle">50</text><line class="tick" x1="402.86" y1="248" x2="402.86" y2="253"/><text class="axis" x="402.86" y="275" text-anchor="middle">100</text><line class="tick" x1="579.05" y1="248" x2="579.05" y2="253"/><text class="axis" x="579.05" y="275" text-anchor="middle">150</text><line class="tick" x1="755.24" y1="248" x2="755.24" y2="253"/><text class="axis" x="755.24" y="275" text-anchor="middle">200</text><line class="tick" x1="942.00" y1="248" x2="942.00" y2="253"/><text class="axis" x="942.00" y="275" text-anchor="middle">253</text>
+  <text class="axis-title" x="498.0" y="289"
+        text-anchor="middle">witness length (operations)</text>
+  <text class="axis-title" transform="translate(13 133.0) rotate(-90)"
+        text-anchor="middle">tasks</text>
+</svg>
+</section>
+
+<section aria-labelledby="tag-heading">
+  <div class="section-head">
+    <div><h2 id="tag-heading">Program structure vs. length</h2><p>Tags overlap: a witness can branch, fold, map, filter, and close over task data.</p></div>
+  </div>
+  <div class="legend" aria-label="Program tag legend">
+  <span><i class="swatch series-1"></i>branch</span><span><i class="swatch series-2"></i>fold</span><span><i class="swatch series-3"></i>map</span><span><i class="swatch series-4"></i>filter</span><span><i class="swatch series-5"></i>closure</span>
+</div>
+<svg class="chart tag-chart" viewBox="0 0 960 330" role="img"
+     aria-labelledby="tag-title tag-desc">
+  <title id="tag-title">Program-tag incidence by witness length</title>
+  <desc id="tag-desc">Share of behaviours carrying each overlapping program tag,
+    grouped into ten-operation witness-length bins.</desc>
+  <line class="grid" x1="58" y1="278.00" x2="938" y2="278.00"/><text class="axis" x="50" y="282.00" text-anchor="end">0%</text><line class="grid" x1="58" y1="213.50" x2="938" y2="213.50"/><text class="axis" x="50" y="217.50" text-anchor="end">25%</text><line class="grid" x1="58" y1="149.00" x2="938" y2="149.00"/><text class="axis" x="50" y="153.00" text-anchor="end">50%</text><line class="grid" x1="58" y1="84.50" x2="938" y2="84.50"/><text class="axis" x="50" y="88.50" text-anchor="end">75%</text><line class="grid" x1="58" y1="20.00" x2="938" y2="20.00"/><text class="axis" x="50" y="24.00" text-anchor="end">100%</text>
+  <line class="axis-line" x1="58" y1="278"
+        x2="938" y2="278"/>
+  <polyline class="tag-line series-1" points="73.71,278.00 108.63,141.41 143.56,84.50 178.48,44.57 213.40,20.00 248.32,32.90 283.24,20.00 318.16,34.33 353.08,20.00 388.00,20.00 422.92,20.00 457.84,20.00 492.76,20.00 562.60,20.00 667.37,20.00 702.29,20.00 772.13,20.00 934.51,20.00"/><circle class="series-1" cx="73.71" cy="278.00" r="3"><title>branch, 1-10 ops: 0/29 behaviours (0.0%)</title></circle><circle class="series-1" cx="108.63" cy="141.41" r="3"><title>branch, 11-20 ops: 18/34 behaviours (52.9%)</title></circle><circle class="series-1" cx="143.56" cy="84.50" r="3"><title>branch, 21-30 ops: 12/16 behaviours (75.0%)</title></circle><circle class="series-1" cx="178.48" cy="44.57" r="3"><title>branch, 31-40 ops: 19/21 behaviours (90.5%)</title></circle><circle class="series-1" cx="213.40" cy="20.00" r="3"><title>branch, 41-50 ops: 32/32 behaviours (100.0%)</title></circle><circle class="series-1" cx="248.32" cy="32.90" r="3"><title>branch, 51-60 ops: 19/20 behaviours (95.0%)</title></circle><circle class="series-1" cx="283.24" cy="20.00" r="3"><title>branch, 61-70 ops: 19/19 behaviours (100.0%)</title></circle><circle class="series-1" cx="318.16" cy="34.33" r="3"><title>branch, 71-80 ops: 17/18 behaviours (94.4%)</title></circle><circle class="series-1" cx="353.08" cy="20.00" r="3"><title>branch, 81-90 ops: 8/8 behaviours (100.0%)</title></circle><circle class="series-1" cx="388.00" cy="20.00" r="3"><title>branch, 91-100 ops: 4/4 behaviours (100.0%)</title></circle><circle class="series-1" cx="422.92" cy="20.00" r="3"><title>branch, 101-110 ops: 4/4 behaviours (100.0%)</title></circle><circle class="series-1" cx="457.84" cy="20.00" r="3"><title>branch, 111-120 ops: 5/5 behaviours (100.0%)</title></circle><circle class="series-1" cx="492.76" cy="20.00" r="3"><title>branch, 121-130 ops: 3/3 behaviours (100.0%)</title></circle><circle class="series-1" cx="562.60" cy="20.00" r="3"><title>branch, 141-150 ops: 2/2 behaviours (100.0%)</title></circle><circle class="series-1" cx="667.37" cy="20.00" r="3"><title>branch, 171-180 ops: 1/1 behaviours (100.0%)</title></circle><circle class="series-1" cx="702.29" cy="20.00" r="3"><title>branch, 181-190 ops: 2/2 behaviours (100.0%)</title></circle><circle class="series-1" cx="772.13" cy="20.00" r="3"><title>branch, 201-210 ops: 1/1 behaviours (100.0%)</title></circle><circle class="series-1" cx="934.51" cy="20.00" r="3"><title>branch, 251-253 ops: 1/1 behaviours (100.0%)</title></circle><polyline class="tag-line series-2" points="73.71,206.83 108.63,126.24 143.56,84.50 178.48,81.43 213.40,52.25 248.32,84.50 283.24,60.74 318.16,34.33 353.08,20.00 388.00,20.00 422.92,20.00 457.84,20.00 492.76,20.00 562.60,20.00 667.37,20.00 702.29,20.00 772.13,20.00 934.51,20.00"/><circle class="series-2" cx="73.71" cy="206.83" r="3"><title>fold, 1-10 ops: 8/29 behaviours (27.6%)</title></circle><circle class="series-2" cx="108.63" cy="126.24" r="3"><title>fold, 11-20 ops: 20/34 behaviours (58.8%)</title></circle><circle class="series-2" cx="143.56" cy="84.50" r="3"><title>fold, 21-30 ops: 12/16 behaviours (75.0%)</title></circle><circle class="series-2" cx="178.48" cy="81.43" r="3"><title>fold, 31-40 ops: 16/21 behaviours (76.2%)</title></circle><circle class="series-2" cx="213.40" cy="52.25" r="3"><title>fold, 41-50 ops: 28/32 behaviours (87.5%)</title></circle><circle class="series-2" cx="248.32" cy="84.50" r="3"><title>fold, 51-60 ops: 15/20 behaviours (75.0%)</title></circle><circle class="series-2" cx="283.24" cy="60.74" r="3"><title>fold, 61-70 ops: 16/19 behaviours (84.2%)</title></circle><circle class="series-2" cx="318.16" cy="34.33" r="3"><title>fold, 71-80 ops: 17/18 behaviours (94.4%)</title></circle><circle class="series-2" cx="353.08" cy="20.00" r="3"><title>fold, 81-90 ops: 8/8 behaviours (100.0%)</title></circle><circle class="series-2" cx="388.00" cy="20.00" r="3"><title>fold, 91-100 ops: 4/4 behaviours (100.0%)</title></circle><circle class="series-2" cx="422.92" cy="20.00" r="3"><title>fold, 101-110 ops: 4/4 behaviours (100.0%)</title></circle><circle class="series-2" cx="457.84" cy="20.00" r="3"><title>fold, 111-120 ops: 5/5 behaviours (100.0%)</title></circle><circle class="series-2" cx="492.76" cy="20.00" r="3"><title>fold, 121-130 ops: 3/3 behaviours (100.0%)</title></circle><circle class="series-2" cx="562.60" cy="20.00" r="3"><title>fold, 141-150 ops: 2/2 behaviours (100.0%)</title></circle><circle class="series-2" cx="667.37" cy="20.00" r="3"><title>fold, 171-180 ops: 1/1 behaviours (100.0%)</title></circle><circle class="series-2" cx="702.29" cy="20.00" r="3"><title>fold, 181-190 ops: 2/2 behaviours (100.0%)</title></circle><circle class="series-2" cx="772.13" cy="20.00" r="3"><title>fold, 201-210 ops: 1/1 behaviours (100.0%)</title></circle><circle class="series-2" cx="934.51" cy="20.00" r="3"><title>fold, 251-253 ops: 1/1 behaviours (100.0%)</title></circle><polyline class="tag-line series-3" points="73.71,197.93 108.63,232.47 143.56,229.62 178.48,253.43 213.40,237.69 248.32,278.00 283.24,278.00 318.16,278.00 353.08,278.00 388.00,278.00 422.92,213.50 457.84,278.00 492.76,192.00 562.60,278.00 667.37,278.00 702.29,149.00 772.13,278.00 934.51,278.00"/><circle class="series-3" cx="73.71" cy="197.93" r="3"><title>map, 1-10 ops: 9/29 behaviours (31.0%)</title></circle><circle class="series-3" cx="108.63" cy="232.47" r="3"><title>map, 11-20 ops: 6/34 behaviours (17.6%)</title></circle><circle class="series-3" cx="143.56" cy="229.62" r="3"><title>map, 21-30 ops: 3/16 behaviours (18.8%)</title></circle><circle class="series-3" cx="178.48" cy="253.43" r="3"><title>map, 31-40 ops: 2/21 behaviours (9.5%)</title></circle><circle class="series-3" cx="213.40" cy="237.69" r="3"><title>map, 41-50 ops: 5/32 behaviours (15.6%)</title></circle><circle class="series-3" cx="248.32" cy="278.00" r="3"><title>map, 51-60 ops: 0/20 behaviours (0.0%)</title></circle><circle class="series-3" cx="283.24" cy="278.00" r="3"><title>map, 61-70 ops: 0/19 behaviours (0.0%)</title></circle><circle class="series-3" cx="318.16" cy="278.00" r="3"><title>map, 71-80 ops: 0/18 behaviours (0.0%)</title></circle><circle class="series-3" cx="353.08" cy="278.00" r="3"><title>map, 81-90 ops: 0/8 behaviours (0.0%)</title></circle><circle class="series-3" cx="388.00" cy="278.00" r="3"><title>map, 91-100 ops: 0/4 behaviours (0.0%)</title></circle><circle class="series-3" cx="422.92" cy="213.50" r="3"><title>map, 101-110 ops: 1/4 behaviours (25.0%)</title></circle><circle class="series-3" cx="457.84" cy="278.00" r="3"><title>map, 111-120 ops: 0/5 behaviours (0.0%)</title></circle><circle class="series-3" cx="492.76" cy="192.00" r="3"><title>map, 121-130 ops: 1/3 behaviours (33.3%)</title></circle><circle class="series-3" cx="562.60" cy="278.00" r="3"><title>map, 141-150 ops: 0/2 behaviours (0.0%)</title></circle><circle class="series-3" cx="667.37" cy="278.00" r="3"><title>map, 171-180 ops: 0/1 behaviours (0.0%)</title></circle><circle class="series-3" cx="702.29" cy="149.00" r="3"><title>map, 181-190 ops: 1/2 behaviours (50.0%)</title></circle><circle class="series-3" cx="772.13" cy="278.00" r="3"><title>map, 201-210 ops: 0/1 behaviours (0.0%)</title></circle><circle class="series-3" cx="934.51" cy="278.00" r="3"><title>map, 251-253 ops: 0/1 behaviours (0.0%)</title></circle><polyline class="tag-line series-4" points="73.71,233.52 108.63,224.88 143.56,229.62 178.48,216.57 213.40,253.81 248.32,265.10 283.24,278.00 318.16,249.33 353.08,278.00 388.00,278.00 422.92,278.00 457.84,226.40 492.76,278.00 562.60,278.00 667.37,278.00 702.29,278.00 772.13,278.00 934.51,278.00"/><circle class="series-4" cx="73.71" cy="233.52" r="3"><title>filter, 1-10 ops: 5/29 behaviours (17.2%)</title></circle><circle class="series-4" cx="108.63" cy="224.88" r="3"><title>filter, 11-20 ops: 7/34 behaviours (20.6%)</title></circle><circle class="series-4" cx="143.56" cy="229.62" r="3"><title>filter, 21-30 ops: 3/16 behaviours (18.8%)</title></circle><circle class="series-4" cx="178.48" cy="216.57" r="3"><title>filter, 31-40 ops: 5/21 behaviours (23.8%)</title></circle><circle class="series-4" cx="213.40" cy="253.81" r="3"><title>filter, 41-50 ops: 3/32 behaviours (9.4%)</title></circle><circle class="series-4" cx="248.32" cy="265.10" r="3"><title>filter, 51-60 ops: 1/20 behaviours (5.0%)</title></circle><circle class="series-4" cx="283.24" cy="278.00" r="3"><title>filter, 61-70 ops: 0/19 behaviours (0.0%)</title></circle><circle class="series-4" cx="318.16" cy="249.33" r="3"><title>filter, 71-80 ops: 2/18 behaviours (11.1%)</title></circle><circle class="series-4" cx="353.08" cy="278.00" r="3"><title>filter, 81-90 ops: 0/8 behaviours (0.0%)</title></circle><circle class="series-4" cx="388.00" cy="278.00" r="3"><title>filter, 91-100 ops: 0/4 behaviours (0.0%)</title></circle><circle class="series-4" cx="422.92" cy="278.00" r="3"><title>filter, 101-110 ops: 0/4 behaviours (0.0%)</title></circle><circle class="series-4" cx="457.84" cy="226.40" r="3"><title>filter, 111-120 ops: 1/5 behaviours (20.0%)</title></circle><circle class="series-4" cx="492.76" cy="278.00" r="3"><title>filter, 121-130 ops: 0/3 behaviours (0.0%)</title></circle><circle class="series-4" cx="562.60" cy="278.00" r="3"><title>filter, 141-150 ops: 0/2 behaviours (0.0%)</title></circle><circle class="series-4" cx="667.37" cy="278.00" r="3"><title>filter, 171-180 ops: 0/1 behaviours (0.0%)</title></circle><circle class="series-4" cx="702.29" cy="278.00" r="3"><title>filter, 181-190 ops: 0/2 behaviours (0.0%)</title></circle><circle class="series-4" cx="772.13" cy="278.00" r="3"><title>filter, 201-210 ops: 0/1 behaviours (0.0%)</title></circle><circle class="series-4" cx="934.51" cy="278.00" r="3"><title>filter, 251-253 ops: 0/1 behaviours (0.0%)</title></circle><polyline class="tag-line series-5" points="73.71,233.52 108.63,217.29 143.56,197.38 178.48,167.43 213.40,140.94 248.32,239.30 283.24,278.00 318.16,249.33 353.08,278.00 388.00,278.00 422.92,149.00 457.84,278.00 492.76,278.00 562.60,278.00 667.37,20.00 702.29,278.00 772.13,278.00 934.51,278.00"/><circle class="series-5" cx="73.71" cy="233.52" r="3"><title>closure, 1-10 ops: 5/29 behaviours (17.2%)</title></circle><circle class="series-5" cx="108.63" cy="217.29" r="3"><title>closure, 11-20 ops: 8/34 behaviours (23.5%)</title></circle><circle class="series-5" cx="143.56" cy="197.38" r="3"><title>closure, 21-30 ops: 5/16 behaviours (31.2%)</title></circle><circle class="series-5" cx="178.48" cy="167.43" r="3"><title>closure, 31-40 ops: 9/21 behaviours (42.9%)</title></circle><circle class="series-5" cx="213.40" cy="140.94" r="3"><title>closure, 41-50 ops: 17/32 behaviours (53.1%)</title></circle><circle class="series-5" cx="248.32" cy="239.30" r="3"><title>closure, 51-60 ops: 3/20 behaviours (15.0%)</title></circle><circle class="series-5" cx="283.24" cy="278.00" r="3"><title>closure, 61-70 ops: 0/19 behaviours (0.0%)</title></circle><circle class="series-5" cx="318.16" cy="249.33" r="3"><title>closure, 71-80 ops: 2/18 behaviours (11.1%)</title></circle><circle class="series-5" cx="353.08" cy="278.00" r="3"><title>closure, 81-90 ops: 0/8 behaviours (0.0%)</title></circle><circle class="series-5" cx="388.00" cy="278.00" r="3"><title>closure, 91-100 ops: 0/4 behaviours (0.0%)</title></circle><circle class="series-5" cx="422.92" cy="149.00" r="3"><title>closure, 101-110 ops: 2/4 behaviours (50.0%)</title></circle><circle class="series-5" cx="457.84" cy="278.00" r="3"><title>closure, 111-120 ops: 0/5 behaviours (0.0%)</title></circle><circle class="series-5" cx="492.76" cy="278.00" r="3"><title>closure, 121-130 ops: 0/3 behaviours (0.0%)</title></circle><circle class="series-5" cx="562.60" cy="278.00" r="3"><title>closure, 141-150 ops: 0/2 behaviours (0.0%)</title></circle><circle class="series-5" cx="667.37" cy="20.00" r="3"><title>closure, 171-180 ops: 1/1 behaviours (100.0%)</title></circle><circle class="series-5" cx="702.29" cy="278.00" r="3"><title>closure, 181-190 ops: 0/2 behaviours (0.0%)</title></circle><circle class="series-5" cx="772.13" cy="278.00" r="3"><title>closure, 201-210 ops: 0/1 behaviours (0.0%)</title></circle><circle class="series-5" cx="934.51" cy="278.00" r="3"><title>closure, 251-253 ops: 0/1 behaviours (0.0%)</title></circle>
+  <line class="tick" x1="58.00" y1="278" x2="58.00" y2="283"/><text class="axis" x="58.00" y="306" text-anchor="middle">1</text><line class="tick" x1="229.11" y1="278" x2="229.11" y2="283"/><text class="axis" x="229.11" y="306" text-anchor="middle">50</text><line class="tick" x1="403.71" y1="278" x2="403.71" y2="283"/><text class="axis" x="403.71" y="306" text-anchor="middle">100</text><line class="tick" x1="578.32" y1="278" x2="578.32" y2="283"/><text class="axis" x="578.32" y="306" text-anchor="middle">150</text><line class="tick" x1="752.92" y1="278" x2="752.92" y2="283"/><text class="axis" x="752.92" y="306" text-anchor="middle">200</text><line class="tick" x1="938.00" y1="278" x2="938.00" y2="283"/><text class="axis" x="938.00" y="306" text-anchor="middle">253</text>
+  <text class="axis-title" x="498.0" y="327"
+        text-anchor="middle">witness length (operations)</text>
+  <text class="axis-title" transform="translate(14 149.0) rotate(-90)"
+        text-anchor="middle">behaviours in bin</text>
+</svg>
+</section>
+
+<section aria-labelledby="split-heading">
+  <div class="section-head">
+    <div><h2 id="split-heading">Skeleton-disjoint split</h2><p>The split unit is the normalized program skeleton, not the task or behaviour.</p></div>
+  </div>
+  <div class="split-grid">
+    <article class="split-panel"><h3>Train</h3><dl>
+      <dt>Tasks</dt><dd>7,000</dd><dt>Behaviours</dt><dd>175</dd><dt>Skeletons</dt><dd>171</dd>
+    </dl></article>
+    <article class="split-panel"><h3>Eval</h3><dl>
+      <dt>Tasks</dt><dd>1,800</dd><dt>Behaviours</dt><dd>45</dd><dt>Skeletons</dt><dd>44</dd>
+    </dl></article>
+  </div>
+  <p class="zero-overlap"><b>0 skeleton overlap.</b> No normalized program shape occurs in both train and eval. Behaviour overlap is also 0.</p>
+</section>
+
+<section aria-labelledby="shape-heading">
+  <div class="section-head">
+    <div><h2 id="shape-heading">Input-shape mix</h2><p>Parsed from every shown and held-out stack. All 8,800 tasks and 220 behaviours are accounted for.</p></div>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Structural input shape</th><th class="num">Tasks</th><th class="num">Behaviours</th><th class="num">Train tasks</th><th class="num">Eval tasks</th></tr></thead>
+    <tbody><tr>
+  <th scope="row">list<div class="mini-track"><span style="width:55.909%"></span></div></th>
+  <td class="num">4,920</td>
+  <td class="num">123</td>
+  <td class="num">4,040</td>
+  <td class="num">880</td>
+</tr>
+<tr>
+  <th scope="row">2 lists<div class="mini-track"><span style="width:14.091%"></span></div></th>
+  <td class="num">1,240</td>
+  <td class="num">31</td>
+  <td class="num">920</td>
+  <td class="num">320</td>
+</tr>
+<tr>
+  <th scope="row">list + 2 scalars<div class="mini-track"><span style="width:9.545%"></span></div></th>
+  <td class="num">840</td>
+  <td class="num">21</td>
+  <td class="num">600</td>
+  <td class="num">240</td>
+</tr>
+<tr>
+  <th scope="row">list + scalar<div class="mini-track"><span style="width:9.545%"></span></div></th>
+  <td class="num">840</td>
+  <td class="num">21</td>
+  <td class="num">640</td>
+  <td class="num">200</td>
+</tr>
+<tr>
+  <th scope="row">3 scalars<div class="mini-track"><span style="width:5.000%"></span></div></th>
+  <td class="num">440</td>
+  <td class="num">11</td>
+  <td class="num">320</td>
+  <td class="num">120</td>
+</tr>
+<tr>
+  <th scope="row">2 scalars<div class="mini-track"><span style="width:3.636%"></span></div></th>
+  <td class="num">320</td>
+  <td class="num">8</td>
+  <td class="num">280</td>
+  <td class="num">40</td>
+</tr>
+<tr>
+  <th scope="row">4 scalars<div class="mini-track"><span style="width:0.909%"></span></div></th>
+  <td class="num">80</td>
+  <td class="num">2</td>
+  <td class="num">80</td>
+  <td class="num">0</td>
+</tr>
+<tr>
+  <th scope="row">scalar<div class="mini-track"><span style="width:0.909%"></span></div></th>
+  <td class="num">80</td>
+  <td class="num">2</td>
+  <td class="num">80</td>
+  <td class="num">0</td>
+</tr>
+<tr>
+  <th scope="row">3 lists<div class="mini-track"><span style="width:0.455%"></span></div></th>
+  <td class="num">40</td>
+  <td class="num">1</td>
+  <td class="num">40</td>
+  <td class="num">0</td>
+</tr></tbody>
+    <tfoot><tr><th>Total</th><td class="num">8,800</td><td class="num">220</td><td class="num">7,000</td><td class="num">1,800</td></tr></tfoot>
+  </table></div>
+</section>
+
+<section aria-labelledby="scaffold-heading">
+  <div class="section-head">
+    <div><h2 id="scaffold-heading">Shared scaffolding</h2><p>Per-behaviour shares of contiguous 8-operation windows. Short witnesses are excluded, not scored as zero.</p></div>
+  </div>
+  <div class="scaffold-grid">
+    <article class="scaffold-panel">
+      <header><h3>Another corpus witness</h3><b>79.8%</b></header>
+      <p>Median share among 192/220 eligible witnesses; 28 have fewer than 8 ops.</p>
+      <svg class="chart scaffold-chart" viewBox="0 0 450 220" role="img"
+     aria-labelledby="overall-scaffold-title overall-scaffold-desc">
+  <title id="overall-scaffold-title">Scaffold sharing distribution</title>
+  <desc id="overall-scaffold-desc">Eligible behaviours grouped by the share of their
+    eight-operation windows found in the comparison set.</desc>
+  <line class="grid" x1="42" y1="16" x2="438" y2="16"/>
+  <text class="axis" x="35" y="20" text-anchor="end">53</text>
+  <text class="axis" x="35" y="186" text-anchor="end">0</text>
+  <rect class="bar" x="44.00" y="150.68" width="35.60" height="31.32"><title>0-&lt;10%: 10 behaviours</title></rect><rect class="bar" x="83.60" y="172.60" width="35.60" height="9.40"><title>10-&lt;20%: 3 behaviours</title></rect><rect class="bar" x="123.20" y="163.21" width="35.60" height="18.79"><title>20-&lt;30%: 6 behaviours</title></rect><rect class="bar" x="162.80" y="153.81" width="35.60" height="28.19"><title>30-&lt;40%: 9 behaviours</title></rect><rect class="bar" x="202.40" y="160.08" width="35.60" height="21.92"><title>40-&lt;50%: 7 behaviours</title></rect><rect class="bar" x="242.00" y="122.49" width="35.60" height="59.51"><title>50-&lt;60%: 19 behaviours</title></rect><rect class="bar" x="281.60" y="125.62" width="35.60" height="56.38"><title>60-&lt;70%: 18 behaviours</title></rect><rect class="bar" x="321.20" y="106.83" width="35.60" height="75.17"><title>70-&lt;80%: 24 behaviours</title></rect><rect class="bar" x="360.80" y="47.32" width="35.60" height="134.68"><title>80-&lt;90%: 43 behaviours</title></rect><rect class="bar" x="400.40" y="16.00" width="35.60" height="166.00"><title>90-100%: 53 behaviours</title></rect>
+  <line class="axis-line" x1="42" y1="182"
+        x2="438" y2="182"/>
+  <text class="axis" x="42" y="205" text-anchor="middle">0%</text>
+  <text class="axis" x="240.0" y="205" text-anchor="middle">50%</text>
+  <text class="axis" x="438" y="205" text-anchor="middle">100%</text>
+  <text class="axis-title" x="240.0" y="219"
+        text-anchor="middle">shared 8-op windows</text>
+</svg>
+      <div class="scaffold-facts"><div><b>6,835/9,239</b><span>matched windows</span></div><div><b>74.0%</b><span>aggregate share</span></div><div><b>71.4%</b><span>mean behaviour share</span></div></div>
+    </article>
+    <article class="scaffold-panel">
+      <header><h3>Eval windows found in train</h3><b>76.8%</b></header>
+      <p>Median share among 36/45 eligible eval witnesses; 9 have fewer than 8 ops.</p>
+      <svg class="chart scaffold-chart" viewBox="0 0 450 220" role="img"
+     aria-labelledby="eval-scaffold-title eval-scaffold-desc">
+  <title id="eval-scaffold-title">Scaffold sharing distribution</title>
+  <desc id="eval-scaffold-desc">Eligible behaviours grouped by the share of their
+    eight-operation windows found in the comparison set.</desc>
+  <line class="grid" x1="42" y1="16" x2="438" y2="16"/>
+  <text class="axis" x="35" y="20" text-anchor="end">9</text>
+  <text class="axis" x="35" y="186" text-anchor="end">0</text>
+  <rect class="bar" x="44.00" y="108.22" width="35.60" height="73.78"><title>0-&lt;10%: 4 behaviours</title></rect><rect class="bar" x="83.60" y="163.56" width="35.60" height="18.44"><title>10-&lt;20%: 1 behaviours</title></rect><rect class="bar" x="123.20" y="145.11" width="35.60" height="36.89"><title>20-&lt;30%: 2 behaviours</title></rect><rect class="bar" x="162.80" y="163.56" width="35.60" height="18.44"><title>30-&lt;40%: 1 behaviours</title></rect><rect class="bar" x="202.40" y="163.56" width="35.60" height="18.44"><title>40-&lt;50%: 1 behaviours</title></rect><rect class="bar" x="242.00" y="145.11" width="35.60" height="36.89"><title>50-&lt;60%: 2 behaviours</title></rect><rect class="bar" x="281.60" y="89.78" width="35.60" height="92.22"><title>60-&lt;70%: 5 behaviours</title></rect><rect class="bar" x="321.20" y="89.78" width="35.60" height="92.22"><title>70-&lt;80%: 5 behaviours</title></rect><rect class="bar" x="360.80" y="16.00" width="35.60" height="166.00"><title>80-&lt;90%: 9 behaviours</title></rect><rect class="bar" x="400.40" y="71.33" width="35.60" height="110.67"><title>90-100%: 6 behaviours</title></rect>
+  <line class="axis-line" x1="42" y1="182"
+        x2="438" y2="182"/>
+  <text class="axis" x="42" y="205" text-anchor="middle">0%</text>
+  <text class="axis" x="240.0" y="205" text-anchor="middle">50%</text>
+  <text class="axis" x="438" y="205" text-anchor="middle">100%</text>
+  <text class="axis-title" x="240.0" y="219"
+        text-anchor="middle">shared 8-op windows</text>
+</svg>
+      <div class="scaffold-facts"><div><b>1,348/1,933</b><span>matched windows</span></div><div><b>69.7%</b><span>aggregate share</span></div><div><b>64.5%</b><span>mean behaviour share</span></div></div>
+    </article>
+  </div>
+  <div class="group-note"><b>220 inseparable groups</b><span>220 groups of size 1 across 220 behaviours; the largest has 1. Grouping is derived only from component names in this corpus snapshot.</span></div>
+</section>
+
+<section id="behaviours" aria-labelledby="behaviour-heading">
+  <div class="section-head">
+    <div><h2 id="behaviour-heading">Behaviours</h2><p>One consistency-checked representative per behaviour; task count is computed from corpus rows.</p></div>
+  </div>
+  <div class="filters">
+    <label for="behaviour-filter">Filter</label><input id="behaviour-filter" type="search" placeholder="name, summary, shape, or tag" autocomplete="off">
+    <label for="split-filter">Split</label><select id="split-filter"><option value="">all</option><option value="train">train</option><option value="eval">eval</option></select>
+    <span id="behaviour-count" class="result-count" aria-live="polite">220 behaviours</span>
+  </div>
+  <div class="table-wrap"><table class="behaviour-table">
+    <thead><tr><th>Behaviour</th><th>Split</th><th class="num">Tasks</th><th class="num">Ops</th><th>Input shape</th><th>Tags</th><th class="num">Shared</th><th class="num">Eval → train</th></tr></thead>
+    <tbody id="behaviour-rows"><tr data-search="abs_diff_pair how far apart two numbers are 2 scalars branch scalar" data-split="train">
+  <th scope="row"><code>abs_diff_pair</code><span class="row-summary">how far apart two numbers are</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">14</td>
+  <td>2 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="abs_each take the magnitude of every element list branch map" data-split="train">
+  <th scope="row"><code>abs_each</code><span class="row-summary">take the magnitude of every element</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">16</td>
+  <td>list</td>
+  <td>branch map</td>
+  <td class="num">88.9%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="add_aligned_entries add corresponding entries, stopping when either list ends 2 lists branch fold" data-split="train">
+  <th scope="row"><code>add_aligned_entries</code><span class="row-summary">add corresponding entries, stopping when either list ends</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">52</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">82.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="add_pair add two numbers 2 scalars scalar" data-split="train">
+  <th scope="row"><code>add_pair</code><span class="row-summary">add two numbers</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">1</td>
+  <td>2 scalars</td>
+  <td>scalar</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="add_to_each add the given number to every element list + scalar closure map" data-split="train">
+  <th scope="row"><code>add_to_each</code><span class="row-summary">add the given number to every element</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">6</td>
+  <td>list + scalar</td>
+  <td>closure map</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="adjacent_differences differences between each element and its predecessor list fold" data-split="train">
+  <th scope="row"><code>adjacent_differences</code><span class="row-summary">differences between each element and its predecessor</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">28</td>
+  <td>list</td>
+  <td>fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="adjacent_floor_averages the rounded-down average of each neighboring pair list fold" data-split="train">
+  <th scope="row"><code>adjacent_floor_averages</code><span class="row-summary">the rounded-down average of each neighboring pair</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">32</td>
+  <td>list</td>
+  <td>fold</td>
+  <td class="num">52.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="adjacent_repetition_count how many adjacent pairs repeat the same value list branch fold" data-split="train">
+  <th scope="row"><code>adjacent_repetition_count</code><span class="row-summary">how many adjacent pairs repeat the same value</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">58</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">86.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="adjacent_sign_change_count count adjacent pairs whose nonzero signs differ list branch fold" data-split="eval">
+  <th scope="row"><code>adjacent_sign_change_count</code><span class="row-summary">count adjacent pairs whose nonzero signs differ</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">47</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">100.0%</td>
+</tr>
+<tr data-search="aligned_absolute_gaps the absolute gap at each aligned position 2 lists branch fold" data-split="train">
+  <th scope="row"><code>aligned_absolute_gaps</code><span class="row-summary">the absolute gap at each aligned position</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">42</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">77.1%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="aligned_match_count how many aligned positions contain the same value 2 lists branch fold" data-split="train">
+  <th scope="row"><code>aligned_match_count</code><span class="row-summary">how many aligned positions contain the same value</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">61</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">88.9%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="aligned_matches keep first-list values whose aligned partners are equal 2 lists branch fold" data-split="eval">
+  <th scope="row"><code>aligned_matches</code><span class="row-summary">keep first-list values whose aligned partners are equal</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">39</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">65.6%</td>
+  <td class="num">65.6%</td>
+</tr>
+<tr data-search="aligned_maxima take the larger entry at each position shared by both lists 2 lists branch fold" data-split="eval">
+  <th scope="row"><code>aligned_maxima</code><span class="row-summary">take the larger entry at each position shared by both lists</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">69</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">75.8%</td>
+  <td class="num">75.8%</td>
+</tr>
+<tr data-search="all_equal_flag one if every element is equal, otherwise zero list branch closure filter" data-split="train">
+  <th scope="row"><code>all_equal_flag</code><span class="row-summary">one if every element is equal, otherwise zero</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">25</td>
+  <td>list</td>
+  <td>branch closure filter</td>
+  <td class="num">27.8%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="all_positive one if every element is positive, otherwise zero list branch fold map" data-split="eval">
+  <th scope="row"><code>all_positive</code><span class="row-summary">one if every element is positive, otherwise zero</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">18</td>
+  <td>list</td>
+  <td>branch fold map</td>
+  <td class="num">9.1%</td>
+  <td class="num">9.1%</td>
+</tr>
+<tr data-search="append join the two lists end to end 2 lists first-order" data-split="train">
+  <th scope="row"><code>append</code><span class="row-summary">join the two lists end to end</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">1</td>
+  <td>2 lists</td>
+  <td>first-order</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="append_reversed_second append the second list in reverse order 2 lists fold" data-split="train">
+  <th scope="row"><code>append_reversed_second</code><span class="row-summary">append the second list in reverse order</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">6</td>
+  <td>2 lists</td>
+  <td>fold</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="ascending_pair_count count pairs whose first value is smaller than their second list branch flat-pairs fold" data-split="train">
+  <th scope="row"><code>ascending_pair_count</code><span class="row-summary">count pairs whose first value is smaller than their second</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">74</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">94.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="axis_point_count count flat points lying on either coordinate axis list branch flat-pairs fold" data-split="eval">
+  <th scope="row"><code>axis_point_count</code><span class="row-summary">count flat points lying on either coordinate axis</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">86</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">78.5%</td>
+  <td class="num">78.5%</td>
+</tr>
+<tr data-search="best_single_trade_profit the largest profit from one earlier buy and one later sale list branch fold" data-split="train">
+  <th scope="row"><code>best_single_trade_profit</code><span class="row-summary">the largest profit from one earlier buy and one later sale</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">66</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">81.4%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="bounds_cover_list_flag one when every list value lies inside the inclusive bounds list + 2 scalars branch fold" data-split="eval">
+  <th scope="row"><code>bounds_cover_list_flag</code><span class="row-summary">one when every list value lies inside the inclusive bounds</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">92</td>
+  <td>list + 2 scalars</td>
+  <td>branch fold</td>
+  <td class="num">36.5%</td>
+  <td class="num">36.5%</td>
+</tr>
+<tr data-search="capped_sum sum the values after capping each at the given ceiling list + scalar branch closure fold" data-split="eval">
+  <th scope="row"><code>capped_sum</code><span class="row-summary">sum the values after capping each at the given ceiling</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">20</td>
+  <td>list + scalar</td>
+  <td>branch closure fold</td>
+  <td class="num">0.0%</td>
+  <td class="num">0.0%</td>
+</tr>
+<tr data-search="cartesian_pair_sums all sums formed by choosing one value from each list 2 lists closure fold map" data-split="eval">
+  <th scope="row"><code>cartesian_pair_sums</code><span class="row-summary">all sums formed by choosing one value from each list</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">15</td>
+  <td>2 lists</td>
+  <td>closure fold map</td>
+  <td class="num">50.0%</td>
+  <td class="num">0.0%</td>
+</tr>
+<tr data-search="choose_larger_total the list with the larger total, choosing the second on ties 2 lists branch fold" data-split="train">
+  <th scope="row"><code>choose_larger_total</code><span class="row-summary">the list with the larger total, choosing the second on ties</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">22</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="choose_largest_total_three the list with the largest total among three, choosing the latest on ties 3 lists branch fold" data-split="train">
+  <th scope="row"><code>choose_largest_total_three</code><span class="row-summary">the list with the largest total among three, choosing the latest on ties</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">47</td>
+  <td>3 lists</td>
+  <td>branch fold</td>
+  <td class="num">82.5%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="choose_longer the longer list, choosing the second on ties 2 lists branch fold" data-split="train">
+  <th scope="row"><code>choose_longer</code><span class="row-summary">the longer list, choosing the second on ties</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">26</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">94.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="choose_wider_range the list with the wider value range, choosing the second on ties 2 lists branch fold" data-split="train">
+  <th scope="row"><code>choose_wider_range</code><span class="row-summary">the list with the wider value range, choosing the second on ties</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">82</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">78.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="clamp_each clamp every element to the given inclusive interval list + 2 scalars branch closure map" data-split="train">
+  <th scope="row"><code>clamp_each</code><span class="row-summary">clamp every element to the given inclusive interval</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">35</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure map</td>
+  <td class="num">85.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="clamped_total sum the values after clamping each to the inclusive interval list + 2 scalars branch closure fold" data-split="train">
+  <th scope="row"><code>clamped_total</code><span class="row-summary">sum the values after clamping each to the inclusive interval</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">43</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure fold</td>
+  <td class="num">50.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="closed_interval_membership_flags mark each value one inside the inclusive interval and zero outside list + 2 scalars branch closure map" data-split="train">
+  <th scope="row"><code>closed_interval_membership_flags</code><span class="row-summary">mark each value one inside the inclusive interval and zero outside</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">41</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure map</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="closer_to_lower_bound_count count values at least as close to the lower as the upper bound list + 2 scalars branch closure fold" data-split="train">
+  <th scope="row"><code>closer_to_lower_bound_count</code><span class="row-summary">count values at least as close to the lower as the upper bound</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">42</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure fold</td>
+  <td class="num">91.4%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="closest_pair_gap the smallest absolute gap between any two list elements list branch fold" data-split="train">
+  <th scope="row"><code>closest_pair_gap</code><span class="row-summary">the smallest absolute gap between any two list elements</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">183</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">79.5%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="closest_to the element closest to the given number, first on ties list + scalar branch closure fold" data-split="train">
+  <th scope="row"><code>closest_to</code><span class="row-summary">the element closest to the given number, first on ties</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">59</td>
+  <td>list + scalar</td>
+  <td>branch closure fold</td>
+  <td class="num">92.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="collapse_runs collapse each run of equal adjacent values to one value list branch fold" data-split="train">
+  <th scope="row"><code>collapse_runs</code><span class="row-summary">collapse each run of equal adjacent values to one value</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">33</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">30.8%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="combined_value_span range from smallest to largest across both lists 2 lists branch fold" data-split="train">
+  <th scope="row"><code>combined_value_span</code><span class="row-summary">range from smallest to largest across both lists</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">36</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">96.6%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="common_prefix_length length of the equal prefix shared by two lists 2 lists branch fold" data-split="train">
+  <th scope="row"><code>common_prefix_length</code><span class="row-summary">length of the equal prefix shared by two lists</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">117</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">78.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="compare_each_to_mean encode each value as -1, 0, or 1 relative to the rounded-down mean list branch closure fold map" data-split="train">
+  <th scope="row"><code>compare_each_to_mean</code><span class="row-summary">encode each value as -1, 0, or 1 relative to the rounded-down mean</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">49</td>
+  <td>list</td>
+  <td>branch closure fold map</td>
+  <td class="num">38.1%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="concatenate_shorter_first join two lists with the shorter one first, preserving order on ties 2 lists branch fold" data-split="eval">
+  <th scope="row"><code>concatenate_shorter_first</code><span class="row-summary">join two lists with the shorter one first, preserving order on ties</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">26</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">63.2%</td>
+  <td class="num">63.2%</td>
+</tr>
+<tr data-search="count_equal how many times the given number appears list + scalar closure filter fold" data-split="train">
+  <th scope="row"><code>count_equal</code><span class="row-summary">how many times the given number appears</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">13</td>
+  <td>list + scalar</td>
+  <td>closure filter fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="count_evens how many even numbers the list has list filter fold" data-split="train">
+  <th scope="row"><code>count_evens</code><span class="row-summary">how many even numbers the list has</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">22</td>
+  <td>list</td>
+  <td>filter fold</td>
+  <td class="num">80.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="count_in_range count values strictly between the given bounds list + 2 scalars branch closure fold" data-split="eval">
+  <th scope="row"><code>count_in_range</code><span class="row-summary">count values strictly between the given bounds</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">40</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">100.0%</td>
+</tr>
+<tr data-search="count_near_target count values within a strict supplied distance of a target list + 2 scalars branch closure fold" data-split="train">
+  <th scope="row"><code>count_near_target</code><span class="row-summary">count values within a strict supplied distance of a target</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">42</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure fold</td>
+  <td class="num">88.6%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="count_negative how many negative numbers the list has list filter fold" data-split="train">
+  <th scope="row"><code>count_negative</code><span class="row-summary">how many negative numbers the list has</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">12</td>
+  <td>list</td>
+  <td>filter fold</td>
+  <td class="num">40.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="count_outside_interval count values not strictly between two supplied bounds list + 2 scalars branch closure fold" data-split="train">
+  <th scope="row"><code>count_outside_interval</code><span class="row-summary">count values not strictly between two supplied bounds</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">42</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure fold</td>
+  <td class="num">82.9%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="count_zeros how many zeros the list has list filter fold" data-split="train">
+  <th scope="row"><code>count_zeros</code><span class="row-summary">how many zeros the list has</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">12</td>
+  <td>list</td>
+  <td>filter fold</td>
+  <td class="num">80.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="disjoint_lists_flag one when the two lists have no value in common 2 lists branch closure filter" data-split="train">
+  <th scope="row"><code>disjoint_lists_flag</code><span class="row-summary">one when the two lists have no value in common</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">36</td>
+  <td>2 lists</td>
+  <td>branch closure filter</td>
+  <td class="num">79.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="distance_from_target_total sum all absolute distances from a supplied target list + scalar branch closure fold" data-split="train">
+  <th scope="row"><code>distance_from_target_total</code><span class="row-summary">sum all absolute distances from a supplied target</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">22</td>
+  <td>list + scalar</td>
+  <td>branch closure fold</td>
+  <td class="num">66.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="distance_to_nearer_choice distance from a target to the nearer of two choices 3 scalars branch scalar" data-split="train">
+  <th scope="row"><code>distance_to_nearer_choice</code><span class="row-summary">distance from a target to the nearer of two choices</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">78</td>
+  <td>3 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">80.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="distinct_count_three how many distinct values occur among three numbers 3 scalars branch scalar" data-split="eval">
+  <th scope="row"><code>distinct_count_three</code><span class="row-summary">how many distinct values occur among three numbers</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">70</td>
+  <td>3 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">9.5%</td>
+  <td class="num">9.5%</td>
+</tr>
+<tr data-search="distinct_value_count how many different values occur list branch filter fold" data-split="train">
+  <th scope="row"><code>distinct_value_count</code><span class="row-summary">how many different values occur</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">32</td>
+  <td>list</td>
+  <td>branch filter fold</td>
+  <td class="num">72.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="dot_product the dot product of two equal-length lists 2 lists fold" data-split="train">
+  <th scope="row"><code>dot_product</code><span class="row-summary">the dot product of two equal-length lists</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">24</td>
+  <td>2 lists</td>
+  <td>fold</td>
+  <td class="num">82.4%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="double_each double every element list map" data-split="train">
+  <th scope="row"><code>double_each</code><span class="row-summary">double every element</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">5</td>
+  <td>list</td>
+  <td>map</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="drop_last drop the last element list first-order fold" data-split="eval">
+  <th scope="row"><code>drop_last</code><span class="row-summary">drop the last element</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">12</td>
+  <td>list</td>
+  <td>first-order fold</td>
+  <td class="num">60.0%</td>
+  <td class="num">60.0%</td>
+</tr>
+<tr data-search="drop_prefix_count drop the requested number of initial elements list + scalar branch closure fold" data-split="train">
+  <th scope="row"><code>drop_prefix_count</code><span class="row-summary">drop the requested number of initial elements</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">50</td>
+  <td>list + scalar</td>
+  <td>branch closure fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="endpoints return the first and last elements list fold" data-split="train">
+  <th scope="row"><code>endpoints</code><span class="row-summary">return the first and last elements</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">17</td>
+  <td>list</td>
+  <td>fold</td>
+  <td class="num">0.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="evaluate_polynomial_horner evaluate descending-order polynomial coefficients at a supplied value list + scalar closure fold" data-split="train">
+  <th scope="row"><code>evaluate_polynomial_horner</code><span class="row-summary">evaluate descending-order polynomial coefficients at a supplied value</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">13</td>
+  <td>list + scalar</td>
+  <td>closure fold</td>
+  <td class="num">33.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="farther_choice_from_target the farther of two choices from a target, choosing the second on ties 3 scalars branch scalar" data-split="eval">
+  <th scope="row"><code>farther_choice_from_target</code><span class="row-summary">the farther of two choices from a target, choosing the second on ties</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">54</td>
+  <td>3 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">87.2%</td>
+  <td class="num">87.2%</td>
+</tr>
+<tr data-search="farthest_from_target_last_tie the farthest value from a target, choosing the last on ties list + scalar branch closure fold" data-split="eval">
+  <th scope="row"><code>farthest_from_target_last_tie</code><span class="row-summary">the farthest value from a target, choosing the last on ties</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">59</td>
+  <td>list + scalar</td>
+  <td>branch closure fold</td>
+  <td class="num">86.5%</td>
+  <td class="num">82.7%</td>
+</tr>
+<tr data-search="first_list_position_wins how many aligned positions are larger in the first list 2 lists branch fold" data-split="train">
+  <th scope="row"><code>first_list_position_wins</code><span class="row-summary">how many aligned positions are larger in the first list</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">62</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">87.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="first_maximum_index the zero-based position of the first maximum list branch fold" data-split="train">
+  <th scope="row"><code>first_maximum_index</code><span class="row-summary">the zero-based position of the first maximum</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">65</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">56.9%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="first_repeat_index the first index whose value appeared earlier, or minus one list branch filter fold" data-split="train">
+  <th scope="row"><code>first_repeat_index</code><span class="row-summary">the first index whose value appeared earlier, or minus one</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">111</td>
+  <td>list</td>
+  <td>branch filter fold</td>
+  <td class="num">53.8%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="flat_pair_maxima replace each consecutive flat pair by its larger value list branch fold" data-split="train">
+  <th scope="row"><code>flat_pair_maxima</code><span class="row-summary">replace each consecutive flat pair by its larger value</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">80</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">87.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="furthest_squared_radius the greatest squared distance from the origin among flat points list branch flat-pairs fold" data-split="eval">
+  <th scope="row"><code>furthest_squared_radius</code><span class="row-summary">the greatest squared distance from the origin among flat points</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">78</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">91.5%</td>
+  <td class="num">85.9%</td>
+</tr>
+<tr data-search="gap_between_intervals distance separating two intervals, or zero when they overlap 4 scalars branch scalar" data-split="train">
+  <th scope="row"><code>gap_between_intervals</code><span class="row-summary">distance separating two intervals, or zero when they overlap</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">56</td>
+  <td>4 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">85.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="halve_each halve every element, rounding down list map" data-split="train">
+  <th scope="row"><code>halve_each</code><span class="row-summary">halve every element, rounding down</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">7</td>
+  <td>list</td>
+  <td>map</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="hamming_distance how many positions differ between two equal-length lists 2 lists branch fold" data-split="train">
+  <th scope="row"><code>hamming_distance</code><span class="row-summary">how many positions differ between two equal-length lists</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">36</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">55.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="head the first element list first-order" data-split="train">
+  <th scope="row"><code>head</code><span class="row-summary">the first element</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">3</td>
+  <td>list</td>
+  <td>first-order</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="increment_each add one to every element list map" data-split="eval">
+  <th scope="row"><code>increment_each</code><span class="row-summary">add one to every element</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">5</td>
+  <td>list</td>
+  <td>map</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="insert_after_first insert the given number after the first element list + scalar first-order" data-split="train">
+  <th scope="row"><code>insert_after_first</code><span class="row-summary">insert the given number after the first element</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">8</td>
+  <td>list + scalar</td>
+  <td>first-order</td>
+  <td class="num">0.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="interleave_unequal alternate entries from two lists, then append the unmatched tail 2 lists branch fold" data-split="train">
+  <th scope="row"><code>interleave_unequal</code><span class="row-summary">alternate entries from two lists, then append the unmatched tail</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">53</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">37.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="interval_overlap_length length of the overlap between two closed intervals 4 scalars branch scalar" data-split="train">
+  <th scope="row"><code>interval_overlap_length</code><span class="row-summary">length of the overlap between two closed intervals</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">57</td>
+  <td>4 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">86.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="interval_region_codes encode values below, inside, and above the interval as -1, 0, and 1 list + 2 scalars branch closure map" data-split="train">
+  <th scope="row"><code>interval_region_codes</code><span class="row-summary">encode values below, inside, and above the interval as -1, 0, and 1</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">43</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure map</td>
+  <td class="num">66.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="interval_side_balance number above the interval minus number below it list + 2 scalars branch closure fold" data-split="train">
+  <th scope="row"><code>interval_side_balance</code><span class="row-summary">number above the interval minus number below it</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">46</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure fold</td>
+  <td class="num">84.6%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="interval_violation_count count values outside the inclusive interval list + 2 scalars branch closure fold" data-split="train">
+  <th scope="row"><code>interval_violation_count</code><span class="row-summary">count values outside the inclusive interval</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">44</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure fold</td>
+  <td class="num">86.5%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="inversion_count count out-of-order index pairs list closure filter fold" data-split="train">
+  <th scope="row"><code>inversion_count</code><span class="row-summary">count out-of-order index pairs</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">54</td>
+  <td>list</td>
+  <td>closure filter fold</td>
+  <td class="num">25.5%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="keep_above keep the elements larger than the given number list + scalar closure filter" data-split="train">
+  <th scope="row"><code>keep_above</code><span class="row-summary">keep the elements larger than the given number</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">7</td>
+  <td>list + scalar</td>
+  <td>closure filter</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="keep_ascending_pairs keep only flat pairs whose first value is smaller list branch flat-pairs fold" data-split="eval">
+  <th scope="row"><code>keep_ascending_pairs</code><span class="row-summary">keep only flat pairs whose first value is smaller</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">80</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">93.2%</td>
+  <td class="num">93.2%</td>
+</tr>
+<tr data-search="keep_below keep the elements smaller than the given number list + scalar closure filter" data-split="eval">
+  <th scope="row"><code>keep_below</code><span class="row-summary">keep the elements smaller than the given number</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">6</td>
+  <td>list + scalar</td>
+  <td>closure filter</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="keep_evens keep only the even numbers list filter" data-split="train">
+  <th scope="row"><code>keep_evens</code><span class="row-summary">keep only the even numbers</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">15</td>
+  <td>list</td>
+  <td>filter</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="keep_inside_closed_interval keep values inside the inclusive interval list + 2 scalars branch closure filter" data-split="train">
+  <th scope="row"><code>keep_inside_closed_interval</code><span class="row-summary">keep values inside the inclusive interval</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">41</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure filter</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="keep_negative keep only the negative numbers list filter" data-split="eval">
+  <th scope="row"><code>keep_negative</code><span class="row-summary">keep only the negative numbers</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">5</td>
+  <td>list</td>
+  <td>filter</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="keep_positive keep only the positive numbers list filter" data-split="train">
+  <th scope="row"><code>keep_positive</code><span class="row-summary">keep only the positive numbers</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">6</td>
+  <td>list</td>
+  <td>filter</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="keep_positive_sum_pairs keep flat pairs whose two values have a positive sum list branch fold" data-split="train">
+  <th scope="row"><code>keep_positive_sum_pairs</code><span class="row-summary">keep flat pairs whose two values have a positive sum</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">98</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">57.1%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="keep_zeros keep only the zeros list filter" data-split="eval">
+  <th scope="row"><code>keep_zeros</code><span class="row-summary">keep only the zeros</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">5</td>
+  <td>list</td>
+  <td>filter</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="kth_order_statistic the value at a supplied zero-based rank in sorted order list + scalar branch closure fold" data-split="train">
+  <th scope="row"><code>kth_order_statistic</code><span class="row-summary">the value at a supplied zero-based rank in sorted order</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">174</td>
+  <td>list + scalar</td>
+  <td>branch closure fold</td>
+  <td class="num">94.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="largest_absolute_prefix_sum the greatest magnitude reached by any prefix sum list branch fold" data-split="train">
+  <th scope="row"><code>largest_absolute_prefix_sum</code><span class="row-summary">the greatest magnitude reached by any prefix sum</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">57</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">98.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="largest_adjacent_gap the largest absolute difference between neighboring elements list branch fold" data-split="train">
+  <th scope="row"><code>largest_adjacent_gap</code><span class="row-summary">the largest absolute difference between neighboring elements</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">86</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">82.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="largest_adjacent_sum the largest sum of two neighboring elements list branch fold" data-split="train">
+  <th scope="row"><code>largest_adjacent_sum</code><span class="row-summary">the largest sum of two neighboring elements</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">73</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">68.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="largest_flat_pair_sum the largest sum among consecutive flat pairs list branch fold" data-split="train">
+  <th scope="row"><code>largest_flat_pair_sum</code><span class="row-summary">the largest sum among consecutive flat pairs</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">83</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">69.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="largest_inside_interval the largest value strictly between two supplied bounds list + 2 scalars branch closure filter fold" data-split="eval">
+  <th scope="row"><code>largest_inside_interval</code><span class="row-summary">the largest value strictly between two supplied bounds</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">40</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure filter fold</td>
+  <td class="num">48.5%</td>
+  <td class="num">48.5%</td>
+</tr>
+<tr data-search="largest_magnitude the largest absolute value in the list list branch fold" data-split="train">
+  <th scope="row"><code>largest_magnitude</code><span class="row-summary">the largest absolute value in the list</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">29</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="largest_zero_delimited_sum the largest running sum within blocks separated by zeros, allowing zero list branch fold" data-split="train">
+  <th scope="row"><code>largest_zero_delimited_sum</code><span class="row-summary">the largest running sum within blocks separated by zeros, allowing zero</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">64</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">59.6%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="last the last element list fold" data-split="train">
+  <th scope="row"><code>last</code><span class="row-summary">the last element</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">6</td>
+  <td>list</td>
+  <td>fold</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="leading_positive_count how many initial elements precede the first nonpositive one list branch fold" data-split="train">
+  <th scope="row"><code>leading_positive_count</code><span class="row-summary">how many initial elements precede the first nonpositive one</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">49</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="length how many elements the list has list fold" data-split="train">
+  <th scope="row"><code>length</code><span class="row-summary">how many elements the list has</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">7</td>
+  <td>list</td>
+  <td>fold</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="lexicographic_order minus one, zero, or one according to lexicographic list order 2 lists branch fold" data-split="eval">
+  <th scope="row"><code>lexicographic_order</code><span class="row-summary">minus one, zero, or one according to lexicographic list order</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">124</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">17.9%</td>
+  <td class="num">17.9%</td>
+</tr>
+<tr data-search="list_totals return the total of each list in input order 2 lists fold" data-split="train">
+  <th scope="row"><code>list_totals</code><span class="row-summary">return the total of each list in input order</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">15</td>
+  <td>2 lists</td>
+  <td>fold</td>
+  <td class="num">50.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="longest_alternating_sign_run the longest consecutive run with strictly alternating nonzero signs list branch fold" data-split="train">
+  <th scope="row"><code>longest_alternating_sign_run</code><span class="row-summary">the longest consecutive run with strictly alternating nonzero signs</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">75</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">92.6%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="longest_interval_run length of the longest consecutive run inside the interval list + 2 scalars branch closure fold map" data-split="train">
+  <th scope="row"><code>longest_interval_run</code><span class="row-summary">length of the longest consecutive run inside the interval</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">110</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure fold map</td>
+  <td class="num">93.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="longest_nondecreasing_run the longest consecutive run that never decreases list branch fold" data-split="train">
+  <th scope="row"><code>longest_nondecreasing_run</code><span class="row-summary">the longest consecutive run that never decreases</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">74</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">89.6%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="longest_positive_balance_streak the longest run of prefixes whose running sum stays positive list branch fold" data-split="train">
+  <th scope="row"><code>longest_positive_balance_streak</code><span class="row-summary">the longest run of prefixes whose running sum stays positive</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">80</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">63.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="longest_positive_run the length of the longest consecutive run of positive elements list branch fold" data-split="train">
+  <th scope="row"><code>longest_positive_run</code><span class="row-summary">the length of the longest consecutive run of positive elements</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">69</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="longest_strictly_increasing_run the longest contiguous strictly increasing run list branch composed fold" data-split="train">
+  <th scope="row"><code>longest_strictly_increasing_run</code><span class="row-summary">the longest contiguous strictly increasing run</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">99</td>
+  <td>list</td>
+  <td>branch composed fold</td>
+  <td class="num">90.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="magnitude_ordered_pair put two numbers in ascending order of magnitude 2 scalars branch scalar" data-split="train">
+  <th scope="row"><code>magnitude_ordered_pair</code><span class="row-summary">put two numbers in ascending order of magnitude</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">22</td>
+  <td>2 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">46.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="manhattan_point_radii compute manhattan distance from the origin for every flat point list branch flat-pairs fold" data-split="eval">
+  <th scope="row"><code>manhattan_point_radii</code><span class="row-summary">compute Manhattan distance from the origin for every flat point</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">94</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">79.3%</td>
+  <td class="num">79.3%</td>
+</tr>
+<tr data-search="max_pair the larger of two numbers 2 scalars branch scalar" data-split="train">
+  <th scope="row"><code>max_pair</code><span class="row-summary">the larger of two numbers</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">12</td>
+  <td>2 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="maximum the largest element list branch fold" data-split="train">
+  <th scope="row"><code>maximum</code><span class="row-summary">the largest element</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">16</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="maximum_aligned_gap the largest absolute gap at any aligned position 2 lists branch fold" data-split="train">
+  <th scope="row"><code>maximum_aligned_gap</code><span class="row-summary">the largest absolute gap at any aligned position</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">48</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="maximum_drawdown the largest drop from an earlier value to a later value list branch fold" data-split="train">
+  <th scope="row"><code>maximum_drawdown</code><span class="row-summary">the largest drop from an earlier value to a later value</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">65</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">87.9%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="maximum_prefix_sum the largest sum of any nonempty prefix list branch fold" data-split="train">
+  <th scope="row"><code>maximum_prefix_sum</code><span class="row-summary">the largest sum of any nonempty prefix</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">58</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">72.5%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="maximum_running_mean the greatest rounded-down mean among all nonempty prefixes list branch fold" data-split="train">
+  <th scope="row"><code>maximum_running_mean</code><span class="row-summary">the greatest rounded-down mean among all nonempty prefixes</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">72</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">61.5%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="maximum_subarray_sum the largest sum of any nonempty contiguous slice list branch fold" data-split="train">
+  <th scope="row"><code>maximum_subarray_sum</code><span class="row-summary">the largest sum of any nonempty contiguous slice</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">67</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">73.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="mean the average of the list, rounded down list fold" data-split="train">
+  <th scope="row"><code>mean</code><span class="row-summary">the average of the list, rounded down</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">15</td>
+  <td>list</td>
+  <td>fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="mean_absolute_deviation rounded-down mean absolute distance from the rounded-down mean list branch closure fold map" data-split="train">
+  <th scope="row"><code>mean_absolute_deviation</code><span class="row-summary">rounded-down mean absolute distance from the rounded-down mean</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">50</td>
+  <td>list</td>
+  <td>branch closure fold map</td>
+  <td class="num">72.1%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="median_floor the median, averaging the middle pair and rounding down list branch fold" data-split="eval">
+  <th scope="row"><code>median_floor</code><span class="row-summary">the median, averaging the middle pair and rounding down</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">253</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">83.7%</td>
+  <td class="num">83.7%</td>
+</tr>
+<tr data-search="median_three the middle of three numbers 3 scalars branch scalar" data-split="train">
+  <th scope="row"><code>median_three</code><span class="row-summary">the middle of three numbers</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">51</td>
+  <td>3 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">52.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="merge_sorted_lists merge two ascending lists into one ascending list 2 lists branch fold" data-split="train">
+  <th scope="row"><code>merge_sorted_lists</code><span class="row-summary">merge two ascending lists into one ascending list</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">119</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">99.1%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="min_pair the smaller of two numbers 2 scalars branch scalar" data-split="eval">
+  <th scope="row"><code>min_pair</code><span class="row-summary">the smaller of two numbers</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">12</td>
+  <td>2 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">100.0%</td>
+  <td class="num">100.0%</td>
+</tr>
+<tr data-search="minimum the smallest element list branch fold" data-split="train">
+  <th scope="row"><code>minimum</code><span class="row-summary">the smallest element</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">16</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="minimum_cross_list_gap the smallest absolute gap between a value from each list 2 lists branch closure fold map" data-split="eval">
+  <th scope="row"><code>minimum_cross_list_gap</code><span class="row-summary">the smallest absolute gap between a value from each list</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">44</td>
+  <td>2 lists</td>
+  <td>branch closure fold map</td>
+  <td class="num">73.0%</td>
+  <td class="num">62.2%</td>
+</tr>
+<tr data-search="mode_first_tie the most frequent value, choosing its first occurrence on ties list branch closure filter fold" data-split="train">
+  <th scope="row"><code>mode_first_tie</code><span class="row-summary">the most frequent value, choosing its first occurrence on ties</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">79</td>
+  <td>list</td>
+  <td>branch closure filter fold</td>
+  <td class="num">27.8%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="n_minus_each subtract every element from the given number list + scalar closure map" data-split="eval">
+  <th scope="row"><code>n_minus_each</code><span class="row-summary">subtract every element from the given number</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">7</td>
+  <td>list + scalar</td>
+  <td>closure map</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="nearest_bound the nearer interval endpoint, choosing the lower on ties 3 scalars branch scalar" data-split="train">
+  <th scope="row"><code>nearest_bound</code><span class="row-summary">the nearer interval endpoint, choosing the lower on ties</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">32</td>
+  <td>3 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="nearest_interval_endpoint_each replace each value by the nearer interval endpoint, lower on ties list + 2 scalars branch closure map" data-split="eval">
+  <th scope="row"><code>nearest_interval_endpoint_each</code><span class="row-summary">replace each value by the nearer interval endpoint, lower on ties</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">39</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure map</td>
+  <td class="num">100.0%</td>
+  <td class="num">93.8%</td>
+</tr>
+<tr data-search="nearest_point_to_origin the flat point nearest the origin, keeping the first on ties list branch composed flat-pairs fold" data-split="train">
+  <th scope="row"><code>nearest_point_to_origin</code><span class="row-summary">the flat point nearest the origin, keeping the first on ties</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">110</td>
+  <td>list</td>
+  <td>branch composed flat-pairs fold</td>
+  <td class="num">67.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="negate_each flip the sign of every element list map" data-split="eval">
+  <th scope="row"><code>negate_each</code><span class="row-summary">flip the sign of every element</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">6</td>
+  <td>list</td>
+  <td>map</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="nondecreasing_indicator one if the list is in nondecreasing order, otherwise zero list branch fold" data-split="eval">
+  <th scope="row"><code>nondecreasing_indicator</code><span class="row-summary">one if the list is in nondecreasing order, otherwise zero</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">43</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">77.8%</td>
+  <td class="num">77.8%</td>
+</tr>
+<tr data-search="nonnegative_running_balance add in order, resetting the balance to zero below zero list branch fold" data-split="train">
+  <th scope="row"><code>nonnegative_running_balance</code><span class="row-summary">add in order, resetting the balance to zero below zero</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">17</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">50.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="ordered_pair put two numbers in ascending order 2 scalars branch scalar" data-split="train">
+  <th scope="row"><code>ordered_pair</code><span class="row-summary">put two numbers in ascending order</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">16</td>
+  <td>2 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">77.8%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="pair_floor_averages replace each flat pair by its rounded-down average list branch flat-pairs fold" data-split="eval">
+  <th scope="row"><code>pair_floor_averages</code><span class="row-summary">replace each flat pair by its rounded-down average</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">69</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">82.3%</td>
+  <td class="num">82.3%</td>
+</tr>
+<tr data-search="pair_gap_total sum the absolute gaps within the pairs list branch flat-pairs fold" data-split="train">
+  <th scope="row"><code>pair_gap_total</code><span class="row-summary">sum the absolute gaps within the pairs</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">73</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">90.9%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="pair_product_total sum the product within each pair in a flat pair list list branch flat-pairs fold" data-split="train">
+  <th scope="row"><code>pair_product_total</code><span class="row-summary">sum the product within each pair in a flat pair list</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">60</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">84.9%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="pair_sums replace each flat pair by its sum list branch flat-pairs fold" data-split="train">
+  <th scope="row"><code>pair_sums</code><span class="row-summary">replace each flat pair by its sum</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">65</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">89.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="paired_l1_distance total absolute difference over aligned positions in both lists 2 lists branch fold" data-split="train">
+  <th scope="row"><code>paired_l1_distance</code><span class="row-summary">total absolute difference over aligned positions in both lists</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">60</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">88.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="palindrome_indicator one if the list reads the same backward, otherwise zero list branch fold" data-split="train">
+  <th scope="row"><code>palindrome_indicator</code><span class="row-summary">one if the list reads the same backward, otherwise zero</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">18</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">36.4%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="parity_each replace every element by its remainder mod two list map" data-split="train">
+  <th scope="row"><code>parity_each</code><span class="row-summary">replace every element by its remainder mod two</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">13</td>
+  <td>list</td>
+  <td>map</td>
+  <td class="num">66.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="point_centroid_floor the coordinate-wise rounded-down centroid of flat points list branch composed flat-pairs fold map" data-split="train">
+  <th scope="row"><code>point_centroid_floor</code><span class="row-summary">the coordinate-wise rounded-down centroid of flat points</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">123</td>
+  <td>list</td>
+  <td>branch composed flat-pairs fold map</td>
+  <td class="num">56.9%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="points_above_parabola count flat points lying strictly above y equals x squared list branch flat-pairs fold" data-split="train">
+  <th scope="row"><code>points_above_parabola</code><span class="row-summary">count flat points lying strictly above y equals x squared</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">76</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">85.5%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="polyline_manhattan_length the manhattan length of a polyline encoded as flat points list branch composed flat-pairs fold map" data-split="eval">
+  <th scope="row"><code>polyline_manhattan_length</code><span class="row-summary">the Manhattan length of a polyline encoded as flat points</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">188</td>
+  <td>list</td>
+  <td>branch composed flat-pairs fold map</td>
+  <td class="num">84.5%</td>
+  <td class="num">84.5%</td>
+</tr>
+<tr data-search="positive_balance_prefix_count count prefixes whose running sum is positive list branch fold" data-split="eval">
+  <th scope="row"><code>positive_balance_prefix_count</code><span class="row-summary">count prefixes whose running sum is positive</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">49</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">73.8%</td>
+  <td class="num">73.8%</td>
+</tr>
+<tr data-search="positive_majority one if a strict majority of elements are positive, otherwise zero list branch fold" data-split="train">
+  <th scope="row"><code>positive_majority</code><span class="row-summary">one if a strict majority of elements are positive, otherwise zero</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">46</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">48.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="positive_majority_three one when at least two of three numbers are positive 3 scalars branch fold scalar" data-split="eval">
+  <th scope="row"><code>positive_majority_three</code><span class="row-summary">one when at least two of three numbers are positive</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">39</td>
+  <td>3 scalars</td>
+  <td>branch fold scalar</td>
+  <td class="num">50.0%</td>
+  <td class="num">50.0%</td>
+</tr>
+<tr data-search="positive_part keep the positive part of a number scalar branch scalar" data-split="train">
+  <th scope="row"><code>positive_part</code><span class="row-summary">keep the positive part of a number</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">12</td>
+  <td>scalar</td>
+  <td>branch scalar</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="positive_quadrant_count count flat points whose two coordinates are positive list branch flat-pairs fold" data-split="train">
+  <th scope="row"><code>positive_quadrant_count</code><span class="row-summary">count flat points whose two coordinates are positive</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">88</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">79.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="positive_step_total sum only the upward changes between adjacent values list branch fold" data-split="train">
+  <th scope="row"><code>positive_step_total</code><span class="row-summary">sum only the upward changes between adjacent values</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">46</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">64.1%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="prefix_record_count count strict new highs reached by the running sum list branch fold" data-split="train">
+  <th scope="row"><code>prefix_record_count</code><span class="row-summary">count strict new highs reached by the running sum</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">60</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">60.4%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="prefix_sum_signs encode each prefix sum as negative one, zero, or positive one list branch fold" data-split="train">
+  <th scope="row"><code>prefix_sum_signs</code><span class="row-summary">encode each prefix sum as negative one, zero, or positive one</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">66</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">84.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="prefix_sums running total of the list so far, one entry per element list branch fold" data-split="eval">
+  <th scope="row"><code>prefix_sums</code><span class="row-summary">running total of the list so far, one entry per element</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">25</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">55.6%</td>
+  <td class="num">55.6%</td>
+</tr>
+<tr data-search="product multiply the list together list fold" data-split="train">
+  <th scope="row"><code>product</code><span class="row-summary">multiply the list together</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">5</td>
+  <td>list</td>
+  <td>fold</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="product_inside_interval multiply the values inside the inclusive interval list + 2 scalars branch closure filter fold" data-split="train">
+  <th scope="row"><code>product_inside_interval</code><span class="row-summary">multiply the values inside the inclusive interval</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">46</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure filter fold</td>
+  <td class="num">87.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="push_back put the given number on the end of the list list + scalar first-order" data-split="eval">
+  <th scope="row"><code>push_back</code><span class="row-summary">put the given number on the end of the list</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">4</td>
+  <td>list + scalar</td>
+  <td>first-order</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="push_front put the given number on the front of the list list + scalar first-order" data-split="train">
+  <th scope="row"><code>push_front</code><span class="row-summary">put the given number on the front of the list</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">1</td>
+  <td>list + scalar</td>
+  <td>first-order</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="quotient_remainder the floor quotient and remainder 2 scalars scalar" data-split="train">
+  <th scope="row"><code>quotient_remainder</code><span class="row-summary">the floor quotient and remainder</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">15</td>
+  <td>2 scalars</td>
+  <td>scalar</td>
+  <td class="num">0.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="raise_to_floor raise every element below the given floor list + scalar branch closure map" data-split="train">
+  <th scope="row"><code>raise_to_floor</code><span class="row-summary">raise every element below the given floor</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">17</td>
+  <td>list + scalar</td>
+  <td>branch closure map</td>
+  <td class="num">90.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="record_extreme_count count values setting a new all-time high or low, including the first list branch fold" data-split="train">
+  <th scope="row"><code>record_extreme_count</code><span class="row-summary">count values setting a new all-time high or low, including the first</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">101</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">64.9%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="record_high_count how many elements set a new all-time high, counting the first list branch fold" data-split="train">
+  <th scope="row"><code>record_high_count</code><span class="row-summary">how many elements set a new all-time high, counting the first</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">53</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">91.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="record_high_sum sum the values that establish a new strict record high list branch fold" data-split="train">
+  <th scope="row"><code>record_high_sum</code><span class="row-summary">sum the values that establish a new strict record high</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">53</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">80.4%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="record_low_count how many elements set a new all-time low, counting the first list branch fold" data-split="train">
+  <th scope="row"><code>record_low_count</code><span class="row-summary">how many elements set a new all-time low, counting the first</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">43</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">97.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="remove_value remove every occurrence of the given value list + scalar branch closure filter" data-split="train">
+  <th scope="row"><code>remove_value</code><span class="row-summary">remove every occurrence of the given value</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">19</td>
+  <td>list + scalar</td>
+  <td>branch closure filter</td>
+  <td class="num">8.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="remove_values_seen_in_second remove first-list entries whose value appears in the second list 2 lists closure filter" data-split="train">
+  <th scope="row"><code>remove_values_seen_in_second</code><span class="row-summary">remove first-list entries whose value appears in the second list</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">13</td>
+  <td>2 lists</td>
+  <td>closure filter</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="replace_value replace every occurrence of one value by another list + 2 scalars branch closure map" data-split="eval">
+  <th scope="row"><code>replace_value</code><span class="row-summary">replace every occurrence of one value by another</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">22</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure map</td>
+  <td class="num">66.7%</td>
+  <td class="num">66.7%</td>
+</tr>
+<tr data-search="replace_zeros replace every zero by the given number list + scalar branch closure map" data-split="train">
+  <th scope="row"><code>replace_zeros</code><span class="row-summary">replace every zero by the given number</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">18</td>
+  <td>list + scalar</td>
+  <td>branch closure map</td>
+  <td class="num">27.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="reverse reverse the list list fold" data-split="eval">
+  <th scope="row"><code>reverse</code><span class="row-summary">reverse the list</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">5</td>
+  <td>list</td>
+  <td>fold</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="reverse_point_order reverse the points while preserving each coordinate pair list branch flat-pairs fold" data-split="train">
+  <th scope="row"><code>reverse_point_order</code><span class="row-summary">reverse the points while preserving each coordinate pair</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">64</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="rotate_left move the first element to the end list first-order" data-split="eval">
+  <th scope="row"><code>rotate_left</code><span class="row-summary">move the first element to the end</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">5</td>
+  <td>list</td>
+  <td>first-order</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="rotate_left_count rotate left by a supplied number of positions list + scalar branch closure fold" data-split="train">
+  <th scope="row"><code>rotate_left_count</code><span class="row-summary">rotate left by a supplied number of positions</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">107</td>
+  <td>list + scalar</td>
+  <td>branch closure fold</td>
+  <td class="num">86.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="rotate_right move the last element to the front list fold" data-split="train">
+  <th scope="row"><code>rotate_right</code><span class="row-summary">move the last element to the front</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">15</td>
+  <td>list</td>
+  <td>fold</td>
+  <td class="num">0.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="run_length_encoding encode adjacent runs as alternating value and count list branch fold" data-split="train">
+  <th scope="row"><code>run_length_encoding</code><span class="row-summary">encode adjacent runs as alternating value and count</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">49</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">19.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="running_maxima the largest value seen so far at every position list branch fold" data-split="train">
+  <th scope="row"><code>running_maxima</code><span class="row-summary">the largest value seen so far at every position</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">36</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">82.8%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="running_mean_floor the rounded-down mean of every prefix list fold" data-split="train">
+  <th scope="row"><code>running_mean_floor</code><span class="row-summary">the rounded-down mean of every prefix</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">74</td>
+  <td>list</td>
+  <td>fold</td>
+  <td class="num">35.8%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="running_minima the smallest value seen so far at every position list branch fold" data-split="train">
+  <th scope="row"><code>running_minima</code><span class="row-summary">the smallest value seen so far at every position</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">36</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">79.3%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="running_peak_shortfall sum every value&#x27;s shortfall from the highest value seen so far list branch fold" data-split="train">
+  <th scope="row"><code>running_peak_shortfall</code><span class="row-summary">sum every value&#x27;s shortfall from the highest value seen so far</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">55</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">62.5%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="running_positive_streaks the current positive-element streak length at every position list branch fold" data-split="train">
+  <th scope="row"><code>running_positive_streaks</code><span class="row-summary">the current positive-element streak length at every position</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">66</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">54.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="running_ranges the maximum minus the minimum in every prefix list branch fold" data-split="train">
+  <th scope="row"><code>running_ranges</code><span class="row-summary">the maximum minus the minimum in every prefix</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">127</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">30.8%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="scale_by multiply every element by the given number list + scalar closure map" data-split="train">
+  <th scope="row"><code>scale_by</code><span class="row-summary">multiply every element by the given number</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">6</td>
+  <td>list + scalar</td>
+  <td>closure map</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="second_largest the second-largest element, counting duplicate values separately list branch fold" data-split="eval">
+  <th scope="row"><code>second_largest</code><span class="row-summary">the second-largest element, counting duplicate values separately</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">83</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">22.4%</td>
+  <td class="num">22.4%</td>
+</tr>
+<tr data-search="shared_value_occurrences count first-list entries whose value appears in the second list 2 lists branch closure filter fold" data-split="eval">
+  <th scope="row"><code>shared_value_occurrences</code><span class="row-summary">count first-list entries whose value appears in the second list</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">31</td>
+  <td>2 lists</td>
+  <td>branch closure filter fold</td>
+  <td class="num">87.5%</td>
+  <td class="num">87.5%</td>
+</tr>
+<tr data-search="sign encode a number as -1, 0, or 1 according to its sign scalar branch scalar" data-split="train">
+  <th scope="row"><code>sign</code><span class="row-summary">encode a number as -1, 0, or 1 according to its sign</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">28</td>
+  <td>scalar</td>
+  <td>branch scalar</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sign_balance the number of positive elements minus the number of negative ones list branch fold" data-split="train">
+  <th scope="row"><code>sign_balance</code><span class="row-summary">the number of positive elements minus the number of negative ones</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">31</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">54.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sign_histogram counts of negative, zero, and positive values in that order list branch fold" data-split="train">
+  <th scope="row"><code>sign_histogram</code><span class="row-summary">counts of negative, zero, and positive values in that order</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">71</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">50.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="smallest_magnitude the smallest absolute value in the list list branch fold" data-split="train">
+  <th scope="row"><code>smallest_magnitude</code><span class="row-summary">the smallest absolute value in the list</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">42</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">77.1%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="smallest_pair_gap_three smallest absolute gap between any two of three numbers 3 scalars branch scalar" data-split="train">
+  <th scope="row"><code>smallest_pair_gap_three</code><span class="row-summary">smallest absolute gap between any two of three numbers</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">63</td>
+  <td>3 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">78.6%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sort_ascending sort the numbers into ascending order list branch fold" data-split="train">
+  <th scope="row"><code>sort_ascending</code><span class="row-summary">sort the numbers into ascending order</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">118</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sort_three put three numbers in ascending order 3 scalars branch scalar" data-split="train">
+  <th scope="row"><code>sort_three</code><span class="row-summary">put three numbers in ascending order</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">51</td>
+  <td>3 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sorted_within_pairs sort the two values within every flat pair list branch flat-pairs fold" data-split="train">
+  <th scope="row"><code>sorted_within_pairs</code><span class="row-summary">sort the two values within every flat pair</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">84</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">83.1%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="span the gap between the largest and smallest element list branch fold" data-split="train">
+  <th scope="row"><code>span</code><span class="row-summary">the gap between the largest and smallest element</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">35</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="span_inside_interval range from smallest to largest value inside the interval list + 2 scalars branch closure filter fold" data-split="eval">
+  <th scope="row"><code>span_inside_interval</code><span class="row-summary">range from smallest to largest value inside the interval</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">76</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure filter fold</td>
+  <td class="num">89.9%</td>
+  <td class="num">89.9%</td>
+</tr>
+<tr data-search="square_each square every element list map" data-split="train">
+  <th scope="row"><code>square_each</code><span class="row-summary">square every element</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">5</td>
+  <td>list</td>
+  <td>map</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="squared_deviation_total sum squared distances from the rounded-down mean list closure fold map" data-split="train">
+  <th scope="row"><code>squared_deviation_total</code><span class="row-summary">sum squared distances from the rounded-down mean</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">27</td>
+  <td>list</td>
+  <td>closure fold map</td>
+  <td class="num">60.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="squared_point_norms compute squared distance from the origin for every flat point list branch flat-pairs fold" data-split="train">
+  <th scope="row"><code>squared_point_norms</code><span class="row-summary">compute squared distance from the origin for every flat point</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">72</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">90.8%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="stable_distinct_shared_values distinct values shared by both lists, ordered by first appearance 2 lists branch closure filter fold" data-split="eval">
+  <th scope="row"><code>stable_distinct_shared_values</code><span class="row-summary">distinct values shared by both lists, ordered by first appearance</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">49</td>
+  <td>2 lists</td>
+  <td>branch closure filter fold</td>
+  <td class="num">83.3%</td>
+  <td class="num">83.3%</td>
+</tr>
+<tr data-search="stable_sort_flat_pairs stably sort flat key-value pairs by key list branch fold" data-split="train">
+  <th scope="row"><code>stable_sort_flat_pairs</code><span class="row-summary">stably sort flat key-value pairs by key</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">206</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">81.4%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="stable_unique remove repeated values while keeping their first occurrences list branch filter fold" data-split="train">
+  <th scope="row"><code>stable_unique</code><span class="row-summary">remove repeated values while keeping their first occurrences</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">25</td>
+  <td>list</td>
+  <td>branch filter fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="strict_peak_count how many interior elements are larger than both neighbors list branch fold" data-split="train">
+  <th scope="row"><code>strict_peak_count</code><span class="row-summary">how many interior elements are larger than both neighbors</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">116</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">48.6%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="strict_turn_count count strict interior peaks and valleys list branch fold" data-split="train">
+  <th scope="row"><code>strict_turn_count</code><span class="row-summary">count strict interior peaks and valleys</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">141</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">58.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sum add the list up list fold" data-split="train">
+  <th scope="row"><code>sum</code><span class="row-summary">add the list up</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">5</td>
+  <td>list</td>
+  <td>fold</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sum_absolute_values add up the magnitudes of all elements list branch fold" data-split="train">
+  <th scope="row"><code>sum_absolute_values</code><span class="row-summary">add up the magnitudes of all elements</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">18</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">90.9%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sum_after_last_zero sum the suffix strictly after the final zero list branch fold" data-split="train">
+  <th scope="row"><code>sum_after_last_zero</code><span class="row-summary">sum the suffix strictly after the final zero</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">18</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">18.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sum_and_product the sum and product of two numbers 2 scalars scalar" data-split="train">
+  <th scope="row"><code>sum_and_product</code><span class="row-summary">the sum and product of two numbers</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">11</td>
+  <td>2 scalars</td>
+  <td>scalar</td>
+  <td class="num">0.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sum_both add up the numbers in both lists 2 lists fold" data-split="train">
+  <th scope="row"><code>sum_both</code><span class="row-summary">add up the numbers in both lists</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">6</td>
+  <td>2 lists</td>
+  <td>fold</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sum_inside_closed_interval add values that lie inside the inclusive interval list + 2 scalars branch closure fold" data-split="train">
+  <th scope="row"><code>sum_inside_closed_interval</code><span class="row-summary">add values that lie inside the inclusive interval</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">40</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure fold</td>
+  <td class="num">72.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sum_inside_interval sum values strictly between two supplied bounds list + 2 scalars branch closure fold" data-split="train">
+  <th scope="row"><code>sum_inside_interval</code><span class="row-summary">sum values strictly between two supplied bounds</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">38</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure fold</td>
+  <td class="num">77.4%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sum_negative add up only the negative numbers list branch fold" data-split="eval">
+  <th scope="row"><code>sum_negative</code><span class="row-summary">add up only the negative numbers</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">16</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">22.2%</td>
+  <td class="num">22.2%</td>
+</tr>
+<tr data-search="sum_of_squares square every element, then add them up list fold map" data-split="train">
+  <th scope="row"><code>sum_of_squares</code><span class="row-summary">square every element, then add them up</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">7</td>
+  <td>list</td>
+  <td>fold map</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="sum_positive add up only the positive numbers list filter fold" data-split="train">
+  <th scope="row"><code>sum_positive</code><span class="row-summary">add up only the positive numbers</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">11</td>
+  <td>list</td>
+  <td>filter fold</td>
+  <td class="num">0.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="swap_coordinates swap the two coordinates of every point in a flat point list list branch flat-pairs fold" data-split="train">
+  <th scope="row"><code>swap_coordinates</code><span class="row-summary">swap the two coordinates of every point in a flat point list</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">69</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="symmetric_value_difference values appearing only in one list, with first-list values first 2 lists closure filter" data-split="train">
+  <th scope="row"><code>symmetric_value_difference</code><span class="row-summary">values appearing only in one list, with first-list values first</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">34</td>
+  <td>2 lists</td>
+  <td>closure filter</td>
+  <td class="num">44.4%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="tail drop the first element list first-order" data-split="train">
+  <th scope="row"><code>tail</code><span class="row-summary">drop the first element</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">2</td>
+  <td>list</td>
+  <td>first-order</td>
+  <td class="num">—</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="take_prefix_count take the requested number of initial elements list + scalar branch closure fold" data-split="train">
+  <th scope="row"><code>take_prefix_count</code><span class="row-summary">take the requested number of initial elements</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">50</td>
+  <td>list + scalar</td>
+  <td>branch closure fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="three_number_range difference between the largest and smallest of three numbers 3 scalars branch fold scalar" data-split="train">
+  <th scope="row"><code>three_number_range</code><span class="row-summary">difference between the largest and smallest of three numbers</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">64</td>
+  <td>3 scalars</td>
+  <td>branch fold scalar</td>
+  <td class="num">77.2%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="total_distance_outside_interval total distance required to move all values into the interval list + 2 scalars branch closure fold" data-split="train">
+  <th scope="row"><code>total_distance_outside_interval</code><span class="row-summary">total distance required to move all values into the interval</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">44</td>
+  <td>list + 2 scalars</td>
+  <td>branch closure fold</td>
+  <td class="num">56.8%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="total_variation the sum of absolute changes between neighboring elements list branch fold" data-split="train">
+  <th scope="row"><code>total_variation</code><span class="row-summary">the sum of absolute changes between neighboring elements</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">51</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="triangle_feasibility_flag one when three positive lengths can form a nondegenerate triangle 3 scalars branch scalar" data-split="train">
+  <th scope="row"><code>triangle_feasibility_flag</code><span class="row-summary">one when three positive lengths can form a nondegenerate triangle</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">65</td>
+  <td>3 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">87.9%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="triangle_perimeter_or_zero the perimeter of three positive sides if they form a triangle, otherwise zero 3 scalars branch scalar" data-split="train">
+  <th scope="row"><code>triangle_perimeter_or_zero</code><span class="row-summary">the perimeter of three positive sides if they form a triangle, otherwise zero</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">50</td>
+  <td>3 scalars</td>
+  <td>branch scalar</td>
+  <td class="num">32.6%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="truncated_dot_product dot product over the positions present in both lists 2 lists branch fold" data-split="train">
+  <th scope="row"><code>truncated_dot_product</code><span class="row-summary">dot product over the positions present in both lists</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">47</td>
+  <td>2 lists</td>
+  <td>branch fold</td>
+  <td class="num">95.0%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="unimodal_indicator one if the list never rises after it first falls, otherwise zero list branch fold" data-split="train">
+  <th scope="row"><code>unimodal_indicator</code><span class="row-summary">one if the list never rises after it first falls, otherwise zero</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">149</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">43.7%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="widest_pair the largest absolute gap within any pair list branch flat-pairs fold" data-split="eval">
+  <th scope="row"><code>widest_pair</code><span class="row-summary">the largest absolute gap within any pair</span></th>
+  <td><span class="split split-eval">eval</span></td>
+  <td class="num">40</td>
+  <td class="num">84</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">100.0%</td>
+  <td class="num">94.8%</td>
+</tr>
+<tr data-search="zero_balance_prefix_count count prefixes whose running sum returns to zero list branch fold" data-split="train">
+  <th scope="row"><code>zero_balance_prefix_count</code><span class="row-summary">count prefixes whose running sum returns to zero</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">48</td>
+  <td>list</td>
+  <td>branch fold</td>
+  <td class="num">75.6%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="zero_base_by_minimum shift every value so the list minimum becomes zero list branch closure fold map" data-split="train">
+  <th scope="row"><code>zero_base_by_minimum</code><span class="row-summary">shift every value so the list minimum becomes zero</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">23</td>
+  <td>list</td>
+  <td>branch closure fold map</td>
+  <td class="num">62.5%</td>
+  <td class="num">—</td>
+</tr>
+<tr data-search="zero_straddling_pair_count count pairs with one negative and one positive endpoint list branch flat-pairs fold" data-split="train">
+  <th scope="row"><code>zero_straddling_pair_count</code><span class="row-summary">count pairs with one negative and one positive endpoint</span></th>
+  <td><span class="split split-train">train</span></td>
+  <td class="num">40</td>
+  <td class="num">76</td>
+  <td>list</td>
+  <td>branch flat-pairs fold</td>
+  <td class="num">87.0%</td>
+  <td class="num">—</td>
+</tr></tbody>
+  </table></div>
+</section>
+
+<section aria-labelledby="provenance-heading">
+  <div class="section-head"><div><h2 id="provenance-heading">Provenance</h2><p>Both payloads were SHA-256 verified against the tracked manifest before rendering.</p></div></div>
+  <dl class="provenance-list">
+    <dt>Hub snapshot</dt><dd><a href="https://huggingface.co/datasets/abhishekraok/wandering-light-stack-pbe-v4/tree/00c2a9996d32df8d1894b45f4246a66b6df46c25"><code>abhishekraok/wandering-light-stack-pbe-v4@00c2a9996d32df8d1894b45f4246a66b6df46c25</code></a></dd>
+    <dt>Manifest</dt><dd><code>manifest.json</code> · <code class="digest">sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b</code></dd>
+    <dt>Catalogue digest</dt><dd><code class="digest">sha256:5645f2fb513d55550533f3c31f0ef144e9bda23d39b49524ba038317f7dff60e</code></dd>
+    <dt>Basis</dt><dd><code>mark-28</code></dd>
+  </dl>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Split</th><th>Payload</th><th class="num">Records</th><th class="num">Bytes</th><th>SHA-256</th></tr></thead>
+    <tbody><tr>
+  <th scope="row">eval</th>
+  <td><code>stack_pbe_v4_eval.jsonl.gz</code></td>
+  <td class="num">1,800</td>
+  <td class="num">216,659</td>
+  <td><code class="digest">sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786</code></td>
+</tr>
+<tr>
+  <th scope="row">train</th>
+  <td><code>stack_pbe_v4_train.jsonl.gz</code></td>
+  <td class="num">7,000</td>
+  <td class="num">755,377</td>
+  <td><code class="digest">sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b</code></td>
+</tr></tbody>
+  </table></div>
+  <p class="note">All statistics are derived from the pinned corpus rows. No live catalogue state is consulted.</p>
+</section>
+</main>
+<script>
+(() => {
+  const query = document.getElementById("behaviour-filter");
+  const split = document.getElementById("split-filter");
+  const count = document.getElementById("behaviour-count");
+  const rows = Array.from(document.querySelectorAll("#behaviour-rows tr"));
+  const apply = () => {
+    const term = query.value.trim().toLowerCase();
+    const wantedSplit = split.value;
+    let visible = 0;
+    for (const row of rows) {
+      const show = (!term || row.dataset.search.includes(term)) &&
+        (!wantedSplit || row.dataset.split === wantedSplit);
+      row.hidden = !show;
+      if (show) visible += 1;
+    }
+    count.textContent = `${visible} behaviour${visible === 1 ? "" : "s"}`;
+  };
+  query.addEventListener("input", apply);
+  split.addEventListener("change", apply);
+})();
+</script>
+</body>
+</html>

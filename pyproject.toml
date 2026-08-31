@@ -39,6 +39,7 @@ dev = [
     "pytest",
     "pytest-mock>=3.10.0",
     "pytest-asyncio>=1.0.0",
+    "pyyaml>=6.0",
     # Drives the rollout debugger's page in headless Chromium. The browser
     # binary is a separate download (`playwright install chromium`); the tests
     # skip themselves when it is absent, so this package alone is enough to

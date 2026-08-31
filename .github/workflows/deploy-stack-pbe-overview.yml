@@ -1,0 +1,38 @@
+name: Deploy stack PBE overview
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/deploy-stack-pbe-overview.yml'
+      - 'reports/stack-pbe-v4-20260830/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+    - name: Configure Pages
+      uses: actions/configure-pages@v5
+    - name: Upload report
+      uses: actions/upload-pages-artifact@v4
+      with:
+        path: reports/stack-pbe-v4-20260830
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
