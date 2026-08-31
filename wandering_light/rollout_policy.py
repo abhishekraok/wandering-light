@@ -229,7 +229,16 @@ class AlignedPairPolicy(nn.Module):
         convolved = convolved.masked_fill(~real.unsqueeze(1), -1e9)
         return convolved.max(dim=2).values
 
-    def forward(self, sequences: Tensor, counts: Tensor, item_mask: Tensor) -> Tensor:
+    def pooled_features(
+        self, sequences: Tensor, counts: Tensor, item_mask: Tensor
+    ) -> Tensor:
+        """The pooled representation the action head reads.
+
+        This is the policy's own view of a ``(state, target)`` pair, before any
+        action is scored. The rollout debugger projects it to plot search
+        progress in the space the policy actually searches in.
+        """
+
         encoded = self._encode_items(sequences)
         dense = nn.utils.rnn.pad_sequence(
             encoded.split(counts.tolist()), batch_first=True
@@ -237,7 +246,10 @@ class AlignedPairPolicy(nn.Module):
         mask = item_mask.unsqueeze(-1)
         mean = (dense * mask).sum(dim=1) / mask.sum(dim=1).clamp(min=1)
         peak = dense.masked_fill(~mask, -1e9).max(dim=1).values
-        return self.head(torch.cat([mean, peak], dim=1))
+        return torch.cat([mean, peak], dim=1)
+
+    def forward(self, sequences: Tensor, counts: Tensor, item_mask: Tensor) -> Tensor:
+        return self.head(self.pooled_features(sequences, counts, item_mask))
 
 
 def policy_config(

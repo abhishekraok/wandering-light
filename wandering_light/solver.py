@@ -13,7 +13,7 @@ import os
 import random
 import time
 from collections import deque
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from numbers import Real
 from typing import Literal
@@ -645,6 +645,61 @@ class _RolloutNode:
     order: int
 
 
+class RolloutObserver:
+    """Watch one rollout search without being able to steer it.
+
+    Every method is a no-op hook. ``search_with_cost`` reports what it already
+    decided; nothing an observer returns is read, so instrumenting a search
+    cannot change its result. Used by the interactive rollout debugger to
+    record a trace from the production search rather than a reimplementation.
+    """
+
+    def layer_scored(
+        self,
+        depth: int,
+        nodes: Sequence[_RolloutNode],
+        score_rows: Sequence[dict[str, float]],
+    ) -> None:
+        """One scorer call has produced raw logits for the whole beam."""
+
+    def node_masked(
+        self,
+        depth: int,
+        parent_index: int,
+        compatible: Sequence[FunctionDef],
+        log_normalizer: float,
+    ) -> None:
+        """The type mask and per-node normalizer for one beam node."""
+
+    def expansion_attempted(
+        self,
+        depth: int,
+        order: int,
+        parent_index: int,
+        function: FunctionDef,
+        log_probability: float,
+        outcome: str,
+        successor: TypedList | None,
+        error: BaseException | None,
+    ) -> None:
+        """One type-compatible transition was charged one execution.
+
+        ``outcome`` is ``raised``, ``solved``, ``retained``, ``duplicate`` or
+        ``budget``: the fate of this single attempt, before beam truncation.
+        """
+
+    def layer_retained(
+        self,
+        depth: int,
+        beam: Sequence[_RolloutNode],
+        successors: Mapping[tuple, _RolloutNode],
+    ) -> None:
+        """The layer's unique successors, and the prefix of them retained."""
+
+    def search_terminated(self, termination: str, executions: int, depth: int) -> None:
+        """The search stopped, for the reason it reports to its caller."""
+
+
 class RolloutPredictor(FunctionPredictor):
     """Beam search whose policy observes every materialized intermediate state."""
 
@@ -732,6 +787,7 @@ class RolloutPredictor(FunctionPredictor):
         input_list: TypedList,
         output_list: TypedList,
         available_functions: FunctionDefSet,
+        observer: RolloutObserver | None = None,
     ) -> RolloutSearchResult:
         """Search with a per-problem budget measured in basis executions.
 
@@ -740,14 +796,25 @@ class RolloutPredictor(FunctionPredictor):
         all transitions in a layer by cumulative log probability. Every
         type-compatible transition attempted costs one, including functions
         that raise on their input values.
+
+        An optional ``observer`` is told what each step decided. It is reported
+        to, never consulted, so a search runs identically with and without one.
         """
         if input_list == output_list:
+            if observer is not None:
+                observer.search_terminated("solved", 0, 0)
             return RolloutSearchResult(FunctionDefList(), 0, "solved")
         if not available_functions.functions:
+            if observer is not None:
+                observer.search_terminated("frontier_exhausted", 0, 0)
             return RolloutSearchResult(FunctionDefList(), 0, "frontier_exhausted")
         if self.budget == 0:
+            if observer is not None:
+                observer.search_terminated("budget", 0, 0)
             return RolloutSearchResult(FunctionDefList(), 0, "budget")
         if self.max_depth == 0:
+            if observer is not None:
+                observer.search_terminated("max_depth", 0, 0)
             return RolloutSearchResult(FunctionDefList(), 0, "max_depth")
 
         executor = Executor(available_functions)
@@ -761,6 +828,8 @@ class RolloutPredictor(FunctionPredictor):
                 available_functions,
             )
             scores = self._validate_scores(score_rows, len(beam), available_functions)
+            if observer is not None:
+                observer.layer_scored(depth, tuple(beam), tuple(scores))
 
             expansions = []
             for parent_index, (node, row) in enumerate(zip(beam, scores, strict=True)):
@@ -772,6 +841,8 @@ class RolloutPredictor(FunctionPredictor):
                     if node.state.item_type is function.input_type_cls()
                 ]
                 if not compatible:
+                    if observer is not None:
+                        observer.node_masked(depth, parent_index, (), -math.inf)
                     continue
                 top_score = max(row[function.name] for _, function in compatible)
                 log_normalizer = top_score + math.log(
@@ -780,6 +851,13 @@ class RolloutPredictor(FunctionPredictor):
                         for _, function in compatible
                     )
                 )
+                if observer is not None:
+                    observer.node_masked(
+                        depth,
+                        parent_index,
+                        tuple(function for _, function in compatible),
+                        log_normalizer,
+                    )
                 for function_index, function in compatible:
                     log_probability = (
                         node.log_probability + row[function.name] - log_normalizer
@@ -796,6 +874,8 @@ class RolloutPredictor(FunctionPredictor):
 
             if not expansions:
                 trace.append(RolloutDepthTrace(depth, (), 0))
+                if observer is not None:
+                    observer.search_terminated("frontier_exhausted", executions, depth)
                 return RolloutSearchResult(
                     FunctionDefList(),
                     executions,
@@ -808,19 +888,46 @@ class RolloutPredictor(FunctionPredictor):
             # tie-break, after the already deterministic beam order.
             expansions.sort(key=lambda item: (-item[0], item[1], item[2]))
             successors: dict[tuple, _RolloutNode] = {}
-            for order, (log_probability, _, _, node, function) in enumerate(expansions):
+            for order, (log_probability, parent_index, _, node, function) in enumerate(
+                expansions
+            ):
                 executions += 1
                 function_defs = (*node.function_defs, function)
                 try:
                     state = executor.execute(function, node.state)
-                except Exception:
+                except Exception as error:
+                    if observer is not None:
+                        observer.expansion_attempted(
+                            depth,
+                            order,
+                            parent_index,
+                            function,
+                            log_probability,
+                            "raised",
+                            None,
+                            error,
+                        )
                     if executions >= self.budget:
+                        if observer is not None:
+                            observer.search_terminated("budget", executions, depth)
                         return RolloutSearchResult(
                             FunctionDefList(), executions, "budget", tuple(trace)
                         )
                     continue
 
                 if state == output_list:
+                    if observer is not None:
+                        observer.expansion_attempted(
+                            depth,
+                            order,
+                            parent_index,
+                            function,
+                            log_probability,
+                            "solved",
+                            state,
+                            None,
+                        )
+                        observer.search_terminated("solved", executions, depth)
                     return RolloutSearchResult(
                         FunctionDefList(list(function_defs)),
                         executions,
@@ -828,6 +935,18 @@ class RolloutPredictor(FunctionPredictor):
                         tuple(trace),
                     )
                 if executions >= self.budget:
+                    if observer is not None:
+                        observer.expansion_attempted(
+                            depth,
+                            order,
+                            parent_index,
+                            function,
+                            log_probability,
+                            "budget",
+                            state,
+                            None,
+                        )
+                        observer.search_terminated("budget", executions, depth)
                     return RolloutSearchResult(
                         FunctionDefList(), executions, "budget", tuple(trace)
                     )
@@ -837,6 +956,20 @@ class RolloutPredictor(FunctionPredictor):
                 if previous is None or log_probability > previous.log_probability:
                     successors[state_key] = _RolloutNode(
                         state, function_defs, log_probability, order
+                    )
+                    outcome = "retained"
+                else:
+                    outcome = "duplicate"
+                if observer is not None:
+                    observer.expansion_attempted(
+                        depth,
+                        order,
+                        parent_index,
+                        function,
+                        log_probability,
+                        outcome,
+                        state,
+                        None,
                     )
 
             beam = sorted(
@@ -853,7 +986,11 @@ class RolloutPredictor(FunctionPredictor):
                     unique_successors=len(successors),
                 )
             )
+            if observer is not None:
+                observer.layer_retained(depth, tuple(beam), dict(successors))
             if not beam:
+                if observer is not None:
+                    observer.search_terminated("frontier_exhausted", executions, depth)
                 return RolloutSearchResult(
                     FunctionDefList(),
                     executions,
@@ -861,6 +998,8 @@ class RolloutPredictor(FunctionPredictor):
                     tuple(trace),
                 )
 
+        if observer is not None:
+            observer.search_terminated("max_depth", executions, self.max_depth)
         return RolloutSearchResult(
             FunctionDefList(), executions, "max_depth", tuple(trace)
         )
