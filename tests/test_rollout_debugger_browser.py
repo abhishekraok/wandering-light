@@ -74,9 +74,9 @@ def page(served):
         view.on("pageerror", lambda error: errors.append(str(error)))
         view.on(
             "console",
-            lambda message: errors.append(message.text)
-            if message.type == "error"
-            else None,
+            lambda message: (
+                errors.append(message.text) if message.type == "error" else None
+            ),
         )
         view.goto(f"{base}/?task_id={record.task_id}&beam_width=4")
         view.wait_for_selector(".node", timeout=30_000)

@@ -45,9 +45,11 @@ def run(base: str, out_dir: Path) -> int:
         page = browser.new_page(viewport={"width": 1500, "height": 950})
         page.on(
             "console",
-            lambda message: CONSOLE.append(f"{message.type}: {message.text}")
-            if message.type in ("error", "warning")
-            else None,
+            lambda message: (
+                CONSOLE.append(f"{message.type}: {message.text}")
+                if message.type in ("error", "warning")
+                else None
+            ),
         )
         page.on("pageerror", lambda error: CONSOLE.append(f"pageerror: {error}"))
 
