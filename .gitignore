@@ -201,3 +201,10 @@ reports/**/*.csv
 # superseded version in history forever. The manifest beside them is tracked
 # and pins the digests a `fetch_corpus` is checked against.
 wandering_light/evals/data/stack_pbe_v*/*.jsonl.gz
+
+# Node dependency trees for the webapp frontends. These are untracked working
+# trees full of symlinks (node_modules/.bin/*), and the training source-identity
+# recorders in experiments/ walk `git ls-files --others` and reject any
+# non-regular file -- so leaving these unignored fails those runs outright.
+node_modules/
+*.tsbuildinfo
