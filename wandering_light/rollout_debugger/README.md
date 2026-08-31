@@ -49,6 +49,20 @@ the model was actually fed.
 **The witness cannot reach the search.** It is read from the corpus record after
 the search finishes, and the overlay is computed from the finished trace.
 
+## Ground truth
+
+`t` marks the certified witness's next action wherever there is one: in the
+beam (the state on the witness path), in the actions tried, and in the policy's
+ranking, with a line saying where the policy put it -- *witness step 1:
+`tuple_to_index_dict`, ranked 4 of 6 at 0.7%*. That is the per-step version of
+the rank the policy probes report in aggregate.
+
+It is deliberately absent off the witness path. A witness is ground truth only
+along its own trajectory; from a state it never visits, no action is "the
+correct one", and marking one would invent an answer. The page says *off the
+witness path -- it says nothing here* instead. The same rule holds while
+driving: step off the witness and the marker disappears rather than nagging.
+
 **The page itself is tested.** `tests/test_rollout_debugger_browser.py` drives
 it in headless Chromium -- keys, panels, drive steps, painted geometry, console
 errors. `playwright` is a dev extra, so these run under a plain `uv run pytest`;

@@ -175,6 +175,57 @@ def test_the_story_bar_says_what_is_on_screen(page):
     assert view.evaluate("document.getElementById('story').children.length") == 2
 
 
+def test_ground_truth_is_marked_only_where_the_witness_actually_is(page):
+    """The witness is ground truth along its own path and nowhere else.
+
+    Marking an action from a state the witness never visits would invent an
+    answer, so the page must say it has none there instead.
+    """
+
+    view, _ = page
+    view.keyboard.press("r")
+    view.wait_for_timeout(200)
+    witness = view.evaluate("S.session.witness")
+    assert witness, "this fixture task must carry a witness"
+
+    # Depth 1 expands the input, which is on the witness by construction.
+    marked = view.evaluate("layers()[0].nodes.map((n) => onWitness(1, n.path))")
+    assert marked.count(True) == 1
+    assert "witness step 1" in view.inner_text("#insp").lower()
+    assert witness[0] in view.inner_text("#insp")
+
+    # Off the witness there is no ground truth, and the page says so.
+    off = view.evaluate(
+        "() => { const l = layers()[0];"
+        " return l.nodes.findIndex((n) => !onWitness(1, n.path)); }"
+    )
+    if off >= 0:
+        view.evaluate(f"S.node = {off}; render()")
+        view.wait_for_timeout(150)
+        assert "off the witness path" in view.inner_text("#insp").lower()
+
+
+def test_the_witness_marker_can_be_turned_off(page):
+    view, _ = page
+    view.keyboard.press("r")
+    view.wait_for_timeout(200)
+    assert "witness step" in view.inner_text("#insp").lower()
+    view.keyboard.press("t")
+    view.wait_for_timeout(200)
+    assert "witness step" not in view.inner_text("#insp").lower()
+    assert view.locator(".exp.gt").count() == 0
+    view.keyboard.press("t")
+    view.wait_for_timeout(200)
+
+
+def test_the_story_says_whether_the_witness_is_still_in_the_beam(page):
+    view, _ = page
+    view.keyboard.press("r")
+    view.wait_for_timeout(200)
+    story = view.inner_text("#story").lower()
+    assert "witness still in the beam" in story or "witness gone" in story
+
+
 def test_help_opens_and_closes(page):
     view, _ = page
     view.keyboard.press("?")

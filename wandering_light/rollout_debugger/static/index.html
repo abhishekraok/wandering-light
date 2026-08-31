@@ -46,6 +46,8 @@ body {
 .story .line { min-width:0; }
 .story b { color:var(--ink); font-weight:600; }
 .story .hint { flex:none; color:var(--ink-ghost); white-space:nowrap; }
+.story .alive { color:var(--allow); }
+.story .dead { color:var(--refuse); }
 
 /* plate */
 .plate { display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
@@ -118,6 +120,17 @@ body {
 .bar.incompatible .fill { background:color-mix(in srgb,var(--refuse) 22%,transparent); }
 .bar.picked .fill { background:color-mix(in srgb,var(--gold) 50%,transparent); }
 .bar .tried { margin-left:8px; font-size:10px; color:var(--gold); letter-spacing:.04em; }
+.bar .gt { margin-left:8px; font-size:10px; color:var(--allow); letter-spacing:.04em; }
+.bar.witness .track { box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--allow) 60%,transparent); }
+.gtline {
+  font-size:11.5px; color:var(--allow); padding:3px 0 6px;
+  border-bottom:1px solid color-mix(in srgb,var(--allow) 25%,transparent);
+  margin-bottom:6px;
+}
+.gtline b { color:var(--ink); font-weight:600; }
+.label.off { padding:3px 0 6px; text-transform:none; letter-spacing:0; font-size:11.5px; }
+.exp.gt .fn { color:var(--allow); }
+.exp .gt-tag { margin-left:8px; font-size:10px; color:var(--allow); letter-spacing:.04em; }
 .keycap { display:inline-block; min-width:15px; text-align:center; font-size:10px; padding:0 3px;
   border:1px solid var(--rule); border-bottom-width:2px; border-radius:3px; background:var(--raise);
   color:var(--gold); margin-right:5px; }
@@ -408,6 +421,34 @@ function esc(text) {
     ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 }
 
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+// The certified witness is ground truth only along its own path. From a state
+// the witness never visits there is no correct next action -- the witness says
+// nothing about it -- so marking one there would invent an answer. A layer at
+// depth d expands states whose path is d-1 long, so the state on the witness
+// is the one whose path is the witness's first d-1 actions, and the ground
+// truth from it is the witness's d-th.
+function witnessPrefix(depth) {
+  const witness = (S.session && S.session.witness) || [];
+  return witness.length >= depth ? witness.slice(0, depth - 1) : null;
+}
+function witnessNext(depth) {
+  const witness = (S.session && S.session.witness) || [];
+  return witness.length >= depth ? witness[depth - 1] : null;
+}
+function onWitness(depth, path) {
+  const prefix = witnessPrefix(depth);
+  return prefix !== null && same(path, prefix);
+}
+// Same rule while driving: ground truth exists only if the walk has stayed on
+// the witness. Step off it and the marker disappears, which is the honest
+// answer -- not a hint that the walk is wrong.
+function driveGroundTruth() {
+  const depth = S.driveHistory.length + 1;
+  return onWitness(depth, S.driveHistory) ? witnessNext(depth) : null;
+}
+
 function renderHeader() {
   const s = S.session;
   if (!s) { $("taskline").textContent = S.error ? "error" : "loading…"; return; }
@@ -476,7 +517,20 @@ function renderStory() {
         ? ` Beam state <b>#${S.node + 1}</b> is on the right; the layer ended ` +
           `before any action was tried from it.`
         : "") +
+    witnessClause(l) +
     `</span><span class="hint">← → action · ↑ ↓ depth · ? help</span>`;
+}
+
+// Whether the certified path is still among the states being expanded. This is
+// the exposure-bias story per task: the witness is typically in the beam for
+// the first depths and gone before the search reaches its distance.
+function witnessClause(l) {
+  const witness = S.session.witness || [];
+  if (!S.showWitness || !witness.length || witness.length < l.depth) return "";
+  const at = l.nodes.findIndex((node) => onWitness(l.depth, node.path));
+  return at >= 0
+    ? ` <span class="alive">Witness still in the beam, at <b>#${at + 1}</b>.</span>`
+    : ` <span class="dead">Witness gone from the beam.</span>`;
 }
 
 function renderHelp() {
@@ -539,13 +593,11 @@ function renderBeam() {
   }
   const l = layer();
   if (!l) { host.innerHTML = ""; return; }
-  const overlay = (S.session.witness_overlay || [])[S.depth];
   $("beam-sub").textContent =
     `${l.retained.length} of ${l.unique_successors} unique` +
     (l.pruned_by_width.length ? ` · ${l.pruned_by_width.length} pruned by width` : "");
   host.innerHTML = l.nodes.map((node, index) => {
-    const isWitness = S.showWitness && overlay && overlay.survives &&
-      JSON.stringify(node.path) === JSON.stringify(overlay.prefix);
+    const isWitness = S.showWitness && onWitness(l.depth, node.path);
     return `<div class="node ${index === S.node ? "sel" : ""} ${isWitness ? "witness" : ""}"
       data-node="${index}">
       <div class="top"><span class="r">${index + 1}</span>
@@ -572,16 +624,25 @@ function renderTape() {
     ? ` · ${l.expansions_elided.toLocaleString()} not recorded` : "";
   $("exp-sub").textContent =
     `${S.cursor + 1}/${l.expansions.length} of ${l.expansions_attempted.toLocaleString()} attempted${elided}`;
+  const groundTruth = S.showWitness ? witnessNext(l.depth) : null;
   const from = Math.max(0, S.cursor - 40), to = Math.min(l.expansions.length, S.cursor + 60);
   host.innerHTML = l.expansions.slice(from, to).map((entry, offset) => {
     const index = from + offset;
     const current = index === S.cursor;
+    // Only from the state the witness actually reached: the same action from
+    // somewhere else is a different move.
+    const parent = l.nodes[entry.parent_index];
+    const isGroundTruth = groundTruth && entry.function === groundTruth &&
+      parent && onWitness(l.depth, parent.path);
     const successor = entry.successor
       ? `<div class="succ">→ ${esc(entry.successor.value)}</div>`
       : (entry.error ? `<div class="succ">✗ ${esc(entry.error)}</div>` : "");
-    return `<div class="exp ${current ? "cur" : ""}" data-exp="${index}">
+    return `<div class="exp ${current ? "cur" : ""} ${isGroundTruth ? "gt" : ""}"
+      data-exp="${index}">
       <span class="o">${entry.order}</span>
-      <span class="fn">${esc(entry.function)} <span class="o">from #${entry.parent_index + 1}</span></span>
+      <span class="fn">${esc(entry.function)} <span class="o">from #${
+        entry.parent_index + 1}</span>${
+        isGroundTruth ? '<span class="gt-tag">★ witness</span>' : ""}</span>
       <span class="lp">${fmt(entry.log_probability)}</span>
       <span class="oc ${entry.outcome}">${entry.outcome}</span>
       ${current ? successor : ""}
@@ -598,7 +659,7 @@ function renderTape() {
   if (current) current.scrollIntoView({ block: "nearest" });
 }
 
-function actionBars(entries, pickedName) {
+function actionBars(entries, pickedName, witnessName) {
   const top = Math.max(...entries.map((e) => e.probability || Math.exp(e.log_probability)));
   return entries.map((entry, index) => {
     const probability = entry.probability ?? Math.exp(entry.log_probability);
@@ -606,12 +667,33 @@ function actionBars(entries, pickedName) {
     const key = index < DRIVE_KEYS.length && S.mode === "drive"
       ? `<span class="keycap">${DRIVE_KEYS[index]}</span>` : "";
     const isPicked = entry.function === pickedName;
-    return `<div class="bar${isPicked ? " picked" : ""}">
+    const isWitness = witnessName && entry.function === witnessName;
+    return `<div class="bar${isPicked ? " picked" : ""}${
+        isWitness ? " witness" : ""}">
       <div class="track"><div class="fill" style="width:${width}%"></div>
         <span class="nm">${key}${esc(entry.function)}${
+          isWitness ? '<span class="gt">★ witness</span>' : ""}${
           isPicked ? '<span class="tried">◀ this one</span>' : ""}</span></div>
       <span class="pc">${pct(probability)}</span></div>`;
   }).join("");
+}
+
+// The witness's next action from this state, with where the policy ranked it.
+// This is the per-step version of the aggregate rank the policy probes report.
+function witnessLine(entries, witnessName, step) {
+  if (!witnessName) {
+    return `<div class="label off">off the witness path — it says nothing here</div>`;
+  }
+  const at = entries.findIndex((entry) => entry.function === witnessName);
+  if (at < 0) {
+    return `<div class="label off">witness step ${step}: ` +
+      `${esc(witnessName)} — not type-legal from this state</div>`;
+  }
+  const entry = entries[at];
+  const probability = entry.probability ?? Math.exp(entry.log_probability);
+  return `<div class="gtline">★ witness step ${step}: <b>${esc(witnessName)}</b>` +
+    ` — policy ranks it <b>${at + 1}</b> of ${entries.length} at ` +
+    `<b>${pct(probability)}</b></div>`;
 }
 
 function renderInspector() {
@@ -623,15 +705,18 @@ function renderInspector() {
     $("insp-title").textContent = "drive";
     $("insp-sub").textContent = drive ? `${drive.mask_size} of ${drive.basis_size} compatible` : "";
     if (!drive) { host.innerHTML = "<div class='label'>scoring…</div>"; return; }
+    const steps = S.driveHistory.length;
     host.innerHTML =
       `<div class="kv">
         <span class="k">state</span><span class="v">${esc(drive.state.value)}</span>
         <span class="k">type</span><span class="v">TL&lt;${esc(drive.state.item_type)}&gt;</span>
-        <span class="k">steps</span><span class="v">${S.driveHistory.length}</span>
+        <span class="k">steps</span><span class="v">${steps}</span>
         <span class="k">solved</span><span class="v">${drive.solved ? "yes" : "no"}</span>
       </div>
       <h4 class="sec">policy ranking — press the key</h4>
-      ${actionBars(drive.actions.slice(0, 14))}`;
+      ${S.showWitness ? witnessLine(drive.actions, driveGroundTruth(), steps + 1) : ""}
+      ${actionBars(drive.actions.slice(0, 14), null,
+                   S.showWitness ? driveGroundTruth() : null)}`;
     return;
   }
 
@@ -684,7 +769,9 @@ function renderInspector() {
     return;
   }
 
-  const bars = actionBars(node.compatible.slice(0, 14), picked);
+  const groundTruth =
+    S.showWitness && onWitness(l.depth, node.path) ? witnessNext(l.depth) : null;
+  const bars = actionBars(node.compatible.slice(0, 14), picked, groundTruth);
   const unmasked = node.unmasked_top.slice(0, 6).map((entry) => {
     const compatible = node.compatible.some((c) => c.function === entry.function);
     return `<div class="bar ${compatible ? "" : "incompatible"}">
@@ -699,6 +786,7 @@ function renderInspector() {
       <span class="k">normalizer</span><span class="v">${fmt(node.log_normalizer)}</span>
     </div>
     <h4 class="sec">type-normalized probability — over the ${node.mask_size} compatible</h4>
+    ${S.showWitness ? witnessLine(node.compatible, groundTruth, l.depth) : ""}
     ${bars}
     <h4 class="sec">raw policy score — top of the whole basis, before masking</h4>
     ${unmasked}
