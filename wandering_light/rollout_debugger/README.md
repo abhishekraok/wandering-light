@@ -51,11 +51,19 @@ the search finishes, and the overlay is computed from the finished trace.
 
 **The page itself is tested.** `tests/test_rollout_debugger_browser.py` drives
 it in headless Chromium -- keys, panels, drive steps, painted geometry, console
-errors -- and skips when playwright is absent. `tests/ui/browser_check.py` is
-the same checks as a script against a running server, and writes screenshots:
+errors. `playwright` is a dev extra, so these run under a plain `uv run pytest`;
+the browser binary is a separate download and the tests skip themselves without
+it:
 
 ```bash
-uv run --with playwright python tests/ui/browser_check.py http://127.0.0.1:8000 shots
+uv run playwright install chromium
+```
+
+`tests/ui/browser_check.py` runs the same checks as a script against a live
+server and writes screenshots, which is the faster loop while changing the page:
+
+```bash
+uv run python tests/ui/browser_check.py http://127.0.0.1:8000 shots
 ```
 
 ## Why it is arranged this way

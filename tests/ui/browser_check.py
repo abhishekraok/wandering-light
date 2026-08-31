@@ -6,7 +6,7 @@ actually legible -- so this script loads the page in headless Chromium, presses
 the keys, and asserts on the rendered result. It also fails on any console
 error, which is the class of bug a stub silently absorbs.
 
-    uv run --with playwright python tests/ui/browser_check.py http://127.0.0.1:8000 [outdir]
+    uv run python tests/ui/browser_check.py http://127.0.0.1:8000 [outdir]
 """
 
 from __future__ import annotations

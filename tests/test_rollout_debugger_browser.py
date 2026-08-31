@@ -6,9 +6,10 @@ circle stretched into an ellipse, a control clipped off the edge, a column with
 no height, or a heading whose rendered text differs from its source. Those are
 the failures this catches.
 
-Needs playwright and its browsers; skipped when either is missing:
+``playwright`` is a dev extra, so this runs under a plain ``uv run pytest``.
+The browser binary is a separate download and these skip themselves without it:
 
-    uv run --with playwright python -m playwright install chromium
+    uv run playwright install chromium
 """
 
 import importlib.util
