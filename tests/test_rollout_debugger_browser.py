@@ -117,6 +117,75 @@ def test_keys_move_through_the_trace(page):
     assert view.inner_text("#r-depth") != depth
 
 
+def test_stepping_an_action_selects_the_state_it_came_from(page):
+    """The three columns are one story, so they must not drift apart.
+
+    Without this, arrowing through the middle column leaves the inspector on
+    whatever node was last clicked, and the two read as unrelated tables.
+    """
+
+    view, _ = page
+    view.keyboard.press("r")
+    view.wait_for_timeout(150)
+    view.keyboard.press("ArrowDown")  # a depth with more than one parent
+    view.wait_for_timeout(200)
+
+    for _ in range(6):
+        parent = view.evaluate("layers()[S.depth].expansions[S.cursor].parent_index")
+        assert view.evaluate("S.node") == parent
+        # And the beam column highlights exactly that state.
+        assert view.locator(".node.sel").count() == 1
+        assert f"#{parent + 1}" in view.inner_text("#insp-title")
+        view.keyboard.press("ArrowRight")
+        view.wait_for_timeout(90)
+
+
+def test_selecting_a_state_jumps_to_its_first_action(page):
+    view, _ = page
+    view.keyboard.press("r")
+    view.wait_for_timeout(150)
+    view.keyboard.press("ArrowDown")
+    view.wait_for_timeout(200)
+    if view.evaluate("layers()[S.depth].nodes.length") < 2:
+        pytest.skip("this layer has a single beam state")
+
+    view.keyboard.press("2")
+    view.wait_for_timeout(200)
+    assert view.evaluate("S.node") == 1
+
+    # Either the cursor followed to that state's first action, or the layer
+    # ended before any action was tried from it -- in which case the story bar
+    # has to say so rather than leaving the columns quietly disagreeing.
+    tried_here = view.evaluate(
+        "layers()[S.depth].expansions.some((e) => e.parent_index === 1)"
+    )
+    if tried_here:
+        assert view.evaluate("layers()[S.depth].expansions[S.cursor].parent_index") == 1
+    else:
+        assert "before any action was tried" in view.inner_text("#story").lower()
+
+
+def test_the_story_bar_says_what_is_on_screen(page):
+    view, _ = page
+    view.keyboard.press("r")
+    view.wait_for_timeout(200)
+    story = view.inner_text("#story").lower()
+    assert "depth" in story and "beam state" in story
+    # The bold numbers must not be flex items; that spaces them mid-sentence.
+    assert view.evaluate("document.getElementById('story').children.length") == 2
+
+
+def test_help_opens_and_closes(page):
+    view, _ = page
+    view.keyboard.press("?")
+    view.wait_for_timeout(250)
+    assert not view.locator("#help").is_hidden()
+    assert "what you are looking at" in view.inner_text("#help").lower()
+    view.keyboard.press("Escape")
+    view.wait_for_timeout(250)
+    assert view.locator("#help").is_hidden()
+
+
 def test_panels_open_and_close(page):
     view, _ = page
     view.keyboard.press("v")

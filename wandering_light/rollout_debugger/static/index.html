@@ -33,7 +33,19 @@ body {
   font-weight:600; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
   color:var(--ink-dim);
 }
-.machine { height:100dvh; min-height:560px; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; }
+.machine { height:100dvh; min-height:560px; display:grid; grid-template-rows:auto auto auto minmax(0,1fr) auto; }
+
+/* The sentence that says what this screen is showing. Flex applies to the two
+   spans only: making the whole bar a flex container turns every <b> into a
+   flex item, and the gap then lands around each bold number mid-sentence. */
+.story {
+  padding:7px 18px; border-bottom:1px solid var(--rule); background:var(--panel);
+  font-size:12px; color:var(--ink-dim);
+  display:flex; gap:20px; align-items:baseline; justify-content:space-between;
+}
+.story .line { min-width:0; }
+.story b { color:var(--ink); font-weight:600; }
+.story .hint { flex:none; color:var(--ink-ghost); white-space:nowrap; }
 
 /* plate */
 .plate { display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
@@ -105,6 +117,7 @@ body {
 .bar .pc { font-size:11px; color:var(--ink-dim); font-variant-numeric:tabular-nums; min-width:52px; text-align:right; }
 .bar.incompatible .fill { background:color-mix(in srgb,var(--refuse) 22%,transparent); }
 .bar.picked .fill { background:color-mix(in srgb,var(--gold) 50%,transparent); }
+.bar .tried { margin-left:8px; font-size:10px; color:var(--gold); letter-spacing:.04em; }
 .keycap { display:inline-block; min-width:15px; text-align:center; font-size:10px; padding:0 3px;
   border:1px solid var(--rule); border-bottom-width:2px; border-radius:3px; background:var(--raise);
   color:var(--gold); margin-right:5px; }
@@ -123,6 +136,26 @@ h4.sec:first-child { border-top:none; margin-top:0; padding-top:0; }
 .keys kbd { font-family:inherit; font-size:11px; padding:1px 5px; margin-right:4px;
   border:1px solid var(--rule); border-bottom-width:2px; border-radius:3px;
   background:var(--raise); color:var(--ink); }
+/* help */
+.overlay {
+  position:fixed; inset:0; background:color-mix(in srgb,var(--ground) 82%,transparent);
+  display:flex; align-items:center; justify-content:center; padding:28px; z-index:10;
+}
+.overlay .sheet {
+  max-width:900px; max-height:88vh; overflow-y:auto; background:var(--panel);
+  border:1px solid var(--rule); border-radius:3px; padding:22px 26px 24px;
+  box-shadow:0 8px 40px rgba(0,0,0,.18);
+}
+.overlay h3 {
+  margin:16px 0 8px; font-family:"Instrument Serif",Georgia,serif;
+  font-weight:400; font-size:20px;
+}
+.overlay h3:first-child { margin-top:0; }
+.overlay p { margin:5px 0; font-size:12.5px; color:var(--ink-dim); line-height:1.55; }
+.overlay b { color:var(--ink); font-weight:600; }
+.overlay .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; }
+.overlay .cols .label { display:block; margin-bottom:3px; }
+
 .spin { color:var(--gold); }
 .err { color:var(--refuse); }
 mark { background:color-mix(in srgb,var(--gold) 28%,transparent); color:inherit; }
@@ -149,13 +182,15 @@ mark { background:color-mix(in srgb,var(--gold) 28%,transparent); color:inherit;
     <div class="cellrow"><span class="label">witness</span><span class="v" id="witness"></span></div>
   </div>
 
+  <div class="story" id="story"></div>
+
   <div class="bench">
     <div class="col">
-      <div class="head"><span class="label">beam</span><span class="sub" id="beam-sub"></span></div>
+      <div class="head"><span class="label" id="beam-title">beam · 1–9</span><span class="sub" id="beam-sub"></span></div>
       <div class="body" id="beam"></div>
     </div>
     <div class="col">
-      <div class="head"><span class="label">expansions</span><span class="sub" id="exp-sub"></span></div>
+      <div class="head"><span class="label" id="exp-title">actions tried · ← →</span><span class="sub" id="exp-sub"></span></div>
       <div class="body" id="tape"></div>
     </div>
     <div class="col">
@@ -167,6 +202,8 @@ mark { background:color-mix(in srgb,var(--gold) 28%,transparent); color:inherit;
   <div class="keys" id="keys"></div>
 </div>
 
+<div class="overlay" id="help" hidden></div>
+
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
@@ -176,7 +213,7 @@ const S = {
   session: null, map: null, basis: new Map(),
   depth: 0, cursor: 0, node: 0,
   playing: false, timer: null,
-  mode: "replay", showIncompatible: false, showWitness: true,
+  mode: "replay", showIncompatible: false, showWitness: true, help: false,
   logits: null, encoding: null, panel: "actions",
   drive: null, driveHistory: [], busy: false, error: null,
 };
@@ -240,11 +277,35 @@ async function loadSession(query) {
 
 /* ---------------- replay navigation: pure index moves, no network -------- */
 
+// The three columns are one story: the highlighted action in the middle was
+// tried from a node in the beam, and the right column is that node's policy
+// view. So moving the cursor selects the parent, and selecting a node moves
+// the cursor to its first action. Either direction keeps all three agreeing.
+function followCursor() {
+  const current = layer();
+  const expansion = current && current.expansions[S.cursor];
+  if (expansion) S.node = expansion.parent_index;
+  S.logits = null; S.encoding = null;
+}
+function focusNode(index) {
+  const current = layer();
+  if (!current || !current.nodes[index]) return;
+  S.node = index;
+  // A state can be scored and still have none of its actions tried: the layer
+  // stops the moment the search solves or runs out of budget. Leaving the
+  // cursor on some other state's action would silently re-break the link
+  // between the columns, so the story says so instead.
+  const at = current.expansions.findIndex((e) => e.parent_index === index);
+  if (at >= 0) S.cursor = at;
+  S.logits = null; S.encoding = null;
+  render();
+}
 function setDepth(next) {
   const total = layers().length;
   if (!total) return;
   S.depth = Math.max(0, Math.min(total - 1, next));
-  S.cursor = 0; S.node = 0; S.logits = null; S.encoding = null;
+  S.cursor = 0;
+  followCursor();
   render();
 }
 function step(delta) {
@@ -252,15 +313,22 @@ function step(delta) {
   if (!current) return;
   const next = S.cursor + delta;
   if (next < 0) {
-    if (S.depth > 0) { setDepth(S.depth - 1); const l = layer();
-      S.cursor = Math.max(0, l.expansions.length - 1); render(); }
+    if (S.depth > 0) {
+      setDepth(S.depth - 1);
+      const l = layer();
+      S.cursor = Math.max(0, l.expansions.length - 1);
+      followCursor();
+      render();
+    }
     return;
   }
   if (next >= current.expansions.length) {
     if (S.depth < layers().length - 1) setDepth(S.depth + 1);
     return;
   }
-  S.cursor = next; render();
+  S.cursor = next;
+  followCursor();
+  render();
 }
 function play() {
   S.playing = !S.playing;
@@ -374,6 +442,91 @@ function renderHeader() {
   $("r-mode").className = "badge" + (S.mode === "drive" ? " ok" : "");
 }
 
+// What this screen is showing, in a sentence, because three tables of numbers
+// do not say on their own that they are three views of one step.
+function renderStory() {
+  const host = $("story");
+  if (!S.session) { host.innerHTML = ""; return; }
+  if (S.mode === "drive") {
+    const steps = S.driveHistory.length;
+    host.innerHTML =
+      `<span class="line">You are choosing the actions. The policy ranks what ` +
+      `is type-legal from here; <b>a s d f g h j k l</b> apply ranks 1–9, ` +
+      `<b>w</b> undoes. <b>${steps}</b> step${steps === 1 ? "" : "s"} taken.` +
+      `</span><span class="hint">? help · m back to replay</span>`;
+    return;
+  }
+  const l = layer();
+  if (!l) { host.innerHTML = ""; return; }
+  const node = l.nodes[S.node];
+  const expansion = l.expansions[S.cursor];
+  host.innerHTML =
+    `<span class="line">` +
+    `At <b>depth ${l.depth}</b> the search scored <b>${l.nodes.length}</b> ` +
+    `beam state${l.nodes.length === 1 ? "" : "s"}, tried ` +
+    `<b>${l.expansions_attempted.toLocaleString()}</b> type-legal action` +
+    `${l.expansions_attempted === 1 ? "" : "s"} best-first, reached ` +
+    `<b>${l.unique_successors}</b> distinct state` +
+    `${l.unique_successors === 1 ? "" : "s"}, and kept ` +
+    `<b>${l.retained.length}</b>.` +
+    (expansion && node && expansion.parent_index === S.node
+      ? ` Showing <b>${esc(expansion.function)}</b> tried from beam state ` +
+        `<b>#${expansion.parent_index + 1}</b>, whose policy view is on the right.`
+      : node
+        ? ` Beam state <b>#${S.node + 1}</b> is on the right; the layer ended ` +
+          `before any action was tried from it.`
+        : "") +
+    `</span><span class="hint">← → action · ↑ ↓ depth · ? help</span>`;
+}
+
+function renderHelp() {
+  const host = $("help");
+  host.hidden = !S.help;
+  if (!S.help) return;
+  host.innerHTML = `<div class="sheet">
+    <h3>What you are looking at</h3>
+    <p>One rollout search, one layer at a time. At each depth the policy scores
+    every state in the beam, the search tries every type-legal action from all
+    of them in order of probability, then keeps the best few distinct results
+    as the next beam.</p>
+    <div class="cols">
+      <div><span class="label">left — beam</span>
+        <p>The states the search is expanding from at this depth, best first.
+        The one highlighted is the parent of the action you are looking at.</p></div>
+      <div><span class="label">middle — actions tried</span>
+        <p>Every charged execution at this depth, in the order the search tried
+        them. <b>←</b> and <b>→</b> step through them; the outcome on the right
+        of each row says whether it was kept, was a duplicate state, raised, or
+        solved.</p></div>
+      <div><span class="label">right — why</span>
+        <p>The policy's view of the parent state: its type-legal actions with
+        normalized probabilities, the raw scores before masking, and where the
+        state sits in the policy's own space.</p></div>
+    </div>
+    <h3>Keys</h3>
+    <div class="cols">
+      <div>
+        <p><b>← →</b> previous / next action tried<br>
+        <b>↑ ↓</b> previous / next depth<br>
+        <b>1–9</b> jump to a beam state<br>
+        <b>space</b> run / pause · <b>r</b> reset</p>
+      </div>
+      <div>
+        <p><b>v</b> raw logits over the whole basis<br>
+        <b>e</b> the exact model input<br>
+        <b>x</b> show type-incompatible actions<br>
+        <b>t</b> witness overlay (diagnosis only)</p>
+      </div>
+      <div>
+        <p><b>m</b> drive it yourself<br>
+        <b>n</b> a new task<br>
+        <b>?</b> this help · <b>esc</b> close</p>
+      </div>
+    </div>
+    <p class="label">the witness is never shown to the search</p>
+  </div>`;
+}
+
 function renderBeam() {
   const host = $("beam");
   if (S.mode === "drive") {
@@ -402,10 +555,7 @@ function renderBeam() {
     </div>`;
   }).join("");
   host.querySelectorAll("[data-node]").forEach((element) => {
-    element.onclick = () => {
-      S.node = Number(element.dataset.node);
-      S.logits = null; S.encoding = null; render();
-    };
+    element.onclick = () => focusNode(Number(element.dataset.node));
   });
 }
 
@@ -438,7 +588,11 @@ function renderTape() {
     </div>`;
   }).join("");
   host.querySelectorAll("[data-exp]").forEach((element) => {
-    element.onclick = () => { S.cursor = Number(element.dataset.exp); render(); };
+    element.onclick = () => {
+      S.cursor = Number(element.dataset.exp);
+      followCursor();
+      render();
+    };
   });
   const current = host.querySelector(".exp.cur");
   if (current) current.scrollIntoView({ block: "nearest" });
@@ -451,10 +605,11 @@ function actionBars(entries, pickedName) {
     const width = top > 0 ? (100 * probability / top) : 0;
     const key = index < DRIVE_KEYS.length && S.mode === "drive"
       ? `<span class="keycap">${DRIVE_KEYS[index]}</span>` : "";
-    const picked = entry.function === pickedName ? " picked" : "";
-    return `<div class="bar${picked}">
+    const isPicked = entry.function === pickedName;
+    return `<div class="bar${isPicked ? " picked" : ""}">
       <div class="track"><div class="fill" style="width:${width}%"></div>
-        <span class="nm">${key}${esc(entry.function)}</span></div>
+        <span class="nm">${key}${esc(entry.function)}${
+          isPicked ? '<span class="tried">◀ this one</span>' : ""}</span></div>
       <span class="pc">${pct(probability)}</span></div>`;
   }).join("");
 }
@@ -484,9 +639,12 @@ function renderInspector() {
   const node = l ? l.nodes[S.node] : null;
   if (!node) { host.innerHTML = ""; return; }
   const expansion = l.expansions[S.cursor];
-  const picked = expansion && expansion.parent_index === S.node ? expansion.function : null;
-  $("insp-title").textContent = "node #" + (S.node + 1);
-  $("insp-sub").textContent = `${node.mask_size} of ${S.basis.size} compatible`;
+  const picked =
+    expansion && expansion.parent_index === S.node ? expansion.function : null;
+  $("insp-title").textContent = "why — beam state #" + (S.node + 1);
+  $("insp-sub").textContent = picked
+    ? `parent of ${picked} · ${node.mask_size} of ${S.basis.size} legal`
+    : `${node.mask_size} of ${S.basis.size} legal`;
 
   if (S.panel === "logits") {
     const rows = S.logits ? S.logits.logits : [];
@@ -632,13 +790,14 @@ function renderMap() {
 
 function renderKeys() {
   const replay = [
-    ["← →", "expansion"], ["↑ ↓", "layer"], ["1–9", "beam node"],
+    ["← →", "action tried"], ["↑ ↓", "depth"], ["1–9", "beam state"],
     ["space", "run/pause"], ["r", "reset"], ["v", "logits"], ["e", "encoding"],
     ["x", "incompatible"], ["t", "witness"], ["m", "drive"], ["n", "new task"],
+    ["?", "help"],
   ];
   const drive = [
     ["asdfghjkl", "apply rank 1–9"], ["w", "undo"], ["m", "back to replay"],
-    ["e", "encoding"], ["v", "logits"], ["n", "new task"],
+    ["e", "encoding"], ["v", "logits"], ["n", "new task"], ["?", "help"],
   ];
   const set = S.mode === "drive" ? drive : replay;
   $("keys").innerHTML =
@@ -648,7 +807,8 @@ function renderKeys() {
 }
 
 function render() {
-  renderHeader(); renderBeam(); renderTape(); renderInspector(); renderKeys();
+  renderHeader(); renderStory(); renderBeam(); renderTape();
+  renderInspector(); renderKeys(); renderHelp();
 }
 
 /* ---------------- keyboard ------------------------------------------------ */
@@ -656,6 +816,14 @@ function render() {
 document.addEventListener("keydown", async (event) => {
   if (event.metaKey || event.ctrlKey || event.altKey) return;
   const key = event.key;
+
+  if (key === "?" || (S.help && (key === "Escape" || key === "q"))) {
+    event.preventDefault();
+    S.help = !S.help;
+    render();
+    return;
+  }
+  if (S.help) { S.help = false; render(); }
 
   if (S.mode === "drive") {
     const rank = DRIVE_KEYS.indexOf(key.toLowerCase());
@@ -685,13 +853,7 @@ document.addEventListener("keydown", async (event) => {
       break;
     }
     default:
-      if (/^[1-9]$/.test(key) && S.mode === "replay") {
-        const index = Number(key) - 1;
-        const l = layer();
-        if (l && l.nodes[index]) {
-          S.node = index; S.logits = null; S.encoding = null; render();
-        }
-      }
+      if (/^[1-9]$/.test(key) && S.mode === "replay") focusNode(Number(key) - 1);
   }
 });
 
