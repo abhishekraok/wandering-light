@@ -15,6 +15,7 @@ import {
 } from "./dom";
 import { TrajectoryGraphCanvas, type GraphSelection } from "./graph";
 import { serializedTypedListType } from "./graph-model";
+import { chooseInitialSource } from "./startup";
 import type {
   BasisFunction,
   CandidateTask,
@@ -162,7 +163,8 @@ class TrajectoryGraphApp {
         return;
       }
       const remembered = this.readLastSource();
-      const initial = this.sources.find((source) => source.id === remembered) ?? this.sources[0];
+      const initial = chooseInitialSource(this.sources, remembered);
+      if (!initial) return;
       this.sourceSelect.value = initial.id;
       await this.activateSource(initial.id);
     } catch (error) {
@@ -344,7 +346,7 @@ class TrajectoryGraphApp {
       this.facets = facets;
       this.renderFacets();
       this.renderSourceCard();
-      await this.loadTasks(true);
+      await this.loadTasks(true, true);
     } catch (error) {
       if (generation !== this.sourceGeneration || isAbort(error)) return;
       this.showNotice(`Could not load corpus facets: ${errorMessage(error)}`, "error");
@@ -478,7 +480,7 @@ class TrajectoryGraphApp {
     };
   }
 
-  private async loadTasks(reset: boolean): Promise<void> {
+  private async loadTasks(reset: boolean, sampleOnEmpty = false): Promise<void> {
     if (!this.selectedSource || this.selectedSource.index.status !== "ready") return;
     if (!reset && !this.taskCursor) return;
     this.taskController?.abort();
@@ -498,14 +500,37 @@ class TrajectoryGraphApp {
     try {
       const response = await api.tasks(sourceId, this.currentTaskQuery(cursor), controller.signal);
       if (controller.signal.aborted || this.selectedSource?.id !== sourceId) return;
-      const accumulated = reset ? response.items : [...this.tasks, ...response.items];
-      this.taskCapReached = accumulated.length >= TASK_ACCUMULATION_CAP && response.next_cursor !== null;
-      this.tasks = accumulated.slice(0, TASK_ACCUMULATION_CAP);
+      let startupSample: TaskSummary | undefined;
+      if (reset && sampleOnEmpty && !this.selectedTask && response.total > 0) {
+        const sampled = await api.tasks(
+          sourceId,
+          { ...this.currentTaskQuery(), sample: true, limit: 1 },
+          controller.signal,
+        );
+        if (controller.signal.aborted || this.selectedSource?.id !== sourceId) return;
+        startupSample = sampled.items[0];
+      }
+      const accumulated = reset ? [...response.items] : [...this.tasks, ...response.items];
+      if (
+        startupSample &&
+        !accumulated.some((task) => task.row_id === startupSample.row_id)
+      ) {
+        accumulated.unshift(startupSample);
+      }
+      const seen = new Set<number>();
+      const unique = accumulated.filter((task) => {
+        if (seen.has(task.row_id)) return false;
+        seen.add(task.row_id);
+        return true;
+      });
+      this.taskCapReached = unique.length >= TASK_ACCUMULATION_CAP && response.next_cursor !== null;
+      this.tasks = unique.slice(0, TASK_ACCUMULATION_CAP);
       this.taskCursor = this.taskCapReached ? null : response.next_cursor;
       this.taskTotal = response.total;
       this.renderTaskList();
-      if (reset && !this.selectedTask && response.items[0]) {
-        await this.selectTask(response.items[0].row_id);
+      const initialTask = startupSample ?? response.items[0];
+      if (reset && !this.selectedTask && initialTask) {
+        await this.selectTask(initialTask.row_id);
       }
     } catch (error) {
       if (isAbort(error)) return;

@@ -551,6 +551,9 @@ def _source_payload(
         "ready": source.ready,
         "missing_files": [path.name for path in source.missing_files],
         "expected_records": source.expected_records,
+        "payload_bytes": sum(
+            item.path.stat().st_size for item in source.files if item.path.is_file()
+        ),
         "basis_set_id": source.basis_set_id,
         "basis_set_digest": source.basis_set_digest,
         "fetchable": bool(source.hub_repo_id and source.manifest_path),
@@ -1040,6 +1043,7 @@ def create_app(
         function_role: Annotated[list[str] | None, Query()] = None,
         task_prefix: Annotated[str | None, Query(max_length=128)] = None,
         cursor: Annotated[str | None, Query(max_length=512)] = None,
+        sample: bool = False,
         limit: Annotated[int, Query(ge=1, le=200)] = 50,
     ) -> dict[str, Any]:
         index = require_index(source_id)
@@ -1055,8 +1059,29 @@ def create_app(
             function_roles=function_role or ("witness",),
         )
         after = _cursor_decode(cursor)
+        if sample and (cursor or task_prefix):
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_CONTENT,
+                "random sampling cannot be combined with a cursor or task prefix",
+            )
 
         def collect() -> dict[str, Any]:
+            if sample:
+                total = index.count_records(filters)
+                rows = (
+                    index.records(
+                        filters,
+                        limit=1,
+                        offset=secrets.randbelow(total),
+                    )
+                    if total
+                    else ()
+                )
+                return {
+                    "items": [_summary_payload(row) for row in rows],
+                    "next_cursor": None,
+                    "total": total,
+                }
             if task_prefix:
                 rows = index.find_task(task_prefix, filters=filters)
                 return {

@@ -6,6 +6,7 @@ import threading
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from unittest.mock import patch
 
 import httpx
 import pytest
@@ -236,6 +237,20 @@ async def test_cursor_tasks_facets_and_detail(tmp_path):
         ).json()
         assert second["items"][0]["distance"] == 1
         assert second["next_cursor"] is None
+
+        with patch(
+            "wandering_light.evals.trajectory_graph_app.secrets.randbelow",
+            return_value=1,
+        ):
+            sample = (
+                await client.get(
+                    f"/api/v1/sources/{source_id}/tasks",
+                    params={"sample": "true", "limit": 1},
+                )
+            ).json()
+        assert sample["total"] == 2
+        assert sample["items"][0]["distance"] == 1
+        assert sample["next_cursor"] is None
 
         filtered = (
             await client.get(

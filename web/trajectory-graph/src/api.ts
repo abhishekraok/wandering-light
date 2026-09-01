@@ -87,6 +87,7 @@ export const api = {
     if (query.functionRole) params.append("function_role", query.functionRole);
     if (query.taskPrefix) params.set("task_prefix", query.taskPrefix);
     if (query.cursor) params.set("cursor", query.cursor);
+    if (query.sample) params.set("sample", "true");
     params.set("limit", String(query.limit ?? 50));
     return request(`${sourcePath(sourceId)}/tasks?${params}`, { signal });
   },

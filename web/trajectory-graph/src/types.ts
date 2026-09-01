@@ -15,6 +15,7 @@ export interface CorpusSource {
   ready: boolean;
   missing_files: string[];
   expected_records: number | null;
+  payload_bytes: number;
   basis_set_id: string | null;
   basis_set_digest: string | null;
   fetchable: boolean;
@@ -180,6 +181,7 @@ export interface TaskQuery {
   functionRole?: string;
   taskPrefix?: string;
   cursor?: string;
+  sample?: boolean;
   limit?: number;
 }
 
