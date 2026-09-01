@@ -1303,9 +1303,7 @@ def _render_local_expansion(
     summary_a, summary_b, summary_c, summary_d = st.columns(4)
     summary_a.metric("Reached states", f"{view.total_nodes:,}")
     summary_b.metric("Transitions tried", f"{projection.attempted_transitions:,}")
-    summary_c.metric(
-        "Palette-certified depth", f"{projection.certified_depth:,}"
-    )
+    summary_c.metric("Palette-certified depth", f"{projection.certified_depth:,}")
     summary_d.metric("Candidate tasks", f"{len(projection.tasks):,}")
     stop = projection.stop_reason or "complete through requested depth"
     st.caption(
@@ -1341,9 +1339,7 @@ def _render_graph_diagnostics(view) -> None:
     diagnostics = view.diagnostics
     cols = st.columns(4)
     cols[0].metric("Self-loop groups", f"{diagnostics.self_loop_groups:,}")
-    cols[1].metric(
-        "Parallel alternatives", f"{diagnostics.parallel_function_groups:,}"
-    )
+    cols[1].metric("Parallel alternatives", f"{diagnostics.parallel_function_groups:,}")
     cols[2].metric("Convergent states", f"{diagnostics.convergent_nodes:,}")
     cols[3].metric("Directed cycle groups", f"{diagnostics.directed_cycle_groups:,}")
     if view.truncated:

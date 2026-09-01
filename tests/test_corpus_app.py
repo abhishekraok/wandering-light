@@ -136,17 +136,13 @@ def test_corpus_page_loads_edits_solves_and_graphs(tmp_path, monkeypatch):
                 )
 
     next(
-        button
-        for button in at.button
-        if button.key == "corpus_build_workspace_graph"
+        button for button in at.button if button.key == "corpus_build_workspace_graph"
     ).click().run()
     assert any(
         "Merged edited tree + latest solver path" in item.value for item in at.caption
     )
 
-    graph_source = next(
-        radio for radio in at.radio if radio.label == "Graph source"
-    )
+    graph_source = next(radio for radio in at.radio if radio.label == "Graph source")
     graph_source.set_value("Stored corpus witnesses").run()
     next(
         button for button in at.button if button.key == "corpus_build_graph"
@@ -155,9 +151,7 @@ def test_corpus_page_loads_edits_solves_and_graphs(tmp_path, monkeypatch):
     assert not at.exception
     assert any("Replayed 1 witnesses" in item.value for item in at.caption)
 
-    graph_source = next(
-        radio for radio in at.radio if radio.label == "Graph source"
-    )
+    graph_source = next(radio for radio in at.radio if radio.label == "Graph source")
     graph_source.set_value("Bounded local expansion").run()
     next(
         widget for widget in at.multiselect if widget.label == "Expansion palette"
@@ -171,9 +165,7 @@ def test_corpus_page_loads_edits_solves_and_graphs(tmp_path, monkeypatch):
     assert any("complete through requested depth" in item.value for item in at.caption)
 
     next(
-        widget
-        for widget in at.number_input
-        if widget.label == "Max rendered nodes"
+        widget for widget in at.number_input if widget.label == "Max rendered nodes"
     ).set_value(10).run()
     assert not any(metric.label == "Candidate tasks" for metric in at.metric)
 
@@ -210,9 +202,7 @@ def test_corpus_page_loads_edits_solves_and_graphs(tmp_path, monkeypatch):
 
     assert not at.exception
     assert (
-        next(
-            area for area in at.text_area if area.key == "corpus_custom_input"
-        ).value
+        next(area for area in at.text_area if area.key == "corpus_custom_input").value
         != oversized_range
     )
     assert "corpus_solver_result" not in at.session_state
