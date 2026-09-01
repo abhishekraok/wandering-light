@@ -40,6 +40,11 @@ interface ViewSnapshot {
   selectedNodeId: number | null;
 }
 
+interface CanvasSize {
+  width: number;
+  height: number;
+}
+
 type SelectionListener = (selection: GraphSelection) => void;
 const MAX_VIEW_SNAPSHOTS = 16;
 
@@ -48,12 +53,17 @@ export class TrajectoryGraphCanvas {
   private readonly snapshots = new Map<string, ViewSnapshot>();
   private readonly onSelection: SelectionListener;
   private readonly resizeObserver: ResizeObserver;
+  private canvasSize: CanvasSize;
   private payload: GraphPayload | null = null;
   private graphKey: string | null = null;
   private selectedNodeId: number | null = null;
 
   constructor(container: HTMLElement, onSelection: SelectionListener) {
     this.onSelection = onSelection;
+    this.canvasSize = {
+      width: container.clientWidth,
+      height: container.clientHeight,
+    };
     this.cy = cytoscape({
       container,
       elements: [],
@@ -264,7 +274,26 @@ export class TrajectoryGraphCanvas {
     this.cy.on("dragfree", "node", () => this.captureSnapshot());
     this.cy.on("pan zoom", () => this.captureViewport());
 
-    this.resizeObserver = new ResizeObserver(() => this.cy.resize());
+    this.resizeObserver = new ResizeObserver(([entry]) => {
+      const previous = this.canvasSize;
+      const next = {
+        width: entry?.contentRect.width ?? container.clientWidth,
+        height: entry?.contentRect.height ?? container.clientHeight,
+      };
+      this.canvasSize = next;
+      this.cy.resize();
+      if (!this.hasGraph || previous.width <= 0 || previous.height <= 0) return;
+
+      // Cytoscape keeps pan in viewport pixels. Recenter by half the canvas
+      // delta so opening a rail or resizing the desktop window preserves the
+      // user's zoom and node layout without leaving the graph stranded on one
+      // side of the newly sized canvas.
+      const pan = this.cy.pan();
+      this.cy.pan({
+        x: pan.x + (next.width - previous.width) / 2,
+        y: pan.y + (next.height - previous.height) / 2,
+      });
+    });
     this.resizeObserver.observe(container);
   }
 
