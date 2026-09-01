@@ -230,6 +230,47 @@ To see the results of all the past evaluations run
 streamlit run wandering_light/evals/dashboard.py
 ```
 
+### Trajectory Graph app
+
+The primary corpus explorer is a graph-first local web app:
+
+```bash
+python -m wandering_light.evals.trajectory_graph_app
+```
+
+Open <http://127.0.0.1:8765>. The browser keeps the graph and viewport alive,
+so panning, zooming, selecting, dragging, and path highlighting do not rerun
+Python. Python is called only to index/query a corpus or perform an explicitly
+bounded graph expansion.
+
+Choose a corpus and let its one-time background SQLite index finish, then click
+a task to draw its stored witness. On the canvas:
+
+- drag the background to pan, use the wheel or trackpad to zoom, and drag nodes
+  to untangle a local region;
+- click a node to inspect its value and highlight a known path from a root;
+- click an edge to inspect all basis functions that produce that transition;
+- switch from the selected witness to the bounded same-root witness overlay;
+- choose a registered function palette and run a capped local expansion to
+  inspect candidate tasks, convergence, cycles, parallel functions, and
+  self-loops.
+
+Corpus rows are streamed into a disk-backed SQLite index and fetched in cursor
+pages; the full corpus is never retained in Python or sent to the browser. A
+missing manifest-backed payload can be fetched explicitly from its pinned Hub
+revision and is verified against the manifest digests before indexing.
+
+For frontend development, run `npm ci` once in `web/trajectory-graph`,
+then `npm run dev`; Vite proxies `/api` to the Python server. `npm run build`
+writes the bundled, offline-capable client served by the command above.
+
+The older Streamlit evaluator remains available for its trajectory editor and
+solver-run tools:
+
+```bash
+PYTHONHASHSEED=0 streamlit run wandering_light/evals/explorer.py
+```
+
 ## Proposer
 The data generator.
 First finetune it using SFT, using the `--task proposer` flag. Then evaluate it.
