@@ -22,10 +22,14 @@ import contextlib
 import json
 import random
 import statistics
+import sys
 import time
+from pathlib import Path
 from typing import Any
 
 import torch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import wandering_light.rollout_policy as rp
 from wandering_light.common_functions import basic_fns
@@ -36,11 +40,11 @@ from wandering_light.typed_list import TypedList
 
 # (name, byte embedding, conv channels, hidden) -- the published policy first.
 SIZES = (
-    ("published", 48, 96, 176),
-    ("1M", 128, 320, 640),
-    ("10M", 384, 1024, 2048),
-    ("40M", 768, 2048, 4096),
-    ("125M", 1280, 3584, 7168),
+    ("published", rp.PolicyArchitecture(48, 96, 176)),
+    ("1M", rp.PolicyArchitecture(128, 320, 640)),
+    ("10M", rp.PolicyArchitecture(384, 1024, 2048)),
+    ("40M", rp.PolicyArchitecture(768, 2048, 4096)),
+    ("125M", rp.PolicyArchitecture(1280, 3584, 7168)),
 )
 BEAM = 64
 REPEATS = 15
@@ -115,28 +119,27 @@ def inference_latency() -> list[dict[str, Any]]:
     states = [TypedList([i, i + 1, i + 2, i + 3]) for i in range(1, 9)]
     target = TypedList([3, 6, 9, 12])
     problems = [(states[i % len(states)], target) for i in range(BEAM)]
-    base = (rp.BYTE_EMBEDDING, rp.CONV_CHANNELS, rp.HIDDEN)
-
     devices = ["cpu"] + (["cuda"] if torch.cuda.is_available() else [])
     rows = []
-    try:
-        for name, embedding, channels, hidden in SIZES:
-            rp.BYTE_EMBEDDING, rp.CONV_CHANNELS, rp.HIDDEN = embedding, channels, hidden
-            row: dict[str, Any] = {"size": name}
-            for device in devices:
-                model = rp.AlignedPairPolicy(action_count=actions).eval()
-                row["parameters"] = sum(p.numel() for p in model.parameters())
-                policy = rp.RolloutPolicy.from_basis(model, functions, device=device)
+    for name, architecture in SIZES:
+        row: dict[str, Any] = {
+            "size": name,
+            "architecture": architecture.to_config(),
+        }
+        for device in devices:
+            model = rp.AlignedPairPolicy(
+                action_count=actions, architecture=architecture
+            ).eval()
+            row["parameters"] = sum(p.numel() for p in model.parameters())
+            policy = rp.RolloutPolicy.from_basis(model, functions, device=device)
 
-                def call(policy=policy, device=device) -> None:
-                    policy.score_actions_batch(problems, functions)
-                    if device == "cuda":
-                        torch.cuda.synchronize()
+            def call(policy=policy, device=device) -> None:
+                policy.score_actions_batch(problems, functions)
+                if device == "cuda":
+                    torch.cuda.synchronize()
 
-                row[f"{device}_ms"] = _median(call) * 1000
-            rows.append(row)
-    finally:
-        rp.BYTE_EMBEDDING, rp.CONV_CHANNELS, rp.HIDDEN = base
+            row[f"{device}_ms"] = _median(call) * 1000
+        rows.append(row)
     return rows
 
 

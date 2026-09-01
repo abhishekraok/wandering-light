@@ -404,6 +404,8 @@ def test_generate_and_verify_roundtrip(tmp_path):
 
     result = deep.verify_corpus(corpus_dir, recertify=3, seed=5)
     assert result["ok"], result
+    assert result["verified_splits"] == list(deep.SPLIT_ORDER)
+    assert result["full_corpus_verified"] is True
     assert result["records"] > 0
     assert result["witness_failures"] == []
     assert result["roots_leaking_across_splits"] == []
@@ -426,6 +428,35 @@ def test_generate_and_verify_roundtrip(tmp_path):
             deep.CERTIFICATION_FRONTIER,
         }
         assert record.basis_set_id == BASIS.basis_set_id
+
+
+def test_subset_verify_ignores_poisoned_test_and_reexecutes_requested_witnesses(
+    tmp_path,
+):
+    manifest, corpus_dir = _tiny_corpus(tmp_path, roots=18)
+    (corpus_dir / "test.jsonl.gz").write_bytes(b"poisoned held-out payload")
+
+    result = deep.verify_corpus(
+        corpus_dir,
+        splits=("discovery", "validation"),
+    )
+
+    assert result["ok"], result
+    assert result["verified_splits"] == ["discovery", "validation"]
+    assert result["full_corpus_verified"] is False
+    assert result["records"] == sum(
+        manifest["splits"][split]["size"] for split in ("discovery", "validation")
+    )
+    assert result["witness_failures"] == []
+    assert result["provenance_failures"] == []
+    assert result["manifest_summary_failures"] == []
+
+    (corpus_dir / "validation.jsonl.gz").write_bytes(b"poisoned requested payload")
+    with pytest.raises(ValueError, match="file digest mismatch"):
+        deep.verify_corpus(
+            corpus_dir,
+            splits=("discovery", "validation"),
+        )
 
 
 def test_reference_corpus_identities_are_excluded_and_verified(tmp_path):

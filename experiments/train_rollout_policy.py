@@ -21,6 +21,7 @@ import os
 import random
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -32,17 +33,19 @@ import torch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from experiments.generate_deep_corpus import verify_corpus
-from experiments.train_deep_corpus_sft import ensure_corpus
 from wandering_light.basis_set import load_basis_set
+from wandering_light.corpus_hub import fetch_corpus
 from wandering_light.executor import Executor
 from wandering_light.rollout_policy import (
     CONFIG_FILE,
+    DEFAULT_POLICY_ARCHITECTURE,
     MAX_PAIR_WIDTH,
     MODEL_FILE,
     TRAINER_STATE_FILE,
     TRAINING_MANIFEST_FILE,
     WANDB_LINK_FILE,
     AlignedPairPolicy,
+    PolicyArchitecture,
     RolloutPolicy,
     assert_weights_only_checkpoint,
     pair_batch,
@@ -58,10 +61,22 @@ if TYPE_CHECKING:
 SCHEMA_VERSION = 1
 PERSONAL_WANDB_ENTITY = "abhishekraok-na"
 DEFAULT_WANDB_PROJECT = "wandering-light-rollout-policy"
-DEFAULT_CORPUS_DIR = Path("wandering_light/training/data/deep_corpus_v1")
+DEFAULT_CORPUS_DIR = Path("wandering_light/training/data/deep_corpus_v2")
 TRAIN_SPLIT = "discovery"
 VALIDATION_SPLIT = "validation"
 HELD_OUT_SPLIT = "test"
+POLICY_SIZE_ARMS = {
+    "90k": DEFAULT_POLICY_ARCHITECTURE,
+    "1m": PolicyArchitecture(128, 320, 640),
+    "10m": PolicyArchitecture(384, 1024, 2048),
+    "40m": PolicyArchitecture(768, 2048, 4096),
+}
+POLICY_SIZE_BATCHING = {
+    "90k": (256, 1, 512),
+    "1m": (256, 1, 512),
+    "10m": (256, 1, 256),
+    "40m": (128, 2, 128),
+}
 CHECKPOINT_FILES = (
     MODEL_FILE,
     CONFIG_FILE,
@@ -93,12 +108,14 @@ class RolloutTrainingConfig:
     epochs: int = 12
     learning_rate: float = 2e-3
     train_batch_size: int = 256
+    gradient_accumulation_steps: int = 1
     validation_batch_size: int = 512
     seed: int = 0
     device: str = "cuda"
     wandb_entity: str = PERSONAL_WANDB_ENTITY
     wandb_project: str = DEFAULT_WANDB_PROJECT
     wandb_run_name: str | None = None
+    architecture: PolicyArchitecture = DEFAULT_POLICY_ARCHITECTURE
     dry_run: bool = False
 
 
@@ -277,12 +294,41 @@ def _expected_prefixes(manifest: Mapping[str, Any], split: str) -> int:
     return sum(int(distance) * int(count) for distance, count in histogram.items())
 
 
+def ensure_training_splits(corpus_dir: Path) -> Path:
+    """Materialize discovery and validation without touching held-out test."""
+
+    manifest_path = corpus_dir / "manifest.json"
+    if not manifest_path.is_file():
+        raise FileNotFoundError(f"Deep-corpus manifest is missing: {manifest_path}")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    required = (TRAIN_SPLIT, VALIDATION_SPLIT)
+    missing = [
+        corpus_dir / manifest["splits"][split]["path"]
+        for split in required
+        if not (corpus_dir / manifest["splits"][split]["path"]).is_file()
+    ]
+    if missing:
+        fetch_corpus(
+            manifest_path,
+            destination=corpus_dir,
+            splits=required,
+            include_details=False,
+        )
+    still_missing = [path for path in missing if not path.is_file()]
+    if still_missing:
+        raise FileNotFoundError(
+            "Corpus fetch did not materialize training splits: "
+            f"{[str(path) for path in still_missing]}"
+        )
+    return corpus_dir
+
+
 def prepare_prefixes(
     config: RolloutTrainingConfig,
 ) -> tuple[FunctionDefSet, PreparedPrefixes]:
     """Verify corpus/basis/root boundaries, then expose discovery and validation."""
 
-    ensure_corpus(config.corpus_dir)
+    ensure_training_splits(config.corpus_dir)
     manifest_path = config.corpus_dir / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     basis = load_basis_set(manifest["basis_set_id"])
@@ -290,7 +336,11 @@ def prepare_prefixes(
         raise ValueError("Corpus manifest and loaded basis digests differ")
     available_functions = basis.to_function_def_set()
 
-    verification = verify_corpus(config.corpus_dir, recertify=0)
+    verification = verify_corpus(
+        config.corpus_dir,
+        splits=(TRAIN_SPLIT, VALIDATION_SPLIT),
+        recertify=0,
+    )
     if not verification.get("ok"):
         raise ValueError(f"Deep corpus verification failed: {verification}")
     if verification.get("roots_leaking_across_splits"):
@@ -359,9 +409,11 @@ def train_policy_model(
     epochs: int,
     learning_rate: float,
     train_batch_size: int,
+    gradient_accumulation_steps: int = 1,
     validation_batch_size: int,
     seed: int,
     device: str | torch.device,
+    architecture: PolicyArchitecture = DEFAULT_POLICY_ARCHITECTURE,
     epoch_callback=None,
 ) -> tuple[AlignedPairPolicy, dict[str, Any]]:
     """Train deterministically and restore the lowest validation-loss weights."""
@@ -372,6 +424,8 @@ def train_policy_model(
         raise ValueError("epochs and learning_rate must be positive")
     if train_batch_size <= 0 or validation_batch_size <= 0:
         raise ValueError("batch sizes must be positive")
+    if gradient_accumulation_steps <= 0:
+        raise ValueError("gradient_accumulation_steps must be positive")
     if len(action_names) != len(set(action_names)) or not action_names:
         raise ValueError("action_names must be a non-empty unique sequence")
     if any(example.split != TRAIN_SPLIT for example in train):
@@ -390,7 +444,7 @@ def train_policy_model(
     if unknown:
         raise ValueError(f"Prefix labels reference unknown actions: {unknown}")
 
-    model = AlignedPairPolicy(len(action_names)).to(target_device)
+    model = AlignedPairPolicy(len(action_names), architecture).to(target_device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     optimizer_identity = {
         "class": "torch.optim.Adam",
@@ -405,20 +459,33 @@ def train_policy_model(
     best_epoch = 0
     best_state: dict[str, torch.Tensor] | None = None
     history = []
+    optimizer_steps = 0
+    effective_batch_size = train_batch_size * gradient_accumulation_steps
+    if target_device.type == "cuda":
+        torch.cuda.synchronize(target_device)
+        torch.cuda.reset_peak_memory_stats(target_device)
+    training_started = time.perf_counter()
 
     for epoch in range(1, epochs + 1):
         model.train()
         rng.shuffle(order)
-        train_total = 0.0
-        for start in range(0, len(order), train_batch_size):
-            indices = order[start : start + train_batch_size]
-            batch = [train[index] for index in indices]
-            inputs, labels = _examples_batch(batch, action_index, device=target_device)
-            loss = torch.nn.functional.cross_entropy(model(*inputs), labels)
+        train_total = torch.zeros((), device=target_device)
+        for group_start in range(0, len(order), effective_batch_size):
+            group = order[group_start : group_start + effective_batch_size]
             optimizer.zero_grad()
-            loss.backward()
+            for start in range(0, len(group), train_batch_size):
+                indices = group[start : start + train_batch_size]
+                batch = [train[index] for index in indices]
+                inputs, labels = _examples_batch(
+                    batch, action_index, device=target_device
+                )
+                loss_sum = torch.nn.functional.cross_entropy(
+                    model(*inputs), labels, reduction="sum"
+                )
+                (loss_sum / len(group)).backward()
+                train_total += loss_sum.detach()
             optimizer.step()
-            train_total += loss.item() * len(batch)
+            optimizer_steps += 1
 
         model.eval()
         validation_total = 0.0
@@ -431,7 +498,7 @@ def train_policy_model(
                 validation_total += torch.nn.functional.cross_entropy(
                     model(*inputs), labels, reduction="sum"
                 ).item()
-        train_loss = train_total / len(train)
+        train_loss = train_total.item() / len(train)
         validation_loss = validation_total / len(validation)
         row = {
             "epoch": epoch,
@@ -451,6 +518,9 @@ def train_policy_model(
 
     if best_state is None:
         raise RuntimeError("Training produced no validation checkpoint")
+    if target_device.type == "cuda":
+        torch.cuda.synchronize(target_device)
+    training_seconds = time.perf_counter() - training_started
     model.load_state_dict(best_state)
     model.eval()
     return model, {
@@ -460,6 +530,18 @@ def train_policy_model(
         "history": history,
         "train_prefixes": len(train),
         "validation_prefixes": len(validation),
+        "optimizer_steps": optimizer_steps,
+        "training_seconds": training_seconds,
+        "peak_cuda_memory_allocated_bytes": (
+            int(torch.cuda.max_memory_allocated(target_device))
+            if target_device.type == "cuda"
+            else None
+        ),
+        "peak_cuda_memory_reserved_bytes": (
+            int(torch.cuda.max_memory_reserved(target_device))
+            if target_device.type == "cuda"
+            else None
+        ),
         "optimizer": optimizer_identity,
     }
 
@@ -501,6 +583,7 @@ def capture_runtime_identity(
         "floating_parameter_dtypes": floating_dtypes,
         "model": {
             "architecture": "aligned-item-pairs-untyped-v1",
+            "architecture_config": model.architecture.to_config(),
             "parameters": sum(parameter.numel() for parameter in model.parameters()),
             "trainable_parameters": sum(
                 parameter.numel()
@@ -543,6 +626,10 @@ def _validate_config(config: RolloutTrainingConfig) -> None:
         raise ValueError("epochs and learning_rate must be positive")
     if config.train_batch_size <= 0 or config.validation_batch_size <= 0:
         raise ValueError("batch sizes must be positive")
+    if config.gradient_accumulation_steps <= 0:
+        raise ValueError("gradient_accumulation_steps must be positive")
+    if not isinstance(config.architecture, PolicyArchitecture):
+        raise TypeError("architecture must be a PolicyArchitecture")
     if not config.wandb_project:
         raise ValueError("wandb_project must be non-empty")
     if not config.dry_run and not config.wandb_run_name:
@@ -557,8 +644,8 @@ def _corpus_provenance(
         TRAIN_SPLIT: "training-only",
         VALIDATION_SPLIT: "model-selection-only",
         HELD_OUT_SPLIT: (
-            "held-out-evaluation-only; no test prefix examples constructed or "
-            "used; payload read only for integrity"
+            "held-out-evaluation-only; manifest metadata only; test payload never "
+            "fetched, opened, or materialized"
         ),
     }
     return {
@@ -581,6 +668,8 @@ def _corpus_provenance(
         },
         "verification": {
             "ok": prepared.verification.get("ok"),
+            "verified_splits": prepared.verification.get("verified_splits"),
+            "full_corpus_verified": prepared.verification.get("full_corpus_verified"),
             "witness_failures": prepared.verification.get("witness_failures"),
             "roots_leaking_across_splits": prepared.verification.get(
                 "roots_leaking_across_splits"
@@ -628,6 +717,10 @@ def build_training_manifest(
             "learning_rate": config.learning_rate,
             "optimizer": "torch.optim.Adam",
             "train_batch_size": config.train_batch_size,
+            "gradient_accumulation_steps": config.gradient_accumulation_steps,
+            "effective_train_batch_size": (
+                config.train_batch_size * config.gradient_accumulation_steps
+            ),
             "validation_batch_size": config.validation_batch_size,
             "sequence_width": MAX_PAIR_WIDTH,
             "sequence_padding": "fixed-to-maximum-for-training",
@@ -636,6 +729,7 @@ def build_training_manifest(
             "selection": "minimum validation cross-entropy",
             "resumption_supported": False,
             "weights_only": True,
+            "architecture": config.architecture.to_config(),
         },
         "trainer_state": dict(trainer_state),
         "wandb": {
@@ -704,10 +798,12 @@ def run_training(config: RolloutTrainingConfig) -> dict[str, Any]:
     repo_root = Path(__file__).resolve().parents[1]
     source_code = source_code_identity(repo_root)
     available_functions, prepared = prepare_prefixes(config)
-    model_config = policy_config(available_functions)
+    model_config = policy_config(available_functions, config.architecture)
     if config.dry_run:
         policy = RolloutPolicy(
-            AlignedPairPolicy(len(available_functions)), model_config, device="cpu"
+            AlignedPairPolicy(len(available_functions), config.architecture),
+            model_config,
+            device="cpu",
         )
         return build_training_manifest(
             config,
@@ -730,7 +826,7 @@ def run_training(config: RolloutTrainingConfig) -> dict[str, Any]:
         project=config.wandb_project,
         name=config.wandb_run_name,
         mode="online",
-        tags=["deep-corpus-v1", "issue-55", "one-step-policy"],
+        tags=[config.corpus_dir.name, "one-step-policy"],
         config={
             "corpus_manifest_digest": prepared.manifest["manifest_digest"],
             "basis_set": model_config["basis_set"],
@@ -739,8 +835,13 @@ def run_training(config: RolloutTrainingConfig) -> dict[str, Any]:
             "epochs": config.epochs,
             "learning_rate": config.learning_rate,
             "train_batch_size": config.train_batch_size,
+            "gradient_accumulation_steps": config.gradient_accumulation_steps,
+            "effective_train_batch_size": (
+                config.train_batch_size * config.gradient_accumulation_steps
+            ),
             "validation_batch_size": config.validation_batch_size,
             "seed": config.seed,
+            "architecture": config.architecture.to_config(),
         },
     )
     if run is None:
@@ -764,9 +865,11 @@ def run_training(config: RolloutTrainingConfig) -> dict[str, Any]:
             epochs=config.epochs,
             learning_rate=config.learning_rate,
             train_batch_size=config.train_batch_size,
+            gradient_accumulation_steps=config.gradient_accumulation_steps,
             validation_batch_size=config.validation_batch_size,
             seed=config.seed,
             device=config.device,
+            architecture=config.architecture,
             epoch_callback=log_epoch,
         )
         policy = RolloutPolicy(model, model_config, device=config.device)
@@ -823,6 +926,14 @@ def run_training(config: RolloutTrainingConfig) -> dict[str, Any]:
                 "best_validation_cross_entropy": trainer_state[
                     "best_validation_cross_entropy"
                 ],
+                "training_seconds": trainer_state["training_seconds"],
+                "optimizer_steps": trainer_state["optimizer_steps"],
+                "peak_cuda_memory_allocated_bytes": trainer_state[
+                    "peak_cuda_memory_allocated_bytes"
+                ],
+                "peak_cuda_memory_reserved_bytes": trainer_state[
+                    "peak_cuda_memory_reserved_bytes"
+                ],
             }
         )
         return persisted_manifest
@@ -836,27 +947,46 @@ def _parse_args(argv: Sequence[str] | None = None) -> RolloutTrainingConfig:
     parser.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)
     parser.add_argument("--epochs", type=int, default=12)
     parser.add_argument("--learning-rate", type=float, default=2e-3)
-    parser.add_argument("--train-batch-size", type=int, default=256)
-    parser.add_argument("--validation-batch-size", type=int, default=512)
+    parser.add_argument("--train-batch-size", type=int)
+    parser.add_argument("--gradient-accumulation-steps", type=int)
+    parser.add_argument("--validation-batch-size", type=int)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--wandb-entity", default=PERSONAL_WANDB_ENTITY)
     parser.add_argument("--wandb-project", default=DEFAULT_WANDB_PROJECT)
     parser.add_argument("--wandb-run-name")
+    parser.add_argument("--size-arm", choices=tuple(POLICY_SIZE_ARMS), default="90k")
     parser.add_argument("--dry-run", action="store_true")
     arguments = parser.parse_args(argv)
+    train_batch_size, accumulation_steps, validation_batch_size = POLICY_SIZE_BATCHING[
+        arguments.size_arm
+    ]
     return RolloutTrainingConfig(
         output_dir=arguments.output_dir,
         corpus_dir=arguments.corpus_dir,
         epochs=arguments.epochs,
         learning_rate=arguments.learning_rate,
-        train_batch_size=arguments.train_batch_size,
-        validation_batch_size=arguments.validation_batch_size,
+        train_batch_size=(
+            arguments.train_batch_size
+            if arguments.train_batch_size is not None
+            else train_batch_size
+        ),
+        gradient_accumulation_steps=(
+            arguments.gradient_accumulation_steps
+            if arguments.gradient_accumulation_steps is not None
+            else accumulation_steps
+        ),
+        validation_batch_size=(
+            arguments.validation_batch_size
+            if arguments.validation_batch_size is not None
+            else validation_batch_size
+        ),
         seed=arguments.seed,
         device=arguments.device,
         wandb_entity=arguments.wandb_entity,
         wandb_project=arguments.wandb_project,
         wandb_run_name=arguments.wandb_run_name,
+        architecture=POLICY_SIZE_ARMS[arguments.size_arm],
         dry_run=arguments.dry_run,
     )
 

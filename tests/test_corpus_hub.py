@@ -71,6 +71,27 @@ def test_verify_rejects_a_missing_payload(tmp_path):
         corpus_hub.verify_corpus_files(root)
 
 
+def test_subset_verify_never_opens_an_unselected_poisoned_payload(tmp_path):
+    root = _corpus(tmp_path, with_detail=True)
+    (root / "test.jsonl.gz").write_bytes(b"poisoned held-out payload")
+    (root / "expansion_detail.json").write_bytes(b"poisoned optional detail")
+
+    checked = corpus_hub.verify_corpus_files(
+        root,
+        splits=("discovery", "validation"),
+        include_details=False,
+    )
+
+    assert set(checked) == {"discovery", "validation"}
+    (root / "validation.jsonl.gz").write_bytes(b"poisoned requested payload")
+    with pytest.raises(ValueError, match="digest mismatch"):
+        corpus_hub.verify_corpus_files(
+            root,
+            splits=("discovery", "validation"),
+            include_details=False,
+        )
+
+
 def test_verify_checks_detached_detail_identity(tmp_path):
     root = _corpus(tmp_path, with_detail=True)
 
@@ -83,7 +104,7 @@ def test_verify_checks_detached_detail_identity(tmp_path):
 
 
 def test_payload_names_reject_path_traversal(tmp_path):
-    root = _corpus(tmp_path)
+    root = _corpus(tmp_path, with_detail=True)
     manifest = json.loads((root / "manifest.json").read_text())
     manifest["splits"]["test"]["path"] = "../escape.jsonl.gz"
     (root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
@@ -162,6 +183,49 @@ def test_fetch_requires_a_repo_id(tmp_path):
 
     with pytest.raises(ValueError, match=r"no hub\.repo_id"):
         corpus_hub.fetch_corpus(root / "manifest.json")
+
+
+def test_subset_fetch_downloads_and_verifies_only_requested_splits(
+    tmp_path, monkeypatch
+):
+    root = _corpus(tmp_path)
+    corpus_hub.record_hub_location(root, repo_id="acct/name", revision="abc123")
+    calls = []
+
+    def fake_download(*, repo_id, repo_type, filename, revision):
+        assert repo_id == "acct/name"
+        assert repo_type == "dataset"
+        assert revision == "abc123"
+        calls.append(filename)
+        if filename == "test.jsonl.gz":
+            pytest.fail("held-out payload was downloaded")
+        return str(root / filename)
+
+    monkeypatch.setitem(
+        sys.modules,
+        "huggingface_hub",
+        type("Hub", (), {"hf_hub_download": staticmethod(fake_download)}),
+    )
+    destination = tmp_path / "subset"
+
+    fetched = corpus_hub.fetch_corpus(
+        root / "manifest.json",
+        destination=destination,
+        splits=("discovery", "validation"),
+        include_details=False,
+    )
+
+    assert fetched == destination
+    assert calls == ["discovery.jsonl.gz", "validation.jsonl.gz"]
+    assert not (destination / "test.jsonl.gz").exists()
+    assert not (destination / "expansion_detail.json").exists()
+    assert set(
+        corpus_hub.verify_corpus_files(
+            destination,
+            splits=("discovery", "validation"),
+            include_details=False,
+        )
+    ) == {"discovery", "validation"}
 
 
 def test_publish_uses_one_atomic_commit(tmp_path, monkeypatch):

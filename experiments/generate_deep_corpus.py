@@ -1767,8 +1767,19 @@ def load_corpus(
     if basis.digest != manifest["basis_set_digest"]:
         raise ValueError("manifest references a different basis-set digest")
 
+    selected_splits = tuple(splits)
+    if not selected_splits:
+        raise ValueError("at least one corpus split must be selected")
+    if len(selected_splits) != len(set(selected_splits)):
+        raise ValueError(f"duplicate corpus split selection: {selected_splits!r}")
+    unknown_splits = [
+        split for split in selected_splits if split not in manifest["splits"]
+    ]
+    if unknown_splits:
+        raise ValueError(f"unknown corpus splits: {unknown_splits}")
+
     records: list[BasisTaskRecord] = []
-    for split in splits:
+    for split in selected_splits:
         metadata = manifest["splits"][split]
         name = metadata["path"]
         if Path(name).name != name:
@@ -1875,13 +1886,17 @@ def _recertification_sample(
 
 
 def _manifest_summary_failures(
-    manifest: Mapping[str, Any], records: Sequence[BasisTaskRecord]
+    manifest: Mapping[str, Any],
+    records: Sequence[BasisTaskRecord],
+    *,
+    splits: Sequence[str] = SPLIT_ORDER,
+    full_corpus: bool = True,
 ) -> list[str]:
     """Recompute review-critical manifest claims from the payload."""
     failures: list[str] = []
     by_split = {
         split: [record for record in records if record.split == split]
-        for split in SPLIT_ORDER
+        for split in splits
     }
     for split, split_records in by_split.items():
         metadata = manifest["splits"].get(split)
@@ -1939,31 +1954,33 @@ def _manifest_summary_failures(
         if metadata.get("seed") != manifest.get("seed"):
             failures.append(f"split {split!r} seed differs from manifest seed")
 
-    task_ids = {record.task_id for record in records}
-    root_digests = {
-        record.metadata["root_digest"]
-        for record in records
-        if isinstance(record.metadata.get("root_digest"), str)
-    }
-    if manifest.get("global_task_count") != len(task_ids):
-        failures.append(
-            "global_task_count mismatch: "
-            f"manifest={manifest.get('global_task_count')!r}, payload={len(task_ids)}"
-        )
-    identity = manifest.get("identity")
-    if identity is not None:
-        expected_identity = {
-            "root_digests": len(root_digests),
-            "root_digest_set_sha256": identity_set_digest(root_digests),
-            "task_ids": len(task_ids),
-            "task_id_set_sha256": identity_set_digest(task_ids),
+    if full_corpus:
+        task_ids = {record.task_id for record in records}
+        root_digests = {
+            record.metadata["root_digest"]
+            for record in records
+            if isinstance(record.metadata.get("root_digest"), str)
         }
-        for key, actual in expected_identity.items():
-            if identity.get(key) != actual:
-                failures.append(
-                    f"identity {key} mismatch: "
-                    f"manifest={identity.get(key)!r}, payload={actual!r}"
-                )
+        if manifest.get("global_task_count") != len(task_ids):
+            failures.append(
+                "global_task_count mismatch: "
+                f"manifest={manifest.get('global_task_count')!r}, "
+                f"payload={len(task_ids)}"
+            )
+        identity = manifest.get("identity")
+        if identity is not None:
+            expected_identity = {
+                "root_digests": len(root_digests),
+                "root_digest_set_sha256": identity_set_digest(root_digests),
+                "task_ids": len(task_ids),
+                "task_id_set_sha256": identity_set_digest(task_ids),
+            }
+            for key, actual in expected_identity.items():
+                if identity.get(key) != actual:
+                    failures.append(
+                        f"identity {key} mismatch: "
+                        f"manifest={identity.get(key)!r}, payload={actual!r}"
+                    )
 
     split_roots = manifest.get("split_roots")
     if isinstance(split_roots, dict):
@@ -2058,6 +2075,7 @@ def _target_contract_failures(
 def verify_corpus(
     corpus_dir: str | Path,
     *,
+    splits: Sequence[str] = SPLIT_ORDER,
     recertify: int = 0,
     seed: int = DEFAULT_SEED,
     reference_identities: Sequence[CorpusIdentities] = (),
@@ -2068,7 +2086,9 @@ def verify_corpus(
     graph from the task's input through ``distance - 1`` and requires the target
     to be absent, which is exactly the lower-bound half of the distance claim.
     """
-    manifest, records = load_corpus(corpus_dir)
+    selected_splits = tuple(splits)
+    manifest, records = load_corpus(corpus_dir, splits=selected_splits)
+    full_corpus = set(selected_splits) == set(manifest["splits"])
     basis = load_basis_set(manifest["basis_set_id"])
     functions = basis.as_function_set()
     executor = Executor(functions)
@@ -2194,9 +2214,16 @@ def verify_corpus(
         if key in reference_root_keys
     )
     task_id_overlaps = sorted(set(task_counts) & reference_task_ids)
-    manifest_summary_failures = _manifest_summary_failures(manifest, records)
-    target_contract_failures = _target_contract_failures(
-        manifest, records, reference_identities
+    manifest_summary_failures = _manifest_summary_failures(
+        manifest,
+        records,
+        splits=selected_splits,
+        full_corpus=full_corpus,
+    )
+    target_contract_failures = (
+        _target_contract_failures(manifest, records, reference_identities)
+        if full_corpus
+        else []
     )
 
     if recertify < 0:
@@ -2235,8 +2262,26 @@ def verify_corpus(
     inconclusive_recertification = [
         row for row in recertified if row["outcome"] == "inconclusive"
     ]
+    ok = not any(
+        (
+            witness_failures,
+            provenance_failures,
+            manifest_summary_failures,
+            leaking_roots,
+            duplicate_task_ids,
+            leaking_tasks,
+            root_digest_overlaps,
+            root_key_overlaps,
+            task_id_overlaps,
+            target_contract_failures,
+            failed_recertification,
+            inconclusive_recertification,
+        )
+    )
     return {
         "corpus_dir": str(corpus_dir),
+        "verified_splits": list(selected_splits),
+        "full_corpus_verified": full_corpus and ok,
         "records": len(records),
         "witness_failures": witness_failures,
         "provenance_failures": provenance_failures,
@@ -2254,22 +2299,7 @@ def verify_corpus(
         "recertified": recertified,
         "recertification_failures": failed_recertification,
         "recertification_inconclusive": inconclusive_recertification,
-        "ok": not any(
-            (
-                witness_failures,
-                provenance_failures,
-                manifest_summary_failures,
-                leaking_roots,
-                duplicate_task_ids,
-                leaking_tasks,
-                root_digest_overlaps,
-                root_key_overlaps,
-                task_id_overlaps,
-                target_contract_failures,
-                failed_recertification,
-                inconclusive_recertification,
-            )
-        ),
+        "ok": ok,
     }
 
 

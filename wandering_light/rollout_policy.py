@@ -49,6 +49,83 @@ CONV_CHANNELS = 96
 CONV_KERNEL = 5
 HIDDEN = 176
 
+
+@dataclass(frozen=True)
+class PolicyArchitecture:
+    """Checkpoint-native dimensions for the aligned-pair policy.
+
+    Serialization and token semantics stay fixed across size arms; only the
+    three capacity dimensions vary.  Keeping them on the model (and in its
+    checkpoint) lets differently sized policies coexist in one runtime.
+    """
+
+    byte_embedding: int = BYTE_EMBEDDING
+    conv_channels: int = CONV_CHANNELS
+    hidden: int = HIDDEN
+
+    def __post_init__(self) -> None:
+        for name in ("byte_embedding", "conv_channels", "hidden"):
+            value = getattr(self, name)
+            if type(value) is not int or value <= 0:
+                raise ValueError(f"{name} must be a positive integer")
+
+    def to_config(self) -> dict[str, Any]:
+        return {
+            "name": ARCHITECTURE,
+            "item_cap": ITEM_CAP,
+            "max_items": MAX_ITEMS,
+            "pad_token": PAD,
+            "separator_token": SEP,
+            "byte_embedding": self.byte_embedding,
+            "conv_channels": self.conv_channels,
+            "conv_kernel": CONV_KERNEL,
+            "hidden": self.hidden,
+        }
+
+    def parameter_count(self, action_count: int) -> int:
+        if type(action_count) is not int or action_count <= 0:
+            raise ValueError("action_count must be a positive integer")
+        embedding = 258 * self.byte_embedding
+        convolution = (
+            self.conv_channels * self.byte_embedding * CONV_KERNEL + self.conv_channels
+        )
+        hidden_projection = 2 * self.conv_channels * self.hidden + self.hidden
+        action_projection = self.hidden * action_count + action_count
+        return embedding + convolution + hidden_projection + action_projection
+
+    @classmethod
+    def from_config(cls, value: Any) -> Self:
+        if not isinstance(value, Mapping):
+            raise ValueError("Rollout policy config has no architecture")
+        fixed = {
+            "name": ARCHITECTURE,
+            "item_cap": ITEM_CAP,
+            "max_items": MAX_ITEMS,
+            "pad_token": PAD,
+            "separator_token": SEP,
+            "conv_kernel": CONV_KERNEL,
+        }
+        for name, expected in fixed.items():
+            if value.get(name) != expected:
+                raise ValueError(
+                    f"Unsupported rollout policy architecture field {name}: "
+                    f"{value.get(name)!r}"
+                )
+        expected_keys = {*fixed, "byte_embedding", "conv_channels", "hidden"}
+        if set(value) != expected_keys:
+            raise ValueError(
+                "Rollout policy architecture has unexpected fields: "
+                f"{sorted(set(value) - expected_keys)}"
+            )
+        return cls(
+            byte_embedding=value["byte_embedding"],
+            conv_channels=value["conv_channels"],
+            hidden=value["hidden"],
+        )
+
+
+DEFAULT_POLICY_ARCHITECTURE = PolicyArchitecture()
+
 _FORBIDDEN_STATE_NAMES = frozenset(
     {"optimizer.pt", "scheduler.pt", "scaler.pt", "rng_state.pth"}
 )
@@ -204,22 +281,29 @@ def pair_batch(
 class AlignedPairPolicy(nn.Module):
     """Small conv encoder over aligned examples, pooled as an unordered set."""
 
-    def __init__(self, action_count: int):
+    def __init__(
+        self,
+        action_count: int,
+        architecture: PolicyArchitecture = DEFAULT_POLICY_ARCHITECTURE,
+    ):
         super().__init__()
         if action_count <= 0:
             raise ValueError("action_count must be positive")
+        if not isinstance(architecture, PolicyArchitecture):
+            raise TypeError("architecture must be a PolicyArchitecture")
         self.action_count = action_count
-        self.embedding = nn.Embedding(258, BYTE_EMBEDDING)
+        self.architecture = architecture
+        self.embedding = nn.Embedding(258, architecture.byte_embedding)
         self.convolution = nn.Conv1d(
-            BYTE_EMBEDDING,
-            CONV_CHANNELS,
+            architecture.byte_embedding,
+            architecture.conv_channels,
             kernel_size=CONV_KERNEL,
             padding=CONV_KERNEL // 2,
         )
         self.head = nn.Sequential(
-            nn.Linear(2 * CONV_CHANNELS, HIDDEN),
+            nn.Linear(2 * architecture.conv_channels, architecture.hidden),
             nn.ReLU(),
-            nn.Linear(HIDDEN, action_count),
+            nn.Linear(architecture.hidden, action_count),
         )
 
     def _encode_items(self, sequences: Tensor) -> Tensor:
@@ -254,6 +338,7 @@ class AlignedPairPolicy(nn.Module):
 
 def policy_config(
     functions: FunctionDefSet,
+    architecture: PolicyArchitecture = DEFAULT_POLICY_ARCHITECTURE,
 ) -> dict[str, Any]:
     """Create the architecture and ordered-basis identity saved with weights."""
 
@@ -263,17 +348,7 @@ def policy_config(
     actions = ordered_actions(functions)
     return {
         "schema_version": SCHEMA_VERSION,
-        "architecture": {
-            "name": ARCHITECTURE,
-            "item_cap": ITEM_CAP,
-            "max_items": MAX_ITEMS,
-            "pad_token": PAD,
-            "separator_token": SEP,
-            "byte_embedding": BYTE_EMBEDDING,
-            "conv_channels": CONV_CHANNELS,
-            "conv_kernel": CONV_KERNEL,
-            "hidden": HIDDEN,
-        },
+        "architecture": architecture.to_config(),
         "basis_set": {
             "basis_set_id": basis_set_id,
             "basis_set_digest": basis_digest,
@@ -284,12 +359,10 @@ def policy_config(
 
 def _parse_config(
     value: Mapping[str, Any],
-) -> tuple[dict[str, Any], tuple[OrderedAction, ...]]:
+) -> tuple[PolicyArchitecture, dict[str, Any], tuple[OrderedAction, ...]]:
     if value.get("schema_version") != SCHEMA_VERSION:
         raise ValueError("Unsupported rollout policy config schema")
-    expected_architecture = policy_config_architecture()
-    if value.get("architecture") != expected_architecture:
-        raise ValueError("Rollout policy architecture does not match this runtime")
+    architecture = PolicyArchitecture.from_config(value.get("architecture"))
     basis = value.get("basis_set")
     if not isinstance(basis, Mapping):
         raise ValueError("Rollout policy config has no basis identity")
@@ -303,21 +376,13 @@ def _parse_config(
     actions = tuple(OrderedAction.from_dict(action) for action in raw_actions)
     if len({action.name for action in actions}) != len(actions):
         raise ValueError("Rollout policy config contains duplicate action names")
-    return dict(basis), actions
+    return architecture, dict(basis), actions
 
 
-def policy_config_architecture() -> dict[str, Any]:
-    return {
-        "name": ARCHITECTURE,
-        "item_cap": ITEM_CAP,
-        "max_items": MAX_ITEMS,
-        "pad_token": PAD,
-        "separator_token": SEP,
-        "byte_embedding": BYTE_EMBEDDING,
-        "conv_channels": CONV_CHANNELS,
-        "conv_kernel": CONV_KERNEL,
-        "hidden": HIDDEN,
-    }
+def policy_config_architecture(
+    architecture: PolicyArchitecture = DEFAULT_POLICY_ARCHITECTURE,
+) -> dict[str, Any]:
+    return architecture.to_config()
 
 
 def assert_weights_only_checkpoint(
@@ -373,9 +438,11 @@ class RolloutPolicy(ActionScorer):
         *,
         device: torch.device | str = "cpu",
     ) -> None:
-        basis, actions = _parse_config(config)
+        architecture, basis, actions = _parse_config(config)
         if model.action_count != len(actions):
             raise ValueError("Policy head width differs from its ordered basis")
+        if model.architecture != architecture:
+            raise ValueError("Policy model dimensions differ from its config")
         self.model = model.to(device).eval()
         self.config = dict(config)
         self.basis_set_id = basis["basis_set_id"]
@@ -392,7 +459,11 @@ class RolloutPolicy(ActionScorer):
         *,
         device: torch.device | str = "cpu",
     ) -> Self:
-        return cls(model, policy_config(functions), device=device)
+        return cls(
+            model,
+            policy_config(functions, model.architecture),
+            device=device,
+        )
 
     def _require_basis(self, available_functions: FunctionDefSet) -> None:
         basis_set_id, basis_digest = FunctionUsageTracker.basis_provenance(
@@ -491,7 +562,7 @@ class RolloutPolicy(ActionScorer):
         checkpoint = Path(checkpoint)
         assert_weights_only_checkpoint(checkpoint)
         config = json.loads((checkpoint / CONFIG_FILE).read_text(encoding="utf-8"))
-        config_basis, actions = _parse_config(config)
+        architecture, config_basis, actions = _parse_config(config)
         manifest = json.loads(
             (checkpoint / TRAINING_MANIFEST_FILE).read_text(encoding="utf-8")
         )
@@ -519,6 +590,6 @@ class RolloutPolicy(ActionScorer):
         ) != _read_wandb_url(checkpoint / WANDB_LINK_FILE):
             raise ValueError("Rollout policy W&B lineage does not match its link")
 
-        model = AlignedPairPolicy(len(actions))
+        model = AlignedPairPolicy(len(actions), architecture)
         model.load_state_dict(load_file(str(checkpoint / MODEL_FILE), device="cpu"))
         return cls(model, config, device=device)

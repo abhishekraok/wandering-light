@@ -15,6 +15,7 @@ import experiments.train_rollout_policy as training
 import wandering_light.rollout_policy as rollout_policy_module
 from experiments.train_rollout_policy import (
     CHECKPOINT_FILES,
+    POLICY_SIZE_ARMS,
     PrefixExample,
     PreparedPrefixes,
     RolloutTrainingConfig,
@@ -34,6 +35,7 @@ from wandering_light.rollout_policy import (
     TRAINING_MANIFEST_FILE,
     WANDB_LINK_FILE,
     AlignedPairPolicy,
+    PolicyArchitecture,
     RolloutPolicy,
     assert_weights_only_checkpoint,
     pair_batch,
@@ -133,6 +135,54 @@ def test_pair_batch_tracks_real_items_and_the_model_is_batch_invariant():
         sum(parameter.numel() for parameter in AlignedPairPolicy(118).parameters())
         == 90_374
     )
+
+
+def test_policy_size_arms_have_exact_checkpoint_native_dimensions():
+    allocated = {
+        name: sum(
+            parameter.numel()
+            for parameter in AlignedPairPolicy(118, architecture).parameters()
+        )
+        for name, architecture in POLICY_SIZE_ARMS.items()
+    }
+    expected = {
+        "90k": 90_374,
+        "1m": 724_022,
+        "10m": 6_504_310,
+        "40m": 25_329_270,
+    }
+    assert allocated == expected
+    assert {
+        name: architecture.parameter_count(118)
+        for name, architecture in POLICY_SIZE_ARMS.items()
+    } == expected
+
+
+@pytest.mark.parametrize(
+    ("arm_id", "batching"),
+    training.POLICY_SIZE_BATCHING.items(),
+)
+def test_policy_size_cli_defaults_to_the_frozen_safe_batching(
+    tmp_path: Path,
+    arm_id: str,
+    batching: tuple[int, int, int],
+):
+    config = training._parse_args(
+        [
+            "--output-dir",
+            str(tmp_path / arm_id),
+            "--size-arm",
+            arm_id,
+            "--dry-run",
+        ]
+    )
+
+    assert (
+        config.train_batch_size,
+        config.gradient_accumulation_steps,
+        config.validation_batch_size,
+    ) == batching
+    assert config.corpus_dir.name == "deep_corpus_v2"
 
 
 def test_fixed_width_training_batch_preserves_logits_and_gradients():
@@ -238,6 +288,31 @@ def test_checkpoint_round_trip_is_weights_only_and_basis_pinned(tmp_path):
         RolloutPolicy.load(checkpoint)
 
 
+def test_nondefault_architecture_round_trips_without_runtime_global_mutation(tmp_path):
+    functions = _basis()
+    architecture = PolicyArchitecture(32, 40, 48)
+    policy = RolloutPolicy.from_basis(
+        AlignedPairPolicy(len(functions), architecture), functions
+    )
+    url = "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/wide"
+    checkpoint = tmp_path / "wide"
+    policy.save(
+        checkpoint,
+        training_manifest=_manifest(url, policy),
+        trainer_state={"best_epoch": 1},
+        wandb_url=url,
+    )
+
+    restored = RolloutPolicy.load(checkpoint)
+
+    assert restored.model.architecture == architecture
+    assert restored.config["architecture"] == architecture.to_config()
+    problem = [(TypedList([1]), TypedList([2]))]
+    assert restored.score_actions_batch(problem, functions)[0] == pytest.approx(
+        policy.score_actions_batch(problem, functions)[0]
+    )
+
+
 def test_checkpoint_save_cleans_staging_directory_on_failure(tmp_path, monkeypatch):
     functions = _basis()
     policy = RolloutPolicy.from_basis(AlignedPairPolicy(len(functions)), functions)
@@ -334,11 +409,42 @@ def test_training_and_validation_are_deterministic_for_one_seed():
         train, validation, ["inc", "dec"], **options
     )
 
-    assert first_state == second_state
+    nondeterministic = {
+        "training_seconds",
+        "peak_cuda_memory_allocated_bytes",
+        "peak_cuda_memory_reserved_bytes",
+    }
+    assert {
+        key: value for key, value in first_state.items() if key not in nondeterministic
+    } == {
+        key: value for key, value in second_state.items() if key not in nondeterministic
+    }
     assert all(
         torch.equal(first.state_dict()[name], second.state_dict()[name])
         for name in first.state_dict()
     )
+
+
+def test_gradient_accumulation_preserves_effective_optimizer_step_count():
+    train = [_example(index, index + 1, "inc") for index in range(5)]
+    validation = [_example(7, 8, "inc", split="validation")]
+
+    _, state = train_policy_model(
+        train,
+        validation,
+        ["inc"],
+        epochs=2,
+        learning_rate=2e-3,
+        train_batch_size=1,
+        gradient_accumulation_steps=2,
+        validation_batch_size=1,
+        seed=3,
+        device="cpu",
+    )
+
+    assert state["optimizer_steps"] == 6
+    assert state["training_seconds"] > 0
+    assert state["peak_cuda_memory_allocated_bytes"] is None
 
 
 def test_training_rejects_prefix_examples_from_the_wrong_roles():
@@ -435,6 +541,10 @@ def test_run_training_publishes_and_logs_exact_checkpoint(tmp_path, monkeypatch)
             "history": [],
             "train_prefixes": 1,
             "validation_prefixes": 1,
+            "optimizer_steps": 1,
+            "training_seconds": 0.5,
+            "peak_cuda_memory_allocated_bytes": None,
+            "peak_cuda_memory_reserved_bytes": None,
             "optimizer": optimizer,
         }
 
@@ -505,7 +615,7 @@ def test_run_training_publishes_and_logs_exact_checkpoint(tmp_path, monkeypatch)
     assert result["runtime"]["model"]["parameters"] == 90_374
     assert result["runtime"]["optimizer"] == optimizer
     assert (
-        "no test prefix examples constructed or used; payload read only for integrity"
+        "test payload never fetched, opened, or materialized"
         in result["source_corpus"]["task_roles"]["test"]["role"]
     )
     assert {path.name for path in checkpoint.iterdir()} == set(CHECKPOINT_FILES)
