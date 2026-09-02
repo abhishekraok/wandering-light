@@ -94,12 +94,18 @@ on all 40 tasks, the three 6–7-op behaviours (`keep_below`, `negate_each`,
 unpruned run shared the machine with five other jobs and this one with two,
 so nothing is attributed to the guard there. The arithmetic says why the
 outcome does not move: BFS finds a 6-op program when it pops that program's
-depth-5 ancestor, and #70's counts put the depth-5 ball at ~980,000 states
-unpruned and ~105,000 guarded (v3 roots; v4's data stacks differ but not by
-an order of magnitude). A 100,000-expansion budget is at the edge of
-finishing depth 5 even guarded. So the guard's first *visible* step on this
-corpus lies between 100,000 and roughly 1,000,000 expansions — a budget
-sweep, not run here. Within the v3 budgets the two arms are the same floor.
+depth-5 ancestor, so the question is how many states the depth-5 ball holds.
+Measured on v4 roots with #70's probe (3 tasks, seed 17,
+`states-depth5-v4.json`): **1,166,586 states per task unpruned, 157,931 with
+the guard (7.39x)** — a bigger ball and a weaker guard than on v3 (980,688
+→ 105,549, 9.29x), because v4 roots carry more below the mark and `close` has
+proportionally less frontier to kill. A 100,000-expansion budget is 63% of
+the way through depth 5 *with* the guard. So the null at 100,000 is expected,
+not merely observed, and the guard's first *visible* step on this corpus is
+bracketed two-sided: **no earlier than ~158,000 expansions, and by ~1.17
+million**, where the unpruned arm finishes the same ply. A budget sweep
+across that bracket was not run. Within the v3 budgets the two arms are the
+same floor.
 
 **At 10,000 on the full split, the one place the guard shows.** 1,798 of
 1,800 tasks return the identical candidate and verdict; the same 120 solve.
@@ -115,8 +121,9 @@ shown-only overstatement 1.2 → 1.3 points. Wall clock 19,558 s against
 So across the three budgets: **identical solve sets, identical solved
 programs, two extra spurious fits.** On this corpus the guard is a real
 reduction in states per depth that a first-fit solver under the v3 budgets
-cannot cash in, because the next behaviours it would need are a full ply
-deeper than any of these budgets reaches in either arm.
+cannot cash in, because the next behaviours it would need sit a full ply
+deeper than any of these budgets reaches in either arm — the ~158,000-state
+guarded ball at depth 5 is above the largest budget used on the full split.
 
 **At 1,000 nodes the 80 solves are exactly two behaviours at 40/40** —
 `push_back` (4 ops, `nil swap cons cat`) and `rotate_left` (5 ops,
@@ -285,6 +292,8 @@ uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 100000 --
 uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 1000   --split eval --guard both            --out $R/bfs_v4_1k_full_guard.json
 uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 10000  --split eval --guard both            --out $R/bfs_v4_10k_full_guard.json
 uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 100000 --split eval --guard both --tasks 40 --out $R/bfs_v4_100k_sample40_guard.json
+# Depth-5 states per task on v4 roots, the number behind the bracket (#70's probe, ~4 min)
+uv run python experiments/stack_pbe_guard_probe.py --out $R/states-depth5-v4.json states --depth 5 --tasks 3 --seed 17 --corpus wandering_light/evals/data/stack_pbe_v4
 OLLAMA_BASE_URL=http://localhost:11434 \
 uv run python experiments/stack_pbe_baseline.py --backend llm --provider ollama --model qwen3:30b-a3b --tasks 40 --split eval --out $R/qwen3_v4_sample40.json
 uv run python experiments/stack_pbe_baseline.py --backend llm --provider openai --model gpt-5.6-luna --effort high --tasks 40 --split eval --out $R/luna_v4_sample40.json
