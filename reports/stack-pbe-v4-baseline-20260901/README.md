@@ -80,9 +80,14 @@ and above** — the v3 step function again, wall between 5 and 6 ops, and the
 with `drop uncons swap drop quote` — head of the first list, as a singleton —
 which passed all 8 held-out examples. Look at the inputs: in **every** example
 of both tasks the two lists agree at position 0 and the second list's
-position 1 is `-9`. The sampler is forcing a match at the head and a miss right
-after it, so the behaviour collapses to "first element" on any example where
-nothing later coincides, and on one task's 13 examples nothing did. Eight
+position 1 is `-9`. The sampler, `_partly_matching_lists` at
+`wandering_light/stack_pbe.py:370`, sets `right[0] = left[0]` to guarantee a
+match and `right[1] = next(v for v in SMALL if v != left[1])` to guarantee a
+miss — and that `next` is deterministic, the first value of `SMALL` that is
+not `left[1]`, so it is `-9` almost every time. No other behaviour uses this sampler. The
+behaviour collapses to
+"first element" on any example where nothing later coincides, and on one
+task's 13 examples nothing did. Eight
 hidden examples do not help when the sampler bakes the shortcut into all of
 them. This is the class of defect the held-out protocol exists to surface, and
 it wants a sweep over the other 219 behaviours' samplers — filed on the issue,
