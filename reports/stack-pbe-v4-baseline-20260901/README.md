@@ -41,16 +41,35 @@ The seed-17 sample of 40 eval tasks covers 27 behaviours. Its median witness is
 numbers here overstate what the full split would give, and the BFS rows below
 show by how much where both were run.
 
-## BFS against a node budget
+## BFS against a node budget, two arms
 
 Breadth-first over the product behaviour of the shown examples, stopping at the
-first program that fits them; budgets are expansions.
+first program that fits them; budgets are expansions; `max_depth` 8.
 
-| budget | tasks | solved | shown-only | memorised | wall clock |
-|---:|---:|---:|---:|---:|---:|
-| 1,000 | full 1,800 | **80/1800 (4.4%)** | 4.9% | 8 | 2,116 s |
-| 10,000 | full 1,800 | TBD_BFS10K | | | |
-| 100,000 | sample 40 | **6/40 (15.0%)** | 20.0% | 2 | 3,917 s |
+Two arms. **Unpruned** is the machine as it stands: under an open `[` every
+one of the 28 ops is legal, because capture records a symbol without checking
+it. **With guard** applies the search-side predicate from
+[prune-open-mark-states (#70)](../../issues/70) to each successor state —
+`blocked(stack, remaining, "both")` from `wandering_light/quotation_guard.py`,
+with `remaining` the ops left under the depth cap — and drops states whose
+open body can never run. The guard is sound (no witness prefix is pruned), so
+it changes what a node budget *reaches*, never which programs exist at a
+depth. Same budgets, same seed, same machine.
+
+| budget | tasks | unpruned | shown-only | memorised | wall clock | with guard | shown-only | memorised | wall clock |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1,000 | full 1,800 | **80/1800 (4.4%)** | 4.9% | 8 | 2,116 s | TBD_G1K | | | |
+| 10,000 | full 1,800 | TBD_BFS10K | | | | TBD_G10K | | | |
+| 100,000 | sample 40 | **6/40 (15.0%)** | 20.0% | 2 | 3,917 s | TBD_G100K | | | |
+
+**Pre-registered before the guarded arm ran.** At 1,000 nodes the unpruned
+arm solves exactly the two first-order 5-op behaviours and 0/40 on the four
+5-op behaviours that open a `[` (next section). The guard should flip those
+four at the same budget — that was the prediction as first written. The #70
+session's corrected measurement (body check alone 1.11x at depth 4, close
+check most of the rest) says it probably will not: at body length 1–2 the
+prune rate is ~36%. The prediction stays as written; the miss, if it is one,
+is the result.
 
 **At 1,000 nodes the 80 solves are exactly two behaviours at 40/40** —
 `push_back` (4 ops, `nil swap cons cat`) and `rotate_left` (5 ops,
