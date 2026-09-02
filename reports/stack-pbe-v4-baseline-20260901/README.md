@@ -67,7 +67,7 @@ taxes every successor.
 | budget | tasks | unpruned | shown-only | memorised | wall clock | with guard | shown-only | memorised | wall clock |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 1,000 | full 1,800 | **80/1800 (4.4%)** | 4.9% | 8 | 2,116 s | **80/1800 (4.4%)** | 4.9% | 8 | 2,154 s |
-| 10,000 | full 1,800 | **120/1800 (6.7%)** | 7.9% | 22 | 22,803 s | TBD_G10K | | | |
+| 10,000 | full 1,800 | **120/1800 (6.7%)** | 7.9% | 22 | 22,803 s | **120/1800 (6.7%)** | 8.0% | 24 | 19,558 s |
 | 100,000 | sample 40 | **6/40 (15.0%)** | 20.0% | 2 | 3,917 s | **6/40 (15.0%)** | 20.0% | 2 | 3,624 s |
 
 **Pre-registered before the guarded arm ran.** At 1,000 nodes the unpruned
@@ -100,7 +100,23 @@ an order of magnitude). A 100,000-expansion budget is at the edge of
 finishing depth 5 even guarded. So the guard's first *visible* step on this
 corpus lies between 100,000 and roughly 1,000,000 expansions — a budget
 sweep, not run here. Within the v3 budgets the two arms are the same floor.
-TBD_G10K_NARRATIVE
+
+**At 10,000 on the full split, the one place the guard shows.** 1,798 of
+1,800 tasks return the identical candidate and verdict; the same 120 solve.
+The two that differ are both `min_pair`, where the unpruned arm found
+nothing and the guarded arm found a 5-op arithmetic coincidence —
+`dup 1 sub div mul`, `dup 1 sub div div` — that fits the shown examples and
+fails the hidden ones. That *is* "the same budget reaches deeper": the
+smaller frontier let 10,000 expansions cover two more depth-5 states, and
+what was there was a memorisation, not a program. Memorised 22 → 24,
+shown-only overstatement 1.2 → 1.3 points. Wall clock 19,558 s against
+22,803 s, under lighter machine load, so not attributed.
+
+So across the three budgets: **identical solve sets, identical solved
+programs, two extra spurious fits.** On this corpus the guard is a real
+reduction in states per depth that a first-fit solver under the v3 budgets
+cannot cash in, because the next behaviours it would need are a full ply
+deeper than any of these budgets reaches in either arm.
 
 **At 1,000 nodes the 80 solves are exactly two behaviours at 40/40** —
 `push_back` (4 ops, `nil swap cons cat`) and `rotate_left` (5 ops,
