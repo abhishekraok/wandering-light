@@ -4,12 +4,14 @@ import pytest
 
 from wandering_light.compute_optimal import (
     OracleLimits,
+    PreparedOptimalActionOracle,
     ScoredVisitObserver,
     certify_shortest_first_actions,
     execution_auc,
     masked_optimal_set_bits,
     wall_clock_auc,
 )
+from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDef, FunctionDefSet
 from wandering_light.solver import ActionScorer, RolloutPredictor
 from wandering_light.typed_list import TypedList
@@ -208,6 +210,99 @@ def test_oracle_sums_alternate_first_actions_after_state_deduplication():
     assert result.distance == 2
     assert result.optimal_actions_complete is True
     assert result.optimal_action_names == ("route_a", "route_b")
+
+
+def test_prepared_oracle_matches_one_shot_and_reuses_compiled_palette(monkeypatch):
+    functions = FunctionDefSet(
+        [
+            function("inc", "return x + 1"),
+            function("double", "return x * 2"),
+        ]
+    )
+    source = TypedList([1])
+    target = TypedList([3])
+    limits = OracleLimits(max_depth=2)
+    expected = certify_shortest_first_actions(
+        source,
+        target,
+        functions,
+        limits=limits,
+    )
+    compile_misses = []
+    compile_function = Executor._compile
+
+    def count_compile_misses(executor, function_def):
+        cache_key = (
+            function_def.name,
+            function_def.input_type,
+            function_def.output_type,
+            function_def.code,
+        )
+        if cache_key not in executor._compiled:
+            compile_misses.append(cache_key)
+        return compile_function(executor, function_def)
+
+    monkeypatch.setattr(Executor, "_compile", count_compile_misses)
+    oracle = PreparedOptimalActionOracle(functions)
+    first = oracle.certify(source, target, limits=limits)
+    misses_after_first = list(compile_misses)
+    second = oracle(source, target, functions, limits=limits)
+
+    assert first == second == expected
+    assert compile_misses == misses_after_first
+    assert compile_misses
+    assert all(function_def.usage_count == 0 for function_def in functions)
+
+
+def test_prepared_oracle_resolves_palette_types_once_not_per_node(monkeypatch):
+    functions = FunctionDefSet(
+        [
+            function("inc", "return x + 1"),
+            function("double", "return x * 2"),
+        ]
+    )
+    input_type_calls = 0
+    resolve_input_type = FunctionDef.input_type_cls
+
+    def count_input_type_calls(function_def):
+        nonlocal input_type_calls
+        input_type_calls += 1
+        return resolve_input_type(function_def)
+
+    monkeypatch.setattr(FunctionDef, "input_type_cls", count_input_type_calls)
+    oracle = PreparedOptimalActionOracle(functions)
+    first = oracle.certify(
+        TypedList([1]),
+        TypedList([999]),
+        limits=OracleLimits(max_depth=3),
+    )
+    second = oracle.certify(
+        TypedList([2]),
+        TypedList([999]),
+        limits=OracleLimits(max_depth=3),
+    )
+
+    assert input_type_calls == (
+        len(functions) + first.attempted_executions + second.attempted_executions
+    )
+
+
+def test_prepared_oracle_rejects_definition_mutation_but_not_usage_counts():
+    step = function("step", "return x + 1")
+    functions = FunctionDefSet([step])
+    oracle = PreparedOptimalActionOracle(functions)
+    limits = OracleLimits(max_depth=1)
+
+    step.increment_usage()
+    assert oracle.certify(TypedList([0]), TypedList([1]), limits=limits).status == (
+        "certified"
+    )
+
+    step.code = "return x + 2"
+    with pytest.raises(ValueError, match="source palette changed"):
+        oracle(TypedList([0]), TypedList([1]), functions, limits=limits)
+    with pytest.raises(ValueError, match="source palette changed"):
+        oracle.certify(TypedList([0]), TypedList([1]), limits=limits)
 
 
 def test_oracle_uses_canonical_answer_equality_but_search_safe_state_keys():

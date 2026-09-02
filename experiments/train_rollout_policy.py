@@ -14,7 +14,6 @@ deliberately disposable.
 from __future__ import annotations
 
 import argparse
-import gzip
 import hashlib
 import json
 import os
@@ -22,6 +21,7 @@ import random
 import subprocess
 import sys
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -32,9 +32,14 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from experiments.generate_deep_corpus import verify_corpus
+from experiments.generate_deep_corpus import (
+    load_corpus,
+    load_required_reference_identities,
+    required_reference_corpora,
+    verify_loaded_corpus,
+)
 from wandering_light.basis_set import load_basis_set
-from wandering_light.corpus_hub import fetch_corpus
+from wandering_light.corpus_hub import corpus_split_files, fetch_corpus
 from wandering_light.executor import Executor
 from wandering_light.rollout_policy import (
     CONFIG_FILE,
@@ -51,17 +56,19 @@ from wandering_light.rollout_policy import (
     pair_batch,
     policy_config,
 )
-from wandering_light.typed_list import TypedList
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Sequence
 
+    from wandering_light.basis_dataset import BasisTaskRecord
     from wandering_light.function_def import FunctionDefSet
+    from wandering_light.typed_list import TypedList
 
 SCHEMA_VERSION = 1
 PERSONAL_WANDB_ENTITY = "abhishekraok-na"
 DEFAULT_WANDB_PROJECT = "wandering-light-rollout-policy"
 DEFAULT_CORPUS_DIR = Path("wandering_light/training/data/deep_corpus_v2")
+DEFAULT_REFERENCE_CORPUS_DIRS = (Path("wandering_light/training/data/deep_corpus_v1"),)
 TRAIN_SPLIT = "discovery"
 VALIDATION_SPLIT = "validation"
 HELD_OUT_SPLIT = "test"
@@ -105,6 +112,7 @@ class PrefixExample:
 class RolloutTrainingConfig:
     output_dir: Path
     corpus_dir: Path = DEFAULT_CORPUS_DIR
+    reference_corpus_dirs: tuple[Path, ...] = DEFAULT_REFERENCE_CORPUS_DIRS
     epochs: int = 12
     learning_rate: float = 2e-3
     train_batch_size: int = 256
@@ -215,7 +223,7 @@ def _type_name(value: TypedList) -> str:
 
 
 def build_prefix_examples(
-    corpus_dir: Path,
+    records: Sequence[BasisTaskRecord],
     split: str,
     available_functions: FunctionDefSet,
     *,
@@ -231,61 +239,52 @@ def build_prefix_examples(
     by_name = available_functions.name_to_function
     executor = Executor(available_functions)
     examples = []
-    with gzip.open(corpus_dir / f"{split}.jsonl.gz", "rt", encoding="utf-8") as file:
-        for record_index, line in enumerate(file):
-            if limit is not None and record_index >= limit:
-                break
-            row = json.loads(line)
-            if row.get("split") != split:
-                raise ValueError(
-                    f"Corpus row {row.get('task_id')} belongs to {row.get('split')}, "
-                    f"not {split}"
-                )
-            names = row.get("witness_function_names")
-            distance = row.get("metadata", {}).get("certified_distance")
-            if (
-                not isinstance(names, list)
-                or not names
-                or type(distance) is not int
-                or distance != len(names)
-                or row.get("witness_length") != distance
-            ):
-                raise ValueError(f"Task {row.get('task_id')} has an invalid witness")
-            root_digest = row.get("metadata", {}).get("root_digest")
-            if not isinstance(root_digest, str) or not root_digest:
-                raise ValueError(f"Task {row.get('task_id')} has no root digest")
+    selected = (record for record in records if record.split == split)
+    for record_index, record in enumerate(selected):
+        if limit is not None and record_index >= limit:
+            break
+        names = record.witness_function_names
+        distance = record.metadata.get("certified_distance")
+        if (
+            not names
+            or type(distance) is not int
+            or distance != len(names)
+            or record.witness_length != distance
+        ):
+            raise ValueError(f"Task {record.task_id} has an invalid witness")
+        root_digest = record.metadata.get("root_digest")
+        if not isinstance(root_digest, str) or not root_digest:
+            raise ValueError(f"Task {record.task_id} has no root digest")
 
-            state = TypedList.from_str(row["input"])
-            target = TypedList.from_str(row["output"])
-            for prefix_index, name in enumerate(names):
-                function = by_name.get(name)
-                if function is None:
-                    raise ValueError(
-                        f"Task {row.get('task_id')} references unknown action {name!r}"
-                    )
-                if function.input_type != _type_name(state):
-                    raise ValueError(
-                        f"Task {row.get('task_id')} action {name!r} is incompatible "
-                        f"with prefix {prefix_index}"
-                    )
-                examples.append(
-                    PrefixExample(
-                        state=state.to_string(),
-                        target=row["output"],
-                        action_name=name,
-                        split=split,
-                        task_id=row["task_id"],
-                        root_digest=root_digest,
-                        prefix_index=prefix_index,
-                        remaining_distance=distance - prefix_index,
-                        certified_distance=distance,
-                    )
-                )
-                state = executor.execute(function, state)
-            if state != target:
+        state = record.input_value
+        target = record.output_value
+        for prefix_index, name in enumerate(names):
+            function = by_name.get(name)
+            if function is None:
                 raise ValueError(
-                    f"Task {row.get('task_id')} witness replay missed its target"
+                    f"Task {record.task_id} references unknown action {name!r}"
                 )
+            if function.input_type != _type_name(state):
+                raise ValueError(
+                    f"Task {record.task_id} action {name!r} is incompatible "
+                    f"with prefix {prefix_index}"
+                )
+            examples.append(
+                PrefixExample(
+                    state=state.to_string(),
+                    target=record.output,
+                    action_name=name,
+                    split=split,
+                    task_id=record.task_id,
+                    root_digest=root_digest,
+                    prefix_index=prefix_index,
+                    remaining_distance=distance - prefix_index,
+                    certified_distance=distance,
+                )
+            )
+            state = executor.execute(function, state)
+        if state != target:
+            raise ValueError(f"Task {record.task_id} witness replay missed its target")
     return examples
 
 
@@ -302,11 +301,9 @@ def ensure_training_splits(corpus_dir: Path) -> Path:
         raise FileNotFoundError(f"Deep-corpus manifest is missing: {manifest_path}")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     required = (TRAIN_SPLIT, VALIDATION_SPLIT)
-    missing = [
-        corpus_dir / manifest["splits"][split]["path"]
-        for split in required
-        if not (corpus_dir / manifest["splits"][split]["path"]).is_file()
-    ]
+    split_files = corpus_split_files(manifest, splits=required)
+    required_paths = [corpus_dir / name for _, name in split_files]
+    missing = [path for path in required_paths if not path.is_file()]
     if missing:
         fetch_corpus(
             manifest_path,
@@ -314,7 +311,7 @@ def ensure_training_splits(corpus_dir: Path) -> Path:
             splits=required,
             include_details=False,
         )
-    still_missing = [path for path in missing if not path.is_file()]
+    still_missing = [path for path in required_paths if not path.is_file()]
     if still_missing:
         raise FileNotFoundError(
             "Corpus fetch did not materialize training splits: "
@@ -323,33 +320,118 @@ def ensure_training_splits(corpus_dir: Path) -> Path:
     return corpus_dir
 
 
+def _require_training_verification(
+    manifest: Mapping[str, Any], verification: Mapping[str, Any]
+) -> None:
+    """Require exactly the evidence available without opening held-out test."""
+
+    expected_splits = [TRAIN_SPLIT, VALIDATION_SPLIT]
+    expected_scope = {
+        "kind": "selected-splits",
+        "selected_splits": expected_splits,
+        "manifest_splits": sorted(manifest["splits"]),
+    }
+    if verification.get("scope") != expected_scope:
+        raise ValueError(
+            "Deep corpus verification scope differs from discovery+validation: "
+            f"{verification.get('scope')!r}"
+        )
+    if verification.get("manifest_digest") != manifest.get("manifest_digest"):
+        raise ValueError("Deep corpus verification used another manifest identity")
+
+    checks = verification.get("checks")
+    if not isinstance(checks, Mapping):
+        raise ValueError("Deep corpus verification has no explicit check evidence")
+    required_passes = (
+        "witness_replay",
+        "record_provenance",
+        "selected_split_summaries",
+        "selected_split_isolation",
+        "reference_overlap",
+    )
+    expected_skips = {
+        "corpus_global_summaries": "not every manifest split was loaded",
+        "target_contract": "target contract is corpus-global",
+        "distance_recertification": "recertify=0",
+    }
+    expected_check_keys = {"manifest_identity", *required_passes, *expected_skips}
+    if set(checks) != expected_check_keys:
+        raise ValueError(
+            "Deep corpus verification has unexpected check evidence: "
+            f"{sorted(set(checks) ^ expected_check_keys)}"
+        )
+    if checks["manifest_identity"] != {
+        "status": "passed",
+        "manifest_digest": manifest.get("manifest_digest"),
+    }:
+        raise ValueError("Deep corpus verification has contradictory manifest evidence")
+    failed = [
+        check
+        for check in required_passes
+        if not isinstance(checks.get(check), Mapping)
+        or checks[check].get("status") != "passed"
+        or checks[check].get("failures") != []
+    ]
+    if failed:
+        raise ValueError(f"Deep corpus verification checks did not pass: {failed}")
+    expected_references = list(required_reference_corpora(manifest))
+    reference_check = checks["reference_overlap"]
+    if (
+        reference_check.get("required_references") != expected_references
+        or reference_check.get("verified_references") != expected_references
+    ):
+        raise ValueError(
+            "Deep corpus verification lacks exact reference-corpus evidence"
+        )
+    unexpected = [
+        check
+        for check, reason in expected_skips.items()
+        if checks.get(check) != {"status": "skipped", "reason": reason}
+    ]
+    if unexpected:
+        raise ValueError(
+            "Deep corpus verification did not preserve the held-out scope: "
+            f"{unexpected}"
+        )
+    if (
+        verification.get("ok") is not True
+        or verification.get("verified_splits") != expected_splits
+        or verification.get("full_corpus_verified") is not None
+        or verification.get("target_contract_failures") is not None
+    ):
+        raise ValueError(f"Deep corpus verification failed: {verification}")
+
+
 def prepare_prefixes(
     config: RolloutTrainingConfig,
 ) -> tuple[FunctionDefSet, PreparedPrefixes]:
     """Verify corpus/basis/root boundaries, then expose discovery and validation."""
 
     ensure_training_splits(config.corpus_dir)
-    manifest_path = config.corpus_dir / "manifest.json"
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest, records = load_corpus(
+        config.corpus_dir,
+        splits=(TRAIN_SPLIT, VALIDATION_SPLIT),
+    )
     basis = load_basis_set(manifest["basis_set_id"])
     if manifest.get("basis_set_digest") != basis.digest:
         raise ValueError("Corpus manifest and loaded basis digests differ")
     available_functions = basis.to_function_def_set()
+    reference_identities = load_required_reference_identities(
+        manifest,
+        config.reference_corpus_dirs,
+    )
 
-    verification = verify_corpus(
-        config.corpus_dir,
+    verification = verify_loaded_corpus(
+        manifest,
+        records,
         splits=(TRAIN_SPLIT, VALIDATION_SPLIT),
         recertify=0,
+        reference_identities=reference_identities,
     )
-    if not verification.get("ok"):
-        raise ValueError(f"Deep corpus verification failed: {verification}")
-    if verification.get("roots_leaking_across_splits"):
-        raise ValueError("Deep corpus has roots leaking across splits")
+    _require_training_verification(manifest, verification)
 
-    train = build_prefix_examples(config.corpus_dir, TRAIN_SPLIT, available_functions)
-    validation = build_prefix_examples(
-        config.corpus_dir, VALIDATION_SPLIT, available_functions
-    )
+    train = build_prefix_examples(records, TRAIN_SPLIT, available_functions)
+    validation = build_prefix_examples(records, VALIDATION_SPLIT, available_functions)
     expected = {
         TRAIN_SPLIT: _expected_prefixes(manifest, TRAIN_SPLIT),
         VALIDATION_SPLIT: _expected_prefixes(manifest, VALIDATION_SPLIT),
@@ -666,15 +748,7 @@ def _corpus_provenance(
             }
             for split, role in roles.items()
         },
-        "verification": {
-            "ok": prepared.verification.get("ok"),
-            "verified_splits": prepared.verification.get("verified_splits"),
-            "full_corpus_verified": prepared.verification.get("full_corpus_verified"),
-            "witness_failures": prepared.verification.get("witness_failures"),
-            "roots_leaking_across_splits": prepared.verification.get(
-                "roots_leaking_across_splits"
-            ),
-        },
+        "verification": dict(prepared.verification),
     }
 
 
@@ -945,6 +1019,16 @@ def _parse_args(argv: Sequence[str] | None = None) -> RolloutTrainingConfig:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)
+    parser.add_argument(
+        "--reference-corpus-dir",
+        type=Path,
+        action="append",
+        dest="reference_corpus_dirs",
+        help=(
+            "local corpus whose payload-backed identities satisfy a declared "
+            "reference contract; repeat for multiple references"
+        ),
+    )
     parser.add_argument("--epochs", type=int, default=12)
     parser.add_argument("--learning-rate", type=float, default=2e-3)
     parser.add_argument("--train-batch-size", type=int)
@@ -964,6 +1048,11 @@ def _parse_args(argv: Sequence[str] | None = None) -> RolloutTrainingConfig:
     return RolloutTrainingConfig(
         output_dir=arguments.output_dir,
         corpus_dir=arguments.corpus_dir,
+        reference_corpus_dirs=(
+            tuple(arguments.reference_corpus_dirs)
+            if arguments.reference_corpus_dirs is not None
+            else DEFAULT_REFERENCE_CORPUS_DIRS
+        ),
         epochs=arguments.epochs,
         learning_rate=arguments.learning_rate,
         train_batch_size=(

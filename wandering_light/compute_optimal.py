@@ -506,43 +506,113 @@ def _oracle_functions(functions: FunctionDefSet) -> FunctionDefSet:
     )
 
 
-def certify_shortest_first_actions(
+def _oracle_palette_signature(functions: FunctionDefSet) -> tuple[tuple[Any, ...], ...]:
+    """Snapshot execution and provenance fields, excluding runtime usage counts."""
+
+    provenance_keys = (
+        "basis_function_id",
+        "basis_function_fingerprint",
+        "basis_set_id",
+        "basis_set_digest",
+    )
+    return tuple(
+        (
+            function.name,
+            function.input_type,
+            function.output_type,
+            function.code,
+            *(function.metadata.get(key) for key in provenance_keys),
+        )
+        for function in functions
+    )
+
+
+class PreparedOptimalActionOracle:
+    """Reusable executable palette and compatibility index for BFS labels."""
+
+    def __init__(self, functions: FunctionDefSet) -> None:
+        self._source_functions = functions
+        self._source_signature = _oracle_palette_signature(functions)
+        self._palette = _oracle_functions(functions)
+        self._executor = Executor(self._palette)
+        self._action_order = {
+            function.name: index
+            for index, function in enumerate(self._palette.functions)
+        }
+        functions_by_input_type: dict[type, list[FunctionDef]] = {}
+        for function in self._palette:
+            functions_by_input_type.setdefault(function.input_type_cls(), []).append(
+                function
+            )
+        self._functions_by_input_type = {
+            input_type: tuple(compatible)
+            for input_type, compatible in functions_by_input_type.items()
+        }
+
+    def certify(
+        self,
+        source: TypedList,
+        target: TypedList,
+        *,
+        limits: OracleLimits,
+    ) -> OptimalActionOracleResult:
+        """Certify one query while reusing compiled immutable basis functions."""
+
+        self._validate_source_palette()
+        terminal = _terminal_oracle_result(source, target, limits)
+        if terminal is not None:
+            return terminal
+        return _certify_with_prepared_oracle(source, target, self, limits=limits)
+
+    def __call__(
+        self,
+        source: TypedList,
+        target: TypedList,
+        functions: FunctionDefSet,
+        *,
+        limits: OracleLimits,
+    ) -> OptimalActionOracleResult:
+        """Match the study runner's injectable certification-call signature."""
+
+        if functions is not self._source_functions:
+            raise ValueError("Oracle call palette differs from its prepared palette")
+        return self.certify(source, target, limits=limits)
+
+    def _validate_source_palette(self) -> None:
+        if _oracle_palette_signature(self._source_functions) != self._source_signature:
+            raise ValueError("Oracle source palette changed after it was prepared")
+
+
+def _terminal_oracle_result(
     source: TypedList,
     target: TypedList,
-    functions: FunctionDefSet,
+    limits: OracleLimits,
+) -> OptimalActionOracleResult | None:
+    if not isinstance(limits, OracleLimits):
+        raise ValueError("limits must be an OracleLimits instance")
+    if source != target:
+        return None
+    return OptimalActionOracleResult(
+        status="already_solved",
+        stop_reason=None,
+        distance=0,
+        observed_target_distance=0,
+        optimal_action_names=(),
+        optimal_actions_complete=True,
+        certified_depth=0,
+        reached_states=1,
+        attempted_executions=0,
+        failed_executions=0,
+    )
+
+
+def _certify_with_prepared_oracle(
+    source: TypedList,
+    target: TypedList,
+    oracle: PreparedOptimalActionOracle,
     *,
     limits: OracleLimits,
 ) -> OptimalActionOracleResult:
-    """Run bounded BFS and return every shortest first action only when complete.
-
-    Search states use :meth:`TypedList.search_key`, exactly as production search
-    does.  Goal checks use ``TypedList.__eq__`` and therefore canonical answer
-    equality.  A target found partway through a budget-truncated layer is
-    reported as observed but unresolved: the missing suffix could contain more
-    equally short first actions.
-    """
-
-    if not isinstance(limits, OracleLimits):
-        raise ValueError("limits must be an OracleLimits instance")
-    if source == target:
-        return OptimalActionOracleResult(
-            status="already_solved",
-            stop_reason=None,
-            distance=0,
-            observed_target_distance=0,
-            optimal_action_names=(),
-            optimal_actions_complete=True,
-            certified_depth=0,
-            reached_states=1,
-            attempted_executions=0,
-            failed_executions=0,
-        )
-
-    palette = _oracle_functions(functions)
-    executor = Executor(palette)
-    action_order = {
-        function.name: index for index, function in enumerate(palette.functions)
-    }
     root_key = source.search_key()
     seen_depth = {root_key: 0}
     frontier = {root_key: _OracleNode(source, set())}
@@ -559,7 +629,9 @@ def certify_shortest_first_actions(
         actions: Iterable[str] = (),
         complete: bool = False,
     ) -> OptimalActionOracleResult:
-        ordered_actions = tuple(sorted(set(actions), key=action_order.__getitem__))
+        ordered_actions = tuple(
+            sorted(set(actions), key=oracle._action_order.__getitem__)
+        )
         return OptimalActionOracleResult(
             status=status,
             stop_reason=stop_reason,
@@ -580,11 +652,7 @@ def certify_shortest_first_actions(
         target_observed = False
 
         for node in frontier.values():
-            compatible = [
-                function
-                for function in palette
-                if node.state.item_type is function.input_type_cls()
-            ]
+            compatible = oracle._functions_by_input_type.get(node.state.item_type, ())
             for function in compatible:
                 if (
                     limits.max_executions is not None
@@ -597,7 +665,7 @@ def certify_shortest_first_actions(
                     )
                 attempted += 1
                 try:
-                    child = executor.execute(function, node.state)
+                    child = oracle._executor.execute(function, node.state)
                 except Exception:
                     failed += 1
                     continue
@@ -649,3 +717,27 @@ def certify_shortest_first_actions(
         frontier = next_frontier
 
     return result("unresolved", stop_reason="max_depth")
+
+
+def certify_shortest_first_actions(
+    source: TypedList,
+    target: TypedList,
+    functions: FunctionDefSet,
+    *,
+    limits: OracleLimits,
+) -> OptimalActionOracleResult:
+    """Run bounded BFS and return every shortest first action only when complete.
+
+    Search states use :meth:`TypedList.search_key`, exactly as production search
+    does.  Goal checks use ``TypedList.__eq__`` and therefore canonical answer
+    equality.  A target found partway through a budget-truncated layer is
+    reported as observed but unresolved: the missing suffix could contain more
+    equally short first actions. This one-shot wrapper prepares an isolated
+    palette per call; repeated callers should reuse :class:`PreparedOptimalActionOracle`.
+    """
+
+    terminal = _terminal_oracle_result(source, target, limits)
+    if terminal is not None:
+        return terminal
+    oracle = PreparedOptimalActionOracle(functions)
+    return _certify_with_prepared_oracle(source, target, oracle, limits=limits)

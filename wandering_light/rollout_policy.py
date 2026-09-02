@@ -379,12 +379,6 @@ def _parse_config(
     return architecture, dict(basis), actions
 
 
-def policy_config_architecture(
-    architecture: PolicyArchitecture = DEFAULT_POLICY_ARCHITECTURE,
-) -> dict[str, Any]:
-    return architecture.to_config()
-
-
 def assert_weights_only_checkpoint(
     checkpoint: Path, *, require_complete: bool = True
 ) -> None:

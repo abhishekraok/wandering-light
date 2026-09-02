@@ -14,6 +14,7 @@ import pytest
 
 from experiments import compute_optimal_policy_size as study
 from wandering_light.compute_optimal import OptimalActionOracleResult
+from wandering_light.function_def import FunctionDef, FunctionDefSet
 from wandering_light.typed_list import TypedList
 
 EXPECTED_PARAMETERS = {
@@ -99,6 +100,52 @@ def _manifest() -> dict[str, Any]:
     }
 
 
+def _selective_verification(
+    manifest_digest: str,
+    selected_splits: tuple[str, ...],
+    *,
+    manifest_splits: tuple[str, ...] = ("discovery", "test", "validation"),
+    required_references: tuple[dict[str, Any], ...] = (),
+) -> dict[str, Any]:
+    return {
+        "manifest_digest": manifest_digest,
+        "scope": {
+            "kind": "selected-splits",
+            "selected_splits": list(selected_splits),
+            "manifest_splits": sorted(manifest_splits),
+        },
+        "checks": {
+            "manifest_identity": {
+                "status": "passed",
+                "manifest_digest": manifest_digest,
+            },
+            **{
+                check: {"status": "passed", "failures": []}
+                for check in study._SELECTIVE_CORPUS_PASSES
+                if check not in {"manifest_identity", "reference_overlap"}
+            },
+            "reference_overlap": {
+                "status": "passed",
+                "failures": [],
+                "required_references": [
+                    dict(reference) for reference in required_references
+                ],
+                "verified_references": [
+                    dict(reference) for reference in required_references
+                ],
+            },
+            **{
+                check: {"status": "skipped", "reason": reason}
+                for check, reason in study._SELECTIVE_CORPUS_SKIP_REASONS.items()
+            },
+        },
+        "verified_splits": list(selected_splits),
+        "full_corpus_verified": None,
+        "target_contract_failures": None,
+        "ok": True,
+    }
+
+
 @pytest.fixture
 def corpus() -> SimpleNamespace:
     records = _records()
@@ -179,6 +226,7 @@ def test_freeze_pins_validation_arms_search_metric_and_oracle(
     } == EXPECTED_PARAMETERS
     assert protocol["training_seeds"] == [0, 1, 2]
     assert protocol["devices"] == ["cpu", "cuda"]
+    assert protocol["corpus"]["reference_corpora_excluded"] == []
     assert protocol["training"] == {
         "source_corpus": "deep-corpus-v2",
         "materialized_splits": ["discovery", "validation"],
@@ -288,6 +336,62 @@ def test_evaluation_lock_rejects_overlapping_cells(
         pass
 
 
+def test_artifact_primitives_share_canonical_normalization(tmp_path: Path) -> None:
+    from wandering_light.evals.deep_corpus_protocol import (
+        canonical_copy,
+        canonical_json,
+        file_identity,
+        sha256_bytes,
+        sha256_file,
+        sha256_json,
+    )
+
+    digest_field = "artifact_sha256"
+    body = {
+        "tuple_value": (1, 2),
+        "integer_keys": {2: "two", 10: "ten"},
+        digest_field: "sha256:stale",
+    }
+    normalized = canonical_copy(
+        {key: value for key, value in body.items() if key != digest_field}
+    )
+    expected = {**normalized, digest_field: sha256_json(normalized)}
+
+    sealed = study._seal(body, digest_field)
+
+    assert sealed == expected
+    assert study._seal(sealed, digest_field) == sealed
+    assert study._verify_seal(sealed, digest_field, label="test artifact") == sealed
+    assert study._canonical_json(normalized) == canonical_json(normalized)
+    assert study._sha256_bytes(b"shared") == sha256_bytes(b"shared")
+
+    artifact = tmp_path / "artifact.bin"
+    artifact.write_bytes(b"shared")
+    assert study._sha256_file(artifact) == sha256_file(artifact)
+    assert study._artifact_identity(artifact) == file_identity(artifact, root=tmp_path)
+
+
+def test_arm_lookup_is_cached_immutable_trainer_configuration() -> None:
+    from experiments.train_rollout_policy import POLICY_SIZE_BATCHING
+
+    configs = study._frozen_arm_configs()
+
+    assert tuple(config.arm_id for config in configs) == tuple(POLICY_SIZE_BATCHING)
+    assert {
+        config.arm_id: (
+            config.train_batch_size,
+            config.gradient_accumulation_steps,
+            config.validation_batch_size,
+        )
+        for config in configs
+    } == POLICY_SIZE_BATCHING
+    assert study._arm_config_by_id("40m") is study._arm_config_by_id("40m")
+
+    materialized = study._frozen_arms()
+    materialized[0]["architecture"]["hidden"] = -1
+    assert study._arm_by_id("90k")["architecture"]["hidden"] > 0
+
+
 def test_corpus_loader_requests_validation_only(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -296,21 +400,54 @@ def test_corpus_loader_requests_validation_only(
 
     calls = []
     manifest = _manifest()
+    reference = {"manifest_digest": "sha256:" + "4" * 64}
+    manifest["reference_corpora_excluded"] = [reference]
+    manifest["target_contract"] = {
+        "reference_manifest_digests": [reference["manifest_digest"]]
+    }
+    manifest["splits"].update(
+        {
+            "discovery": {"path": "discovery.jsonl.gz"},
+            "test": {"path": "test.jsonl.gz"},
+        }
+    )
     records = _records()
-    functions = _functions()
+    palettes = []
 
     def load_corpus(path: Path, *, splits: tuple[str, ...]):
         calls.append(("load", path, splits))
         return manifest, records
 
-    def verify_corpus(path: Path, *, splits: tuple[str, ...], recertify: int):
-        calls.append(("verify", path, splits, recertify))
-        return {"ok": True, "verified_splits": list(splits)}
+    def verify_loaded_corpus(
+        loaded_manifest: dict[str, Any],
+        loaded_records: list[FakeRecord],
+        *,
+        splits: tuple[str, ...],
+        recertify: int,
+        reference_identities: tuple[Any, ...],
+    ) -> dict[str, Any]:
+        assert loaded_manifest is manifest
+        assert loaded_records is records
+        assert reference_identities == ("reference-identities",)
+        calls.append(("verify", splits, recertify))
+        return _selective_verification(
+            manifest["manifest_digest"],
+            splits,
+            manifest_splits=tuple(manifest["splits"]),
+            required_references=(reference,),
+        )
 
-    def verify_files(
-        path: Path, *, splits: tuple[str, ...], include_details: bool
-    ) -> None:
-        calls.append(("files", path, splits, include_details))
+    def load_required_reference_identities(
+        loaded_manifest: dict[str, Any],
+        corpus_dirs: tuple[Path, ...],
+        *,
+        fetch_if_missing: bool = True,
+    ) -> tuple[str, ...]:
+        assert loaded_manifest is manifest
+        assert corpus_dirs == study.DEFAULT_REFERENCE_CORPUS_DIRS
+        assert fetch_if_missing is True
+        calls.append(("references", corpus_dirs))
+        return ("reference-identities",)
 
     def fetch_corpus(
         manifest_path: Path,
@@ -321,23 +458,55 @@ def test_corpus_loader_requests_validation_only(
     ) -> None:
         calls.append(("fetch", manifest_path, destination, splits, include_details))
 
+    def as_function_set():
+        palette = FunctionDefSet(
+            [
+                FunctionDef(
+                    name="a",
+                    input_type="builtins.int",
+                    output_type="builtins.int",
+                    code="return x + 1",
+                )
+            ]
+        )
+        palettes.append(palette)
+        return palette
+
     fake_basis = SimpleNamespace(
         digest=manifest["basis_set_digest"],
-        as_function_set=lambda: functions,
+        as_function_set=as_function_set,
     )
     monkeypatch.setattr(generate_deep_corpus, "load_corpus", load_corpus)
-    monkeypatch.setattr(generate_deep_corpus, "verify_corpus", verify_corpus)
+    monkeypatch.setattr(
+        generate_deep_corpus,
+        "verify_loaded_corpus",
+        verify_loaded_corpus,
+    )
+    monkeypatch.setattr(
+        generate_deep_corpus,
+        "load_required_reference_identities",
+        load_required_reference_identities,
+    )
     monkeypatch.setattr(basis_set, "load_basis_set", lambda _basis_id: fake_basis)
     monkeypatch.setattr(corpus_hub, "fetch_corpus", fetch_corpus)
-    monkeypatch.setattr(corpus_hub, "verify_corpus_files", verify_files)
 
     corpus_dir = tmp_path / "corpus"
     corpus_dir.mkdir()
     study._write_json(corpus_dir / "manifest.json", manifest)
+    study._load_validation_corpus_cached.cache_clear()
 
-    loaded = study._load_validation_corpus(corpus_dir)
+    first = study._load_validation_corpus(corpus_dir)
+    first[1].functions[0].increment_usage()
+    second = study._load_validation_corpus(corpus_dir / ".." / "corpus")
 
-    assert loaded == (manifest, functions, records)
+    assert first[0] == second[0] == manifest
+    assert first[2] == second[2] == records
+    assert first[0] is not second[0]
+    assert first[1] is palettes[0]
+    assert second[1] is palettes[1]
+    assert first[1] is not second[1]
+    assert first[1].functions[0].usage_count == 1
+    assert second[1].functions[0].usage_count == 0
     assert calls == [
         (
             "fetch",
@@ -346,10 +515,118 @@ def test_corpus_loader_requests_validation_only(
             ("validation",),
             False,
         ),
-        ("files", corpus_dir, ("validation",), False),
-        ("verify", corpus_dir, ("validation",), 0),
         ("load", corpus_dir, ("validation",)),
+        ("references", study.DEFAULT_REFERENCE_CORPUS_DIRS),
+        ("verify", ("validation",), 0),
     ]
+    study._load_validation_corpus_cached.cache_clear()
+
+
+@pytest.mark.parametrize(
+    ("check", "evidence"),
+    [
+        ("witness_replay", {"status": "passed"}),
+        (
+            "record_provenance",
+            {"status": "passed", "failures": ["contradictory failure"]},
+        ),
+        (
+            "manifest_identity",
+            {"status": "passed", "manifest_digest": "sha256:different"},
+        ),
+        ("target_contract", {"status": "skipped", "reason": ""}),
+        (
+            "distance_recertification",
+            {"status": "skipped", "reason": "recertify=1"},
+        ),
+        (
+            "distance_recertification",
+            {
+                "status": "skipped",
+                "reason": "recertify=0",
+                "failures": ["contradictory failure"],
+            },
+        ),
+        (
+            "reference_overlap",
+            {
+                "status": "passed",
+                "failures": [],
+                "required_references": [],
+                "verified_references": [{"manifest_digest": "sha256:" + "9" * 64}],
+            },
+        ),
+    ],
+)
+def test_selective_verification_gate_rejects_contradictory_check_evidence(
+    check: str,
+    evidence: dict[str, Any],
+) -> None:
+    digest = "sha256:" + "1" * 64
+    verification = _selective_verification(
+        digest,
+        ("validation",),
+    )
+    verification["checks"][check] = evidence
+
+    with pytest.raises(ValueError, match="exact selected-split verification evidence"):
+        study._require_selective_corpus_verification(
+            verification,
+            manifest_digest=digest,
+            selected_splits=("validation",),
+            manifest_splits=("discovery", "test", "validation"),
+            required_references=(),
+            label="Validation corpus",
+        )
+
+
+def test_selective_verification_gate_requires_exact_pinned_reference_evidence() -> None:
+    digest = "sha256:" + "1" * 64
+    reference = {"manifest_digest": "sha256:" + "2" * 64, "tasks": 31_350}
+    verification = _selective_verification(
+        digest,
+        ("validation",),
+        required_references=(reference,),
+    )
+    arguments = {
+        "manifest_digest": digest,
+        "selected_splits": ("validation",),
+        "manifest_splits": ("discovery", "test", "validation"),
+        "required_references": (reference,),
+        "label": "Validation corpus",
+    }
+    study._require_selective_corpus_verification(verification, **arguments)
+
+    verification["checks"]["reference_overlap"]["verified_references"] = []
+    with pytest.raises(ValueError, match="exact selected-split verification evidence"):
+        study._require_selective_corpus_verification(verification, **arguments)
+
+
+def test_runner_jsonl_helpers_are_deterministic_and_require_object_rows(
+    tmp_path: Path,
+) -> None:
+    rows = [{"z": 1, "a": [2, 3]}]
+    first = tmp_path / "first.jsonl.gz"
+    second = tmp_path / "second.jsonl.gz"
+    study._write_jsonl_gz(rows, first)
+    study._write_jsonl_gz(rows, second)
+
+    assert first.read_bytes() == second.read_bytes()
+    assert (
+        study._validated_jsonl_rows(
+            study._read_jsonl_gz(first),
+            label="test artifact",
+        )
+        == rows
+    )
+
+    malformed = tmp_path / "malformed.jsonl.gz"
+    study._write_jsonl_gz([{"valid": True}, 1], malformed)
+    with pytest.raises(ValueError, match="non-object row"):
+        study._validated_jsonl_rows(
+            study._read_jsonl_gz(malformed),
+            label="test artifact",
+        )
 
 
 @pytest.mark.parametrize(
@@ -431,13 +708,11 @@ def test_checkpoint_identity_requires_the_frozen_training_recipe(
             "manifest_digest": corpus["manifest_digest"],
             "basis_set_id": corpus["basis_set_id"],
             "basis_set_digest": corpus["basis_set_digest"],
-            "verification": {
-                "ok": True,
-                "verified_splits": ["discovery", "validation"],
-                "full_corpus_verified": False,
-                "witness_failures": 0,
-                "roots_leaking_across_splits": [],
-            },
+            "verification": _selective_verification(
+                corpus["manifest_digest"],
+                ("discovery", "validation"),
+                required_references=tuple(corpus["reference_corpora_excluded"]),
+            ),
             "task_roles": {
                 "discovery": {"role": "training-only"},
                 "validation": {"role": "model-selection-only"},
@@ -497,6 +772,64 @@ def test_checkpoint_identity_requires_the_frozen_training_recipe(
             training_seed=2,
             protocol=frozen_protocol.protocol,
         )
+
+    training_manifest["hyperparameters"]["validation_batch_size"] = (
+        validation_batch_size
+    )
+    training_manifest["source_corpus"]["verification"]["full_corpus_verified"] = False
+    study._write_json(checkpoint / TRAINING_MANIFEST_FILE, training_manifest)
+    with pytest.raises(ValueError, match="selected-split verification evidence"):
+        study._checkpoint_identity(
+            checkpoint,
+            arm=arm,
+            training_seed=2,
+            protocol=frozen_protocol.protocol,
+        )
+
+
+@pytest.mark.parametrize(
+    ("depth_counts", "recorded_total"),
+    [({}, None), ({"1": 0}, 0)],
+)
+def test_visit_validation_rejects_missing_or_empty_stratum_without_dividing(
+    depth_counts: dict[str, int], recorded_total: int | None
+) -> None:
+    cell = {"arm_id": "90k", "training_seed": 0, "device": "cpu"}
+    task_rows = [
+        {
+            "task_id": "validation-task",
+            "certified_distance": 1,
+            "root_digest": "sha256:root",
+            "sampled_visits": 0,
+            "scored_visits_by_rollout_depth": depth_counts,
+        }
+    ]
+    visit_rows = [
+        {
+            **cell,
+            "task_id": "validation-task",
+            "certified_distance": 1,
+            "root_digest": "sha256:root",
+            "sampling_stratum": {
+                "task_id": "validation-task",
+                "rollout_depth": 1,
+                "total_visits": recorded_total,
+                "sampled_visits": 0,
+            },
+            "sampling_weight": 1.0,
+            "visit": {
+                "depth": 1,
+                "oracle": {
+                    "status": "unresolved",
+                    "optimal_actions_complete": False,
+                },
+                "masked_optimal_bits": None,
+            },
+        }
+    ]
+
+    with pytest.raises(ValueError, match="invalid stratum weight"):
+        study._validate_visit_rows(visit_rows, task_rows=task_rows, cell=cell)
 
 
 @dataclass(frozen=True)
@@ -663,6 +996,7 @@ def _run_fake_cell_phase(
     executions: int,
     timing_summary: Path | None = None,
     timing_matrix: Path | None = None,
+    inject_oracle: bool = True,
 ) -> tuple[dict[str, Any], SimpleNamespace]:
     events: list[tuple[Any, ...]] = []
     verification_calls: list[tuple[str, int]] = []
@@ -705,7 +1039,7 @@ def _run_fake_cell_phase(
         synchronizer=synchronize,
         clock=clock,
         result_verifier=verify,
-        oracle_certifier=oracle,
+        oracle_certifier=oracle if inject_oracle else None,
     )
     return summary, SimpleNamespace(
         events=events,
@@ -811,6 +1145,63 @@ def _evaluate_fake_cell(
             *annotation_fakes.verification_calls,
         ],
     )
+
+
+def test_default_oracle_is_prepared_once_only_for_annotation(
+    tmp_path: Path,
+    frozen_protocol: SimpleNamespace,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from wandering_light import compute_optimal
+
+    prepared: list[tuple[FakeOracle, Any]] = []
+
+    class CountingPreparedOracle(FakeOracle):
+        def __init__(self, functions: Any) -> None:
+            super().__init__()
+            prepared.append((self, functions))
+
+    monkeypatch.setattr(
+        compute_optimal,
+        "PreparedOptimalActionOracle",
+        CountingPreparedOracle,
+    )
+    timing_dir = tmp_path / "default-oracle-timing"
+    _run_fake_cell_phase(
+        frozen_protocol,
+        output_dir=timing_dir,
+        arm_id="90k",
+        seed=0,
+        device="cpu",
+        duration=0.125,
+        executions=64,
+        inject_oracle=False,
+    )
+    assert prepared == []
+
+    timing_summary = timing_dir / study.TIMING_SUMMARY_FILE
+    timing_matrix = _write_fake_timing_matrix(
+        frozen_protocol,
+        timing_summary_path=timing_summary,
+        output=tmp_path / "default-oracle-timing-matrix.json",
+    )
+    _run_fake_cell_phase(
+        frozen_protocol,
+        output_dir=tmp_path / "default-oracle-annotation",
+        arm_id="90k",
+        seed=0,
+        device="cpu",
+        duration=0.125,
+        executions=64,
+        timing_summary=timing_summary,
+        timing_matrix=timing_matrix,
+        inject_oracle=False,
+    )
+
+    assert len(prepared) == 1
+    oracle, functions = prepared[0]
+    assert functions is frozen_protocol.functions
+    assert len(oracle.calls) == 192
 
 
 def test_evaluate_isolates_timing_and_records_oracle_coverage(
@@ -1126,7 +1517,7 @@ def test_aggregate_requires_full_matrix_and_selects_best_arms(
     task_path = changed_timing_dir / study.TASK_ROWS_FILE
     task_rows = study._read_jsonl_gz(task_path)
     task_rows[0]["seconds"] *= 2
-    study._write_jsonl_gz(task_path, task_rows)
+    study._write_jsonl_gz(task_rows, task_path)
     changed_timing["metrics"] = study._distance_metrics(task_rows)
     changed_timing["artifacts"]["tasks"] = study._artifact_identity(task_path)
     study._write_json(

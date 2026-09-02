@@ -36,8 +36,6 @@ import argparse
 import contextlib
 import fcntl
 import functools
-import gzip
-import hashlib
 import json
 import math
 import os
@@ -48,13 +46,28 @@ import sys
 import tempfile
 import time
 from collections import Counter
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from wandering_light.evals import deep_corpus_protocol as _artifact_primitives
+from wandering_light.shortest_path_data import (
+    read_jsonl_gz as _read_jsonl_gz,
+)
+from wandering_light.shortest_path_data import (
+    write_jsonl_gz as _write_jsonl_gz,
+)
+
+_canonical_copy = _artifact_primitives.canonical_copy
+_canonical_json = _artifact_primitives.canonical_json
+_file_identity = _artifact_primitives.file_identity
+_sha256_bytes = _artifact_primitives.sha256_bytes
+_sha256_file = _artifact_primitives.sha256_file
+_sha256_json = _artifact_primitives.sha256_json
 
 if TYPE_CHECKING:
     from wandering_light.function_def import FunctionDefSet
@@ -69,6 +82,7 @@ TIMING_MATRIX_STATUS = "timing-matrix-sealed"
 AGGREGATE_STATUS = "complete"
 
 DEFAULT_CORPUS_DIR = Path("wandering_light/training/data/deep_corpus_v2")
+DEFAULT_REFERENCE_CORPUS_DIRS = (Path("wandering_light/training/data/deep_corpus_v1"),)
 TRAINING_SEEDS = (0, 1, 2)
 DEVICES = ("cpu", "cuda")
 COHORT_SELECTION_SEED = 20_260_826
@@ -103,9 +117,6 @@ TRAINING_LEARNING_RATE = 2e-3
 TRAINING_DEVICE = "cuda"
 EFFECTIVE_TRAIN_BATCH_SIZE = 256
 CHECKPOINT_SELECTION = "minimum validation cross-entropy"
-TRAIN_MICROBATCHES = {"90k": 256, "1m": 256, "10m": 256, "40m": 128}
-GRADIENT_ACCUMULATION_STEPS = {"90k": 1, "1m": 1, "10m": 1, "40m": 2}
-VALIDATION_BATCHES = {"90k": 512, "1m": 512, "10m": 256, "40m": 128}
 
 ORACLE_MAX_DEPTH = 6
 ORACLE_MAX_STATES = 20_000
@@ -130,6 +141,25 @@ ORACLE_CACHE_FILE = "oracle_labels.json"
 ORACLE_CACHE_SAVE_EVERY_TASKS = 12
 EVALUATION_LOCK_FILE = ".compute-optimal-policy-size.lock"
 
+_SELECTIVE_CORPUS_PASSES = (
+    "manifest_identity",
+    "witness_replay",
+    "record_provenance",
+    "selected_split_summaries",
+    "selected_split_isolation",
+    "reference_overlap",
+)
+_SELECTIVE_CORPUS_SKIPS = (
+    "corpus_global_summaries",
+    "target_contract",
+    "distance_recertification",
+)
+_SELECTIVE_CORPUS_SKIP_REASONS = {
+    "corpus_global_summaries": "not every manifest split was loaded",
+    "target_contract": "target contract is corpus-global",
+    "distance_recertification": "recertify=0",
+}
+
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 STUDY_SOURCE_FILES = tuple(
     path.relative_to(_REPO_ROOT).as_posix()
@@ -138,8 +168,43 @@ STUDY_SOURCE_FILES = tuple(
 )
 
 
-def _frozen_arms(action_count: int = FROZEN_ACTION_COUNT) -> list[dict[str, Any]]:
-    """Resolve the canonical trainer arms and pin their 118-action sizes."""
+@dataclass(frozen=True)
+class _PolicySizeArmConfig:
+    arm_id: str
+    nominal_label: str
+    byte_embedding: int
+    conv_channels: int
+    hidden: int
+    parameters: int
+    train_batch_size: int
+    gradient_accumulation_steps: int
+    validation_batch_size: int
+
+    def protocol_identity(self) -> dict[str, Any]:
+        return {
+            "arm_id": self.arm_id,
+            "nominal_label": self.nominal_label,
+            "architecture": {
+                "byte_embedding": self.byte_embedding,
+                "conv_channels": self.conv_channels,
+                "hidden": self.hidden,
+            },
+            "parameters": self.parameters,
+        }
+
+    def batching(self) -> dict[str, int]:
+        return {
+            "train_batch_size": self.train_batch_size,
+            "gradient_accumulation_steps": self.gradient_accumulation_steps,
+            "validation_batch_size": self.validation_batch_size,
+        }
+
+
+@functools.cache
+def _frozen_arm_configs(
+    action_count: int = FROZEN_ACTION_COUNT,
+) -> tuple[_PolicySizeArmConfig, ...]:
+    """Resolve immutable arm identities and batching from the trainer."""
 
     from experiments.train_rollout_policy import (
         POLICY_SIZE_ARMS,
@@ -148,17 +213,9 @@ def _frozen_arms(action_count: int = FROZEN_ACTION_COUNT) -> list[dict[str, Any]
 
     if tuple(POLICY_SIZE_ARMS) != ARM_IDS:
         raise ValueError("Trainer policy-size arms differ from the frozen sweep")
-    expected_batching = {
-        arm_id: (
-            TRAIN_MICROBATCHES[arm_id],
-            GRADIENT_ACCUMULATION_STEPS[arm_id],
-            VALIDATION_BATCHES[arm_id],
-        )
-        for arm_id in ARM_IDS
-    }
-    if expected_batching != POLICY_SIZE_BATCHING:
+    if tuple(POLICY_SIZE_BATCHING) != ARM_IDS:
         raise ValueError("Trainer policy-size batching differs from the frozen sweep")
-    arms = []
+    arms: list[_PolicySizeArmConfig] = []
     for arm_id in ARM_IDS:
         architecture = POLICY_SIZE_ARMS[arm_id]
         parameters = architecture.parameter_count(action_count)
@@ -168,26 +225,54 @@ def _frozen_arms(action_count: int = FROZEN_ACTION_COUNT) -> list[dict[str, Any]
                 f"Arm {arm_id} has {parameters:,} parameters for {action_count} "
                 f"actions, expected {expected:,} for {FROZEN_ACTION_COUNT} actions"
             )
+        batching = POLICY_SIZE_BATCHING[arm_id]
+        if (
+            not isinstance(batching, tuple)
+            or len(batching) != 3
+            or any(type(value) is not int or value <= 0 for value in batching)
+        ):
+            raise ValueError(f"Trainer policy-size batching is invalid for {arm_id}")
+        train_batch_size, accumulation_steps, validation_batch_size = batching
+        if train_batch_size * accumulation_steps != EFFECTIVE_TRAIN_BATCH_SIZE:
+            raise ValueError(
+                f"Trainer effective batch size differs from the sweep for {arm_id}"
+            )
         arms.append(
-            {
-                "arm_id": arm_id,
-                "nominal_label": ARM_LABELS[arm_id],
-                "architecture": {
-                    "byte_embedding": architecture.byte_embedding,
-                    "conv_channels": architecture.conv_channels,
-                    "hidden": architecture.hidden,
-                },
-                "parameters": parameters,
-            }
+            _PolicySizeArmConfig(
+                arm_id=arm_id,
+                nominal_label=ARM_LABELS[arm_id],
+                byte_embedding=architecture.byte_embedding,
+                conv_channels=architecture.conv_channels,
+                hidden=architecture.hidden,
+                parameters=parameters,
+                train_batch_size=train_batch_size,
+                gradient_accumulation_steps=accumulation_steps,
+                validation_batch_size=validation_batch_size,
+            )
         )
-    return arms
+    return tuple(arms)
+
+
+def _frozen_arms(action_count: int = FROZEN_ACTION_COUNT) -> list[dict[str, Any]]:
+    """Materialize fresh JSON identities from the cached immutable arm configs."""
+
+    return [arm.protocol_identity() for arm in _frozen_arm_configs(action_count)]
+
+
+@functools.cache
+def _arm_config_by_id(
+    arm_id: str, action_count: int = FROZEN_ACTION_COUNT
+) -> _PolicySizeArmConfig:
+    try:
+        return next(
+            arm for arm in _frozen_arm_configs(action_count) if arm.arm_id == arm_id
+        )
+    except StopIteration as error:
+        raise ValueError(f"Unknown architecture arm {arm_id!r}") from error
 
 
 def _arm_by_id(arm_id: str) -> dict[str, Any]:
-    try:
-        return next(arm for arm in _frozen_arms() if arm["arm_id"] == arm_id)
-    except StopIteration as error:
-        raise ValueError(f"Unknown architecture arm {arm_id!r}") from error
+    return _arm_config_by_id(arm_id).protocol_identity()
 
 
 @dataclass(frozen=True)
@@ -234,39 +319,18 @@ def _serialized_evaluation(function: Callable[..., dict[str, Any]]):
     return wrapped
 
 
-def _canonical_json(value: Any) -> str:
-    return json.dumps(
-        value,
-        allow_nan=False,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    )
-
-
-def _sha256_bytes(value: bytes) -> str:
-    return f"sha256:{hashlib.sha256(value).hexdigest()}"
-
-
-def _sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as input_file:
-        while chunk := input_file.read(1024 * 1024):
-            digest.update(chunk)
-    return f"sha256:{digest.hexdigest()}"
-
-
 def _seal(value: Mapping[str, Any], field: str) -> dict[str, Any]:
     result = dict(value)
     result.pop(field, None)
-    result[field] = _sha256_bytes(_canonical_json(result).encode("utf-8"))
+    result = _canonical_copy(result)
+    result[field] = _sha256_json(result)
     return result
 
 
 def _verify_seal(value: Mapping[str, Any], field: str, *, label: str) -> dict[str, Any]:
-    result = dict(value)
+    result = _canonical_copy(dict(value))
     actual = result.pop(field, None)
-    expected = _sha256_bytes(_canonical_json(result).encode("utf-8"))
+    expected = _sha256_json(result)
     if actual != expected:
         raise ValueError(f"{label} digest mismatch: {actual!r} != {expected!r}")
     result[field] = actual
@@ -305,33 +369,16 @@ def _write_json(
         output_file.write("\n")
 
 
-def _write_jsonl_gz(path: Path, rows: Iterable[Mapping[str, Any]]) -> None:
-    with gzip.open(path, "wt", encoding="utf-8") as output_file:
-        for row in rows:
-            output_file.write(_canonical_json(row))
-            output_file.write("\n")
+def _validated_jsonl_rows(rows: Sequence[Any], *, label: str) -> list[dict[str, Any]]:
+    """Require the public JSONL reader's values to be artifact row objects."""
 
-
-def _read_jsonl_gz(path: Path) -> list[dict[str, Any]]:
-    rows = []
-    try:
-        with gzip.open(path, "rt", encoding="utf-8") as input_file:
-            for line_number, line in enumerate(input_file, start=1):
-                value = json.loads(line)
-                if not isinstance(value, dict):
-                    raise ValueError(f"row {line_number} is not an object")
-                rows.append(value)
-    except (OSError, json.JSONDecodeError) as error:
-        raise ValueError(f"Could not read JSONL artifact {path}: {error}") from error
-    return rows
+    if any(not isinstance(row, Mapping) for row in rows):
+        raise ValueError(f"{label} contains a non-object row")
+    return [dict(row) for row in rows]
 
 
 def _artifact_identity(path: Path) -> dict[str, Any]:
-    return {
-        "path": path.name,
-        "bytes": path.stat().st_size,
-        "sha256": _sha256_file(path),
-    }
+    return _file_identity(path, root=path.parent)
 
 
 def study_source_identity() -> dict[str, Any]:
@@ -356,17 +403,13 @@ def study_source_identity() -> dict[str, Any]:
     ):
         raise ValueError(f"Git returned an invalid HEAD commit: {commit!r}")
     files = [
-        {
-            "path": relative,
-            "bytes": (repo_root / relative).stat().st_size,
-            "sha256": _sha256_file(repo_root / relative),
-        }
+        _file_identity(repo_root / relative, root=repo_root)
         for relative in STUDY_SOURCE_FILES
     ]
     return {
         "head_commit": commit,
         "files": files,
-        "files_sha256": _sha256_bytes(_canonical_json(files).encode("utf-8")),
+        "files_sha256": _sha256_json(files),
     }
 
 
@@ -451,24 +494,104 @@ def _cell_ordinal(protocol: Mapping[str, Any], cell: Mapping[str, Any]) -> int:
     return matches[0]
 
 
-def _load_validation_corpus(
-    corpus_dir: Path,
-) -> tuple[dict[str, Any], FunctionDefSet, list[Any]]:
-    """Fetch, digest-check, and witness-verify validation without held-out data."""
+def _require_selective_corpus_verification(
+    verification: Mapping[str, Any],
+    *,
+    manifest_digest: Any,
+    selected_splits: Sequence[str],
+    manifest_splits: Sequence[str],
+    required_references: Sequence[Mapping[str, Any]],
+    label: str,
+) -> None:
+    if any(not isinstance(reference, Mapping) for reference in required_references):
+        raise ValueError(f"{label} has an invalid required-reference contract")
+    selected = list(selected_splits)
+    expected_references = _canonical_copy(
+        [dict(reference) for reference in required_references]
+    )
+    expected_scope = {
+        "kind": "selected-splits",
+        "selected_splits": selected,
+        "manifest_splits": sorted(manifest_splits),
+    }
+    expected_statuses = {
+        **dict.fromkeys(_SELECTIVE_CORPUS_PASSES, "passed"),
+        **dict.fromkeys(_SELECTIVE_CORPUS_SKIPS, "skipped"),
+    }
+    checks = verification.get("checks")
+    actual_statuses = (
+        {
+            str(check): evidence.get("status")
+            if isinstance(evidence, Mapping)
+            else None
+            for check, evidence in checks.items()
+        }
+        if isinstance(checks, Mapping)
+        else {}
+    )
+    manifest_identity = (
+        checks.get("manifest_identity") if isinstance(checks, Mapping) else None
+    )
+    reference_overlap = (
+        checks.get("reference_overlap") if isinstance(checks, Mapping) else None
+    )
+    evidence_consistent = (
+        isinstance(manifest_identity, Mapping)
+        and manifest_identity.get("manifest_digest")
+        == verification.get("manifest_digest")
+        and manifest_identity.get("failures", []) == []
+        and isinstance(reference_overlap, Mapping)
+        and reference_overlap.get("required_references") == expected_references
+        and reference_overlap.get("verified_references") == expected_references
+        and all(
+            isinstance(evidence := checks.get(check), Mapping)
+            and evidence.get("failures") == []
+            for check in _SELECTIVE_CORPUS_PASSES
+            if check != "manifest_identity"
+        )
+        and all(
+            isinstance(evidence := checks.get(check), Mapping)
+            and evidence.get("reason") == reason
+            and evidence.get("failures", []) == []
+            for check, reason in _SELECTIVE_CORPUS_SKIP_REASONS.items()
+        )
+    )
+    if (
+        verification.get("manifest_digest") != manifest_digest
+        or verification.get("scope") != expected_scope
+        or actual_statuses != expected_statuses
+        or not evidence_consistent
+        or verification.get("ok") is not True
+        or verification.get("verified_splits") != selected
+        or verification.get("full_corpus_verified") is not None
+        or verification.get("target_contract_failures") is not None
+    ):
+        raise ValueError(f"{label} lacks exact selected-split verification evidence")
 
-    from experiments.generate_deep_corpus import load_corpus, verify_corpus
+
+@functools.cache
+def _load_validation_corpus_cached(
+    corpus_dir: Path,
+) -> tuple[dict[str, Any], Any, tuple[Any, ...]]:
+    """Parse and verify one resolved validation corpus path exactly once."""
+
+    from experiments.generate_deep_corpus import (
+        load_corpus,
+        load_required_reference_identities,
+        required_reference_corpora,
+        verify_loaded_corpus,
+    )
     from wandering_light.basis_set import load_basis_set
-    from wandering_light.corpus_hub import fetch_corpus, verify_corpus_files
+    from wandering_light.corpus_hub import corpus_split_files, fetch_corpus
 
     manifest_path = corpus_dir / "manifest.json"
     manifest_header = _read_json(manifest_path, label="deep-corpus-v2 manifest")
-    validation = manifest_header.get("splits", {}).get("validation", {})
-    validation_name = validation.get("path")
-    if (
-        not isinstance(validation_name, str)
-        or Path(validation_name).name != validation_name
-    ):
-        raise ValueError("Manifest has no safe validation payload path")
+    [(split, validation_name)] = corpus_split_files(
+        manifest_header,
+        splits=("validation",),
+    )
+    if split != "validation":
+        raise ValueError("Manifest selected an unexpected validation split")
     validation_path = corpus_dir / validation_name
     if not validation_path.is_file():
         fetch_corpus(
@@ -477,26 +600,40 @@ def _load_validation_corpus(
             splits=("validation",),
             include_details=False,
         )
-    verify_corpus_files(
-        corpus_dir,
-        splits=("validation",),
-        include_details=False,
+    manifest, records = load_corpus(corpus_dir, splits=("validation",))
+    required_references = required_reference_corpora(manifest)
+    reference_identities = load_required_reference_identities(
+        manifest,
+        DEFAULT_REFERENCE_CORPUS_DIRS,
     )
-    verification = verify_corpus(
-        corpus_dir,
+    verification = verify_loaded_corpus(
+        manifest,
+        records,
         splits=("validation",),
         recertify=0,
+        reference_identities=reference_identities,
     )
-    if not verification.get("ok"):
-        raise ValueError(f"Validation corpus verification failed: {verification}")
-    if tuple(verification.get("verified_splits", ())) != ("validation",):
-        raise ValueError("Validation verification opened an unexpected split")
-
-    manifest, records = load_corpus(corpus_dir, splits=("validation",))
+    _require_selective_corpus_verification(
+        verification,
+        manifest_digest=manifest.get("manifest_digest"),
+        selected_splits=("validation",),
+        manifest_splits=tuple(manifest.get("splits", ())),
+        required_references=required_references,
+        label="Validation corpus",
+    )
     basis = load_basis_set(manifest["basis_set_id"])
     if basis.digest != manifest["basis_set_digest"]:
         raise ValueError("Loaded basis differs from the corpus manifest")
-    return manifest, basis.as_function_set(), records
+    return _canonical_copy(manifest), basis, tuple(records)
+
+
+def _load_validation_corpus(
+    corpus_dir: Path,
+) -> tuple[dict[str, Any], FunctionDefSet, list[Any]]:
+    """Return cached verified data with a fresh executable palette per caller."""
+
+    manifest, basis, records = _load_validation_corpus_cached(corpus_dir.resolve())
+    return _canonical_copy(manifest), basis.as_function_set(), list(records)
 
 
 def _validate_cohort_records(
@@ -602,9 +739,12 @@ def _protocol_body(
     host: Mapping[str, Any],
     source: Mapping[str, Any],
 ) -> dict[str, Any]:
+    from experiments.generate_deep_corpus import required_reference_corpora
+
     validation = manifest.get("splits", {}).get("validation")
     if not isinstance(validation, Mapping):
         raise ValueError("Deep-corpus-v2 manifest has no validation split")
+    required_references = required_reference_corpora(manifest)
     return {
         "schema_version": SCHEMA_VERSION,
         "study_id": STUDY_ID,
@@ -630,6 +770,7 @@ def _protocol_body(
             "manifest_digest": manifest.get("manifest_digest"),
             "basis_set_id": manifest.get("basis_set_id"),
             "basis_set_digest": manifest.get("basis_set_digest"),
+            "reference_corpora_excluded": _canonical_copy(required_references),
             "action_count": FROZEN_ACTION_COUNT,
             "validation": {
                 key: validation.get(key)
@@ -661,12 +802,7 @@ def _protocol_body(
             "device": TRAINING_DEVICE,
             "effective_train_batch_size": EFFECTIVE_TRAIN_BATCH_SIZE,
             "per_arm_batching": {
-                arm_id: {
-                    "train_batch_size": TRAIN_MICROBATCHES[arm_id],
-                    "gradient_accumulation_steps": GRADIENT_ACCUMULATION_STEPS[arm_id],
-                    "validation_batch_size": VALIDATION_BATCHES[arm_id],
-                }
-                for arm_id in ARM_IDS
+                arm.arm_id: arm.batching() for arm in _frozen_arm_configs()
             },
             "checkpoint_selection": CHECKPOINT_SELECTION,
             "weights_only": True,
@@ -1057,14 +1193,15 @@ def _checkpoint_identity(
     hyperparameters = manifest.get("hyperparameters", {})
     if hyperparameters.get("seed") != training_seed:
         raise ValueError("Checkpoint seed differs from the requested paired seed")
+    arm_config = _arm_config_by_id(str(arm["arm_id"]))
     expected_hyperparameters = {
         "epochs": TRAINING_EPOCHS,
         "learning_rate": TRAINING_LEARNING_RATE,
         "device": TRAINING_DEVICE,
-        "train_batch_size": TRAIN_MICROBATCHES[str(arm["arm_id"])],
-        "gradient_accumulation_steps": GRADIENT_ACCUMULATION_STEPS[str(arm["arm_id"])],
+        "train_batch_size": arm_config.train_batch_size,
+        "gradient_accumulation_steps": arm_config.gradient_accumulation_steps,
         "effective_train_batch_size": EFFECTIVE_TRAIN_BATCH_SIZE,
-        "validation_batch_size": VALIDATION_BATCHES[str(arm["arm_id"])],
+        "validation_batch_size": arm_config.validation_batch_size,
         "selection": CHECKPOINT_SELECTION,
         "weights_only": True,
     }
@@ -1084,17 +1221,16 @@ def _checkpoint_identity(
     ) != (corpus["basis_set_id"], corpus["basis_set_digest"]):
         raise ValueError("Checkpoint source-corpus basis differs from the protocol")
     source_verification = source.get("verification", {})
-    if (
-        source_verification.get("ok") is not True
-        or tuple(source_verification.get("verified_splits", ()))
-        != ("discovery", "validation")
-        or source_verification.get("full_corpus_verified") is not False
-        or source_verification.get("witness_failures")
-        or source_verification.get("roots_leaking_across_splits")
-    ):
-        raise ValueError(
-            "Checkpoint did not verify exactly deep-corpus-v2 discovery/validation"
-        )
+    if not isinstance(source_verification, Mapping):
+        raise ValueError("Checkpoint has no source-corpus verification evidence")
+    _require_selective_corpus_verification(
+        source_verification,
+        manifest_digest=corpus["manifest_digest"],
+        selected_splits=("discovery", "validation"),
+        manifest_splits=("discovery", "test", "validation"),
+        required_references=corpus.get("reference_corpora_excluded", ()),
+        label="Checkpoint source corpus",
+    )
     task_roles = source.get("task_roles", {})
     if (
         task_roles.get("discovery", {}).get("role") != "training-only"
@@ -1885,7 +2021,7 @@ def _publish_timing_cell(
     )
     try:
         rows_path = staging / TIMED_ROWS_FILE
-        _write_jsonl_gz(rows_path, rows)
+        _write_jsonl_gz([dict(row) for row in rows], rows_path)
         summary = _seal(
             {
                 "schema_version": SCHEMA_VERSION,
@@ -1948,7 +2084,11 @@ def _load_timing(path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
         or _sha256_file(artifact) != identity.get("sha256")
     ):
         raise ValueError("Timing task rows differ from their sealed identity")
-    return summary, _read_jsonl_gz(artifact)
+    rows = _validated_jsonl_rows(
+        _read_jsonl_gz(artifact),
+        label="Timing task-row artifact",
+    )
+    return summary, rows
 
 
 def _validate_timing_cell(
@@ -2253,24 +2393,27 @@ def evaluate_cell(
     )
     scorer = scorer_loader(config.checkpoint, config.device)
 
-    if state_parser is None:
-        from wandering_light.typed_list import TypedList
+    if annotating:
+        if state_parser is None:
+            from wandering_light.typed_list import TypedList
 
-        state_parser = TypedList.from_str
-    if oracle_certifier is None or bits_scorer is None or oracle_limits is None:
-        from wandering_light.compute_optimal import (
-            OracleLimits,
-            certify_shortest_first_actions,
-            masked_optimal_set_bits,
-        )
+            state_parser = TypedList.from_str
+        if oracle_certifier is None or bits_scorer is None or oracle_limits is None:
+            from wandering_light.compute_optimal import (
+                OracleLimits,
+                PreparedOptimalActionOracle,
+                masked_optimal_set_bits,
+            )
 
-        oracle_certifier = oracle_certifier or certify_shortest_first_actions
-        bits_scorer = bits_scorer or masked_optimal_set_bits
-        oracle_limits = oracle_limits or OracleLimits(
-            max_depth=ORACLE_MAX_DEPTH,
-            max_states=ORACLE_MAX_STATES,
-            max_executions=ORACLE_MAX_EXECUTIONS,
-        )
+            oracle_certifier = oracle_certifier or PreparedOptimalActionOracle(
+                functions
+            )
+            bits_scorer = bits_scorer or masked_optimal_set_bits
+            oracle_limits = oracle_limits or OracleLimits(
+                max_depth=ORACLE_MAX_DEPTH,
+                max_states=ORACLE_MAX_STATES,
+                max_executions=ORACLE_MAX_EXECUTIONS,
+            )
 
     timing_summary: dict[str, Any] | None = None
     timing_matrix: dict[str, Any] | None = None
@@ -2378,6 +2521,10 @@ def evaluate_cell(
     assert timing_summary is not None
     assert timing_matrix is not None
     assert annotation_started_at is not None
+    assert state_parser is not None
+    assert oracle_certifier is not None
+    assert bits_scorer is not None
+    assert oracle_limits is not None
     oracle_cache_entries_before = len(oracle_cache)
     oracle_cache_hits = 0
     cell_oracle_queries: set[str] = set()
@@ -2448,8 +2595,8 @@ def evaluate_cell(
     try:
         task_path = staging / TASK_ROWS_FILE
         visit_path = staging / VISIT_ROWS_FILE
-        _write_jsonl_gz(task_path, task_rows)
-        _write_jsonl_gz(visit_path, visit_rows)
+        _write_jsonl_gz(task_rows, task_path)
+        _write_jsonl_gz(visit_rows, visit_path)
         summary = _seal(
             {
                 "schema_version": SCHEMA_VERSION,
@@ -2548,8 +2695,14 @@ def _load_evaluation(
             or _sha256_file(artifact) != identity.get("sha256")
         ):
             raise ValueError(f"Evaluation {name} artifact differs from its identity")
-    task_rows = _read_jsonl_gz(path.parent / artifacts["tasks"]["path"])
-    visit_rows = _read_jsonl_gz(path.parent / artifacts["visits"]["path"])
+    task_rows = _validated_jsonl_rows(
+        _read_jsonl_gz(path.parent / artifacts["tasks"]["path"]),
+        label="Evaluation task-row artifact",
+    )
+    visit_rows = _validated_jsonl_rows(
+        _read_jsonl_gz(path.parent / artifacts["visits"]["path"]),
+        label="Evaluation visit-row artifact",
+    )
     return value, task_rows, visit_rows
 
 
@@ -2595,7 +2748,9 @@ def _validate_visit_rows(
         expected_total = expected_tasks[task_id]["scored_visits_by_rollout_depth"].get(
             depth
         )
-        expected_sampled_count = min(VISITS_PER_TASK_DEPTH, expected_total or 0)
+        if type(expected_total) is not int or expected_total <= 0:
+            raise ValueError("Sampled visit has invalid stratum weight")
+        expected_sampled_count = min(VISITS_PER_TASK_DEPTH, expected_total)
         weight = row.get("sampling_weight")
         if (
             stratum.get("task_id") != task_id

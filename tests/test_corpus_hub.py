@@ -113,6 +113,25 @@ def test_payload_names_reject_path_traversal(tmp_path):
         corpus_hub.verify_corpus_files(root)
 
 
+def test_selected_split_files_validate_required_schema_before_join(tmp_path):
+    root = _corpus(tmp_path)
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    del manifest["splits"]["validation"]
+
+    with pytest.raises(ValueError, match=r"unknown corpus splits: \['validation'\]"):
+        corpus_hub.corpus_split_files(
+            manifest,
+            splits=("discovery", "validation"),
+        )
+
+    manifest["splits"]["validation"] = {"path": "../validation.jsonl.gz"}
+    with pytest.raises(ValueError, match="unsafe split path for 'validation'"):
+        corpus_hub.corpus_split_files(
+            manifest,
+            splits=("discovery", "validation"),
+        )
+
+
 def test_record_hub_location_keeps_the_manifest_digest(tmp_path):
     # Hosting is not part of what the corpus *is*, so noting it must not change
     # the digest that describes the corpus.
