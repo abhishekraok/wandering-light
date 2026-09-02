@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import gzip
 import json
 import sys
 from pathlib import Path
@@ -15,6 +14,8 @@ import experiments.train_rollout_policy as training
 import wandering_light.rollout_policy as rollout_policy_module
 from experiments.train_rollout_policy import (
     CHECKPOINT_FILES,
+    DEFAULT_REFERENCE_CORPUS_DIRS,
+    POLICY_SIZE_ARMS,
     PrefixExample,
     PreparedPrefixes,
     RolloutTrainingConfig,
@@ -23,6 +24,7 @@ from experiments.train_rollout_policy import (
     source_code_identity,
     train_policy_model,
 )
+from wandering_light.basis_dataset import BasisTaskRecord
 from wandering_light.basis_set import load_basis_set
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDefSet
@@ -34,6 +36,7 @@ from wandering_light.rollout_policy import (
     TRAINING_MANIFEST_FILE,
     WANDB_LINK_FILE,
     AlignedPairPolicy,
+    PolicyArchitecture,
     RolloutPolicy,
     assert_weights_only_checkpoint,
     pair_batch,
@@ -46,42 +49,43 @@ def _basis() -> FunctionDefSet:
     return load_basis_set("wl-core-v1").to_function_def_set()
 
 
-def _write_corpus(path: Path, split: str, witnesses: list[list[str]]) -> Path:
+def _records(split: str, witnesses: list[list[str]]) -> list[BasisTaskRecord]:
     functions = _basis()
     executor = Executor(functions)
-    path.mkdir(parents=True, exist_ok=True)
-    with gzip.open(path / f"{split}.jsonl.gz", "wt", encoding="utf-8") as file:
-        for index, names in enumerate(witnesses):
-            state = TypedList([2, 3], item_type=int)
-            source = state.to_string()
-            for name in names:
-                state = executor.execute(functions.name_to_function[name], state)
-            file.write(
-                json.dumps(
-                    {
-                        "split": split,
-                        "task_id": f"task-{index}",
-                        "input": source,
-                        "output": state.to_string(),
-                        "witness_length": len(names),
-                        "witness_function_names": names,
-                        "metadata": {
-                            "certified_distance": len(names),
-                            "root_digest": f"sha256:{index:064x}",
-                        },
-                    }
-                )
-                + "\n"
+    records = []
+    for index, names in enumerate(witnesses):
+        source = TypedList([2, 3], item_type=int)
+        target = source
+        for name in names:
+            target = executor.execute(functions.name_to_function[name], target)
+        records.append(
+            BasisTaskRecord.create(
+                split=split,
+                input_value=source,
+                output_value=target,
+                witness_function_ids=[
+                    functions.name_to_function[name].metadata["basis_function_id"]
+                    for name in names
+                ],
+                witness_function_names=names,
+                basis_set_id="wl-core-v1",
+                basis_set_digest=functions.functions[0].metadata["basis_set_digest"],
+                generator="test",
+                seed=0,
+                source_index=index,
+                metadata={
+                    "certified_distance": len(names),
+                    "root_digest": f"sha256:{index:064x}",
+                },
             )
-    return path
+        )
+    return records
 
 
-def test_every_proper_prefix_is_replayed_and_labelled_in_its_split(tmp_path):
-    corpus = _write_corpus(
-        tmp_path, "discovery", [["inc", "double", "neg"], ["square"]]
-    )
+def test_every_verified_record_prefix_is_replayed_without_reopening_payloads():
+    records = _records("discovery", [["inc", "double", "neg"], ["square"]])
 
-    examples = build_prefix_examples(corpus, "discovery", _basis())
+    examples = build_prefix_examples(records, "discovery", _basis())
 
     assert [example.action_name for example in examples] == [
         "inc",
@@ -111,6 +115,206 @@ def test_every_proper_prefix_is_replayed_and_labelled_in_its_split(tmp_path):
     )
 
 
+def test_ensure_training_splits_rejects_unsafe_path_before_probing(tmp_path):
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (tmp_path / "escape.jsonl.gz").write_bytes(b"outside")
+    (corpus / "validation.jsonl.gz").write_bytes(b"inside")
+    manifest = {
+        "splits": {
+            "discovery": {"path": "../escape.jsonl.gz"},
+            "validation": {"path": "validation.jsonl.gz"},
+        }
+    }
+    (corpus / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="unsafe split path for 'discovery'"):
+        training.ensure_training_splits(corpus)
+
+
+def test_ensure_training_splits_reports_missing_manifest_split(tmp_path):
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    manifest = {"splits": {"discovery": {"path": "discovery.jsonl.gz"}}}
+    (corpus / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=r"unknown corpus splits: \['validation'\]"):
+        training.ensure_training_splits(corpus)
+
+
+def test_prepare_prefixes_reuses_loaded_records_and_forwards_references(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    functions = _basis()
+    records = [
+        *_records("discovery", [["inc"]]),
+        *_records("validation", [["square"]]),
+    ]
+    manifest = {
+        "manifest_digest": "sha256:" + "1" * 64,
+        "basis_set_id": "wl-core-v1",
+        "basis_set_digest": functions.functions[0].metadata["basis_set_digest"],
+        "splits": {
+            "discovery": {"by_certified_distance": {"1": 1}},
+            "validation": {"by_certified_distance": {"1": 1}},
+            "test": {},
+        },
+    }
+    reference = object()
+    corpus_dir = tmp_path / "payloads-never-reopened"
+    reference_dirs = (tmp_path / "reference",)
+    monkeypatch.setattr(training, "ensure_training_splits", lambda _path: corpus_dir)
+    monkeypatch.setattr(
+        training,
+        "load_corpus",
+        lambda _path, *, splits: (manifest, records),
+    )
+
+    def load_references(loaded_manifest, paths):
+        assert loaded_manifest is manifest
+        assert paths == reference_dirs
+        return (reference,)
+
+    def verify(loaded_manifest, loaded_records, **kwargs):
+        assert loaded_manifest is manifest
+        assert loaded_records is records
+        assert kwargs["reference_identities"] == (reference,)
+        return _training_verification(manifest)
+
+    monkeypatch.setattr(training, "load_required_reference_identities", load_references)
+    monkeypatch.setattr(training, "verify_loaded_corpus", verify)
+
+    _, prepared = training.prepare_prefixes(
+        RolloutTrainingConfig(
+            output_dir=tmp_path / "output",
+            corpus_dir=corpus_dir,
+            reference_corpus_dirs=reference_dirs,
+        )
+    )
+
+    assert len(prepared.train) == 1
+    assert len(prepared.validation) == 1
+    assert not corpus_dir.exists()
+
+
+def _training_verification(manifest: dict) -> dict:
+    passed = {"status": "passed", "failures": []}
+    references = list(training.required_reference_corpora(manifest))
+    return {
+        "manifest_digest": manifest["manifest_digest"],
+        "scope": {
+            "kind": "selected-splits",
+            "selected_splits": ["discovery", "validation"],
+            "manifest_splits": sorted(manifest["splits"]),
+        },
+        "checks": {
+            "manifest_identity": {
+                "status": "passed",
+                "manifest_digest": manifest["manifest_digest"],
+            },
+            "witness_replay": dict(passed),
+            "record_provenance": dict(passed),
+            "selected_split_summaries": dict(passed),
+            "selected_split_isolation": dict(passed),
+            "reference_overlap": {
+                **passed,
+                "required_references": references,
+                "verified_references": references,
+            },
+            "corpus_global_summaries": {
+                "status": "skipped",
+                "reason": "not every manifest split was loaded",
+            },
+            "target_contract": {
+                "status": "skipped",
+                "reason": "target contract is corpus-global",
+            },
+            "distance_recertification": {
+                "status": "skipped",
+                "reason": "recertify=0",
+            },
+        },
+        "verified_splits": ["discovery", "validation"],
+        "full_corpus_verified": None,
+        "target_contract_failures": None,
+        "ok": True,
+    }
+
+
+def test_training_verification_gate_requires_exact_partial_evidence():
+    manifest = {
+        "manifest_digest": "sha256:" + "1" * 64,
+        "splits": {split: {} for split in ("discovery", "validation", "test")},
+    }
+    verification = _training_verification(manifest)
+    training._require_training_verification(manifest, verification)
+
+    verification["checks"]["selected_split_summaries"] = {
+        "status": "skipped",
+        "reason": "injected",
+    }
+    with pytest.raises(ValueError, match="checks did not pass"):
+        training._require_training_verification(manifest, verification)
+
+
+def test_training_verification_gate_requires_same_manifest_identity():
+    manifest = {
+        "manifest_digest": "sha256:" + "1" * 64,
+        "splits": {split: {} for split in ("discovery", "validation", "test")},
+    }
+    verification = _training_verification(manifest)
+    verification["manifest_digest"] = "sha256:" + "2" * 64
+
+    with pytest.raises(ValueError, match="another manifest identity"):
+        training._require_training_verification(manifest, verification)
+
+    verification = _training_verification(manifest)
+    verification["checks"]["manifest_identity"]["manifest_digest"] = (
+        "sha256:" + "2" * 64
+    )
+    with pytest.raises(ValueError, match="contradictory manifest evidence"):
+        training._require_training_verification(manifest, verification)
+
+
+def test_training_verification_gate_rejects_passed_check_with_failures():
+    manifest = {
+        "manifest_digest": "sha256:" + "1" * 64,
+        "splits": {split: {} for split in ("discovery", "validation", "test")},
+    }
+    verification = _training_verification(manifest)
+    verification["checks"]["witness_replay"]["failures"] = ["contradiction"]
+
+    with pytest.raises(ValueError, match="checks did not pass"):
+        training._require_training_verification(manifest, verification)
+
+
+def test_training_verification_gate_requires_exact_reference_evidence():
+    reference = {
+        "manifest_digest": "sha256:" + "2" * 64,
+        "basis_set_id": "wl-core-v1",
+        "basis_set_digest": "sha256:" + "3" * 64,
+        "hub_repo_id": "account/reference",
+        "hub_revision": "revision",
+        "roots": 1,
+        "root_digest_set_sha256": "sha256:" + "4" * 64,
+        "tasks": 1,
+        "task_id_set_sha256": "sha256:" + "5" * 64,
+    }
+    manifest = {
+        "manifest_digest": "sha256:" + "1" * 64,
+        "splits": {split: {} for split in ("discovery", "validation", "test")},
+        "reference_corpora_excluded": [reference],
+        "target_contract": {
+            "reference_manifest_digests": [reference["manifest_digest"]]
+        },
+    }
+    verification = _training_verification(manifest)
+    verification["checks"]["reference_overlap"]["verified_references"] = []
+
+    with pytest.raises(ValueError, match="exact reference-corpus evidence"):
+        training._require_training_verification(manifest, verification)
+
+
 def _serialized(values, item_type=int) -> str:
     return TypedList(values, item_type=item_type).to_string()
 
@@ -133,6 +337,73 @@ def test_pair_batch_tracks_real_items_and_the_model_is_batch_invariant():
         sum(parameter.numel() for parameter in AlignedPairPolicy(118).parameters())
         == 90_374
     )
+
+
+def test_policy_size_arms_have_exact_checkpoint_native_dimensions():
+    allocated = {
+        name: sum(
+            parameter.numel()
+            for parameter in AlignedPairPolicy(118, architecture).parameters()
+        )
+        for name, architecture in POLICY_SIZE_ARMS.items()
+    }
+    expected = {
+        "90k": 90_374,
+        "1m": 724_022,
+        "10m": 6_504_310,
+        "40m": 25_329_270,
+    }
+    assert allocated == expected
+    assert {
+        name: architecture.parameter_count(118)
+        for name, architecture in POLICY_SIZE_ARMS.items()
+    } == expected
+
+
+@pytest.mark.parametrize(
+    ("arm_id", "batching"),
+    training.POLICY_SIZE_BATCHING.items(),
+)
+def test_policy_size_cli_defaults_to_the_frozen_safe_batching(
+    tmp_path: Path,
+    arm_id: str,
+    batching: tuple[int, int, int],
+):
+    config = training._parse_args(
+        [
+            "--output-dir",
+            str(tmp_path / arm_id),
+            "--size-arm",
+            arm_id,
+            "--dry-run",
+        ]
+    )
+
+    assert (
+        config.train_batch_size,
+        config.gradient_accumulation_steps,
+        config.validation_batch_size,
+    ) == batching
+    assert config.corpus_dir.name == "deep_corpus_v2"
+    assert config.reference_corpus_dirs == DEFAULT_REFERENCE_CORPUS_DIRS
+
+
+def test_policy_size_cli_accepts_repeated_reference_corpus_overrides(tmp_path: Path):
+    references = (tmp_path / "first", tmp_path / "second")
+
+    config = training._parse_args(
+        [
+            "--output-dir",
+            str(tmp_path / "output"),
+            "--reference-corpus-dir",
+            str(references[0]),
+            "--reference-corpus-dir",
+            str(references[1]),
+            "--dry-run",
+        ]
+    )
+
+    assert config.reference_corpus_dirs == references
 
 
 def test_fixed_width_training_batch_preserves_logits_and_gradients():
@@ -238,6 +509,31 @@ def test_checkpoint_round_trip_is_weights_only_and_basis_pinned(tmp_path):
         RolloutPolicy.load(checkpoint)
 
 
+def test_nondefault_architecture_round_trips_without_runtime_global_mutation(tmp_path):
+    functions = _basis()
+    architecture = PolicyArchitecture(32, 40, 48)
+    policy = RolloutPolicy.from_basis(
+        AlignedPairPolicy(len(functions), architecture), functions
+    )
+    url = "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/wide"
+    checkpoint = tmp_path / "wide"
+    policy.save(
+        checkpoint,
+        training_manifest=_manifest(url, policy),
+        trainer_state={"best_epoch": 1},
+        wandb_url=url,
+    )
+
+    restored = RolloutPolicy.load(checkpoint)
+
+    assert restored.model.architecture == architecture
+    assert restored.config["architecture"] == architecture.to_config()
+    problem = [(TypedList([1]), TypedList([2]))]
+    assert restored.score_actions_batch(problem, functions)[0] == pytest.approx(
+        policy.score_actions_batch(problem, functions)[0]
+    )
+
+
 def test_checkpoint_save_cleans_staging_directory_on_failure(tmp_path, monkeypatch):
     functions = _basis()
     policy = RolloutPolicy.from_basis(AlignedPairPolicy(len(functions)), functions)
@@ -334,11 +630,42 @@ def test_training_and_validation_are_deterministic_for_one_seed():
         train, validation, ["inc", "dec"], **options
     )
 
-    assert first_state == second_state
+    nondeterministic = {
+        "training_seconds",
+        "peak_cuda_memory_allocated_bytes",
+        "peak_cuda_memory_reserved_bytes",
+    }
+    assert {
+        key: value for key, value in first_state.items() if key not in nondeterministic
+    } == {
+        key: value for key, value in second_state.items() if key not in nondeterministic
+    }
     assert all(
         torch.equal(first.state_dict()[name], second.state_dict()[name])
         for name in first.state_dict()
     )
+
+
+def test_gradient_accumulation_preserves_effective_optimizer_step_count():
+    train = [_example(index, index + 1, "inc") for index in range(5)]
+    validation = [_example(7, 8, "inc", split="validation")]
+
+    _, state = train_policy_model(
+        train,
+        validation,
+        ["inc"],
+        epochs=2,
+        learning_rate=2e-3,
+        train_batch_size=1,
+        gradient_accumulation_steps=2,
+        validation_batch_size=1,
+        seed=3,
+        device="cpu",
+    )
+
+    assert state["optimizer_steps"] == 6
+    assert state["training_seconds"] > 0
+    assert state["peak_cuda_memory_allocated_bytes"] is None
 
 
 def test_training_rejects_prefix_examples_from_the_wrong_roles():
@@ -435,6 +762,10 @@ def test_run_training_publishes_and_logs_exact_checkpoint(tmp_path, monkeypatch)
             "history": [],
             "train_prefixes": 1,
             "validation_prefixes": 1,
+            "optimizer_steps": 1,
+            "training_seconds": 0.5,
+            "peak_cuda_memory_allocated_bytes": None,
+            "peak_cuda_memory_reserved_bytes": None,
             "optimizer": optimizer,
         }
 
@@ -505,7 +836,7 @@ def test_run_training_publishes_and_logs_exact_checkpoint(tmp_path, monkeypatch)
     assert result["runtime"]["model"]["parameters"] == 90_374
     assert result["runtime"]["optimizer"] == optimizer
     assert (
-        "no test prefix examples constructed or used; payload read only for integrity"
+        "test payload never fetched, opened, or materialized"
         in result["source_corpus"]["task_roles"]["test"]["role"]
     )
     assert {path.name for path in checkpoint.iterdir()} == set(CHECKPOINT_FILES)

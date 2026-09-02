@@ -1,0 +1,75 @@
+{
+  "kind": "states",
+  "depth": 5,
+  "corpus": "wandering_light/evals/data/stack_pbe_v3",
+  "seed": 17,
+  "rows": [
+    {
+      "behaviour": "sum_of_squares",
+      "states": {
+        "off": 979711,
+        "body": 571593,
+        "close": 125011,
+        "both": 105185
+      },
+      "seconds": {
+        "off": 15.04792070388794,
+        "body": 14.47053599357605,
+        "close": 14.074514865875244,
+        "both": 10.344888925552368
+      }
+    },
+    {
+      "behaviour": "halve_each",
+      "states": {
+        "off": 981346,
+        "body": 573084,
+        "close": 125689,
+        "both": 105863
+      },
+      "seconds": {
+        "off": 15.703561782836914,
+        "body": 14.368058919906616,
+        "close": 14.755686044692993,
+        "both": 12.257065296173096
+      }
+    },
+    {
+      "behaviour": "last",
+      "states": {
+        "off": 981007,
+        "body": 572745,
+        "close": 125426,
+        "both": 105600
+      },
+      "seconds": {
+        "off": 19.25700616836548,
+        "body": 17.850278615951538,
+        "close": 19.758829832077026,
+        "both": 13.747370481491089
+      }
+    }
+  ],
+  "summary": {
+    "off": {
+      "mean_states": 980688.0,
+      "ratio": 1.0,
+      "seconds": 50.00848865509033
+    },
+    "body": {
+      "mean_states": 572474.0,
+      "ratio": 1.7130699385474275,
+      "seconds": 46.688873529434204
+    },
+    "close": {
+      "mean_states": 125375.33333333333,
+      "ratio": 7.822017090017707,
+      "seconds": 48.589030742645264
+    },
+    "both": {
+      "mean_states": 105549.33333333333,
+      "ratio": 9.291276117329021,
+      "seconds": 36.34932470321655
+    }
+  }
+}

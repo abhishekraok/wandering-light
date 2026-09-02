@@ -818,6 +818,15 @@ class RolloutPredictor(FunctionPredictor):
             return RolloutSearchResult(FunctionDefList(), 0, "max_depth")
 
         executor = Executor(available_functions)
+        grouped_functions: dict[type, list[tuple[int, FunctionDef]]] = {}
+        for function_index, function in enumerate(available_functions.functions):
+            grouped_functions.setdefault(function.input_type_cls(), []).append(
+                (function_index, function)
+            )
+        compatible_by_input_type: dict[type, tuple[tuple[int, FunctionDef], ...]] = {
+            input_type: tuple(compatible)
+            for input_type, compatible in grouped_functions.items()
+        }
         beam = [_RolloutNode(input_list, (), 0.0, 0)]
         executions = 0
         trace: list[RolloutDepthTrace] = []
@@ -833,13 +842,7 @@ class RolloutPredictor(FunctionPredictor):
 
             expansions = []
             for parent_index, (node, row) in enumerate(zip(beam, scores, strict=True)):
-                compatible = [
-                    (function_index, function)
-                    for function_index, function in enumerate(
-                        available_functions.functions
-                    )
-                    if node.state.item_type is function.input_type_cls()
-                ]
+                compatible = compatible_by_input_type.get(node.state.item_type, ())
                 if not compatible:
                     if observer is not None:
                         observer.node_masked(depth, parent_index, (), -math.inf)

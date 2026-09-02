@@ -72,6 +72,35 @@ def test_policy_observes_the_materialized_state_at_every_step():
     ]
 
 
+def test_rollout_indexes_input_types_once_without_changing_search(monkeypatch):
+    increment = make_function("increment", "return x + 1")
+    double = make_function("double", "return x * 2")
+    functions = FunctionDefSet([increment, double])
+    input_type_calls = 0
+    resolve_input_type = FunctionDef.input_type_cls
+
+    def count_input_type_calls(function_def):
+        nonlocal input_type_calls
+        input_type_calls += 1
+        return resolve_input_type(function_def)
+
+    monkeypatch.setattr(FunctionDef, "input_type_cls", count_input_type_calls)
+
+    def score(state, _target, _functions):
+        if state == TypedList([2]):
+            return {"increment": 2.0, "double": 0.0}
+        assert state == TypedList([3])
+        return {"increment": 0.0, "double": 2.0}
+
+    result = RolloutPredictor(
+        RecordingScorer(score), beam_width=1, max_depth=2, budget=10
+    ).search_with_cost(TypedList([2]), TypedList([6]), functions)
+
+    assert result.function_defs == FunctionDefList([increment, double])
+    assert result.executions == 3
+    assert input_type_calls == len(functions) + result.executions
+
+
 def test_wider_beam_can_recover_a_lower_ranked_first_action():
     increment = make_function("increment", "return x + 1")
     double = make_function("double", "return x * 2")

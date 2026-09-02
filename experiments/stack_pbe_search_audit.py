@@ -20,6 +20,10 @@ inversion the whole generator rests on. Cost grows with the basis: roughly 20x
 per depth, ~40 s per task at depth 5 on one core.
 
     uv run python experiments/stack_pbe_search_audit.py --depth 4 --tasks 40
+
+``--guard`` reinstates at search level the check that capture bypasses inside an
+open quotation. It changes how much is walked, never what is found: see
+`wandering_light.quotation_guard` and `reports/mark-28-guard-20260901/`.
 """
 
 from __future__ import annotations
@@ -29,6 +33,7 @@ import json
 import random
 import time
 
+from wandering_light.quotation_guard import MODES, blocked
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
     Value,
@@ -58,14 +63,22 @@ def step_all(behaviour: Behaviour, op) -> Behaviour | None:
 
 
 def matching_programs(
-    inputs: Behaviour, target: tuple, depth: int, basis: str
+    inputs: Behaviour, target: tuple, depth: int, basis: str, guard: str = "off"
 ) -> tuple[list[tuple[str, ...]], int]:
-    """Every program of at most `depth` ops whose behaviour is `target`."""
+    """Every program of at most `depth` ops whose behaviour is `target`.
+
+    `guard` drops successors sitting inside an open quotation that can never be
+    completed into a running one -- see `wandering_light.quotation_guard`. A
+    guarded state is never entered in `seen`, so `states` reports the size of the
+    space actually walked. Candidates are matched against the target *before*
+    the guard is consulted, so no fit can be lost to it.
+    """
     ops = ops_for_basis(basis)
     seen = {key_of(inputs)}
     frontier = {key_of(inputs): (inputs, ())}
     matches: list[tuple[str, ...]] = []
-    for _ in range(depth):
+    for step in range(depth):
+        remaining = depth - step - 1
         nxt: dict = {}
         for _key, (behaviour, program) in frontier.items():
             for op in ops:
@@ -78,6 +91,8 @@ def matching_programs(
                     matches.append(extended)
                 if moved_key in seen:
                     continue
+                if blocked(moved[0], remaining, guard) is not None:
+                    continue
                 seen.add(moved_key)
                 nxt[moved_key] = (moved, extended)
         frontier = nxt
@@ -88,11 +103,13 @@ def stacks(texts: tuple[str, ...]) -> Behaviour:
     return tuple(parse_stack(text, basis=BASIS) for text in texts)
 
 
-def audit_one(task: Task, depth: int, basis: str) -> dict:
+def audit_one(task: Task, depth: int, basis: str, guard: str = "off") -> dict:
     """Search one task, then re-check every fit on the held-out examples."""
     shown_in, shown_out = stacks(task.inputs), stacks(task.outputs)
     hidden_in, hidden_out = stacks(task.held_out_inputs), stacks(task.held_out_outputs)
-    matches, states = matching_programs(shown_in, key_of(shown_out), depth, basis)
+    matches, states = matching_programs(
+        shown_in, key_of(shown_out), depth, basis, guard
+    )
 
     generalises, spurious = [], []
     hidden_target = key_of(hidden_out)
@@ -127,6 +144,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--tasks", type=int, default=40)
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--basis", default=BASIS)
+    parser.add_argument("--guard", default="off", choices=MODES)
     parser.add_argument("--out", default=None)
     args = parser.parse_args(argv)
 
@@ -135,12 +153,15 @@ def main(argv: list[str] | None = None) -> int:
     sample = tasks[: args.tasks]
 
     started = time.time()
-    print(f"depth <= {args.depth}, {len(sample)} tasks, basis {args.basis}\n")
+    print(
+        f"depth <= {args.depth}, {len(sample)} tasks, basis {args.basis}, "
+        f"guard {args.guard}\n"
+    )
     header = f"{'behaviour':<18}{'k':>2}{'wit':>5}{'fits':>6}{'holds':>6}{'bogus':>6}{'states':>10}"
     print(header)
     rows = []
     for task in sample:
-        row = audit_one(task, args.depth, args.basis)
+        row = audit_one(task, args.depth, args.basis, args.guard)
         rows.append(row)
         print(
             f"{row['behaviour']:<18}{row['examples']:>2}{row['witness_length']:>5}"
@@ -173,7 +194,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.out:
         with open(args.out, "w") as handle:
             json.dump(
-                {"depth": args.depth, "basis": args.basis, "rows": rows},
+                {
+                    "depth": args.depth,
+                    "basis": args.basis,
+                    "guard": args.guard,
+                    "rows": rows,
+                },
                 handle,
                 indent=2,
             )

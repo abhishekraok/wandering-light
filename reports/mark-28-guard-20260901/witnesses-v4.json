@@ -1,0 +1,8 @@
+{
+  "kind": "witnesses",
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "arm": "both",
+  "behaviours": 220,
+  "checked": 26013,
+  "lost": []
+}

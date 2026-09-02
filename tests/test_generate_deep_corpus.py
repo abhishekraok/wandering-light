@@ -404,6 +404,11 @@ def test_generate_and_verify_roundtrip(tmp_path):
 
     result = deep.verify_corpus(corpus_dir, recertify=3, seed=5)
     assert result["ok"], result
+    assert result["verified_splits"] == list(deep.SPLIT_ORDER)
+    assert result["full_corpus_verified"] is True
+    assert result["scope"]["kind"] == "full-corpus"
+    assert result["checks"]["corpus_global_summaries"]["status"] == "passed"
+    assert result["checks"]["target_contract"]["status"] == "passed"
     assert result["records"] > 0
     assert result["witness_failures"] == []
     assert result["roots_leaking_across_splits"] == []
@@ -428,6 +433,86 @@ def test_generate_and_verify_roundtrip(tmp_path):
         assert record.basis_set_id == BASIS.basis_set_id
 
 
+def test_subset_verify_ignores_poisoned_test_and_reexecutes_requested_witnesses(
+    tmp_path,
+):
+    manifest, corpus_dir = _tiny_corpus(tmp_path, roots=18)
+    (corpus_dir / "test.jsonl.gz").write_bytes(b"poisoned held-out payload")
+
+    result = deep.verify_corpus(
+        corpus_dir,
+        splits=("discovery", "validation"),
+    )
+
+    assert result["ok"], result
+    assert result["verified_splits"] == ["discovery", "validation"]
+    assert result["full_corpus_verified"] is None
+    assert result["scope"] == {
+        "kind": "selected-splits",
+        "selected_splits": ["discovery", "validation"],
+        "manifest_splits": sorted(manifest["splits"]),
+    }
+    assert result["checks"]["manifest_identity"] == {
+        "status": "passed",
+        "manifest_digest": manifest["manifest_digest"],
+    }
+    assert result["checks"]["selected_split_summaries"]["status"] == "passed"
+    assert result["checks"]["corpus_global_summaries"]["status"] == "skipped"
+    assert result["checks"]["target_contract"]["status"] == "skipped"
+    assert result["target_contract_failures"] is None
+    assert result["records"] == sum(
+        manifest["splits"][split]["size"] for split in ("discovery", "validation")
+    )
+    assert result["witness_failures"] == []
+    assert result["provenance_failures"] == []
+    assert result["manifest_summary_failures"] == []
+
+    (corpus_dir / "validation.jsonl.gz").write_bytes(b"poisoned requested payload")
+    with pytest.raises(ValueError, match="file digest mismatch"):
+        deep.verify_corpus(
+            corpus_dir,
+            splits=("discovery", "validation"),
+        )
+
+
+def test_loaded_subset_verification_does_not_reopen_payloads(tmp_path):
+    manifest, corpus_dir = _tiny_corpus(tmp_path, roots=18)
+    selected = ("discovery", "validation")
+    loaded_manifest, records = deep.load_corpus(corpus_dir, splits=selected)
+    for split in selected:
+        (corpus_dir / manifest["splits"][split]["path"]).unlink()
+
+    result = deep.verify_loaded_corpus(
+        loaded_manifest,
+        records,
+        splits=selected,
+    )
+
+    assert result["ok"], result
+    assert result["scope"]["selected_splits"] == list(selected)
+    assert result["records"] == len(records)
+
+
+def test_loaded_subset_still_checks_reference_overlap(tmp_path):
+    _, corpus_dir = _tiny_corpus(tmp_path, roots=18)
+    identities = deep.collect_corpus_identities(corpus_dir)
+    selected = ("discovery", "validation")
+    manifest, records = deep.load_corpus(corpus_dir, splits=selected)
+
+    result = deep.verify_loaded_corpus(
+        manifest,
+        records,
+        splits=selected,
+        reference_identities=(identities,),
+    )
+
+    assert not result["ok"]
+    assert result["checks"]["reference_overlap"]["status"] == "failed"
+    assert result["reference_root_digest_overlaps"]
+    assert result["reference_task_id_overlaps"]
+    assert result["checks"]["target_contract"]["status"] == "skipped"
+
+
 def test_reference_corpus_identities_are_excluded_and_verified(tmp_path):
     _, reference_dir = _tiny_corpus(tmp_path / "reference", roots=6, seed=13)
     reference = deep.collect_corpus_identities(reference_dir)
@@ -445,6 +530,22 @@ def test_reference_corpus_identities_are_excluded_and_verified(tmp_path):
         },
     )
     identities = deep.collect_corpus_identities(corpus_dir)
+    selected = ("discovery", "validation")
+    selected_manifest, selected_records = deep.load_corpus(
+        corpus_dir,
+        splits=selected,
+    )
+    missing_reference = deep.verify_loaded_corpus(
+        selected_manifest,
+        selected_records,
+        splits=selected,
+    )
+    selected_result = deep.verify_loaded_corpus(
+        selected_manifest,
+        selected_records,
+        splits=selected,
+        reference_identities=(reference,),
+    )
     result = deep.verify_corpus(corpus_dir, reference_identities=(reference,))
 
     assert identities.root_digests.isdisjoint(reference.root_digests)
@@ -456,7 +557,52 @@ def test_reference_corpus_identities_are_excluded_and_verified(tmp_path):
         "test": 1,
     }
     assert manifest["reference_overlap"] == {"root_digests": 0, "task_ids": 0}
+    assert not missing_reference["ok"]
+    assert missing_reference["checks"]["reference_overlap"]["status"] == "failed"
+    assert "missing required reference identities" in str(
+        missing_reference["checks"]["reference_overlap"]["failures"]
+    )
+    assert selected_result["ok"], selected_result
+    assert selected_result["checks"]["reference_overlap"] == {
+        "status": "passed",
+        "failures": [],
+        "required_references": [reference.manifest_reference()],
+        "verified_references": [reference.manifest_reference()],
+    }
     assert result["ok"], result
+
+
+def test_required_reference_loader_checks_payload_identity_without_network(tmp_path):
+    _, reference_dir = _tiny_corpus(tmp_path / "reference", roots=6, seed=29)
+    reference = deep.collect_corpus_identities(reference_dir)
+    manifest, _ = _tiny_corpus(
+        tmp_path / "new",
+        roots=6,
+        seed=31,
+        reference_identities=(reference,),
+        target_contract={
+            "reference_manifest_digests": [reference.manifest_digest],
+        },
+    )
+
+    loaded = deep.load_required_reference_identities(
+        manifest,
+        (reference_dir,),
+        fetch_if_missing=False,
+    )
+
+    assert loaded == (reference,)
+
+    split_path = reference_dir / "discovery.jsonl.gz"
+    split_path.unlink()
+    with pytest.raises(
+        FileNotFoundError, match="reference corpus payloads are missing"
+    ):
+        deep.load_required_reference_identities(
+            manifest,
+            (reference_dir,),
+            fetch_if_missing=False,
+        )
 
 
 def test_process_workers_preserve_payload_bytes(tmp_path):

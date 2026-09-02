@@ -123,16 +123,33 @@ def _safe_bare_name(name: Any, *, label: str) -> str:
     return name
 
 
-def _split_files(manifest: dict[str, Any]) -> list[tuple[str, str]]:
-    """``(split, filename)`` pairs, rejecting anything that is not a bare name.
+def corpus_split_files(
+    manifest: dict[str, Any], *, splits: Sequence[str] | None = None
+) -> list[tuple[str, str]]:
+    """Return selected ``(split, filename)`` pairs after validating their schema.
 
     A manifest is data, and a fetched one is data from the network. A ``path``
     of ``../escape`` would otherwise read and write outside the corpus
     directory, so the check belongs on every path in, not just the upload one.
     """
+    split_metadata = manifest.get("splits")
+    if not isinstance(split_metadata, dict):
+        raise ValueError("corpus manifest 'splits' must be an object")
+    selected = tuple(split_metadata) if splits is None else tuple(splits)
+    if not selected:
+        raise ValueError("at least one corpus split must be selected")
+    if len(selected) != len(set(selected)):
+        raise ValueError(f"duplicate corpus split selection: {selected!r}")
+    unknown = [split for split in selected if split not in split_metadata]
+    if unknown:
+        raise ValueError(f"unknown corpus splits: {unknown}")
+
     pairs = []
-    for split, metadata in manifest["splits"].items():
-        name = _safe_bare_name(metadata["path"], label=f"split path for {split!r}")
+    for split in selected:
+        metadata = split_metadata[split]
+        if not isinstance(metadata, dict):
+            raise ValueError(f"metadata for corpus split {split!r} must be an object")
+        name = _safe_bare_name(metadata.get("path"), label=f"split path for {split!r}")
         pairs.append((split, name))
     return pairs
 
@@ -152,20 +169,31 @@ def _detail_files(manifest: dict[str, Any]) -> list[tuple[str, str]]:
     return pairs
 
 
-def _payload_names(manifest: dict[str, Any]) -> list[str]:
+def _payload_names(
+    manifest: dict[str, Any],
+    *,
+    splits: Sequence[str] | None = None,
+    include_details: bool = True,
+) -> list[str]:
     """The split and detail files a manifest describes, as plain names."""
+    details = _detail_files(manifest) if include_details else ()
     return [
-        *(name for _, name in _split_files(manifest)),
-        *(name for _, name in _detail_files(manifest)),
+        *(name for _, name in corpus_split_files(manifest, splits=splits)),
+        *(name for _, name in details),
     ]
 
 
-def verify_corpus_files(corpus_dir: str | Path) -> dict[str, str]:
-    """Check every split file against the manifest digest. Raises on mismatch."""
+def verify_corpus_files(
+    corpus_dir: str | Path,
+    *,
+    splits: Sequence[str] | None = None,
+    include_details: bool = True,
+) -> dict[str, str]:
+    """Check selected split files against the manifest; default to every split."""
     root = Path(corpus_dir)
     manifest = json.loads((root / MANIFEST_NAME).read_text(encoding="utf-8"))
     checked: dict[str, str] = {}
-    for split, name in _split_files(manifest):
+    for split, name in corpus_split_files(manifest, splits=splits):
         path = root / name
         if not path.exists():
             raise FileNotFoundError(f"missing corpus file for {split!r}: {path}")
@@ -176,7 +204,8 @@ def verify_corpus_files(corpus_dir: str | Path) -> dict[str, str]:
                 f"{manifest['splits'][split]['sha256']}, file is {actual}"
             )
         checked[split] = actual
-    for label, name in _detail_files(manifest):
+    detail_files = _detail_files(manifest) if include_details else ()
+    for label, name in detail_files:
         path = root / name
         if not path.exists():
             raise FileNotFoundError(f"missing corpus detail for {label!r}: {path}")
@@ -245,9 +274,14 @@ def publish_corpus(
 
 
 def verify_published_corpus(
-    corpus_dir: str | Path, *, repo_id: str, revision: str
+    corpus_dir: str | Path,
+    *,
+    repo_id: str,
+    revision: str,
+    splits: Sequence[str] | None = None,
+    include_details: bool = True,
 ) -> dict[str, str]:
-    """Fetch one immutable Hub revision and verify its manifest and payload."""
+    """Fetch one immutable Hub revision and verify selected payload splits."""
     from huggingface_hub import hf_hub_download
 
     root = Path(corpus_dir)
@@ -270,8 +304,12 @@ def verify_published_corpus(
             destination=target,
             repo_id=repo_id,
             revision=revision,
+            splits=splits,
+            include_details=include_details,
         )
-        return verify_corpus_files(target)
+        return verify_corpus_files(
+            target, splits=splits, include_details=include_details
+        )
 
 
 def record_hub_location(corpus_dir: str | Path, *, repo_id: str, revision: str) -> Path:
@@ -298,6 +336,8 @@ def fetch_corpus(
     destination: str | Path | None = None,
     repo_id: str | None = None,
     revision: str | None = None,
+    splits: Sequence[str] | None = None,
+    include_details: bool = True,
 ) -> Path:
     """Download the payload a manifest describes and verify it against the manifest.
 
@@ -319,7 +359,9 @@ def fetch_corpus(
     if manifest_file.resolve() != (target / MANIFEST_NAME).resolve():
         shutil.copyfile(manifest_file, target / MANIFEST_NAME)
 
-    for name in _payload_names(manifest):
+    for name in _payload_names(
+        manifest, splits=splits, include_details=include_details
+    ):
         cached = hf_hub_download(
             repo_id=repo_id,
             repo_type="dataset",
@@ -331,5 +373,5 @@ def fetch_corpus(
             shutil.copyfile(cached, destination_path)
 
     # Raises if anything downloaded is not what the manifest describes.
-    verify_corpus_files(target)
+    verify_corpus_files(target, splits=splits, include_details=include_details)
     return target
