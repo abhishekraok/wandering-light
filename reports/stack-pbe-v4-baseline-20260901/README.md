@@ -1,0 +1,213 @@
+# Baselines on `stack_pbe_v4`: what solves the 220-behaviour corpus
+
+Date: 2026-09-01 · [rerun-baselines-v4 (#85)](../../issues/85) · corpus
+`stack_pbe_v4` (Hub revision `00c2a999`), 1,800-task eval split over 45
+behaviours and 44 skeletons. Every number here is a **v4** number; the v3 rows
+in `docs/STATUS.md` stay as they are.
+
+## The prediction, recorded before the numbers
+
+From the issue, verbatim: *"On v3, `gpt-5.6-terra` failed only on
+branch-bearing, multi-stage behaviours while every 5-op elementwise behaviour
+was at or near 40/40. v4 is 76% branch-bearing with a median witness of 43 ops.
+If 85.7% does not fall substantially, that is evidence the catalogue is still
+too easy, and the finding is about the corpus rather than the solver."*
+
+One change to the protocol, made before any run: the frontier model is
+**`gpt-5.6-luna`, not `gpt-5.6-terra`**, on cost. A luna-on-v4 number cannot be
+differenced against terra's v3 85.7%, so luna was also run on v3's 40-task
+seed-17 sample as a matched anchor. The prediction is tested luna against luna.
+
+## The caveat that sits beside every number
+
+On `mark-28` a witness's median share of 8-op windows that *another* witness
+also contains is **79.8%**, and eval witnesses share **76.8%** of theirs with
+train witnesses (`docs/STATUS.md`, "What the basis costs in shared code"). A
+solver can assemble much of an unseen witness from fragments of seen ones.
+**Success on v4 is evidence of composition, not invention.**
+
+## The protocol
+
+Unchanged from the v3 report. A solver sees **only the shown examples** of a
+task (3–6 pairs) and is graded on its **8 held-out** pairs by
+`wandering_light/stack_pbe_eval.py`. Two numbers: **solved** (right on data it
+was not given — the only one worth quoting) and **shown-only** (what a grader
+without held-out examples would have said). One sample per task.
+
+## The 40-task sample is easier than the split
+
+The seed-17 sample of 40 eval tasks covers 27 behaviours. Its median witness is
+**26 ops** against the full split's **40** (min 5, max 253 in both). Sample
+numbers here overstate what the full split would give, and the BFS rows below
+show by how much where both were run.
+
+## BFS against a node budget
+
+Breadth-first over the product behaviour of the shown examples, stopping at the
+first program that fits them; budgets are expansions.
+
+| budget | tasks | solved | shown-only | memorised | wall clock |
+|---:|---:|---:|---:|---:|---:|
+| 1,000 | full 1,800 | **80/1800 (4.4%)** | 4.9% | 8 | 2,116 s |
+| 10,000 | full 1,800 | TBD_BFS10K | | | |
+| 100,000 | sample 40 | **6/40 (15.0%)** | 20.0% | 2 | 3,917 s |
+
+**At 1,000 nodes the 80 solves are exactly two behaviours at 40/40** —
+`push_back` (4 ops, `nil swap cons cat`) and `rotate_left` (5 ops,
+`uncons nil swap cons cat`) — and nothing else. Four other behaviours have
+5-op witnesses and score **0/40**: `increment_each` (`[ 1 add ] map`),
+`keep_negative` (`[ 0 lt? ] filter`), `keep_zeros` (`[ 0 eq? ] filter`),
+`reverse` (`nil [ cons ] fold`). The difference is not length. The two that
+solve are first-order; the four that do not open a `[`, and under an open mark
+every one of the 28 ops is legal (the measurement in
+[prune-open-mark-states (#70)](../../issues/70)). A 5-op quotation-building
+program costs more nodes than a 5-op first-order one, and 1,000 is below the
+line.
+
+Memorisations at 1,000 nodes: `concatenate_shorter_first` four times, always
+`cat` or `swap cat` — shown examples that happened to keep the shorter list on
+one side; `median_floor` once via `uncons swap drop`, the second element. The
+v4 analogue of v3's `uncons drop i` on `last`.
+
+At 100,000 nodes on the sample: **5/5 at ≤5 ops, 0/9 at 6–15, 1/26 at 16
+and above** — the v3 step function again, wall between 5 and 6 ops, and the
+100x budget over 1,000 bought the four quotation-building 5-op behaviours
+(`keep_negative`, `keep_zeros`, `reverse`, and `rotate_left`'s 3-op fit
+`uncons quote cat`) and nothing longer. Wall clock 3,917 s against v3's 3,326.
+
+**The one solve past 16 ops is a corpus defect, not a search result.**
+`aligned_matches` carries a 39-op witness and BFS solved one of its two tasks
+with `drop uncons swap drop quote` — head of the first list, as a singleton —
+which passed all 8 held-out examples. Look at the inputs: in **every** example
+of both tasks the two lists agree at position 0 and the second list's
+position 1 is `-9`. The sampler is forcing a match at the head and a miss right
+after it, so the behaviour collapses to "first element" on any example where
+nothing later coincides, and on one task's 13 examples nothing did. Eight
+hidden examples do not help when the sampler bakes the shortcut into all of
+them. This is the class of defect the held-out protocol exists to surface, and
+it wants a sweep over the other 219 behaviours' samplers — filed on the issue,
+not fixed here.
+
+TBD_BFS_10K_NARRATIVE
+
+## `qwen3:30b-a3b`, the free local arm
+
+One RTX 4090, 300 s per-request deadline — wall clock, not a token cap, per
+the v3 report's finding that a 4,096-token cap truncates this model mid-thought
+— one sample per task.
+
+| corpus | solved | shown-only | memorised | wall clock |
+|---|---:|---:|---:|---:|
+| v3 sample (v3 report) | 10/40 (25.0%) unbounded; 9/40 (22.5%) under the deadline | 27.5% | 1 | ~32 min |
+| **v4 sample** | **6/40 (15.0%)** | 15.0% | 0 | 3,381 s |
+
+Solves: `keep_negative`, `reverse`, `negate_each` at 1/1, `keep_zeros` 1/2,
+`drop_last` 2/3 — **4/8 at ≤7 ops, 2/6 at 8–15, 0/26 at 16 ops and above.**
+No request hit the deadline; the wall clock (85 s per task against ~48 on v3)
+is the model thinking longer and still failing. 30 of the 34 failures are
+programs that do not run. No memorisation and no overstatement: what it gets,
+it gets outright.
+
+## `gpt-5.6-luna`, and the prediction
+
+### Anchor: luna on v3's forty tasks
+
+Same forty tasks, same seed, as the terra sample in the v3 report.
+
+| solver | solved | shown-only | overstatement | memorised | wall clock |
+|---|---:|---:|---:|---:|---:|
+| `gpt-5.6-terra` (v3 report) | 33/40 (82.5%) | 90.0% | +7.5 pts | 3 | — |
+| `gpt-5.6-luna` | **30/40 (75.0%)** | 85.0% | +10.0 pts | 4 | 622 s |
+
+| behaviour | ops | terra | luna |
+|---|---:|---:|---:|
+| `double_each` | 5 | 4/4 | 4/4 |
+| `sum` | 5 | 3/3 | 3/3 |
+| `keep_negative` | 5 | 3/3 | 3/3 |
+| `scale_by` | 6 | 2/2 | 1/2 |
+| `sum_both` | 6 | 5/7 | 6/7 |
+| `last` | 6 | 1/2 | 1/2 |
+| `keep_above` | 7 | 1/3 | 2/3 |
+| `count_negative` | 12 | 4/4 | 2/4 |
+| `maximum` | 16 | 4/6 | 2/6 |
+| `abs_each` | 16 | 4/4 | 4/4 |
+| `minimum` | 16 | 2/2 | 2/2 |
+
+Luna is 3 tasks behind terra on this sample, all of it on `maximum` and
+`count_negative`; it writes the nested-`ifte` 16-op programs (`abs_each`,
+`minimum`) as readily as terra does. **75.0% is the v3 number the v4 result is
+measured against.**
+
+### luna on v4's forty tasks
+
+| solver | corpus | solved | shown-only | overstatement | memorised | wall clock |
+|---|---|---:|---:|---:|---:|---:|
+| `gpt-5.6-luna` | v3 sample | 30/40 (75.0%) | 85.0% | +10.0 pts | 4 | 622 s |
+| `gpt-5.6-luna` | **v4 sample** | **15/40 (37.5%)** | 45.0% | +7.5 pts | 3 | 2,286 s |
+
+**The prediction's null branch is ruled out.** Luna against luna, same
+protocol, same seed: **75.0% → 37.5%**, halved. The catalogue moved. And the
+sample is the *easy* end of the split (median witness 26 against 40), so the
+full-split number would be lower still.
+
+Where the solves land, by witness length:
+
+| witness ops | solved | detail |
+|---:|---:|---|
+| ≤7 | 6/8 | `keep_negative`, `keep_zeros`, `reverse`, `rotate_left`, `negate_each` all solved; `keep_below`, `n_minus_each` 0/1 |
+| 8–15 | 3/6 | `min_pair` 2/2, `drop_last` 1/3, `cartesian_pair_sums` 0/1 |
+| 16–39 | 5/12 | `sum_negative` 2/2, `replace_value` 2/3, `aligned_matches` 1/2; `prefix_sums`, `concatenate_shorter_first`, `nearest_interval_endpoint_each`, `positive_majority_three` all 0 |
+| 40–99 | 1/13 | `largest_inside_interval` 1/2; eight other behaviours 0 |
+| 253 | 0/1 | `median_floor` |
+
+The model's wall is near **40 ops**: 14/26 below it, 1/14 at or above. And
+one of the 15 is not a solve at all: luna's `aligned_matches` answer is
+`drop uncons swap drop nil swap cons` — the same head-of-first-list shortcut
+BFS found (see the corpus defect under BFS above). Counting only behaviours
+actually computed, **14/40 (35.0%)**. v3's
+longest witness was 35 ops and luna wrote its 16-op nested-`ifte` programs
+freely; this sample has 14 tasks past anything v3 contained and the model gets
+one of them.
+
+Memorisations, 3. `axis_point_count` and `adjacent_sign_change_count` each
+fell to a filter-and-count that matched the shown examples by coincidence.
+`keep_ascending_pairs` is the purest case in the project so far: the candidate
+branches on the input's sum and **pushes a hard-coded list** matching one shown
+output (`nil 1 1 add 1 add ... cons`). A shown-only grader scores it as solved.
+
+How it fails also changed. Of the 22 non-solves, **18 are programs that do not
+run** — a guard refuses on at least one input — and only 4 run and compute the
+wrong thing. On v3 the split was 5 of 10. On the longer witnesses the model is
+losing the stack, not the algorithm.
+
+Wall clock 2,286 s against 622 s on v3 — 3.7x per task at the same effort
+setting, so the model is also reasoning longer on the harder corpus.
+
+## Reproduce
+
+Corpus payloads are not in git; the tracked manifests pin the digests.
+
+```bash
+uv run python -c "from wandering_light.corpus_hub import fetch_corpus; fetch_corpus('wandering_light/evals/data/stack_pbe_v4/manifest.json')"
+uv run python -c "from wandering_light.corpus_hub import fetch_corpus; fetch_corpus('wandering_light/evals/data/stack_pbe_v3/manifest.json')"
+
+R=reports/stack-pbe-v4-baseline-20260901
+uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 1000   --split eval            --out $R/bfs_v4_1k_full.json
+uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 10000  --split eval            --out $R/bfs_v4_10k_full.json
+uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 100000 --split eval --tasks 40 --out $R/bfs_v4_100k_sample40.json
+OLLAMA_BASE_URL=http://localhost:11434 \
+uv run python experiments/stack_pbe_baseline.py --backend llm --provider ollama --model qwen3:30b-a3b --tasks 40 --split eval --out $R/qwen3_v4_sample40.json
+uv run python experiments/stack_pbe_baseline.py --backend llm --provider openai --model gpt-5.6-luna --effort high --tasks 40 --split eval --out $R/luna_v4_sample40.json
+uv run python experiments/stack_pbe_baseline.py --backend llm --provider openai --model gpt-5.6-luna --effort high --tasks 40 --split eval --corpus wandering_light/evals/data/stack_pbe_v3 --out $R/luna_v3_sample40.json
+```
+
+Seed 17 throughout (the script default). All runs on one machine, 2026-09-01:
+BFS on CPU, ollama on one RTX 4090, luna through the OpenAI API. Raw JSONs
+with every candidate and verdict sit beside this file.
+
+**One environment trap.** This machine's shell sets `OLLAMA_BASE_URL` to an
+unreachable host, and `solve_with_llm` scores a `ConnectionError` as an
+unsolved task rather than failing the run. The first ollama attempt returned a
+clean-looking 0/40 made entirely of connection failures. The override above is
+required here; a zero from the ollama arm should be checked against stderr
+before it is believed.
