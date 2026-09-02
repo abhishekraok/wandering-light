@@ -67,32 +67,31 @@ def measure_lengths(args) -> dict:
         f"alphabet {len(alpha)}, supply {args.supply}, "
         f"{args.samples:,} random bodies per length\n"
     )
-    print(f"{'len':>4}{'dead':>9}{'type':>9}{'reach':>9}{'surviving b_eff':>17}")
+    print(f"{'len':>4}{'pruned':>9}{'type':>9}{'deep':>9}{'surviving b_eff':>17}")
     rows = []
     for length in range(1, args.max_length + 1):
-        dead = type_dead = reach_dead = 0
+        type_dead = reach_deep = 0
         for _ in range(args.samples):
             body = tuple(rng.choice(alpha) for _ in range(length))
             runnable, reach = body_effect(body)
             if not runnable:
                 type_dead += 1
-                dead += 1
             elif reach > args.supply:
-                reach_dead += 1
-                dead += 1
+                reach_deep += 1
+        dead = type_dead  # only the type check prunes; reach is a diagnostic
         live = 1 - dead / args.samples
         rows.append(
             {
                 "length": length,
                 "dead": dead / args.samples,
                 "type": type_dead / args.samples,
-                "reach": reach_dead / args.samples,
+                "reach_deep": reach_deep / args.samples,
                 "b_eff": len(alpha) * live ** (1 / length),
             }
         )
         print(
             f"{length:>4}{rows[-1]['dead']:>8.1%}{rows[-1]['type']:>9.1%}"
-            f"{rows[-1]['reach']:>9.1%}{rows[-1]['b_eff']:>17.2f}"
+            f"{rows[-1]['reach_deep']:>9.1%}{rows[-1]['b_eff']:>17.2f}"
         )
     return {"kind": "lengths", "supply": args.supply, "rows": rows}
 

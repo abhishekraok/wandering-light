@@ -16,13 +16,14 @@ dead because ``null?`` wants a list; ``0 i`` is dead because ``i`` wants a
 quotation. Only values the body itself put on the stack are judged; anything the
 consumer will supply is unknown and therefore unconstrained.
 
-**reach** -- the body dips further below its own contribution than any consumer
-could ever supply. ``map`` and ``filter`` run a body on a one-value stack,
-``fold`` on two, and ``i``/``dip``/``ifte`` on what sits below the mark. A closed
-quotation can also be *widened* afterwards: ``[ drop eq? ] swap cons swap cons``
-prepends two values to the body, and stack_pbe_v4 builds closures this way in 85
-of its 220 witnesses. Each prepended value costs at least one op, so the budget
-still left is what bounds it.
+**reach** -- how far the body dips below its own contribution. Computed and
+reported, but **not pruned on**: there is no sound bound. A closed quotation can
+be *widened* afterwards, and ``cat`` prepends a whole list in a single op, so
+widening is not paid for one value at a time. From ``[ (1 1 1 1 1 1 1) ]`` the
+prefix ``[ add add add add add add`` reaches seven deep with three ops left, and
+``] cat i`` evaluates it to ``7``. ``dup cat`` then doubles a list per op, so no
+bound linear in the remaining budget survives. Kept as a diagnostic because the
+rate is worth knowing; see the report.
 
 Both are monotone under extension: appending an op can only add a type error and
 can only increase reach, so a body that fails either can never be repaired. That
@@ -76,8 +77,8 @@ RUNS_CODE = frozenset({"i", "dip", "map", "filter", "fold", "ifte"})
 PLUMBING = frozenset({"dup", "swap", "drop", "over"})
 
 #: ``fold`` hands its body two values, which is the most any fixed-arity
-#: consumer supplies. A body can also be run by ``i`` on whatever sits under the
-#: mark, so the real supply is the larger of the two.
+#: consumer supplies. Reported against ``reach`` as a diagnostic; nothing prunes
+#: on it, because ``cat`` can widen a body in bulk (see the module docstring).
 FIXED_SUPPLY = 2
 
 MODES = ("off", "body", "close", "both")
@@ -179,10 +180,9 @@ def open_body(stack: tuple[Value, ...]) -> tuple[tuple[Value, ...], int] | None:
 def blocked(stack: tuple[Value, ...], remaining: int, mode: str = "both") -> str | None:
     """Why this state cannot lead anywhere, or None to keep it.
 
-    ``remaining`` is how many ops the search may still spend. Both checks use it:
-    a state carrying more open marks than that has no way back to a mark-free
-    stack and every corpus target is mark-free, and a body cannot be widened by
-    more values than there are ops left to cons them in with.
+    ``remaining`` is how many ops the search may still spend, which is what the
+    ``close`` check needs: a state carrying more open marks than that has no way
+    back to a mark-free stack, and every corpus target is mark-free.
     """
     if mode == "off":
         return None
@@ -196,10 +196,7 @@ def blocked(stack: tuple[Value, ...], remaining: int, mode: str = "both") -> str
     if mode in ("body", "both"):
         found = open_body(stack)
         assert found is not None
-        body, below = found
-        runnable, reach = body_effect(body)
+        runnable, _reach = body_effect(found[0])
         if not runnable:
             return "type"
-        if reach > max(FIXED_SUPPLY, below) + remaining:
-            return "reach"
     return None

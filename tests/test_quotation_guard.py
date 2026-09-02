@@ -69,30 +69,39 @@ def test_abs_each_witness_is_never_guarded():
 def test_no_catalogue_witness_body_has_a_type_error(behaviour):
     """The gate the issue pre-registers: no authored witness is ever unreachable.
 
-    Only the type half is checkable from program text -- ``reach`` is judged
-    against the stack under the mark, which the text alone does not fix.
-    `test_a_cons_widened_closure_survives` covers the case that half nearly got
-    wrong.
+    The type check is the only half that prunes; ``reach`` is a diagnostic, for
+    the reason `test_reach_is_measured_but_never_pruned_on` pins down.
     """
     for program in behaviour.witnesses:
         for body in bodies(program):
             assert body_effect(body)[0], f"{behaviour.name}: {program}"
 
 
+def test_reach_is_measured_but_never_pruned_on():
+    """`cat` prepends a whole list in one op, so no budget bound on reach holds.
+
+    From `[ (1 1 1 1 1 1 1) ]` the prefix `[ add add add add add add` reaches
+    seven deep with three ops left, and `] cat i` evaluates it to 7. An earlier
+    version bounded reach by the consumer plus the remaining budget and pruned
+    exactly this. Reach is still computed, because the rate is worth reporting.
+    """
+    assert body_effect(body_of("[ MARK add add add ]")) == (True, 4)
+    deep = "[ (1 1 1 1 1 1 1) MARK add add add add add add ]"
+    assert blocked(parse_stack(deep, basis="mark-28"), remaining=3) is None
+    for remaining in range(4):
+        stack = parse_stack("[ MARK add add add ]", basis="mark-28")
+        assert blocked(stack, remaining) in (None, "close")
+
+
 def test_a_cons_widened_closure_survives():
-    """85 of v4's 220 witnesses build a closure, and reach must allow for it.
+    """85 of v4's 220 witnesses build a closure the consumer does not fill.
 
     `replace_value` is `[ [ drop eq? ] ... ] swap cons swap cons map`: the body
-    reaches below what `map` hands it, and the shortfall is supplied by the
-    `cons`es that
-    come *after* the quotation closes, not by `map`. Bounding reach by what the
-    consumer hands over would have pruned the witness.
+    reaches below what `map` hands it, and the shortfall arrives from the
+    `cons`es that run *after* the quotation closes.
     """
-    body = body_of("[ MARK add add add ]")
-    assert body_effect(body) == (True, 4)
-    stack = parse_stack("[ MARK add add add ]", basis="mark-28")
-    assert blocked(stack, remaining=1) == "reach"  # no budget left to widen it
-    assert blocked(stack, remaining=2) is None  # one cons away from usable
+    stack = parse_stack("[ (1 2) MARK drop eq? ]", basis="mark-28")
+    assert blocked(stack, remaining=6) is None
 
 
 @pytest.mark.parametrize(
@@ -103,7 +112,6 @@ def test_a_cons_widened_closure_survives():
         ("[ MARK 0 i ]", "type"),  # i wants a quotation, sees an int
         ("[ MARK true 1 lt? ]", "type"),  # lt? wants ints, sees a bool
         ("[ MARK 1 1 cat ]", "type"),  # cat wants two quotations
-        ("[ MARK add add add add add add ]", "reach"),  # deeper than reachable
     ],
 )
 def test_nonsense_bodies_are_caught(text, reason):
