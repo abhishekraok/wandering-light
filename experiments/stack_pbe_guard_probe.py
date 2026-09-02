@@ -40,6 +40,7 @@ from wandering_light.quotation_guard import (
 )
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
+    Lst,
     Mark,
     Sym,
     Value,
@@ -53,15 +54,35 @@ from wandering_light.stack_pbe import BASIS, load
 ARMS = ("off", "body", "close", "both")
 
 
-def body_alphabet() -> tuple[Value, ...]:
-    """What one step under an open MARK can append. Literals push for real."""
-    return tuple(
-        LITERALS_BY_NAME.get(op.name) or Sym(op.name) for op in ops_for_basis("mark-28")
+#: A body that finished a nested quotation carries it as data. One such value
+#: stands in for that, so the alphabet is not made entirely of symbols.
+NESTED = Lst((Sym("dup"), Sym("add")))
+
+
+def body_alphabet(nested: bool = False) -> tuple[Value, ...]:
+    """What one step under an open MARK can append to the innermost body.
+
+    Brackets are excluded, and that is not a simplification. `[` is not
+    captured -- it pushes another `Mark`, which sits *below* the innermost body
+    rather than in it -- and `]` closes the body, ending the open-body state
+    that `blocked` inspects. A real innermost body therefore holds only
+    literals, captured op symbols, and any quotation it finished building;
+    never `[` or `]`.
+
+    Omitting the finished quotations biases the rate *upward*, since a
+    quotation satisfies the checks on `i`, `map`, `cat` and the rest.
+    ``--nested`` adds one back to measure how much.
+    """
+    body_ops = tuple(
+        LITERALS_BY_NAME.get(op.name) or Sym(op.name)
+        for op in ops_for_basis("mark-28")
+        if op.name not in {"[", "]"}
     )
+    return (*body_ops, NESTED) if nested else body_ops
 
 
 def measure_lengths(args) -> dict:
-    alpha = body_alphabet()
+    alpha = body_alphabet(nested=args.nested)
     rng = random.Random(args.seed)
     print(
         f"alphabet {len(alpha)}, supply {args.supply}, "
@@ -247,6 +268,7 @@ def main(argv: list[str] | None = None) -> int:
     lengths.add_argument("--samples", type=int, default=50_000)
     lengths.add_argument("--supply", type=int, default=FIXED_SUPPLY)
     lengths.add_argument("--seed", type=int, default=17)
+    lengths.add_argument("--nested", action="store_true")
 
     states = sub.add_parser("states")
     states.add_argument("--depth", type=int, default=5)

@@ -108,21 +108,29 @@ ops, so this is the regime that matters and it is off the right-hand edge of
 every search reported here.
 
 Measured directly against body length — 50,000 random bodies per length, supply
-2, seed 17, so no search budget is involved:
+2, seed 17, so no search budget is involved. Of the 28 actions legal under a
+mark, **26 extend the innermost body**: `[` pushes another `Mark`, which sits
+below the body rather than in it, and `]` ends the open-body state altogether.
+The alphabet is those 26.
 
 | body length | pruned (type) | reaches deeper than 2 | surviving b_eff |
 |---:|---:|---:|---:|
-| 1 | 0.0% | 7.2% | 28.00 |
-| 2 | 18.2% | 17.9% | 25.32 |
-| 4 | 52.4% | 14.7% | 23.26 |
-| 8 | 85.2% | 5.2% | 22.05 |
-| 12 | 95.3% | 1.6% | 21.69 |
-| 16 | 98.6% | 0.5% | 21.43 |
+| 1 | 0.0% | 7.8% | 26.00 |
+| 2 | 21.3% | 19.9% | 23.06 |
+| 4 | 58.2% | 15.3% | 20.91 |
+| 8 | 89.8% | 4.3% | 19.55 |
+| 12 | 97.6% | 1.0% | 19.02 |
+| 16 | **99.5%** | 0.2% | **18.78** |
 
-Branching under an open mark settles at **~21.4 against the machine's 28** —
-1.31x per op *inside* a quotation, compounding with body length. At length 16,
-98.6% of the legal space cannot run. The right-hand column is the diagnostic
-nothing prunes on.
+Branching inside a quotation settles at **~18.8 against 26** — 1.38x per op,
+compounding with body length. At length 16, 99.5% of bodies cannot run. The
+right-hand column is the diagnostic nothing prunes on.
+
+A body can also carry a quotation it finished building, which the alphabet above
+omits; since a quotation satisfies the checks on `i`, `map`, `cat` and the rest,
+omitting them biases the rate up. Adding one back (`--nested`, 27 items) moves
+length 16 to 99.3% and the settled branching to 19.85 — the same picture, about
+a point weaker.
 
 The same curve seen through a search budget, states per task on v3:
 
