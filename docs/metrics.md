@@ -57,6 +57,18 @@ An area under a *rate* curve, not a time. One number per (solver, distance).
 A faster solver can beat a more accurate one on AUC. That is intended for a
 *cost of solving* metric, and it is the reason to read the curve too.
 
+For a frozen range `[t_min, t_max]`, compute the integral exactly from each
+task's first-hit cost `tau`, rather than on a sampled budget grid:
+
+```
+AUC = mean_tau clip(log2(t_max / max(t_min, tau)), 0, log2(t_max / t_min))
+```
+
+A miss contributes zero. A hit at or above `t_max` contributes zero; a hit at
+or below `t_min` contributes the full log-budget span. Report both this area
+and the area divided by the span. The displayed curve is the empirical
+first-passage CDF, with its discontinuities retained.
+
 ## Bits are log-time
 
 Levin's universal search with a prior `P` finds `p` in time `O(t(p) / P(p))`:
@@ -100,8 +112,24 @@ exponentially as `H` falls. Where they cross is why an optimal size exists —
 **Two caveats.** It is a reasoning model, not a law: it assumes uniform `H` and a
 tree, while the solver deduplicates structurally, so real node counts run below
 `2^(H.d)`. Use it to decide which term dominates, not to predict a runtime. And
-`H` must be measured **in situ**, along states rollouts actually visit — improving
-on-distribution bits moves `H` on paper and nothing on the metric above.
+`H` must be measured **in situ**, along states rollouts actually visit —
+improving on-distribution bits moves `H` on paper and nothing on the metric
+above. At a visited state, let `C` be the type-compatible actions and `O` the
+complete set of actions that begin a shortest path to the target. The measured
+code length is the policy's total masked mass on that set, not the chosen
+action or one recorded witness:
+
+```
+H = -log2((1 - epsilon) * sum(a in O) P(a | C) + epsilon * |O| / |C|)
+```
+
+An exact bounded search must certify all of `O`; unresolved states are excluded
+and their coverage and stopping reasons reported. When scoring a bounded
+sample of rollout states, freeze the sampling rule before evaluation and report
+both state-weighted and task-balanced means so long rollouts do not silently
+dominate the result. Gate each headline on at least 80% certified coverage in
+its own weighting; retain the conditional estimate and censoring counts below
+that threshold, but do not present it as headline `H`.
 
 ## Protocol
 
@@ -109,4 +137,6 @@ on-distribution bits moves `H` on paper and nothing on the metric above.
   the choice, then score once.
 - Three paired seeds; single-seed fine grain is noise against a zero baseline.
 - Report both cost units, the host, and the device.
+- Complete and seal every timed cell before observer replay or oracle labeling;
+  untimed analysis must not alter the load between primary timing cells.
 - Findings go on the issue and, once merged, as a `STATUS.md` row — not here.

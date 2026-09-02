@@ -14,13 +14,14 @@ deliberately disposable.
 from __future__ import annotations
 
 import argparse
-import gzip
 import hashlib
 import json
 import os
 import random
 import subprocess
 import sys
+import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -31,37 +32,58 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from experiments.generate_deep_corpus import verify_corpus
-from experiments.train_deep_corpus_sft import ensure_corpus
+from experiments.generate_deep_corpus import (
+    load_corpus,
+    load_required_reference_identities,
+    required_reference_corpora,
+    verify_loaded_corpus,
+)
 from wandering_light.basis_set import load_basis_set
+from wandering_light.corpus_hub import corpus_split_files, fetch_corpus
 from wandering_light.executor import Executor
 from wandering_light.rollout_policy import (
     CONFIG_FILE,
+    DEFAULT_POLICY_ARCHITECTURE,
     MAX_PAIR_WIDTH,
     MODEL_FILE,
     TRAINER_STATE_FILE,
     TRAINING_MANIFEST_FILE,
     WANDB_LINK_FILE,
     AlignedPairPolicy,
+    PolicyArchitecture,
     RolloutPolicy,
     assert_weights_only_checkpoint,
     pair_batch,
     policy_config,
 )
-from wandering_light.typed_list import TypedList
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Sequence
 
+    from wandering_light.basis_dataset import BasisTaskRecord
     from wandering_light.function_def import FunctionDefSet
+    from wandering_light.typed_list import TypedList
 
 SCHEMA_VERSION = 1
 PERSONAL_WANDB_ENTITY = "abhishekraok-na"
 DEFAULT_WANDB_PROJECT = "wandering-light-rollout-policy"
-DEFAULT_CORPUS_DIR = Path("wandering_light/training/data/deep_corpus_v1")
+DEFAULT_CORPUS_DIR = Path("wandering_light/training/data/deep_corpus_v2")
+DEFAULT_REFERENCE_CORPUS_DIRS = (Path("wandering_light/training/data/deep_corpus_v1"),)
 TRAIN_SPLIT = "discovery"
 VALIDATION_SPLIT = "validation"
 HELD_OUT_SPLIT = "test"
+POLICY_SIZE_ARMS = {
+    "90k": DEFAULT_POLICY_ARCHITECTURE,
+    "1m": PolicyArchitecture(128, 320, 640),
+    "10m": PolicyArchitecture(384, 1024, 2048),
+    "40m": PolicyArchitecture(768, 2048, 4096),
+}
+POLICY_SIZE_BATCHING = {
+    "90k": (256, 1, 512),
+    "1m": (256, 1, 512),
+    "10m": (256, 1, 256),
+    "40m": (128, 2, 128),
+}
 CHECKPOINT_FILES = (
     MODEL_FILE,
     CONFIG_FILE,
@@ -90,15 +112,18 @@ class PrefixExample:
 class RolloutTrainingConfig:
     output_dir: Path
     corpus_dir: Path = DEFAULT_CORPUS_DIR
+    reference_corpus_dirs: tuple[Path, ...] = DEFAULT_REFERENCE_CORPUS_DIRS
     epochs: int = 12
     learning_rate: float = 2e-3
     train_batch_size: int = 256
+    gradient_accumulation_steps: int = 1
     validation_batch_size: int = 512
     seed: int = 0
     device: str = "cuda"
     wandb_entity: str = PERSONAL_WANDB_ENTITY
     wandb_project: str = DEFAULT_WANDB_PROJECT
     wandb_run_name: str | None = None
+    architecture: PolicyArchitecture = DEFAULT_POLICY_ARCHITECTURE
     dry_run: bool = False
 
 
@@ -198,7 +223,7 @@ def _type_name(value: TypedList) -> str:
 
 
 def build_prefix_examples(
-    corpus_dir: Path,
+    records: Sequence[BasisTaskRecord],
     split: str,
     available_functions: FunctionDefSet,
     *,
@@ -214,61 +239,52 @@ def build_prefix_examples(
     by_name = available_functions.name_to_function
     executor = Executor(available_functions)
     examples = []
-    with gzip.open(corpus_dir / f"{split}.jsonl.gz", "rt", encoding="utf-8") as file:
-        for record_index, line in enumerate(file):
-            if limit is not None and record_index >= limit:
-                break
-            row = json.loads(line)
-            if row.get("split") != split:
-                raise ValueError(
-                    f"Corpus row {row.get('task_id')} belongs to {row.get('split')}, "
-                    f"not {split}"
-                )
-            names = row.get("witness_function_names")
-            distance = row.get("metadata", {}).get("certified_distance")
-            if (
-                not isinstance(names, list)
-                or not names
-                or type(distance) is not int
-                or distance != len(names)
-                or row.get("witness_length") != distance
-            ):
-                raise ValueError(f"Task {row.get('task_id')} has an invalid witness")
-            root_digest = row.get("metadata", {}).get("root_digest")
-            if not isinstance(root_digest, str) or not root_digest:
-                raise ValueError(f"Task {row.get('task_id')} has no root digest")
+    selected = (record for record in records if record.split == split)
+    for record_index, record in enumerate(selected):
+        if limit is not None and record_index >= limit:
+            break
+        names = record.witness_function_names
+        distance = record.metadata.get("certified_distance")
+        if (
+            not names
+            or type(distance) is not int
+            or distance != len(names)
+            or record.witness_length != distance
+        ):
+            raise ValueError(f"Task {record.task_id} has an invalid witness")
+        root_digest = record.metadata.get("root_digest")
+        if not isinstance(root_digest, str) or not root_digest:
+            raise ValueError(f"Task {record.task_id} has no root digest")
 
-            state = TypedList.from_str(row["input"])
-            target = TypedList.from_str(row["output"])
-            for prefix_index, name in enumerate(names):
-                function = by_name.get(name)
-                if function is None:
-                    raise ValueError(
-                        f"Task {row.get('task_id')} references unknown action {name!r}"
-                    )
-                if function.input_type != _type_name(state):
-                    raise ValueError(
-                        f"Task {row.get('task_id')} action {name!r} is incompatible "
-                        f"with prefix {prefix_index}"
-                    )
-                examples.append(
-                    PrefixExample(
-                        state=state.to_string(),
-                        target=row["output"],
-                        action_name=name,
-                        split=split,
-                        task_id=row["task_id"],
-                        root_digest=root_digest,
-                        prefix_index=prefix_index,
-                        remaining_distance=distance - prefix_index,
-                        certified_distance=distance,
-                    )
-                )
-                state = executor.execute(function, state)
-            if state != target:
+        state = record.input_value
+        target = record.output_value
+        for prefix_index, name in enumerate(names):
+            function = by_name.get(name)
+            if function is None:
                 raise ValueError(
-                    f"Task {row.get('task_id')} witness replay missed its target"
+                    f"Task {record.task_id} references unknown action {name!r}"
                 )
+            if function.input_type != _type_name(state):
+                raise ValueError(
+                    f"Task {record.task_id} action {name!r} is incompatible "
+                    f"with prefix {prefix_index}"
+                )
+            examples.append(
+                PrefixExample(
+                    state=state.to_string(),
+                    target=record.output,
+                    action_name=name,
+                    split=split,
+                    task_id=record.task_id,
+                    root_digest=root_digest,
+                    prefix_index=prefix_index,
+                    remaining_distance=distance - prefix_index,
+                    certified_distance=distance,
+                )
+            )
+            state = executor.execute(function, state)
+        if state != target:
+            raise ValueError(f"Task {record.task_id} witness replay missed its target")
     return examples
 
 
@@ -277,29 +293,145 @@ def _expected_prefixes(manifest: Mapping[str, Any], split: str) -> int:
     return sum(int(distance) * int(count) for distance, count in histogram.items())
 
 
+def ensure_training_splits(corpus_dir: Path) -> Path:
+    """Materialize discovery and validation without touching held-out test."""
+
+    manifest_path = corpus_dir / "manifest.json"
+    if not manifest_path.is_file():
+        raise FileNotFoundError(f"Deep-corpus manifest is missing: {manifest_path}")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    required = (TRAIN_SPLIT, VALIDATION_SPLIT)
+    split_files = corpus_split_files(manifest, splits=required)
+    required_paths = [corpus_dir / name for _, name in split_files]
+    missing = [path for path in required_paths if not path.is_file()]
+    if missing:
+        fetch_corpus(
+            manifest_path,
+            destination=corpus_dir,
+            splits=required,
+            include_details=False,
+        )
+    still_missing = [path for path in required_paths if not path.is_file()]
+    if still_missing:
+        raise FileNotFoundError(
+            "Corpus fetch did not materialize training splits: "
+            f"{[str(path) for path in still_missing]}"
+        )
+    return corpus_dir
+
+
+def _require_training_verification(
+    manifest: Mapping[str, Any], verification: Mapping[str, Any]
+) -> None:
+    """Require exactly the evidence available without opening held-out test."""
+
+    expected_splits = [TRAIN_SPLIT, VALIDATION_SPLIT]
+    expected_scope = {
+        "kind": "selected-splits",
+        "selected_splits": expected_splits,
+        "manifest_splits": sorted(manifest["splits"]),
+    }
+    if verification.get("scope") != expected_scope:
+        raise ValueError(
+            "Deep corpus verification scope differs from discovery+validation: "
+            f"{verification.get('scope')!r}"
+        )
+    if verification.get("manifest_digest") != manifest.get("manifest_digest"):
+        raise ValueError("Deep corpus verification used another manifest identity")
+
+    checks = verification.get("checks")
+    if not isinstance(checks, Mapping):
+        raise ValueError("Deep corpus verification has no explicit check evidence")
+    required_passes = (
+        "witness_replay",
+        "record_provenance",
+        "selected_split_summaries",
+        "selected_split_isolation",
+        "reference_overlap",
+    )
+    expected_skips = {
+        "corpus_global_summaries": "not every manifest split was loaded",
+        "target_contract": "target contract is corpus-global",
+        "distance_recertification": "recertify=0",
+    }
+    expected_check_keys = {"manifest_identity", *required_passes, *expected_skips}
+    if set(checks) != expected_check_keys:
+        raise ValueError(
+            "Deep corpus verification has unexpected check evidence: "
+            f"{sorted(set(checks) ^ expected_check_keys)}"
+        )
+    if checks["manifest_identity"] != {
+        "status": "passed",
+        "manifest_digest": manifest.get("manifest_digest"),
+    }:
+        raise ValueError("Deep corpus verification has contradictory manifest evidence")
+    failed = [
+        check
+        for check in required_passes
+        if not isinstance(checks.get(check), Mapping)
+        or checks[check].get("status") != "passed"
+        or checks[check].get("failures") != []
+    ]
+    if failed:
+        raise ValueError(f"Deep corpus verification checks did not pass: {failed}")
+    expected_references = list(required_reference_corpora(manifest))
+    reference_check = checks["reference_overlap"]
+    if (
+        reference_check.get("required_references") != expected_references
+        or reference_check.get("verified_references") != expected_references
+    ):
+        raise ValueError(
+            "Deep corpus verification lacks exact reference-corpus evidence"
+        )
+    unexpected = [
+        check
+        for check, reason in expected_skips.items()
+        if checks.get(check) != {"status": "skipped", "reason": reason}
+    ]
+    if unexpected:
+        raise ValueError(
+            "Deep corpus verification did not preserve the held-out scope: "
+            f"{unexpected}"
+        )
+    if (
+        verification.get("ok") is not True
+        or verification.get("verified_splits") != expected_splits
+        or verification.get("full_corpus_verified") is not None
+        or verification.get("target_contract_failures") is not None
+    ):
+        raise ValueError(f"Deep corpus verification failed: {verification}")
+
+
 def prepare_prefixes(
     config: RolloutTrainingConfig,
 ) -> tuple[FunctionDefSet, PreparedPrefixes]:
     """Verify corpus/basis/root boundaries, then expose discovery and validation."""
 
-    ensure_corpus(config.corpus_dir)
-    manifest_path = config.corpus_dir / "manifest.json"
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    ensure_training_splits(config.corpus_dir)
+    manifest, records = load_corpus(
+        config.corpus_dir,
+        splits=(TRAIN_SPLIT, VALIDATION_SPLIT),
+    )
     basis = load_basis_set(manifest["basis_set_id"])
     if manifest.get("basis_set_digest") != basis.digest:
         raise ValueError("Corpus manifest and loaded basis digests differ")
     available_functions = basis.to_function_def_set()
-
-    verification = verify_corpus(config.corpus_dir, recertify=0)
-    if not verification.get("ok"):
-        raise ValueError(f"Deep corpus verification failed: {verification}")
-    if verification.get("roots_leaking_across_splits"):
-        raise ValueError("Deep corpus has roots leaking across splits")
-
-    train = build_prefix_examples(config.corpus_dir, TRAIN_SPLIT, available_functions)
-    validation = build_prefix_examples(
-        config.corpus_dir, VALIDATION_SPLIT, available_functions
+    reference_identities = load_required_reference_identities(
+        manifest,
+        config.reference_corpus_dirs,
     )
+
+    verification = verify_loaded_corpus(
+        manifest,
+        records,
+        splits=(TRAIN_SPLIT, VALIDATION_SPLIT),
+        recertify=0,
+        reference_identities=reference_identities,
+    )
+    _require_training_verification(manifest, verification)
+
+    train = build_prefix_examples(records, TRAIN_SPLIT, available_functions)
+    validation = build_prefix_examples(records, VALIDATION_SPLIT, available_functions)
     expected = {
         TRAIN_SPLIT: _expected_prefixes(manifest, TRAIN_SPLIT),
         VALIDATION_SPLIT: _expected_prefixes(manifest, VALIDATION_SPLIT),
@@ -359,9 +491,11 @@ def train_policy_model(
     epochs: int,
     learning_rate: float,
     train_batch_size: int,
+    gradient_accumulation_steps: int = 1,
     validation_batch_size: int,
     seed: int,
     device: str | torch.device,
+    architecture: PolicyArchitecture = DEFAULT_POLICY_ARCHITECTURE,
     epoch_callback=None,
 ) -> tuple[AlignedPairPolicy, dict[str, Any]]:
     """Train deterministically and restore the lowest validation-loss weights."""
@@ -372,6 +506,8 @@ def train_policy_model(
         raise ValueError("epochs and learning_rate must be positive")
     if train_batch_size <= 0 or validation_batch_size <= 0:
         raise ValueError("batch sizes must be positive")
+    if gradient_accumulation_steps <= 0:
+        raise ValueError("gradient_accumulation_steps must be positive")
     if len(action_names) != len(set(action_names)) or not action_names:
         raise ValueError("action_names must be a non-empty unique sequence")
     if any(example.split != TRAIN_SPLIT for example in train):
@@ -390,7 +526,7 @@ def train_policy_model(
     if unknown:
         raise ValueError(f"Prefix labels reference unknown actions: {unknown}")
 
-    model = AlignedPairPolicy(len(action_names)).to(target_device)
+    model = AlignedPairPolicy(len(action_names), architecture).to(target_device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     optimizer_identity = {
         "class": "torch.optim.Adam",
@@ -405,20 +541,33 @@ def train_policy_model(
     best_epoch = 0
     best_state: dict[str, torch.Tensor] | None = None
     history = []
+    optimizer_steps = 0
+    effective_batch_size = train_batch_size * gradient_accumulation_steps
+    if target_device.type == "cuda":
+        torch.cuda.synchronize(target_device)
+        torch.cuda.reset_peak_memory_stats(target_device)
+    training_started = time.perf_counter()
 
     for epoch in range(1, epochs + 1):
         model.train()
         rng.shuffle(order)
-        train_total = 0.0
-        for start in range(0, len(order), train_batch_size):
-            indices = order[start : start + train_batch_size]
-            batch = [train[index] for index in indices]
-            inputs, labels = _examples_batch(batch, action_index, device=target_device)
-            loss = torch.nn.functional.cross_entropy(model(*inputs), labels)
+        train_total = torch.zeros((), device=target_device)
+        for group_start in range(0, len(order), effective_batch_size):
+            group = order[group_start : group_start + effective_batch_size]
             optimizer.zero_grad()
-            loss.backward()
+            for start in range(0, len(group), train_batch_size):
+                indices = group[start : start + train_batch_size]
+                batch = [train[index] for index in indices]
+                inputs, labels = _examples_batch(
+                    batch, action_index, device=target_device
+                )
+                loss_sum = torch.nn.functional.cross_entropy(
+                    model(*inputs), labels, reduction="sum"
+                )
+                (loss_sum / len(group)).backward()
+                train_total += loss_sum.detach()
             optimizer.step()
-            train_total += loss.item() * len(batch)
+            optimizer_steps += 1
 
         model.eval()
         validation_total = 0.0
@@ -431,7 +580,7 @@ def train_policy_model(
                 validation_total += torch.nn.functional.cross_entropy(
                     model(*inputs), labels, reduction="sum"
                 ).item()
-        train_loss = train_total / len(train)
+        train_loss = train_total.item() / len(train)
         validation_loss = validation_total / len(validation)
         row = {
             "epoch": epoch,
@@ -451,6 +600,9 @@ def train_policy_model(
 
     if best_state is None:
         raise RuntimeError("Training produced no validation checkpoint")
+    if target_device.type == "cuda":
+        torch.cuda.synchronize(target_device)
+    training_seconds = time.perf_counter() - training_started
     model.load_state_dict(best_state)
     model.eval()
     return model, {
@@ -460,6 +612,18 @@ def train_policy_model(
         "history": history,
         "train_prefixes": len(train),
         "validation_prefixes": len(validation),
+        "optimizer_steps": optimizer_steps,
+        "training_seconds": training_seconds,
+        "peak_cuda_memory_allocated_bytes": (
+            int(torch.cuda.max_memory_allocated(target_device))
+            if target_device.type == "cuda"
+            else None
+        ),
+        "peak_cuda_memory_reserved_bytes": (
+            int(torch.cuda.max_memory_reserved(target_device))
+            if target_device.type == "cuda"
+            else None
+        ),
         "optimizer": optimizer_identity,
     }
 
@@ -501,6 +665,7 @@ def capture_runtime_identity(
         "floating_parameter_dtypes": floating_dtypes,
         "model": {
             "architecture": "aligned-item-pairs-untyped-v1",
+            "architecture_config": model.architecture.to_config(),
             "parameters": sum(parameter.numel() for parameter in model.parameters()),
             "trainable_parameters": sum(
                 parameter.numel()
@@ -543,6 +708,10 @@ def _validate_config(config: RolloutTrainingConfig) -> None:
         raise ValueError("epochs and learning_rate must be positive")
     if config.train_batch_size <= 0 or config.validation_batch_size <= 0:
         raise ValueError("batch sizes must be positive")
+    if config.gradient_accumulation_steps <= 0:
+        raise ValueError("gradient_accumulation_steps must be positive")
+    if not isinstance(config.architecture, PolicyArchitecture):
+        raise TypeError("architecture must be a PolicyArchitecture")
     if not config.wandb_project:
         raise ValueError("wandb_project must be non-empty")
     if not config.dry_run and not config.wandb_run_name:
@@ -557,8 +726,8 @@ def _corpus_provenance(
         TRAIN_SPLIT: "training-only",
         VALIDATION_SPLIT: "model-selection-only",
         HELD_OUT_SPLIT: (
-            "held-out-evaluation-only; no test prefix examples constructed or "
-            "used; payload read only for integrity"
+            "held-out-evaluation-only; manifest metadata only; test payload never "
+            "fetched, opened, or materialized"
         ),
     }
     return {
@@ -579,13 +748,7 @@ def _corpus_provenance(
             }
             for split, role in roles.items()
         },
-        "verification": {
-            "ok": prepared.verification.get("ok"),
-            "witness_failures": prepared.verification.get("witness_failures"),
-            "roots_leaking_across_splits": prepared.verification.get(
-                "roots_leaking_across_splits"
-            ),
-        },
+        "verification": dict(prepared.verification),
     }
 
 
@@ -628,6 +791,10 @@ def build_training_manifest(
             "learning_rate": config.learning_rate,
             "optimizer": "torch.optim.Adam",
             "train_batch_size": config.train_batch_size,
+            "gradient_accumulation_steps": config.gradient_accumulation_steps,
+            "effective_train_batch_size": (
+                config.train_batch_size * config.gradient_accumulation_steps
+            ),
             "validation_batch_size": config.validation_batch_size,
             "sequence_width": MAX_PAIR_WIDTH,
             "sequence_padding": "fixed-to-maximum-for-training",
@@ -636,6 +803,7 @@ def build_training_manifest(
             "selection": "minimum validation cross-entropy",
             "resumption_supported": False,
             "weights_only": True,
+            "architecture": config.architecture.to_config(),
         },
         "trainer_state": dict(trainer_state),
         "wandb": {
@@ -704,10 +872,12 @@ def run_training(config: RolloutTrainingConfig) -> dict[str, Any]:
     repo_root = Path(__file__).resolve().parents[1]
     source_code = source_code_identity(repo_root)
     available_functions, prepared = prepare_prefixes(config)
-    model_config = policy_config(available_functions)
+    model_config = policy_config(available_functions, config.architecture)
     if config.dry_run:
         policy = RolloutPolicy(
-            AlignedPairPolicy(len(available_functions)), model_config, device="cpu"
+            AlignedPairPolicy(len(available_functions), config.architecture),
+            model_config,
+            device="cpu",
         )
         return build_training_manifest(
             config,
@@ -730,7 +900,7 @@ def run_training(config: RolloutTrainingConfig) -> dict[str, Any]:
         project=config.wandb_project,
         name=config.wandb_run_name,
         mode="online",
-        tags=["deep-corpus-v1", "issue-55", "one-step-policy"],
+        tags=[config.corpus_dir.name, "one-step-policy"],
         config={
             "corpus_manifest_digest": prepared.manifest["manifest_digest"],
             "basis_set": model_config["basis_set"],
@@ -739,8 +909,13 @@ def run_training(config: RolloutTrainingConfig) -> dict[str, Any]:
             "epochs": config.epochs,
             "learning_rate": config.learning_rate,
             "train_batch_size": config.train_batch_size,
+            "gradient_accumulation_steps": config.gradient_accumulation_steps,
+            "effective_train_batch_size": (
+                config.train_batch_size * config.gradient_accumulation_steps
+            ),
             "validation_batch_size": config.validation_batch_size,
             "seed": config.seed,
+            "architecture": config.architecture.to_config(),
         },
     )
     if run is None:
@@ -764,9 +939,11 @@ def run_training(config: RolloutTrainingConfig) -> dict[str, Any]:
             epochs=config.epochs,
             learning_rate=config.learning_rate,
             train_batch_size=config.train_batch_size,
+            gradient_accumulation_steps=config.gradient_accumulation_steps,
             validation_batch_size=config.validation_batch_size,
             seed=config.seed,
             device=config.device,
+            architecture=config.architecture,
             epoch_callback=log_epoch,
         )
         policy = RolloutPolicy(model, model_config, device=config.device)
@@ -823,6 +1000,14 @@ def run_training(config: RolloutTrainingConfig) -> dict[str, Any]:
                 "best_validation_cross_entropy": trainer_state[
                     "best_validation_cross_entropy"
                 ],
+                "training_seconds": trainer_state["training_seconds"],
+                "optimizer_steps": trainer_state["optimizer_steps"],
+                "peak_cuda_memory_allocated_bytes": trainer_state[
+                    "peak_cuda_memory_allocated_bytes"
+                ],
+                "peak_cuda_memory_reserved_bytes": trainer_state[
+                    "peak_cuda_memory_reserved_bytes"
+                ],
             }
         )
         return persisted_manifest
@@ -834,29 +1019,63 @@ def _parse_args(argv: Sequence[str] | None = None) -> RolloutTrainingConfig:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--corpus-dir", type=Path, default=DEFAULT_CORPUS_DIR)
+    parser.add_argument(
+        "--reference-corpus-dir",
+        type=Path,
+        action="append",
+        dest="reference_corpus_dirs",
+        help=(
+            "local corpus whose payload-backed identities satisfy a declared "
+            "reference contract; repeat for multiple references"
+        ),
+    )
     parser.add_argument("--epochs", type=int, default=12)
     parser.add_argument("--learning-rate", type=float, default=2e-3)
-    parser.add_argument("--train-batch-size", type=int, default=256)
-    parser.add_argument("--validation-batch-size", type=int, default=512)
+    parser.add_argument("--train-batch-size", type=int)
+    parser.add_argument("--gradient-accumulation-steps", type=int)
+    parser.add_argument("--validation-batch-size", type=int)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--wandb-entity", default=PERSONAL_WANDB_ENTITY)
     parser.add_argument("--wandb-project", default=DEFAULT_WANDB_PROJECT)
     parser.add_argument("--wandb-run-name")
+    parser.add_argument("--size-arm", choices=tuple(POLICY_SIZE_ARMS), default="90k")
     parser.add_argument("--dry-run", action="store_true")
     arguments = parser.parse_args(argv)
+    train_batch_size, accumulation_steps, validation_batch_size = POLICY_SIZE_BATCHING[
+        arguments.size_arm
+    ]
     return RolloutTrainingConfig(
         output_dir=arguments.output_dir,
         corpus_dir=arguments.corpus_dir,
+        reference_corpus_dirs=(
+            tuple(arguments.reference_corpus_dirs)
+            if arguments.reference_corpus_dirs is not None
+            else DEFAULT_REFERENCE_CORPUS_DIRS
+        ),
         epochs=arguments.epochs,
         learning_rate=arguments.learning_rate,
-        train_batch_size=arguments.train_batch_size,
-        validation_batch_size=arguments.validation_batch_size,
+        train_batch_size=(
+            arguments.train_batch_size
+            if arguments.train_batch_size is not None
+            else train_batch_size
+        ),
+        gradient_accumulation_steps=(
+            arguments.gradient_accumulation_steps
+            if arguments.gradient_accumulation_steps is not None
+            else accumulation_steps
+        ),
+        validation_batch_size=(
+            arguments.validation_batch_size
+            if arguments.validation_batch_size is not None
+            else validation_batch_size
+        ),
         seed=arguments.seed,
         device=arguments.device,
         wandb_entity=arguments.wandb_entity,
         wandb_project=arguments.wandb_project,
         wandb_run_name=arguments.wandb_run_name,
+        architecture=POLICY_SIZE_ARMS[arguments.size_arm],
         dry_run=arguments.dry_run,
     )
 

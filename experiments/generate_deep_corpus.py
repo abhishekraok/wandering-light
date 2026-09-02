@@ -47,6 +47,7 @@ import statistics
 import tempfile
 import time
 from collections import Counter, defaultdict
+from collections.abc import Mapping
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -82,7 +83,7 @@ from wandering_light.shortest_path_data import recertify_shortest_path
 from wandering_light.trajectory import TrajectorySpec
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Mapping, Sequence
+    from collections.abc import Iterator, Sequence
 
     from wandering_light.basis_set import BasisSet
     from wandering_light.function_def import FunctionDef, FunctionDefSet
@@ -1745,6 +1746,37 @@ def generate_corpus(
     return manifest, manifest_path
 
 
+def _verified_manifest_digest(manifest: Mapping[str, Any]) -> str:
+    """Return the manifest's self-digest, raising if its canonical body differs."""
+
+    stored_digest = manifest.get("manifest_digest")
+    payload = dict(manifest)
+    payload.pop("manifest_digest", None)
+    # Hosting is not part of corpus identity.
+    payload.pop("hub", None)
+    expected = _sha256_bytes(_canonical_json(payload).encode())
+    if stored_digest != expected:
+        raise ValueError(f"manifest digest mismatch: {stored_digest!r} != {expected!r}")
+    return stored_digest
+
+
+def _validated_split_selection(
+    manifest: Mapping[str, Any], splits: Sequence[str]
+) -> tuple[str, ...]:
+    split_metadata = manifest.get("splits")
+    if not isinstance(split_metadata, Mapping):
+        raise ValueError("corpus manifest 'splits' must be an object")
+    selected_splits = tuple(splits)
+    if not selected_splits:
+        raise ValueError("at least one corpus split must be selected")
+    if len(selected_splits) != len(set(selected_splits)):
+        raise ValueError(f"duplicate corpus split selection: {selected_splits!r}")
+    unknown_splits = [split for split in selected_splits if split not in split_metadata]
+    if unknown_splits:
+        raise ValueError(f"unknown corpus splits: {unknown_splits}")
+    return selected_splits
+
+
 def load_corpus(
     corpus_dir: str | Path,
     *,
@@ -1753,22 +1785,15 @@ def load_corpus(
     """Load a corpus, checking the manifest digest, file digests and provenance."""
     root = Path(corpus_dir)
     manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
-    stored_digest = manifest.get("manifest_digest")
-    payload = dict(manifest)
-    payload.pop("manifest_digest", None)
-    # "hub" records where the payload is published, which is not part of what
-    # the corpus is; a corpus keeps its identity whether or not it was uploaded.
-    # Digesting it would mean publishing a corpus invalidated its own manifest.
-    payload.pop("hub", None)
-    expected = _sha256_bytes(_canonical_json(payload).encode())
-    if stored_digest != expected:
-        raise ValueError(f"manifest digest mismatch: {stored_digest!r} != {expected!r}")
+    _verified_manifest_digest(manifest)
     basis = load_basis_set(manifest["basis_set_id"])
     if basis.digest != manifest["basis_set_digest"]:
         raise ValueError("manifest references a different basis-set digest")
 
+    selected_splits = _validated_split_selection(manifest, splits)
+
     records: list[BasisTaskRecord] = []
-    for split in splits:
+    for split in selected_splits:
         metadata = manifest["splits"][split]
         name = metadata["path"]
         if Path(name).name != name:
@@ -1820,6 +1845,143 @@ def collect_corpus_identities(corpus_dir: str | Path) -> CorpusIdentities:
         hub_repo_id=hub.get("repo_id"),
         hub_revision=hub.get("revision"),
     )
+
+
+def required_reference_corpora(
+    manifest: Mapping[str, Any],
+) -> tuple[dict[str, Any], ...]:
+    """Return the exact reference identities declared by a corpus contract."""
+
+    raw_references = manifest.get("reference_corpora_excluded", [])
+    if not isinstance(raw_references, list) or any(
+        not isinstance(reference, Mapping) for reference in raw_references
+    ):
+        raise ValueError("reference_corpora_excluded must be a list of objects")
+    references = tuple(dict(reference) for reference in raw_references)
+    digests = [reference.get("manifest_digest") for reference in references]
+    if any(not isinstance(digest, str) or not digest for digest in digests):
+        raise ValueError("declared reference corpus has no manifest digest")
+    if len(digests) != len(set(digests)):
+        raise ValueError("declared reference corpus manifest digests are duplicated")
+
+    contract = manifest.get("target_contract")
+    if contract is not None and not isinstance(contract, Mapping):
+        raise ValueError("target_contract must be an object")
+    raw_required = (
+        [] if contract is None else contract.get("reference_manifest_digests", [])
+    )
+    if not isinstance(raw_required, list) or any(
+        not isinstance(digest, str) or not digest for digest in raw_required
+    ):
+        raise ValueError("reference_manifest_digests must be a list of digests")
+    required = set(raw_required)
+    if len(raw_required) != len(required):
+        raise ValueError("target contract reference manifest digests are duplicated")
+    if (
+        contract is not None
+        and "reference_manifest_digests" in contract
+        and required != set(digests)
+    ):
+        raise ValueError(
+            "target contract and declared reference corpus identities disagree"
+        )
+    return tuple(sorted(references, key=lambda reference: reference["manifest_digest"]))
+
+
+def load_required_reference_identities(
+    manifest: Mapping[str, Any],
+    corpus_dirs: Sequence[str | Path],
+    *,
+    fetch_if_missing: bool = True,
+) -> tuple[CorpusIdentities, ...]:
+    """Load payload-backed identities for every reference declared by ``manifest``."""
+
+    from wandering_light.corpus_hub import corpus_split_files, fetch_corpus
+
+    expected = required_reference_corpora(manifest)
+    if not expected:
+        return ()
+    directories = tuple(Path(path) for path in corpus_dirs)
+    if len(directories) != len(expected):
+        raise ValueError(
+            f"configured {len(directories)} reference corpora, expected {len(expected)}"
+        )
+    expected_by_digest = {
+        str(reference["manifest_digest"]): reference for reference in expected
+    }
+    loaded: dict[str, CorpusIdentities] = {}
+    for corpus_dir in directories:
+        manifest_path = corpus_dir / "manifest.json"
+        try:
+            reference_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise ValueError(
+                f"could not read reference corpus manifest {manifest_path}: {error}"
+            ) from error
+        if not isinstance(reference_manifest, dict):
+            raise ValueError(
+                f"reference corpus manifest must be an object: {manifest_path}"
+            )
+        _verified_manifest_digest(reference_manifest)
+        digest = reference_manifest.get("manifest_digest")
+        expected_reference = expected_by_digest.get(str(digest))
+        if expected_reference is None:
+            raise ValueError(
+                f"reference corpus {corpus_dir} is not declared by the target corpus"
+            )
+        if str(digest) in loaded:
+            raise ValueError(f"duplicate configured reference corpus digest {digest!r}")
+        hub = reference_manifest.get("hub", {})
+        if not isinstance(hub, Mapping):
+            raise ValueError(f"reference corpus {digest!r} has invalid Hub provenance")
+        header_reference = {
+            "manifest_digest": digest,
+            "basis_set_id": reference_manifest.get("basis_set_id"),
+            "basis_set_digest": reference_manifest.get("basis_set_digest"),
+            "hub_repo_id": hub.get("repo_id"),
+            "hub_revision": hub.get("revision"),
+        }
+        for identity_field, actual in header_reference.items():
+            if expected_reference.get(identity_field) != actual:
+                raise ValueError(
+                    f"reference corpus {digest!r} has unexpected "
+                    f"{identity_field}: {actual!r}"
+                )
+
+        split_files = corpus_split_files(reference_manifest)
+        split_names = tuple(split for split, _ in split_files)
+        required_paths = [corpus_dir / name for _, name in split_files]
+        if any(not path.is_file() for path in required_paths):
+            if not fetch_if_missing:
+                missing = [str(path) for path in required_paths if not path.is_file()]
+                raise FileNotFoundError(
+                    f"reference corpus payloads are missing: {missing}"
+                )
+            fetch_corpus(
+                manifest_path,
+                destination=corpus_dir,
+                splits=split_names,
+                include_details=False,
+            )
+        missing = [str(path) for path in required_paths if not path.is_file()]
+        if missing:
+            raise FileNotFoundError(
+                f"reference corpus fetch did not materialize payloads: {missing}"
+            )
+
+        identities = collect_corpus_identities(corpus_dir)
+        if identities.manifest_reference() != expected_reference:
+            raise ValueError(
+                f"reference corpus {digest!r} differs from its declared identity"
+            )
+        loaded[str(digest)] = identities
+
+    missing_digests = sorted(set(expected_by_digest) - set(loaded))
+    if missing_digests:
+        raise ValueError(
+            f"required reference corpus identities are missing: {missing_digests}"
+        )
+    return tuple(loaded[str(reference["manifest_digest"])] for reference in expected)
 
 
 def _contains_zero_float(value: object) -> bool:
@@ -1874,14 +2036,18 @@ def _recertification_sample(
     return sample
 
 
-def _manifest_summary_failures(
-    manifest: Mapping[str, Any], records: Sequence[BasisTaskRecord]
+def _selected_manifest_summary_failures(
+    manifest: Mapping[str, Any],
+    records: Sequence[BasisTaskRecord],
+    *,
+    splits: Sequence[str] = SPLIT_ORDER,
 ) -> list[str]:
-    """Recompute review-critical manifest claims from the payload."""
+    """Recompute review-critical claims for the payload splits actually loaded."""
+
     failures: list[str] = []
     by_split = {
         split: [record for record in records if record.split == split]
-        for split in SPLIT_ORDER
+        for split in splits
     }
     for split, split_records in by_split.items():
         metadata = manifest["splits"].get(split)
@@ -1939,6 +2105,27 @@ def _manifest_summary_failures(
         if metadata.get("seed") != manifest.get("seed"):
             failures.append(f"split {split!r} seed differs from manifest seed")
 
+    split_roots = manifest.get("split_roots")
+    if isinstance(split_roots, dict):
+        for split, split_records in by_split.items():
+            actual = sorted(
+                {
+                    record.metadata["root_index"]
+                    for record in split_records
+                    if isinstance(record.metadata.get("root_index"), int)
+                }
+            )
+            if split_roots.get(split) != actual:
+                failures.append(f"split_roots mismatch for {split!r}")
+    return failures
+
+
+def _global_manifest_summary_failures(
+    manifest: Mapping[str, Any], records: Sequence[BasisTaskRecord]
+) -> list[str]:
+    """Recompute claims that require every manifest split to be loaded."""
+
+    failures: list[str] = []
     task_ids = {record.task_id for record in records}
     root_digests = {
         record.metadata["root_digest"]
@@ -1964,19 +2151,6 @@ def _manifest_summary_failures(
                     f"identity {key} mismatch: "
                     f"manifest={identity.get(key)!r}, payload={actual!r}"
                 )
-
-    split_roots = manifest.get("split_roots")
-    if isinstance(split_roots, dict):
-        for split, split_records in by_split.items():
-            actual = sorted(
-                {
-                    record.metadata["root_index"]
-                    for record in split_records
-                    if isinstance(record.metadata.get("root_index"), int)
-                }
-            )
-            if split_roots.get(split) != actual:
-                failures.append(f"split_roots mismatch for {split!r}")
     return failures
 
 
@@ -2055,20 +2229,67 @@ def _target_contract_failures(
     return failures
 
 
-def verify_corpus(
-    corpus_dir: str | Path,
+def _reference_verification_evidence(
+    manifest: Mapping[str, Any],
+    reference_identities: Sequence[CorpusIdentities],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+    required = list(required_reference_corpora(manifest))
+    verified = sorted(
+        (identities.manifest_reference() for identities in reference_identities),
+        key=lambda reference: str(reference.get("manifest_digest")),
+    )
+    failures: list[str] = []
+    required_by_digest = {
+        str(reference["manifest_digest"]): reference for reference in required
+    }
+    verified_by_digest: dict[str, dict[str, Any]] = {}
+    for reference in verified:
+        digest = str(reference.get("manifest_digest"))
+        if digest in verified_by_digest:
+            failures.append(f"duplicate supplied reference identity {digest!r}")
+        verified_by_digest[digest] = reference
+    missing = sorted(set(required_by_digest) - set(verified_by_digest))
+    unexpected = sorted(set(verified_by_digest) - set(required_by_digest))
+    if missing:
+        failures.append(f"missing required reference identities {missing}")
+    if unexpected:
+        failures.append(f"unexpected reference identities {unexpected}")
+    for digest in sorted(set(required_by_digest) & set(verified_by_digest)):
+        if verified_by_digest[digest] != required_by_digest[digest]:
+            failures.append(
+                f"reference identity {digest!r} differs from the manifest declaration"
+            )
+    return required, verified, failures
+
+
+def verify_loaded_corpus(
+    manifest: Mapping[str, Any],
+    records: Sequence[BasisTaskRecord],
     *,
+    splits: Sequence[str] = SPLIT_ORDER,
     recertify: int = 0,
     seed: int = DEFAULT_SEED,
     reference_identities: Sequence[CorpusIdentities] = (),
 ) -> dict[str, Any]:
-    """Re-execute every witness and optionally re-prove distances from scratch.
+    """Verify already-loaded split records without reopening any corpus payload.
 
     Re-certification is independent of the generation run: it expands a fresh
     graph from the task's input through ``distance - 1`` and requires the target
     to be absent, which is exactly the lower-bound half of the distance claim.
     """
-    manifest, records = load_corpus(corpus_dir)
+    manifest_digest = _verified_manifest_digest(manifest)
+    selected_splits = _validated_split_selection(manifest, splits)
+    selected_set = set(selected_splits)
+    unexpected_record_splits = sorted(
+        {record.split for record in records} - selected_set
+    )
+    if unexpected_record_splits:
+        raise ValueError(
+            "loaded corpus records include unselected splits: "
+            f"{unexpected_record_splits}"
+        )
+    manifest_splits = tuple(sorted(manifest["splits"]))
+    full_corpus = selected_set == set(manifest_splits)
     basis = load_basis_set(manifest["basis_set_id"])
     functions = basis.as_function_set()
     executor = Executor(functions)
@@ -2194,9 +2415,27 @@ def verify_corpus(
         if key in reference_root_keys
     )
     task_id_overlaps = sorted(set(task_counts) & reference_task_ids)
-    manifest_summary_failures = _manifest_summary_failures(manifest, records)
-    target_contract_failures = _target_contract_failures(
-        manifest, records, reference_identities
+    (
+        required_references,
+        verified_references,
+        reference_identity_failures,
+    ) = _reference_verification_evidence(manifest, reference_identities)
+    selected_manifest_summary_failures = _selected_manifest_summary_failures(
+        manifest,
+        records,
+        splits=selected_splits,
+    )
+    global_manifest_summary_failures = (
+        _global_manifest_summary_failures(manifest, records) if full_corpus else None
+    )
+    manifest_summary_failures = [
+        *selected_manifest_summary_failures,
+        *(global_manifest_summary_failures or ()),
+    ]
+    target_contract_failures = (
+        _target_contract_failures(manifest, records, reference_identities)
+        if full_corpus
+        else None
     )
 
     if recertify < 0:
@@ -2235,8 +2474,76 @@ def verify_corpus(
     inconclusive_recertification = [
         row for row in recertified if row["outcome"] == "inconclusive"
     ]
+
+    def completed_check(*failure_groups: Sequence[Any]) -> dict[str, Any]:
+        failures = [failure for group in failure_groups for failure in group]
+        return {
+            "status": "failed" if failures else "passed",
+            "failures": failures,
+        }
+
+    checks = {
+        "manifest_identity": {
+            "status": "passed",
+            "manifest_digest": manifest_digest,
+        },
+        "witness_replay": completed_check(witness_failures),
+        "record_provenance": completed_check(provenance_failures),
+        "selected_split_summaries": completed_check(selected_manifest_summary_failures),
+        "selected_split_isolation": completed_check(
+            leaking_roots,
+            duplicate_task_ids,
+            leaking_tasks,
+        ),
+        "reference_overlap": {
+            **completed_check(
+                reference_identity_failures,
+                root_digest_overlaps,
+                root_key_overlaps,
+                task_id_overlaps,
+            ),
+            "required_references": required_references,
+            "verified_references": verified_references,
+        },
+        "corpus_global_summaries": (
+            completed_check(global_manifest_summary_failures)
+            if global_manifest_summary_failures is not None
+            else {
+                "status": "skipped",
+                "reason": "not every manifest split was loaded",
+            }
+        ),
+        "target_contract": (
+            completed_check(target_contract_failures)
+            if target_contract_failures is not None
+            else {
+                "status": "skipped",
+                "reason": "target contract is corpus-global",
+            }
+        ),
+        "distance_recertification": (
+            completed_check(
+                failed_recertification,
+                inconclusive_recertification,
+            )
+            if recertify
+            else {
+                "status": "skipped",
+                "reason": "recertify=0",
+            }
+        ),
+    }
+    ok = all(check["status"] != "failed" for check in checks.values())
     return {
-        "corpus_dir": str(corpus_dir),
+        "manifest_digest": manifest_digest,
+        "scope": {
+            "kind": "full-corpus" if full_corpus else "selected-splits",
+            "selected_splits": list(selected_splits),
+            "manifest_splits": list(manifest_splits),
+        },
+        "checks": checks,
+        "verified_splits": list(selected_splits),
+        "full_corpus_verified": ok if full_corpus else None,
         "records": len(records),
         "witness_failures": witness_failures,
         "provenance_failures": provenance_failures,
@@ -2254,23 +2561,32 @@ def verify_corpus(
         "recertified": recertified,
         "recertification_failures": failed_recertification,
         "recertification_inconclusive": inconclusive_recertification,
-        "ok": not any(
-            (
-                witness_failures,
-                provenance_failures,
-                manifest_summary_failures,
-                leaking_roots,
-                duplicate_task_ids,
-                leaking_tasks,
-                root_digest_overlaps,
-                root_key_overlaps,
-                task_id_overlaps,
-                target_contract_failures,
-                failed_recertification,
-                inconclusive_recertification,
-            )
-        ),
+        "ok": ok,
     }
+
+
+def verify_corpus(
+    corpus_dir: str | Path,
+    *,
+    splits: Sequence[str] = SPLIT_ORDER,
+    recertify: int = 0,
+    seed: int = DEFAULT_SEED,
+    reference_identities: Sequence[CorpusIdentities] = (),
+) -> dict[str, Any]:
+    """Load selected payloads once, then verify their records and declared scope."""
+
+    selected_splits = tuple(splits)
+    manifest, records = load_corpus(corpus_dir, splits=selected_splits)
+    result = verify_loaded_corpus(
+        manifest,
+        records,
+        splits=selected_splits,
+        recertify=recertify,
+        seed=seed,
+        reference_identities=reference_identities,
+    )
+    result["corpus_dir"] = str(corpus_dir)
+    return result
 
 
 def reference_curve(

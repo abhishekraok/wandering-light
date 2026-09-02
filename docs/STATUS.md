@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-08-31
+Last updated: 2026-09-01
 
 ## What is true now
 
@@ -60,6 +60,7 @@ holds the argument.
 
 | what | who | where | question it answers |
 |---|---|---|---|
+| Compute-optimal policy-size sweep — implementation exists; the campaign is unlaunched and has no result. Launch requires a protocol frozen to the exact source commit. | `codex/issue-80` | [compute-optimal-policy-size-sweep (#92)](../../pull/92), [compute-optimal-policy-size (#80)](../../issues/80) | Which policy size is compute-optimal on CPU and GPU? |
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
 
 ## Superseded
