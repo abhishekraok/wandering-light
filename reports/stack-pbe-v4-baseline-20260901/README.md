@@ -68,7 +68,7 @@ taxes every successor.
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 1,000 | full 1,800 | **80/1800 (4.4%)** | 4.9% | 8 | 2,116 s | **80/1800 (4.4%)** | 4.9% | 8 | 2,154 s |
 | 10,000 | full 1,800 | **120/1800 (6.7%)** | 7.9% | 22 | 22,803 s | TBD_G10K | | | |
-| 100,000 | sample 40 | **6/40 (15.0%)** | 20.0% | 2 | 3,917 s | TBD_G100K | | | |
+| 100,000 | sample 40 | **6/40 (15.0%)** | 20.0% | 2 | 3,917 s | **6/40 (15.0%)** | 20.0% | 2 | 3,624 s |
 
 **Pre-registered before the guarded arm ran.** At 1,000 nodes the unpruned
 arm solves exactly the two first-order 5-op behaviours and 0/40 on the four
@@ -86,8 +86,21 @@ memorised, the same two first-order behaviours, the four quotation builders
 still 0/40 — and costs 1.8% more wall clock for it. A budget of 1,000
 expansions never reaches a body long enough for the type check to fire, and
 never reaches the last ply where the close check bites. The guard does not
-change what 1,000 nodes buy on this corpus. What it does at 10,000 and
-100,000 is the question below.
+change what 1,000 nodes buy on this corpus.
+
+**At 100,000 on the sample, the same again:** identical candidate and verdict
+on all 40 tasks, the three 6–7-op behaviours (`keep_below`, `negate_each`,
+`n_minus_each`) still 0/1 each. Wall clock 3,624 s against 3,917 s, but the
+unpruned run shared the machine with five other jobs and this one with two,
+so nothing is attributed to the guard there. The arithmetic says why the
+outcome does not move: BFS finds a 6-op program when it pops that program's
+depth-5 ancestor, and #70's counts put the depth-5 ball at ~980,000 states
+unpruned and ~105,000 guarded (v3 roots; v4's data stacks differ but not by
+an order of magnitude). A 100,000-expansion budget is at the edge of
+finishing depth 5 even guarded. So the guard's first *visible* step on this
+corpus lies between 100,000 and roughly 1,000,000 expansions — a budget
+sweep, not run here. Within the v3 budgets the two arms are the same floor.
+TBD_G10K_NARRATIVE
 
 **At 1,000 nodes the 80 solves are exactly two behaviours at 40/40** —
 `push_back` (4 ops, `nil swap cons cat`) and `rotate_left` (5 ops,
