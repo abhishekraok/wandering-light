@@ -80,6 +80,33 @@ def test_bfs_never_reads_the_held_out_examples(sum_task, monkeypatch):
     assert bfs_solve(blinded, budget=20_000) == bfs_solve(sum_task, budget=20_000)
 
 
+def test_guard_finds_the_same_quotation_building_program(sum_task):
+    """`0 [ add ] fold` opens a `[`; a sound guard must not lose it.
+
+    The guard changes what a budget reaches, never which programs exist, so
+    at a budget where the unpruned search finds the witness the guarded one
+    must return the very same program.
+    """
+    unpruned = bfs_solve(sum_task, budget=20_000)
+    assert unpruned is not None
+    assert bfs_solve(sum_task, budget=20_000, guard="both") == unpruned
+
+
+def test_guard_leaves_first_order_search_alone(add_task):
+    assert bfs_solve(add_task, budget=500, guard="both") == ("add",)
+
+
+def test_close_guard_refuses_a_mark_bearing_target(add_task):
+    """`close` is sound only because every target is mark-free."""
+    from dataclasses import replace
+
+    marked = replace(add_task, outputs=tuple("[ 1 MARK ]" for _ in add_task.outputs))
+    with pytest.raises(ValueError, match="mark-free"):
+        bfs_solve(marked, budget=10, guard="close")
+    # The body arm does not depend on that property, so it must still run.
+    assert bfs_solve(marked, budget=10, guard="body") is None
+
+
 def test_random_finds_a_one_op_program(add_task):
     found = random_solve(add_task, budget=2_000, rng=random.Random(1), max_length=2)
     assert found is not None

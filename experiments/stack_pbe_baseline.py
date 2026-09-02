@@ -35,8 +35,10 @@ import sys
 import time
 from collections import Counter
 
+from wandering_light.quotation_guard import blocked
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
+    Mark,
     ops_for_basis,
     parse_stack,
     step_raw,
@@ -62,18 +64,38 @@ def step_all(behaviour, op):
     return tuple(moved)
 
 
-def bfs_solve(task: Task, budget: int, max_depth: int = 8) -> tuple[str, ...] | None:
+def bfs_solve(
+    task: Task, budget: int, max_depth: int = 8, guard: str = "off"
+) -> tuple[str, ...] | None:
     """Shortest program fitting the *shown* examples, within a node budget.
 
     Nothing here looks at the held-out examples; that is what makes the score
     downstream mean something.
+
+    `guard` is the search-side predicate from #70 over open-quotation states:
+    "off" is the machine as it stands, where capture makes every op legal
+    under an open `[`; "body", "close" or "both" drop successors whose open
+    body can never run. It is sound -- no witness prefix is pruned -- so it
+    changes what a node budget *reaches*, never which programs exist at a
+    depth. "off" reproduces every unpruned number.
     """
     inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
-    target = key_of(tuple(parse_stack(text, basis=BASIS) for text in task.outputs))
+    outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
+    target = key_of(outputs)
+    # "close" is sound only because every target is mark-free: a state with
+    # more open marks than ops left can never become one. A corpus that hands
+    # the solver a quotation in its data would break this.
+    if guard in ("close", "both") and any(
+        isinstance(v, Mark) for stack in outputs for v in stack
+    ):
+        raise ValueError("the close guard needs mark-free targets")
     seen = {key_of(inputs)}
     frontier = [(inputs, ())]
     expanded = 0
-    for _ in range(max_depth):
+    for depth in range(max_depth):
+        # Ops a successor may still spend under the depth cap. The cap, not
+        # the node budget, is what makes "close" and "reach" sound.
+        remaining = max_depth - depth - 1
         nxt = []
         for behaviour, program in frontier:
             expanded += 1
@@ -87,6 +109,10 @@ def bfs_solve(task: Task, budget: int, max_depth: int = 8) -> tuple[str, ...] | 
                 moved_key = key_of(moved)
                 if moved_key == target:
                     return extended
+                # Every example shares the mark structure, so one stack is
+                # enough to judge the open body.
+                if guard != "off" and blocked(moved[0], remaining, guard) is not None:
+                    continue
                 if moved_key in seen:
                     continue
                 seen.add(moved_key)
@@ -233,6 +259,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--backend", choices=("bfs", "random", "llm"), default="bfs")
     parser.add_argument("--split", default="eval", choices=("eval", "train", "all"))
     parser.add_argument("--budget", type=int, default=10_000)
+    parser.add_argument(
+        "--guard",
+        choices=("off", "body", "close", "both"),
+        default="off",
+        help="bfs only: the #70 open-quotation guard; off reproduces unpruned numbers",
+    )
     parser.add_argument("--tasks", type=int, default=0, help="0 means every task")
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--model", default="claude-opus-5")
@@ -294,7 +326,7 @@ def main(argv: list[str] | None = None) -> int:
     scores: list[Score] = []
     for task in tasks:
         if args.backend == "bfs":
-            found = bfs_solve(task, args.budget)
+            found = bfs_solve(task, args.budget, guard=args.guard)
             candidates = [found] if found else []
         elif args.backend == "random":
             found = random_solve(task, args.budget, rng)
@@ -311,7 +343,8 @@ def main(argv: list[str] | None = None) -> int:
 
     report = summarise(scores)
     print(
-        f"{args.backend} on {args.split}, budget {args.budget:,}: "
+        f"{args.backend} on {args.split}, budget {args.budget:,}"
+        f"{', guard ' + args.guard if args.backend == 'bfs' and args.guard != 'off' else ''}: "
         f"{len(tasks)} tasks, {time.time() - started:.0f}s"
     )
     print(f"  {report}")
@@ -332,6 +365,7 @@ def main(argv: list[str] | None = None) -> int:
             "backend": args.backend,
             "split": args.split,
             "budget": args.budget,
+            "guard": args.guard,
             "tasks": report.tasks,
             "solved": report.solved,
             "memorised": report.memorised,

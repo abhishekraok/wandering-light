@@ -52,9 +52,17 @@ it. **With guard** applies the search-side predicate from
 [prune-open-mark-states (#70)](../../issues/70) to each successor state —
 `blocked(stack, remaining, "both")` from `wandering_light/quotation_guard.py`,
 with `remaining` the ops left under the depth cap — and drops states whose
-open body can never run. The guard is sound (no witness prefix is pruned), so
-it changes what a node budget *reaches*, never which programs exist at a
-depth. Same budgets, same seed, same machine.
+open body can never run: a body that is ill-typed as a program ("type"), or a
+state with more open marks than ops left to close them ("close"; sound only
+because every corpus target is mark-free, which the script asserts). A third
+check on how deep a body reaches was found unsound during #70's review — `cat`
+widens a list in one op — and removed before merge. The guard never prunes a
+witness prefix (0 of 26,013 on v4) and never loses the *shortest* fit, which
+is what a first-fit solver needs; it can drop longer dead-code variants, so it
+is not the tool for an exhaustiveness count. It changes what a node budget
+*reaches*, never which programs exist at a depth. Same budgets, same seed,
+same machine; guarded wall clock is reported as measured, since the predicate
+taxes every successor.
 
 | budget | tasks | unpruned | shown-only | memorised | wall clock | with guard | shown-only | memorised | wall clock |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -66,9 +74,10 @@ depth. Same budgets, same seed, same machine.
 arm solves exactly the two first-order 5-op behaviours and 0/40 on the four
 5-op behaviours that open a `[` (next section). The guard should flip those
 four at the same budget — that was the prediction as first written. The #70
-session's measurement on v3 (depth 4: body check 1.55x, close 4.29x, both
-4.43x; depth 6 both 17.6x) says it probably will not: at body length 1–2 the
-prune rate is 36% or less. The prediction stays as written; the miss, if it is one,
+session's measurement on v3 (states per task, depth 4: body check 1.30x,
+close 4.29x, both 4.43x; depth 6 both 17.0x) says it probably will not: at
+body length 1–2 the prune rate is 36% or less, and if the four do flip it will
+be the close check doing it. The prediction stays as written; the miss, if it is one,
 is the result.
 
 **At 1,000 nodes the 80 solves are exactly two behaviours at 40/40** —
