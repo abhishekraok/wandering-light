@@ -59,7 +59,7 @@ depth. Same budgets, same seed, same machine.
 | budget | tasks | unpruned | shown-only | memorised | wall clock | with guard | shown-only | memorised | wall clock |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 1,000 | full 1,800 | **80/1800 (4.4%)** | 4.9% | 8 | 2,116 s | TBD_G1K | | | |
-| 10,000 | full 1,800 | TBD_BFS10K | | | | TBD_G10K | | | |
+| 10,000 | full 1,800 | **120/1800 (6.7%)** | 7.9% | 22 | 22,803 s | TBD_G10K | | | |
 | 100,000 | sample 40 | **6/40 (15.0%)** | 20.0% | 2 | 3,917 s | TBD_G100K | | | |
 
 **Pre-registered before the guarded arm ran.** At 1,000 nodes the unpruned
@@ -112,7 +112,22 @@ them. This is the class of defect the held-out protocol exists to surface, and
 it wants a sweep over the other 219 behaviours' samplers — filed on the issue,
 not fixed here.
 
-TBD_BFS_10K_NARRATIVE
+At 10,000 nodes on the full split — the like-for-like against v3's 8.9% at
+the same budget — **6.7%**, and the 40 solves gained over 1,000 nodes are one
+behaviour: `reverse`, `nil [ cons ] fold`, at 40/40. It is the first
+quotation-building behaviour any search has solved on v4. The other three
+5-op quotation builders (`increment_each`, `keep_negative`, `keep_zeros`)
+stay at **0/40** at 10x the budget; both first-order 5-op behaviours were
+already at 40/40 at 1,000. So on the full split: **120/240 at ≤5 ops, 0/1,560
+at 6 and above.** Wall clock 22,803 s, 6.3 h, against 2,116 s at 1,000 — the
+10x budget costs 10.8x because almost every task now exhausts it.
+
+Memorisations rose from 8 to **22** with the budget, fourteen of them on
+`positive_majority_three`, whose output is 0 or 1: `mul div dup mul`,
+`div over add div`, `add div dup mul` and so on, arithmetic that lands on the
+right bit for 3–6 shown examples and not for 8 hidden ones. A bigger budget
+buys more coincidence. At 10,000 nodes the shown-only grader would overstate
+by 1.2 points; at 1,000 by 0.4.
 
 ## `qwen3:30b-a3b`, the free local arm
 
