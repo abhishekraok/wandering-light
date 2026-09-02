@@ -66,9 +66,9 @@ depth. Same budgets, same seed, same machine.
 arm solves exactly the two first-order 5-op behaviours and 0/40 on the four
 5-op behaviours that open a `[` (next section). The guard should flip those
 four at the same budget — that was the prediction as first written. The #70
-session's corrected measurement (body check alone 1.11x at depth 4, close
-check most of the rest) says it probably will not: at body length 1–2 the
-prune rate is ~36%. The prediction stays as written; the miss, if it is one,
+session's measurement on v3 (depth 4: body check 1.55x, close 4.29x, both
+4.43x; depth 6 both 17.6x) says it probably will not: at body length 1–2 the
+prune rate is 36% or less. The prediction stays as written; the miss, if it is one,
 is the result.
 
 **At 1,000 nodes the 80 solves are exactly two behaviours at 40/40** —
