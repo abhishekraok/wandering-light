@@ -210,9 +210,11 @@ Seed 17 throughout (the script default). All runs on one machine, 2026-09-01:
 BFS on CPU, ollama on one RTX 4090, luna through the OpenAI API. Raw JSONs
 with every candidate and verdict sit beside this file.
 
-**One environment trap.** This machine's shell sets `OLLAMA_BASE_URL` to an
-unreachable host, and `solve_with_llm` scores a `ConnectionError` as an
-unsolved task rather than failing the run. The first ollama attempt returned a
-clean-looking 0/40 made entirely of connection failures. The override above is
-required here; a zero from the ollama arm should be checked against stderr
-before it is believed.
+**One trap, since removed at its source.** When these ran, the shell exported
+`OLLAMA_BASE_URL` pointing at an unreachable host (the export has since been
+deleted), and `solve_with_llm` scores a `ConnectionError` as an unsolved task
+rather than failing the run — so the first ollama attempt returned a
+clean-looking 0/40 made entirely of connection failures. The override in the
+command above is what the run actually used and is harmless on a clean shell.
+The durable lesson is the second half: a zero from the ollama arm should be
+checked against stderr before it is believed.
