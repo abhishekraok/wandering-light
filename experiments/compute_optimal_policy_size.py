@@ -1,7 +1,7 @@
 """Freeze, run, and aggregate the compute-optimal policy-size experiment.
 
 The protocol is validation-only. One timed, uninstrumented search produces each
-task's wall-clock and execution cost. All 24 timing cells must complete and seal
+task's wall-clock and execution cost. All 16 timing cells must complete and seal
 before any untimed observer replay or oracle annotation can begin. Each replay
 must reproduce the exact result before its scored visits are retained. Successful
 task costs therefore define the complete solve-rate-vs-log-budget curves without
@@ -83,7 +83,7 @@ AGGREGATE_STATUS = "complete"
 
 DEFAULT_CORPUS_DIR = Path("wandering_light/training/data/deep_corpus_v2")
 DEFAULT_REFERENCE_CORPUS_DIRS = (Path("wandering_light/training/data/deep_corpus_v1"),)
-TRAINING_SEEDS = (0, 1, 2)
+TRAINING_SEEDS = (0, 1)
 DEVICES = ("cpu", "cuda")
 COHORT_SELECTION_SEED = 20_260_826
 EVALUATION_TASK_ORDER_SEED = 20_260_829
@@ -103,6 +103,7 @@ WALL_SECONDS_MAX = 2**LOG2_WALL_SECONDS_MAX
 EXECUTIONS_MIN = 1
 
 ARM_IDS = ("90k", "1m", "10m", "40m")
+EVALUATION_CELL_COUNT = len(ARM_IDS) * len(TRAINING_SEEDS) * len(DEVICES)
 ARM_LABELS = {"90k": "90K", "1m": "1M", "10m": "10M", "40m": "40M"}
 EXPECTED_PARAMETER_COUNTS = {
     "90k": 90_374,
@@ -756,7 +757,7 @@ def _protocol_body(
             "paired_training_seeds": True,
             "evaluation_cells_sequential": True,
             "global_phase_barrier": [
-                "all-24-cell-timing",
+                f"all-{EVALUATION_CELL_COUNT}-cell-timing",
                 "sealed-timing-matrix",
                 "observer-replay-and-oracle-annotation",
             ],
@@ -2190,7 +2191,7 @@ def load_timing_matrix(
         or matrix.get("study_id") != STUDY_ID
         or matrix.get("status") != TIMING_MATRIX_STATUS
         or not isinstance(matrix.get("timings"), list)
-        or len(matrix["timings"]) != len(ARM_IDS) * len(TRAINING_SEEDS) * len(DEVICES)
+        or len(matrix["timings"]) != EVALUATION_CELL_COUNT
     ):
         raise ValueError("Unsupported or incomplete timing matrix")
     if protocol is not None and (
@@ -3414,7 +3415,10 @@ def _parser() -> argparse.ArgumentParser:
         action="append",
         type=Path,
         required=True,
-        help="timing_summary.json; repeat exactly 24 times in any argument order",
+        help=(
+            "timing_summary.json; repeat exactly "
+            f"{EVALUATION_CELL_COUNT} times in any argument order"
+        ),
     )
     seal_timings.add_argument("--output", type=Path, required=True)
 
@@ -3435,7 +3439,7 @@ def _parser() -> argparse.ArgumentParser:
         action="append",
         type=Path,
         required=True,
-        help="evaluation summary.json; repeat exactly 24 times",
+        help=(f"evaluation summary.json; repeat exactly {EVALUATION_CELL_COUNT} times"),
     )
     aggregate.add_argument("--output", type=Path, required=True)
     return parser

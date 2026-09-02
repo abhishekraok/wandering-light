@@ -191,7 +191,7 @@ def test_freeze_pins_validation_arms_search_metric_and_oracle(
         "paired_training_seeds": True,
         "evaluation_cells_sequential": True,
         "global_phase_barrier": [
-            "all-24-cell-timing",
+            "all-16-cell-timing",
             "sealed-timing-matrix",
             "observer-replay-and-oracle-annotation",
         ],
@@ -211,9 +211,10 @@ def test_freeze_pins_validation_arms_search_metric_and_oracle(
     assert set(task_order["task_ids"]) == set(protocol["cohort"]["task_ids"])
     assert task_order["task_ids"] != protocol["cohort"]["task_ids"]
     cell_order = protocol["evaluation_cell_order"]
-    assert len(cell_order["cells"]) == 24
-    assert [cell["ordinal"] for cell in cell_order["cells"]] == list(range(24))
-    for pair_index in range(12):
+    assert study.EVALUATION_CELL_COUNT == 16
+    assert len(cell_order["cells"]) == 16
+    assert [cell["ordinal"] for cell in cell_order["cells"]] == list(range(16))
+    for pair_index in range(8):
         pair = cell_order["cells"][2 * pair_index : 2 * pair_index + 2]
         assert pair[0]["arm_id"] == pair[1]["arm_id"]
         assert pair[0]["training_seed"] == pair[1]["training_seed"]
@@ -224,7 +225,7 @@ def test_freeze_pins_validation_arms_search_metric_and_oracle(
     assert {
         arm["arm_id"]: arm["parameters"] for arm in protocol["arms"]
     } == EXPECTED_PARAMETERS
-    assert protocol["training_seeds"] == [0, 1, 2]
+    assert protocol["training_seeds"] == [0, 1]
     assert protocol["devices"] == ["cpu", "cuda"]
     assert protocol["corpus"]["reference_corpora_excluded"] == []
     assert protocol["training"] == {
@@ -1537,9 +1538,9 @@ def test_aggregate_requires_full_matrix_and_selects_best_arms(
         output=tmp_path / "aggregate.json",
     )
 
-    assert aggregate["cells"] == aggregate["expected_cells"] == 24
-    assert len(aggregate["inputs"]["checkpoints"]) == 12
-    assert len(aggregate["inputs"]["evaluations"]) == 24
+    assert aggregate["cells"] == aggregate["expected_cells"] == 16
+    assert len(aggregate["inputs"]["checkpoints"]) == 8
+    assert len(aggregate["inputs"]["evaluations"]) == 16
     assert aggregate["inputs"]["timing_matrix"]["path"] == str(
         timing_matrix_path.resolve()
     )
@@ -1563,7 +1564,7 @@ def test_aggregate_requires_full_matrix_and_selects_best_arms(
     assert [
         row["training_seed"]
         for row in paired["90k-minus-1m"]["wall_clock_auc"]["by_training_seed"]
-    ] == [0, 1, 2]
+    ] == [0, 1]
     device_delta = aggregate["paired_device_differences_by_certified_distance"]["1"][
         "90k"
     ]
@@ -1581,7 +1582,7 @@ def test_aggregate_requires_full_matrix_and_selects_best_arms(
             assert selected["best_execution_arm"]["arm_id"] == "40m"
 
     group = aggregate["by_arm"]["90k"]["by_device"]["cpu"]["by_certified_distance"]["1"]
-    assert [row["training_seed"] for row in group["seeds"]] == [0, 1, 2]
+    assert [row["training_seed"] for row in group["seeds"]] == [0, 1]
     assert all("h" in row for row in group["seeds"])
     assert group["wall_clock_auc"]["normalized_sample_sd"] > 0
     assert group["execution_auc"]["normalized_sample_sd"] > 0
