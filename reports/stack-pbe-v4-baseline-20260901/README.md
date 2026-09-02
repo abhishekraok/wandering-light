@@ -66,7 +66,7 @@ taxes every successor.
 
 | budget | tasks | unpruned | shown-only | memorised | wall clock | with guard | shown-only | memorised | wall clock |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1,000 | full 1,800 | **80/1800 (4.4%)** | 4.9% | 8 | 2,116 s | TBD_G1K | | | |
+| 1,000 | full 1,800 | **80/1800 (4.4%)** | 4.9% | 8 | 2,116 s | **80/1800 (4.4%)** | 4.9% | 8 | 2,154 s |
 | 10,000 | full 1,800 | **120/1800 (6.7%)** | 7.9% | 22 | 22,803 s | TBD_G10K | | | |
 | 100,000 | sample 40 | **6/40 (15.0%)** | 20.0% | 2 | 3,917 s | TBD_G100K | | | |
 
@@ -79,6 +79,15 @@ close 4.29x, both 4.43x; depth 6 both 17.0x) says it probably will not: at
 body length 1–2 the prune rate is 36% or less, and if the four do flip it will
 be the close check doing it. The prediction stays as written; the miss, if it is one,
 is the result.
+
+**Outcome: a miss, and a clean one.** At 1,000 nodes the guarded arm returns
+the *same candidate with the same verdict on all 1,800 tasks* — 80 solved, 8
+memorised, the same two first-order behaviours, the four quotation builders
+still 0/40 — and costs 1.8% more wall clock for it. A budget of 1,000
+expansions never reaches a body long enough for the type check to fire, and
+never reaches the last ply where the close check bites. The guard does not
+change what 1,000 nodes buy on this corpus. What it does at 10,000 and
+100,000 is the question below.
 
 **At 1,000 nodes the 80 solves are exactly two behaviours at 40/40** —
 `push_back` (4 ops, `nil swap cons cat`) and `rotate_left` (5 ops,
@@ -243,14 +252,20 @@ R=reports/stack-pbe-v4-baseline-20260901
 uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 1000   --split eval            --out $R/bfs_v4_1k_full.json
 uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 10000  --split eval            --out $R/bfs_v4_10k_full.json
 uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 100000 --split eval --tasks 40 --out $R/bfs_v4_100k_sample40.json
+# Guarded arm, run 2026-09-02 against main at b142b3e (guard-open-quotation-states #97 merged)
+uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 1000   --split eval --guard both            --out $R/bfs_v4_1k_full_guard.json
+uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 10000  --split eval --guard both            --out $R/bfs_v4_10k_full_guard.json
+uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 100000 --split eval --guard both --tasks 40 --out $R/bfs_v4_100k_sample40_guard.json
 OLLAMA_BASE_URL=http://localhost:11434 \
 uv run python experiments/stack_pbe_baseline.py --backend llm --provider ollama --model qwen3:30b-a3b --tasks 40 --split eval --out $R/qwen3_v4_sample40.json
 uv run python experiments/stack_pbe_baseline.py --backend llm --provider openai --model gpt-5.6-luna --effort high --tasks 40 --split eval --out $R/luna_v4_sample40.json
 uv run python experiments/stack_pbe_baseline.py --backend llm --provider openai --model gpt-5.6-luna --effort high --tasks 40 --split eval --corpus wandering_light/evals/data/stack_pbe_v3 --out $R/luna_v3_sample40.json
 ```
 
-Seed 17 throughout (the script default). All runs on one machine, 2026-09-01:
-BFS on CPU, ollama on one RTX 4090, luna through the OpenAI API. Raw JSONs
+Seed 17 throughout (the script default). All runs on one machine: unpruned
+BFS, ollama and luna on 2026-09-01, the guarded BFS arm on 2026-09-02 once the
+guard was on `main`. BFS on CPU, ollama on one RTX 4090, luna through the
+OpenAI API. Raw JSONs
 with every candidate and verdict sit beside this file.
 
 **One trap, since removed at its source.** When these ran, the shell exported
