@@ -66,6 +66,7 @@ holds the argument.
 |---|---|---|---|
 | Compute-optimal policy-size sweep — implementation exists; the campaign is unlaunched and has no result. Launch requires a protocol frozen to the exact source commit. | `codex/issue-80` | [compute-optimal-policy-size-sweep (#92)](../../pull/92), [compute-optimal-policy-size (#80)](../../issues/80) | Which policy size is compute-optimal on CPU and GPU? |
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
+| Compute-optimal policy size on `mark-28` / `stack_pbe_v4` — arms 1m / 2m / 10m, two seeds, CPU and CUDA cells, witness-length buckets. Campaign running since 2026-09-03 as unit `mark28-co`. | `claude/issue-101-compute-optimal-mark28` | [compute-optimal-mark-28 (#101)](../../issues/101) | Which policy size is compute-optimal on the stack machine, and does the device set the winner as it did on `wl-core-v1`? |
 
 ## Superseded
 
