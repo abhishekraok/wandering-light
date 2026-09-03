@@ -1,0 +1,90 @@
+{
+  "batch_size": 256,
+  "best_epoch": 1,
+  "best_validation_cross_entropy": 0.9386444431662376,
+  "device": "cuda",
+  "epochs_completed": 12,
+  "history": [
+    {
+      "epoch": 1,
+      "seconds": 88.88134456099942,
+      "train_cross_entropy": 1.074567865799209,
+      "validation_cross_entropy": 0.9386444431662376
+    },
+    {
+      "epoch": 2,
+      "seconds": 176.37145919799514,
+      "train_cross_entropy": 0.41324430033326953,
+      "validation_cross_entropy": 0.95523802644463
+    },
+    {
+      "epoch": 3,
+      "seconds": 263.68238335399656,
+      "train_cross_entropy": 0.25983277223657353,
+      "validation_cross_entropy": 1.0131042219709874
+    },
+    {
+      "epoch": 4,
+      "seconds": 351.54761295899516,
+      "train_cross_entropy": 0.1916962662648297,
+      "validation_cross_entropy": 1.1456907445201492
+    },
+    {
+      "epoch": 5,
+      "seconds": 441.22711492999224,
+      "train_cross_entropy": 0.1563428351033295,
+      "validation_cross_entropy": 1.262507571383006
+    },
+    {
+      "epoch": 6,
+      "seconds": 542.4949186610029,
+      "train_cross_entropy": 0.13770130467454395,
+      "validation_cross_entropy": 1.3176102329142816
+    },
+    {
+      "epoch": 7,
+      "seconds": 639.6930818169931,
+      "train_cross_entropy": 0.12211903473418166,
+      "validation_cross_entropy": 1.4107209599695631
+    },
+    {
+      "epoch": 8,
+      "seconds": 735.3267755480047,
+      "train_cross_entropy": 0.11228086829474422,
+      "validation_cross_entropy": 1.410159168741487
+    },
+    {
+      "epoch": 9,
+      "seconds": 835.4814967479906,
+      "train_cross_entropy": 0.10402264269597525,
+      "validation_cross_entropy": 1.484951403100736
+    },
+    {
+      "epoch": 10,
+      "seconds": 930.2263051009941,
+      "train_cross_entropy": 0.09499678963954267,
+      "validation_cross_entropy": 1.6435776735414191
+    },
+    {
+      "epoch": 11,
+      "seconds": 1027.7662710099976,
+      "train_cross_entropy": 0.08998517030233448,
+      "validation_cross_entropy": 1.7094696871146629
+    },
+    {
+      "epoch": 12,
+      "seconds": 1116.6021726089966,
+      "train_cross_entropy": 0.08527897122958923,
+      "validation_cross_entropy": 1.770293338910409
+    }
+  ],
+  "optimizer": {
+    "class": "torch.optim.Adam",
+    "learning_rate": 6.25e-05
+  },
+  "parameters": 2045660,
+  "seed": 0,
+  "train_rows": 313560,
+  "training_seconds": 1116.6041736159968,
+  "validation_rows": 26040
+}
