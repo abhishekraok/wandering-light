@@ -1,0 +1,440 @@
+{
+  "backend": "bfs",
+  "split": "eval",
+  "budget": 100000,
+  "tasks": 40,
+  "solved": 6,
+  "memorised": 2,
+  "shown_fit": 8,
+  "illegal": 32,
+  "solve_rate": 0.15,
+  "shown_rate": 0.2,
+  "by_behaviour": {
+    "sum_negative": {
+      "witness_length": 16,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "min_pair": {
+      "witness_length": 12,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_negative": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "drop_last": {
+      "witness_length": 12,
+      "tasks": 3,
+      "solved": 0,
+      "memorised": 0
+    },
+    "aligned_matches": {
+      "witness_length": 39,
+      "tasks": 2,
+      "solved": 1,
+      "memorised": 0
+    },
+    "widest_pair": {
+      "witness_length": 84,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "replace_value": {
+      "witness_length": 22,
+      "tasks": 3,
+      "solved": 0,
+      "memorised": 0
+    },
+    "positive_balance_prefix_count": {
+      "witness_length": 49,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "positive_majority_three": {
+      "witness_length": 39,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 1
+    },
+    "adjacent_sign_change_count": {
+      "witness_length": 47,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "nearest_interval_endpoint_each": {
+      "witness_length": 39,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "axis_point_count": {
+      "witness_length": 86,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "median_floor": {
+      "witness_length": 253,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_ascending_pairs": {
+      "witness_length": 80,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_zeros": {
+      "witness_length": 5,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "largest_inside_interval": {
+      "witness_length": 40,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 1
+    },
+    "bounds_cover_list_flag": {
+      "witness_length": 92,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "concatenate_shorter_first": {
+      "witness_length": 26,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_below": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "n_minus_each": {
+      "witness_length": 7,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "negate_each": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "cartesian_pair_sums": {
+      "witness_length": 15,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "rotate_left": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "farther_choice_from_target": {
+      "witness_length": 54,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "farthest_from_target_last_tie": {
+      "witness_length": 59,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "prefix_sums": {
+      "witness_length": 25,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "reverse": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "[ 0 eq? ] filter",
+      2
+    ],
+    [
+      "[ 0 lt? ] filter",
+      1
+    ],
+    [
+      "drop uncons swap drop quote",
+      1
+    ],
+    [
+      "uncons quote cat",
+      1
+    ],
+    [
+      "nil [ cons ] fold",
+      1
+    ]
+  ],
+  "candidates": [
+    {
+      "behaviour": "sum_negative",
+      "witness": "0 [ [ dup 0 lt? ] [ add ] [ drop ] ifte ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "min_pair",
+      "witness": "[ over lt? ] [ swap drop ] [ drop ] ifte",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "keep_negative",
+      "witness": "[ 0 lt? ] filter",
+      "candidate": "[ 0 lt? ] filter",
+      "verdict": "solved"
+    },
+    {
+      "behaviour": "drop_last",
+      "witness": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "witness": "nil cons [ swap uncons swap uncons swap [ [ swap ] dip [ eq? ] [ drop cons ] [ drop drop ] ifte ] dip swap cons ] fold uncons swap drop nil [ cons ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "widest_pair",
+      "witness": "nil 0 cons 0 cons 0 cons [ [ uncons swap uncons swap uncons swap drop ] dip [ drop 0 eq? ] [ swap drop [ drop ] dip 1 nil swap cons swap cons swap cons ] [ swap drop sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte [ over lt? ] [ drop ] [ swap drop ] ifte 0 0 nil swap cons swap cons swap cons ] ifte ] fold uncons swap drop",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "replace_value",
+      "witness": "[ [ drop eq? ] [ swap drop swap drop ] [ drop drop ] ifte ] swap cons swap cons map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "positive_balance_prefix_count",
+      "witness": "nil 0 cons 0 cons [ [ uncons swap uncons swap drop ] dip swap [ add ] dip [ drop 0 swap lt? ] [ 1 add nil swap cons swap cons ] [ nil swap cons swap cons ] ifte ] fold uncons drop uncons swap drop",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "positive_majority_three",
+      "witness": "nil swap cons swap cons swap cons 0 [ [ 0 swap lt? ] [ drop 1 add ] [ drop ] ifte ] fold 1 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte",
+      "candidate": "mul div dup mul",
+      "verdict": "memorised"
+    },
+    {
+      "behaviour": "adjacent_sign_change_count",
+      "witness": "uncons quote 0 cons [ [ uncons swap uncons swap drop ] dip [ mul 0 lt? ] [ [ drop ] dip [ 1 add ] dip quote swap cons ] [ [ drop ] dip quote swap cons ] ifte ] fold uncons swap drop",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "nearest_interval_endpoint_each",
+      "witness": "[ [ [ over swap sub dup mul ] dip swap [ over swap sub dup mul ] dip lt? ] [ swap drop swap drop ] [ drop swap drop ] ifte ] swap cons swap cons map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "min_pair",
+      "witness": "[ over lt? ] [ swap drop ] [ drop ] ifte",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "replace_value",
+      "witness": "[ [ drop eq? ] [ swap drop swap drop ] [ drop drop ] ifte ] swap cons swap cons map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "axis_point_count",
+      "witness": "nil 0 cons 0 cons 0 cons [ [ uncons swap uncons swap uncons swap drop ] dip [ drop 0 eq? ] [ swap drop [ drop ] dip 1 nil swap cons swap cons swap cons ] [ swap drop [ [ over 0 eq? ] [ drop drop true ] [ 0 eq? ] ifte ] [ drop drop 1 add ] [ drop drop ] ifte 0 0 nil swap cons swap cons swap cons ] ifte ] fold uncons swap drop",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "axis_point_count",
+      "witness": "nil 0 cons 0 cons 0 cons [ [ uncons swap uncons swap uncons swap drop ] dip [ drop 0 eq? ] [ swap drop [ drop ] dip 1 nil swap cons swap cons swap cons ] [ swap drop [ [ over 0 eq? ] [ drop drop true ] [ 0 eq? ] ifte ] [ drop drop 1 add ] [ drop drop ] ifte 0 0 nil swap cons swap cons swap cons ] ifte ] fold uncons swap drop",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "positive_majority_three",
+      "witness": "nil swap cons swap cons swap cons 0 [ [ 0 swap lt? ] [ drop 1 add ] [ drop ] ifte ] fold 1 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "median_floor",
+      "witness": "dup nil [ nil quote swap cons 0 cons [ [ uncons swap uncons swap uncons swap drop ] dip [ drop drop drop 0 eq? ] [ [ [ drop ] dip lt? ] [ [ [ dup ] dip ] dip [ swap ] dip [ cons ] dip cons [ [ drop ] dip ] dip quote swap cons 1 cons ] [ cons quote swap cons swap cons ] ifte ] [ cons quote swap cons swap cons ] ifte ] fold uncons swap uncons swap uncons swap drop [ drop drop 0 eq? ] [ swap cons swap drop ] [ swap drop swap drop ] ifte nil [ cons ] fold ] fold swap 0 [ drop 1 add ] fold over over 1 1 add div nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop [ 1 sub 1 1 add div nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop ] dip add 1 1 add div",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "keep_ascending_pairs",
+      "witness": "nil 0 cons 0 cons nil cons [ [ uncons swap uncons swap uncons swap drop ] dip [ drop 0 eq? ] [ swap drop [ drop ] dip 1 nil swap cons swap cons swap cons ] [ swap drop [ over over lt? ] [ [ cons ] dip cons ] [ drop drop ] ifte 0 0 nil swap cons swap cons swap cons ] ifte ] fold uncons swap drop nil [ cons ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "keep_zeros",
+      "witness": "[ 0 eq? ] filter",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved"
+    },
+    {
+      "behaviour": "largest_inside_interval",
+      "witness": "[ [ swap drop lt? ] [ drop swap lt? ] [ drop drop drop false ] ifte ] swap cons swap cons filter uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "bounds_cover_list_flag",
+      "witness": "[ [ dup ] dip ] dip [ [ uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold ] dip ] dip [ [ [ uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold ] dip ] dip ] dip [ drop lt? ] [ drop drop drop drop 0 ] [ [ [ drop drop ] dip swap lt? ] [ drop drop drop drop 0 ] [ drop drop drop drop 1 ] ifte ] ifte",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "concatenate_shorter_first",
+      "witness": "[ 0 [ drop 1 add ] fold swap 0 [ drop 1 add ] fold lt? ] [ swap cat ] [ cat ] ifte",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "keep_zeros",
+      "witness": "[ 0 eq? ] filter",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved"
+    },
+    {
+      "behaviour": "widest_pair",
+      "witness": "nil 0 cons 0 cons 0 cons [ [ uncons swap uncons swap uncons swap drop ] dip [ drop 0 eq? ] [ swap drop [ drop ] dip 1 nil swap cons swap cons swap cons ] [ swap drop sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte [ over lt? ] [ drop ] [ swap drop ] ifte 0 0 nil swap cons swap cons swap cons ] ifte ] fold uncons swap drop",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "drop_last",
+      "witness": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "keep_below",
+      "witness": "[ lt? ] swap cons filter",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "sum_negative",
+      "witness": "0 [ [ dup 0 lt? ] [ add ] [ drop ] ifte ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "n_minus_each",
+      "witness": "[ swap sub ] swap cons map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "bounds_cover_list_flag",
+      "witness": "[ [ dup ] dip ] dip [ [ uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold ] dip ] dip [ [ [ uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold ] dip ] dip ] dip [ drop lt? ] [ drop drop drop drop 0 ] [ [ [ drop drop ] dip swap lt? ] [ drop drop drop drop 0 ] [ drop drop drop drop 1 ] ifte ] ifte",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "negate_each",
+      "witness": "[ 0 swap sub ] map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "witness": "nil cons [ swap uncons swap uncons swap [ [ swap ] dip [ eq? ] [ drop cons ] [ drop drop ] ifte ] dip swap cons ] fold uncons swap drop nil [ cons ] fold",
+      "candidate": "drop uncons swap drop quote",
+      "verdict": "solved"
+    },
+    {
+      "behaviour": "cartesian_pair_sums",
+      "witness": "[ swap [ add ] swap cons map cat ] swap cons nil swap fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "drop_last",
+      "witness": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "replace_value",
+      "witness": "[ [ drop eq? ] [ swap drop swap drop ] [ drop drop ] ifte ] swap cons swap cons map",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "rotate_left",
+      "witness": "uncons nil swap cons cat",
+      "candidate": "uncons quote cat",
+      "verdict": "solved"
+    },
+    {
+      "behaviour": "farther_choice_from_target",
+      "witness": "[ [ over swap sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] dip swap [ over swap sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] dip lt? ] [ drop swap drop ] [ swap drop swap drop ] ifte",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "farthest_from_target_last_tie",
+      "witness": "[ uncons ] dip [ [ dup [ sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] dip swap [ sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] dip swap lt? ] [ drop drop ] [ drop swap drop ] ifte ] swap cons fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "largest_inside_interval",
+      "witness": "[ [ swap drop lt? ] [ drop swap lt? ] [ drop drop drop false ] ifte ] swap cons swap cons filter uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+      "candidate": "1 sub swap drop swap drop",
+      "verdict": "memorised"
+    },
+    {
+      "behaviour": "prefix_sums",
+      "witness": "nil [ [ over null? ] [ cons ] [ over uncons swap drop add cons ] ifte ] fold nil [ cons ] fold",
+      "candidate": "",
+      "verdict": "failed"
+    },
+    {
+      "behaviour": "reverse",
+      "witness": "nil [ cons ] fold",
+      "candidate": "nil [ cons ] fold",
+      "verdict": "solved"
+    }
+  ]
+}

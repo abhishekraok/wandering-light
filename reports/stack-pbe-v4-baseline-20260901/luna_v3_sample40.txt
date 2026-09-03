@@ -1,0 +1,17 @@
+llm on eval, budget 10,000: 40 tasks, 622s
+  30/40 solved (75.0%); shown-only would say 85.0% (+10.0%, 4 memorised)
+
+  behaviour          wit   solved  memorised
+  double_each          5    4/4            0
+  sum                  5    3/3            0
+  keep_negative        5    3/3            0
+  scale_by             6    1/2            0
+  sum_both             6    6/7            0
+  last                 6    1/2            1
+  keep_above           7    2/3            0
+  count_negative      12    2/4            1
+  maximum             16    2/6            2
+  abs_each            16    4/4            0
+  minimum             16    2/2            0
+
+wrote reports/stack-pbe-v4-baseline-20260901/raw/luna_v3_sample40.json
