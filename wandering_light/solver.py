@@ -1182,8 +1182,15 @@ class OllamaTokenGenerator(TokenGenerator):
         self,
         model: str = "phi3:mini",
         timeout: float = 300.0,
+        think: bool | str | None = None,
     ):
         """Bound a runaway generation by wall clock, not by token count.
+
+        `think` is passed straight to ollama when set: a bool toggles a
+        model's thinking, a level (`"low"`, `"medium"`, `"high"`) is the
+        reasoning effort for models that grade it (gpt-oss). Left unset the
+        model's own default applies, which is what every run before
+        2026-09-03 used.
 
         Some local models answer in two seconds and then run for ten minutes on
         the next prompt, stalling a whole evaluation. Capping `num_predict` does
@@ -1194,14 +1201,17 @@ class OllamaTokenGenerator(TokenGenerator):
         """
         self.model = model
         self.timeout = timeout
+        self.think = think
         load_dotenv()
         self.client = Client(os.getenv("OLLAMA_BASE_URL"), timeout=timeout)
         self.llm_io_history = []
 
     def generate(self, prompt: str) -> str:
+        options = {} if self.think is None else {"think": self.think}
         response: ChatResponse = self.client.chat(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
+            **options,
         )
         output = response.message.content
         self.llm_io_history.append((prompt, output))

@@ -286,6 +286,11 @@ def main(argv: list[str] | None = None) -> int:
         help="ollama only: per-request deadline, so a runaway answer cannot stall a run",
     )
     parser.add_argument(
+        "--ollama-think",
+        action="store_true",
+        help="ollama only: pass --effort as the model's think level (gpt-oss grades it)",
+    )
+    parser.add_argument(
         "--list-models",
         action="store_true",
         help="ask --provider what it serves, then exit",
@@ -315,7 +320,9 @@ def main(argv: list[str] | None = None) -> int:
             ),
             "gemini": lambda: solver_module.GeminiTokenGenerator(args.model),
             "ollama": lambda: solver_module.OllamaTokenGenerator(
-                args.model, timeout=args.ollama_timeout
+                args.model,
+                timeout=args.ollama_timeout,
+                think=args.effort if args.ollama_think else None,
             ),
             "anthropic": lambda: solver_module.AnthropicTokenGenerator(
                 args.model, effort=args.effort

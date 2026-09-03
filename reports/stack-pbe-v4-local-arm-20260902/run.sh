@@ -7,7 +7,7 @@ cd "$(dirname "$0")/../.."
 R=reports/stack-pbe-v4-local-arm-20260902
 echo "RUN STARTED $(date)" | tee -a $R/qwen3_thinking2507_v4_sample40.log
 OLLAMA_BASE_URL=http://localhost:11434 \
-timeout -s TERM -k 300 7200 .venv/bin/python experiments/stack_pbe_baseline.py --backend llm --provider ollama \
+timeout -s TERM -k 60 6500 .venv/bin/python experiments/stack_pbe_baseline.py --backend llm --provider ollama \
   --model qwen3:30b-a3b-thinking-2507-q4_K_M --tasks 40 --split eval \
   --out $R/qwen3_thinking2507_v4_sample40.json 2>&1 | tee -a $R/qwen3_thinking2507_v4_sample40.log
 ollama stop qwen3:30b-a3b-thinking-2507-q4_K_M
