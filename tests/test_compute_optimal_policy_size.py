@@ -392,9 +392,9 @@ def test_arm_lookup_is_cached_immutable_trainer_configuration() -> None:
         )
         for config in configs
     } == {arm_id: POLICY_SIZE_BATCHING[arm_id] for arm_id in study.ARM_IDS}
-    assert {
-        config.arm_id: config.learning_rate for config in configs
-    } == {arm_id: POLICY_SIZE_LEARNING_RATES[arm_id] for arm_id in study.ARM_IDS}
+    assert {config.arm_id: config.learning_rate for config in configs} == {
+        arm_id: POLICY_SIZE_LEARNING_RATES[arm_id] for arm_id in study.ARM_IDS
+    }
     assert study._arm_config_by_id("10m") is study._arm_config_by_id("10m")
 
     materialized = study._frozen_arms()
