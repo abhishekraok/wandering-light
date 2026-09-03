@@ -234,41 +234,46 @@ def _fit(arm, seed, lr, epochs, rows, device, run_name, use_wandb, log):
 
 
 def probe_lr(run_dir: Path, tasks, device, arms, use_wandb, log) -> dict[str, float]:
+    """One epoch per candidate LR; the grid extends downward while its edge wins."""
     out = run_dir / "lr_probe.json"
-    chosen = json.loads(out.read_text())["chosen"] if out.exists() else {}
+    previous = json.loads(out.read_text()) if out.exists() else {}
+    chosen = previous.get("chosen", {})
+    probes = previous.get("probes", [])
     if all(arm in chosen for arm in arms):
         return chosen
     rows = training_rows(tasks)
-    probes = json.loads(out.read_text())["probes"] if out.exists() else []
+
+    def probe(arm: str, lr: float) -> float:
+        for done in probes:
+            if done["arm"] == arm and done["learning_rate"] == lr:
+                return done["validation_cross_entropy"]
+        _, state, url = _fit(
+            arm, 0, lr, 1, rows, device, f"mark28-probe-{arm}-lr{lr:g}", use_wandb, log
+        )
+        probes.append(
+            {
+                "arm": arm,
+                "learning_rate": lr,
+                "wandb_url": url,
+                "validation_cross_entropy": state["best_validation_cross_entropy"],
+                "seconds": state["training_seconds"],
+            }
+        )
+        return probes[-1]["validation_cross_entropy"]
+
     for arm in arms:
         if arm in chosen:
             continue
-        for lr in ARMS[arm]["lrs"]:
-            _, state, url = _fit(
-                arm,
-                0,
-                lr,
-                1,
-                rows,
-                device,
-                f"mark28-probe-{arm}-lr{lr:g}",
-                use_wandb,
-                log,
-            )
-            probes.append(
-                {
-                    "arm": arm,
-                    "learning_rate": lr,
-                    "wandb_url": url,
-                    "validation_cross_entropy": state["best_validation_cross_entropy"],
-                    "seconds": state["training_seconds"],
-                }
-            )
-        chosen[arm] = min(
-            (p for p in probes if p["arm"] == arm),
-            key=lambda p: p["validation_cross_entropy"],
-        )["learning_rate"]
-        log(f"RESULT probe-lr {arm} -> {chosen[arm]:g}")
+        scores = {lr: probe(arm, lr) for lr in ARMS[arm]["lrs"]}
+        # A win at the lowest candidate says nothing about where the optimum
+        # is; halve until an interior point wins, three halvings at most.
+        for _ in range(3):
+            lowest = min(scores)
+            if min(scores, key=scores.get) != lowest:
+                break
+            scores[lowest / 2] = probe(arm, lowest / 2)
+        chosen[arm] = min(scores, key=scores.get)
+        log(f"RESULT probe-lr {arm} -> {chosen[arm]:g} (grid {sorted(scores)})")
         write_json(
             out, {"chosen": chosen, "probes": probes, "provenance": provenance()}
         )
