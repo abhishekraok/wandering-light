@@ -1183,6 +1183,7 @@ class OllamaTokenGenerator(TokenGenerator):
         model: str = "phi3:mini",
         timeout: float = 300.0,
         think: bool | str | None = None,
+        num_ctx: int | None = None,
     ):
         """Bound a runaway generation by wall clock, not by token count.
 
@@ -1191,6 +1192,12 @@ class OllamaTokenGenerator(TokenGenerator):
         reasoning effort for models that grade it (gpt-oss). Left unset the
         model's own default applies, which is what every run before
         2026-09-03 used.
+
+        `num_ctx` sets ollama's context window. The server default (32,768
+        tokens on 0.33) is a second, unstated bound: gpt-oss:20b at effort
+        high filled it on 23 of 34 v4 tasks and every truncated answer was
+        empty, so the deadline was not the binding limit. Unset keeps the
+        server default.
 
         Some local models answer in two seconds and then run for ten minutes on
         the next prompt, stalling a whole evaluation. Capping `num_predict` does
@@ -1202,16 +1209,19 @@ class OllamaTokenGenerator(TokenGenerator):
         self.model = model
         self.timeout = timeout
         self.think = think
+        self.num_ctx = num_ctx
         load_dotenv()
         self.client = Client(os.getenv("OLLAMA_BASE_URL"), timeout=timeout)
         self.llm_io_history = []
 
     def generate(self, prompt: str) -> str:
-        options = {} if self.think is None else {"think": self.think}
+        extra = {} if self.think is None else {"think": self.think}
+        if self.num_ctx is not None:
+            extra["options"] = {"num_ctx": self.num_ctx}
         response: ChatResponse = self.client.chat(
             model=self.model,
             messages=[{"role": "user", "content": prompt}],
-            **options,
+            **extra,
         )
         output = response.message.content
         self.llm_io_history.append((prompt, output))
