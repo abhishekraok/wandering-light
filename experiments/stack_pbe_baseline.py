@@ -31,6 +31,7 @@ import argparse
 import json
 import os
 import random
+import signal
 import sys
 import time
 from collections import Counter
@@ -324,28 +325,51 @@ def main(argv: list[str] | None = None) -> int:
 
     started = time.time()
     scores: list[Score] = []
-    for task in tasks:
-        if args.backend == "bfs":
-            found = bfs_solve(task, args.budget, guard=args.guard)
-            candidates = [found] if found else []
-        elif args.backend == "random":
-            found = random_solve(task, args.budget, rng)
-            candidates = [found] if found else []
-        else:
-            candidates = solve_with_llm(task, generator, args.samples)
-        # `best` rather than the first candidate: with more than one sample a
-        # run that took candidate zero would report pass@1 while paying for k.
-        scores.append(
-            best(candidates, task)
-            if candidates
-            else Score((), parsed=False, legal=False, shown=False, held_out=False)
-        )
+    planned = len(tasks)
+
+    # SIGTERM (a `timeout`, a scheduler) becomes KeyboardInterrupt so a run cut
+    # short still summarises and writes what it scored, marked partial.
+    def interrupt(*_):
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, interrupt)
+    try:
+        for index, task in enumerate(tasks, 1):
+            if args.backend == "bfs":
+                found = bfs_solve(task, args.budget, guard=args.guard)
+                candidates = [found] if found else []
+            elif args.backend == "random":
+                found = random_solve(task, args.budget, rng)
+                candidates = [found] if found else []
+            else:
+                candidates = solve_with_llm(task, generator, args.samples)
+            # `best` rather than the first candidate: with more than one sample a
+            # run that took candidate zero would report pass@1 while paying for k.
+            scores.append(
+                best(candidates, task)
+                if candidates
+                else Score((), parsed=False, legal=False, shown=False, held_out=False)
+            )
+            print(
+                f"  [{index}/{planned}] {task.behaviour} ({task.length} ops): "
+                f"{'solved' if scores[-1].solved else 'memorised' if scores[-1].memorised else 'failed'}, "
+                f"{sum(s.solved for s in scores)} solved so far, "
+                f"{time.time() - started:.0f}s",
+                file=sys.stderr,
+            )
+    except KeyboardInterrupt:
+        print(f"\ninterrupted after {len(scores)} of {planned} tasks", file=sys.stderr)
+    partial = len(scores) < planned
+    tasks = tasks[: len(scores)]
+    if not scores:
+        return 1
 
     report = summarise(scores)
     print(
         f"{args.backend} on {args.split}, budget {args.budget:,}"
         f"{', guard ' + args.guard if args.backend == 'bfs' and args.guard != 'off' else ''}: "
-        f"{len(tasks)} tasks, {time.time() - started:.0f}s"
+        f"{len(tasks)}{' of ' + str(planned) + ' planned (PARTIAL)' if partial else ''} tasks, "
+        f"{time.time() - started:.0f}s"
     )
     print(f"  {report}")
 
@@ -366,6 +390,8 @@ def main(argv: list[str] | None = None) -> int:
             "split": args.split,
             "budget": args.budget,
             "guard": args.guard,
+            "partial": partial,
+            "tasks_planned": planned,
             "tasks": report.tasks,
             "solved": report.solved,
             "memorised": report.memorised,
