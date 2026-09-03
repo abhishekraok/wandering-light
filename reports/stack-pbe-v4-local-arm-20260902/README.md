@@ -20,54 +20,80 @@ result).
 
 ## `gpt-oss:20b`, reasoning effort high
 
-| solver | tasks | solved | s/task |
-|---|---:|---:|---:|
-| `qwen3:30b-a3b` (baseline row) | 40 | 6 (15.0%) | 85 |
-| **`gpt-oss:20b`, effort high** | 34 of 40 | **6 (17.6%)** | 178 |
-
 Effort is passed as ollama's `think` level (new `--ollama-think`, off by
-default so earlier runs are unchanged). The cap landed after task 34;
-tasks 35–40 are unrun.
+default so earlier runs are unchanged). Two runs, one protocol change
+between them.
 
-**The number is the context window's, not the model's.** The ollama
-server runs its default 32,768-token window, and the journal shows
-**23 of 34** answers stopped at `n_tokens = 32767, truncated = 1` (mean
-27,582 tokens generated per task). Every truncated answer is empty — the
-model was still thinking. Of the 11 that finished:
+| solver | context | tasks | solved | timed out (300 s) | s/task |
+|---|---:|---:|---:|---:|---:|
+| `qwen3:30b-a3b` (baseline row) | 32k | 40 | 6 (15.0%) | 0 | 85 |
+| `gpt-oss:20b`, effort high | 32k (server default) | 34 of 40 | 6 (17.6%) | 0, but 23 truncated | 178 |
+| **`gpt-oss:20b`, effort high** | **131k** (`--ollama-num-ctx`) | 40 | **9 (22.5%)** | 21 | 222 |
 
-| finished thinking | solved | witness lengths solved |
-|---|---:|---|
-| yes (11) | **6** | 5, 5, 6, 12, 12, 16 |
-| no, truncated (23) | 0 | — |
+**Run 1 was bounded by the context window, not the model.** The ollama
+server's default 32,768-token window stopped **23 of 34** answers at
+`n_tokens = 32767, truncated = 1` (mean 27,582 tokens generated); every
+truncated answer is empty, the model was still thinking. Of the 11 that
+finished, 6 solved. The run also hit a two-hour GPU-window cap after
+task 34 (`"partial": true` in the JSON).
 
-qwen3 on the same sample solved nothing at 16 ops or more; gpt-oss solved
-`sum_negative` (16) and `drop_last` (12, twice) when it finished. Two of
-the untruncated failures are near misses (`sum_negative` as
-`[ 0 swap lt? ] filter 0 [ swap add ] fold`, later solved with the
-operands the right way round). Truncation hit 5-op tasks too (`keep_zeros`
-once truncated, once solved), so it is not only the long witnesses.
+**Run 2 raised the window to the model's 131,072-token limit** (fits: 16.5 GB
+resident on the 4090), so the protocol's own bound, the 300 s deadline,
+is the only one. Now **21 of 40** requests time out instead, and the
+model finishes on 19; of those it solves 9. Solves are all at ≤16 ops
+(witnesses of 5, 5, 5, 5, 7, 12, 12 ops, plus the 39-op shortcut) and one of the
+nine is the `aligned_matches` sampler shortcut named in the baseline
+report (`drop uncons swap drop nil swap cons`, head of the first list),
+so **8/40** computes the behaviour. 0 memorised.
 
-Two readings, not separated here: gpt-oss at high effort needs a window
-above 32k for this prompt (the model allows 131k, and the KV fits in
-24 GB alongside 12 GB of weights), or a lower effort finishes inside 32k.
-Either is a rerun of about two GPU-hours, not done. Until then 6/34 is a
-floor: the qwen3 arm's equal on a harder clock, with a different failure
-mode (out of context, not out of ideas).
+| witness ops | tasks | run 2 solved | run 2 timed out |
+|---:|---:|---:|---:|
+| ≤7 | 8 | 6 | 0 |
+| 8–16 | 6 | 2 | 2 |
+| 22–39 | 12 | 1 (the shortcut) | 8 |
+| 40+ | 14 | 0 | 11 |
+
+Same-task disagreement between the two gpt-oss runs goes both ways:
+`sum_negative` and `negate_each` solved in run 1 and failed in run 2 with
+operand-order and word-order slips (`filter [ 0 lt? ]`,
+`map [ 0 swap sub ]`); `keep_zeros`, `n_minus_each` and `aligned_matches`
+went the other way. One sample per task at temperature 1 is noisy at
+this size, and 6/34, 9/40 and qwen3's 6/40 are inside each other's noise.
+
+**Reading.** On v4 the free local arm is still search-equivalent: gpt-oss
+at high effort lands where qwen3 and a 100,000-node BFS land, at 2.5x
+qwen3's wall clock, and its failure mode is the clock, not the substrate,
+which is a different mode from qwen3's programs-that-do-not-run. Nothing
+here moves a local model off the floor. What would: a longer deadline for
+gpt-oss (21 timeouts at 300 s, and the finished ones solve at 47%), or
+several samples per task, both of which cost GPU-hours this project is
+not spending on the local arm.
+
+The qwen 2507 fragment (1 task) is a replicate check, not a result.
 
 ## Reproduce
 
 ```bash
 R=reports/stack-pbe-v4-local-arm-20260902
+# run 1: server-default 32k context, capped to a 2 h GPU window
 OLLAMA_BASE_URL=http://localhost:11434 \
 timeout -s TERM -k 60 5916 .venv/bin/python experiments/stack_pbe_baseline.py --backend llm --provider ollama \
   --model gpt-oss:20b --ollama-think --effort high --tasks 40 --split eval \
   --out $R/gptoss20b_high_v4_sample40.json
-# truncation count, from the ollama journal over the run's window
+# run 2: 131k context, uncapped
+OLLAMA_BASE_URL=http://localhost:11434 \
+.venv/bin/python experiments/stack_pbe_baseline.py --backend llm --provider ollama \
+  --model gpt-oss:20b --ollama-think --effort high --ollama-num-ctx 131072 --tasks 40 --split eval \
+  --out $R/gptoss20b_high_ctx131k_v4_sample40.json
+# run 1's truncation count, from the ollama journal over its window
 journalctl -u ollama --since '2026-09-03 00:08' --until '2026-09-03 01:51' --no-pager | grep 'stop processing'
 ```
 
-`run_gptoss.sh` is the exact invocation. `.venv/bin/python` rather than
+`run_gptoss.sh` and `run_gptoss_ctx131k.sh` are the exact invocations;
+the `.log` beside each JSON has the per-task lines and the `ReadTimeout`
+lines that mark the deadline hits. `.venv/bin/python` rather than
 `uv run`: uv swallows the SIGTERM and the child writes nothing. The
 script writes a partial file on SIGTERM (added for this run, marked
 `"partial": true`). gpt-oss:20b is ollama digest `17052f91a42e`, MXFP4;
-ollama 0.33.2.
+ollama 0.33.2; one RTX 4090; 2026-09-03, run 1 00:08–01:50, run 2
+04:06–07:12.
