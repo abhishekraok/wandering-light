@@ -23,9 +23,19 @@ EXPECTED_PARAMETERS = {
     "10m": 6_504_310,
     "40m": 25_329_270,
 }
+EXPECTED_LEARNING_RATES = {
+    "90k": 2e-3,
+    "1m": 2e-3,
+    "10m": 5e-4,
+    "40m": 2.5e-4,
+}
 
 
-def _training_runtime(parameters: int, architecture: dict[str, int]) -> dict[str, Any]:
+def _training_runtime(
+    parameters: int,
+    architecture: dict[str, int],
+    learning_rate: float = 2e-3,
+) -> dict[str, Any]:
     return {
         "resolved_device": "cuda:0",
         "precision": "fp32",
@@ -36,7 +46,7 @@ def _training_runtime(parameters: int, architecture: dict[str, int]) -> dict[str
         },
         "optimizer": {
             "class": "torch.optim.Adam",
-            "defaults": {"lr": 2e-3},
+            "defaults": {"lr": learning_rate},
         },
         "accelerator": {"index": 0, "name": "fake-gpu"},
         "software": {"torch_version": "unit-test"},
@@ -191,7 +201,7 @@ def test_freeze_pins_validation_arms_search_metric_and_oracle(
         "paired_training_seeds": True,
         "evaluation_cells_sequential": True,
         "global_phase_barrier": [
-            "all-24-cell-timing",
+            "all-16-cell-timing",
             "sealed-timing-matrix",
             "observer-replay-and-oracle-annotation",
         ],
@@ -211,9 +221,10 @@ def test_freeze_pins_validation_arms_search_metric_and_oracle(
     assert set(task_order["task_ids"]) == set(protocol["cohort"]["task_ids"])
     assert task_order["task_ids"] != protocol["cohort"]["task_ids"]
     cell_order = protocol["evaluation_cell_order"]
-    assert len(cell_order["cells"]) == 24
-    assert [cell["ordinal"] for cell in cell_order["cells"]] == list(range(24))
-    for pair_index in range(12):
+    assert study.EVALUATION_CELL_COUNT == 16
+    assert len(cell_order["cells"]) == 16
+    assert [cell["ordinal"] for cell in cell_order["cells"]] == list(range(16))
+    for pair_index in range(8):
         pair = cell_order["cells"][2 * pair_index : 2 * pair_index + 2]
         assert pair[0]["arm_id"] == pair[1]["arm_id"]
         assert pair[0]["training_seed"] == pair[1]["training_seed"]
@@ -224,7 +235,7 @@ def test_freeze_pins_validation_arms_search_metric_and_oracle(
     assert {
         arm["arm_id"]: arm["parameters"] for arm in protocol["arms"]
     } == EXPECTED_PARAMETERS
-    assert protocol["training_seeds"] == [0, 1, 2]
+    assert protocol["training_seeds"] == [0, 1]
     assert protocol["devices"] == ["cpu", "cuda"]
     assert protocol["corpus"]["reference_corpora_excluded"] == []
     assert protocol["training"] == {
@@ -232,7 +243,7 @@ def test_freeze_pins_validation_arms_search_metric_and_oracle(
         "materialized_splits": ["discovery", "validation"],
         "held_out_prefix_examples": 0,
         "epochs": 12,
-        "learning_rate": 2e-3,
+        "per_arm_learning_rates": EXPECTED_LEARNING_RATES,
         "device": "cuda",
         "effective_train_batch_size": 256,
         "per_arm_batching": {
@@ -372,7 +383,10 @@ def test_artifact_primitives_share_canonical_normalization(tmp_path: Path) -> No
 
 
 def test_arm_lookup_is_cached_immutable_trainer_configuration() -> None:
-    from experiments.train_rollout_policy import POLICY_SIZE_BATCHING
+    from experiments.train_rollout_policy import (
+        POLICY_SIZE_BATCHING,
+        POLICY_SIZE_LEARNING_RATES,
+    )
 
     configs = study._frozen_arm_configs()
 
@@ -385,6 +399,9 @@ def test_arm_lookup_is_cached_immutable_trainer_configuration() -> None:
         )
         for config in configs
     } == POLICY_SIZE_BATCHING
+    assert {
+        config.arm_id: config.learning_rate for config in configs
+    } == POLICY_SIZE_LEARNING_RATES
     assert study._arm_config_by_id("40m") is study._arm_config_by_id("40m")
 
     materialized = study._frozen_arms()
@@ -635,12 +652,13 @@ def test_runner_jsonl_helpers_are_deterministic_and_require_object_rows(
         "train_batch_size",
         "gradient_accumulation_steps",
         "validation_batch_size",
+        "learning_rate",
     ),
     [
-        ("90k", 256, 1, 512),
-        ("1m", 256, 1, 512),
-        ("10m", 256, 1, 256),
-        ("40m", 128, 2, 128),
+        ("90k", 256, 1, 512, 2e-3),
+        ("1m", 256, 1, 512, 2e-3),
+        ("10m", 256, 1, 256, 5e-4),
+        ("40m", 128, 2, 128, 2.5e-4),
     ],
 )
 def test_checkpoint_identity_requires_the_frozen_training_recipe(
@@ -650,6 +668,7 @@ def test_checkpoint_identity_requires_the_frozen_training_recipe(
     train_batch_size: int,
     gradient_accumulation_steps: int,
     validation_batch_size: int,
+    learning_rate: float,
 ) -> None:
     from wandering_light.rollout_policy import (
         CONFIG_FILE,
@@ -690,11 +709,13 @@ def test_checkpoint_identity_requires_the_frozen_training_recipe(
                 ),
             },
         },
-        "runtime": _training_runtime(arm["parameters"], arm["architecture"]),
+        "runtime": _training_runtime(
+            arm["parameters"], arm["architecture"], learning_rate
+        ),
         "hyperparameters": {
-            "seed": 2,
+            "seed": 1,
             "epochs": 12,
-            "learning_rate": 2e-3,
+            "learning_rate": learning_rate,
             "device": "cuda",
             "train_batch_size": train_batch_size,
             "gradient_accumulation_steps": gradient_accumulation_steps,
@@ -735,11 +756,15 @@ def test_checkpoint_identity_requires_the_frozen_training_recipe(
     identity = study._checkpoint_identity(
         checkpoint,
         arm=arm,
-        training_seed=2,
+        training_seed=1,
         protocol=frozen_protocol.protocol,
     )
     assert identity["parameters"] == EXPECTED_PARAMETERS[arm_id]
-    assert identity["training_seed"] == 2
+    assert identity["training_seed"] == 1
+    assert identity["source_protocol_comparison"] == {
+        "matches": True,
+        "mismatches": [],
+    }
     assert {artifact["name"] for artifact in identity["artifacts"]} == {
         MODEL_FILE,
         CONFIG_FILE,
@@ -747,6 +772,21 @@ def test_checkpoint_identity_requires_the_frozen_training_recipe(
         TRAINER_STATE_FILE,
         WANDB_LINK_FILE,
     }
+
+    training_manifest["source_code"]["head_commit"] = "older-source"
+    training_manifest["source_code"]["runner"]["sha256"] = "sha256:older-runner"
+    study._write_json(checkpoint / TRAINING_MANIFEST_FILE, training_manifest)
+    mismatched_identity = study._checkpoint_identity(
+        checkpoint,
+        arm=arm,
+        training_seed=1,
+        protocol=frozen_protocol.protocol,
+    )
+    assert mismatched_identity["source_protocol_comparison"]["matches"] is False
+    assert {
+        row["field"]
+        for row in mismatched_identity["source_protocol_comparison"]["mismatches"]
+    } == {"head_commit", "runner.sha256"}
 
     training_manifest["hyperparameters"]["train_batch_size"] = (
         128 if train_batch_size == 256 else 256
@@ -756,7 +796,7 @@ def test_checkpoint_identity_requires_the_frozen_training_recipe(
         study._checkpoint_identity(
             checkpoint,
             arm=arm,
-            training_seed=2,
+            training_seed=1,
             protocol=frozen_protocol.protocol,
         )
 
@@ -769,7 +809,7 @@ def test_checkpoint_identity_requires_the_frozen_training_recipe(
         study._checkpoint_identity(
             checkpoint,
             arm=arm,
-            training_seed=2,
+            training_seed=1,
             protocol=frozen_protocol.protocol,
         )
 
@@ -782,7 +822,7 @@ def test_checkpoint_identity_requires_the_frozen_training_recipe(
         study._checkpoint_identity(
             checkpoint,
             arm=arm,
-            training_seed=2,
+            training_seed=1,
             protocol=frozen_protocol.protocol,
         )
 
@@ -952,6 +992,13 @@ def _fake_result_verifier(record, result, _functions):
 
 def _fake_checkpoint(checkpoint: Path, **kwargs: Any) -> dict[str, Any]:
     protocol = kwargs["protocol"]
+    arm_id = kwargs["arm"]["arm_id"]
+    learning_rate = protocol["training"]["per_arm_learning_rates"][arm_id]
+    source_head = (
+        "older-checkpoint-source"
+        if arm_id == "90k"
+        else protocol["source"]["head_commit"]
+    )
     runner_sha256 = next(
         row["sha256"]
         for row in protocol["source"]["files"]
@@ -961,24 +1008,40 @@ def _fake_checkpoint(checkpoint: Path, **kwargs: Any) -> dict[str, Any]:
         "path": str(checkpoint),
         "parameters": kwargs["arm"]["parameters"],
         "training_seed": kwargs["training_seed"],
-        "artifacts_sha256": f"sha256:{kwargs['arm']['arm_id']}-{kwargs['training_seed']}",
+        "artifacts_sha256": f"sha256:{arm_id}-{kwargs['training_seed']}",
         "source_code": {
-            "head_commit": protocol["source"]["head_commit"],
+            "head_commit": source_head,
             "dirty": False,
             "runner": {
                 "path": "experiments/train_rollout_policy.py",
                 "sha256": runner_sha256,
             },
         },
+        "source_protocol_comparison": {
+            "matches": arm_id != "90k",
+            "mismatches": (
+                []
+                if arm_id != "90k"
+                else [
+                    {
+                        "field": "head_commit",
+                        "expected": protocol["source"]["head_commit"],
+                        "actual": source_head,
+                    }
+                ]
+            ),
+        },
         "training_runtime": _training_runtime(
             kwargs["arm"]["parameters"],
             kwargs["arm"]["architecture"],
+            learning_rate,
         ),
         "training_environment": {
             key: value
             for key, value in _training_runtime(
                 kwargs["arm"]["parameters"],
                 kwargs["arm"]["architecture"],
+                learning_rate,
             ).items()
             if key != "model"
         },
@@ -1429,11 +1492,12 @@ def test_aggregate_requires_full_matrix_and_selects_best_arms(
         )
         timing_paths[(arm_id, seed, device)] = timing_dir / study.TIMING_SUMMARY_FILE
     timing_matrix_path = tmp_path / "timing-matrix.json"
-    study.seal_timing_matrix(
+    timing_matrix = study.seal_timing_matrix(
         frozen_protocol.path,
         list(timing_paths.values()),
         output=timing_matrix_path,
     )
+    assert timing_matrix["training_environments"]["all_identical"] is False
 
     summaries = []
     for cell in cells:
@@ -1537,12 +1601,14 @@ def test_aggregate_requires_full_matrix_and_selects_best_arms(
         output=tmp_path / "aggregate.json",
     )
 
-    assert aggregate["cells"] == aggregate["expected_cells"] == 24
-    assert len(aggregate["inputs"]["checkpoints"]) == 12
-    assert len(aggregate["inputs"]["evaluations"]) == 24
+    assert aggregate["cells"] == aggregate["expected_cells"] == 16
+    assert len(aggregate["inputs"]["checkpoints"]) == 8
+    assert len(aggregate["inputs"]["evaluations"]) == 16
     assert aggregate["inputs"]["timing_matrix"]["path"] == str(
         timing_matrix_path.resolve()
     )
+    assert aggregate["inputs"]["training_sources"]["all_identical"] is False
+    assert aggregate["inputs"]["training_environments"]["all_identical"] is False
     assert aggregate["source"] == frozen_protocol.protocol["source"]
     assert set(aggregate["by_arm"]) == set(EXPECTED_PARAMETERS)
     paired = aggregate["paired_arm_differences_by_certified_distance"]["1"]["cpu"]
@@ -1563,7 +1629,7 @@ def test_aggregate_requires_full_matrix_and_selects_best_arms(
     assert [
         row["training_seed"]
         for row in paired["90k-minus-1m"]["wall_clock_auc"]["by_training_seed"]
-    ] == [0, 1, 2]
+    ] == [0, 1]
     device_delta = aggregate["paired_device_differences_by_certified_distance"]["1"][
         "90k"
     ]
@@ -1581,7 +1647,7 @@ def test_aggregate_requires_full_matrix_and_selects_best_arms(
             assert selected["best_execution_arm"]["arm_id"] == "40m"
 
     group = aggregate["by_arm"]["90k"]["by_device"]["cpu"]["by_certified_distance"]["1"]
-    assert [row["training_seed"] for row in group["seeds"]] == [0, 1, 2]
+    assert [row["training_seed"] for row in group["seeds"]] == [0, 1]
     assert all("h" in row for row in group["seeds"])
     assert group["wall_clock_auc"]["normalized_sample_sd"] > 0
     assert group["execution_auc"]["normalized_sample_sd"] > 0

@@ -1,7 +1,7 @@
 """Freeze, run, and aggregate the compute-optimal policy-size experiment.
 
 The protocol is validation-only. One timed, uninstrumented search produces each
-task's wall-clock and execution cost. All 24 timing cells must complete and seal
+task's wall-clock and execution cost. All 16 timing cells must complete and seal
 before any untimed observer replay or oracle annotation can begin. Each replay
 must reproduce the exact result before its scored visits are retained. Successful
 task costs therefore define the complete solve-rate-vs-log-budget curves without
@@ -83,7 +83,7 @@ AGGREGATE_STATUS = "complete"
 
 DEFAULT_CORPUS_DIR = Path("wandering_light/training/data/deep_corpus_v2")
 DEFAULT_REFERENCE_CORPUS_DIRS = (Path("wandering_light/training/data/deep_corpus_v1"),)
-TRAINING_SEEDS = (0, 1, 2)
+TRAINING_SEEDS = (0, 1)
 DEVICES = ("cpu", "cuda")
 COHORT_SELECTION_SEED = 20_260_826
 EVALUATION_TASK_ORDER_SEED = 20_260_829
@@ -103,6 +103,7 @@ WALL_SECONDS_MAX = 2**LOG2_WALL_SECONDS_MAX
 EXECUTIONS_MIN = 1
 
 ARM_IDS = ("90k", "1m", "10m", "40m")
+EVALUATION_CELL_COUNT = len(ARM_IDS) * len(TRAINING_SEEDS) * len(DEVICES)
 ARM_LABELS = {"90k": "90K", "1m": "1M", "10m": "10M", "40m": "40M"}
 EXPECTED_PARAMETER_COUNTS = {
     "90k": 90_374,
@@ -113,7 +114,6 @@ EXPECTED_PARAMETER_COUNTS = {
 FROZEN_ACTION_COUNT = 118
 
 TRAINING_EPOCHS = 12
-TRAINING_LEARNING_RATE = 2e-3
 TRAINING_DEVICE = "cuda"
 EFFECTIVE_TRAIN_BATCH_SIZE = 256
 CHECKPOINT_SELECTION = "minimum validation cross-entropy"
@@ -176,6 +176,7 @@ class _PolicySizeArmConfig:
     conv_channels: int
     hidden: int
     parameters: int
+    learning_rate: float
     train_batch_size: int
     gradient_accumulation_steps: int
     validation_batch_size: int
@@ -209,12 +210,17 @@ def _frozen_arm_configs(
     from experiments.train_rollout_policy import (
         POLICY_SIZE_ARMS,
         POLICY_SIZE_BATCHING,
+        POLICY_SIZE_LEARNING_RATES,
     )
 
     if tuple(POLICY_SIZE_ARMS) != ARM_IDS:
         raise ValueError("Trainer policy-size arms differ from the frozen sweep")
     if tuple(POLICY_SIZE_BATCHING) != ARM_IDS:
         raise ValueError("Trainer policy-size batching differs from the frozen sweep")
+    if tuple(POLICY_SIZE_LEARNING_RATES) != ARM_IDS:
+        raise ValueError(
+            "Trainer policy-size learning rates differ from the frozen sweep"
+        )
     arms: list[_PolicySizeArmConfig] = []
     for arm_id in ARM_IDS:
         architecture = POLICY_SIZE_ARMS[arm_id]
@@ -233,6 +239,16 @@ def _frozen_arm_configs(
         ):
             raise ValueError(f"Trainer policy-size batching is invalid for {arm_id}")
         train_batch_size, accumulation_steps, validation_batch_size = batching
+        learning_rate = POLICY_SIZE_LEARNING_RATES[arm_id]
+        if (
+            isinstance(learning_rate, bool)
+            or not isinstance(learning_rate, int | float)
+            or not math.isfinite(float(learning_rate))
+            or learning_rate <= 0
+        ):
+            raise ValueError(
+                f"Trainer policy-size learning rate is invalid for {arm_id}"
+            )
         if train_batch_size * accumulation_steps != EFFECTIVE_TRAIN_BATCH_SIZE:
             raise ValueError(
                 f"Trainer effective batch size differs from the sweep for {arm_id}"
@@ -245,6 +261,7 @@ def _frozen_arm_configs(
                 conv_channels=architecture.conv_channels,
                 hidden=architecture.hidden,
                 parameters=parameters,
+                learning_rate=float(learning_rate),
                 train_batch_size=train_batch_size,
                 gradient_accumulation_steps=accumulation_steps,
                 validation_batch_size=validation_batch_size,
@@ -756,7 +773,7 @@ def _protocol_body(
             "paired_training_seeds": True,
             "evaluation_cells_sequential": True,
             "global_phase_barrier": [
-                "all-24-cell-timing",
+                f"all-{EVALUATION_CELL_COUNT}-cell-timing",
                 "sealed-timing-matrix",
                 "observer-replay-and-oracle-annotation",
             ],
@@ -798,7 +815,9 @@ def _protocol_body(
             "materialized_splits": ["discovery", "validation"],
             "held_out_prefix_examples": 0,
             "epochs": TRAINING_EPOCHS,
-            "learning_rate": TRAINING_LEARNING_RATE,
+            "per_arm_learning_rates": {
+                arm.arm_id: arm.learning_rate for arm in _frozen_arm_configs()
+            },
             "device": TRAINING_DEVICE,
             "effective_train_batch_size": EFFECTIVE_TRAIN_BATCH_SIZE,
             "per_arm_batching": {
@@ -1137,7 +1156,8 @@ def _checkpoint_identity(
         or manifest.get("objective") != "witness-next-action-cross-entropy"
     ):
         raise ValueError("Checkpoint training did not complete the frozen objective")
-    source_code = manifest.get("source_code")
+    raw_source_code = manifest.get("source_code")
+    source_code = dict(raw_source_code) if isinstance(raw_source_code, Mapping) else {}
     protocol_source = protocol.get("source", {})
     expected_runner = next(
         (
@@ -1147,18 +1167,44 @@ def _checkpoint_identity(
         ),
         None,
     )
-    if (
-        not isinstance(source_code, Mapping)
-        or source_code.get("dirty") is not False
-        or source_code.get("head_commit") != protocol_source.get("head_commit")
-        or not isinstance(expected_runner, Mapping)
-        or source_code.get("runner")
-        != {
+    actual_runner = source_code.get("runner")
+    actual_runner = dict(actual_runner) if isinstance(actual_runner, Mapping) else {}
+    expected_runner_identity = (
+        {
             "path": expected_runner.get("path"),
             "sha256": expected_runner.get("sha256"),
         }
-    ):
-        raise ValueError("Checkpoint was not trained from the frozen clean source")
+        if isinstance(expected_runner, Mapping)
+        else {}
+    )
+    source_comparisons = (
+        ("dirty", False, source_code.get("dirty")),
+        (
+            "head_commit",
+            protocol_source.get("head_commit"),
+            source_code.get("head_commit"),
+        ),
+        (
+            "runner.path",
+            expected_runner_identity.get("path"),
+            actual_runner.get("path"),
+        ),
+        (
+            "runner.sha256",
+            expected_runner_identity.get("sha256"),
+            actual_runner.get("sha256"),
+        ),
+    )
+    source_protocol_comparison = {
+        "matches": all(
+            expected == actual for _, expected, actual in source_comparisons
+        ),
+        "mismatches": [
+            {"field": field, "expected": expected, "actual": actual}
+            for field, expected, actual in source_comparisons
+            if expected != actual
+        ],
+    }
     architecture = config.get("architecture", {})
     expected_dimensions = arm["architecture"]
     actual_dimensions = {key: architecture.get(key) for key in expected_dimensions}
@@ -1196,7 +1242,7 @@ def _checkpoint_identity(
     arm_config = _arm_config_by_id(str(arm["arm_id"]))
     expected_hyperparameters = {
         "epochs": TRAINING_EPOCHS,
-        "learning_rate": TRAINING_LEARNING_RATE,
+        "learning_rate": arm_config.learning_rate,
         "device": TRAINING_DEVICE,
         "train_batch_size": arm_config.train_batch_size,
         "gradient_accumulation_steps": arm_config.gradient_accumulation_steps,
@@ -1272,7 +1318,8 @@ def _checkpoint_identity(
         "artifacts_sha256": _sha256_bytes(_canonical_json(artifacts).encode("utf-8")),
         "parameters": arm["parameters"],
         "training_seed": training_seed,
-        "source_code": dict(source_code),
+        "source_code": source_code,
+        "source_protocol_comparison": source_protocol_comparison,
         "training_runtime": dict(runtime),
         "training_environment": {
             key: runtime.get(key)
@@ -2190,7 +2237,7 @@ def load_timing_matrix(
         or matrix.get("study_id") != STUDY_ID
         or matrix.get("status") != TIMING_MATRIX_STATUS
         or not isinstance(matrix.get("timings"), list)
-        or len(matrix["timings"]) != len(ARM_IDS) * len(TRAINING_SEEDS) * len(DEVICES)
+        or len(matrix["timings"]) != EVALUATION_CELL_COUNT
     ):
         raise ValueError("Unsupported or incomplete timing matrix")
     if protocol is not None and (
@@ -2257,7 +2304,6 @@ def seal_timing_matrix(
 
         ordered = sorted(loaded.values(), key=lambda row: row[0]["cell_ordinal"])
         previous_completed: datetime | None = None
-        training_environments = []
         cpu_affinities = []
         timings = []
         for summary, path in ordered:
@@ -2268,7 +2314,6 @@ def seal_timing_matrix(
                 raise ValueError("Timing cells do not follow the frozen cell order")
             previous_completed = completed
             checkpoint = summary["checkpoint"]
-            training_environments.append(checkpoint.get("training_environment"))
             cpu_affinities.append(window["environment_before"]["cpu_affinity"])
             timings.append(
                 {
@@ -2281,6 +2326,7 @@ def seal_timing_matrix(
                     "timing_window": window,
                 }
             )
+        training_environments = []
         for arm_id in ARM_IDS:
             for seed in TRAINING_SEEDS:
                 cpu = loaded[(arm_id, seed, "cpu")][0]["checkpoint"]
@@ -2289,10 +2335,19 @@ def seal_timing_matrix(
                     raise ValueError(
                         f"CPU/CUDA timing used different checkpoints for {(arm_id, seed)}"
                     )
-        if len({_canonical_json(value) for value in training_environments}) != 1:
-            raise ValueError("Timing matrix mixes training environments")
+                training_environments.append(
+                    {
+                        "arm_id": arm_id,
+                        "training_seed": seed,
+                        "environment": _canonical_copy(cpu.get("training_environment")),
+                    }
+                )
         if len({_canonical_json(value) for value in cpu_affinities}) != 1:
             raise ValueError("Timing matrix mixes CPU affinities")
+
+        environment_identities = {
+            _canonical_json(row["environment"]) for row in training_environments
+        }
 
         sealed_at = datetime.now(UTC)
         matrix = _seal(
@@ -2310,6 +2365,10 @@ def seal_timing_matrix(
                     if previous_completed is not None
                     else None
                 ),
+                "training_environments": {
+                    "all_identical": len(environment_identities) == 1,
+                    "by_checkpoint": training_environments,
+                },
                 "timings": timings,
             },
             TIMING_MATRIX_DIGEST_FIELD,
@@ -3098,15 +3157,24 @@ def aggregate_evaluations(
                     f"CPU/CUDA cells used different checkpoints for {(arm_id, seed)}"
                 )
             source_code = cpu_checkpoint.get("source_code")
-            if not isinstance(source_code, Mapping):
-                raise ValueError(f"Checkpoint {(arm_id, seed)} has no source identity")
-            training_sources.append(dict(source_code))
+            training_sources.append(
+                {
+                    "arm_id": arm_id,
+                    "training_seed": seed,
+                    "source_code": _canonical_copy(source_code),
+                    "protocol_comparison": _canonical_copy(
+                        cpu_checkpoint.get("source_protocol_comparison")
+                    ),
+                }
+            )
             environment = cpu_checkpoint.get("training_environment")
-            if not isinstance(environment, Mapping):
-                raise ValueError(
-                    f"Checkpoint {(arm_id, seed)} has no training environment"
-                )
-            training_environments.append(dict(environment))
+            training_environments.append(
+                {
+                    "arm_id": arm_id,
+                    "training_seed": seed,
+                    "environment": _canonical_copy(environment),
+                }
+            )
             checkpoint_inputs.append(
                 {
                     "arm_id": arm_id,
@@ -3114,12 +3182,17 @@ def aggregate_evaluations(
                     "parameters": cpu_checkpoint.get("parameters"),
                     "artifacts_sha256": cpu_checkpoint.get("artifacts_sha256"),
                     "training_runtime": cpu_checkpoint.get("training_runtime"),
+                    "source_protocol_comparison": cpu_checkpoint.get(
+                        "source_protocol_comparison"
+                    ),
                 }
             )
-    if len({_canonical_json(source) for source in training_sources}) != 1:
-        raise ValueError("Checkpoint matrix mixes training source identities")
-    if len({_canonical_json(runtime) for runtime in training_environments}) != 1:
-        raise ValueError("Checkpoint matrix mixes training environments")
+    source_identities = {
+        _canonical_json(row["source_code"]) for row in training_sources
+    }
+    environment_identities = {
+        _canonical_json(row["environment"]) for row in training_environments
+    }
 
     evaluation_inputs = [
         {
@@ -3367,8 +3440,14 @@ def aggregate_evaluations(
                     "timing_matrix_sha256": timing_matrix_digest,
                     "timings": timing_matrix["timings"],
                 },
-                "training_source_code": training_sources[0],
-                "training_environment": training_environments[0],
+                "training_sources": {
+                    "all_identical": len(source_identities) == 1,
+                    "by_checkpoint": training_sources,
+                },
+                "training_environments": {
+                    "all_identical": len(environment_identities) == 1,
+                    "by_checkpoint": training_environments,
+                },
                 "checkpoints": checkpoint_inputs,
                 "evaluations": evaluation_inputs,
             },
@@ -3414,7 +3493,10 @@ def _parser() -> argparse.ArgumentParser:
         action="append",
         type=Path,
         required=True,
-        help="timing_summary.json; repeat exactly 24 times in any argument order",
+        help=(
+            "timing_summary.json; repeat exactly "
+            f"{EVALUATION_CELL_COUNT} times in any argument order"
+        ),
     )
     seal_timings.add_argument("--output", type=Path, required=True)
 
@@ -3435,7 +3517,7 @@ def _parser() -> argparse.ArgumentParser:
         action="append",
         type=Path,
         required=True,
-        help="evaluation summary.json; repeat exactly 24 times",
+        help=(f"evaluation summary.json; repeat exactly {EVALUATION_CELL_COUNT} times"),
     )
     aggregate.add_argument("--output", type=Path, required=True)
     return parser

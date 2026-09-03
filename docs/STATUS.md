@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-09-01
+Last updated: 2026-09-02
 
 ## What is true now
 
@@ -61,7 +61,7 @@ holds the argument.
 
 | what | who | where | question it answers |
 |---|---|---|---|
-| Compute-optimal policy-size sweep — implementation exists; the campaign is unlaunched and has no result. Launch requires a protocol frozen to the exact source commit. | `codex/issue-80` | [compute-optimal-policy-size-sweep (#92)](../../pull/92), [compute-optimal-policy-size (#80)](../../issues/80) | Which policy size is compute-optimal on CPU and GPU? |
+| Compute-optimal policy-size sweep — the fixed-`2e-3` campaign stopped after 10M underfit; its five complete 90K/1M/10M-reference checkpoints survive in private Hub repos. The re-freeze keeps seeds 0/1, uses LR `2e-3` / `2e-3` / `5e-4` / `2.5e-4`, reuses 90K/1M, and trains 10M/40M. No search result yet. | `codex/issue-80-refreeze` | [compute-optimal-policy-size-sweep (#92)](../../pull/92), [compute-optimal-policy-size (#80)](../../issues/80) | Which policy size is compute-optimal on CPU and GPU? |
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
 
 ## Superseded
