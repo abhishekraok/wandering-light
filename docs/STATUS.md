@@ -15,6 +15,9 @@ Last updated: 2026-09-01
 Every row is merged to `main` and measured. The number is the point; the issue
 holds the argument.
 
+The numbers themselves, one row per run and comparable across solvers, are in
+[`docs/RESULTS.md`](RESULTS.md); a row here is the claim a number supports.
+
 | | | issue |
 |---|---|---|
 | **Stack machine** | Named bases are `executable-26` (search default), `full-52` (legacy program/CLI default), and `mark-28` (corpus default since v3). Guards return a reason or `None`; illegal is an *absent transition*, not an exception. | [replace-typedlist-states (#42)](../../issues/42), [solver-build-quotations (#60)](../../issues/60) |
@@ -176,6 +179,7 @@ correction lands in one place instead of being chased across comment threads.
 
 ## Where things live
 
+- `docs/RESULTS.md` — the numbers ledger: one row per measurement, per benchmark, copied from `reports/`
 - `docs/metrics.md` — how cost and success are measured: units, the AUC solve-cost metric, the Kt bridge, calibration constants
 - `wandering_light/stack_machine.py` — the machine
 - `wandering_light/stack_machine_corpus.py` — PBE corpus generation, certified by BFS depth
