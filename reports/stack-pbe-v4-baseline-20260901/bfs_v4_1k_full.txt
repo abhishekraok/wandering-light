@@ -1,0 +1,51 @@
+bfs on eval, budget 1,000: 1800 tasks, 2116s
+  80/1800 solved (4.4%); shown-only would say 4.9% (+0.4%, 8 memorised)
+
+  behaviour          wit   solved  memorised
+  push_back            4   40/40           0
+  increment_each       5    0/40           0
+  reverse              5    0/40           0
+  keep_zeros           5    0/40           0
+  keep_negative        5    0/40           0
+  rotate_left          5   40/40           0
+  negate_each          6    0/40           0
+  keep_below           6    0/40           0
+  n_minus_each         7    0/40           0
+  min_pair            12    0/40           1
+  drop_last           12    0/40           0
+  cartesian_pair_sums  15    0/40           0
+  sum_negative        16    0/40           0
+  all_positive        18    0/40           0
+  capped_sum          20    0/40           0
+  replace_value       22    0/40           0
+  prefix_sums         25    0/40           0
+  concatenate_shorter_first  26    0/40           4
+  shared_value_occurrences  31    0/40           0
+  nearest_interval_endpoint_each  39    0/40           0
+  positive_majority_three  39    0/40           1
+  aligned_matches     39    0/40           0
+  count_in_range      40    0/40           0
+  largest_inside_interval  40    0/40           0
+  nondecreasing_indicator  43    0/40           0
+  minimum_cross_list_gap  44    0/40           0
+  adjacent_sign_change_count  47    0/40           0
+  stable_distinct_shared_values  49    0/40           0
+  positive_balance_prefix_count  49    0/40           0
+  farther_choice_from_target  54    0/40           0
+  farthest_from_target_last_tie  59    0/40           0
+  aligned_maxima      69    0/40           0
+  pair_floor_averages  69    0/40           0
+  distinct_count_three  70    0/40           0
+  span_inside_interval  76    0/40           1
+  furthest_squared_radius  78    0/40           0
+  keep_ascending_pairs  80    0/40           0
+  second_largest      83    0/40           0
+  widest_pair         84    0/40           0
+  axis_point_count    86    0/40           0
+  bounds_cover_list_flag  92    0/40           0
+  manhattan_point_radii  94    0/40           0
+  lexicographic_order 124    0/40           0
+  polyline_manhattan_length 188    0/40           0
+  median_floor       253    0/40           1
+
+wrote reports/stack-pbe-v4-baseline-20260901/raw/bfs_v4_1k_full.json
