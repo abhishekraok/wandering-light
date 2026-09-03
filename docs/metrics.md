@@ -6,6 +6,9 @@
 measured*. Numbers belong in the other two — if a constant appears here it has
 gone stale.
 
+There is one objective, **cost to clear**. Everything else here is a
+diagnostic: a slice of it under conditions that make it easier to read.
+
 ## Cost units
 
 Two, always reported together.
@@ -30,6 +33,54 @@ hosts rather than silently mixing them.
 Device matters as much as size — measure it, do not assume it. See
 [make-solver-baselines-comparable (#25)](../../issues/25).
 
+## Cost to clear
+
+**Total compute to solve a validation set, with reuse priced.**
+
+```
+cost_to_clear(V) = sum over tasks in V of wall-clock to solve,
+                   with a persistent library allowed across tasks,
+                   and library construction charged in the same clock
+coverage(V)      = solved / |V|
+```
+
+Report the **pair**. Never collapse it. Below full coverage the cost is over
+the covered subset, and the report says so. The honest reading is that an
+unsolved task is a failure of the system, not a censored sample: cost to clear
+is infinite until coverage reaches one. That is the standing goal in
+[clear-stack-pbe-v4 (#99)](../../issues/99) — coverage first, then cost.
+
+- **Compare lexicographically.** A change is an improvement iff coverage does
+  not fall, and either coverage rises or cost over the covered set falls. Two
+  systems at partial coverage are both at infinite cost, so "cost fell" on its
+  own says nothing; coverage decides first.
+- **Order is the system's.** With shared state, clearing task A can make task
+  B cheap, so the sum depends on order. The system chooses its order over `V`
+  and is charged the total. `V` stays a task set. A fixed prequential order is
+  the induce-text framing and belongs there —
+  [moving-arena-induce-text (#88)](../../issues/88).
+- **Reuse is priced, not only credited.** Library construction is inside the
+  clock whether it happens during the run or before it, so a library that
+  shortens programs but slows search raises the sum. That is the acceptance
+  test [expand-basis-derivability (#41)](../../issues/41) lacked: it priced
+  description length and never search cost, and went degenerate. Policy
+  training stays outside the clock, as for every metric in this file.
+- **A library that has seen the eval set is leakage**, not amortisation.
+  Select on validation; test is scored once.
+- **Per certified distance where distance is certified; per witness-length
+  bucket where it is not.** Witness length is an upper bound on distance, and
+  a bucketed report carries that caveat. Never one aggregate.
+- **Wall-clock primary, host pinned, executions alongside**, as above. On the
+  stack machine fuel diverges from program length by construction — `map`
+  costs `1 + body x len(input)` — so this is a cost, not length in disguise.
+
+Nothing below sees reuse. The solve-cost curve and the fixed-budget solve rate
+at its right-hand end score tasks one at a time under a frozen policy, so
+building a library is never charged and using one is never credited. Both
+survive as diagnostics — the right tools for iterating on a solver. Neither is
+the bill. First consumer: [highways (#96)](../../issues/96), which accepts a
+library entry iff the pair improves on validation.
+
 ## Solve cost
 
 **Area under the solve-rate vs log-budget curve, per certified distance.**
@@ -41,6 +92,15 @@ for each solver, each certified distance d:
 ```
 
 An area under a *rate* curve, not a time. One number per (solver, distance).
+
+This is the **per-distance slice of cost to clear**: one solver, frozen policy,
+no library. Under those conditions cost to clear is the sum of first-hit costs
+over `V`, and this curve is their distribution per distance in the log domain —
+a geometric mean where the bill is a sum. It resolves what the sum hides, a
+wall at one distance, and it cannot see what the sum prices, reuse.
+[raise-solve-rate-d7-8 (#74)](../../issues/74) is its right-hand end at one
+budget and [compute-optimal-policy-size (#80)](../../issues/80) is the area,
+both on the `wl-core` control.
 
 - **Per distance, never aggregated.** Aggregating lets gains at low distance
   mask a wall at high distance.
@@ -131,10 +191,21 @@ dominate the result. Gate each headline on at least 80% certified coverage in
 its own weighting; retain the conditional estimate and censoring counts below
 that threshold, but do not present it as headline `H`.
 
+A library enters through the search term. It replaces `d` by the distance in
+library space, which falls, and widens the action set, so `H` — and `b_eff`
+where there is no policy — must be re-measured over the library's actions
+rather than read off the base basis; macros inherit stack-effect guards, so
+base count plus library size overstates it. Summed over `V`, that term is the
+closed-form screen [highways (#96)](../../issues/96) applies to a candidate
+before paying for a measured cost to clear.
+
 ## Protocol
 
 - Never score an unopened test split more than once. Select on validation, lock
   the choice, then score once.
+- Cost to clear is a pair. A cost over a covered subset states its coverage
+  beside it, and a library's construction time is in the sum. Nothing built
+  before the clock started may have seen the set being cleared.
 - Three paired seeds; single-seed fine grain is noise against a zero baseline.
 - Report both cost units, the host, and the device.
 - Complete and seal every timed cell before observer replay or oracle labeling;

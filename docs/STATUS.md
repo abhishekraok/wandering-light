@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-09-01
+Last updated: 2026-09-02
 
 ## What is true now
 
@@ -175,7 +175,7 @@ correction lands in one place instead of being chased across comment threads.
 
 ## Where things live
 
-- `docs/metrics.md` — how cost and success are measured: units, the AUC solve-cost metric, the Kt bridge, calibration constants
+- `docs/metrics.md` — how cost and success are measured: units, cost to clear (the objective), its AUC solve-cost slice, the Kt bridge, calibration constants
 - `wandering_light/stack_machine.py` — the machine
 - `wandering_light/stack_machine_corpus.py` — PBE corpus generation, certified by BFS depth
 - `docs/stack_machine_explorer.html` — keyboard-driven explorer, self-checks against the Python core
