@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-09-02
+Last updated: 2026-09-03
 
 ## What is true now
 
@@ -56,12 +56,12 @@ holds the argument.
 | **What that licenses** | Both substrates defeat *undirected* expansion past the BFS horizon, for opposite reasons — one cannot leave home, the other cannot come home. Both measurements use a uniform-random walk policy, so they bound undirected expansion only. **Neither shows that any directed mechanism reaches further**; that is assumed by the macro-op and learned-policy programmes, not established. | [#55](../../issues/55) |
 | **Rollout debugger** | `wandering_light/rollout_debugger/`, keyboard-driven, serving the `deep-corpus-v1` test split against the private issue-55 checkpoint (Hub revision `009cb81`). It shows the **production** search: `RolloutPredictor.search_with_cost` takes an optional `RolloutObserver` that is reported to and never consulted, so an observed run and an unobserved one are the same run — asserted directly, and again against the real checkpoint under `-m network`. The encoding panel calls the policy's own `pair_batch`; nothing is reimplemented. A session is eager and ships whole (**456 KiB gzipped** at beam 64, depth 8), so stepping is a client-side index move; raw logit rows are excluded by default and fetched per node on demand (3–5 ms). Drive mode applies the policy's rank-1..9 compatible actions from `asdfghjkl` with `w` to undo, on the loaded task only. Two 2D views over the policy's own pooled 192-d `(state, target)` encoding: replay uses PCA anchored at φ(target, target); drive uses a fixed input→target axis, where x is fraction of the way to solved (PCA would move points as the fit grows). The page is driven in headless Chromium by `tests/test_rollout_debugger_browser.py`. | [interactive-rollout-debugger (#72)](../../issues/72) |
 | **Execution and inference cost** | The basis function is **~15%** of a charged `basis_function_executions` unit (4.1 us of 27 us); the rest is `search_key()` and search bookkeeping. Policy scoring at beam 64 scales ~linearly on CPU (~80x from 90K to 125M params) and is **flat on CUDA** (8.2-10.3 ms across the same range), so the device crossover sits between **~1M and ~10M parameters** and inference latency does not bound model size on GPU. The published rollout run used `device=cuda` at 90,374 params, on the CPU side of that crossover. Load-sensitive; reproduce with `experiments/inference_cost.py`. | [report](../reports/inference-cost-20260830/README.md), [compute-optimal-policy-size (#80)](../../issues/80) |
+| **Compute-optimal policy size** | Three arms (90K / 1M / 10M) × two seeds on `deep_corpus_v2`, per-arm LR (2e-3 / 2e-3 / 5e-4), 96 validation tasks, beam 64, depth 8. Per execution the bigger policy searches better at every distance (execution AUC 0.394 / 0.403 / 0.420). The wall-clock winner is set by the device: **10M on the 4090 from distance 4 up** (mean AUC 0.548 / 0.562 / 0.594), **90K on CPU** (0.550 / 0.538 / 0.479), where 10M infers ~5× slower. At a fixed 2e-3 the 10M arm underfit to 90K's level; per-arm LR follows 1/width. 10M overfits after epoch 7 on 1.07M prefixes, so 40M was dropped. In-situ H is headline-grade only at the root for distances ≤ 4 (10M sharpest at d1–3); deeper coverage collapses because beam-visited states are off-path for the bounded oracle (#94). `reports/compute-optimal-20260903/`. | [#80](../../issues/80) |
 
 ## In flight
 
 | what | who | where | question it answers |
 |---|---|---|---|
-| Compute-optimal policy-size sweep — the fixed-`2e-3` campaign stopped after 10M underfit; its five complete 90K/1M/10M-reference checkpoints survive in private Hub repos. Per-arm LR (`2e-3` / `2e-3` / `5e-4`), seeds 0/1, reuses 90K/1M, trains 10M. **40M dropped** on 2026-09-02: tuned 10M reaches best val CE 0.937 at epoch 7 then overfits (1M: 1.007 at epoch 12), so the 1.07M-prefix corpus is the limit and a 4× model at 4× inference cost cannot win on budget AUC. Three arms, 12 evaluation cells. No search result yet. | `claude/issue-80-three-arm` | [compute-optimal-policy-size-sweep (#92)](../../pull/92), [compute-optimal-policy-size (#80)](../../issues/80) | Which policy size is compute-optimal on CPU and GPU? |
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
 
 ## Superseded
