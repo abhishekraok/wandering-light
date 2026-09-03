@@ -61,7 +61,7 @@ holds the argument.
 
 | what | who | where | question it answers |
 |---|---|---|---|
-| Compute-optimal policy-size sweep — the fixed-`2e-3` campaign stopped after 10M underfit; its five complete 90K/1M/10M-reference checkpoints survive in private Hub repos. The re-freeze keeps seeds 0/1, uses LR `2e-3` / `2e-3` / `5e-4` / `2.5e-4`, reuses 90K/1M, and trains 10M/40M. No search result yet. | `codex/issue-80-refreeze` | [compute-optimal-policy-size-sweep (#92)](../../pull/92), [compute-optimal-policy-size (#80)](../../issues/80) | Which policy size is compute-optimal on CPU and GPU? |
+| Compute-optimal policy-size sweep — the fixed-`2e-3` campaign stopped after 10M underfit; its five complete 90K/1M/10M-reference checkpoints survive in private Hub repos. Per-arm LR (`2e-3` / `2e-3` / `5e-4`), seeds 0/1, reuses 90K/1M, trains 10M. **40M dropped** on 2026-09-02: tuned 10M reaches best val CE 0.937 at epoch 7 then overfits (1M: 1.007 at epoch 12), so the 1.07M-prefix corpus is the limit and a 4× model at 4× inference cost cannot win on budget AUC. Three arms, 12 evaluation cells. No search result yet. | `claude/issue-80-three-arm` | [compute-optimal-policy-size-sweep (#92)](../../pull/92), [compute-optimal-policy-size (#80)](../../issues/80) | Which policy size is compute-optimal on CPU and GPU? |
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
 
 ## Superseded

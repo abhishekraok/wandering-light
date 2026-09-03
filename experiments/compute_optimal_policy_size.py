@@ -102,14 +102,13 @@ WALL_SECONDS_MIN = 2**LOG2_WALL_SECONDS_MIN
 WALL_SECONDS_MAX = 2**LOG2_WALL_SECONDS_MAX
 EXECUTIONS_MIN = 1
 
-ARM_IDS = ("90k", "1m", "10m", "40m")
+ARM_IDS = ("90k", "1m", "10m")
 EVALUATION_CELL_COUNT = len(ARM_IDS) * len(TRAINING_SEEDS) * len(DEVICES)
-ARM_LABELS = {"90k": "90K", "1m": "1M", "10m": "10M", "40m": "40M"}
+ARM_LABELS = {"90k": "90K", "1m": "1M", "10m": "10M"}
 EXPECTED_PARAMETER_COUNTS = {
     "90k": 90_374,
     "1m": 724_022,
     "10m": 6_504_310,
-    "40m": 25_329_270,
 }
 FROZEN_ACTION_COUNT = 118
 
@@ -213,14 +212,18 @@ def _frozen_arm_configs(
         POLICY_SIZE_LEARNING_RATES,
     )
 
-    if tuple(POLICY_SIZE_ARMS) != ARM_IDS:
-        raise ValueError("Trainer policy-size arms differ from the frozen sweep")
-    if tuple(POLICY_SIZE_BATCHING) != ARM_IDS:
-        raise ValueError("Trainer policy-size batching differs from the frozen sweep")
-    if tuple(POLICY_SIZE_LEARNING_RATES) != ARM_IDS:
-        raise ValueError(
-            "Trainer policy-size learning rates differ from the frozen sweep"
-        )
+    # The trainer may define more arms than the sweep evaluates (40m was dropped
+    # after the tuned 10m arm overfit at epoch 7); every sweep arm must exist there
+    # in the same relative order.
+    for label, table in (
+        ("arms", POLICY_SIZE_ARMS),
+        ("batching", POLICY_SIZE_BATCHING),
+        ("learning rates", POLICY_SIZE_LEARNING_RATES),
+    ):
+        if tuple(arm_id for arm_id in table if arm_id in ARM_IDS) != ARM_IDS:
+            raise ValueError(
+                f"Trainer policy-size {label} do not cover the frozen sweep arms"
+            )
     arms: list[_PolicySizeArmConfig] = []
     for arm_id in ARM_IDS:
         architecture = POLICY_SIZE_ARMS[arm_id]

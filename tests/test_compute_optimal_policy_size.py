@@ -21,13 +21,11 @@ EXPECTED_PARAMETERS = {
     "90k": 90_374,
     "1m": 724_022,
     "10m": 6_504_310,
-    "40m": 25_329_270,
 }
 EXPECTED_LEARNING_RATES = {
     "90k": 2e-3,
     "1m": 2e-3,
     "10m": 5e-4,
-    "40m": 2.5e-4,
 }
 
 
@@ -201,7 +199,7 @@ def test_freeze_pins_validation_arms_search_metric_and_oracle(
         "paired_training_seeds": True,
         "evaluation_cells_sequential": True,
         "global_phase_barrier": [
-            "all-16-cell-timing",
+            "all-12-cell-timing",
             "sealed-timing-matrix",
             "observer-replay-and-oracle-annotation",
         ],
@@ -221,10 +219,10 @@ def test_freeze_pins_validation_arms_search_metric_and_oracle(
     assert set(task_order["task_ids"]) == set(protocol["cohort"]["task_ids"])
     assert task_order["task_ids"] != protocol["cohort"]["task_ids"]
     cell_order = protocol["evaluation_cell_order"]
-    assert study.EVALUATION_CELL_COUNT == 16
-    assert len(cell_order["cells"]) == 16
-    assert [cell["ordinal"] for cell in cell_order["cells"]] == list(range(16))
-    for pair_index in range(8):
+    assert study.EVALUATION_CELL_COUNT == 12
+    assert len(cell_order["cells"]) == 12
+    assert [cell["ordinal"] for cell in cell_order["cells"]] == list(range(12))
+    for pair_index in range(6):
         pair = cell_order["cells"][2 * pair_index : 2 * pair_index + 2]
         assert pair[0]["arm_id"] == pair[1]["arm_id"]
         assert pair[0]["training_seed"] == pair[1]["training_seed"]
@@ -261,11 +259,6 @@ def test_freeze_pins_validation_arms_search_metric_and_oracle(
                 "train_batch_size": 256,
                 "gradient_accumulation_steps": 1,
                 "validation_batch_size": 256,
-            },
-            "40m": {
-                "train_batch_size": 128,
-                "gradient_accumulation_steps": 2,
-                "validation_batch_size": 128,
             },
         },
         "checkpoint_selection": "minimum validation cross-entropy",
@@ -390,7 +383,7 @@ def test_arm_lookup_is_cached_immutable_trainer_configuration() -> None:
 
     configs = study._frozen_arm_configs()
 
-    assert tuple(config.arm_id for config in configs) == tuple(POLICY_SIZE_BATCHING)
+    assert tuple(config.arm_id for config in configs) == study.ARM_IDS
     assert {
         config.arm_id: (
             config.train_batch_size,
@@ -398,11 +391,11 @@ def test_arm_lookup_is_cached_immutable_trainer_configuration() -> None:
             config.validation_batch_size,
         )
         for config in configs
-    } == POLICY_SIZE_BATCHING
+    } == {arm_id: POLICY_SIZE_BATCHING[arm_id] for arm_id in study.ARM_IDS}
     assert {
         config.arm_id: config.learning_rate for config in configs
-    } == POLICY_SIZE_LEARNING_RATES
-    assert study._arm_config_by_id("40m") is study._arm_config_by_id("40m")
+    } == {arm_id: POLICY_SIZE_LEARNING_RATES[arm_id] for arm_id in study.ARM_IDS}
+    assert study._arm_config_by_id("10m") is study._arm_config_by_id("10m")
 
     materialized = study._frozen_arms()
     materialized[0]["architecture"]["hidden"] = -1
@@ -658,7 +651,6 @@ def test_runner_jsonl_helpers_are_deterministic_and_require_object_rows(
         ("90k", 256, 1, 512, 2e-3),
         ("1m", 256, 1, 512, 2e-3),
         ("10m", 256, 1, 256, 5e-4),
-        ("40m", 128, 2, 128, 2.5e-4),
     ],
 )
 def test_checkpoint_identity_requires_the_frozen_training_recipe(
@@ -1472,7 +1464,7 @@ def test_h_task_balanced_headline_uses_task_balanced_coverage() -> None:
 def test_aggregate_requires_full_matrix_and_selects_best_arms(
     tmp_path: Path, frozen_protocol: SimpleNamespace
 ) -> None:
-    execution_costs = {"90k": 64, "1m": 32, "10m": 16, "40m": 8}
+    execution_costs = {"90k": 64, "1m": 32, "10m": 16}
     cells = frozen_protocol.protocol["evaluation_cell_order"]["cells"]
     timing_paths: dict[tuple[str, int, str], Path] = {}
     for cell in cells:
@@ -1601,9 +1593,9 @@ def test_aggregate_requires_full_matrix_and_selects_best_arms(
         output=tmp_path / "aggregate.json",
     )
 
-    assert aggregate["cells"] == aggregate["expected_cells"] == 16
-    assert len(aggregate["inputs"]["checkpoints"]) == 8
-    assert len(aggregate["inputs"]["evaluations"]) == 16
+    assert aggregate["cells"] == aggregate["expected_cells"] == 12
+    assert len(aggregate["inputs"]["checkpoints"]) == 6
+    assert len(aggregate["inputs"]["evaluations"]) == 12
     assert aggregate["inputs"]["timing_matrix"]["path"] == str(
         timing_matrix_path.resolve()
     )
@@ -1615,10 +1607,7 @@ def test_aggregate_requires_full_matrix_and_selects_best_arms(
     assert set(paired) == {
         "90k-minus-1m",
         "90k-minus-10m",
-        "90k-minus-40m",
         "1m-minus-10m",
-        "1m-minus-40m",
-        "10m-minus-40m",
     }
     assert (
         paired["90k-minus-1m"]["wall_clock_auc"]["mean_normalized_area_difference"] > 0
@@ -1644,7 +1633,7 @@ def test_aggregate_requires_full_matrix_and_selects_best_arms(
                 "by_device"
             ][device]
             assert selected["best_wall_clock_arm"]["arm_id"] == "90k"
-            assert selected["best_execution_arm"]["arm_id"] == "40m"
+            assert selected["best_execution_arm"]["arm_id"] == "10m"
 
     group = aggregate["by_arm"]["90k"]["by_device"]["cpu"]["by_certified_distance"]["1"]
     assert [row["training_seed"] for row in group["seeds"]] == [0, 1]
