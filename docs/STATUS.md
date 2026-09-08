@@ -15,8 +15,9 @@ Last updated: 2026-09-01
 Every row is merged to `main` and measured. The number is the point; the issue
 holds the argument.
 
-The numbers themselves, one row per run and comparable across solvers, are in
-[`docs/RESULTS.md`](RESULTS.md); a row here is the claim a number supports.
+The numbers themselves are in [`docs/RESULTS.md`](RESULTS.md) (headline) and
+[`docs/RESULTS_DETAILED.md`](RESULTS_DETAILED.md) (every run); a row here is the
+claim a number supports.
 
 | | | issue |
 |---|---|---|
@@ -179,7 +180,7 @@ correction lands in one place instead of being chased across comment threads.
 
 ## Where things live
 
-- `docs/RESULTS.md` — the numbers ledger: one row per measurement, per benchmark, copied from `reports/`
+- `docs/RESULTS.md` — headline numbers; `docs/RESULTS_DETAILED.md` — every run, one row per measurement, copied from `reports/`
 - `docs/metrics.md` — how cost and success are measured: units, the AUC solve-cost metric, the Kt bridge, calibration constants
 - `wandering_light/stack_machine.py` — the machine
 - `wandering_light/stack_machine_corpus.py` — PBE corpus generation, certified by BFS depth
