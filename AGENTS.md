@@ -9,7 +9,9 @@
 Several agents and sessions touch this repo. Work in a worktree so your work 
 doesn't collide. Don't put the worktree under /tmp.
 
-- **`docs/STATUS.md` records state; issues record argument.** Never both. If
+- **`docs/RESULTS.md` records numbers; `docs/STATUS.md` records state; issues
+  record argument.** A run adds a row to `RESULTS_DETAILED.md`, to `RESULTS.md`
+  only if it is a headline, and to STATUS if it changes a claim. Never the same content in two places. If
   you establish something, add a row there — a claim that lives only in a
   comment gets contradicted by the next comment. Update it as part of the
   work, not afterwards.
