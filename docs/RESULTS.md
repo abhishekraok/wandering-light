@@ -32,8 +32,10 @@ ratio.
 ## Stack PBE v4 — policy size (300-task eval cohort, 60 per witness-length bucket)
 
 Next-op policies trained on v4 train, beam 64 × depth 48 with the #70 guard, two
-seeds per arm; solve rate is the mean of two seeds and is identical on CPU and
-CUDA. Witness length is an upper bound, not a certified distance.
+seeds per arm; solve rate is the mean of two seeds over the CPU cells. CUDA
+agrees on every task but one (10m seed 1, `negate_each`), which puts 10m at
+6–10 at 0.033 there and its coverage at 0.180. Witness length is an upper
+bound, not a certified distance.
 [report](../reports/compute-optimal-mark28-20260903/README.md),
 [compute-optimal-mark-28 (#101)](../../issues/101)
 
@@ -50,7 +52,7 @@ Cost to clear the cohort, (coverage, total wall-clock): CPU 0.185 / 1,009 s,
 0.180 / 1,074 s, for 1m / 2m / 10m. Per-execution AUC at 1–5 ops: 0.315 /
 0.312 / 0.315. Every arm's validation CE bottoms at 0.925–0.976 at epoch 1 or 2
 and rises after. Eleven of the cohort's 43 behaviours are ever solved; the
-longest solve is a 44-op program for a 92-op witness.
+longest solves are 44–46-op programs for a 92-op witness.
 
 ## `deep-corpus-v1` — learned solver against search (96 held-out tasks, 12 per distance 1–8)
 

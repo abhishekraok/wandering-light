@@ -73,12 +73,18 @@ Guard `body` alone: 1.30x / 1.71x / 2.30x at depths 4/5/6. Authored witnesses pr
 | `qwen3:30b-a3b` | 300 s deadline | sample 40 | 6 (15.0%) | 0 | 3,381 | 0/26 at 16+ ops; 30/34 failures do not run | `qwen3_v4_sample40.json` |
 | `gpt-oss:20b` | effort high, 32k ctx | 34 of 40 (capped) | 6 (17.6%) | 0 | 6,119 | 23/34 context-truncated, all empty | `gptoss20b_high_v4_sample40.json` |
 | `gpt-oss:20b` | effort high, 131k ctx | sample 40 | 9 (22.5%) | 0 | 8,873 | 21/40 hit the 300 s deadline; 1 is the shortcut → 8 real | `gptoss20b_high_ctx131k_v4_sample40.json` |
-| beam 64 × depth 48, 1m policy, seed 0 | trained on v4 train, LR 1.25e-4 | sample 40 | 7 (17.5%) | 0 | 131 | CUDA 120 s, same solves | `compute-optimal-mark28-20260903/timing/1m-s0-{cpu,cuda}.json` |
-| beam 64 × depth 48, 1m policy, seed 1 | same | sample 40 | 10 (25.0%) | 1 | 126 | CUDA 107 s | `…/timing/1m-s1-{cpu,cuda}.json` |
-| beam 64 × depth 48, 2m policy, seed 0 | LR 6.25e-5 | sample 40 | 7 (17.5%) | 0 | 177 | CUDA 123 s | `…/timing/2m-s0-{cpu,cuda}.json` |
-| beam 64 × depth 48, 2m policy, seed 1 | same | sample 40 | 9 (22.5%) | 1 | 175 | CUDA 120 s | `…/timing/2m-s1-{cpu,cuda}.json` |
-| beam 64 × depth 48, 10m policy, seed 0 | LR 3.1e-5 | sample 40 | 6 (15.0%) | 0 | 303 | CUDA 146 s | `…/timing/10m-s0-{cpu,cuda}.json` |
-| beam 64 × depth 48, 10m policy, seed 1 | same | sample 40 | 8 (20.0%) | 0 | 290 | CUDA 146 s | `…/timing/10m-s1-{cpu,cuda}.json` |
+| beam 64 × depth 48, 1m policy, seed 0 | trained on v4 train, LR 1.25e-4, cpu (8 threads) | sample 40 | 7 (17.5%) | 0 | 131 |  | `compute-optimal-mark28-20260903/timing/1m-s0-cpu.json` |
+| beam 64 × depth 48, 1m policy, seed 0 | trained on v4 train, LR 1.25e-4, cuda | sample 40 | 7 (17.5%) | 0 | 120 | same program on both devices | `…/timing/1m-s0-cuda.json` |
+| beam 64 × depth 48, 1m policy, seed 1 | trained on v4 train, LR 1.25e-4, cpu (8 threads) | sample 40 | 10 (25.0%) | 1 | 126 |  | `…/timing/1m-s1-cpu.json` |
+| beam 64 × depth 48, 1m policy, seed 1 | trained on v4 train, LR 1.25e-4, cuda | sample 40 | 10 (25.0%) | 1 | 107 | same program on both devices | `…/timing/1m-s1-cuda.json` |
+| beam 64 × depth 48, 2m policy, seed 0 | trained on v4 train, LR 6.25e-5, cpu (8 threads) | sample 40 | 7 (17.5%) | 0 | 177 |  | `…/timing/2m-s0-cpu.json` |
+| beam 64 × depth 48, 2m policy, seed 0 | trained on v4 train, LR 6.25e-5, cuda | sample 40 | 7 (17.5%) | 0 | 123 | same program on both devices | `…/timing/2m-s0-cuda.json` |
+| beam 64 × depth 48, 2m policy, seed 1 | trained on v4 train, LR 6.25e-5, cpu (8 threads) | sample 40 | 9 (22.5%) | 1 | 175 |  | `…/timing/2m-s1-cpu.json` |
+| beam 64 × depth 48, 2m policy, seed 1 | trained on v4 train, LR 6.25e-5, cuda | sample 40 | 9 (22.5%) | 1 | 120 | same program on both devices | `…/timing/2m-s1-cuda.json` |
+| beam 64 × depth 48, 10m policy, seed 0 | trained on v4 train, LR 3.1e-5, cpu (8 threads) | sample 40 | 6 (15.0%) | 0 | 303 |  | `…/timing/10m-s0-cpu.json` |
+| beam 64 × depth 48, 10m policy, seed 0 | trained on v4 train, LR 3.1e-5, cuda | sample 40 | 6 (15.0%) | 0 | 146 | same program on both devices | `…/timing/10m-s0-cuda.json` |
+| beam 64 × depth 48, 10m policy, seed 1 | trained on v4 train, LR 3.1e-5, cpu (8 threads) | sample 40 | 8 (20.0%) | 0 | 290 |  | `…/timing/10m-s1-cpu.json` |
+| beam 64 × depth 48, 10m policy, seed 1 | trained on v4 train, LR 3.1e-5, cuda | sample 40 | 8 (20.0%) | 0 | 146 | same program on both devices | `…/timing/10m-s1-cuda.json` |
 
 Depth-5 states per task (`#70` probe, 3 tasks, seed 17): v4 roots **1,166,586** unpruned, **157,931** guarded (7.39x); v3 roots 980,688 / 105,549 (9.29x). `states-depth5-v4.json`.
 
@@ -86,7 +92,7 @@ Corpus scope numbers (v3 → v4): distinct input stacks 15,550 → 83,488; witne
 
 ## Stack PBE v4 — compute-optimal policy size (#101), 300-task eval cohort
 
-`stack_pbe_v4` eval, 60 tasks per witness-length bucket (seed-17 shuffle, first 60 per bucket; contains sample 40), beam 64 × depth 48, guard `both`, two seeds per arm, CPU (8 threads) and CUDA cells. Solve rates are graded on held-out examples and are identical on both devices (3,599 of 3,600 task-cells agree). AUC is normalised area under solve rate against log₂ budget: wall-clock on [0.01, 100] s; executions (one per op run on one example stack) on [16, 524,288], computed from every hit replayed under the corrected counter (0 program mismatches). [report](../reports/compute-optimal-mark28-20260903/README.md), `aggregate.json`, `timing/<arm>-s<seed>-<device>.json`.
+`stack_pbe_v4` eval, 60 tasks per witness-length bucket (seed-17 shuffle, first 60 per bucket; contains sample 40), beam 64 × depth 48, guard `both`, two seeds per arm, CPU (8 threads) and CUDA cells. Solve rates are graded on held-out examples; the solve-rate table is the CPU cells, and CUDA agrees on 3,599 of 3,600 task-cells (10m seed 1 misses one `negate_each` task on CUDA, giving 0.033 at 6–10 and coverage 0.180 there). AUC is normalised area under solve rate against log₂ budget: wall-clock on [0.01, 100] s; executions (one per op run on one example stack) on [16, 524,288], computed from every hit replayed under the corrected counter (0 program mismatches). [report](../reports/compute-optimal-mark28-20260903/README.md), `aggregate.json`, `timing/<arm>-s<seed>-<device>.json`.
 
 **Solve rate at max budget, mean of two seeds (seed SD):**
 
