@@ -1,19 +1,20 @@
 # Compute-optimal policy size on `mark-28` / `stack_pbe_v4`
 
 Issue: [compute-optimal-mark-28 (#101)](../../../../issues/101). Source `4fd2eb9`
-(`claude/issue-101-compute-optimal-mark28`), clean. Campaign 2026-09-03 08:44–15:01 PDT
+(`claude/issue-101-compute-optimal-mark28`), clean; counters corrected and hits
+replayed at `f96efc2` (see Caveats). Campaign 2026-09-03 08:44–15:01 PDT
 on UltraDesk (RTX 4090; CPU cells at 8 torch threads, executor single-threaded).
 
 Question: the compute-optimal-policy-size (#80) question on the stack machine. Which
 rollout-policy size is compute-optimal, as normalized AUC of solve rate against log₂
-budget — wall-clock seconds primary, op applications as the device-free diagnostic —
+budget — wall-clock seconds primary, op executions as the device-free diagnostic —
 per **witness-length bucket**, paired over two training seeds, CPU and CUDA cells.
 v4 has no certified distance; witness length is an upper bound.
 
 ## Result
 
 **The size axis is flat, and the corpus is why.** Every arm solves the same
-behaviours at the same rate; per op application the three are indistinguishable;
+behaviours at the same rate; per execution the three are indistinguishable;
 on wall-clock the smallest wins on CPU and ties on CUDA. This is the opposite of
 `wl-core-v1`, where the 10M arm searched better per execution at every distance. The
 difference is not the model: it is that v4's 313,560 training rows are **175
@@ -32,16 +33,20 @@ and every arm is compared at the same under-trained point (validation CE 0.925�
 
 ### Normalized AUC, mean of two seeds (seed SD), paired difference against 1m
 
-Wall-clock range [0.01, 100] s; op-application range [28, 100,000]; both fixed before any cell ran.
+Wall-clock range [0.01, 100] s, fixed before any cell ran. Executions range
+[16, 524,288]: one execution is one op the machine ran on one example stack, and
+a refused op costs nothing; the range was set with the counter fix (Caveats) and
+its top exceeds the search's hard cap, so no hit is censored on that axis.
 
-| bucket | device | 1m wall | 2m wall | 10m wall | 1m ops | 2m ops | 10m ops |
+| bucket | device | 1m wall | 2m wall | 10m wall | 1m exec | 2m exec | 10m exec |
 |---|---|---|---|---|---|---|---|
-| 1–5 | cpu | 0.547 (0.053) | 0.521 Δ−0.026 | 0.507 Δ−0.040 | 0.356 (0.021) | 0.355 Δ−0.001 | 0.359 Δ+0.002 |
-| 1–5 | cuda | 0.545 (0.054) | 0.532 Δ−0.013 | 0.545 Δ−0.000 | 0.356 | 0.355 | 0.359 |
-| 11–20 | cpu | 0.157 (0.000) | 0.149 Δ−0.008 | 0.120 Δ−0.037 | 0.058 (0.000) | 0.057 Δ−0.001 | 0.049 Δ−0.010 |
-| 11–20 | cuda | 0.157 (0.000) | 0.160 Δ+0.003 | 0.134 Δ−0.023 | 0.058 | 0.057 | 0.049 |
-| 6–10 | both | 0.036 (0.036) | 0.000 | 0.025 | 0.017 | 0.000 | 0.012 |
-| 21–40, 41+ | both | 0.000 | ≤ 0.006 | ≤ 0.007 | 0.000 | ≤ 0.001 | ≤ 0.001 |
+| 1–5 | cpu | 0.547 (0.053) | 0.521 Δ−0.026 | 0.507 Δ−0.040 | 0.315 (0.019) | 0.312 Δ−0.003 | 0.315 Δ−0.001 |
+| 1–5 | cuda | 0.545 (0.054) | 0.532 Δ−0.013 | 0.545 Δ−0.000 | 0.315 | 0.312 | 0.315 |
+| 6–10 | cpu | 0.036 (0.036) | 0.000 Δ−0.036 | 0.025 Δ−0.011 | 0.015 (0.015) | 0.000 Δ−0.015 | 0.012 Δ−0.003 |
+| 6–10 | cuda | 0.036 (0.036) | 0.000 Δ−0.036 | 0.023 Δ−0.013 | 0.015 | 0.000 | 0.009 |
+| 11–20 | cpu | 0.157 (0.000) | 0.149 Δ−0.008 | 0.120 Δ−0.037 | 0.056 (0.000) | 0.056 Δ−0.000 | 0.047 Δ−0.009 |
+| 11–20 | cuda | 0.157 (0.000) | 0.160 Δ+0.003 | 0.134 Δ−0.023 | 0.056 | 0.056 | 0.047 |
+| 21–40, 41+ | both | 0.000 | ≤ 0.006 | ≤ 0.007 | 0.000 | ≤ 0.001 | ≤ 0.002 |
 
 Full tables with SDs for every cell: `tables.md`; per-seed values: `aggregate.json`.
 
@@ -122,12 +127,13 @@ encoder rather than its size would bind); 40m stays dropped from #80.
 
 - 60 tasks per bucket; seed spreads reach 0.075 on solve rate at 1–5. Quote the paired differences.
 - Witness length is an upper bound, not a certified distance, and the beam's own solutions show the authored witnesses at 4, 5 and 12 ops are not shortest.
-- Depth cap 48 and beam 64 bound the op-application axis at 82,796; the 100,000 range never binds, as on #80.
-- CPU/CUDA parity: solved and program agree on 3,599 of 3,600 task-cells; 7 differ by a few op applications on float tie-breaks.
+- **Counters were corrected after the cells ran** (Codex review on the PR, `f96efc2`). The cells had charged 28 "op applications" per beam node whether or not the op was legal, checked the budget only after a node's expansion, and summed fuel only for successors the beam kept. Every recorded hit — 54 to 75 per cell, memorisations included — was replayed under the corrected counters on its own device with the same weights and search; all returned the identical program (0 mismatches in 12 cells), and the executions column above is computed from the replayed values. A miss contributes nothing to a log-budget AUC and was not replayed, so unsolved rows keep `op_applications` and the undercounted `fuel` as first recorded; each cell's `replay` block says so. Wall-clock, solve rate and coverage are untouched.
+- **Two seeds, where `docs/metrics.md` asks for three** — the same deviation as #80. The claim is a null: no arm separates from another, and every paired difference sits inside its seed SD. A third seed tightens those SDs; it does not move a 0.01 difference outside them. Cost to add it: three 3-epoch trainings and six cells, about 2.3 h. Not run, to keep compute down.
+- CPU/CUDA parity: solved and program agree on 3,599 of 3,600 task-cells; 7 differ by a few executions on float tie-breaks.
 - `load.log` samples load average once a minute; the CPU cells' own 8 threads dominate it, so it shows the box was not otherwise idle-to-busy in a detectable way rather than proving isolation.
 
 ## Protocol and files
 
-`experiments/compute_optimal_mark28.py campaign --run-dir …` (relaunched twice: `--epochs 3` from 2m seed 1 on). Search: `wandering_light/stack_beam.py`, beam 64, depth 48, `quotation_guard.blocked(…, "both")`, product state over shown examples, held-out grading by `stack_pbe_eval.grade`. Policy: `wandering_light/stack_policy.py`, one item per shown example, op/value tokens, state cap 160 keeping the top.
+`experiments/compute_optimal_mark28.py campaign --run-dir …` (relaunched twice: `--epochs 3` from 2m seed 1 on), then `replay`, `archive` and `aggregate` after the counter fix. Search: `wandering_light/stack_beam.py`, beam 64, depth 48, `quotation_guard.blocked(…, "both")`, product state over shown examples, held-out grading by `stack_pbe_eval.grade`. Policy: `wandering_light/stack_policy.py`, one item per shown example, op/value tokens, state cap 160 keeping the top.
 
-`aggregate.json`, `tables.md`, `lr_probe.json`, `timing/<arm>-s<seed>-<device>.json` (every task row with program, termination and costs), `policies/*/` (trainer state, manifest with provenance and W&B URL; weights stay on UltraDesk under `checkpoints/mark28-co-20260903/policies/`), `runner.log`, `load.log`.
+`aggregate.json`, `tables.md`, `lr_probe.json`, `timing/<arm>-s<seed>-<device>.json` (every task row with program, termination and costs), `policies/*/` (trainer state, manifest with provenance, `wandb_run.url`), `archive.json` (the weights: one W&B model artifact per checkpoint, `mark28-policy-<arm>-s<seed>:v0`, logged on that checkpoint's own run in the personal entity; a copy stays on UltraDesk under `checkpoints/mark28-co-20260903/policies/`), `runner.log`, `load.log`.

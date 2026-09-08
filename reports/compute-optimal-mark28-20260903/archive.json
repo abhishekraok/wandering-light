@@ -1,0 +1,26 @@
+{
+  "10m-s0": {
+    "artifact": "abhishekraok-na/wandering-light-rollout-policy/mark28-policy-10m-s0:v0",
+    "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/q5s040rn"
+  },
+  "10m-s1": {
+    "artifact": "abhishekraok-na/wandering-light-rollout-policy/mark28-policy-10m-s1:v0",
+    "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/jfr24n86"
+  },
+  "1m-s0": {
+    "artifact": "abhishekraok-na/wandering-light-rollout-policy/mark28-policy-1m-s0:v0",
+    "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/ez4c7uzc"
+  },
+  "1m-s1": {
+    "artifact": "abhishekraok-na/wandering-light-rollout-policy/mark28-policy-1m-s1:v0",
+    "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/f79u8dvb"
+  },
+  "2m-s0": {
+    "artifact": "abhishekraok-na/wandering-light-rollout-policy/mark28-policy-2m-s0:v0",
+    "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/56egakrg"
+  },
+  "2m-s1": {
+    "artifact": "abhishekraok-na/wandering-light-rollout-policy/mark28-policy-2m-s1:v0",
+    "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/osnuxrn8"
+  }
+}

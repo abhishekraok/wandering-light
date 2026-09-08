@@ -30,6 +30,29 @@
     "dirty": false,
     "recorded_at_utc": "2026-09-03T19:03:55.417065+00:00"
   },
+  "replay": {
+    "hits": 72,
+    "mismatches": [],
+    "note": "executions and fuel_replayed count per op executed on one example stack; op_applications (28 per node) and fuel (retained successors only) are the values as first recorded",
+    "provenance": {
+      "commit": "f96efc2bf48cd02faef7bcc794ead91e91369dcb",
+      "corpus": {
+        "hub": {
+          "repo_id": "abhishekraok/wandering-light-stack-pbe-v4",
+          "repo_type": "dataset",
+          "revision": "00c2a9996d32df8d1894b45f4246a66b6df46c25"
+        },
+        "name": "stack_pbe_v4",
+        "splits": {
+          "eval": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+          "train": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b"
+        }
+      },
+      "dirty": false,
+      "recorded_at_utc": "2026-09-08T15:45:35.447915+00:00"
+    },
+    "seconds": 56.378290086984634
+  },
   "rows": [
     {
       "behaviour": "keep_negative",
@@ -52,8 +75,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 3,
+      "executions": 10491,
       "expansions": 160,
       "fuel": 648,
+      "fuel_replayed": 10973,
       "length": 5,
       "op_applications": 4480,
       "program": [
@@ -64,6 +89,7 @@
         "filter"
       ],
       "seconds": 0.08212624999578111,
+      "seconds_replayed": 0.08178337500430644,
       "shown_fit": true,
       "solved": true,
       "task_index": 160,
@@ -74,8 +100,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 6,
+      "executions": 23403,
       "expansions": 174,
       "fuel": 1296,
+      "fuel_replayed": 24351,
       "length": 5,
       "op_applications": 4872,
       "program": [
@@ -86,6 +114,7 @@
         "filter"
       ],
       "seconds": 0.1734973650018219,
+      "seconds_replayed": 0.16558600903954357,
       "shown_fit": true,
       "solved": true,
       "task_index": 176,
@@ -96,8 +125,10 @@
       "bucket": "1-5",
       "depth": 3,
       "examples": 5,
+      "executions": 2256,
       "expansions": 26,
       "fuel": 421,
+      "fuel_replayed": 2379,
       "length": 5,
       "op_applications": 728,
       "program": [
@@ -106,6 +137,7 @@
         "cat"
       ],
       "seconds": 0.017192523999256082,
+      "seconds_replayed": 0.014104382018558681,
       "shown_fit": true,
       "solved": true,
       "task_index": 521,
@@ -116,8 +148,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 4,
+      "executions": 12333,
       "expansions": 142,
       "fuel": 856,
+      "fuel_replayed": 12801,
       "length": 5,
       "op_applications": 3976,
       "program": [
@@ -128,6 +162,7 @@
         "fold"
       ],
       "seconds": 0.10808280200581066,
+      "seconds_replayed": 0.09572454198496416,
       "shown_fit": true,
       "solved": true,
       "task_index": 95,
@@ -138,8 +173,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 5,
+      "executions": 17569,
       "expansions": 159,
       "fuel": 1088,
+      "fuel_replayed": 18471,
       "length": 5,
       "op_applications": 4452,
       "program": [
@@ -150,6 +187,7 @@
         "filter"
       ],
       "seconds": 0.1327147270058049,
+      "seconds_replayed": 0.13165042601758614,
       "shown_fit": true,
       "solved": true,
       "task_index": 194,
@@ -160,8 +198,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 5,
+      "executions": 19684,
       "expansions": 178,
       "fuel": 1070,
+      "fuel_replayed": 20509,
       "length": 5,
       "op_applications": 4984,
       "program": [
@@ -172,6 +212,7 @@
         "filter"
       ],
       "seconds": 0.1394644460087875,
+      "seconds_replayed": 0.393167139030993,
       "shown_fit": true,
       "solved": true,
       "task_index": 163,
@@ -182,8 +223,10 @@
       "bucket": "1-5",
       "depth": 3,
       "examples": 3,
+      "executions": 1045,
       "expansions": 21,
       "fuel": 257,
+      "fuel_replayed": 1110,
       "length": 5,
       "op_applications": 588,
       "program": [
@@ -192,6 +235,7 @@
         "cat"
       ],
       "seconds": 0.010805052996147424,
+      "seconds_replayed": 0.009799222054425627,
       "shown_fit": true,
       "solved": true,
       "task_index": 538,
@@ -218,8 +262,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 4,
+      "executions": 12189,
       "expansions": 142,
       "fuel": 854,
+      "fuel_replayed": 12810,
       "length": 5,
       "op_applications": 3976,
       "program": [
@@ -230,6 +276,7 @@
         "fold"
       ],
       "seconds": 0.10881384700769559,
+      "seconds_replayed": 0.11958963301731274,
       "shown_fit": true,
       "solved": true,
       "task_index": 90,
@@ -240,8 +287,10 @@
       "bucket": "1-5",
       "depth": 3,
       "examples": 4,
+      "executions": 1361,
       "expansions": 21,
       "fuel": 328,
+      "fuel_replayed": 1419,
       "length": 5,
       "op_applications": 588,
       "program": [
@@ -250,6 +299,7 @@
         "cat"
       ],
       "seconds": 0.015785638999659568,
+      "seconds_replayed": 0.01042125205276534,
       "shown_fit": true,
       "solved": true,
       "task_index": 556,
@@ -260,8 +310,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 3,
+      "executions": 11949,
       "expansions": 179,
       "fuel": 654,
+      "fuel_replayed": 12617,
       "length": 5,
       "op_applications": 5012,
       "program": [
@@ -272,6 +324,7 @@
         "filter"
       ],
       "seconds": 0.08855584599950816,
+      "seconds_replayed": 0.08552747697103769,
       "shown_fit": true,
       "solved": true,
       "task_index": 171,
@@ -282,8 +335,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 6,
+      "executions": 528,
       "expansions": 5,
       "fuel": 84,
+      "fuel_replayed": 592,
       "length": 4,
       "op_applications": 140,
       "program": [
@@ -291,6 +346,7 @@
         "cat"
       ],
       "seconds": 0.004013637008029036,
+      "seconds_replayed": 0.003852255002129823,
       "shown_fit": true,
       "solved": true,
       "task_index": 519,
@@ -301,8 +357,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 3,
+      "executions": 10178,
       "expansions": 154,
       "fuel": 642,
+      "fuel_replayed": 10559,
       "length": 5,
       "op_applications": 4312,
       "program": [
@@ -313,6 +371,7 @@
         "filter"
       ],
       "seconds": 0.06915988499531522,
+      "seconds_replayed": 0.0710196360014379,
       "shown_fit": true,
       "solved": true,
       "task_index": 193,
@@ -323,8 +382,10 @@
       "bucket": "1-5",
       "depth": 3,
       "examples": 5,
+      "executions": 2284,
       "expansions": 27,
       "fuel": 409,
+      "fuel_replayed": 2395,
       "length": 5,
       "op_applications": 756,
       "program": [
@@ -333,6 +394,7 @@
         "cat"
       ],
       "seconds": 0.014422248990740627,
+      "seconds_replayed": 0.014496118994429708,
       "shown_fit": true,
       "solved": true,
       "task_index": 536,
@@ -343,8 +405,10 @@
       "bucket": "1-5",
       "depth": 3,
       "examples": 5,
+      "executions": 1431,
       "expansions": 18,
       "fuel": 419,
+      "fuel_replayed": 1516,
       "length": 5,
       "op_applications": 504,
       "program": [
@@ -353,6 +417,7 @@
         "cat"
       ],
       "seconds": 0.011913134003407322,
+      "seconds_replayed": 0.012873225030489266,
       "shown_fit": true,
       "solved": true,
       "task_index": 557,
@@ -363,8 +428,10 @@
       "bucket": "1-5",
       "depth": 3,
       "examples": 5,
+      "executions": 2244,
       "expansions": 27,
       "fuel": 397,
+      "fuel_replayed": 2372,
       "length": 5,
       "op_applications": 756,
       "program": [
@@ -373,6 +440,7 @@
         "cat"
       ],
       "seconds": 0.013173658997402526,
+      "seconds_replayed": 0.013445315998978913,
       "shown_fit": true,
       "solved": true,
       "task_index": 559,
@@ -383,8 +451,10 @@
       "bucket": "1-5",
       "depth": 3,
       "examples": 4,
+      "executions": 1760,
       "expansions": 25,
       "fuel": 342,
+      "fuel_replayed": 1853,
       "length": 5,
       "op_applications": 700,
       "program": [
@@ -393,6 +463,7 @@
         "cat"
       ],
       "seconds": 0.01230782900529448,
+      "seconds_replayed": 0.012650516000576317,
       "shown_fit": true,
       "solved": true,
       "task_index": 550,
@@ -419,8 +490,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 5,
+      "executions": 500,
       "expansions": 6,
       "fuel": 70,
+      "fuel_replayed": 568,
       "length": 4,
       "op_applications": 168,
       "program": [
@@ -428,6 +501,7 @@
         "cat"
       ],
       "seconds": 0.004477761991438456,
+      "seconds_replayed": 0.0034905620268546045,
       "shown_fit": true,
       "solved": true,
       "task_index": 506,
@@ -454,8 +528,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 6,
+      "executions": 22448,
       "expansions": 169,
       "fuel": 1296,
+      "fuel_replayed": 23428,
       "length": 5,
       "op_applications": 4732,
       "program": [
@@ -466,6 +542,7 @@
         "filter"
       ],
       "seconds": 0.15358234000450466,
+      "seconds_replayed": 0.15074720699340105,
       "shown_fit": true,
       "solved": true,
       "task_index": 186,
@@ -476,8 +553,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 3,
+      "executions": 219,
       "expansions": 4,
       "fuel": 42,
+      "fuel_replayed": 240,
       "length": 4,
       "op_applications": 112,
       "program": [
@@ -485,6 +564,7 @@
         "cat"
       ],
       "seconds": 0.0026772709970828146,
+      "seconds_replayed": 0.0028178030042909086,
       "shown_fit": true,
       "solved": true,
       "task_index": 492,
@@ -495,8 +575,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 6,
+      "executions": 18084,
       "expansions": 142,
       "fuel": 1302,
+      "fuel_replayed": 19092,
       "length": 5,
       "op_applications": 3976,
       "program": [
@@ -507,6 +589,7 @@
         "fold"
       ],
       "seconds": 0.1557911099953344,
+      "seconds_replayed": 0.15805574605474249,
       "shown_fit": true,
       "solved": true,
       "task_index": 108,
@@ -533,8 +616,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 3,
+      "executions": 264,
       "expansions": 5,
       "fuel": 42,
+      "fuel_replayed": 285,
       "length": 4,
       "op_applications": 140,
       "program": [
@@ -542,6 +627,7 @@
         "cat"
       ],
       "seconds": 0.003057244000956416,
+      "seconds_replayed": 0.0030886789900250733,
       "shown_fit": true,
       "solved": true,
       "task_index": 497,
@@ -568,8 +654,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 5,
+      "executions": 20267,
       "expansions": 180,
       "fuel": 1079,
+      "fuel_replayed": 21079,
       "length": 5,
       "op_applications": 5040,
       "program": [
@@ -580,6 +668,7 @@
         "filter"
       ],
       "seconds": 0.14818790400750004,
+      "seconds_replayed": 0.144882783992216,
       "shown_fit": true,
       "solved": true,
       "task_index": 189,
@@ -606,8 +695,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 3,
+      "executions": 264,
       "expansions": 5,
       "fuel": 42,
+      "fuel_replayed": 291,
       "length": 4,
       "op_applications": 140,
       "program": [
@@ -615,6 +706,7 @@
         "cat"
       ],
       "seconds": 0.003169080999214202,
+      "seconds_replayed": 0.0031909230165183544,
       "shown_fit": true,
       "solved": true,
       "task_index": 484,
@@ -641,8 +733,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 3,
+      "executions": 264,
       "expansions": 5,
       "fuel": 42,
+      "fuel_replayed": 293,
       "length": 4,
       "op_applications": 140,
       "program": [
@@ -650,6 +744,7 @@
         "cat"
       ],
       "seconds": 0.0030389019957510754,
+      "seconds_replayed": 0.0023910009767860174,
       "shown_fit": true,
       "solved": true,
       "task_index": 486,
@@ -660,8 +755,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 5,
+      "executions": 500,
       "expansions": 6,
       "fuel": 70,
+      "fuel_replayed": 579,
       "length": 4,
       "op_applications": 168,
       "program": [
@@ -669,6 +766,7 @@
         "cat"
       ],
       "seconds": 0.0031710030016256496,
+      "seconds_replayed": 0.0031429529772140086,
       "shown_fit": true,
       "solved": true,
       "task_index": 494,
@@ -711,8 +809,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 3,
+      "executions": 300,
       "expansions": 6,
       "fuel": 42,
+      "fuel_replayed": 336,
       "length": 4,
       "op_applications": 168,
       "program": [
@@ -720,6 +820,7 @@
         "cat"
       ],
       "seconds": 0.0030577260040445253,
+      "seconds_replayed": 0.002771016035694629,
       "shown_fit": true,
       "solved": true,
       "task_index": 480,
@@ -762,8 +863,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 6,
+      "executions": 20914,
       "expansions": 159,
       "fuel": 1302,
+      "fuel_replayed": 22066,
       "length": 5,
       "op_applications": 4452,
       "program": [
@@ -774,6 +877,7 @@
         "filter"
       ],
       "seconds": 0.15307595999911427,
+      "seconds_replayed": 0.413070343027357,
       "shown_fit": true,
       "solved": true,
       "task_index": 188,
@@ -784,8 +888,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 4,
+      "executions": 352,
       "expansions": 5,
       "fuel": 56,
+      "fuel_replayed": 376,
       "length": 4,
       "op_applications": 140,
       "program": [
@@ -793,6 +899,7 @@
         "cat"
       ],
       "seconds": 0.0030746249976800755,
+      "seconds_replayed": 0.0032039250363595784,
       "shown_fit": true,
       "solved": true,
       "task_index": 505,
@@ -835,8 +942,10 @@
       "bucket": "1-5",
       "depth": 3,
       "examples": 6,
+      "executions": 2655,
       "expansions": 26,
       "fuel": 490,
+      "fuel_replayed": 2785,
       "length": 5,
       "op_applications": 728,
       "program": [
@@ -845,6 +954,7 @@
         "cat"
       ],
       "seconds": 0.020228791996487416,
+      "seconds_replayed": 0.019418779003899544,
       "shown_fit": true,
       "solved": true,
       "task_index": 529,
@@ -855,8 +965,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 6,
+      "executions": 17994,
       "expansions": 142,
       "fuel": 1284,
+      "fuel_replayed": 18768,
       "length": 5,
       "op_applications": 3976,
       "program": [
@@ -867,6 +979,7 @@
         "fold"
       ],
       "seconds": 0.17622263700468466,
+      "seconds_replayed": 0.17546097800368443,
       "shown_fit": true,
       "solved": true,
       "task_index": 99,
@@ -877,8 +990,10 @@
       "bucket": "1-5",
       "depth": 3,
       "examples": 5,
+      "executions": 1891,
       "expansions": 23,
       "fuel": 411,
+      "fuel_replayed": 1984,
       "length": 5,
       "op_applications": 644,
       "program": [
@@ -887,6 +1002,7 @@
         "cat"
       ],
       "seconds": 0.01612062699859962,
+      "seconds_replayed": 0.01338001003023237,
       "shown_fit": true,
       "solved": true,
       "task_index": 526,
@@ -897,8 +1013,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 3,
+      "executions": 264,
       "expansions": 5,
       "fuel": 42,
+      "fuel_replayed": 293,
       "length": 4,
       "op_applications": 140,
       "program": [
@@ -906,6 +1024,7 @@
         "cat"
       ],
       "seconds": 0.0031360430002678186,
+      "seconds_replayed": 0.002648974012117833,
       "shown_fit": true,
       "solved": true,
       "task_index": 501,
@@ -916,8 +1035,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 4,
+      "executions": 12136,
       "expansions": 142,
       "fuel": 883,
+      "fuel_replayed": 12987,
       "length": 5,
       "op_applications": 3976,
       "program": [
@@ -928,6 +1049,7 @@
         "fold"
       ],
       "seconds": 0.10907252499600872,
+      "seconds_replayed": 0.10744038701523095,
       "shown_fit": true,
       "solved": true,
       "task_index": 111,
@@ -938,8 +1060,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 4,
+      "executions": 12234,
       "expansions": 142,
       "fuel": 850,
+      "fuel_replayed": 12872,
       "length": 5,
       "op_applications": 3976,
       "program": [
@@ -950,6 +1074,7 @@
         "fold"
       ],
       "seconds": 0.1066030220099492,
+      "seconds_replayed": 0.11329702899092808,
       "shown_fit": true,
       "solved": true,
       "task_index": 88,
@@ -976,8 +1101,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 6,
+      "executions": 18006,
       "expansions": 142,
       "fuel": 1329,
+      "fuel_replayed": 19452,
       "length": 5,
       "op_applications": 3976,
       "program": [
@@ -988,6 +1115,7 @@
         "fold"
       ],
       "seconds": 0.6249351690057665,
+      "seconds_replayed": 0.18447455996647477,
       "shown_fit": true,
       "solved": true,
       "task_index": 112,
@@ -998,8 +1126,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 6,
+      "executions": 528,
       "expansions": 5,
       "fuel": 84,
+      "fuel_replayed": 578,
       "length": 4,
       "op_applications": 140,
       "program": [
@@ -1007,6 +1137,7 @@
         "cat"
       ],
       "seconds": 0.0039042209973558784,
+      "seconds_replayed": 0.00366539997048676,
       "shown_fit": true,
       "solved": true,
       "task_index": 481,
@@ -1065,8 +1196,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 6,
+      "executions": 18024,
       "expansions": 142,
       "fuel": 1287,
+      "fuel_replayed": 18837,
       "length": 5,
       "op_applications": 3976,
       "program": [
@@ -1077,6 +1210,7 @@
         "fold"
       ],
       "seconds": 0.6369585049978923,
+      "seconds_replayed": 0.15790021297289059,
       "shown_fit": true,
       "solved": true,
       "task_index": 86,
@@ -1087,8 +1221,10 @@
       "bucket": "1-5",
       "depth": 5,
       "examples": 5,
+      "executions": 15150,
       "expansions": 142,
       "fuel": 1070,
+      "fuel_replayed": 15780,
       "length": 5,
       "op_applications": 3976,
       "program": [
@@ -1099,6 +1235,7 @@
         "fold"
       ],
       "seconds": 0.11409033900417853,
+      "seconds_replayed": 0.11662339000031352,
       "shown_fit": true,
       "solved": true,
       "task_index": 85,
@@ -1109,8 +1246,10 @@
       "bucket": "1-5",
       "depth": 3,
       "examples": 6,
+      "executions": 2400,
       "expansions": 24,
       "fuel": 504,
+      "fuel_replayed": 2544,
       "length": 5,
       "op_applications": 672,
       "program": [
@@ -1119,6 +1258,7 @@
         "cat"
       ],
       "seconds": 0.01705752500856761,
+      "seconds_replayed": 0.019485364959109575,
       "shown_fit": true,
       "solved": true,
       "task_index": 542,
@@ -1129,8 +1269,10 @@
       "bucket": "1-5",
       "depth": 2,
       "examples": 5,
+      "executions": 440,
       "expansions": 5,
       "fuel": 70,
+      "fuel_replayed": 491,
       "length": 4,
       "op_applications": 140,
       "program": [
@@ -1138,6 +1280,7 @@
         "cat"
       ],
       "seconds": 0.004172963002929464,
+      "seconds_replayed": 0.003485143999569118,
       "shown_fit": true,
       "solved": true,
       "task_index": 517,
@@ -2092,8 +2235,10 @@
       "bucket": "6-10",
       "depth": 19,
       "examples": 3,
+      "executions": 74539,
       "expansions": 1042,
       "fuel": 4305,
+      "fuel_replayed": 78717,
       "length": 7,
       "op_applications": 29176,
       "program": [
@@ -2118,6 +2263,7 @@
         "map"
       ],
       "seconds": 1.1266056460008258,
+      "seconds_replayed": 0.8999906349927187,
       "shown_fit": true,
       "solved": false,
       "task_index": 274,
@@ -2176,8 +2322,10 @@
       "bucket": "11-20",
       "depth": 11,
       "examples": 4,
+      "executions": 51665,
       "expansions": 535,
       "fuel": 2393,
+      "fuel_replayed": 52314,
       "length": 12,
       "op_applications": 14980,
       "program": [
@@ -2194,6 +2342,7 @@
         "drop"
       ],
       "seconds": 0.7583178259956185,
+      "seconds_replayed": 0.5167019130312838,
       "shown_fit": true,
       "solved": true,
       "task_index": 359,
@@ -2204,8 +2353,10 @@
       "bucket": "11-20",
       "depth": 12,
       "examples": 3,
+      "executions": 43955,
       "expansions": 615,
       "fuel": 2182,
+      "fuel_replayed": 45219,
       "length": 12,
       "op_applications": 17220,
       "program": [
@@ -2223,6 +2374,7 @@
         "fold"
       ],
       "seconds": 0.31293239899969194,
+      "seconds_replayed": 0.32135285501135513,
       "shown_fit": true,
       "solved": true,
       "task_index": 595,
@@ -2233,8 +2385,10 @@
       "bucket": "11-20",
       "depth": 11,
       "examples": 5,
+      "executions": 64885,
       "expansions": 536,
       "fuel": 3008,
+      "fuel_replayed": 65703,
       "length": 12,
       "op_applications": 15008,
       "program": [
@@ -2251,6 +2405,7 @@
         "drop"
       ],
       "seconds": 0.3324779079994187,
+      "seconds_replayed": 0.587626835971605,
       "shown_fit": true,
       "solved": true,
       "task_index": 341,
@@ -2309,8 +2464,10 @@
       "bucket": "11-20",
       "depth": 14,
       "examples": 3,
+      "executions": 55835,
       "expansions": 775,
       "fuel": 2729,
+      "fuel_replayed": 58351,
       "length": 12,
       "op_applications": 21700,
       "program": [
@@ -2330,6 +2487,7 @@
         "drop"
       ],
       "seconds": 0.4739627679955447,
+      "seconds_replayed": 0.5014050870086066,
       "shown_fit": true,
       "solved": true,
       "task_index": 574,
@@ -2356,8 +2514,10 @@
       "bucket": "11-20",
       "depth": 15,
       "examples": 5,
+      "executions": 94248,
       "expansions": 782,
       "fuel": 4707,
+      "fuel_replayed": 96972,
       "length": 18,
       "op_applications": 21896,
       "program": [
@@ -2378,6 +2538,7 @@
         "ifte"
       ],
       "seconds": 0.6817583700030809,
+      "seconds_replayed": 0.9583309220033698,
       "shown_fit": true,
       "solved": false,
       "task_index": 655,
@@ -2452,8 +2613,10 @@
       "bucket": "11-20",
       "depth": 28,
       "examples": 4,
+      "executions": 165837,
       "expansions": 1655,
       "fuel": 7419,
+      "fuel_replayed": 171453,
       "length": 18,
       "op_applications": 46340,
       "program": [
@@ -2487,6 +2650,7 @@
         "ifte"
       ],
       "seconds": 1.923870019003516,
+      "seconds_replayed": 2.002154032001272,
       "shown_fit": true,
       "solved": true,
       "task_index": 648,
@@ -2513,8 +2677,10 @@
       "bucket": "11-20",
       "depth": 11,
       "examples": 3,
+      "executions": 38754,
       "expansions": 535,
       "fuel": 1792,
+      "fuel_replayed": 39229,
       "length": 12,
       "op_applications": 14980,
       "program": [
@@ -2531,6 +2697,7 @@
         "drop"
       ],
       "seconds": 0.21167197699833196,
+      "seconds_replayed": 0.19549866497982293,
       "shown_fit": true,
       "solved": true,
       "task_index": 320,
@@ -2541,8 +2708,10 @@
       "bucket": "11-20",
       "depth": 11,
       "examples": 3,
+      "executions": 41260,
       "expansions": 554,
       "fuel": 1793,
+      "fuel_replayed": 41757,
       "length": 12,
       "op_applications": 15512,
       "program": [
@@ -2559,6 +2728,7 @@
         "drop"
       ],
       "seconds": 0.215656050000689,
+      "seconds_replayed": 0.21396299405023456,
       "shown_fit": true,
       "solved": true,
       "task_index": 324,
@@ -2585,8 +2755,10 @@
       "bucket": "11-20",
       "depth": 14,
       "examples": 6,
+      "executions": 111072,
       "expansions": 775,
       "fuel": 5610,
+      "fuel_replayed": 116210,
       "length": 12,
       "op_applications": 21700,
       "program": [
@@ -2606,6 +2778,7 @@
         "drop"
       ],
       "seconds": 1.4071234860020922,
+      "seconds_replayed": 1.2039019030053169,
       "shown_fit": true,
       "solved": true,
       "task_index": 572,
@@ -2760,8 +2933,10 @@
       "bucket": "11-20",
       "depth": 14,
       "examples": 4,
+      "executions": 70719,
       "expansions": 746,
       "fuel": 3519,
+      "fuel_replayed": 73348,
       "length": 18,
       "op_applications": 20888,
       "program": [
@@ -2781,6 +2956,7 @@
         "fold"
       ],
       "seconds": 0.6298588850040687,
+      "seconds_replayed": 0.8698774320073426,
       "shown_fit": true,
       "solved": false,
       "task_index": 679,
@@ -2903,8 +3079,10 @@
       "bucket": "11-20",
       "depth": 14,
       "examples": 3,
+      "executions": 54140,
       "expansions": 773,
       "fuel": 2694,
+      "fuel_replayed": 56258,
       "length": 12,
       "op_applications": 21644,
       "program": [
@@ -2924,6 +3102,7 @@
         "drop"
       ],
       "seconds": 0.9265501789923292,
+      "seconds_replayed": 0.7096348030027002,
       "shown_fit": true,
       "solved": true,
       "task_index": 561,
@@ -2966,8 +3145,10 @@
       "bucket": "11-20",
       "depth": 12,
       "examples": 4,
+      "executions": 57754,
       "expansions": 613,
       "fuel": 2904,
+      "fuel_replayed": 59613,
       "length": 12,
       "op_applications": 17164,
       "program": [
@@ -2985,6 +3166,7 @@
         "fold"
       ],
       "seconds": 0.9836390039999969,
+      "seconds_replayed": 0.46803003997774795,
       "shown_fit": true,
       "solved": true,
       "task_index": 571,
@@ -3011,8 +3193,10 @@
       "bucket": "11-20",
       "depth": 12,
       "examples": 3,
+      "executions": 46865,
       "expansions": 638,
       "fuel": 2145,
+      "fuel_replayed": 47932,
       "length": 12,
       "op_applications": 17864,
       "program": [
@@ -3030,6 +3214,7 @@
         "fold"
       ],
       "seconds": 0.853074676997494,
+      "seconds_replayed": 0.6020158060127869,
       "shown_fit": true,
       "solved": true,
       "task_index": 597,
@@ -3056,8 +3241,10 @@
       "bucket": "11-20",
       "depth": 17,
       "examples": 3,
+      "executions": 66183,
       "expansions": 910,
       "fuel": 3072,
+      "fuel_replayed": 67794,
       "length": 18,
       "op_applications": 25480,
       "program": [
@@ -3080,6 +3267,7 @@
         "ifte"
       ],
       "seconds": 0.5070890609931666,
+      "seconds_replayed": 0.5214165189536288,
       "shown_fit": true,
       "solved": false,
       "task_index": 665,
@@ -3122,8 +3310,10 @@
       "bucket": "11-20",
       "depth": 12,
       "examples": 3,
+      "executions": 45554,
       "expansions": 646,
       "fuel": 2183,
+      "fuel_replayed": 47064,
       "length": 12,
       "op_applications": 18088,
       "program": [
@@ -3141,6 +3331,7 @@
         "fold"
       ],
       "seconds": 0.37788238799839746,
+      "seconds_replayed": 0.6372870520572178,
       "shown_fit": true,
       "solved": true,
       "task_index": 578,
@@ -3215,8 +3406,10 @@
       "bucket": "11-20",
       "depth": 28,
       "examples": 3,
+      "executions": 122275,
       "expansions": 1618,
       "fuel": 5714,
+      "fuel_replayed": 125941,
       "length": 18,
       "op_applications": 45304,
       "program": [
@@ -3250,6 +3443,7 @@
         "ifte"
       ],
       "seconds": 1.5933938259986462,
+      "seconds_replayed": 1.3539124599774368,
       "shown_fit": true,
       "solved": false,
       "task_index": 643,
@@ -3308,8 +3502,10 @@
       "bucket": "11-20",
       "depth": 11,
       "examples": 5,
+      "executions": 65759,
       "expansions": 538,
       "fuel": 2984,
+      "fuel_replayed": 66463,
       "length": 12,
       "op_applications": 15064,
       "program": [
@@ -3326,6 +3522,7 @@
         "drop"
       ],
       "seconds": 0.8153982969961362,
+      "seconds_replayed": 0.5686641529900953,
       "shown_fit": true,
       "solved": true,
       "task_index": 323,
@@ -3336,8 +3533,10 @@
       "bucket": "11-20",
       "depth": 11,
       "examples": 5,
+      "executions": 66041,
       "expansions": 537,
       "fuel": 2997,
+      "fuel_replayed": 66748,
       "length": 12,
       "op_applications": 15036,
       "program": [
@@ -3354,6 +3553,7 @@
         "drop"
       ],
       "seconds": 0.3199713609938044,
+      "seconds_replayed": 0.30754914099816233,
       "shown_fit": true,
       "solved": true,
       "task_index": 337,
@@ -3364,8 +3564,10 @@
       "bucket": "11-20",
       "depth": 11,
       "examples": 6,
+      "executions": 80326,
       "expansions": 538,
       "fuel": 3584,
+      "fuel_replayed": 81144,
       "length": 12,
       "op_applications": 15064,
       "program": [
@@ -3382,6 +3584,7 @@
         "drop"
       ],
       "seconds": 0.8905876420030836,
+      "seconds_replayed": 0.6594091089791618,
       "shown_fit": true,
       "solved": true,
       "task_index": 338,
@@ -3712,8 +3915,10 @@
       "bucket": "21-40",
       "depth": 44,
       "examples": 6,
+      "executions": 394537,
       "expansions": 2681,
       "fuel": 22775,
+      "fuel_replayed": 417428,
       "length": 40,
       "op_applications": 75068,
       "program": [
@@ -3763,6 +3968,7 @@
         "drop"
       ],
       "seconds": 6.171694798991666,
+      "seconds_replayed": 5.7533343699760735,
       "shown_fit": true,
       "solved": false,
       "task_index": 1738,
@@ -3917,8 +4123,10 @@
       "bucket": "21-40",
       "depth": 44,
       "examples": 4,
+      "executions": 261864,
       "expansions": 2675,
       "fuel": 13805,
+      "fuel_replayed": 283946,
       "length": 40,
       "op_applications": 74900,
       "program": [
@@ -3968,6 +4176,7 @@
         "drop"
       ],
       "seconds": 3.9523039380001137,
+      "seconds_replayed": 3.503490670991596,
       "shown_fit": true,
       "solved": false,
       "task_index": 1726,
@@ -4186,8 +4395,10 @@
       "bucket": "21-40",
       "depth": 48,
       "examples": 5,
+      "executions": 351951,
       "expansions": 2911,
       "fuel": 18345,
+      "fuel_replayed": 377649,
       "length": 40,
       "op_applications": 81508,
       "program": [
@@ -4241,6 +4452,7 @@
         "fold"
       ],
       "seconds": 5.6651282380043995,
+      "seconds_replayed": 5.24885308399098,
       "shown_fit": true,
       "solved": false,
       "task_index": 427,
@@ -4267,8 +4479,10 @@
       "bucket": "21-40",
       "depth": 19,
       "examples": 3,
+      "executions": 84528,
       "expansions": 1099,
       "fuel": 3449,
+      "fuel_replayed": 86746,
       "length": 39,
       "op_applications": 30772,
       "program": [
@@ -4293,6 +4507,7 @@
         "map"
       ],
       "seconds": 1.1754482969990931,
+      "seconds_replayed": 0.7059756699600257,
       "shown_fit": true,
       "solved": false,
       "task_index": 824,
@@ -4591,8 +4806,10 @@
       "bucket": "41+",
       "depth": 14,
       "examples": 6,
+      "executions": 117516,
       "expansions": 773,
       "fuel": 5341,
+      "fuel_replayed": 121403,
       "length": 86,
       "op_applications": 21644,
       "program": [
@@ -4612,6 +4829,7 @@
         "fold"
       ],
       "seconds": 1.4717229749949183,
+      "seconds_replayed": 1.2921066479757428,
       "shown_fit": true,
       "solved": false,
       "task_index": 1241,
@@ -4686,8 +4904,10 @@
       "bucket": "41+",
       "depth": 44,
       "examples": 3,
+      "executions": 199939,
       "expansions": 2686,
       "fuel": 9222,
+      "fuel_replayed": 211645,
       "length": 92,
       "op_applications": 75208,
       "program": [
@@ -4737,6 +4957,7 @@
         "drop"
       ],
       "seconds": 3.216147657003603,
+      "seconds_replayed": 3.1000993109773844,
       "shown_fit": true,
       "solved": true,
       "task_index": 1097,
@@ -5179,8 +5400,10 @@
       "bucket": "41+",
       "depth": 15,
       "examples": 5,
+      "executions": 97392,
       "expansions": 785,
       "fuel": 4602,
+      "fuel_replayed": 99699,
       "length": 59,
       "op_applications": 21980,
       "program": [
@@ -5201,6 +5424,7 @@
         "fold"
       ],
       "seconds": 0.7014457619952736,
+      "seconds_replayed": 0.7230449030175805,
       "shown_fit": true,
       "solved": false,
       "task_index": 1793,
@@ -5275,8 +5499,10 @@
       "bucket": "41+",
       "depth": 44,
       "examples": 4,
+      "executions": 264495,
       "expansions": 2695,
       "fuel": 13441,
+      "fuel_replayed": 290364,
       "length": 92,
       "op_applications": 75460,
       "program": [
@@ -5326,6 +5552,7 @@
         "drop"
       ],
       "seconds": 4.018582439006423,
+      "seconds_replayed": 3.984237160999328,
       "shown_fit": true,
       "solved": false,
       "task_index": 1085,
@@ -5432,8 +5659,10 @@
       "bucket": "41+",
       "depth": 4,
       "examples": 4,
+      "executions": 8866,
       "expansions": 112,
       "fuel": 580,
+      "fuel_replayed": 9318,
       "length": 76,
       "op_applications": 3136,
       "program": [
@@ -5443,6 +5672,7 @@
         "drop"
       ],
       "seconds": 0.05756017900421284,
+      "seconds_replayed": 0.059681464976165444,
       "shown_fit": true,
       "solved": false,
       "task_index": 850,
@@ -5469,8 +5699,10 @@
       "bucket": "41+",
       "depth": 46,
       "examples": 5,
+      "executions": 335939,
       "expansions": 2800,
       "fuel": 17268,
+      "fuel_replayed": 363504,
       "length": 92,
       "op_applications": 78400,
       "program": [
@@ -5522,6 +5754,7 @@
         "drop"
       ],
       "seconds": 5.445388116990216,
+      "seconds_replayed": 4.88434689497808,
       "shown_fit": true,
       "solved": false,
       "task_index": 1117,
@@ -5564,8 +5797,10 @@
       "bucket": "41+",
       "depth": 44,
       "examples": 5,
+      "executions": 329649,
       "expansions": 2691,
       "fuel": 15764,
+      "fuel_replayed": 355296,
       "length": 92,
       "op_applications": 75348,
       "program": [
@@ -5615,6 +5850,7 @@
         "drop"
       ],
       "seconds": 4.809998619995895,
+      "seconds_replayed": 4.675670142984018,
       "shown_fit": true,
       "solved": false,
       "task_index": 1089,
@@ -5673,8 +5909,10 @@
       "bucket": "41+",
       "depth": 46,
       "examples": 5,
+      "executions": 336549,
       "expansions": 2825,
       "fuel": 16829,
+      "fuel_replayed": 365890,
       "length": 92,
       "op_applications": 79100,
       "program": [
@@ -5726,6 +5964,7 @@
         "drop"
       ],
       "seconds": 5.461550722990069,
+      "seconds_replayed": 5.075956123007927,
       "shown_fit": true,
       "solved": true,
       "task_index": 1100,

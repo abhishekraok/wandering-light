@@ -479,7 +479,7 @@ def archive(run_dir: Path, log) -> None:
             logged = run.log_artifact(artifact)
             logged.wait()
             done[path.name] = {
-                "artifact": f"{WANDB_ENTITY}/{WANDB_PROJECT}/{artifact.name}:{logged.version}",
+                "artifact": f"{WANDB_ENTITY}/{WANDB_PROJECT}/{logged.name}",
                 "wandb_url": manifest["wandb_url"],
             }
         finally:
