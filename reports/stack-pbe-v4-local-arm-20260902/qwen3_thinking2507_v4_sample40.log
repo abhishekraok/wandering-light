@@ -1,0 +1,12 @@
+RUN STARTED Wed Sep  2 23:58:49 PDT 2026
+  [1/40] sum_negative (16 ops): solved, 1 solved so far, 65s
+
+interrupted after 1 of 40 tasks
+llm on eval, budget 10,000: 1 of 40 planned (PARTIAL) tasks, 66s
+  1/1 solved (100.0%); shown-only would say 100.0% (+0.0%, 0 memorised)
+
+  behaviour          wit   solved  memorised
+  sum_negative        16    1/1            0
+
+wrote reports/stack-pbe-v4-local-arm-20260902/qwen3_thinking2507_v4_sample40.json
+RUN FINISHED Wed Sep  2 23:59:59 PDT 2026

@@ -71,6 +71,12 @@ Propose a new task for the solver, that is not too easy and not too hard.
 
 ## Results
 
+Current numbers: [`docs/RESULTS.md`](docs/RESULTS.md) has the headline table,
+[`docs/RESULTS_DETAILED.md`](docs/RESULTS_DETAILED.md) every run, and
+[`docs/STATUS.md`](docs/STATUS.md) what is established and why. A new run adds
+a row there; artifacts go under `reports/`. The paragraphs below are the
+earlier induction/proposer line and are kept for history.
+
 **Induction.** Best solver to date is `abhishekraok/induction-basicfns-opt125m-sft434k-rl-6k-with-lp`
 — an OPT-125M base, SFT'd and then RL'd with GRPO under a length penalty. It scores **84.0 %** on
 `random_inputs_500_shortest_v1` (480 certified specs) and **85.5 %** on `random_inputs_500` (496

@@ -1,0 +1,1460 @@
+{
+  "cost_to_clear": {
+    "cpu": {
+      "10m": {
+        "0": {
+          "cost_covered_seconds": 21.868632379017072,
+          "coverage": 0.17,
+          "tasks": 300,
+          "total_seconds": 2227.5917614949867
+        },
+        "1": {
+          "cost_covered_seconds": 31.942205106039182,
+          "coverage": 0.19333333333333333,
+          "tasks": 300,
+          "total_seconds": 2168.9460014221695
+        }
+      },
+      "1m": {
+        "0": {
+          "cost_covered_seconds": 9.036447714970564,
+          "coverage": 0.16,
+          "tasks": 300,
+          "total_seconds": 1003.8224291111401
+        },
+        "1": {
+          "cost_covered_seconds": 11.71774023603939,
+          "coverage": 0.21,
+          "tasks": 300,
+          "total_seconds": 1013.7072263549053
+        }
+      },
+      "2m": {
+        "0": {
+          "cost_covered_seconds": 12.888790134937153,
+          "coverage": 0.16,
+          "tasks": 300,
+          "total_seconds": 1365.4953857410437
+        },
+        "1": {
+          "cost_covered_seconds": 22.951706549007213,
+          "coverage": 0.19,
+          "tasks": 300,
+          "total_seconds": 1383.3575972660037
+        }
+      }
+    },
+    "cuda": {
+      "10m": {
+        "0": {
+          "cost_covered_seconds": 10.910314303037012,
+          "coverage": 0.17,
+          "tasks": 300,
+          "total_seconds": 1070.611629115112
+        },
+        "1": {
+          "cost_covered_seconds": 18.912700146000134,
+          "coverage": 0.19,
+          "tasks": 300,
+          "total_seconds": 1076.5000190340215
+        }
+      },
+      "1m": {
+        "0": {
+          "cost_covered_seconds": 9.64117106104095,
+          "coverage": 0.16,
+          "tasks": 300,
+          "total_seconds": 908.6416131781734
+        },
+        "1": {
+          "cost_covered_seconds": 12.940247444057604,
+          "coverage": 0.21,
+          "tasks": 300,
+          "total_seconds": 866.300679410022
+        }
+      },
+      "2m": {
+        "0": {
+          "cost_covered_seconds": 8.797075638984097,
+          "coverage": 0.16,
+          "tasks": 300,
+          "total_seconds": 938.069306744088
+        },
+        "1": {
+          "cost_covered_seconds": 17.506578250948223,
+          "coverage": 0.19,
+          "tasks": 300,
+          "total_seconds": 941.8936104988243
+        }
+      }
+    }
+  },
+  "executions_range": [
+    16,
+    524288
+  ],
+  "per_seed": {
+    "cpu": {
+      "1-5": {
+        "10m": {
+          "0": {
+            "cost_covered_seconds": 5.5849099490151275,
+            "ops": 0.3049890152643465,
+            "shown_rate": 0.5833333333333334,
+            "solve_rate": 0.5833333333333334,
+            "tasks": 60,
+            "total_seconds": 212.11741436002194,
+            "wall": 0.48345060569599935
+          },
+          "1": {
+            "cost_covered_seconds": 5.713396927021677,
+            "ops": 0.3245704384636687,
+            "shown_rate": 0.65,
+            "solve_rate": 0.65,
+            "tasks": 60,
+            "total_seconds": 175.98219849701854,
+            "wall": 0.5313091537208686
+          }
+        },
+        "1m": {
+          "0": {
+            "cost_covered_seconds": 0.9378173129807692,
+            "ops": 0.29616742745795616,
+            "shown_rate": 0.5333333333333333,
+            "solve_rate": 0.5333333333333333,
+            "tasks": 60,
+            "total_seconds": 102.80964754006709,
+            "wall": 0.49443461018865814
+          },
+          "1": {
+            "cost_covered_seconds": 2.795053155015921,
+            "ops": 0.3344409575166881,
+            "shown_rate": 0.6833333333333333,
+            "solve_rate": 0.6833333333333333,
+            "tasks": 60,
+            "total_seconds": 78.9154162400082,
+            "wall": 0.6000519471632013
+          }
+        },
+        "2m": {
+          "0": {
+            "cost_covered_seconds": 1.3587507029733388,
+            "ops": 0.29182964057736377,
+            "shown_rate": 0.5166666666666667,
+            "solve_rate": 0.5166666666666667,
+            "tasks": 60,
+            "total_seconds": 153.35577725394978,
+            "wall": 0.46957887041494584
+          },
+          "1": {
+            "cost_covered_seconds": 3.4708921880373964,
+            "ops": 0.332201406629356,
+            "shown_rate": 0.6666666666666666,
+            "solve_rate": 0.6666666666666666,
+            "tasks": 60,
+            "total_seconds": 106.98125652901945,
+            "wall": 0.5723355895683611
+          }
+        }
+      },
+      "11-20": {
+        "10m": {
+          "0": {
+            "cost_covered_seconds": 10.435027319996152,
+            "ops": 0.03825071287724644,
+            "shown_rate": 0.25,
+            "solve_rate": 0.18333333333333332,
+            "tasks": 60,
+            "total_seconds": 441.1172578189435,
+            "wall": 0.09725100149008617
+          },
+          "1": {
+            "cost_covered_seconds": 21.230953111007693,
+            "ops": 0.05573872807768807,
+            "shown_rate": 0.36666666666666664,
+            "solve_rate": 0.2833333333333333,
+            "tasks": 60,
+            "total_seconds": 393.04903830002877,
+            "wall": 0.14188445270769642
+          }
+        },
+        "1m": {
+          "0": {
+            "cost_covered_seconds": 8.098630401989794,
+            "ops": 0.0564861264073969,
+            "shown_rate": 0.31666666666666665,
+            "solve_rate": 0.26666666666666666,
+            "tasks": 60,
+            "total_seconds": 176.65118558199902,
+            "wall": 0.15649060168370435
+          },
+          "1": {
+            "cost_covered_seconds": 8.180429348023608,
+            "ops": 0.05630992084502303,
+            "shown_rate": 0.3333333333333333,
+            "solve_rate": 0.26666666666666666,
+            "tasks": 60,
+            "total_seconds": 185.3468414349336,
+            "wall": 0.15695193370703514
+          }
+        },
+        "2m": {
+          "0": {
+            "cost_covered_seconds": 11.530039431963814,
+            "ops": 0.059971537359350076,
+            "shown_rate": 0.31666666666666665,
+            "solve_rate": 0.2833333333333333,
+            "tasks": 60,
+            "total_seconds": 241.4721811840136,
+            "wall": 0.1576991219205185
+          },
+          "1": {
+            "cost_covered_seconds": 10.803115980976145,
+            "ops": 0.051829685468497234,
+            "shown_rate": 0.31666666666666665,
+            "solve_rate": 0.25,
+            "tasks": 60,
+            "total_seconds": 258.8545215849881,
+            "wall": 0.13958771780645496
+          }
+        }
+      },
+      "21-40": {
+        "10m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.06666666666666667,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 544.2330385900132,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.016666666666666666,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 545.7564279780636,
+            "wall": 0.0
+          }
+        },
+        "1m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.03333333333333333,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 256.20550922503753,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.08333333333333333,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 264.77459294097207,
+            "wall": 0.0
+          }
+        },
+        "2m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 340.1838518540608,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.06666666666666667,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 349.7971077939437,
+            "wall": 0.0
+          }
+        }
+      },
+      "41+": {
+        "10m": {
+          "0": {
+            "cost_covered_seconds": 4.218403885010048,
+            "ops": 0.0015616185541971537,
+            "shown_rate": 0.06666666666666667,
+            "solve_rate": 0.016666666666666666,
+            "tasks": 60,
+            "total_seconds": 517.8101942190115,
+            "wall": 0.005728549340439985
+          },
+          "1": {
+            "cost_covered_seconds": 4.667669893999118,
+            "ops": 0.0015348404500723928,
+            "shown_rate": 0.08333333333333333,
+            "solve_rate": 0.016666666666666666,
+            "tasks": 60,
+            "total_seconds": 517.4567425400019,
+            "wall": 0.005545416106777745
+          }
+        },
+        "1m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.016666666666666666,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 240.22038553205493,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.05,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 242.5277684879984,
+            "wall": 0.0
+          }
+        },
+        "2m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.05,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 307.41423359597684,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 8.677698379993672,
+            "ops": 0.002255936189202478,
+            "shown_rate": 0.13333333333333333,
+            "solve_rate": 0.03333333333333333,
+            "tasks": 60,
+            "total_seconds": 318.2267511140526,
+            "wall": 0.011480616871189182
+          }
+        }
+      },
+      "6-10": {
+        "10m": {
+          "0": {
+            "cost_covered_seconds": 1.6302912249957444,
+            "ops": 0.018326831043210503,
+            "shown_rate": 0.06666666666666667,
+            "solve_rate": 0.06666666666666667,
+            "tasks": 60,
+            "total_seconds": 512.3138565069967,
+            "wall": 0.039867103442123845
+          },
+          "1": {
+            "cost_covered_seconds": 0.330185174010694,
+            "ops": 0.004897269958591022,
+            "shown_rate": 0.03333333333333333,
+            "solve_rate": 0.016666666666666666,
+            "tasks": 60,
+            "total_seconds": 536.7015941070567,
+            "wall": 0.010338510130606198
+          }
+        },
+        "1m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 227.9357012319815,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 0.7422577329998603,
+            "ops": 0.030139208604356767,
+            "shown_rate": 0.1,
+            "solve_rate": 0.1,
+            "tasks": 60,
+            "total_seconds": 242.14260725099302,
+            "wall": 0.0728301381675324
+          }
+        },
+        "2m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 323.0693418530427,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.016666666666666666,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 349.49796024399984,
+            "wall": 0.0
+          }
+        }
+      }
+    },
+    "cuda": {
+      "1-5": {
+        "10m": {
+          "0": {
+            "cost_covered_seconds": 1.8263995710294694,
+            "ops": 0.3049890152643465,
+            "shown_rate": 0.5833333333333334,
+            "solve_rate": 0.5833333333333334,
+            "tasks": 60,
+            "total_seconds": 106.51603934908053,
+            "wall": 0.5226274738756618
+          },
+          "1": {
+            "cost_covered_seconds": 3.639548464983818,
+            "ops": 0.3245704384636687,
+            "shown_rate": 0.65,
+            "solve_rate": 0.65,
+            "tasks": 60,
+            "total_seconds": 87.93802613895969,
+            "wall": 0.5668614520552835
+          }
+        },
+        "1m": {
+          "0": {
+            "cost_covered_seconds": 1.2919658320315648,
+            "ops": 0.29616742745795616,
+            "shown_rate": 0.5333333333333333,
+            "solve_rate": 0.5333333333333333,
+            "tasks": 60,
+            "total_seconds": 105.29375123303907,
+            "wall": 0.4904156164987787
+          },
+          "1": {
+            "cost_covered_seconds": 3.470004333066754,
+            "ops": 0.3344363649324962,
+            "shown_rate": 0.6833333333333333,
+            "solve_rate": 0.6833333333333333,
+            "tasks": 60,
+            "total_seconds": 68.85726398606494,
+            "wall": 0.5994015341022846
+          }
+        },
+        "2m": {
+          "0": {
+            "cost_covered_seconds": 1.2982258469855879,
+            "ops": 0.29182964057736377,
+            "shown_rate": 0.5166666666666667,
+            "solve_rate": 0.5166666666666667,
+            "tasks": 60,
+            "total_seconds": 110.14865062000172,
+            "wall": 0.47685956234004523
+          },
+          "1": {
+            "cost_covered_seconds": 3.3138003739441046,
+            "ops": 0.3322125684453575,
+            "shown_rate": 0.6666666666666666,
+            "solve_rate": 0.6666666666666666,
+            "tasks": 60,
+            "total_seconds": 74.71796618890949,
+            "wall": 0.5876521721800283
+          }
+        }
+      },
+      "11-20": {
+        "10m": {
+          "0": {
+            "cost_covered_seconds": 5.870100971995271,
+            "ops": 0.03825071287724644,
+            "shown_rate": 0.25,
+            "solve_rate": 0.18333333333333332,
+            "tasks": 60,
+            "total_seconds": 202.67489494399342,
+            "wall": 0.10937246499243074
+          },
+          "1": {
+            "cost_covered_seconds": 12.59702274602023,
+            "ops": 0.05573872807768807,
+            "shown_rate": 0.36666666666666664,
+            "solve_rate": 0.2833333333333333,
+            "tasks": 60,
+            "total_seconds": 184.33577160209825,
+            "wall": 0.1586338579243475
+          }
+        },
+        "1m": {
+          "0": {
+            "cost_covered_seconds": 8.349205229009385,
+            "ops": 0.0564861264073969,
+            "shown_rate": 0.31666666666666665,
+            "solve_rate": 0.26666666666666666,
+            "tasks": 60,
+            "total_seconds": 157.04034229599347,
+            "wall": 0.15735330824071872
+          },
+          "1": {
+            "cost_covered_seconds": 8.396847782991244,
+            "ops": 0.056304784318637766,
+            "shown_rate": 0.3333333333333333,
+            "solve_rate": 0.26666666666666666,
+            "tasks": 60,
+            "total_seconds": 155.0049415370304,
+            "wall": 0.15669092090313508
+          }
+        },
+        "2m": {
+          "0": {
+            "cost_covered_seconds": 7.498849791998509,
+            "ops": 0.05996979533152623,
+            "shown_rate": 0.31666666666666665,
+            "solve_rate": 0.2833333333333333,
+            "tasks": 60,
+            "total_seconds": 162.13593224799843,
+            "wall": 0.17264014875583752
+          },
+          "1": {
+            "cost_covered_seconds": 8.227778660017066,
+            "ops": 0.051829685468497234,
+            "shown_rate": 0.31666666666666665,
+            "solve_rate": 0.25,
+            "tasks": 60,
+            "total_seconds": 171.05400044498674,
+            "wall": 0.14748315295532283
+          }
+        }
+      },
+      "21-40": {
+        "10m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.06666666666666667,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 269.5947771029896,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.016666666666666666,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 277.46565295495384,
+            "wall": 0.0
+          }
+        },
+        "1m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.03333333333333333,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 225.15319951005222,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.08333333333333333,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 226.72748339896498,
+            "wall": 0.0
+          }
+        },
+        "2m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 235.45036792907922,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.06666666666666667,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 242.8166309229855,
+            "wall": 0.0
+          }
+        }
+      },
+      "41+": {
+        "10m": {
+          "0": {
+            "cost_covered_seconds": 2.591168981001829,
+            "ops": 0.0015616185541971537,
+            "shown_rate": 0.06666666666666667,
+            "solve_rate": 0.016666666666666666,
+            "tasks": 60,
+            "total_seconds": 243.87247570198087,
+            "wall": 0.006610434433021506
+          },
+          "1": {
+            "cost_covered_seconds": 2.676128934996086,
+            "ops": 0.0015348404500723928,
+            "shown_rate": 0.08333333333333333,
+            "solve_rate": 0.016666666666666666,
+            "tasks": 60,
+            "total_seconds": 254.3250519190915,
+            "wall": 0.0065520540259892
+          }
+        },
+        "1m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.016666666666666666,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 207.5988687240315,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.05,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 207.1183800400031,
+            "wall": 0.0
+          }
+        },
+        "2m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.05,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 210.7045676310372,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 5.964999216987053,
+            "ops": 0.002255936189202478,
+            "shown_rate": 0.13333333333333333,
+            "solve_rate": 0.03333333333333333,
+            "tasks": 60,
+            "total_seconds": 213.81836890499108,
+            "wall": 0.01292445442001554
+          }
+        }
+      },
+      "6-10": {
+        "10m": {
+          "0": {
+            "cost_covered_seconds": 0.622644779010443,
+            "ops": 0.018326831043210503,
+            "shown_rate": 0.06666666666666667,
+            "solve_rate": 0.06666666666666667,
+            "tasks": 60,
+            "total_seconds": 247.95344201706757,
+            "wall": 0.04687829420957786
+          },
+          "1": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.016666666666666666,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 272.43551641891827,
+            "wall": 0.0
+          }
+        },
+        "1m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 213.55545141505718,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 1.0733953279996058,
+            "ops": 0.030139208604356767,
+            "shown_rate": 0.1,
+            "solve_rate": 0.1,
+            "tasks": 60,
+            "total_seconds": 208.59261044795858,
+            "wall": 0.07193688196423763
+          }
+        },
+        "2m": {
+          "0": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 219.62978831597138,
+            "wall": 0.0
+          },
+          "1": {
+            "cost_covered_seconds": 0,
+            "ops": 0.0,
+            "shown_rate": 0.016666666666666666,
+            "solve_rate": 0,
+            "tasks": 60,
+            "total_seconds": 239.48664403695147,
+            "wall": 0.0
+          }
+        }
+      }
+    }
+  },
+  "provenance": {
+    "commit": "f96efc2bf48cd02faef7bcc794ead91e91369dcb",
+    "corpus": {
+      "hub": {
+        "repo_id": "abhishekraok/wandering-light-stack-pbe-v4",
+        "repo_type": "dataset",
+        "revision": "00c2a9996d32df8d1894b45f4246a66b6df46c25"
+      },
+      "name": "stack_pbe_v4",
+      "splits": {
+        "eval": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+        "train": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b"
+      }
+    },
+    "dirty": false,
+    "recorded_at_utc": "2026-09-08T15:46:24.522383+00:00"
+  },
+  "reference_arm": "1m",
+  "summary": {
+    "cpu": {
+      "1-5": {
+        "10m": {
+          "ops": {
+            "mean": 0.31477972686400757,
+            "paired_mean": -0.0005244656233145406,
+            "paired_sd": 0.009346053429704904,
+            "sd": 0.009790711599661078,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.6166666666666667,
+            "paired_mean": 0.00833333333333336,
+            "paired_sd": 0.041666666666666685,
+            "sd": 0.033333333333333326,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.507379879708434,
+            "paired_mean": -0.039863398967495745,
+            "paired_sd": 0.02887939447483695,
+            "sd": 0.023929274012434637,
+            "seeds": 2
+          }
+        },
+        "1m": {
+          "ops": {
+            "mean": 0.3153041924873221,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.019136765029365982,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.6083333333333334,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.07500000000000001,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.5472432786759297,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.05280866848727159,
+            "seeds": 2
+          }
+        },
+        "2m": {
+          "ops": {
+            "mean": 0.3120155236033599,
+            "paired_mean": -0.003288668883962259,
+            "paired_sd": 0.0010491179966301278,
+            "sd": 0.02018588302599611,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.5916666666666667,
+            "paired_mean": -0.016666666666666663,
+            "paired_sd": 5.551115123125783e-17,
+            "sd": 0.07499999999999996,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.5209572299916534,
+            "paired_mean": -0.02628604868427628,
+            "paired_sd": 0.0014303089105639766,
+            "sd": 0.05137835957670761,
+            "seeds": 2
+          }
+        }
+      },
+      "11-20": {
+        "10m": {
+          "ops": {
+            "mean": 0.04699472047746726,
+            "paired_mean": -0.009403303148742707,
+            "paired_sd": 0.00883211038140775,
+            "sd": 0.008744007600220816,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.23333333333333334,
+            "paired_mean": -0.03333333333333334,
+            "paired_sd": 0.05,
+            "sd": 0.05,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.1195677270988913,
+            "paired_mean": -0.03715354059647845,
+            "paired_sd": 0.02208605959713973,
+            "sd": 0.022316725608805127,
+            "seeds": 2
+          }
+        },
+        "1m": {
+          "ops": {
+            "mean": 0.056398023626209964,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 8.810278118693421e-05,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.26666666666666666,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.15672126769536976,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.00023066601166539524,
+            "seeds": 2
+          }
+        },
+        "2m": {
+          "ops": {
+            "mean": 0.055900611413923655,
+            "paired_mean": -0.0004974122122863092,
+            "paired_sd": 0.0039828231642394865,
+            "sd": 0.004070925945426421,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.26666666666666666,
+            "paired_mean": 0.0,
+            "paired_sd": 0.016666666666666663,
+            "sd": 0.016666666666666663,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.14864341986348673,
+            "paired_mean": -0.00807784783188302,
+            "paired_sd": 0.009286368068697162,
+            "sd": 0.009055702057031767,
+            "seeds": 2
+          }
+        }
+      },
+      "21-40": {
+        "10m": {
+          "ops": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0,
+            "paired_mean": 0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          }
+        },
+        "1m": {
+          "ops": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0,
+            "paired_mean": 0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          }
+        },
+        "2m": {
+          "ops": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0,
+            "paired_mean": 0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          }
+        }
+      },
+      "41+": {
+        "10m": {
+          "ops": {
+            "mean": 0.0015482295021347734,
+            "paired_mean": 0.0015482295021347734,
+            "paired_sd": 1.3389052062380493e-05,
+            "sd": 1.3389052062380493e-05,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.016666666666666666,
+            "paired_mean": 0.016666666666666666,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.005636982723608864,
+            "paired_mean": 0.005636982723608864,
+            "paired_sd": 9.156661683111999e-05,
+            "sd": 9.156661683111999e-05,
+            "seeds": 2
+          }
+        },
+        "1m": {
+          "ops": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0,
+            "paired_mean": 0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          }
+        },
+        "2m": {
+          "ops": {
+            "mean": 0.001127968094601239,
+            "paired_mean": 0.001127968094601239,
+            "paired_sd": 0.001127968094601239,
+            "sd": 0.001127968094601239,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.016666666666666666,
+            "paired_mean": 0.016666666666666666,
+            "paired_sd": 0.016666666666666666,
+            "sd": 0.016666666666666666,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.005740308435594591,
+            "paired_mean": 0.005740308435594591,
+            "paired_sd": 0.005740308435594591,
+            "sd": 0.005740308435594591,
+            "seeds": 2
+          }
+        }
+      },
+      "6-10": {
+        "10m": {
+          "ops": {
+            "mean": 0.011612050500900762,
+            "paired_mean": -0.003457553801277621,
+            "paired_sd": 0.021784384844488122,
+            "sd": 0.006714780542309741,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.041666666666666664,
+            "paired_mean": -0.008333333333333338,
+            "paired_sd": 0.07500000000000001,
+            "sd": 0.025,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.02510280678636502,
+            "paired_mean": -0.011312262297401173,
+            "paired_sd": 0.051179365739525015,
+            "sd": 0.014764296655758824,
+            "seeds": 2
+          }
+        },
+        "1m": {
+          "ops": {
+            "mean": 0.015069604302178383,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.015069604302178383,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.05,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.05,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.0364150690837662,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0364150690837662,
+            "seeds": 2
+          }
+        },
+        "2m": {
+          "ops": {
+            "mean": 0.0,
+            "paired_mean": -0.015069604302178383,
+            "paired_sd": 0.015069604302178383,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0,
+            "paired_mean": -0.05,
+            "paired_sd": 0.05,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.0,
+            "paired_mean": -0.0364150690837662,
+            "paired_sd": 0.0364150690837662,
+            "sd": 0.0,
+            "seeds": 2
+          }
+        }
+      }
+    },
+    "cuda": {
+      "1-5": {
+        "10m": {
+          "ops": {
+            "mean": 0.31477972686400757,
+            "paired_mean": -0.0005221693312185693,
+            "paired_sd": 0.009343757137608932,
+            "sd": 0.009790711599661078,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.6166666666666667,
+            "paired_mean": 0.00833333333333336,
+            "paired_sd": 0.041666666666666685,
+            "sd": 0.033333333333333326,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.5447444629654726,
+            "paired_mean": -0.00016411233505900236,
+            "paired_sd": 0.03237596971194209,
+            "sd": 0.022116989089810857,
+            "seeds": 2
+          }
+        },
+        "1m": {
+          "ops": {
+            "mean": 0.3153018961952262,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.01913446873727001,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.6083333333333334,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.07500000000000001,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.5449085753005316,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.05449295880175295,
+            "seeds": 2
+          }
+        },
+        "2m": {
+          "ops": {
+            "mean": 0.31202110451136067,
+            "paired_mean": -0.003280791683865525,
+            "paired_sd": 0.001056995196726862,
+            "sd": 0.020191463933996873,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.5916666666666667,
+            "paired_mean": -0.016666666666666663,
+            "paired_sd": 5.551115123125783e-17,
+            "sd": 0.07499999999999996,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.5322558672600368,
+            "paired_mean": -0.01265270804049487,
+            "paired_sd": 0.0009033461182385849,
+            "sd": 0.055396304919991535,
+            "seeds": 2
+          }
+        }
+      },
+      "11-20": {
+        "10m": {
+          "ops": {
+            "mean": 0.04699472047746726,
+            "paired_mean": -0.009400734885550075,
+            "paired_sd": 0.008834678644600382,
+            "sd": 0.008744007600220816,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.23333333333333334,
+            "paired_mean": -0.03333333333333334,
+            "paired_sd": 0.05,
+            "sd": 0.05,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.13400316145838911,
+            "paired_mean": -0.023018953113537778,
+            "paired_sd": 0.024961890134750205,
+            "sd": 0.024630696465958384,
+            "seeds": 2
+          }
+        },
+        "1m": {
+          "ops": {
+            "mean": 0.056395455363017336,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 9.06710443795665e-05,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.26666666666666666,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.15702211457192689,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.000331193668791821,
+            "seeds": 2
+          }
+        },
+        "2m": {
+          "ops": {
+            "mean": 0.055899740400011735,
+            "paired_mean": -0.0004957149630056001,
+            "paired_sd": 0.003979383887134931,
+            "sd": 0.0040700549315144975,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.26666666666666666,
+            "paired_mean": 0.0,
+            "paired_sd": 0.016666666666666663,
+            "sd": 0.016666666666666663,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.16006165085558016,
+            "paired_mean": 0.003039536283653277,
+            "paired_sd": 0.012247304231465528,
+            "sd": 0.012578497900257349,
+            "seeds": 2
+          }
+        }
+      },
+      "21-40": {
+        "10m": {
+          "ops": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0,
+            "paired_mean": 0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          }
+        },
+        "1m": {
+          "ops": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0,
+            "paired_mean": 0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          }
+        },
+        "2m": {
+          "ops": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0,
+            "paired_mean": 0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          }
+        }
+      },
+      "41+": {
+        "10m": {
+          "ops": {
+            "mean": 0.0015482295021347734,
+            "paired_mean": 0.0015482295021347734,
+            "paired_sd": 1.3389052062380493e-05,
+            "sd": 1.3389052062380493e-05,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.016666666666666666,
+            "paired_mean": 0.016666666666666666,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.006581244229505353,
+            "paired_mean": 0.006581244229505353,
+            "paired_sd": 2.9190203516152834e-05,
+            "sd": 2.9190203516152834e-05,
+            "seeds": 2
+          }
+        },
+        "1m": {
+          "ops": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0,
+            "paired_mean": 0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.0,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.0,
+            "seeds": 2
+          }
+        },
+        "2m": {
+          "ops": {
+            "mean": 0.001127968094601239,
+            "paired_mean": 0.001127968094601239,
+            "paired_sd": 0.001127968094601239,
+            "sd": 0.001127968094601239,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.016666666666666666,
+            "paired_mean": 0.016666666666666666,
+            "paired_sd": 0.016666666666666666,
+            "sd": 0.016666666666666666,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.00646222721000777,
+            "paired_mean": 0.00646222721000777,
+            "paired_sd": 0.00646222721000777,
+            "sd": 0.00646222721000777,
+            "seeds": 2
+          }
+        }
+      },
+      "6-10": {
+        "10m": {
+          "ops": {
+            "mean": 0.009163415521605251,
+            "paired_mean": -0.005906188780573132,
+            "paired_sd": 0.024233019823783633,
+            "sd": 0.009163415521605251,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.03333333333333333,
+            "paired_mean": -0.01666666666666667,
+            "paired_sd": 0.08333333333333334,
+            "sd": 0.03333333333333333,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.02343914710478893,
+            "paired_mean": -0.012529293877329883,
+            "paired_sd": 0.05940758808690774,
+            "sd": 0.02343914710478893,
+            "seeds": 2
+          }
+        },
+        "1m": {
+          "ops": {
+            "mean": 0.015069604302178383,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.015069604302178383,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0.05,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.05,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.035968440982118814,
+            "paired_mean": 0.0,
+            "paired_sd": 0.0,
+            "sd": 0.035968440982118814,
+            "seeds": 2
+          }
+        },
+        "2m": {
+          "ops": {
+            "mean": 0.0,
+            "paired_mean": -0.015069604302178383,
+            "paired_sd": 0.015069604302178383,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "solve_rate": {
+            "mean": 0,
+            "paired_mean": -0.05,
+            "paired_sd": 0.05,
+            "sd": 0.0,
+            "seeds": 2
+          },
+          "wall": {
+            "mean": 0.0,
+            "paired_mean": -0.035968440982118814,
+            "paired_sd": 0.035968440982118814,
+            "sd": 0.0,
+            "seeds": 2
+          }
+        }
+      }
+    }
+  },
+  "wall_range_seconds": [
+    0.01,
+    100.0
+  ]
+}

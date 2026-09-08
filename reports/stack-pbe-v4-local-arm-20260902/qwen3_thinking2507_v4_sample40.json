@@ -1,0 +1,37 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "guard": "off",
+  "partial": true,
+  "tasks_planned": 40,
+  "tasks": 1,
+  "solved": 1,
+  "memorised": 0,
+  "shown_fit": 1,
+  "illegal": 0,
+  "solve_rate": 1.0,
+  "shown_rate": 1.0,
+  "by_behaviour": {
+    "sum_negative": {
+      "witness_length": 16,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "[ 0 lt? ] filter 0 [ add ] fold",
+      1
+    ]
+  ],
+  "candidates": [
+    {
+      "behaviour": "sum_negative",
+      "witness": "0 [ [ dup 0 lt? ] [ add ] [ drop ] ifte ] fold",
+      "candidate": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "solved"
+    }
+  ]
+}

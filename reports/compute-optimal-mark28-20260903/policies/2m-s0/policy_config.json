@@ -1,0 +1,46 @@
+{
+  "architecture": {
+    "byte_embedding": 224,
+    "conv_channels": 576,
+    "hidden": 1152,
+    "name": "aligned-example-pairs-stack-tokens-v1"
+  },
+  "basis": "mark-28",
+  "ordered_actions": [
+    "0",
+    "1",
+    "nil",
+    "true",
+    "false",
+    "dup",
+    "swap",
+    "drop",
+    "over",
+    "cons",
+    "uncons",
+    "null?",
+    "add",
+    "sub",
+    "mul",
+    "div",
+    "eq?",
+    "lt?",
+    "dip",
+    "quote",
+    "cat",
+    "i",
+    "map",
+    "filter",
+    "fold",
+    "ifte",
+    "[",
+    "]"
+  ],
+  "schema_version": 1,
+  "vocabulary": {
+    "size": 176,
+    "small_int": 64,
+    "state_cap": 160,
+    "target_cap": 64
+  }
+}

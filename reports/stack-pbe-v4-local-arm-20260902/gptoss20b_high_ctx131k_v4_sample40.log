@@ -1,0 +1,96 @@
+RUN STARTED Thu Sep  3 04:44:12 PDT 2026
+  [1/40] sum_negative (16 ops): failed, 0 solved so far, 105s
+  min_pair: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [2/40] min_pair (12 ops): failed, 0 solved so far, 415s
+  [3/40] keep_negative (5 ops): solved, 1 solved so far, 461s
+  [4/40] drop_last (12 ops): failed, 1 solved so far, 626s
+  aligned_matches: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [5/40] aligned_matches (39 ops): failed, 1 solved so far, 934s
+  widest_pair: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [6/40] widest_pair (84 ops): failed, 1 solved so far, 1244s
+  replace_value: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [7/40] replace_value (22 ops): failed, 1 solved so far, 1554s
+  positive_balance_prefix_count: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [8/40] positive_balance_prefix_count (49 ops): failed, 1 solved so far, 1864s
+  [9/40] positive_majority_three (39 ops): failed, 1 solved so far, 2017s
+  adjacent_sign_change_count: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [10/40] adjacent_sign_change_count (47 ops): failed, 1 solved so far, 2328s
+  nearest_interval_endpoint_each: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [11/40] nearest_interval_endpoint_each (39 ops): failed, 1 solved so far, 2640s
+  min_pair: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [12/40] min_pair (12 ops): failed, 1 solved so far, 2951s
+  replace_value: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [13/40] replace_value (22 ops): failed, 1 solved so far, 3262s
+  axis_point_count: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [14/40] axis_point_count (86 ops): failed, 1 solved so far, 3574s
+  [15/40] axis_point_count (86 ops): failed, 1 solved so far, 3687s
+  [16/40] positive_majority_three (39 ops): failed, 1 solved so far, 3842s
+  median_floor: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [17/40] median_floor (253 ops): failed, 1 solved so far, 4155s
+  [18/40] keep_ascending_pairs (80 ops): failed, 1 solved so far, 4443s
+  [19/40] keep_zeros (5 ops): solved, 2 solved so far, 4503s
+  largest_inside_interval: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [20/40] largest_inside_interval (40 ops): failed, 2 solved so far, 4815s
+  bounds_cover_list_flag: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [21/40] bounds_cover_list_flag (92 ops): failed, 2 solved so far, 5127s
+  concatenate_shorter_first: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [22/40] concatenate_shorter_first (26 ops): failed, 2 solved so far, 5439s
+  [23/40] keep_zeros (5 ops): solved, 3 solved so far, 5474s
+  [24/40] widest_pair (84 ops): failed, 3 solved so far, 5760s
+  [25/40] drop_last (12 ops): solved, 4 solved so far, 5945s
+  [26/40] keep_below (6 ops): failed, 4 solved so far, 6011s
+  [27/40] sum_negative (16 ops): failed, 4 solved so far, 6130s
+  [28/40] n_minus_each (7 ops): solved, 5 solved so far, 6292s
+  bounds_cover_list_flag: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [29/40] bounds_cover_list_flag (92 ops): failed, 5 solved so far, 6599s
+  [30/40] negate_each (6 ops): failed, 5 solved so far, 6625s
+  [31/40] aligned_matches (39 ops): solved, 6 solved so far, 6730s
+  cartesian_pair_sums: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [32/40] cartesian_pair_sums (15 ops): failed, 6 solved so far, 7039s
+  [33/40] drop_last (12 ops): solved, 7 solved so far, 7084s
+  replace_value: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [34/40] replace_value (22 ops): failed, 7 solved so far, 7393s
+  [35/40] rotate_left (5 ops): solved, 8 solved so far, 7576s
+  farther_choice_from_target: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [36/40] farther_choice_from_target (54 ops): failed, 8 solved so far, 7885s
+  farthest_from_target_last_tie: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [37/40] farthest_from_target_last_tie (59 ops): failed, 8 solved so far, 8193s
+  largest_inside_interval: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [38/40] largest_inside_interval (40 ops): failed, 8 solved so far, 8504s
+  prefix_sums: generation failed, scoring as unsolved (ReadTimeout: timed out)
+  [39/40] prefix_sums (25 ops): failed, 8 solved so far, 8815s
+  [40/40] reverse (5 ops): solved, 9 solved so far, 8873s
+llm on eval, budget 10,000: 40 tasks, 8873s
+  9/40 solved (22.5%); shown-only would say 22.5% (+0.0%, 0 memorised)
+
+  behaviour          wit   solved  memorised
+  keep_negative        5    1/1            0
+  keep_zeros           5    2/2            0
+  rotate_left          5    1/1            0
+  reverse              5    1/1            0
+  keep_below           6    0/1            0
+  negate_each          6    0/1            0
+  n_minus_each         7    1/1            0
+  min_pair            12    0/2            0
+  drop_last           12    2/3            0
+  cartesian_pair_sums  15    0/1            0
+  sum_negative        16    0/2            0
+  replace_value       22    0/3            0
+  prefix_sums         25    0/1            0
+  concatenate_shorter_first  26    0/1            0
+  aligned_matches     39    1/2            0
+  positive_majority_three  39    0/2            0
+  nearest_interval_endpoint_each  39    0/1            0
+  largest_inside_interval  40    0/2            0
+  adjacent_sign_change_count  47    0/1            0
+  positive_balance_prefix_count  49    0/1            0
+  farther_choice_from_target  54    0/1            0
+  farthest_from_target_last_tie  59    0/1            0
+  keep_ascending_pairs  80    0/1            0
+  widest_pair         84    0/2            0
+  axis_point_count    86    0/2            0
+  bounds_cover_list_flag  92    0/2            0
+  median_floor       253    0/1            0
+
+wrote reports/stack-pbe-v4-local-arm-20260902/gptoss20b_high_ctx131k_v4_sample40.json
+RUN FINISHED Thu Sep  3 07:12:10 PDT 2026
