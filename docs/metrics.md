@@ -38,22 +38,26 @@ Device matters as much as size — measure it, do not assume it. See
 **Total compute to solve a validation set, with reuse priced.**
 
 ```
-cost_to_clear(V) = sum over tasks in V of wall-clock to solve,
+cost_to_clear(V) = sum over tasks in V of wall-clock spent, solved or not,
                    with a persistent library allowed across tasks,
                    and library construction charged in the same clock
 coverage(V)      = solved / |V|
 ```
 
-Report the **pair**. Never collapse it. Below full coverage the cost is over
-the covered subset, and the report says so. The honest reading is that an
-unsolved task is a failure of the system, not a censored sample: cost to clear
-is infinite until coverage reaches one. That is the standing goal in
+Report the **pair**. Never collapse it. The cost is total elapsed compute over
+every task attempted, failures included: time spent on a task that is never
+solved is still spent, and under shared state it may have built the library
+that made later solves cheap. Charging only the solved subset would let a
+system buy cheap solves with unbilled failures. Below full coverage the sum is
+what was spent without clearing `V`, not a cost to clear, and the report says
+so. An unsolved task is a failure of the system, not a censored sample: there
+is no cost to clear until coverage reaches one. That is the standing goal in
 [clear-stack-pbe-v4 (#99)](../../issues/99) — coverage first, then cost.
 
 - **Compare lexicographically.** A change is an improvement iff coverage does
-  not fall, and either coverage rises or cost over the covered set falls. Two
-  systems at partial coverage are both at infinite cost, so "cost fell" on its
-  own says nothing; coverage decides first.
+  not fall, and either coverage rises or total compute falls. At equal partial
+  coverage the totals still compare, but neither is a cost to clear; coverage
+  decides first.
 - **Order is the system's.** With shared state, clearing task A can make task
   B cheap, so the sum depends on order. The system chooses its order over `V`
   and is charged the total. `V` stays a task set. A fixed prequential order is
@@ -94,9 +98,10 @@ for each solver, each certified distance d:
 An area under a *rate* curve, not a time. One number per (solver, distance).
 
 This is the **per-distance slice of cost to clear**: one solver, frozen policy,
-no library. Under those conditions cost to clear is the sum of first-hit costs
-over `V`, and this curve is their distribution per distance in the log domain —
-a geometric mean where the bill is a sum. It resolves what the sum hides, a
+no library. Under those conditions the total at budget `t` is the sum of
+first-hit costs over solved tasks plus `t` for every miss, and this curve is
+the first-hit distribution per distance in the log domain — a geometric mean
+where the bill is a sum. It resolves what the sum hides, a
 wall at one distance, and it cannot see what the sum prices, reuse.
 [raise-solve-rate-d7-8 (#74)](../../issues/74) is its right-hand end at one
 budget and [compute-optimal-policy-size (#80)](../../issues/80) is the area,
@@ -203,9 +208,10 @@ before paying for a measured cost to clear.
 
 - Never score an unopened test split more than once. Select on validation, lock
   the choice, then score once.
-- Cost to clear is a pair. A cost over a covered subset states its coverage
-  beside it, and a library's construction time is in the sum. Nothing built
-  before the clock started may have seen the set being cleared.
+- Cost to clear is a pair. The cost is total elapsed compute over every
+  attempt, failures and library construction included, with coverage beside
+  it. Nothing built before the clock started may have seen the set being
+  cleared.
 - Three paired seeds; single-seed fine grain is noise against a zero baseline.
 - Report both cost units, the host, and the device.
 - Complete and seal every timed cell before observer replay or oracle labeling;
