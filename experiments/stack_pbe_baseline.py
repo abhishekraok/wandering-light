@@ -251,7 +251,15 @@ def solve_with_llm(task: Task, generator, samples: int) -> list[str]:
                 file=sys.stderr,
             )
             candidates.append("")
+            # Kept on the task so the JSON says *why* a candidate is empty --
+            # a deadline hit and a model that answered nothing look the same
+            # otherwise, and the distinction is the finding in
+            # reports/stack-pbe-v4-local-arm-20260902.
+            ERRORS.setdefault(id(task), []).append(type(error).__name__)
     return candidates
+
+
+ERRORS: dict[int, list[str]] = {}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -441,6 +449,7 @@ def main(argv: list[str] | None = None) -> int:
                         if score.memorised
                         else "failed"
                     ),
+                    **({"errors": ERRORS[id(task)]} if id(task) in ERRORS else {}),
                 }
                 for task, score in zip(tasks, scores, strict=True)
             ],
