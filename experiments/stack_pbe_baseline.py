@@ -317,6 +317,7 @@ def main(argv: list[str] | None = None) -> int:
         return list_models(args.provider)
 
     tasks = load(args.corpus)
+    index_of = {id(task): index for index, task in enumerate(tasks)}
     if args.split != "all":
         tasks = [t for t in tasks if t.split == args.split]
     rng = random.Random(args.seed)
@@ -436,11 +437,15 @@ def main(argv: list[str] | None = None) -> int:
             # Every candidate, with its verdict. The memorised ones are the
             # point of the corpus and a count alone cannot show what went
             # wrong -- `uncons drop i` only reads as a near-miss for `last`
-            # once you can see it.
+            # once you can see it. The task is named by its index in
+            # `load(corpus)` rather than by copying its witness: the witness
+            # was 58% of every artifact and already sits in the pinned corpus.
+            # `load(args.corpus)[task_index]` is the join.
+            "corpus": str(args.corpus),
             "candidates": [
                 {
+                    "task_index": index_of[id(task)],
                     "behaviour": task.behaviour,
-                    "witness": " ".join(task.program),
                     "candidate": " ".join(score.program),
                     "verdict": (
                         "solved"
