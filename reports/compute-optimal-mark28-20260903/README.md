@@ -21,7 +21,7 @@ difference is not the model: it is that v4's 313,560 training rows are **175
 programs**, one per behaviour, on fresh inputs — so behaviour cloning peaks at epoch 1–2
 and every arm is compared at the same under-trained point (validation CE 0.925–0.976).
 
-### Solve rate at max budget, mean of two seeds (60 tasks per bucket; CPU and CUDA agree)
+### Solve rate at max budget, mean of two seeds (60 tasks per bucket, CPU cells; CUDA differs on one task — 10m seed 1, `negate_each` — so 10m at 6–10 is 0.033 there and its coverage 0.180)
 
 | witness length | 1m | 2m | 10m | BFS 10k nodes on the full split (#85) |
 |---|---|---|---|---|
