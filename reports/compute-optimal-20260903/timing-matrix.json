@@ -1,0 +1,893 @@
+{
+  "evaluation_cell_order_sha256": "sha256:570aafdc038562111894cf6dabe27f48b1c4dc6a09ce131d73a73437e875c938",
+  "latest_timing_completed_at_utc": "2026-09-03T09:04:35.603776+00:00",
+  "protocol_sha256": "sha256:8d23d97a81da4ebad453cb465a3fca41ce837233fa37807dfa7eba38c9cd1307",
+  "schema_version": 1,
+  "sealed_at_utc": "2026-09-03T09:04:42.290957+00:00",
+  "status": "timing-matrix-sealed",
+  "study_id": "compute-optimal-policy-size-v1",
+  "timing_matrix_sha256": "sha256:13518b41d6067776b1d45a5aae946cc8db73cba5cd308467ce5eb688a40a2786",
+  "timings": [
+    {
+      "cell": {
+        "arm_id": "1m",
+        "device": "cpu",
+        "training_seed": 0
+      },
+      "cell_ordinal": 0,
+      "checkpoint_artifacts_sha256": "sha256:bc014dc4c6db09df82dc8a9f2dee167b2e57ddab03239de7501d992541119cd0",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/00-1m-seed0-cpu/timing_summary.json",
+      "task_rows_sha256": "sha256:9e032dd9299ffad2e444847edfe0e114bb7e300cdf09f88393224e0757e5e526",
+      "timing_sha256": "sha256:500283055eb5af6a34498a3c989631f0d9c2fcbd86e94662b49ca6e4a7dba3d9",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T08:57:16.594964+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.33056640625,
+            1.771484375,
+            3.2265625
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            0.6533203125,
+            1.67236328125,
+            3.2265625
+          ]
+        },
+        "started_at_utc": "2026-09-03T08:56:56.268333+00:00"
+      }
+    },
+    {
+      "cell": {
+        "arm_id": "1m",
+        "device": "cuda",
+        "training_seed": 0
+      },
+      "cell_ordinal": 1,
+      "checkpoint_artifacts_sha256": "sha256:bc014dc4c6db09df82dc8a9f2dee167b2e57ddab03239de7501d992541119cd0",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/01-1m-seed0-cuda/timing_summary.json",
+      "task_rows_sha256": "sha256:bc811ba8404c7242632b995729b6fd3c84dacd91830bb4a82003e26880c4bab9",
+      "timing_sha256": "sha256:00b100f44bcea9a3d221c0f1d17ffb728f296c5b4e6f7a433cb2c52b9dedd91d",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T08:57:47.428011+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.216796875,
+            1.70849609375,
+            3.166015625
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.2568359375,
+            1.73291015625,
+            3.18994140625
+          ]
+        },
+        "started_at_utc": "2026-09-03T08:57:33.528035+00:00"
+      }
+    },
+    {
+      "cell": {
+        "arm_id": "90k",
+        "device": "cuda",
+        "training_seed": 1
+      },
+      "cell_ordinal": 2,
+      "checkpoint_artifacts_sha256": "sha256:396264e491177e85af65cd3bfc09f06660e7f74c6d998cc568280ebc8dc146f8",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/02-90k-seed1-cuda/timing_summary.json",
+      "task_rows_sha256": "sha256:e79032e1e6b85eb1319ddb527ba90bd70aed4bf98c4ac80f10d36074551a6868",
+      "timing_sha256": "sha256:4c3229697b815fc5c52fb7c97413f5e0f1a3bc8fa6e4e352546d1a82eb9931e0",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T08:58:17.802973+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.21044921875,
+            1.65625,
+            3.10107421875
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.154296875,
+            1.66162109375,
+            3.119140625
+          ]
+        },
+        "started_at_utc": "2026-09-03T08:58:04.453147+00:00"
+      }
+    },
+    {
+      "cell": {
+        "arm_id": "90k",
+        "device": "cpu",
+        "training_seed": 1
+      },
+      "cell_ordinal": 3,
+      "checkpoint_artifacts_sha256": "sha256:396264e491177e85af65cd3bfc09f06660e7f74c6d998cc568280ebc8dc146f8",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/03-90k-seed1-cpu/timing_summary.json",
+      "task_rows_sha256": "sha256:770e51d898bb9d309a48798fb81d95f6e31939f26024a57a69e895c15730d0ef",
+      "timing_sha256": "sha256:18801b2fdbe1cbecc1d712df2c9333ae20c22d808ee475b807a63aa9da56356e",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T08:58:47.038636+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.13134765625,
+            1.5927734375,
+            3.033203125
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.15576171875,
+            1.61328125,
+            3.0556640625
+          ]
+        },
+        "started_at_utc": "2026-09-03T08:58:34.312188+00:00"
+      }
+    },
+    {
+      "cell": {
+        "arm_id": "10m",
+        "device": "cpu",
+        "training_seed": 0
+      },
+      "cell_ordinal": 4,
+      "checkpoint_artifacts_sha256": "sha256:dead5c6520b387e92e8ed69afde097df0897048fee4ba4373fd40e72670ea662",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/04-10m-seed0-cpu/timing_summary.json",
+      "task_rows_sha256": "sha256:1a2456b0469060be2330bf9142bdba107bea4cdba497aa94562c7f8390db5f18",
+      "timing_sha256": "sha256:6acc0fcd9601f0b112e1304912d24ddb6b1aca7376c48a31480b21b44a1f3b79",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T09:00:08.971665+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            5.0576171875,
+            2.62060546875,
+            3.267578125
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.1015625,
+            1.56298828125,
+            2.99951171875
+          ]
+        },
+        "started_at_utc": "2026-09-03T08:59:04.925110+00:00"
+      }
+    },
+    {
+      "cell": {
+        "arm_id": "10m",
+        "device": "cuda",
+        "training_seed": 0
+      },
+      "cell_ordinal": 5,
+      "checkpoint_artifacts_sha256": "sha256:dead5c6520b387e92e8ed69afde097df0897048fee4ba4373fd40e72670ea662",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/05-10m-seed0-cuda/timing_summary.json",
+      "task_rows_sha256": "sha256:5253a151bdaec1318060a6ac2d6d5fc52d08770bd7f63acd95f0a83a0140dd7f",
+      "timing_sha256": "sha256:eb9769390680446301f5d2eb0a3f406e66f951a5fb6c6385de7cc93d5b940fa7",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T09:00:40.689898+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            3.45751953125,
+            2.4638671875,
+            3.1943359375
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            4.15771484375,
+            2.5400390625,
+            3.23095703125
+          ]
+        },
+        "started_at_utc": "2026-09-03T09:00:26.129511+00:00"
+      }
+    },
+    {
+      "cell": {
+        "arm_id": "90k",
+        "device": "cuda",
+        "training_seed": 0
+      },
+      "cell_ordinal": 6,
+      "checkpoint_artifacts_sha256": "sha256:f78cbc7e73e15beaf3bcc84ae522539a68eba1f8e63a0e646ccb0110cbc7c67f",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/06-90k-seed0-cuda/timing_summary.json",
+      "task_rows_sha256": "sha256:949c5c75ca829bdbd203bb38e07d58181a90cceda822194bb66fef08f286bb5b",
+      "timing_sha256": "sha256:cfc2b20b5f4167bdc131eed8017cf9a44790af14e7af5cb327b18412a4d6a762",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T09:01:11.489946+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            2.48828125,
+            2.32275390625,
+            3.123046875
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            2.91259765625,
+            2.3916015625,
+            3.158203125
+          ]
+        },
+        "started_at_utc": "2026-09-03T09:00:57.601218+00:00"
+      }
+    },
+    {
+      "cell": {
+        "arm_id": "90k",
+        "device": "cpu",
+        "training_seed": 0
+      },
+      "cell_ordinal": 7,
+      "checkpoint_artifacts_sha256": "sha256:f78cbc7e73e15beaf3bcc84ae522539a68eba1f8e63a0e646ccb0110cbc7c67f",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/07-90k-seed0-cpu/timing_summary.json",
+      "task_rows_sha256": "sha256:6ddf14d7a5008380311918a3b9a203d61c851c530d27339132c9cc0ae5bdc272",
+      "timing_sha256": "sha256:65fd75c0f7b03006b7dc73611e15b1c4063e22f4a112d8965370b4a6a1610ad0",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T09:01:42.390123+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.90087890625,
+            2.19482421875,
+            3.05419921875
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            2.15771484375,
+            2.25732421875,
+            3.087890625
+          ]
+        },
+        "started_at_utc": "2026-09-03T09:01:27.875547+00:00"
+      }
+    },
+    {
+      "cell": {
+        "arm_id": "1m",
+        "device": "cpu",
+        "training_seed": 1
+      },
+      "cell_ordinal": 8,
+      "checkpoint_artifacts_sha256": "sha256:cfa294902d671a492af0b49e6523c052c1272c821e77f4463eb47a5198b6a52e",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/08-1m-seed1-cpu/timing_summary.json",
+      "task_rows_sha256": "sha256:3b7530d26e50d4c42d52905d182d52e81df87f8e6243827fdc58a21c6e620583",
+      "timing_sha256": "sha256:69b201be92954a829ecabfcb6e898e3c3fe4e7ce54abe37b1e1b04cb9db327ee",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T09:02:19.104542+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            2.01708984375,
+            2.17626953125,
+            3.01416015625
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.70068359375,
+            2.1357421875,
+            3.0205078125
+          ]
+        },
+        "started_at_utc": "2026-09-03T09:01:58.569515+00:00"
+      }
+    },
+    {
+      "cell": {
+        "arm_id": "1m",
+        "device": "cuda",
+        "training_seed": 1
+      },
+      "cell_ordinal": 9,
+      "checkpoint_artifacts_sha256": "sha256:cfa294902d671a492af0b49e6523c052c1272c821e77f4463eb47a5198b6a52e",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/09-1m-seed1-cuda/timing_summary.json",
+      "task_rows_sha256": "sha256:a51a4f7e7705ec70773116da45f585dd817ad283f332b193a279d16ea3423298",
+      "timing_sha256": "sha256:e8b364da9e56bd6e862004e9f76282996932f7f4daa94ba9355bc42cb2b4bcff",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T09:02:50.162997+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.6728515625,
+            2.078125,
+            2.9541015625
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.865234375,
+            2.13427734375,
+            2.986328125
+          ]
+        },
+        "started_at_utc": "2026-09-03T09:02:35.969909+00:00"
+      }
+    },
+    {
+      "cell": {
+        "arm_id": "10m",
+        "device": "cuda",
+        "training_seed": 1
+      },
+      "cell_ordinal": 10,
+      "checkpoint_artifacts_sha256": "sha256:138d65fdbb170f1e135864231a24b35c2e7fdb3888f6342c1b072f6a3eb52d1d",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/10-10m-seed1-cuda/timing_summary.json",
+      "task_rows_sha256": "sha256:d22b7ef58313233cb8106c486aa47a4784069ae5cad6515f9156d1fa36d75187",
+      "timing_sha256": "sha256:95cbdd1c7bd9d842b2ad3a1095fa74d7fea1d2f59eae008c09b48ad4cf1c4b98",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T09:03:20.257940+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.53759765625,
+            2.00537109375,
+            2.900390625
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.603515625,
+            2.041015625,
+            2.92724609375
+          ]
+        },
+        "started_at_utc": "2026-09-03T09:03:07.426051+00:00"
+      }
+    },
+    {
+      "cell": {
+        "arm_id": "10m",
+        "device": "cpu",
+        "training_seed": 1
+      },
+      "cell_ordinal": 11,
+      "checkpoint_artifacts_sha256": "sha256:138d65fdbb170f1e135864231a24b35c2e7fdb3888f6342c1b072f6a3eb52d1d",
+      "summary_path": "/home/abhishekrao/repos/wandering-light/wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/timing/11-10m-seed1-cpu/timing_summary.json",
+      "task_rows_sha256": "sha256:a60af7b3c0a5a80df5712e9a9c44a1e7c0bc7ff74e873b0207dffb85c42b36b4",
+      "timing_sha256": "sha256:acc6c458efbdc7a6a3817b320a1294329b1193844e8e516e555972bdde91fefb",
+      "timing_window": {
+        "completed_at_utc": "2026-09-03T09:04:35.603776+00:00",
+        "environment_after": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            3.42333984375,
+            2.4619140625,
+            2.99169921875
+          ]
+        },
+        "environment_before": {
+          "cpu_affinity": [
+            0,
+            2,
+            4,
+            6,
+            8,
+            10,
+            12,
+            14
+          ],
+          "load_average_1m_5m_15m": [
+            1.41748046875,
+            1.955078125,
+            2.86962890625
+          ]
+        },
+        "started_at_utc": "2026-09-03T09:03:38.764285+00:00"
+      }
+    }
+  ],
+  "training_environments": {
+    "all_identical": false,
+    "by_checkpoint": [
+      {
+        "arm_id": "90k",
+        "environment": {
+          "accelerator": {
+            "compute_capability": [
+              8,
+              9
+            ],
+            "index": 0,
+            "name": "NVIDIA GeForce RTX 4090",
+            "total_memory_bytes": 25756696576
+          },
+          "floating_parameter_dtypes": [
+            "torch.float32"
+          ],
+          "optimizer": {
+            "class": "torch.optim.Adam",
+            "defaults": {
+              "amsgrad": false,
+              "betas": [
+                0.9,
+                0.999
+              ],
+              "capturable": false,
+              "decoupled_weight_decay": false,
+              "differentiable": false,
+              "eps": 1e-08,
+              "foreach": null,
+              "fused": null,
+              "lr": 0.002,
+              "maximize": false,
+              "weight_decay": 0
+            }
+          },
+          "precision": "fp32",
+          "resolved_device": "cuda:0",
+          "software": {
+            "cuda_available": true,
+            "cuda_device_count": 1,
+            "cuda_runtime_version": "12.8",
+            "cudnn_version": 91002,
+            "torch_version": "2.8.0+cu128"
+          }
+        },
+        "training_seed": 0
+      },
+      {
+        "arm_id": "90k",
+        "environment": {
+          "accelerator": {
+            "compute_capability": [
+              8,
+              9
+            ],
+            "index": 0,
+            "name": "NVIDIA GeForce RTX 4090",
+            "total_memory_bytes": 25756696576
+          },
+          "floating_parameter_dtypes": [
+            "torch.float32"
+          ],
+          "optimizer": {
+            "class": "torch.optim.Adam",
+            "defaults": {
+              "amsgrad": false,
+              "betas": [
+                0.9,
+                0.999
+              ],
+              "capturable": false,
+              "decoupled_weight_decay": false,
+              "differentiable": false,
+              "eps": 1e-08,
+              "foreach": null,
+              "fused": null,
+              "lr": 0.002,
+              "maximize": false,
+              "weight_decay": 0
+            }
+          },
+          "precision": "fp32",
+          "resolved_device": "cuda:0",
+          "software": {
+            "cuda_available": true,
+            "cuda_device_count": 1,
+            "cuda_runtime_version": "12.8",
+            "cudnn_version": 91002,
+            "torch_version": "2.8.0+cu128"
+          }
+        },
+        "training_seed": 1
+      },
+      {
+        "arm_id": "1m",
+        "environment": {
+          "accelerator": {
+            "compute_capability": [
+              8,
+              9
+            ],
+            "index": 0,
+            "name": "NVIDIA GeForce RTX 4090",
+            "total_memory_bytes": 25756696576
+          },
+          "floating_parameter_dtypes": [
+            "torch.float32"
+          ],
+          "optimizer": {
+            "class": "torch.optim.Adam",
+            "defaults": {
+              "amsgrad": false,
+              "betas": [
+                0.9,
+                0.999
+              ],
+              "capturable": false,
+              "decoupled_weight_decay": false,
+              "differentiable": false,
+              "eps": 1e-08,
+              "foreach": null,
+              "fused": null,
+              "lr": 0.002,
+              "maximize": false,
+              "weight_decay": 0
+            }
+          },
+          "precision": "fp32",
+          "resolved_device": "cuda:0",
+          "software": {
+            "cuda_available": true,
+            "cuda_device_count": 1,
+            "cuda_runtime_version": "12.8",
+            "cudnn_version": 91002,
+            "torch_version": "2.8.0+cu128"
+          }
+        },
+        "training_seed": 0
+      },
+      {
+        "arm_id": "1m",
+        "environment": {
+          "accelerator": {
+            "compute_capability": [
+              8,
+              9
+            ],
+            "index": 0,
+            "name": "NVIDIA GeForce RTX 4090",
+            "total_memory_bytes": 25756696576
+          },
+          "floating_parameter_dtypes": [
+            "torch.float32"
+          ],
+          "optimizer": {
+            "class": "torch.optim.Adam",
+            "defaults": {
+              "amsgrad": false,
+              "betas": [
+                0.9,
+                0.999
+              ],
+              "capturable": false,
+              "decoupled_weight_decay": false,
+              "differentiable": false,
+              "eps": 1e-08,
+              "foreach": null,
+              "fused": null,
+              "lr": 0.002,
+              "maximize": false,
+              "weight_decay": 0
+            }
+          },
+          "precision": "fp32",
+          "resolved_device": "cuda:0",
+          "software": {
+            "cuda_available": true,
+            "cuda_device_count": 1,
+            "cuda_runtime_version": "12.8",
+            "cudnn_version": 91002,
+            "torch_version": "2.8.0+cu128"
+          }
+        },
+        "training_seed": 1
+      },
+      {
+        "arm_id": "10m",
+        "environment": {
+          "accelerator": {
+            "compute_capability": [
+              8,
+              9
+            ],
+            "index": 0,
+            "name": "NVIDIA GeForce RTX 4090",
+            "total_memory_bytes": 25756696576
+          },
+          "floating_parameter_dtypes": [
+            "torch.float32"
+          ],
+          "optimizer": {
+            "class": "torch.optim.Adam",
+            "defaults": {
+              "amsgrad": false,
+              "betas": [
+                0.9,
+                0.999
+              ],
+              "capturable": false,
+              "decoupled_weight_decay": false,
+              "differentiable": false,
+              "eps": 1e-08,
+              "foreach": null,
+              "fused": null,
+              "lr": 0.0005,
+              "maximize": false,
+              "weight_decay": 0
+            }
+          },
+          "precision": "fp32",
+          "resolved_device": "cuda:0",
+          "software": {
+            "cuda_available": true,
+            "cuda_device_count": 1,
+            "cuda_runtime_version": "12.8",
+            "cudnn_version": 91002,
+            "torch_version": "2.8.0+cu128"
+          }
+        },
+        "training_seed": 0
+      },
+      {
+        "arm_id": "10m",
+        "environment": {
+          "accelerator": {
+            "compute_capability": [
+              8,
+              9
+            ],
+            "index": 0,
+            "name": "NVIDIA GeForce RTX 4090",
+            "total_memory_bytes": 25756696576
+          },
+          "floating_parameter_dtypes": [
+            "torch.float32"
+          ],
+          "optimizer": {
+            "class": "torch.optim.Adam",
+            "defaults": {
+              "amsgrad": false,
+              "betas": [
+                0.9,
+                0.999
+              ],
+              "capturable": false,
+              "decoupled_weight_decay": false,
+              "differentiable": false,
+              "eps": 1e-08,
+              "foreach": null,
+              "fused": null,
+              "lr": 0.0005,
+              "maximize": false,
+              "weight_decay": 0
+            }
+          },
+          "precision": "fp32",
+          "resolved_device": "cuda:0",
+          "software": {
+            "cuda_available": true,
+            "cuda_device_count": 1,
+            "cuda_runtime_version": "12.8",
+            "cudnn_version": 91002,
+            "torch_version": "2.8.0+cu128"
+          }
+        },
+        "training_seed": 1
+      }
+    ]
+  }
+}

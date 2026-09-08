@@ -384,8 +384,25 @@ def test_policy_size_cli_defaults_to_the_frozen_safe_batching(
         config.gradient_accumulation_steps,
         config.validation_batch_size,
     ) == batching
+    assert config.learning_rate == training.POLICY_SIZE_LEARNING_RATES[arm_id]
     assert config.corpus_dir.name == "deep_corpus_v2"
     assert config.reference_corpus_dirs == DEFAULT_REFERENCE_CORPUS_DIRS
+
+
+def test_policy_size_cli_accepts_learning_rate_override(tmp_path: Path):
+    config = training._parse_args(
+        [
+            "--output-dir",
+            str(tmp_path / "output"),
+            "--size-arm",
+            "40m",
+            "--learning-rate",
+            "0.0001",
+            "--dry-run",
+        ]
+    )
+
+    assert config.learning_rate == 1e-4
 
 
 def test_policy_size_cli_accepts_repeated_reference_corpus_overrides(tmp_path: Path):

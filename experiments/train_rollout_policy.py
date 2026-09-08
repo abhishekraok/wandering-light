@@ -84,6 +84,12 @@ POLICY_SIZE_BATCHING = {
     "10m": (256, 1, 256),
     "40m": (128, 2, 128),
 }
+POLICY_SIZE_LEARNING_RATES = {
+    "90k": 2e-3,
+    "1m": 2e-3,
+    "10m": 5e-4,
+    "40m": 2.5e-4,
+}
 CHECKPOINT_FILES = (
     MODEL_FILE,
     CONFIG_FILE,
@@ -1030,7 +1036,7 @@ def _parse_args(argv: Sequence[str] | None = None) -> RolloutTrainingConfig:
         ),
     )
     parser.add_argument("--epochs", type=int, default=12)
-    parser.add_argument("--learning-rate", type=float, default=2e-3)
+    parser.add_argument("--learning-rate", type=float)
     parser.add_argument("--train-batch-size", type=int)
     parser.add_argument("--gradient-accumulation-steps", type=int)
     parser.add_argument("--validation-batch-size", type=int)
@@ -1054,7 +1060,11 @@ def _parse_args(argv: Sequence[str] | None = None) -> RolloutTrainingConfig:
             else DEFAULT_REFERENCE_CORPUS_DIRS
         ),
         epochs=arguments.epochs,
-        learning_rate=arguments.learning_rate,
+        learning_rate=(
+            arguments.learning_rate
+            if arguments.learning_rate is not None
+            else POLICY_SIZE_LEARNING_RATES[arguments.size_arm]
+        ),
         train_batch_size=(
             arguments.train_batch_size
             if arguments.train_batch_size is not None
