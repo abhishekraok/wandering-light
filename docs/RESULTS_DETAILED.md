@@ -73,10 +73,59 @@ Guard `body` alone: 1.30x / 1.71x / 2.30x at depths 4/5/6. Authored witnesses pr
 | `qwen3:30b-a3b` | 300 s deadline | sample 40 | 6 (15.0%) | 0 | 3,381 | 0/26 at 16+ ops; 30/34 failures do not run | `qwen3_v4_sample40.json` |
 | `gpt-oss:20b` | effort high, 32k ctx | 34 of 40 (capped) | 6 (17.6%) | 0 | 6,119 | 23/34 context-truncated, all empty | `gptoss20b_high_v4_sample40.json` |
 | `gpt-oss:20b` | effort high, 131k ctx | sample 40 | 9 (22.5%) | 0 | 8,873 | 21/40 hit the 300 s deadline; 1 is the shortcut → 8 real | `gptoss20b_high_ctx131k_v4_sample40.json` |
+| beam 64 × depth 48, 1m policy, seed 0 | trained on v4 train, LR 1.25e-4 | sample 40 | 7 (17.5%) | 0 | 131 | CUDA 120 s, same solves | `compute-optimal-mark28-20260903/timing/1m-s0-{cpu,cuda}.json` |
+| beam 64 × depth 48, 1m policy, seed 1 | same | sample 40 | 10 (25.0%) | 1 | 126 | CUDA 107 s | `…/timing/1m-s1-{cpu,cuda}.json` |
+| beam 64 × depth 48, 2m policy, seed 0 | LR 6.25e-5 | sample 40 | 7 (17.5%) | 0 | 177 | CUDA 123 s | `…/timing/2m-s0-{cpu,cuda}.json` |
+| beam 64 × depth 48, 2m policy, seed 1 | same | sample 40 | 9 (22.5%) | 1 | 175 | CUDA 120 s | `…/timing/2m-s1-{cpu,cuda}.json` |
+| beam 64 × depth 48, 10m policy, seed 0 | LR 3.1e-5 | sample 40 | 6 (15.0%) | 0 | 303 | CUDA 146 s | `…/timing/10m-s0-{cpu,cuda}.json` |
+| beam 64 × depth 48, 10m policy, seed 1 | same | sample 40 | 8 (20.0%) | 0 | 290 | CUDA 146 s | `…/timing/10m-s1-{cpu,cuda}.json` |
 
 Depth-5 states per task (`#70` probe, 3 tasks, seed 17): v4 roots **1,166,586** unpruned, **157,931** guarded (7.39x); v3 roots 980,688 / 105,549 (9.29x). `states-depth5-v4.json`.
 
 Corpus scope numbers (v3 → v4): distinct input stacks 15,550 → 83,488; witness median 6.5 → 43 ops; witnesses with a branch — → 76%; median 8-op-window overlap between witnesses 79.8%, eval-with-train 76.8%.
+
+## Stack PBE v4 — compute-optimal policy size (#101), 300-task eval cohort
+
+`stack_pbe_v4` eval, 60 tasks per witness-length bucket (seed-17 shuffle, first 60 per bucket; contains sample 40), beam 64 × depth 48, guard `both`, two seeds per arm, CPU (8 threads) and CUDA cells. Solve rates are graded on held-out examples and are identical on both devices (3,599 of 3,600 task-cells agree). AUC is normalised area under solve rate against log₂ budget: wall-clock on [0.01, 100] s; executions (one per op run on one example stack) on [16, 524,288], computed from every hit replayed under the corrected counter (0 program mismatches). [report](../reports/compute-optimal-mark28-20260903/README.md), `aggregate.json`, `timing/<arm>-s<seed>-<device>.json`.
+
+**Solve rate at max budget, mean of two seeds (seed SD):**
+
+| bucket | 1m | 2m | 10m |
+|---|---:|---:|---:|
+| 1–5 | 0.608 (0.075) | 0.592 (0.075) | 0.617 (0.033) |
+| 6–10 | 0.050 (0.050) | 0.000 (0.000) | 0.042 (0.025) |
+| 11–20 | 0.267 (0.000) | 0.267 (0.017) | 0.233 (0.050) |
+| 21–40 | 0.000 | 0.000 | 0.000 |
+| 41+ | 0.000 | 0.017 (0.017) | 0.017 (0.000) |
+
+**Normalised AUC, mean of two seeds:**
+
+| bucket | device | 1m wall | 2m wall | 10m wall | 1m exec | 2m exec | 10m exec |
+|---|---|---:|---:|---:|---:|---:|---:|
+| 1–5 | cpu | 0.547 | 0.521 | 0.507 | 0.315 | 0.312 | 0.315 |
+| 1–5 | cuda | 0.545 | 0.532 | 0.545 | 0.315 | 0.312 | 0.315 |
+| 6–10 | cpu | 0.036 | 0.000 | 0.025 | 0.015 | 0.000 | 0.012 |
+| 6–10 | cuda | 0.036 | 0.000 | 0.023 | 0.015 | 0.000 | 0.009 |
+| 11–20 | cpu | 0.157 | 0.149 | 0.120 | 0.056 | 0.056 | 0.047 |
+| 11–20 | cuda | 0.157 | 0.160 | 0.134 | 0.056 | 0.056 | 0.047 |
+| 21–40, 41+ | both | 0.000 | ≤ 0.006 | ≤ 0.007 | 0.000 | ≤ 0.001 | ≤ 0.002 |
+
+**Cost to clear the cohort (coverage, wall-clock over the covered subset, total spent), mean of two seeds:**
+
+| device | 1m | 2m | 10m |
+|---|---|---|---|
+| cpu | 0.185, 10 s, 1,009 s | 0.175, 18 s, 1,374 s | 0.182, 27 s, 2,198 s |
+| cuda | 0.185, 11 s, 887 s | 0.175, 13 s, 940 s | 0.180, 15 s, 1,074 s |
+
+**Training** (plain Adam, constant LR, batch 256, best-validation weights; validation is 1 in 10 train skeletons, 26,040 rows; 313,560 training rows). Weights are W&B model artifacts `abhishekraok-na/wandering-light-rollout-policy/mark28-policy-<arm>-s<seed>:v0` on each checkpoint's run (`archive.json`).
+
+| arm | dims (embed, conv, hidden) | params | LR | seed 0 best val CE (epoch) | seed 1 | epochs run |
+|---|---|---:|---:|---:|---:|---:|
+| 1m | 128, 320, 640 | 655,836 | 1.25e-4 | 0.952 (1) | 0.945 (2) | 12 / 12 |
+| 2m | 224, 576, 1152 | 2,045,660 | 6.25e-5 | 0.939 (1) | 0.976 (2) | 12 / 3 |
+| 10m | 384, 1024, 2048 | 6,288,412 | 3.1e-5 | 0.925 (2) | 0.934 (2) | 3 / 3 |
+
+LR per arm from a one-epoch probe (`lr_probe.json`), extended three halvings below the #80 grid; each arm's best is the bottom of its extended grid. 1m seed 0 over 12 epochs: train CE 1.09 → 0.10, validation 0.95 → 1.99. Two seeds where `metrics.md` asks three, as #80.
 
 ## `deep-corpus-v1` — solvers on the held-out cohort (96 tasks, 12 per distance 1–8)
 
@@ -124,10 +173,11 @@ Corpus scope numbers (v3 → v4): distinct input stacks 15,550 → 83,488; witne
 | Policy scoring, beam 64, CUDA | flat 8.2–10.3 ms from 90K to 125M params | same |
 | Policy scoring, beam 64, CPU | ~80x from 90K to 125M | same |
 | CPU/CUDA crossover | ~1M–10M params | same |
+| Unsolved task, beam 64 × depth 48 on `mark-28` (2,957 expansions) | 1m / 2m / 10m: 4.0 / 5.5 / 8.9 s CPU (8 threads), 3.0 / 3.1 / 3.6 s CUDA | [report](../reports/compute-optimal-mark28-20260903/README.md) |
 
 ## No result
 
 | study | state |
 |---|---|
 | Scratch solver on `deep-corpus-v2` (10M, 125M) | trained (loss 0.755 / 0.686), weights lost, validation never sealed; no solve rate | [report](../reports/deep-corpus-v2-scratch-20260827-incomplete/README.md) |
-| Compute-optimal policy size (#80) | in flight; rows land here when its evidence is on `main` | [#80](../../issues/80) |
+| Compute-optimal policy size (#80) | merged (#100, `05fe25d`) with its report; rows not yet copied here | [report](../reports/compute-optimal-20260903/README.md), [#80](../../issues/80) |
