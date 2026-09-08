@@ -8,7 +8,29 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-09-08
+Last updated: 2026-09-08 (paused)
+
+## Paused
+
+**Paused 2026-09-08 for about a month on induce-text.** The argument is
+[moving-arena-induce-text (#88)](../../issues/88).
+
+- **Last established result:** the *Compute-optimal policy size on `mark-28`*
+  row below, from [compute-optimal-mark-28 (#101)](../../issues/101). On
+  `stack_pbe_v4` the size axis is flat and the 175-program corpus binds.
+- **Resume from** [program-first-generator (#107)](../../issues/107), then
+  [highways (#96)](../../issues/96). The highways programme (#94, #96, #98,
+  goal #99) was defined and deliberately not started; whether to build it
+  depends on what the induce-text month says about pricing reuse.
+- **Open issues** are standing goals (#74, #75, #99), the resume point (#107),
+  or labeled `parked` with a state line as their last comment.
+- **Off git, on UltraDesk only:** the #101 policy weights (69 MB,
+  `.claude/worktrees/standby-e5a35f/checkpoints/mark28-co-20260903/policies/`)
+  and #80's raw sampled visits kept for #94 (7 MB, under
+  `wandering_light/.worktrees/issue-80-refreeze/checkpoints/`). Neither is on
+  the Hub; the reports carry every number, so both are disposable. The #80
+  tuned checkpoints are on the Hub.
+- **Nothing is running.** Worktrees and branches of merged PRs may be removed.
 
 ## What is true now
 
@@ -69,9 +91,7 @@ claim a number supports.
 
 ## In flight
 
-| what | who | where | question it answers |
-|---|---|---|---|
-| Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
+Nothing. The project is paused; see the top of this file.
 
 ## Superseded
 
