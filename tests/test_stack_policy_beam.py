@@ -7,9 +7,9 @@ import pytest
 import torch
 
 from wandering_light.rollout_policy import PolicyArchitecture
-from wandering_light.stack_beam import beam_solve
+from wandering_light.stack_beam import beam_solve, step_all
 from wandering_light.stack_machine import Int, Lst, Mark, Sym, parse_stack
-from wandering_light.stack_pbe import BASIS, BY_NAME, build_task, draw_task
+from wandering_light.stack_pbe import BASIS, BY_NAME, OPS, build_task, draw_task
 from wandering_light.stack_pbe_eval import grade
 from wandering_light.stack_policy import (
     OP_NAMES,
@@ -73,8 +73,47 @@ def test_beam_finds_a_one_op_witness_under_any_policy():
     assert result.termination == "fit"
     assert result.program == ("add",)
     assert grade(result.program, task).solved
-    assert result.op_applications == result.expansions * len(OP_NAMES) == len(OP_NAMES)
+    assert result.expansions == 1
+    assert 0 < result.executions <= len(OP_NAMES) * task.examples
     assert result.depth == 1
+
+
+def test_budget_is_checked_before_every_attempt():
+    """Codex review: a zero budget must not return a program."""
+    task = task_for("add_pair", 6)
+    scorer = PolicyScorer(StackPairPolicy(TINY), "cpu")
+    none = beam_solve(task, scorer, beam_width=64, max_depth=4, budget=0)
+    assert none.program is None
+    assert none.termination == "budget"
+    assert none.executions == 0
+    # One attempt at a time: the budget trips as soon as the running count
+    # reaches it, after however many stacks the first legal op stepped.
+    product = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
+    expected = 0
+    for op in OPS:
+        expected += step_all(product, op)[2]
+        if expected >= 1:
+            break
+    one = beam_solve(task, scorer, beam_width=64, max_depth=4, budget=1)
+    assert one.termination == "budget"
+    assert one.executions == expected
+
+
+def test_executions_and_fuel_charge_executed_work_not_the_retained_beam():
+    """Codex review: successors the beam discards were still executed."""
+    task = task_for("sum")
+    product = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
+    expected_executions = expected_fuel = 0
+    for op in OPS:
+        _moved, fuel, stepped = step_all(product, op)
+        expected_executions += stepped
+        expected_fuel += fuel
+    scorer = PolicyScorer(StackPairPolicy(TINY), "cpu")
+    result = beam_solve(task, scorer, beam_width=1, max_depth=1)
+    assert result.program is None
+    assert result.expansions == 1
+    assert result.executions == expected_executions
+    assert result.fuel == expected_fuel
 
 
 def test_trained_policy_guides_a_narrow_beam_to_the_witness():

@@ -9,10 +9,13 @@ the highest cumulative log-probability under the policy, normalised per node
 over the ops the machine allows there.
 
 Costs, per `docs/metrics.md`: wall-clock to the hit is primary and charges the
-policy's forward passes; ``op_applications`` -- one per op attempted on a beam
-node, legal or not -- is the device-free diagnostic, and equals 28 x expansions
-so it reads directly against the BFS rows; fuel is reported because on this
-substrate it diverges from program length.
+policy's forward passes. ``executions`` is the device-free diagnostic -- one per
+op the machine ran on one example stack, the analogue of a type-compatible
+basis-function execution; an op the guard refuses costs nothing, like a
+type-incompatible function. It and ``fuel`` are charged where the work happens,
+in expansion, so successors the beam then discards are still paid for, and the
+budget is checked before every attempt. ``expansions`` counts beam nodes and
+reads against the BFS rows' node budgets.
 """
 
 from __future__ import annotations
@@ -46,7 +49,7 @@ class BeamResult:
     program: tuple[str, ...] | None
     termination: str  # fit | max_depth | frontier_exhausted | budget
     seconds: float  # to the hit, or to termination
-    op_applications: int
+    executions: int
     fuel: int
     expansions: int
     depth: int
@@ -56,17 +59,21 @@ def key_of(product: Product) -> tuple:
     return tuple(tuple(value_key(v) for v in stack) for stack in product)
 
 
-def step_all(product: Product, op) -> tuple[Product, int] | None:
-    """Apply ``op`` to every example, or None if any example refuses it."""
+def step_all(product: Product, op) -> tuple[Product | None, int, int]:
+    """Apply ``op`` to every example: ``(product or None, fuel, stacks stepped)``.
+
+    The machine is asked example by example and stops at the first refusal, so
+    the last value is what the attempt cost even when it fails.
+    """
     moved = []
     fuel = 0
-    for stack in product:
+    for stepped, stack in enumerate(product):
         outcome = step_raw(op, stack, DEFAULT_FUEL_LIMIT, 0)
         if isinstance(outcome, str):
-            return None
+            return None, fuel, stepped
         moved.append(outcome[0])
         fuel += outcome[1]
-    return tuple(moved), fuel
+    return tuple(moved), fuel, len(product)
 
 
 def beam_solve(
@@ -89,14 +96,14 @@ def beam_solve(
     targets = encode_targets(outputs)
     seen = {key_of(inputs)}
     beam: list[tuple[Product, tuple[str, ...], float]] = [(inputs, (), 0.0)]
-    applications = fuel = expansions = 0
+    executions = fuel = expansions = 0
 
     def result(program, termination, depth):
         return BeamResult(
             program,
             termination,
             time.perf_counter() - started,
-            applications,
+            executions,
             fuel,
             expansions,
             depth,
@@ -104,23 +111,23 @@ def beam_solve(
 
     for depth in range(max_depth):
         remaining = max_depth - depth - 1
-        successors = []  # (node index, op index, product, program, fuel)
+        successors = []  # (node index, op index, product, program)
         legal = np.zeros((len(beam), len(OPS)), dtype=bool)
         for node, (product, program, _) in enumerate(beam):
             expansions += 1
-            applications += len(OPS)
             for index, op in enumerate(OPS):
-                moved = step_all(product, op)
+                if budget is not None and executions >= budget:
+                    return result(None, "budget", depth + 1)
+                moved, spent, stepped = step_all(product, op)
+                executions += stepped
+                fuel += spent
                 if moved is None:
                     continue
                 legal[node, index] = True
                 extended = (*program, op.name)
-                if key_of(moved[0]) == target:
-                    fuel += moved[1]
+                if key_of(moved) == target:
                     return result(extended, "fit", depth + 1)
-                successors.append((node, index, moved[0], extended, moved[1]))
-            if budget is not None and applications >= budget:
-                return result(None, "budget", depth + 1)
+                successors.append((node, index, moved, extended))
         if not successors:
             return result(None, "frontier_exhausted", depth)
         blocks = [
@@ -136,14 +143,13 @@ def beam_solve(
             reverse=True,
         )
         next_beam = []
-        for node, index, product, program, spent in ranked:
+        for node, index, product, program in ranked:
             if guard != "off" and blocked(product[0], remaining, guard) is not None:
                 continue
             key = key_of(product)
             if key in seen:
                 continue
             seen.add(key)
-            fuel += spent
             next_beam.append((product, program, beam[node][2] + log_probs[node, index]))
             if len(next_beam) == beam_width:
                 break

@@ -11,6 +11,8 @@ mismatch. Stages, each skipped when its output exists so a run resumes::
     probe-lr   one epoch per candidate LR per arm, seed 0; picks by validation CE
     train      the chosen LR, 12 epochs, best-validation weights, both seeds
     time       beam search over the eval cohort, one (arm, seed, device) cell
+    replay     re-run recorded hits under the current counters (see `replay`)
+    archive    log each checkpoint as a W&B artifact on its training run
     aggregate  per-bucket AUC tables, paired over seeds
 
 Difficulty is witness length, an upper bound -- v4 has no certified distance.
@@ -36,13 +38,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import torch
 
-from wandering_light.compute_optimal import execution_auc, wall_clock_auc
+from wandering_light.compute_optimal import log_budget_auc, wall_clock_auc
 from wandering_light.corpus_hub import fetch_corpus
 from wandering_light.rollout_policy import PolicyArchitecture
 from wandering_light.stack_beam import beam_solve
 from wandering_light.stack_pbe import Task, load
 from wandering_light.stack_pbe_eval import grade
 from wandering_light.stack_policy import (
+    MANIFEST_FILE,
     PolicyScorer,
     load_policy,
     save_policy,
@@ -86,10 +89,12 @@ COHORT_SEED = 17
 BEAM_WIDTH = 64
 MAX_DEPTH = 48
 GUARD = "both"
-# Fixed AUC ranges, chosen before any cell ran. Wall-clock brackets a beam hit
-# on either device; op applications run from one expansion to #80's 100k.
+# Wall-clock range fixed before any cell ran; it brackets a beam hit on either
+# device. The executions range was set with the counter fix (see `replay`): it
+# starts below the cheapest possible hit and ends at 2^19, above the hard cap of
+# depth 48 x beam 64 x 28 ops x 6 examples, so no hit is censored on that axis.
 WALL_RANGE = (0.01, 100.0)
-OPS_RANGE = (28, 100_000)
+EXECUTIONS_RANGE = (16, 524_288)
 CPU_THREADS = 8
 
 
@@ -348,7 +353,7 @@ def time_cell(run_dir: Path, tasks, arm, seed, device, log) -> Path:
                 "program": list(result.program) if result.program else None,
                 "termination": result.termination,
                 "seconds": result.seconds,
-                "op_applications": result.op_applications,
+                "executions": result.executions,
                 "fuel": result.fuel,
                 "expansions": result.expansions,
                 "depth": result.depth,
@@ -378,6 +383,111 @@ def time_cell(run_dir: Path, tasks, arm, seed, device, log) -> Path:
     return out
 
 
+def _executions(row: dict[str, Any]) -> int:
+    """The corrected counter; a cell timed before it existed needs `replay`."""
+    if "executions" not in row:
+        raise KeyError(f"task {row['task_index']} has no executions; run replay")
+    return row["executions"]
+
+
+def replay(run_dir: Path, tasks, log) -> None:
+    """Re-run every hit under the current counters and record its executions.
+
+    The campaign's cells were timed with a counter that charged 28 per node
+    regardless of legality and summed fuel only for retained successors (Codex
+    review on the PR). A miss contributes nothing to a log-budget AUC and a hit
+    takes well under a second, so the hits are replayed rather than the cells:
+    same weights, same device, same search. The program must come back
+    identical; the row then gains ``executions``, ``fuel_replayed`` and
+    ``seconds_replayed`` beside the values as first recorded.
+    """
+    by_index = dict(cohort(tasks))
+    for path in sorted((run_dir / "timing").glob("*.json")):
+        cell = json.loads(path.read_text())
+        if cell.get("replay"):
+            continue
+        device = cell["device"]
+        if device == "cpu":
+            torch.set_num_threads(CPU_THREADS)
+        policy = load_policy(
+            run_dir / "policies" / f"{cell['arm']}-s{cell['seed']}", device=device
+        )
+        scorer = PolicyScorer(policy, device)
+        started = time.perf_counter()
+        hits = 0
+        mismatches = []
+        for row in cell["rows"]:
+            if row["program"] is None:
+                continue
+            hits += 1
+            result = beam_solve(
+                by_index[row["task_index"]],
+                scorer,
+                beam_width=cell["beam_width"],
+                max_depth=cell["max_depth"],
+                guard=cell["guard"],
+            )
+            if list(result.program or ()) != row["program"]:
+                mismatches.append(row["task_index"])
+                continue
+            row["executions"] = result.executions
+            row["fuel_replayed"] = result.fuel
+            row["seconds_replayed"] = result.seconds
+        cell["replay"] = {
+            "hits": hits,
+            "mismatches": mismatches,
+            "seconds": time.perf_counter() - started,
+            "provenance": provenance(),
+            "note": (
+                "executions and fuel_replayed count per op executed on one example "
+                "stack; op_applications (28 per node) and fuel (retained successors "
+                "only) are the values as first recorded"
+            ),
+        }
+        write_json(path, cell)
+        log(
+            f"RESULT replay {path.stem}: {hits} hits, {len(mismatches)} mismatches, "
+            f"{cell['replay']['seconds']:.0f}s"
+        )
+
+
+def archive(run_dir: Path, log) -> None:
+    """Log each checkpoint as a W&B model artifact on its own training run."""
+    import wandb
+
+    out = run_dir / "archive.json"
+    done = json.loads(out.read_text()) if out.exists() else {}
+    for path in sorted(p for p in (run_dir / "policies").iterdir() if p.is_dir()):
+        if path.name in done:
+            continue
+        manifest = json.loads((path / MANIFEST_FILE).read_text())
+        run_id = manifest["wandb_url"].rstrip("/").rsplit("/", 1)[-1]
+        run = wandb.init(
+            entity=WANDB_ENTITY, project=WANDB_PROJECT, id=run_id, resume="must"
+        )
+        try:
+            artifact = wandb.Artifact(
+                name=f"mark28-policy-{path.name}",
+                type="model",
+                metadata={
+                    "arm": manifest["arm"],
+                    "seed": manifest["seed"],
+                    "provenance": manifest["provenance"],
+                },
+            )
+            artifact.add_dir(str(path))
+            logged = run.log_artifact(artifact)
+            logged.wait()
+            done[path.name] = {
+                "artifact": f"{WANDB_ENTITY}/{WANDB_PROJECT}/{artifact.name}:{logged.version}",
+                "wandb_url": manifest["wandb_url"],
+            }
+        finally:
+            run.finish()
+        write_json(out, done)
+        log(f"RESULT archive {path.name} -> {done[path.name]['artifact']}")
+
+
 def aggregate(run_dir: Path, log) -> Path:
     cells = [
         json.loads(p.read_text()) for p in sorted((run_dir / "timing").glob("*.json"))
@@ -401,13 +511,11 @@ def aggregate(run_dir: Path, log) -> Path:
                             min_seconds=WALL_RANGE[0],
                             max_seconds=WALL_RANGE[1],
                         ).normalized_area,
-                        "ops": execution_auc(
-                            [
-                                r["op_applications"] if r["solved"] else None
-                                for r in rows
-                            ],
-                            min_executions=OPS_RANGE[0],
-                            max_executions=OPS_RANGE[1],
+                        "ops": log_budget_auc(
+                            [_executions(r) if r["solved"] else None for r in rows],
+                            min_budget=EXECUTIONS_RANGE[0],
+                            max_budget=EXECUTIONS_RANGE[1],
+                            unit="op_executions",
                         ).normalized_area,
                         "solve_rate": mean(r["solved"] for r in rows),
                         "shown_rate": mean(r["shown_fit"] for r in rows),
@@ -504,7 +612,7 @@ def aggregate(run_dir: Path, log) -> Path:
         out,
         {
             "wall_range_seconds": WALL_RANGE,
-            "ops_range": OPS_RANGE,
+            "executions_range": EXECUTIONS_RANGE,
             "reference_arm": reference,
             "per_seed": table,
             "summary": summary,
@@ -529,7 +637,16 @@ def main(argv: list[str] | None = None) -> int:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
-        "stage", choices=("probe-lr", "train", "time", "aggregate", "campaign")
+        "stage",
+        choices=(
+            "probe-lr",
+            "train",
+            "time",
+            "replay",
+            "archive",
+            "aggregate",
+            "campaign",
+        ),
     )
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--arms", nargs="+", default=list(ARMS), choices=list(ARMS))
@@ -555,7 +672,7 @@ def main(argv: list[str] | None = None) -> int:
         log_file.write(f"{stamp} {line}\n")
         log_file.flush()
 
-    tasks = corpus() if args.stage != "aggregate" else None
+    tasks = corpus() if args.stage not in ("aggregate", "archive") else None
     try:
         if args.stage in ("probe-lr", "campaign"):
             chosen = probe_lr(
@@ -583,6 +700,10 @@ def main(argv: list[str] | None = None) -> int:
                 for arm in args.arms:
                     for seed in args.seeds:
                         time_cell(args.run_dir, tasks, arm, seed, device, log)
+        if args.stage == "replay":
+            replay(args.run_dir, tasks, log)
+        if args.stage == "archive":
+            archive(args.run_dir, log)
         if args.stage in ("aggregate", "campaign"):
             aggregate(args.run_dir, log)
     except Exception as error:
