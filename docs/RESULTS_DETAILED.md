@@ -169,7 +169,9 @@ LR per arm from a one-epoch probe (`lr_probe.json`), extended three halvings bel
 | `mark-28` corpus probe, depth 5 | combinator share 6.7% → 7.0%, running code 12.4% both, generation 130 s → 1,364 s (10.5x) | [report](../reports/mark-28-corpus-20260828/README.md) |
 | `mark-28` from data-only roots, depth 5, 4 roots | `executable-26`: 6,058 quotations, 0 executable, 33,468 combinator applications executing 0 ops; `mark-28`: 78,731 executable, 2,289 working | [report](../reports/stack-pbe-v3-20260828/README.md) |
 | Undirected walks, `wl-core-v1` | 300 walks of 40 → 43–56 endpoints; 80-step walk within 6 of root 99%, modal distance 2 | #55 |
-| Undirected walks, `executable-26` | 300/300 distinct endpoints; endpoint out-degree → 12.9; depth ~15 at 40 steps, ~29 at 80 | #60 (external implementation) |
+| Undirected walks, `executable-26` | 4 roots × 300 walks: 300/300 distinct endpoints at 40 and 80 steps; inside the depth-5 ball 100% at 4 steps, 87% at 6, 57% at 10, 17% at 20, 1% at 40, 0% at 80; stack depth 15.5 at 40, 29.5 at 80; endpoint out-degree 12.3–12.6; empty-root ball 9,503 (= #41's pin) | [report](../reports/walk-collapse-stack-20260908/README.md), #60 |
+| Undirected walks, `mark-28`, no guard | same protocol: 300/300 distinct; inside the depth-5 ball 100% / 59–66% / 25–34% / 5–9% / 1–2% / 0–2% at 4 / 6 / 10 / 20 / 40 / 80 steps; stack depth 23.5 at 40, ~40 at 80; out-degree 24.0–24.9; **54–58% of endpoints have a `sym` on top** (inside an open `[`); empty-root ball 726,064 | [report](../reports/walk-collapse-stack-20260908/README.md), #60 |
+| Undirected walks, `mark-28`, guard `both` | same protocol under the #97 guard: 300/300 distinct; inside the ball 100% / 64–73% / 33–34% / 5–9% / 0–3% / 0% at 4 / 6 / 10 / 20 / 40 / 80 steps; stack depth 8.3–9.7 at 40, 12.0–13.5 at 80; out-degree 14.6–14.7; 76–78% of endpoints have a list on top, ≤1% a `sym` | [report](../reports/walk-collapse-stack-20260908/README.md), #60 |
 
 ## Cost
 

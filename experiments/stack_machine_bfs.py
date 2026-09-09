@@ -460,7 +460,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=sorted(BASIS_OPS),
         default=None,
         help=(
-            "stack-machine action basis (default: executable-26 for --summary; "
+            f"stack-machine action basis (default: {DEFAULT_BASIS} for --summary; "
             "full-52 for the legacy analysis)"
         ),
     )

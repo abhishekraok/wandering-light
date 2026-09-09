@@ -1,0 +1,54 @@
+stack machine, basis mark-28 (28 ops), guard off
+out-degree at each root:
+  empty: 6
+  one list: 12
+  two ints: 16
+  list and int: 13
+
+== Collapse: 300 walks of length 40, per root
+
+         root   distinct endpoints  stack depth  out-degree                   top-of-stack types
+        empty           300 of 300         23.5        24.9       sym:168 bool:48 int:37 list:35
+     one list           300 of 300         23.6        24.3       sym:163 bool:46 int:39 list:36
+     two ints           300 of 300         23.4        24.0       sym:174 bool:43 int:39 list:33
+ list and int           300 of 300         23.8        24.3       sym:162 int:43 bool:42 list:36
+
+== Travel: depth-5 ball around root 'empty' -- 726,064 states in 2s
+
+ walk length    inside the ball  stack depth        true distance if inside
+           4     300/300 (100%)          2.9       0:7 1:12 2:98 3:28 4:155
+           6      178/300 (59%)          4.1   0:5 1:14 2:34 3:28 4:74 5:23
+          10       74/300 (25%)          6.7        1:2 2:14 3:12 4:31 5:15
+          20        14/300 (5%)         12.7                1:1 3:4 4:1 5:8
+          40         5/300 (2%)         24.1                    2:1 3:2 5:2
+          80         5/300 (2%)         39.1                1:1 3:1 4:1 5:2
+
+== Travel: depth-5 ball around root 'one list' -- 960,392 states in 4s
+
+ walk length    inside the ball  stack depth        true distance if inside
+           4     300/300 (100%)          3.3       0:2 1:19 2:85 3:38 4:156
+           6      185/300 (62%)          4.6    0:2 1:6 2:36 3:28 4:80 5:33
+          10       88/300 (29%)          6.8        1:9 2:10 3:12 4:36 5:21
+          20        20/300 (7%)         12.7               2:4 3:5 4:1 5:10
+          40         4/300 (1%)         23.4                    3:1 4:1 5:2
+          80         0/300 (0%)         40.4                               
+
+== Travel: depth-5 ball around root 'two ints' -- 915,354 states in 3s
+
+ walk length    inside the ball  stack depth        true distance if inside
+           4     300/300 (100%)          3.6     0:10 1:10 2:108 3:33 4:139
+           6      199/300 (66%)          4.7    0:3 1:4 2:44 3:29 4:89 5:30
+          10       80/300 (27%)          7.2        1:5 2:16 3:18 4:23 5:18
+          20        25/300 (8%)         12.9            1:1 2:6 3:6 4:3 5:9
+          40         2/300 (1%)         24.6                        3:1 5:1
+          80         1/300 (0%)         40.1                            3:1
+
+== Travel: depth-5 ball around root 'list and int' -- 949,024 states in 4s
+
+ walk length    inside the ball  stack depth        true distance if inside
+           4     300/300 (100%)          3.8       0:9 1:20 2:87 3:34 4:150
+           6      190/300 (63%)          5.1    0:4 1:5 2:36 3:26 4:95 5:24
+          10      101/300 (34%)          7.2        1:2 2:14 3:23 4:32 5:30
+          20        26/300 (9%)         13.1            1:2 2:2 3:6 4:8 5:8
+          40         5/300 (2%)         24.3                    1:1 4:3 5:1
+          80         0/300 (0%)         40.9                               

@@ -740,12 +740,15 @@ CLOSE_MARK = Op(
 # ``OPS`` remains the original full-52 tuple for API compatibility. Search and
 # corpus entry points select one of these named bases explicitly.
 MARK_OPS: tuple[Op, ...] = (*CORE_OPS, OPEN_MARK, CLOSE_MARK)
-DEFAULT_BASIS = "executable-26"
 BASIS_OPS: dict[str, tuple[Op, ...]] = {
-    DEFAULT_BASIS: CORE_OPS,
+    "executable-26": CORE_OPS,
     "full-52": OPS,
     "mark-28": MARK_OPS,
 }
+# The basis every live corpus and solver runs on: stack_pbe_v4 is generated and
+# graded under it. `executable-26` cannot build a quotation from data-only
+# roots (#60), so it is kept for the substrate measurements only.
+DEFAULT_BASIS = "mark-28"
 
 
 def ops_for_basis(name: str = DEFAULT_BASIS) -> tuple[Op, ...]:
