@@ -39,7 +39,6 @@ from dataclasses import asdict, dataclass
 from wandering_light.stack_machine import (
     BASIS_OPS,
     CORE_OPS,
-    DEFAULT_BASIS,
     DEFAULT_FUEL_LIMIT,
     Bool,
     Config,
@@ -65,7 +64,7 @@ SCHEMA_VERSION = 3
 # 5.9x here. Quotations still reach the combinators, by arriving as part of a
 # task's input rather than being built op by op.
 OPS = CORE_OPS
-BASIS = DEFAULT_BASIS
+BASIS = "executable-26"
 
 TRAIN_FRACTION = 80  # out of 100
 
