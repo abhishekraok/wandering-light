@@ -69,16 +69,16 @@ def run(base: str, out_dir: Path) -> int:
         page.screenshot(path=str(out_dir / "01-loaded.png"))
 
         story_before = text_of(page, "#story")
-        page.keyboard.press("ArrowRight")
+        page.keyboard.press("ArrowDown")
         check(
-            "→ moves the cursor",
+            "↓ moves the cursor",
             text_of(page, "#story") != story_before,
             text_of(page, "#story"),
         )
-        page.keyboard.press("ArrowDown")
-        page.keyboard.press("ArrowDown")
+        page.keyboard.press("ArrowRight")
+        page.keyboard.press("ArrowRight")
         check(
-            "↓ changes depth",
+            "→ goes deeper",
             "depth 2" in text_of(page, "#story"),
             text_of(page, "#story"),
         )
@@ -145,7 +145,7 @@ def run(base: str, out_dir: Path) -> int:
             "a applies the top-ranked op",
             page.evaluate("S.driveHistory.length") == before + 1,
         )
-        page.keyboard.press("ArrowRight")
+        page.keyboard.press("ArrowDown")
         page.keyboard.press("Enter")
         page.wait_for_function(
             f"S.driveHistory.length === {before + 2} || (S.drive && S.drive.ops && S.drive.ops[S.cursor].outcome === 'refused')",

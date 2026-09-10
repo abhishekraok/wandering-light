@@ -26,9 +26,9 @@ uv run python -m wandering_light.stack_debugger.cli trace --behaviour keep_negat
 
 | replay | | drive | | play | |
 |---|---|---|---|---|---|
-| `← →` | op tried, across nodes and depths | `a s d f g h j k l` | apply the policy's rank 1–9 | `← →` | program step |
-| `↓` `↑` | follow the op at the cursor down / back to the parent | `← →` `Enter` | apply any legal op | `p` `o` | witness / found program |
-| `1`–`9` `,` `.` `g` | select beam node / the witness node | `w` | undo | `m` | back |
+| `↑ ↓` | op tried, across nodes and depths | `a s d f g h j k l` | apply the policy's rank 1–9 | `→ ←` | program step |
+| `→` `←` | follow the op at the cursor deeper / back to the parent | `↑ ↓` then `→` or `Enter` | apply any legal op | `p` `o` | witness / found program |
+| `1`–`9` `,` `.` `g` | select beam node / the witness node | `←` or `w` | undo | `m` | back |
 | `space` | run | `m` | back | | |
 | `t` | witness marks | `e` | tokens the model saw | | |
 | `x` | masked ops in the ranking | | | | |

@@ -101,17 +101,17 @@ def test_keys_move_through_the_trace(page):
     view, _ = page
     view.keyboard.press("r")
     assert "depth 0" in text(view, "#story")
-    view.keyboard.press("ArrowDown")
+    view.keyboard.press("ArrowRight")
     assert "depth 1" in text(view, "#story")
     view.keyboard.press("2")
     assert "node 2" in text(view, "#story")
     before = view.evaluate("S.cursor")
-    view.keyboard.press("ArrowRight")
+    view.keyboard.press("ArrowDown")
     assert view.evaluate("S.cursor") == before + 1
     view.keyboard.press("r")
 
 
-def test_down_follows_the_selected_op_and_up_returns_to_it(page):
+def test_right_follows_the_selected_op_and_left_returns_to_it(page):
     view, _ = page
     view.keyboard.press("r")
     # Put the cursor on an op whose result was kept, then follow it.
@@ -120,10 +120,10 @@ def test_down_follows_the_selected_op_and_up_returns_to_it(page):
         " S.cursor = row.findIndex((e) => e && e.verdict === 'retained'); render(); })()"
     )
     op = view.evaluate("ops()[S.cursor]")
-    view.keyboard.press("ArrowDown")
+    view.keyboard.press("ArrowRight")
     assert view.evaluate("S.depth") == 1
     assert view.evaluate("layer().nodes[S.node].program") == [op]
-    view.keyboard.press("ArrowUp")
+    view.keyboard.press("ArrowLeft")
     assert view.evaluate("S.depth") == 0
     assert view.evaluate("ops()[S.cursor]") == op
     view.keyboard.press("r")
@@ -132,7 +132,7 @@ def test_down_follows_the_selected_op_and_up_returns_to_it(page):
 def test_ground_truth_is_marked_only_on_the_witness_node(page):
     view, _ = page
     view.keyboard.press("r")
-    view.keyboard.press("ArrowDown")
+    view.keyboard.press("ArrowRight")
     witness = view.evaluate("S.session.witness_overlay[S.depth].witnesses[0].node")
     if witness is None:
         pytest.skip("the witness left the beam at depth 1 under the untrained policy")

@@ -108,19 +108,19 @@ def run(base: str, out_dir: Path) -> int:
 
         # --- keyboard: replay ---------------------------------------------
         before = text_of(page, "#exp-sub")
-        page.keyboard.press("ArrowRight")
+        page.keyboard.press("ArrowDown")
         page.wait_for_timeout(120)
         check(
-            "right arrow advances the expansion cursor",
+            "down arrow advances the expansion cursor",
             text_of(page, "#exp-sub") != before,
             text_of(page, "#exp-sub")[:40],
         )
 
         depth_before = text_of(page, "#r-depth")
-        page.keyboard.press("ArrowDown")
+        page.keyboard.press("ArrowRight")
         page.wait_for_timeout(150)
         check(
-            "down arrow changes layer",
+            "right arrow changes layer",
             text_of(page, "#r-depth") != depth_before,
             f"{depth_before} → {text_of(page, '#r-depth')}",
         )

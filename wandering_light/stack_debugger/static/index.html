@@ -257,7 +257,7 @@ h4.sec:first-child { border-top:none; margin-top:0; padding-top:0; }
       <div class="body" id="beam"></div>
     </div>
     <div class="col">
-      <div class="head"><span class="label" id="exp-title">ops tried · ← →</span><span class="sub" id="exp-sub"></span></div>
+      <div class="head"><span class="label" id="exp-title">ops tried · ↑ ↓</span><span class="sub" id="exp-sub"></span></div>
       <div class="body" id="tape"></div>
     </div>
     <div class="col">
@@ -622,7 +622,7 @@ function renderAlive() {
     cells.push(`<span class="${cls}" data-depth="${d}" title="${esc(title)}"></span>`);
   }
   const lastAlive = overlay.reduce((acc, o, d) => o.witnesses[0].survives ? d : acc, -1);
-  host.innerHTML = `<span class="label">witness in beam</span><span class="cells">${cells.join("")}</span><span>${lastAlive < 0 ? "never past depth 0" : `alive through depth ${lastAlive}`} of ${s.task.length} ops · <kbd>↑↓</kbd> depth</span>`;
+  host.innerHTML = `<span class="label">witness in beam</span><span class="cells">${cells.join("")}</span><span>${lastAlive < 0 ? "never past depth 0" : `alive through depth ${lastAlive}`} of ${s.task.length} ops · <kbd>→</kbd> deeper <kbd>←</kbd> back</span>`;
   host.querySelectorAll(".cell").forEach((el) => el.addEventListener("click", () => { if (S.mode !== "replay") { S.mode = "replay"; } setDepth(Number(el.dataset.depth)); }));
 }
 
@@ -631,13 +631,13 @@ function renderStory() {
   if (!S.session) { host.innerHTML = ""; return; }
   if (S.mode === "drive") {
     const n = S.driveHistory.length;
-    host.innerHTML = `<span class="line">driving by hand: <b>${n}</b> op${n === 1 ? "" : "s"} applied${n ? ` — <b>${esc(S.driveHistory.join(" "))}</b>` : ""}. The table is the policy's ranking from here; the machine's verdict is next to each op.</span><span class="hint">a–l apply rank 1–9 · ←→ Enter any op · w undo · m back</span>`;
+    host.innerHTML = `<span class="line">driving by hand: <b>${n}</b> op${n === 1 ? "" : "s"} applied${n ? ` — <b>${esc(S.driveHistory.join(" "))}</b>` : ""}. The table is the policy's ranking from here; the machine's verdict is next to each op.</span><span class="hint">a–l apply rank 1–9 · ↑↓ then → or Enter any op · ← or w undo · m back</span>`;
     return;
   }
   if (S.mode === "play") {
     if (!S.play || !S.play.steps) { host.innerHTML = '<span class="line spin">stepping the program…</span>'; return; }
     const st = S.play.steps[S.playStep];
-    host.innerHTML = `<span class="line">playing <b>${esc(S.play.label)}</b>: step <b>${st.index}</b> of ${S.play.steps.length - 1}${st.op ? ` — <b>${esc(st.op)}</b>${st.inner ? " runs code; its inner work is in the middle column" : ""}` : " — the inputs"}${st.refused ? ` · <span class="dead-t">refused: ${esc(st.refused)}</span>` : ""}${st.matches && st.matches.every(Boolean) ? ' · <span class="alive-t">every example matches its target</span>' : ""}</span><span class="hint">←→ step · m back</span>`;
+    host.innerHTML = `<span class="line">playing <b>${esc(S.play.label)}</b>: step <b>${st.index}</b> of ${S.play.steps.length - 1}${st.op ? ` — <b>${esc(st.op)}</b>${st.inner ? " runs code; its inner work is in the middle column" : ""}` : " — the inputs"}${st.refused ? ` · <span class="dead-t">refused: ${esc(st.refused)}</span>` : ""}${st.matches && st.matches.every(Boolean) ? ' · <span class="alive-t">every example matches its target</span>' : ""}</span><span class="hint">→ ← step · m back</span>`;
     return;
   }
   const l = layer(); if (!l) return;
@@ -665,7 +665,7 @@ function renderStory() {
     else wit = ` · <span class="dead-t">the witness left the beam before this depth</span>`;
   }
   const follows = e && e.verdict === "retained" && S.depth < layers().length - 1;
-  host.innerHTML = `<span class="line">depth <b>${l.depth}</b> · node <b>${S.node + 1}</b> of ${l.nodes.length} (log-p ${fmt(node.log_probability)}) · op <b>${esc(op)}</b> ${verdict}${wit}</span><span class="hint">${follows ? "↓ follows this op" : (e && e.outcome !== "refused" ? "↓ cannot follow: not kept" : "")} · ${witnessNode(S.depth) !== null ? "g witness · " : ""}? help</span>`;
+  host.innerHTML = `<span class="line">depth <b>${l.depth}</b> · node <b>${S.node + 1}</b> of ${l.nodes.length} (log-p ${fmt(node.log_probability)}) · op <b>${esc(op)}</b> ${verdict}${wit}</span><span class="hint">${follows ? "→ follows this op" : (e && e.outcome !== "refused" ? "→ cannot follow: not kept" : "")} · ${witnessNode(S.depth) !== null ? "g witness · " : ""}? help</span>`;
 }
 
 function renderBeam() {
@@ -683,7 +683,7 @@ function renderBeam() {
     host.innerHTML = html; return;
   }
   if (S.mode === "play") {
-    $("beam-title").textContent = "program · ← →";
+    $("beam-title").textContent = "program · → ←";
     $("beam-sub").textContent = S.play && S.play.steps ? `${S.play.steps.length - 1} ops` : "";
     if (!S.play || !S.play.steps) { host.innerHTML = S.play && S.play.error ? `<span class="err">${esc(S.play.error)}</span>` : '<span class="spin">…</span>'; return; }
     host.innerHTML = S.play.steps.map((st, i) => `<div class="step ${i === S.playStep ? "cur" : ""} ${st.refused ? "refused" : ""}" data-i="${i}"><span class="i">${st.index}</span><span class="op">${st.op ? esc(st.op) : "inputs"}</span>${st.inner ? '<span class="runs">runs code</span>' : ""}${st.refused ? '<span class="runs" style="color:var(--refuse)">refused</span>' : ""}</div>`).join("");
@@ -719,7 +719,7 @@ function renderTape() {
   const host = $("tape");
   if (!S.session) { host.innerHTML = ""; return; }
   if (S.mode === "drive") {
-    $("exp-title").textContent = "ops from here · ← → Enter";
+    $("exp-title").textContent = "ops from here · ↑ ↓ then → or Enter";
     if (!S.drive || !S.drive.ops) { $("exp-sub").textContent = ""; host.innerHTML = S.drive && S.drive.error ? `<span class="err">${esc(S.drive.error)}</span>` : '<span class="spin">scoring…</span>'; return; }
     $("exp-sub").textContent = `${S.drive.legal} of ${S.drive.ops.length} legal · ${S.drive.remaining} ops left`;
     const gt = driveGroundTruth();
@@ -740,7 +740,7 @@ function renderTape() {
     if (!st.inner) {
       $("exp-sub").textContent = st.op ? "one step, no inner work" : "";
       const prev = S.play.steps[S.playStep - 1];
-      host.innerHTML = st.op ? `<div class="note"><b>${esc(st.op)}</b> is a single machine step${st.fuel !== undefined ? ` (fuel ${st.fuel})` : ""}.</div>${prev ? `<div class="note">before</div>${stackHTML(prev.states[0])}` : ""}<div class="note">after</div>${stackHTML(st.states[0], prev ? {diffFrom: prev.states[0]} : {})}` : '<div class="note">Step through the program with ← →. Ops that run a quotation show their inner work here.</div>';
+      host.innerHTML = st.op ? `<div class="note"><b>${esc(st.op)}</b> is a single machine step${st.fuel !== undefined ? ` (fuel ${st.fuel})` : ""}.</div>${prev ? `<div class="note">before</div>${stackHTML(prev.states[0])}` : ""}<div class="note">after</div>${stackHTML(st.states[0], prev ? {diffFrom: prev.states[0]} : {})}` : '<div class="note">Step through the program with → and ←. Ops that run a quotation show their inner work here.</div>';
       return;
     }
     $("exp-sub").textContent = `${st.inner.frames.length} inner frame${st.inner.frames.length === 1 ? "" : "s"}${st.inner.truncated ? " (truncated)" : ""}${st.inner.fuel !== null ? ` · fuel ${st.inner.fuel}` : ""}${st.inner.agrees_with_machine === false ? " · WALKER DISAGREES WITH MACHINE" : ""}`;
@@ -754,7 +754,7 @@ function renderTape() {
   const l = layer(); if (!l) { host.innerHTML = ""; return; }
   const node = l.nodes[S.node];
   const row = l.expansions[S.node] || [];
-  $("exp-title").textContent = `ops tried on node ${S.node + 1} · ← →`;
+  $("exp-title").textContent = `ops tried on node ${S.node + 1} · ↑ ↓`;
   const c = l.counts;
   $("exp-sub").textContent = `${row.filter((e) => e && e.outcome !== "refused").length} of ${ops().length} legal here · layer: ${c.executed} run, ${c.verdicts.retained || 0} kept${c.verdicts.fit ? ", 1 fit" : ""}`;
   const scores = l.scores ? l.scores[S.node] : null;
@@ -884,9 +884,9 @@ function progressSVG(progress) {
 }
 
 function renderKeys() {
-  const replay = [["← →","op"],["↓ ↑","follow op / back to parent"],["1–9 , .","node"],["g","witness node"],["space","run"],["r","reset"],["t","witness"],["x","masked"],["v","logits"],["e","tokens"],["m","drive"],["p","play witness"],["o","play found"],["n","new task"],["?","help"]];
-  const drive = [["a–l","apply rank 1–9"],["← → Enter","any op"],["w","undo"],["e","tokens"],["x","masked"],["m","back"]];
-  const play = [["← →","step"],["p / o","witness / found"],["m","back"]];
+  const replay = [["↑ ↓","op"],["→ ←","follow op deeper / back to parent"],["1–9 , .","node"],["g","witness node"],["space","run"],["r","reset"],["t","witness"],["x","masked"],["v","logits"],["e","tokens"],["m","drive"],["p","play witness"],["o","play found"],["n","new task"],["?","help"]];
+  const drive = [["a–l","apply rank 1–9"],["↑ ↓ then → or Enter","any op"],["← or w","undo"],["e","tokens"],["x","masked"],["m","back"]];
+  const play = [["→ ←","step"],["p / o","witness / found"],["m","back"]];
   const set = S.mode === "drive" ? drive : (S.mode === "play" ? play : replay);
   $("keys").innerHTML = set.map(([k, v]) => `<span><kbd>${k}</kbd>${v}</span>`).join("");
 }
@@ -900,8 +900,8 @@ function renderHelp() {
 <h3>Reading a stack</h3>
 <p>Chips run bottom to top, left to right. A <b>[</b> chip opens a quotation: from there to the next <b>]</b> every op is captured as a dashed symbol instead of running, and <b>]</b> folds the dashed group into one list. Lists are drawn in parentheses; <b>nil</b> is the empty list. Gold rings mark what the op at the cursor changed.</p>
 <div class="cols">
-<div><span class="label">replay</span><p><b>← →</b> walk the 28 ops tried on the selected node, across nodes and depths. <b>↓</b> follows the op at the cursor into the node it produced, when the search kept it; <b>↑</b> goes back to the node and op that produced the selected node. <b>1–9 , .</b> select a node; <b>g</b> jumps to the witness node at this depth, cursor on the witness's next op. The alive strip is clickable for a plain jump to a depth. <b>space</b> runs. <b>t</b> toggles the witness marks; <b>x</b> shows masked ops in the ranking; <b>v</b> fetches the raw logits; <b>e</b> shows the exact tokens the model saw.</p></div>
-<div><span class="label">drive</span><p><b>m</b> takes the selected node's program and lets you continue by hand. <b>a s d f g h j k l</b> apply the policy's rank 1–9; <b>← →</b> and <b>Enter</b> apply any op, refused ones excepted; <b>w</b> undoes. Every state shows all k examples and the policy's ranking from there.</p></div>
+<div><span class="label">replay</span><p><b>↑ ↓</b> walk the 28 ops tried on the selected node, across nodes and depths. <b>→</b> follows the op at the cursor deeper, into the node it produced, when the search kept it; <b>←</b> goes back to the node and op that produced the selected node. <b>1–9 , .</b> select a node; <b>g</b> jumps to the witness node at this depth, cursor on the witness's next op. The alive strip is clickable for a plain jump to a depth. <b>space</b> runs. <b>t</b> toggles the witness marks; <b>x</b> shows masked ops in the ranking; <b>v</b> fetches the raw logits; <b>e</b> shows the exact tokens the model saw.</p></div>
+<div><span class="label">drive</span><p><b>m</b> takes the selected node's program and lets you continue by hand. <b>a s d f g h j k l</b> apply the policy's rank 1–9; <b>↑ ↓</b> pick any op and <b>→</b> or <b>Enter</b> applies it, refused ones excepted; <b>←</b> or <b>w</b> undoes. Every state shows all k examples and the policy's ranking from there.</p></div>
 <div><span class="label">play</span><p><b>p</b> steps the authored witness through the machine, <b>o</b> the program the search found. Ops that run a quotation (i, dip, map, filter, fold, ifte) open up in the middle column: each element visited, each branch taken, each leaf op applied, on the first example.</p></div>
 </div>
 <h3>Verdicts on the tape</h3>
@@ -930,9 +930,10 @@ document.addEventListener("keydown", (event) => {
   if (S.mode === "drive") {
     const rank = DRIVE_KEYS.indexOf(key.toLowerCase());
     if (rank >= 0) { driveApplyRank(rank + 1); return; }
-    if (key === "ArrowLeft") { event.preventDefault(); driveStep(-1); return; }
-    if (key === "ArrowRight") { event.preventDefault(); driveStep(1); return; }
-    if (key === "Enter") { driveApplyCursor(); return; }
+    if (key === "ArrowUp") { event.preventDefault(); driveStep(-1); return; }
+    if (key === "ArrowDown") { event.preventDefault(); driveStep(1); return; }
+    if (key === "Enter" || key === "ArrowRight") { event.preventDefault(); driveApplyCursor(); return; }
+    if (key === "ArrowLeft") { event.preventDefault(); driveUndo(); return; }
     if (key === "w") { driveUndo(); return; }
     if (key === "m" || key === "Escape") { exitDrive(); return; }
     if (key === "e") { S.panel = S.panel === "encoding" ? "actions" : "encoding"; render(); return; }
@@ -941,17 +942,19 @@ document.addEventListener("keydown", (event) => {
     return;
   }
   if (S.mode === "play") {
-    if (key === "ArrowLeft") { event.preventDefault(); playStep(-1); return; }
-    if (key === "ArrowRight") { event.preventDefault(); playStep(1); return; }
+    if (key === "ArrowLeft" || key === "ArrowUp") { event.preventDefault(); playStep(-1); return; }
+    if (key === "ArrowRight" || key === "ArrowDown") { event.preventDefault(); playStep(1); return; }
     if (key === "m" || key === "Escape") { exitPlay(); return; }
     if (key === "p") { enterPlay("witness"); return; }
     if (key === "o") { enterPlay("found"); return; }
     return;
   }
-  if (key === "ArrowLeft") { event.preventDefault(); stepCursor(-1); return; }
-  if (key === "ArrowRight") { event.preventDefault(); stepCursor(1); return; }
-  if (key === "ArrowUp") { event.preventDefault(); ascend(); return; }
-  if (key === "ArrowDown") { event.preventDefault(); descend(); return; }
+  // The ops are listed vertically, so ↑ ↓ move through them; → goes deeper
+  // into the search by following the op at the cursor, ← comes back up.
+  if (key === "ArrowUp") { event.preventDefault(); stepCursor(-1); return; }
+  if (key === "ArrowDown") { event.preventDefault(); stepCursor(1); return; }
+  if (key === "ArrowLeft") { event.preventDefault(); ascend(); return; }
+  if (key === "ArrowRight") { event.preventDefault(); descend(); return; }
   if (key === "g") { gotoWitness(); return; }
   if (key >= "1" && key <= "9") { focusNode(Number(key) - 1); return; }
   if (key === ",") { focusNode(S.node - 1); return; }
