@@ -1,0 +1,44 @@
+{
+  "basis": "mark-28",
+  "catalogue": {
+    "behaviours": 91,
+    "digest": "sha256:ccf0a8c7dd4872327285128ee4a7505316b40975cd35944c4ddb40f9b8ab1155",
+    "skeletons": 88
+  },
+  "config": {
+    "issue": "https://github.com/abhishekraok/wandering-light/issues/120",
+    "probe": "reports/world-behaviours-probe-20260909",
+    "shown_per_task": 6,
+    "sources": [
+      "leetcode",
+      "mbpp"
+    ],
+    "witness_source": "translated"
+  },
+  "corpus": "stack_pbe_world_v1",
+  "counts": {
+    "distinct_input_stacks": 2138,
+    "held_out_examples": 2254,
+    "shown_examples": 546,
+    "tasks": 91
+  },
+  "generator": "experiments/world_behaviours/build_corpus.py",
+  "generator_description": "Behaviours are human-written programming problems with tests (MBPP, LeetCode-easy) restricted to ints and flat int lists; witnesses were authored by Claude sessions in macro form over experiments/world_behaviours/macros*.txt and expanded to the basis; examples are the upstream tests (MBPP extended by shape-mutated inputs run through the reference solution). Train-only.",
+  "hub": {
+    "repo_id": "abhishekraok/wandering-light-stack-pbe-world-v1",
+    "repo_type": "dataset",
+    "revision": "ff35444423240c34c08a3559598db3578b6fe243"
+  },
+  "schema_version": 2,
+  "split_policy": "train-only",
+  "splits": {
+    "train": {
+      "behaviours": 91,
+      "bytes": 40761,
+      "path": "stack_pbe_world_v1_train.jsonl.gz",
+      "records": 91,
+      "sha256": "sha256:fe5506a0becb65ae28acb112a15c36629481b49a7b15b23a2ae37f952b725c00",
+      "skeletons": 88
+    }
+  }
+}
