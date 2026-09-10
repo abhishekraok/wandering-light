@@ -12,12 +12,6 @@ input to its output. The repository holds two substrates, the corpora
 generated on them, search and learned-policy solvers, and the measurements
 that compare them on one objective, **cost to clear** a task set.
 
-**Where things stand.** [`docs/STATUS.md`](docs/STATUS.md) records what is
-established and whether the project is paused; [`docs/RESULTS.md`](docs/RESULTS.md)
-the headline numbers; [`docs/RESULTS_DETAILED.md`](docs/RESULTS_DETAILED.md) every
-run; [`docs/metrics.md`](docs/metrics.md) how anything is measured. Issues hold
-the argument, and `reports/` holds the artifacts, one directory per run.
-
 ## What is here
 
 - **Two substrates.** `wl-core-v1`: 118 single-argument pure functions over
@@ -84,20 +78,20 @@ the stack machine is the multi-argument substrate, where a program is a
 sequence of ops over a stack and a task is several input/output pairs one
 program must satisfy at once.
 
-**Propose.** The learned proposer was retired in drop-proposer (#27): tasks
+**Propose.** The learned proposer was retired ([why](https://github.com/abhishekraok/wandering-light/issues/27)): tasks
 now come from generators, a certified-shortest sweep on the typed-list
 side and a hand-written behaviour catalogue on the stack machine, so each task
 carries a certified distance or an authored witness rather than an estimate.
 
 ## Results
 
-Numbers live in one place. [`docs/RESULTS.md`](docs/RESULTS.md) has the
-headlines with their caveats: frontier and local language models, BFS, and the
-learned policies on `stack_pbe_v4` and `deep-corpus-v1`.
-[`docs/RESULTS_DETAILED.md`](docs/RESULTS_DETAILED.md) has every run, including
-the earlier induction/proposer line (OPT-125M, SFT then GRPO on
-`wl-core-pyhash-v1`) under "Legacy typed-list line"; its checkpoints remain on
-the Hub, and its training curves are in
+[`docs/RESULTS.md`](docs/RESULTS.md) has the headline numbers for language
+models, search and the learned policies on both substrates, and
+[`docs/RESULTS_DETAILED.md`](docs/RESULTS_DETAILED.md) every run, including the
+earlier induction/proposer line whose checkpoints remain on the Hub.
+[`docs/STATUS.md`](docs/STATUS.md) says what those numbers establish and
+whether the project is currently active. Training curves for the earlier line
+are in
 [WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg).
 
 ## Installation
@@ -198,11 +192,10 @@ uv run python experiments/stack_pbe_baseline.py --backend bfs --budget 10000 --s
 uv run python experiments/stack_pbe_baseline.py --backend llm --provider openai --model gpt-5.6-luna --effort high --tasks 40 --out luna_v4_sample40.json
 ```
 
-`--tasks 40` with the default seed draws the 40-task sample the reports call
-"sample 40". Every candidate is graded on the task's held-out examples; the
-output JSON records solved and memorised (fits the shown examples only) counts
-per behaviour and each candidate with its verdict. `--provider ollama` runs a local model; `--list-models`
-asks the chosen provider what it serves.
+`--tasks 40` draws a fixed 40-task sample; omit it for the whole split. Every
+candidate is graded on the task's held-out examples, and a program that fits
+only the shown ones is counted as memorised, not solved. `--provider ollama`
+runs a local model.
 
 ## Evaluation
 
@@ -293,7 +286,7 @@ trustworthy are in [its README](wandering_light/rollout_debugger/README.md).
 ### Stack machine explorer
 [`docs/stack_machine_explorer.html`](docs/stack_machine_explorer.html) is a
 keyboard-driven, single-file explorer of the stack machine; open it in a
-browser. It self-checks against the Python core in `tests/test_stack_machine_explorer.py`.
+browser.
 
 ## Training
 
@@ -307,17 +300,16 @@ uv run python experiments/compute_optimal_mark28.py campaign --run-dir runs/mark
 ```
 
 The first trains on `deep-corpus-v1` (the script defaults to `v2`); the second
-runs the whole `stack_pbe_v4` sweep, and `--help` lists its single stages. Each
-report under `reports/` records the exact command, seed and checkpoint it was
-produced from; start from the report rather than from these defaults when
-reproducing a number.
+runs the whole `stack_pbe_v4` sweep, and `--help` lists its single stages. The
+exact command, seed and checkpoint behind each published number is in that
+run's directory under `reports/`.
 
 <details>
 <summary>Legacy LLM line: SFT, GRPO and the proposer</summary>
 
 The original line fine-tuned a small causal LM (OPT-125M) to emit function
-lists, then ran GRPO with TRL. The scripts remain; the proposer was retired in
-drop-proposer (#27) and its numbers are in the results ledger.
+lists, then ran GRPO with TRL. The scripts remain; the proposer was retired
+([why](https://github.com/abhishekraok/wandering-light/issues/27)).
 
 ```bash
 PYTHONHASHSEED=0 uv run python wandering_light/training/sft.py --no-eval          # quick check, no online evaluation
