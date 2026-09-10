@@ -1,0 +1,40 @@
+# Author K=2 macros (#118 probe). Prefix k2- throughout.
+k2-16: 1 1 add dup add dup add dup add
+# pair/unpair: pack two values into a 2-list and back (head is the deeper value)
+k2-pair: nil swap cons swap cons
+k2-unpair: uncons swap uncons swap drop
+# k2-count: lst x -> number of occurrences of x in lst
+k2-count: [ eq? ] swap cons filter len
+# The self-applying `range` nests 4 quotation levels per iteration and MAX_QUOTATION_DEPTH is 32,
+# so `range n` refuses for n > 7 at top level (less inside a body). k2-range10 is a recursion-free
+# cons chain; k2-range100 builds ( 0 .. 99 ) from it with map + cat.
+k2-range10: nil 9 cons 8 cons 7 cons 6 cons 5 cons 4 cons 3 cons 2 cons 1 cons 0 cons
+k2-range100: k2-range10 [ 10 mul k2-range10 swap [ add ] swap cons map ] map nil [ cat ] fold
+# k2-range: n -> ( 0 .. n-1 ) for n <= 100
+k2-range: k2-range100 swap take
+k2-range1: k2-range [ inc ] map
+# k2-range-ab: a b -> ( a .. b ) inclusive, empty when a > b (b <= 99)
+k2-range-ab: inc k2-range swap drop-n
+# k2-pow: b e -> b^e  (0 <= e <= 100; 0^0 = 1 like Python)
+k2-pow: swap quote [ drop ] swap cat swap k2-range swap map product
+# k2-zip: l1 l2 -> list of (a b) pairs, truncated to the shorter list
+k2-zip: swap nil k2-pair [ [ k2-unpair ] dip [ drop drop null? ] [ drop k2-pair ] [ [ swap uncons ] dip k2-pair swap [ cons ] dip swap k2-pair ] ifte ] fold k2-unpair swap drop reverse
+# k2-seconds: list of pairs -> list of their second fields
+k2-seconds: [ k2-unpair swap drop ] map
+# k2-dedup: lst -> lst with only first occurrences kept, order preserved
+k2-dedup: nil [ [ over over contains 1 eq? ] [ drop ] [ cons ] ifte ] fold reverse
+# k2-remove1: lst x -> lst with the first occurrence of x removed
+k2-remove1: [ [ [ uncons ] dip ] dip [ eq? bool>int swap 0 eq? bool>int mul 1 eq? ] [ drop drop drop 1 cons ] [ drop swap [ cons ] dip cons ] ifte ] swap cons nil 0 cons swap fold uncons drop reverse
+# k2-nlargest / k2-nsmallest: lst n -> the n largest (descending) / n smallest (ascending), by repeated extraction
+k2-nlargest: k2-range swap nil k2-pair [ drop k2-unpair over max swap over cons [ k2-remove1 ] dip k2-pair ] fold k2-unpair swap drop reverse
+k2-nsmallest: k2-range swap nil k2-pair [ drop k2-unpair over min swap over cons [ k2-remove1 ] dip k2-pair ] fold k2-unpair swap drop reverse
+# k2-kadane: lst -> max subarray sum with the reference's reset-when-negative form (init -1e6)
+k2-kadane: -1 1000 mul 1000 mul 0 k2-pair [ [ k2-unpair ] dip add swap over max2 swap 0 max2 k2-pair ] fold k2-unpair drop
+# k2-pow2s: ( 1024 512 ... 2 1 ) by a doubling fold
+k2-pow2s: k2-range10 nil 1 cons [ drop dup head dup add cons ] fold
+# k2-band: a b -> bitwise and, summing bit products over k2-pow2s (a, b < 2048)
+k2-band: [ [ over div 2 mod ] dip swap [ over div 2 mod ] dip mul mul ] swap cons swap cons k2-pow2s swap map sum
+# k2-hexcount: k -> number of base-16 digits >= 10 (while-loop; k < 16^9)
+k2-hexcount: 0 [ [ drop drop 0 eq? ] [ drop swap drop ] [ [ [ dup k2-16 mod 10 ge? bool>int ] dip add [ k2-16 div ] dip ] dip dup i ] ifte ] dup i
+# k2-lis-best: pairs x -> pairs x best, best = max second field over pairs whose first < x (0 if none)
+k2-lis-best: over over [ [ k2-unpair drop ] dip lt? ] swap cons filter k2-seconds 0 [ max2 ] fold
