@@ -187,6 +187,8 @@ h4.sec:first-child { border-top:none; margin-top:0; padding-top:0; }
 .tokens .t.tgt { background:color-mix(in srgb,var(--blue) 8%,var(--raise)); }
 .note { font-size:11.5px; color:var(--ink-dim); margin:4px 0; }
 .note b { color:var(--ink); }
+.note.prior { padding:4px 7px 2px; border-bottom:1px solid var(--rule); margin-bottom:4px; }
+.prior-v { color:var(--mark); font-variant-numeric:tabular-nums; }
 
 /* play frames */
 .frame { display:grid; grid-template-columns:auto 1fr; gap:6px 8px; align-items:center; padding:2px 6px; border-radius:2px; font-size:12px; }
@@ -807,12 +809,15 @@ function renderTape() {
     if (!S.drive || !S.drive.ops) { $("exp-sub").textContent = ""; host.innerHTML = S.drive && S.drive.error ? `<span class="err">${esc(S.drive.error)}</span>` : '<span class="spin">scoring…</span>'; return; }
     $("exp-sub").textContent = `${S.drive.legal} of ${S.drive.ops.length} legal · ${S.drive.remaining} ops left`;
     const gt = driveGroundTruth();
-    host.innerHTML = S.drive.ops.map((o, i) => {
+    const prior = S.drive.prior;
+    const priorOf = (op) => prior && prior.ops[op] !== undefined ? prior.ops[op] : null;
+    const priorLine = prior ? `<div class="note prior">train prior ${esc(prior.condition)} (${prior.n} witness steps): ${Object.entries(prior.ops).slice(0, 5).map(([op, p]) => `<b>${esc(op)}</b> ${pct(p)}`).join(" · ")}${Object.keys(prior.ops).length > 5 ? " · …" : ""}${prior.n ? "" : " — never seen in training"}</div><div class="note">right column: policy · <span class="prior-v">prior</span></div>` : "";
+    host.innerHTML = priorLine + S.drive.ops.map((o, i) => {
       const key = o.rank && o.rank <= 9 ? `<span class="keycap">${DRIVE_KEYS[o.rank - 1]}</span>` : "";
       const isGT = gt && o.op === gt;
       const badge = o.outcome === "refused" ? '<span class="oc refused">refused</span>' : (o.guard ? `<span class="oc guard">guard ${esc(o.guard)}</span>` : (o.outcome === "captured" ? '<span class="oc captured">captured</span>' : '<span class="oc legal">legal</span>'));
       const succ = o.successor ? `<div class="succ">${stackHTML(o.successor, {compact:true, diffFrom: S.drive.states[0]})}</div>` : (o.reason ? `<div class="why">${esc(o.reason)}</div>` : "");
-      return `<div class="exp ${i === S.cursor ? "cur" : ""}" data-i="${i}"><span class="o">${o.rank ? "#" + o.rank : ""}</span>${badge}<span class="fn ${isGT ? "gt" : ""}">${key}${esc(o.op)}${isGT ? '<span class="gt-tag">witness next</span>' : ""}</span><span class="lp">${o.probability !== null ? pct(o.probability) : ""}</span>${i === S.cursor ? succ : ""}</div>`;
+      return `<div class="exp ${i === S.cursor ? "cur" : ""}" data-i="${i}"><span class="o">${o.rank ? "#" + o.rank : ""}</span>${badge}<span class="fn ${isGT ? "gt" : ""}">${key}${esc(o.op)}${isGT ? '<span class="gt-tag">witness next</span>' : ""}</span><span class="lp">${o.probability !== null ? pct(o.probability) : ""}${prior ? ` <span class="prior-v">${priorOf(o.op) !== null ? pct(priorOf(o.op)) : "–"}</span>` : ""}</span>${i === S.cursor ? succ : ""}</div>`;
     }).join("");
     host.querySelectorAll(".exp").forEach((el) => el.addEventListener("click", () => { S.cursor = Number(el.dataset.i); render(); }));
     return;
@@ -986,7 +991,7 @@ function renderHelp() {
 <p>Chips run bottom to top, left to right. A <b>[</b> chip opens a quotation: from there to the next <b>]</b> every op is captured as a dashed symbol instead of running, and <b>]</b> folds the dashed group into one list. Lists are drawn in parentheses; <b>nil</b> is the empty list. Gold rings mark what the op at the cursor changed.</p>
 <div class="cols">
 <div><span class="label">replay</span><p><b>↑ ↓</b> walk the 28 ops tried on the selected node, across nodes and depths. <b>→</b> follows the op at the cursor deeper, into the node it produced, when the search kept it; <b>←</b> goes back to the node and op that produced the selected node. <b>1–9 , .</b> select a node; <b>g</b> jumps to the witness node at this depth, cursor on the witness's next op. The alive strip is clickable for a plain jump to a depth. <b>space</b> runs. <b>t</b> toggles the witness marks; <b>x</b> shows masked ops in the ranking; <b>v</b> fetches the raw logits; <b>e</b> shows the exact tokens the model saw.</p></div>
-<div><span class="label">drive</span><p><b>m</b> takes the selected node's program and lets you continue by hand. <b>a s d f g h j k l</b> apply the policy's rank 1–9; <b>↑ ↓</b> pick any op and <b>→</b> or <b>Enter</b> applies it, refused ones excepted; <b>←</b> or <b>w</b> undoes. Every state shows all k examples and the policy's ranking from there.</p></div>
+<div><span class="label">drive</span><p>The line above the table is the <b>train prior</b>: how often each op follows the previous op in the train witnesses, at top level or inside an open quotation, and each row shows the policy's probability then the prior's in purple. Where they agree the policy may be repeating the corpus; where they differ it has read something off the state or the target. <b>m</b> takes the selected node's program and lets you continue by hand. <b>a s d f g h j k l</b> apply the policy's rank 1–9; <b>↑ ↓</b> pick any op and <b>→</b> or <b>Enter</b> applies it, refused ones excepted; <b>←</b> or <b>w</b> undoes. Every state shows all k examples and the policy's ranking from there.</p></div>
 <div><span class="label">play</span><p><b>p</b> steps the authored witness through the machine, <b>o</b> the program the search found. Ops that run a quotation (i, dip, map, filter, fold, ifte) open up in the middle column: each element visited, each branch taken, each leaf op applied, on the first example. The left column is the program's own tree: each <b>[ … ]</b> is a section labelled with the role the machine ran it in (fold body, ifte condition, map body…) and how many times; the right column shows that section's input → output rows across every shown example. Stepping onto a combinator focuses the section it consumes; <b>b</b> cycles sections.</p></div>
 </div>
 <h3>Verdicts on the tape</h3>

@@ -57,6 +57,13 @@ finishes. The strip under the header says at which depth the beam last held the
 witness prefix; where a node is on the witness its next op is marked with the
 rank the policy gave it. Off the witness path nothing is marked.
 
+**Drive mode shows the train prior beside the policy.** The line above the
+op table is how often each op follows the previous one in the train witnesses,
+split by whether the state is inside an open quotation, and each row carries
+the prior's probability in purple after the policy's. After a top-level `]`
+the witnesses say `fold` 46%, `[` 24%, `ifte` 12% and never `filter`, so a
+policy putting 27% on `filter` there has read the target, not the corpus.
+
 **Play mode draws the program as its own tree.** Brackets nest, so every
 `[ … ]` is a section; the walker records every body call, so each section is
 labelled with the role it ran in (`fold body`, `ifte condition`, `map body`,

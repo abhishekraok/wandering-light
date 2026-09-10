@@ -204,3 +204,26 @@ def test_anatomy_lists_quotations_built_at_runtime():
     built = anatomy(task, ["uncons", "quote", "i"])
     assert built["nodes"] == []
     assert built["runtime"] and built["runtime"][0]["roles"] == ["i body"]
+
+
+def test_train_prior_conditions_on_previous_op_and_open_quotation():
+    from dataclasses import replace
+
+    from wandering_light.stack_debugger.prior import TrainPrior
+
+    base = task_for("sum")
+    train = [
+        replace(base, split="train", program=("[", "add", "]", "fold")),
+        replace(base, split="train", program=("[", "[", "add", "]", "i", "]", "fold")),
+        replace(base, split="eval", program=("[", "mul", "]", "fold")),
+    ]
+    prior = TrainPrior(train)
+    assert prior.tasks == 2
+    assert prior.after([])["ops"] == {"[": 1.0}
+    assert prior.after([])["condition"] == "at the start"
+    top = prior.after(["[", "add", "]"])
+    assert top["condition"] == "after ] at top level" and top["ops"] == {"fold": 1.0}
+    inside = prior.after(["[", "[", "add", "]"])
+    assert inside["condition"] == "after ] inside an open quotation"
+    assert inside["ops"] == {"i": 1.0}
+    assert prior.after(["swap"])["n"] == 0 and prior.after(["swap"])["ops"] == {}

@@ -136,6 +136,9 @@ def run(base: str, out_dir: Path) -> int:
             "drive mode shows keycaps",
             len(page.query_selector_all("#tape .keycap")) >= 5,
         )
+        check(
+            "drive mode shows the train prior", "train prior" in text_of(page, "#tape")
+        )
         before = page.evaluate("S.driveHistory.length")
         page.keyboard.press("a")
         page.wait_for_function(

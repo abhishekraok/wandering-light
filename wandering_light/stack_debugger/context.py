@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any
 import torch
 
 from wandering_light.corpus_hub import fetch_corpus
+from wandering_light.stack_debugger.prior import TrainPrior
 from wandering_light.stack_pbe import load
 from wandering_light.stack_policy import MANIFEST_FILE, PolicyScorer, load_policy
 
@@ -89,6 +90,7 @@ class DebugContext:
     tasks: list[Task]
     scorer: PolicyScorer
     provenance: dict[str, Any]
+    prior: TrainPrior | None = None
 
     @classmethod
     def load(
@@ -103,15 +105,18 @@ class DebugContext:
     ) -> DebugContext:
         if device == "cpu":
             torch.set_num_threads(threads)
-        corpus_dir = fetch_corpus(corpus_manifest, splits=[split])
+        # The train split is loaded only for the prior the drive table shows.
+        corpus_dir = fetch_corpus(corpus_manifest, splits=[split, "train"])
         manifest = json.loads(Path(corpus_manifest).read_text())
         tasks = load(corpus_dir / manifest["splits"][split]["path"])
+        prior = TrainPrior(load(corpus_dir / manifest["splits"]["train"]["path"]))
         path, policy_provenance = resolve_checkpoint(checkpoint, artifact=artifact)
         training = json.loads((path / MANIFEST_FILE).read_text())
         scorer = PolicyScorer(load_policy(path, device=device), device)
         return cls(
             tasks=tasks,
             scorer=scorer,
+            prior=prior,
             provenance={
                 "corpus": {
                     "name": manifest["corpus"],
@@ -119,6 +124,7 @@ class DebugContext:
                     "hub": manifest.get("hub", {}),
                     "sha256": manifest["splits"][split]["sha256"],
                     "tasks": len(tasks),
+                    "train_tasks_for_prior": prior.tasks,
                 },
                 "policy": {
                     **policy_provenance,

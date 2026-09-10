@@ -253,6 +253,7 @@ def create_app(context: DebugContext) -> FastAPI:
             # entered from a beam node shows its whole trail, not just the
             # steps taken by hand.
             "trail": [stack_text(p[0]) for p in trail],
+            "prior": context.prior.after(steps) if context.prior else None,
             "matches": [
                 tuple(map(value_key, s)) == t
                 for s, t in zip(product, target, strict=True)

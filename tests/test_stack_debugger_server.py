@@ -30,10 +30,16 @@ def client():
     import torch
 
     torch.manual_seed(0)
+    from dataclasses import replace
+
+    from wandering_light.stack_debugger.prior import TrainPrior
+
+    tasks = [task_for("add_pair", 6), task_for("sum"), task_for("min_pair", 2)]
     context = DebugContext(
-        tasks=[task_for("add_pair", 6), task_for("sum"), task_for("min_pair", 2)],
+        tasks=tasks,
         scorer=PolicyScorer(StackPairPolicy(TINY), "cpu"),
         provenance={"policy": {"source": "test", "arm": "tiny", "seed": 0}},
+        prior=TrainPrior([replace(task, split="train") for task in tasks]),
     )
     return TestClient(create_app(context))
 
@@ -77,6 +83,13 @@ def test_state_replays_the_path_and_ranks_with_the_beams_mask(client):
     assert body["encoding"]["items"][0]["state_tokens"][-2:] == ["MARK", "add"]
     assert len(body["progress"]["points"]) == 3
     assert len(body["trail"]) == 3 and body["trail"][-1] == body["states"][0]
+    assert body["prior"]["condition"] == "after add inside an open quotation"
+    # Of the three fixture witnesses only sum's `0 [ add ] fold` has an add
+    # inside a quotation, and it is followed by `]`.
+    assert body["prior"]["n"] == 1 and body["prior"]["ops"] == {"]": 1.0}
+    start = client.get("/api/state", params={"task": 1, "path": ""}).json()
+    assert start["prior"]["condition"] == "at the start"
+    assert sum(start["prior"]["ops"].values()) == pytest.approx(1.0, abs=1e-3)
 
 
 def test_state_refuses_an_illegal_path(client):
