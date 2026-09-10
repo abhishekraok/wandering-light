@@ -448,7 +448,37 @@ function focusNode(index) {
 function setDepth(next) {
   const total = layers().length; if (!total) return;
   S.depth = Math.max(0, Math.min(total - 1, next));
-  S.node = 0; focusFirstExecuted(); S.state = null; S.panel = S.panel === "actions" ? "actions" : S.panel;
+  S.node = 0; focusFirstExecuted(); S.state = null;
+  render();
+}
+// ↓ follows the op at the cursor into the next layer when the search kept its
+// result; ↑ goes back to the node and op that produced the selected node. So
+// the two keys walk the search tree rather than jumping between layers and
+// forgetting what was selected. An op whose result was not kept has no node
+// below it, so ↓ then lands on the next layer's first node and the story says
+// why the op went nowhere.
+function descend() {
+  const l = layer(); if (!l || S.depth >= layers().length - 1) return;
+  const e = (l.expansions[S.node] || [])[S.cursor];
+  const rank = e && e.verdict === "retained"
+    ? l.retained.findIndex((r) => r.parent[0] === S.node && r.parent[1] === S.cursor) : -1;
+  S.depth += 1; S.node = Math.max(0, rank); focusFirstExecuted(); S.state = null;
+  render();
+}
+function ascend() {
+  if (S.depth === 0) return;
+  const previous = layers()[S.depth - 1];
+  const from = previous.retained[S.node];
+  S.depth -= 1; S.state = null;
+  if (from) { S.node = from.parent[0]; S.cursor = from.parent[1]; } else { S.node = 0; focusFirstExecuted(); }
+  render();
+}
+function gotoWitness() {
+  const w = witnessAt(S.depth);
+  if (!w || w.node === null) return;
+  S.node = w.node; S.state = null;
+  const at = ops().indexOf(w.next);
+  if (at >= 0) S.cursor = at; else focusFirstExecuted();
   render();
 }
 function stepCursor(delta) {
@@ -634,7 +664,8 @@ function renderStory() {
     else if (w.node !== null) wit = ` · the witness is node <b>${w.node + 1}</b> here`;
     else wit = ` · <span class="dead-t">the witness left the beam before this depth</span>`;
   }
-  host.innerHTML = `<span class="line">depth <b>${l.depth}</b> · node <b>${S.node + 1}</b> of ${l.nodes.length} (log-p ${fmt(node.log_probability)}) · op <b>${esc(op)}</b> ${verdict}${wit}</span><span class="hint">space run · ? help</span>`;
+  const follows = e && e.verdict === "retained" && S.depth < layers().length - 1;
+  host.innerHTML = `<span class="line">depth <b>${l.depth}</b> · node <b>${S.node + 1}</b> of ${l.nodes.length} (log-p ${fmt(node.log_probability)}) · op <b>${esc(op)}</b> ${verdict}${wit}</span><span class="hint">${follows ? "↓ follows this op" : (e && e.outcome !== "refused" ? "↓ cannot follow: not kept" : "")} · ${witnessNode(S.depth) !== null ? "g witness · " : ""}? help</span>`;
 }
 
 function renderBeam() {
@@ -853,7 +884,7 @@ function progressSVG(progress) {
 }
 
 function renderKeys() {
-  const replay = [["← →","op"],["↑ ↓","depth"],["1–9 , .","node"],["space","run"],["r","reset"],["t","witness"],["x","masked"],["v","logits"],["e","tokens"],["m","drive"],["p","play witness"],["o","play found"],["n","new task"],["?","help"]];
+  const replay = [["← →","op"],["↓ ↑","follow op / back to parent"],["1–9 , .","node"],["g","witness node"],["space","run"],["r","reset"],["t","witness"],["x","masked"],["v","logits"],["e","tokens"],["m","drive"],["p","play witness"],["o","play found"],["n","new task"],["?","help"]];
   const drive = [["a–l","apply rank 1–9"],["← → Enter","any op"],["w","undo"],["e","tokens"],["x","masked"],["m","back"]];
   const play = [["← →","step"],["p / o","witness / found"],["m","back"]];
   const set = S.mode === "drive" ? drive : (S.mode === "play" ? play : replay);
@@ -869,7 +900,7 @@ function renderHelp() {
 <h3>Reading a stack</h3>
 <p>Chips run bottom to top, left to right. A <b>[</b> chip opens a quotation: from there to the next <b>]</b> every op is captured as a dashed symbol instead of running, and <b>]</b> folds the dashed group into one list. Lists are drawn in parentheses; <b>nil</b> is the empty list. Gold rings mark what the op at the cursor changed.</p>
 <div class="cols">
-<div><span class="label">replay</span><p><b>← →</b> walk the 28 ops tried on the selected node, across nodes and depths. <b>↑ ↓</b> change depth. <b>1–9 , .</b> select a node. <b>space</b> runs. <b>t</b> toggles the witness marks; <b>x</b> shows masked ops in the ranking; <b>v</b> fetches the raw logits; <b>e</b> shows the exact tokens the model saw.</p></div>
+<div><span class="label">replay</span><p><b>← →</b> walk the 28 ops tried on the selected node, across nodes and depths. <b>↓</b> follows the op at the cursor into the node it produced, when the search kept it; <b>↑</b> goes back to the node and op that produced the selected node. <b>1–9 , .</b> select a node; <b>g</b> jumps to the witness node at this depth, cursor on the witness's next op. The alive strip is clickable for a plain jump to a depth. <b>space</b> runs. <b>t</b> toggles the witness marks; <b>x</b> shows masked ops in the ranking; <b>v</b> fetches the raw logits; <b>e</b> shows the exact tokens the model saw.</p></div>
 <div><span class="label">drive</span><p><b>m</b> takes the selected node's program and lets you continue by hand. <b>a s d f g h j k l</b> apply the policy's rank 1–9; <b>← →</b> and <b>Enter</b> apply any op, refused ones excepted; <b>w</b> undoes. Every state shows all k examples and the policy's ranking from there.</p></div>
 <div><span class="label">play</span><p><b>p</b> steps the authored witness through the machine, <b>o</b> the program the search found. Ops that run a quotation (i, dip, map, filter, fold, ifte) open up in the middle column: each element visited, each branch taken, each leaf op applied, on the first example.</p></div>
 </div>
@@ -919,8 +950,9 @@ document.addEventListener("keydown", (event) => {
   }
   if (key === "ArrowLeft") { event.preventDefault(); stepCursor(-1); return; }
   if (key === "ArrowRight") { event.preventDefault(); stepCursor(1); return; }
-  if (key === "ArrowUp") { event.preventDefault(); setDepth(S.depth - 1); return; }
-  if (key === "ArrowDown") { event.preventDefault(); setDepth(S.depth + 1); return; }
+  if (key === "ArrowUp") { event.preventDefault(); ascend(); return; }
+  if (key === "ArrowDown") { event.preventDefault(); descend(); return; }
+  if (key === "g") { gotoWitness(); return; }
   if (key >= "1" && key <= "9") { focusNode(Number(key) - 1); return; }
   if (key === ",") { focusNode(S.node - 1); return; }
   if (key === ".") { focusNode(S.node + 1); return; }

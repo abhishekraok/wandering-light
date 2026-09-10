@@ -111,6 +111,24 @@ def test_keys_move_through_the_trace(page):
     view.keyboard.press("r")
 
 
+def test_down_follows_the_selected_op_and_up_returns_to_it(page):
+    view, _ = page
+    view.keyboard.press("r")
+    # Put the cursor on an op whose result was kept, then follow it.
+    view.evaluate(
+        "(() => { const l = layer(); const row = l.expansions[0];"
+        " S.cursor = row.findIndex((e) => e && e.verdict === 'retained'); render(); })()"
+    )
+    op = view.evaluate("ops()[S.cursor]")
+    view.keyboard.press("ArrowDown")
+    assert view.evaluate("S.depth") == 1
+    assert view.evaluate("layer().nodes[S.node].program") == [op]
+    view.keyboard.press("ArrowUp")
+    assert view.evaluate("S.depth") == 0
+    assert view.evaluate("ops()[S.cursor]") == op
+    view.keyboard.press("r")
+
+
 def test_ground_truth_is_marked_only_on_the_witness_node(page):
     view, _ = page
     view.keyboard.press("r")
