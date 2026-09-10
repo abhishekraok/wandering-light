@@ -147,3 +147,60 @@ def test_inner_frames_agree_with_the_machine(stack, op):
     walked = inner_frames(OP_BY_NAME[op], parse_stack(stack, basis=BASIS))
     assert walked["agrees_with_machine"] is True
     assert walked["frames"]
+
+
+def test_anatomy_gives_each_quotation_a_role_and_examples():
+    from wandering_light.stack_debugger.anatomy import anatomy, spans
+
+    task = task_for("sum_negative") if "sum_negative" in BY_NAME else task_for("sum")
+    program = [
+        "0",
+        "[",
+        "[",
+        "dup",
+        "0",
+        "lt?",
+        "]",
+        "[",
+        "add",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold",
+    ]
+    tree = spans(program)
+    assert [(n["start"], n["end"], n["depth"], n["parent"]) for n in tree] == [
+        (1, 14, 0, None),
+        (2, 6, 1, 0),
+        (7, 9, 1, 0),
+        (10, 12, 1, 0),
+    ]
+    result = anatomy(task, program)
+    nodes = {n["body"]: n for n in result["nodes"]}
+    assert nodes["(dup 0 lt?)"]["roles"] == ["ifte condition"]
+    assert nodes["(add)"]["roles"] == ["ifte then"]
+    assert nodes["(drop)"]["roles"] == ["ifte else"]
+    assert nodes["((dup 0 lt?) (add) (drop) ifte)"]["roles"] == ["fold body"]
+    condition = nodes["(dup 0 lt?)"]
+    assert condition["runs"] == nodes["((dup 0 lt?) (add) (drop) ifte)"]["runs"] > 0
+    assert all(
+        row["output"] in ("[ true ]", "[ false ]")
+        or row["output"].endswith(("true ]", "false ]"))
+        for row in condition["examples"]
+    )
+    assert result["runtime"] == []
+
+
+def test_anatomy_lists_quotations_built_at_runtime():
+    from wandering_light.stack_debugger.anatomy import anatomy
+
+    task = task_for("sum")
+    # `quote` builds a one-element quotation the program never wrote down.
+    program = ["[", "add", "]", "i"]  # not a solver, just a literal body
+    assert anatomy(task, program)["runtime"] == []
+    built = anatomy(task, ["uncons", "quote", "i"])
+    assert built["nodes"] == []
+    assert built["runtime"] and built["runtime"][0]["roles"] == ["i body"]

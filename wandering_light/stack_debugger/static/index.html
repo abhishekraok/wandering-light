@@ -203,6 +203,23 @@ h4.sec:first-child { border-top:none; margin-top:0; padding-top:0; }
 .step .runs { margin-left:auto; font-size:10px; color:var(--mark); }
 .step.refused { border-left-color:var(--refuse); }
 
+/* program anatomy */
+.qnode { margin:2px 0 2px 0; border-left:2px solid color-mix(in srgb,var(--mark) 45%,transparent); padding-left:6px; }
+.qnode.focus { border-left-color:var(--gold); background:color-mix(in srgb,var(--gold) 6%,transparent); border-radius:2px; }
+.qnode > .qhead { display:flex; align-items:baseline; gap:6px; cursor:pointer; padding:2px 4px; font-size:12px; }
+.qnode > .qhead .br { color:var(--mark); font-weight:600; }
+.qnode > .qhead .role { font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--mark); }
+.qnode > .qhead .runs { margin-left:auto; font-size:10px; color:var(--ink-dim); }
+.qnode > .qtail { color:var(--mark); font-weight:600; padding:0 4px; font-size:12px; }
+.leaf { display:flex; gap:8px; align-items:baseline; padding:1px 4px; border-radius:2px; cursor:pointer; font-size:12.5px; }
+.leaf .i { font-size:10px; color:var(--ink-ghost); min-width:20px; }
+.leaf.cur { background:color-mix(in srgb,var(--gold) 22%,transparent); }
+.leaf.done { opacity:.55; }
+.leaf.refused { color:var(--refuse); }
+.leaf .runs { margin-left:auto; font-size:10px; color:var(--mark); }
+.exrow.call { grid-template-columns:auto 1fr auto 1fr; }
+.exrow.call .n { color:var(--mark); min-width:0; font-size:10px; letter-spacing:.04em; text-transform:uppercase; }
+
 /* map */
 .map { width:100%; height:190px; border:1px solid var(--rule); border-radius:2px; background:var(--well); }
 .map .pt { transition:cx .25s ease, cy .25s ease; }
@@ -278,7 +295,7 @@ const S = {
   session: null, depth: 0, node: 0, cursor: 0,
   mode: "replay", panel: "actions",
   showWitness: true, showRefused: false, playing: false, timer: null,
-  drive: null, driveHistory: [], driveStates: [], play: null, playStep: 0,
+  drive: null, driveHistory: [], driveStates: [], play: null, playStep: 0, playFocus: null,
   state: null, error: null, help: false,
 };
 const fmt = (x, n = 2) => (x === null || x === undefined) ? "–" : Number(x).toFixed(n);
@@ -555,14 +572,36 @@ async function enterPlay(which) {
   let program;
   if (which === "witness") program = "witness";
   else { const found = S.session.result.program; if (!found) return; program = found.join(","); }
-  S.mode = "play"; S.play = null; S.playStep = 0; render();
+  S.mode = "play"; S.play = null; S.playStep = 0; S.playFocus = null; render();
   try { S.play = await api("/api/play", { task: S.session.task.index, program }); S.play.which = which; }
   catch (error) { S.play = { error: error.message }; }
   render();
 }
 function playStep(delta) {
   if (!S.play || !S.play.steps) return;
-  S.playStep = Math.max(0, Math.min(S.play.steps.length - 1, S.playStep + delta)); render();
+  S.playStep = Math.max(0, Math.min(S.play.steps.length - 1, S.playStep + delta));
+  S.playFocus = focusFor(S.playStep); render();
+}
+// Which section to explain at a step: the quotation a combinator consumes is
+// the one written right before it, and an op inside brackets belongs to the
+// innermost quotation around it. Otherwise nothing is focused.
+function focusFor(step) {
+  const a = S.play && S.play.anatomy; if (!a || !step) return null;
+  const at = step - 1;
+  const consumed = a.nodes.find((n) => n.end === at - 1);
+  if (consumed && S.play.program[at] !== "[" && S.play.program[at] !== "]") {
+    const op = S.play.program[at];
+    if (["i","dip","map","filter","fold","ifte"].includes(op)) return consumed.id;
+  }
+  let inner = null;
+  for (const n of a.nodes) if (n.end !== null && n.start < at && at < n.end && (inner === null || n.depth > a.nodes[inner].depth)) inner = n.id;
+  return inner;
+}
+function cycleFocus() {
+  const a = S.play && S.play.anatomy; if (!a || !a.nodes.length) return;
+  const ids = a.nodes.map((n) => n.id);
+  const at = ids.indexOf(S.playFocus);
+  S.playFocus = ids[(at + 1) % ids.length]; render();
 }
 function exitPlay() { S.mode = "replay"; S.play = null; render(); }
 
@@ -683,12 +722,13 @@ function renderBeam() {
     host.innerHTML = html; return;
   }
   if (S.mode === "play") {
-    $("beam-title").textContent = "program · → ←";
+    $("beam-title").textContent = "program anatomy · → ←";
     $("beam-sub").textContent = S.play && S.play.steps ? `${S.play.steps.length - 1} ops` : "";
     if (!S.play || !S.play.steps) { host.innerHTML = S.play && S.play.error ? `<span class="err">${esc(S.play.error)}</span>` : '<span class="spin">…</span>'; return; }
-    host.innerHTML = S.play.steps.map((st, i) => `<div class="step ${i === S.playStep ? "cur" : ""} ${st.refused ? "refused" : ""}" data-i="${i}"><span class="i">${st.index}</span><span class="op">${st.op ? esc(st.op) : "inputs"}</span>${st.inner ? '<span class="runs">runs code</span>' : ""}${st.refused ? '<span class="runs" style="color:var(--refuse)">refused</span>' : ""}</div>`).join("");
-    host.querySelectorAll(".step").forEach((el) => el.addEventListener("click", () => { S.playStep = Number(el.dataset.i); render(); }));
-    const cur = host.querySelector(".step.cur"); if (cur) cur.scrollIntoView({block:"nearest"});
+    host.innerHTML = anatomyHTML();
+    host.querySelectorAll(".leaf").forEach((el) => el.addEventListener("click", () => { S.playStep = Number(el.dataset.step); S.playFocus = focusFor(S.playStep); render(); }));
+    host.querySelectorAll(".qhead").forEach((el) => el.addEventListener("click", (event) => { event.stopPropagation(); S.playFocus = Number(el.dataset.id); render(); }));
+    const cur = host.querySelector(".leaf.cur"); if (cur) cur.scrollIntoView({block:"nearest"});
     return;
   }
   const l = layer(); if (!l) { host.innerHTML = ""; return; }
@@ -701,6 +741,50 @@ function renderBeam() {
   }).join("");
   host.querySelectorAll(".node").forEach((el) => el.addEventListener("click", () => focusNode(Number(el.dataset.i))));
   const cur = host.querySelector(".node.sel"); if (cur) cur.scrollIntoView({block:"nearest"});
+}
+
+// The program as its own tree: brackets nest, and each quotation carries the
+// role the walker saw it run in. Leaves are the steps; the current one is
+// highlighted and the ones already taken are dimmed.
+function anatomyHTML() {
+  const play = S.play; const program = play.program; const a = play.anatomy || {nodes: [], runtime: []};
+  const starts = new Map(a.nodes.map((n) => [n.start, n]));
+  const stepOf = (i) => play.steps[i + 1];
+  const leaf = (i) => {
+    const st = stepOf(i); const cls = "leaf" + (i + 1 === S.playStep ? " cur" : (i + 1 < S.playStep ? " done" : "")) + (st && st.refused ? " refused" : "");
+    return `<div class="${cls}" data-step="${i + 1}"><span class="i">${i + 1}</span><span class="op">${esc(program[i])}</span>${st && st.inner ? '<span class="runs">runs code</span>' : ""}</div>`;
+  };
+  const render = (from, to) => {
+    let html = ""; let i = from;
+    while (i <= to) {
+      const node = starts.get(i);
+      if (node && node.end !== null) {
+        const focus = node.id === S.playFocus;
+        const roles = node.roles.length ? node.roles.map(esc).join(", ") : "never run";
+        html += `<div class="qnode ${focus ? "focus" : ""}"><div class="qhead" data-id="${node.id}"><span class="i">${i + 1}</span><span class="br">[</span><span class="role">${roles}</span><span class="runs">${node.runs ? `ran ${node.runs}×` : ""}</span></div>`;
+        html += render(i + 1, node.end - 1);
+        html += `<div class="qtail"><span class="leaf ${node.end + 1 === S.playStep ? "cur" : (node.end + 1 < S.playStep ? "done" : "")}" data-step="${node.end + 1}"><span class="i">${node.end + 1}</span>]</span></div></div>`;
+        i = node.end + 1;
+      } else { html += leaf(i); i += 1; }
+    }
+    return html;
+  };
+  let html = `<div class="leaf ${S.playStep === 0 ? "cur" : "done"}" data-step="0"><span class="i">0</span><span class="op">inputs</span></div>` + render(0, program.length - 1);
+  if (a.runtime && a.runtime.length) {
+    html += `<h4 class="sec">quotations built at runtime</h4>` + a.runtime.map((r) => `<div class="note"><b>${esc(r.body)}</b> · ${r.roles.map(esc).join(", ")} · ran ${r.runs}×</div>`).join("");
+  }
+  return html;
+}
+function sectionHTML() {
+  const a = S.play && S.play.anatomy; if (!a) return "";
+  const node = a.nodes.find((n) => n.id === S.playFocus);
+  if (!node) return `<h4 class="sec">section · b picks one</h4><div class="note">Step onto a combinator or inside a quotation, or press <b>b</b>, to see what that section did on the shown examples.</div>`;
+  const body = node.body ? stackHTML("[ " + node.body + " ]", {compact:true}) : '<span class="note">not a plain literal</span>';
+  let html = `<h4 class="sec">section · ops ${node.start + 1}–${node.end + 1}</h4><div class="note">${body}</div>`;
+  if (!node.runs) return html + `<div class="note">This quotation never ran on the shown examples.</div>`;
+  html += `<div class="note">${node.roles.map(esc).join(", ")} · ran <b>${node.runs}×</b> on the shown examples${node.examples.length < node.runs ? ` · ${node.examples.length} distinct rows` : ""}</div>`;
+  html += node.examples.map((row) => `<div class="exrow call"><span class="n">${esc(row.role.replace(/^\w+ /, ""))}</span>${stackHTML(row.input, {compact:true})}<span class="arrow">→</span>${row.refused ? `<span class="err">${esc(row.refused)}</span>` : stackHTML(row.output, {compact:true, diffFrom: row.input})}</div>`).join("");
+  return html;
 }
 
 function verdictBadge(e) {
@@ -815,7 +899,8 @@ function renderInspector() {
     if (!S.play || !S.play.steps) { $("insp-sub").textContent = ""; host.innerHTML = ""; return; }
     const st = S.play.steps[S.playStep]; const prev = S.play.steps[S.playStep - 1];
     $("insp-sub").textContent = st.matches ? `${st.matches.filter(Boolean).length} of ${st.matches.length} match` : "";
-    host.innerHTML = `<h4 class="sec">after step ${st.index}${st.op ? ` · ${esc(st.op)}` : ""}</h4>${exampleRows(st.states, st.matches, prev ? prev.states : null)}` +
+    host.innerHTML = sectionHTML() +
+      `<h4 class="sec">every example after step ${st.index}${st.op ? ` · ${esc(st.op)}` : ""}</h4>${exampleRows(st.states, st.matches, prev ? prev.states : null)}` +
       `<div class="note" style="margin-top:10px">${S.play.solved_shown ? "The program reproduces every shown output." : (S.play.refused ? `The machine refused at step ${S.play.steps.length - 1}.` : "The program does not reproduce every shown output.")}</div>`;
     return;
   }
@@ -886,7 +971,7 @@ function progressSVG(progress) {
 function renderKeys() {
   const replay = [["↑ ↓","op"],["→ ←","follow op deeper / back to parent"],["1–9 , .","node"],["g","witness node"],["space","run"],["r","reset"],["t","witness"],["x","masked"],["v","logits"],["e","tokens"],["m","drive"],["p","play witness"],["o","play found"],["n","new task"],["?","help"]];
   const drive = [["a–l","apply rank 1–9"],["↑ ↓ then → or Enter","any op"],["← or w","undo"],["e","tokens"],["x","masked"],["m","back"]];
-  const play = [["→ ←","step"],["p / o","witness / found"],["m","back"]];
+  const play = [["→ ←","step"],["b","next section"],["p / o","witness / found"],["m","back"]];
   const set = S.mode === "drive" ? drive : (S.mode === "play" ? play : replay);
   $("keys").innerHTML = set.map(([k, v]) => `<span><kbd>${k}</kbd>${v}</span>`).join("");
 }
@@ -902,7 +987,7 @@ function renderHelp() {
 <div class="cols">
 <div><span class="label">replay</span><p><b>↑ ↓</b> walk the 28 ops tried on the selected node, across nodes and depths. <b>→</b> follows the op at the cursor deeper, into the node it produced, when the search kept it; <b>←</b> goes back to the node and op that produced the selected node. <b>1–9 , .</b> select a node; <b>g</b> jumps to the witness node at this depth, cursor on the witness's next op. The alive strip is clickable for a plain jump to a depth. <b>space</b> runs. <b>t</b> toggles the witness marks; <b>x</b> shows masked ops in the ranking; <b>v</b> fetches the raw logits; <b>e</b> shows the exact tokens the model saw.</p></div>
 <div><span class="label">drive</span><p><b>m</b> takes the selected node's program and lets you continue by hand. <b>a s d f g h j k l</b> apply the policy's rank 1–9; <b>↑ ↓</b> pick any op and <b>→</b> or <b>Enter</b> applies it, refused ones excepted; <b>←</b> or <b>w</b> undoes. Every state shows all k examples and the policy's ranking from there.</p></div>
-<div><span class="label">play</span><p><b>p</b> steps the authored witness through the machine, <b>o</b> the program the search found. Ops that run a quotation (i, dip, map, filter, fold, ifte) open up in the middle column: each element visited, each branch taken, each leaf op applied, on the first example.</p></div>
+<div><span class="label">play</span><p><b>p</b> steps the authored witness through the machine, <b>o</b> the program the search found. Ops that run a quotation (i, dip, map, filter, fold, ifte) open up in the middle column: each element visited, each branch taken, each leaf op applied, on the first example. The left column is the program's own tree: each <b>[ … ]</b> is a section labelled with the role the machine ran it in (fold body, ifte condition, map body…) and how many times; the right column shows that section's input → output rows across every shown example. Stepping onto a combinator focuses the section it consumes; <b>b</b> cycles sections.</p></div>
 </div>
 <h3>Verdicts on the tape</h3>
 <p><b>refused</b> — the machine's guard said no on some example (the reason is shown). <b>captured</b> — inside an open [, the op became a symbol. <b>kept</b> — in the next beam, at the rank shown. <b>seen</b> — a state the search already had. <b>guard close</b> — more open [ than ops left; <b>guard type</b> — the open body can never run (prune-open-mark-states, #70). <b>cut</b> — ranked below the 64th successor. <b>fit</b> — every shown target matched.</p>
@@ -942,6 +1027,7 @@ document.addEventListener("keydown", (event) => {
     return;
   }
   if (S.mode === "play") {
+    if (key === "b") { cycleFocus(); return; }
     if (key === "ArrowLeft" || key === "ArrowUp") { event.preventDefault(); playStep(-1); return; }
     if (key === "ArrowRight" || key === "ArrowDown") { event.preventDefault(); playStep(1); return; }
     if (key === "m" || key === "Escape") { exitPlay(); return; }

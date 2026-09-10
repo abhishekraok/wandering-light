@@ -23,6 +23,7 @@ from fastapi.responses import FileResponse
 
 from wandering_light.quotation_guard import blocked
 from wandering_light.stack_beam import step_all_explained
+from wandering_light.stack_debugger.anatomy import anatomy
 from wandering_light.stack_debugger.session import (
     SearchSettings,
     bucket_of,
@@ -288,7 +289,11 @@ def create_app(context: DebugContext) -> FastAPI:
         else:
             ops = [name for name in program.split(",") if name]
             label = "program"
-        return {"label": label, **play_program(record, ops)}
+        return {
+            "label": label,
+            **play_program(record, ops),
+            "anatomy": anatomy(record, ops),
+        }
 
     return app
 

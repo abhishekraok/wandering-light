@@ -28,7 +28,8 @@ uv run python -m wandering_light.stack_debugger.cli trace --behaviour keep_negat
 |---|---|---|---|---|---|
 | `↑ ↓` | op tried, across nodes and depths | `a s d f g h j k l` | apply the policy's rank 1–9 | `→ ←` | program step |
 | `→` `←` | follow the op at the cursor deeper / back to the parent | `↑ ↓` then `→` or `Enter` | apply any legal op | `p` `o` | witness / found program |
-| `1`–`9` `,` `.` `g` | select beam node / the witness node | `←` or `w` | undo | `m` | back |
+| `1`–`9` `,` `.` `g` | select beam node / the witness node | `←` or `w` | undo | `b` | next section |
+| | | | | `m` | back |
 | `space` | run | `m` | back | | |
 | `t` | witness marks | `e` | tokens the model saw | | |
 | `x` | masked ops in the ranking | | | | |
@@ -55,6 +56,16 @@ op at the cursor changed.
 finishes. The strip under the header says at which depth the beam last held the
 witness prefix; where a node is on the witness its next op is marked with the
 rank the policy gave it. Off the witness path nothing is marked.
+
+**Play mode draws the program as its own tree.** Brackets nest, so every
+`[ … ]` is a section; the walker records every body call, so each section is
+labelled with the role it ran in (`fold body`, `ifte condition`, `map body`,
+…), how many times, and its input → output rows across every shown example.
+For `0 [ [ dup 0 lt? ] [ add ] [ drop ] ifte ] fold` that reads: the outer
+quotation is the fold body, run once per element on `(acc item)`; inside it
+`(dup 0 lt?)` is the condition and answers `item < 0`, `(add)` the then branch,
+`(drop)` the else. Quotations built at runtime by `cons`, `cat` or `quote`
+match no span and are listed separately.
 
 **Play mode restates the machine's runners.** For an op that runs a quotation,
 `walk.inner_frames` re-states the runner's sequencing one item at a time —

@@ -181,12 +181,16 @@ def test_drive_mode_applies_and_undoes_a_step(page):
 def test_play_mode_steps_the_witness_with_inner_work(page):
     view, _ = page
     view.keyboard.press("p")
-    view.wait_for_selector("#beam .step")
+    view.wait_for_selector("#beam .leaf")
     steps = view.evaluate("S.play.steps.length")
     for _ in range(steps - 1):
         view.keyboard.press("ArrowRight")
     assert "every example matches" in text(view, "#story")
     assert len(view.query_selector_all("#tape .frame")) > 0
+    # min_pair's witness has three sections, all consumed by the final ifte.
+    assert len(view.query_selector_all("#beam .qnode")) == 3
+    assert view.evaluate("S.playFocus") is not None
+    assert "ran" in text(view, "#insp")
     view.keyboard.press("m")
 
 

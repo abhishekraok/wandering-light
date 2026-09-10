@@ -161,10 +161,10 @@ def run(base: str, out_dir: Path) -> int:
 
         # play
         page.keyboard.press("p")
-        page.wait_for_selector("#beam .step", timeout=20_000)
+        page.wait_for_selector("#beam .leaf", timeout=20_000)
         check(
             "play lists the witness ops",
-            len(page.query_selector_all("#beam .step")) == 13,
+            page.evaluate("S.play.steps.length") == 13,
         )
         for _ in range(12):
             page.keyboard.press("ArrowRight")
@@ -178,6 +178,15 @@ def run(base: str, out_dir: Path) -> int:
             "every example matches at the end",
             "every example matches" in text_of(page, "#story"),
         )
+        check("anatomy tree drawn", len(page.query_selector_all("#beam .qnode")) == 3)
+        check(
+            "ifte focuses a section",
+            page.evaluate("S.playFocus") is not None
+            and "ran" in text_of(page, "#insp"),
+            text_of(page, "#insp")[:120],
+        )
+        page.keyboard.press("b")
+        check("b cycles the section", page.evaluate("S.playFocus") is not None)
         page.screenshot(path=str(out_dir / "05-play-ifte.png"))
         page.keyboard.press("o")
         page.wait_for_function(
@@ -185,7 +194,7 @@ def run(base: str, out_dir: Path) -> int:
         )
         check(
             "o plays the found program",
-            len(page.query_selector_all("#beam .step")) == 12,
+            page.evaluate("S.play.steps.length") == 12,
         )
         page.keyboard.press("m")
 
