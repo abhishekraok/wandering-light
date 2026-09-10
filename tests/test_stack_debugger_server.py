@@ -76,6 +76,7 @@ def test_state_replays_the_path_and_ranks_with_the_beams_mask(client):
     assert captured["outcome"] == "captured"
     assert body["encoding"]["items"][0]["state_tokens"][-2:] == ["MARK", "add"]
     assert len(body["progress"]["points"]) == 3
+    assert len(body["trail"]) == 3 and body["trail"][-1] == body["states"][0]
 
 
 def test_state_refuses_an_illegal_path(client):

@@ -495,8 +495,7 @@ async function driveTo(path) {
   S.drive = null; render();
   try {
     S.drive = await api("/api/state", { task: S.session.task.index, path: path.join(","), max_depth: S.session.settings.max_depth, guard: S.session.settings.guard });
-    S.driveStates = S.driveStates.slice(0, path.length);
-    S.driveStates[path.length] = S.drive.states[0];
+    S.driveStates = S.drive.trail;
     S.driveHistory = path;
     S.cursor = Math.max(0, S.drive.ops.findIndex((o) => o.rank === 1));
   } catch (error) { S.drive = { error: error.message }; }

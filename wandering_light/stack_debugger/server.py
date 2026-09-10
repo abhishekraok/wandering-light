@@ -248,6 +248,10 @@ def create_app(context: DebugContext) -> FastAPI:
         return {
             "path": steps,
             "states": product_text(product),
+            # The first example after every op on the path, so a driven walk
+            # entered from a beam node shows its whole trail, not just the
+            # steps taken by hand.
+            "trail": [stack_text(p[0]) for p in trail],
             "matches": [
                 tuple(map(value_key, s)) == t
                 for s, t in zip(product, target, strict=True)
