@@ -183,6 +183,24 @@ LR per arm from a one-epoch probe (`lr_probe.json`), extended three halvings bel
 | CPU/CUDA crossover | ~1M–10M params | same |
 | Unsolved task, beam 64 × depth 48 on `mark-28` (2,957 expansions) | 1m / 2m / 10m: 4.0 / 5.5 / 8.9 s CPU (8 threads), 3.0 / 3.1 / 3.6 s CUDA | [report](../reports/compute-optimal-mark28-20260903/README.md) |
 
+## Legacy typed-list line (2026-08-10)
+
+The pre-pivot solver and proposer, before `deep-corpus-v1`. No report
+directory; these rows were carried by the README (commits `d70d143`, `864ec0a`)
+and moved here when it was rewritten. Basis `wl-core-pyhash-v1`, the alias the
+checkpoint was trained against; a solve is an exact output match, so the rate
+is an upper bound on "finds the shortest path". The checkpoint predates
+`str_hash`/`set_hash`/`set_to_list` being made deterministic, so it was scored
+against three definitions it never saw.
+
+| measurement | value | source |
+|---|---|---|
+| `abhishekraok/induction-basicfns-opt125m-sft434k-rl-6k-with-lp` (OPT-125M, SFT then GRPO with a length penalty) on `random_inputs_500_shortest_v1`, 480 certified specs, budget 1 / 2 / 4 / 8 / 16 | 83.96 / 84.38 / 85.21 / 85.00 / 85.42 % | README at `864ec0a` |
+| same checkpoint on `random_inputs_500`, 496 specs, budget 1 / 2 / 4 / 8 / 16 | 85.48 / 85.08 / 85.28 / 85.69 / 86.29 % | same |
+| Best-of-K | 16x the compute adds 7 solves of 480, non-monotonically; residual failures are systematic | same |
+| Solution length, certified eval | mean solve 1.83 functions against 1.84 ground truth; the 1.81-vs-3.00 gap on `random_inputs_500` was its random-walk labels, 62.7 % of which certification shortened | same |
+| `abhishekraok/proposer-basicfns-opt125m-sft2k` scored against that solver | parse 0.96, solver success 0.15, 31 % of groups with non-zero reward std (69 % give GRPO no gradient); measured before the palette fix, never re-measured | README at `d70d143` |
+
 ## No result
 
 | study | state |
