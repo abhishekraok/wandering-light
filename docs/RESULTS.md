@@ -52,7 +52,8 @@ Cost to clear the cohort, (coverage, total wall-clock): CPU 0.185 / 1,009 s,
 0.180 / 1,074 s, for 1m / 2m / 10m. Per-execution AUC at 1–5 ops: 0.315 /
 0.312 / 0.315. Every arm's validation CE bottoms at 0.925–0.976 at epoch 1 or 2
 and rises after. Eleven of the cohort's 43 behaviours are ever solved; the
-longest solves are 44–46-op programs for a 92-op witness.
+longest verified solves are 12 ops (the 44-op and 28-op solves the report quotes
+are held-out-surviving shortcuts; `docs/STATUS.md`, Superseded, 2026-09-09).
 
 ## `deep-corpus-v1` — learned solver against search (96 held-out tasks, 12 per distance 1–8)
 

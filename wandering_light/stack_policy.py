@@ -186,11 +186,29 @@ class PolicyScorer:
     def __init__(self, model: StackPairPolicy, device: torch.device | str = "cpu"):
         self.device = torch.device(device)
         self.model = model.to(self.device).eval()
+        # The pooled rows behind the last ``logits`` call. ``forward`` is
+        # ``head(pooled_features(...))``, so keeping the intermediate costs
+        # nothing and lets an observer lay the beam out in the policy's own
+        # space without a second pass over every node.
+        self.last_features: np.ndarray | None = None
+
+    def logits(self, blocks: Sequence[np.ndarray]) -> np.ndarray:
+        """The head's raw rows, one per node, over all 28 ops; nothing masked."""
+        with torch.inference_mode():
+            pooled = self.model.pooled_features(*collate(blocks, self.device))
+            logits = self.model.head(pooled)
+        self.last_features = pooled.float().cpu().numpy()
+        return logits.float().cpu().numpy()
+
+    def pooled_features(self, blocks: Sequence[np.ndarray]) -> np.ndarray:
+        """What the head reads for each node: the pooled ``(state, target)`` set."""
+        with torch.inference_mode():
+            features = self.model.pooled_features(*collate(blocks, self.device))
+        return features.float().cpu().numpy()
 
     def log_probs(self, blocks: Sequence[np.ndarray], legal: np.ndarray) -> np.ndarray:
         """Row-wise log-softmax over the legal ops; illegal entries are -inf."""
-        with torch.inference_mode():
-            logits = self.model(*collate(blocks, self.device)).float().cpu().numpy()
+        logits = self.logits(blocks)
         logits = np.where(legal, logits, -np.inf)
         peak = logits.max(axis=1, keepdims=True)
         peak = np.where(np.isfinite(peak), peak, 0.0)
