@@ -98,9 +98,9 @@ Corpus scope numbers (v3 → v4): distinct input stacks 15,550 → 83,488; witne
 |---|---|---|---|---|
 | MBPP | 49/50 (98%) | 115 | 13 | 1: output is CPython set-iteration order |
 | LeetCode-easy | 42/45 (93%) | 99.5 | 23.5 | 3: fuel, tests enumerate up to 90,002 numbers against the 100,000-step cap |
-| all | 91/95 (96%) | 102 (v4: 44) | 17 | 4 |
+| all | 91/95 (96%) | 102 (v4, both splits: 43) | 17 | 4 |
 
-Length buckets, verified probe / v4 behaviours: 1–5 ops 6 / 9, 6–10 3 / 11, 11–20 8 / 28, 21–40 8 / 28, 41+ 66 / 99. Exact v4 witness matches 4 of 91; same skeleton 4. 129 macros defined; median expansion 4.6 ops per macro token. Six solves replay reference quirks rather than the description (listed in the report). `MAX_QUOTATION_DEPTH = 32` caps a self-applying loop at ~7 iterations; every author rebuilt ranges as recursion-free folds.
+Length buckets, verified probe / v4 behaviours (train + eval, 220): 1–5 ops 6 / 15, 6–10 3 / 14, 11–20 8 / 34, 21–40 8 / 37, 41+ 66 / 120. Exact v4 witness matches 5 of 91; same skeleton 5. 129 macros defined; median expansion 4.6 ops per macro token. Six solves replay reference quirks rather than the description (listed in the report). `MAX_QUOTATION_DEPTH = 32` caps a self-applying loop at ~7 iterations; every author rebuilt ranges as recursion-free folds.
 
 ## Stack PBE v4 — compute-optimal policy size (#101), 300-task eval cohort
 

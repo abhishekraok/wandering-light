@@ -11,7 +11,7 @@ form and expanded to `mark-28`; every program re-verified on every test by `repo
   three LeetCode problems whose tests span up to 90,002 numbers against the
   100,000-step fuel cap. Nothing failed for want of an op.
 - **Raw witnesses are longer than v4's, not shorter.** Median 102 `mark-28`
-  ops against v4's 44, and 66 of 91 sit in the 41+ bucket. The same programs
+  ops against v4's 43 over both splits, and 66 of 91 sit in the 41+ bucket. The same programs
   are a median 17 tokens in macro form (4.6 ops per token), so the length is
   the basis's, not the behaviours': every author ended up with a library of
   stack shuffles, packed accumulators, index-list builders and digit helpers.
@@ -28,9 +28,9 @@ form and expanded to `mark-28`; every program re-verified on every test by `repo
   that reference. A corpus built this way inherits the reference as the
   behaviour, which is the right reading of world-authored data but the wrong
   one of the description.
-- **Overlap with v4 is small**: 4 of 91 expanded programs equal a v4 witness
-  (`add`, `product`, `max2`, and the range of a list), and none of the rest
-  share a skeleton.
+- **Overlap with v4 is small**: 5 of 91 expanded programs equal a v4 witness
+  (`add`, `product`, `max2`, `min2`, and the range of a list), and none of the
+  rest share a skeleton with any of v4's 220 behaviours.
 
 ## Verified
 
@@ -44,16 +44,16 @@ Claimed-vs-verified mismatches: 0; missing ids: 0; duplicates: 0.
 
 ## Witness length against `stack_pbe_v4`
 
-| bucket (ops) | this probe (verified) | v4 behaviours |
+| bucket (ops) | this probe (verified) | v4 behaviours (train + eval, 220) |
 |---|---|---|
-| 1-5 | 6 | 9 |
-| 6-10 | 3 | 11 |
-| 11-20 | 8 | 28 |
-| 21-40 | 8 | 28 |
-| 41+ | 66 | 99 |
-| median | 102 | 44 |
+| 1-5 | 6 | 15 |
+| 6-10 | 3 | 14 |
+| 11-20 | 8 | 34 |
+| 21-40 | 8 | 37 |
+| 41+ | 66 | 120 |
+| median | 102 | 43.0 |
 
-Exact matches with a v4 witness: 4 (mbpp-925, mbpp-309, mbpp-588, leetcode-add-two-integers). Same skeleton as a v4 witness: 4.
+Exact matches with a v4 witness: 5 (mbpp-925, mbpp-970, mbpp-309, mbpp-588, leetcode-add-two-integers). Same skeleton as a v4 witness: 5.
 
 ## Macros
 

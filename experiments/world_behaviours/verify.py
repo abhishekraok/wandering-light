@@ -177,7 +177,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     if args.json:
         args.json.write_text(json.dumps(report, indent=1))
-    return 0
+    return 0 if solved == len(report) else 1
 
 
 if __name__ == "__main__":

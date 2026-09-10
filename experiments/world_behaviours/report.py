@@ -25,7 +25,7 @@ from verify import check, expand, load_macros
 
 from wandering_light.stack_pbe import skeleton
 
-V4_TRAIN = Path("wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz")
+V4_MANIFEST = Path("wandering_light/evals/data/stack_pbe_v4/manifest.json")
 BUCKETS = ((1, 5), (6, 10), (11, 20), (21, 40), (41, 10**9))
 
 FINDINGS = """## Findings (written with the 2026-09-09 run; the tables below regenerate)
@@ -35,7 +35,7 @@ FINDINGS = """## Findings (written with the 2026-09-09 run; the tables below reg
   three LeetCode problems whose tests span up to 90,002 numbers against the
   100,000-step fuel cap. Nothing failed for want of an op.
 - **Raw witnesses are longer than v4's, not shorter.** Median 102 `mark-28`
-  ops against v4's 44, and 66 of 91 sit in the 41+ bucket. The same programs
+  ops against v4's 43 over both splits, and 66 of 91 sit in the 41+ bucket. The same programs
   are a median 17 tokens in macro form (4.6 ops per token), so the length is
   the basis's, not the behaviours': every author ended up with a library of
   stack shuffles, packed accumulators, index-list builders and digit helpers.
@@ -52,9 +52,9 @@ FINDINGS = """## Findings (written with the 2026-09-09 run; the tables below reg
   that reference. A corpus built this way inherits the reference as the
   behaviour, which is the right reading of world-authored data but the wrong
   one of the description.
-- **Overlap with v4 is small**: 4 of 91 expanded programs equal a v4 witness
-  (`add`, `product`, `max2`, and the range of a list), and none of the rest
-  share a skeleton.
+- **Overlap with v4 is small**: 5 of 91 expanded programs equal a v4 witness
+  (`add`, `product`, `max2`, `min2`, and the range of a list), and none of the
+  rest share a skeleton with any of v4's 220 behaviours.
 """
 
 
@@ -66,16 +66,31 @@ def bucket(n: int) -> str:
 
 
 def v4_witnesses() -> dict[str, tuple[str, str]]:
-    """behaviour -> (program text, skeleton) for every v4 train behaviour."""
-    if not V4_TRAIN.exists():
-        return {}
-    out = {}
-    with gzip.open(V4_TRAIN, "rt") as fh:
-        for line in fh:
-            row = json.loads(line)
-            out.setdefault(
-                row["behaviour"], (" ".join(row["program"]), row["skeleton"])
-            )
+    """behaviour -> (program text, skeleton) over both pinned v4 splits.
+
+    The payload is fetched, digest-checked, from the tracked manifest; a
+    missing or unreachable payload is an error, not an empty comparison.
+    """
+    from wandering_light.corpus_hub import fetch_corpus
+
+    directory = fetch_corpus(V4_MANIFEST)
+    manifest = json.loads(V4_MANIFEST.read_text())
+    out: dict[str, tuple[str, str]] = {}
+    for split in ("train", "eval"):
+        path = directory / manifest["splits"][split]["path"]
+        if not path.exists():
+            raise FileNotFoundError(f"v4 {split} payload missing at {path}")
+        with gzip.open(path, "rt") as fh:
+            for line in fh:
+                row = json.loads(line)
+                out.setdefault(
+                    row["behaviour"], (" ".join(row["program"]), row["skeleton"])
+                )
+    expected = sum(manifest["splits"][s]["behaviours"] for s in ("train", "eval"))
+    if len(out) != expected:
+        raise ValueError(
+            f"v4 catalogue has {len(out)} behaviours, manifest says {expected}"
+        )
     return out
 
 
@@ -213,7 +228,7 @@ def main(argv: list[str] | None = None) -> int:
         "",
         "## Witness length against `stack_pbe_v4`",
         "",
-        "| bucket (ops) | this probe (verified) | v4 behaviours |",
+        "| bucket (ops) | this probe (verified) | v4 behaviours (train + eval, 220) |",
         "|---|---|---|",
     ]
     for lo, _hi in BUCKETS:
