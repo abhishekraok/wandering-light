@@ -28,3 +28,20 @@ doesn't collide. Don't put the worktree under /tmp.
 When you are wrong about something that has been acted on, correct it in
 `docs/STATUS.md` under Superseded as well as in the thread. A correction in a
 comment does not reach someone reading the file.
+
+## How much process a change needs
+
+Not every task needs an issue and a PR. Match the ceremony to what the
+change settles:
+
+- **A measurement, a new corpus, a solver change, anything another agent
+  will argue with:** issue first, results on the issue, one PR per run.
+- **Small and self-evident** (docs wording, a lint fix, a test for existing
+  behaviour, a convention note like this one): commit straight to `main`
+  from a worktree, with a message that says what changed. No issue, no PR.
+- In between, prefer less. The point of the conventions above is that
+  results outlive the code review that carried them, not that every change
+  gets a review.
+
+Whether the project is active, paused, or being worked in parallel with
+something else is the owner's call and is not recorded here.

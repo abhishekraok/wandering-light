@@ -90,6 +90,18 @@ Depth-5 states per task (`#70` probe, 3 tasks, seed 17): v4 roots **1,166,586** 
 
 Corpus scope numbers (v3 → v4): distinct input stacks 15,550 → 83,488; witness median 6.5 → 43 ops; witnesses with a branch — → 76%; median 8-op-window overlap between witnesses 79.8%, eval-with-train 76.8%.
 
+## World-behaviours probe (#118): `mark-28` witnesses for MBPP and LeetCode-easy
+
+95 behaviours sampled from MBPP (50) and LeetCode-easy (45) with every argument and result an int or flat int list, ≤ 3 arguments, ≥ 10 tests (MBPP's 3 asserts extended by shape-mutated inputs run through the reference solution); programs authored by four Claude sessions in macro form, expanded to `mark-28`, re-verified on every test by `experiments/world_behaviours/report.py`. Lengths are expanded `mark-28` ops. [report](../reports/world-behaviours-probe-20260909/README.md), `report.json`, `behaviours.jsonl`, `programs_<k>.jsonl`; macros in `experiments/world_behaviours/macros*.txt`.
+
+| source | verified on every test | median witness length | median macro-form length | unsolved, reason |
+|---|---|---|---|---|
+| MBPP | 49/50 (98%) | 115 | 13 | 1: output is CPython set-iteration order |
+| LeetCode-easy | 42/45 (93%) | 99.5 | 23.5 | 3: fuel, tests enumerate up to 90,002 numbers against the 100,000-step cap |
+| all | 91/95 (96%) | 102 (v4, both splits: 43) | 17 | 4 |
+
+Length buckets, verified probe / v4 behaviours (train + eval, 220): 1–5 ops 6 / 15, 6–10 3 / 14, 11–20 8 / 34, 21–40 8 / 37, 41+ 66 / 120. Exact v4 witness matches 5 of 91; same skeleton 5. 129 macros defined; median expansion 4.6 ops per macro token. Six solves replay reference quirks rather than the description (listed in the report). `MAX_QUOTATION_DEPTH = 32` caps a self-applying loop at ~7 iterations; every author rebuilt ranges as recursion-free folds.
+
 ## Stack PBE v4 — compute-optimal policy size (#101), 300-task eval cohort
 
 `stack_pbe_v4` eval, 60 tasks per witness-length bucket (seed-17 shuffle, first 60 per bucket; contains sample 40), beam 64 × depth 48, guard `both`, two seeds per arm, CPU (8 threads) and CUDA cells. Solve rates are graded on held-out examples; the solve-rate table is the CPU cells, and CUDA agrees on 3,599 of 3,600 task-cells (10m seed 1 misses one `negate_each` task on CUDA, giving 0.033 at 6–10 and coverage 0.180 there). AUC is normalised area under solve rate against log₂ budget: wall-clock on [0.01, 100] s; executions (one per op run on one example stack) on [16, 524,288], computed from every hit replayed under the corrected counter (0 program mismatches). [report](../reports/compute-optimal-mark28-20260903/README.md), `aggregate.json`, `timing/<arm>-s<seed>-<device>.json`.

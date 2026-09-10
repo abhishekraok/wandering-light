@@ -1,0 +1,27 @@
+# Author K=4 macros (#118). Self-applying loops nest ~4 quotation levels per
+# iteration and MAX_QUOTATION_DEPTH is 32, so `range` dies past n=7. Every
+# loop here is a fold over a "junk" list of the right length instead.
+# Stack shuffles
+k4-rot: [ swap ] dip swap
+# Junk lists: length-N lists of don't-care values, built by doubling
+k4-junk8: nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons
+k4-junk16: k4-junk8 dup cat
+k4-junk128: k4-junk16 dup cat dup cat dup cat
+k4-junk1024: k4-junk128 dup cat dup cat dup cat
+# iota: n junk -> ( 0 1 ... n-1 ), n <= len junk; fold with the reversed list as counter
+k4-iota-over: [ swap drop over [ null? ] [ drop 0 ] [ head inc ] ifte [ swap lt? ] [ swap drop cons ] [ drop drop ] ifte ] k4-rot cons nil swap fold reverse
+k4-iota: k4-junk1024 k4-iota-over
+k4-iota16: k4-junk16 k4-iota-over
+k4-iota128: k4-junk128 k4-iota-over
+# digits: n -> list of decimal digits, most significant first (nil for 0); up to 8 digits
+k4-digits: nil nil swap cons swap cons k4-junk8 swap [ drop uncons swap head [ drop 0 eq? ] [ ] [ over 10 mod cons [ 10 div ] dip ] ifte nil swap cons swap cons ] fold uncons drop head
+k4-digit-sum: k4-digits sum
+k4-digit-product: k4-digits product
+# divisible?: n d -> bool
+k4-divisible?: mod 0 eq?
+# sum of multiples of k in [1, n]: n k -> k * m(m+1)/2 with m = n // k
+k4-sum-multiples-of: swap over div dup inc mul 2 div mul
+# Gregorian leap year: year -> bool, as (y%4==0) - (y%100==0) + (y%400==0) == 1
+k4-leap?: dup 4 mod 0 eq? bool>int over 100 mod 0 eq? bool>int sub swap 100 4 mul mod 0 eq? bool>int add 1 eq?
+# Stern's diatomic doubling: ( x0 .. xm ) -> ( x0 x0+x1 x1 x1+x2 ... xm ), a fold with acc ( prev out-reversed )
+k4-stern-double: uncons dup quote nil swap cons swap cons [ [ uncons swap head ] dip k4-rot over add k4-rot swap cons over cons nil swap cons swap cons ] fold uncons drop head reverse

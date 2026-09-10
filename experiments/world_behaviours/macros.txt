@@ -1,0 +1,52 @@
+# Shared macro library for authoring mark-28 programs (#118).
+# name: body   -- body may use other macros; expansion is recursive.
+# Constants
+2: 1 1 add
+3: 1 1 add 1 add
+4: 1 1 add dup add
+5: 1 1 add dup add 1 add
+6: 1 1 add 1 add dup add
+7: 1 1 add 1 add dup add 1 add
+8: 1 1 add dup add dup add
+9: 1 1 add 1 add dup mul
+10: 1 1 add dup add 1 add dup add
+100: 10 dup mul
+1000: 10 dup mul 10 mul
+-1: 0 1 sub
+# Scalars
+neg: 0 swap sub
+inc: 1 add
+dec: 1 sub
+abs: [ dup 0 lt? ] [ neg ] [ ] ifte
+max2: [ over lt? ] [ drop ] [ swap drop ] ifte
+min2: [ over lt? ] [ swap drop ] [ drop ] ifte
+sq: dup mul
+mod: over over div mul sub
+gt?: swap lt?
+le?: gt? not
+ge?: lt? not
+not: [ ] [ drop false ] [ drop true ] ifte
+bool>int: [ ] [ drop 1 ] [ drop 0 ] ifte
+even?: 2 mod 0 eq?
+odd?: 2 mod 1 eq?
+# Lists
+len: 0 [ drop inc ] fold
+sum: 0 [ add ] fold
+product: 1 [ mul ] fold
+reverse: nil [ cons ] fold
+head: uncons swap drop
+tail: uncons drop
+last: 0 [ swap drop ] fold
+max: uncons [ max2 ] fold
+min: uncons [ min2 ] fold
+# range: n -> ( 0 1 ... n-1 ) via a self-applying quotation. CAPPED AT n = 7 by
+# MAX_QUOTATION_DEPTH = 32; see REFERENCE.md and the k1-/k2-/k3-/k4- range macros.
+range: nil swap [ [ drop 0 eq? ] [ drop drop ] [ [ 1 sub dup [ cons ] dip ] dip dup i ] ifte ] dup i
+range1: range [ inc ] map
+# take: nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop reverse
+take: nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop reverse
+drop-n: nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop reverse
+# nth: lst i -> element at index i (0-based)
+nth: drop-n head
+# contains: [ eq? ] swap cons filter len 0 gt? bool>int
+contains: [ eq? ] swap cons filter len 0 gt? bool>int

@@ -1,0 +1,44 @@
+# Author K=3 macros (#118 probe).
+# NOTE: the shared `range` is a self-applying quotation and MAX_QUOTATION_DEPTH=32
+# refuses it beyond n=7. The k3-range below is flat: it doubles a list ten times
+# with map+cat (no nesting) and filters, so it serves any n <= 1024.
+# k3-double: ( lst -- lst ++ (lst + len) ) e.g. (0 1) -> (0 1 2 3)
+k3-double: dup dup len [ add ] swap cons map cat
+# k3-range: ( n -- ( 0 .. n-1 ) ) for 0 <= n <= 1024, no recursion
+k3-range: [ lt? ] swap cons nil 0 cons k3-double k3-double k3-double k3-double k3-double k3-double k3-double k3-double k3-double k3-double swap filter
+# k3-range1: ( n -- ( 1 .. n ) )
+k3-range1: k3-range [ inc ] map
+# k3-has: ( x lst -- x c ) keep x, push contains(lst, x) as 0/1
+k3-has: [ dup ] dip swap contains
+# k3-pdouble: ( (1 .. p) -- (1 .. p*p*2) ) doubles a power-of-two list
+k3-pdouble: dup dup last 2 mul [ mul ] swap cons map cat
+# k3-pows: ( -- ( 1 2 4 ... 32768 ) ) sixteen powers of two
+k3-pows: nil 1 cons k3-pdouble k3-pdouble k3-pdouble k3-pdouble
+# k3-and: ( a b -- a&b ) bitwise and via per-power-of-two digit products
+k3-and: k3-pows [ [ [ over ] dip swap div 2 mod swap [ over ] dip swap div 2 mod mul mul ] swap cons swap cons ] dip swap map sum
+# k3-xor: ( a b -- a^b ) = a + b - 2*(a&b)
+k3-xor: over over k3-and 2 mul [ add ] dip sub
+# k3-xorrange: ( x -- 0^1^...^x ) closed form by x mod 4
+k3-xorrange: dup 4 mod [ 0 eq? ] [ drop ] [ [ 1 eq? ] [ drop drop 1 ] [ [ 2 eq? ] [ drop inc ] [ drop drop 0 ] ifte ] ifte ] ifte
+# k3-dot: ( A B -- sum a_i*b_i ) zip-multiply via fold over A with B as accumulator tail; len A <= len B
+k3-dot: 0 cons [ [ uncons ] dip [ [ uncons ] dip ] dip swap [ mul ] dip add cons ] fold head
+# k3-powstep: ( k (p ..) -- k (k*p p ..) )
+k3-powstep: over [ dup head ] dip mul cons
+# k3-powlist: ( k -- ( k^6 k^5 ... k 1 ) )
+k3-powlist: nil 1 cons k3-powstep k3-powstep k3-powstep k3-powstep k3-powstep k3-powstep swap drop
+# k3-basesum: ( n k -- digit sum of n in base k ) for n < k^7
+k3-basesum: dup k3-powlist [ [ [ swap div ] dip mod ] swap cons swap cons ] dip swap map sum
+# k3-digitsum: ( n -- decimal digit sum ) for n < 10^7
+k3-digitsum: 10 k3-basesum
+# k3-between: ( n lo hi -- lo<=n<=hi )
+k3-between: [ over ] dip le? bool>int [ ge? bool>int ] dip mul 1 eq?
+# k3-euclid-step: ( a b ans -- b a%b ans+a/b ) or unchanged when b == 0; unroll instead of recursing
+k3-euclid-step: [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over mod ] dip [ [ swap drop ] dip ] dip ] ifte
+# k3-tri-fits: ( h r b -- bool ) a triangle of height h fits when odd rows (ceil(h/2)^2) <= r and even rows (h/2*(h/2+1)) <= b
+k3-tri-fits: [ [ dup inc 2 div sq ] dip ] dip [ le? ] dip [ swap ] dip [ 2 div dup inc mul ] dip le? [ bool>int ] dip bool>int mul 1 eq?
+# k3-trih: ( r b -- max height ) with rows alternating r,b starting from r
+k3-trih: [ k3-tri-fits ] swap cons swap cons 10 dup add k3-range1 swap filter 0 [ max2 ] fold
+# k3-divides-both: ( x a b -- bool ) x divides a and b
+k3-divides-both: [ over ] dip swap mod 0 eq? bool>int [ swap mod 0 eq? bool>int ] dip mul 1 eq?
+# k3-pdiff3: ( a b c -- (a-b)(a-c)(b-c) ) zero iff two of the three are equal
+k3-pdiff3: over over sub [ [ over ] dip swap over sub ] dip mul [ drop ] dip [ sub ] dip mul
