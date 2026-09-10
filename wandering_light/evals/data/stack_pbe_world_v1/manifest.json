@@ -18,7 +18,7 @@
   "corpus": "stack_pbe_world_v1",
   "counts": {
     "distinct_input_stacks": 2138,
-    "held_out_examples": 2261,
+    "held_out_examples": 2254,
     "shown_examples": 546,
     "tasks": 91
   },
@@ -27,17 +27,17 @@
   "hub": {
     "repo_id": "abhishekraok/wandering-light-stack-pbe-world-v1",
     "repo_type": "dataset",
-    "revision": "1464f5619c711479a0739332f1bdab69c5fa798a"
+    "revision": "ff35444423240c34c08a3559598db3578b6fe243"
   },
   "schema_version": 2,
   "split_policy": "train-only",
   "splits": {
     "train": {
       "behaviours": 91,
-      "bytes": 40788,
+      "bytes": 40761,
       "path": "stack_pbe_world_v1_train.jsonl.gz",
       "records": 91,
-      "sha256": "sha256:022892f8098fb3bc9e05b045868ad14aaa527360eda8ed49b9166575f1c0711c",
+      "sha256": "sha256:fe5506a0becb65ae28acb112a15c36629481b49a7b15b23a2ae37f952b725c00",
       "skeletons": 88
     }
   }

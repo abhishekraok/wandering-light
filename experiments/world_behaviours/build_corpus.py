@@ -78,13 +78,34 @@ def label(
     return tuple(inputs), tuple(outputs), fuel
 
 
+def split_tests(behaviour: dict) -> tuple[list[dict], list[dict]]:
+    """Shown and held-out tests with no input appearing in both.
+
+    Upstream test lists repeat inputs (three LeetCode behaviours in the probe),
+    and an index split would show an example and then grade on it. Keep the
+    first occurrence of each serialised input, in the probe's order.
+    """
+    tests = behaviour["tests"]
+    seen: set[str] = set()
+    unique: list[int] = []
+    for index in [*behaviour["shown"], *behaviour["held_out"]]:
+        key = json.dumps(tests[index]["args"], sort_keys=True)
+        if key not in seen:
+            seen.add(key)
+            unique.append(index)
+    shown_count = min(len(behaviour["shown"]), len(unique))
+    shown = [tests[i] for i in unique[:shown_count]]
+    held = [tests[i] for i in unique[shown_count:]]
+    if not held:
+        raise ValueError(f"{behaviour['id']}: no distinct held-out inputs")
+    return shown, held
+
+
 def build_task(behaviour: dict, result: dict, macros: dict[str, list[str]]) -> Task:
     program = tuple(expand(result["macro_program"].split(), macros))
     if " ".join(program) != result["program"]:
         raise ValueError(f"{behaviour['id']}: macro expansion differs from the report")
-    tests = behaviour["tests"]
-    shown = [tests[i] for i in behaviour["shown"]]
-    held = [tests[i] for i in behaviour["held_out"]]
+    shown, held = split_tests(behaviour)
     inputs, outputs, fuel = label(program, shown)
     hidden_in, hidden_out, _ = label(program, held)
     tags = (

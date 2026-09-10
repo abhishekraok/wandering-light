@@ -73,6 +73,20 @@ def test_build_writes_verified_rows_and_round_trips(tmp_path: Path) -> None:
     assert loaded == tasks
 
 
+def test_repeated_inputs_are_not_shown_and_held_out_at_once(tmp_path: Path) -> None:
+    build_corpus = _module("build_corpus")
+    probe = _probe(tmp_path / "probe", "dup add", "dup add")
+    behaviour = json.loads((probe / "behaviours.jsonl").read_text())
+    behaviour["tests"][4] = behaviour["tests"][
+        1
+    ]  # a held-out input repeats a shown one
+    (probe / "behaviours.jsonl").write_text(json.dumps(behaviour) + "\n")
+    (task,) = build_corpus.build(probe)
+    assert task.examples == 3
+    assert task.held_out == 4
+    assert not set(task.inputs) & set(task.held_out_inputs)
+
+
 def test_build_refuses_a_witness_that_disagrees_with_the_tests(tmp_path: Path) -> None:
     build_corpus = _module("build_corpus")
     probe = _probe(tmp_path / "probe", "dup mul", "dup mul")
