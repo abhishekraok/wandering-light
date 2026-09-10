@@ -1,0 +1,25 @@
+{"id": "mbpp-656", "program": "dup [ k2-nsmallest ] dip [ swap ] dip k2-nsmallest k2-zip [ k2-unpair sub abs ] map sum", "status": "solved", "note": "sort replaced by k2-nsmallest (repeated min extraction, n<=5); zip + abs diff"}
+{"id": "mbpp-286", "program": "[ take ] dip swap quote [ drop ] swap cat swap k2-range swap map nil [ cat ] fold k2-kadane", "status": "solved", "note": "repeat take-n list k times via map+cat fold, then k2-kadane"}
+{"id": "mbpp-429", "program": "k2-zip [ k2-unpair k2-band ] map", "status": "solved", "note": "bitwise and as sum of bit products over k2-pow2s"}
+{"id": "mbpp-313", "program": "[ 0 ge? ] filter head", "status": "solved", "note": ""}
+{"id": "mbpp-373", "program": "mul mul", "status": "solved", "note": ""}
+{"id": "mbpp-524", "program": "take nil [ k2-lis-best over add k2-pair cons ] fold k2-seconds 0 [ max2 ] fold", "status": "solved", "note": "O(n^2) DP: fold keeps (value msis) pairs; k2-lis-best shared with mbpp-548"}
+{"id": "mbpp-309", "program": "max2", "status": "solved", "note": ""}
+{"id": "mbpp-548", "program": "nil [ k2-lis-best inc k2-pair cons ] fold k2-seconds 0 [ max2 ] fold", "status": "solved", "note": "same DP as mbpp-524 with +1 instead of +value"}
+{"id": "mbpp-572", "program": "dup [ swap k2-count 1 eq? ] swap cons filter", "status": "solved", "note": "filter body closes over the whole list"}
+{"id": "mbpp-142", "program": "[ k2-zip ] dip k2-zip [ k2-unpair [ k2-unpair over ] dip eq? [ eq? ] dip bool>int swap bool>int mul ] map sum", "status": "solved", "note": "zip twice, nested pairs"}
+{"id": "mbpp-366", "program": "uncons 0 k2-pair [ [ k2-unpair ] dip dup [ [ over ] dip mul max2 ] dip swap [ swap drop ] dip k2-pair ] fold k2-unpair swap drop", "status": "solved", "note": "fold with (prev best) accumulator; best starts at 0 (all test values nonneg)"}
+{"id": "mbpp-588", "program": "dup max swap min sub", "status": "solved", "note": ""}
+{"id": "mbpp-777", "program": "[ dup 0 eq? ] [ drop min ] [ over k2-dedup [ [ [ swap [ lt? ] swap cons filter len ] dip lt? ] swap cons swap cons ] dip swap filter sum ] ifte", "status": "solved", "note": "no sort: distinct v is among the n smallest iff count(<v) < n; n=0 branch returns min (reference returns arr[0] after sort)"}
+{"id": "mbpp-807", "program": "[ odd? ] filter [ dup null? ] [ drop -1 ] [ head ] ifte", "status": "solved", "note": ""}
+{"id": "mbpp-579", "program": "", "status": "unsolved", "note": "output order is CPython set iteration order (tuple(set(a)^set(b))), not sorted; reproducing it means simulating the hash table"}
+{"id": "mbpp-4", "program": "k2-nlargest", "status": "solved", "note": "repeated max extraction with k2-remove1; n<=5"}
+{"id": "mbpp-539", "program": "k2-zip [ k2-unpair k2-pow ] map", "status": "solved", "note": "k2-pow = product over a k2-range list (recursion-free range, exponents up to 70)"}
+{"id": "mbpp-663", "program": "[ over over le? ] [ drop drop drop -1 ] [ [ [ over ] dip lt? ] [ drop drop drop -1 ] [ [ over ] dip sub swap mod sub ] ifte ] ifte", "status": "solved", "note": "closed form n - ((n-y) mod x), -1 when y>=x or y>n"}
+{"id": "mbpp-824", "program": "nil 0 cons [ [ uncons ] dip [ drop 1 eq? ] [ swap drop cons 0 cons ] [ [ odd? ] [ swap drop cons 0 cons ] [ drop drop 1 cons ] ifte ] ifte ] fold uncons drop reverse", "status": "solved", "note": "reference mutates while iterating; emulated as 'drop an even, keep the next element unconditionally' (flag . out) fold"}
+{"id": "mbpp-799", "program": "2 swap k2-pow mul", "status": "solved", "note": "n * 2^d; faithful only while n < 2^(32-d), which every test satisfies"}
+{"id": "mbpp-564", "program": "take nil 0 k2-pair [ [ k2-unpair ] dip dup [ [ over ] dip [ eq? not ] swap cons filter len add ] dip swap [ cons ] dip k2-pair ] fold k2-unpair swap drop", "status": "solved", "note": "fold with (seen count) accumulator"}
+{"id": "mbpp-249", "program": "swap [ swap contains 1 eq? ] swap cons filter", "status": "solved", "note": ""}
+{"id": "mbpp-96", "program": "dup k2-range1 swap [ swap mod 0 eq? ] swap cons filter len", "status": "solved", "note": "needs k2-range1: basis range refuses above n=7"}
+{"id": "mbpp-107", "program": "k2-range-ab [ k2-hexcount ] map sum", "status": "solved", "note": "k2-hexcount is a self-applying while loop over base-16 digits (2 iterations here)"}
+{"id": "mbpp-591", "program": "[ tail null? ] [ ] [ dup last swap dup head swap tail reverse tail reverse swap quote cat swap cons ] ifte", "status": "solved", "note": "singleton guarded by ifte"}

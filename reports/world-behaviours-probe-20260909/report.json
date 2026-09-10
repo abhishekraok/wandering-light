@@ -1,0 +1,2075 @@
+{
+ "summary": {
+  "behaviours": 95,
+  "authored_rows": 95,
+  "missing": [],
+  "duplicates": [],
+  "claim_mismatches": [],
+  "solved": 91,
+  "by_source": {
+   "mbpp": {
+    "solved": 49,
+    "total": 50
+   },
+   "leetcode": {
+    "solved": 42,
+    "total": 45
+   }
+  },
+  "length_median": 102,
+  "length_hist": {
+   "41+": 66,
+   "6-10": 3,
+   "11-20": 8,
+   "1-5": 6,
+   "21-40": 8
+  },
+  "v4_length_median": 44,
+  "v4_length_hist": {
+   "1-5": 9,
+   "11-20": 28,
+   "6-10": 11,
+   "21-40": 28,
+   "41+": 99
+  },
+  "v4_behaviours": 175,
+  "exact_v4_matches": [
+   "mbpp-925",
+   "mbpp-309",
+   "mbpp-588",
+   "leetcode-add-two-integers"
+  ],
+  "same_skeleton_as_v4": [
+   "mbpp-925",
+   "mbpp-309",
+   "mbpp-588",
+   "leetcode-add-two-integers"
+  ],
+  "macro_length_median": 17,
+  "compression_median": 4.555555555555555,
+  "macro_use": [
+   [
+    "2",
+    22
+   ],
+   [
+    "inc",
+    18
+   ],
+   [
+    "mod",
+    18
+   ],
+   [
+    "dec",
+    17
+   ],
+   [
+    "head",
+    13
+   ],
+   [
+    "len",
+    13
+   ],
+   [
+    "max2",
+    13
+   ],
+   [
+    "sum",
+    11
+   ],
+   [
+    "10",
+    10
+   ],
+   [
+    "le?",
+    9
+   ],
+   [
+    "-1",
+    8
+   ],
+   [
+    "7",
+    8
+   ],
+   [
+    "bool>int",
+    8
+   ],
+   [
+    "take",
+    8
+   ],
+   [
+    "min2",
+    8
+   ],
+   [
+    "k1--rot",
+    7
+   ],
+   [
+    "100",
+    7
+   ],
+   [
+    "odd?",
+    6
+   ],
+   [
+    "k2-unpair",
+    6
+   ],
+   [
+    "4",
+    6
+   ],
+   [
+    "k1-dip2",
+    5
+   ],
+   [
+    "ge?",
+    5
+   ],
+   [
+    "gt?",
+    5
+   ],
+   [
+    "k1-range",
+    5
+   ],
+   [
+    "k1-rot",
+    5
+   ]
+  ],
+  "macros_defined": 129,
+  "unsolved_reasons": [
+   [
+    "output order is CPython set iteration order (tuple(set(a)^se",
+    1
+   ],
+   [
+    "fuel: ranges hold up to 90002 numbers (100k step cap); histo",
+    1
+   ],
+   [
+    "unsolved: n up to 10000 needs a digit-sum histogram over eve",
+    1
+   ],
+   [
+    "unsolved on fuel: linear search needs >=611 candidates (test",
+    1
+   ]
+  ]
+ },
+ "results": [
+  {
+   "id": "mbpp-34",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "0 swap dec -1 k1-pack3 swap [ swap drop [ k1-unpack3 ] dip [ drop drop le? ] [ [ over over add 2 div ] k1-dip2 swap [ over over swap k1-code34 swap drop ] dip [ drop 0 eq? ] [ [ drop inc swap [ swap drop ] dip ] dip ] [ [ drop 1 eq? ] [ drop drop inc [ swap drop ] dip over inc k1--rot ] [ [ drop dec swap drop ] dip ] ifte ] ifte ] [ drop ] ifte k1-pack3 ] swap cons 7 range k1--rot fold tail tail head",
+   "program": "0 swap 1 sub 0 1 sub nil swap cons swap cons swap cons swap [ swap drop [ uncons swap uncons swap uncons swap drop ] dip [ drop drop swap lt? [ ] [ drop false ] [ drop true ] ifte ] [ [ over over add 1 1 add div ] swap [ dip ] dip swap [ over over swap over over [ dup 0 lt? ] [ over 0 [ drop 1 add ] fold add ] [ ] ifte nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop over 1 add eq? [ ] [ drop drop drop 0 ] [ drop over over 1 sub [ dup 0 lt? ] [ over 0 [ drop 1 add ] fold add ] [ ] ifte nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop eq? swap drop [ ] [ drop 1 ] [ drop 1 1 add ] ifte ] ifte swap drop ] dip [ drop 0 eq? ] [ [ drop 1 add swap [ swap drop ] dip ] dip ] [ [ drop 1 eq? ] [ drop drop 1 add [ swap drop ] dip over 1 add [ swap ] dip swap [ swap ] dip swap ] [ [ drop 1 sub swap drop ] dip ] ifte ] ifte ] [ drop ] ifte nil swap cons swap cons swap cons ] swap cons 1 1 add 1 add dup add 1 add nil swap [ [ drop 0 eq? ] [ drop drop ] [ [ 1 sub dup [ cons ] dip ] dip dup i ] ifte ] dup i [ swap ] dip swap [ swap ] dip swap fold uncons drop uncons drop uncons swap drop",
+   "macro_length": 102,
+   "length": 385,
+   "macros_used": [
+    "-1",
+    "2",
+    "7",
+    "dec",
+    "head",
+    "inc",
+    "k1--rot",
+    "k1-code34",
+    "k1-dip2",
+    "k1-pack3",
+    "k1-unpack3",
+    "le?",
+    "range",
+    "tail"
+   ],
+   "note": "replays the reference's broken binary search exactly (ar[mid-1] with mid=0 is Python's ar[-1], via k1-at); fold over `7 range` with packed (l r res) state, array consed into the body"
+  },
+  {
+   "id": "mbpp-219",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "[ k1-sort ] dip over len over sub [ dup len k1-range ] k1-dip2 [ [ over over lt? bool>int ] dip [ swap drop ] dip k1-rot swap ge? bool>int add 0 gt? ] swap cons swap cons filter swap [ swap nth ] swap cons map",
+   "program": "[ nil [ over over [ swap lt? ] swap cons filter [ swap ] dip swap [ swap ] dip swap swap over [ swap lt? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter [ swap ] dip swap [ swap ] dip swap quote swap cat cat ] fold ] dip over 0 [ drop 1 add ] fold over sub [ dup 0 [ drop 1 add ] fold 0 quote dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap [ lt? ] swap cons filter ] swap [ dip ] dip [ [ over over lt? [ ] [ drop 1 ] [ drop 0 ] ifte ] dip [ swap drop ] dip [ swap ] dip swap swap lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte add 0 swap lt? ] swap cons swap cons filter swap [ swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop ] swap cons map",
+   "macro_length": 48,
+   "length": 344,
+   "macros_used": [
+    "bool>int",
+    "ge?",
+    "gt?",
+    "k1-dip2",
+    "k1-range",
+    "k1-rot",
+    "k1-sort",
+    "len",
+    "nth"
+   ],
+   "note": "k1-sort (filter-based insertion sort) then index filter idx<K or idx>=len-K, map nth"
+  },
+  {
+   "id": "mbpp-846",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 23,
+   "total": 23,
+   "macro_program": "[ [ k1-sort ] dip k1-sort ] dip dup dup add k1-range [ [ [ [ [ drop ] dip ] dip ] dip [ k1-unpack4 ] k1-dip3 [ [ drop drop ] dip [ drop drop ] dip dup [ lt? ] dip swap [ lt? ] dip bool>int swap bool>int add 2 eq? ] [ drop [ k1-pick4 ] dip [ nth ] dip k1-pick4 nth le? [ ] [ drop [ [ inc ] k1-dip2 inc ] dip ] [ drop [ [ inc ] dip dec ] dip ] ifte over max2 ] [ drop drop drop ] ifte k1-pack4 ] swap cons swap cons swap cons ] dip 1 0 1 1 k1-pack4 k1-rot fold last",
+   "program": "[ [ nil [ over over [ swap lt? ] swap cons filter [ swap ] dip swap [ swap ] dip swap swap over [ swap lt? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter [ swap ] dip swap [ swap ] dip swap quote swap cat cat ] fold ] dip nil [ over over [ swap lt? ] swap cons filter [ swap ] dip swap [ swap ] dip swap swap over [ swap lt? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter [ swap ] dip swap [ swap ] dip swap quote swap cat cat ] fold ] dip dup dup add 0 quote dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap [ lt? ] swap cons filter [ [ [ [ [ drop ] dip ] dip ] dip [ uncons swap uncons swap uncons swap uncons swap drop ] swap [ swap [ dip ] dip ] dip [ [ drop drop ] dip [ drop drop ] dip dup [ lt? ] dip swap [ lt? ] dip [ ] [ drop 1 ] [ drop 0 ] ifte swap [ ] [ drop 1 ] [ drop 0 ] ifte add 1 1 add eq? ] [ drop [ [ [ [ over ] dip swap ] dip swap ] dip swap ] dip [ nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop ] dip [ [ [ over ] dip swap ] dip swap ] dip swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop swap lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop [ [ 1 add ] swap [ dip ] dip 1 add ] dip ] [ drop [ [ 1 add ] dip 1 sub ] dip ] ifte over [ over lt? ] [ drop ] [ swap drop ] ifte ] [ drop drop drop ] ifte nil swap cons swap cons swap cons swap cons ] swap cons swap cons swap cons ] dip 1 0 1 1 nil swap cons swap cons swap cons swap cons [ swap ] dip swap fold 0 [ swap drop ] fold",
+   "macro_length": 121,
+   "length": 591,
+   "macros_used": [
+    "2",
+    "bool>int",
+    "dec",
+    "inc",
+    "k1-dip2",
+    "k1-dip3",
+    "k1-pack4",
+    "k1-pick4",
+    "k1-range",
+    "k1-rot",
+    "k1-sort",
+    "k1-unpack4",
+    "last",
+    "le?",
+    "max2",
+    "nth"
+   ],
+   "note": "sort both, then replay the two-pointer merge as a fold over k1-range(2n) with packed (i j plat res) state and a guard i<n and j<n"
+  },
+  {
+   "id": "mbpp-646",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 20,
+   "total": 20,
+   "macro_program": "sub inc dup sq mul",
+   "program": "sub 1 add dup dup mul mul",
+   "macro_length": 5,
+   "length": 7,
+   "macros_used": [
+    "inc",
+    "sq"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mbpp-171",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 13,
+   "total": 13,
+   "macro_program": "5 mul",
+   "program": "1 1 add dup add 1 add mul",
+   "macro_length": 2,
+   "length": 8,
+   "macros_used": [
+    "5"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mbpp-623",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "[ k1-pow ] swap cons map",
+   "program": "[ swap [ drop ] swap quote cat [ nil swap [ [ drop 0 eq? ] [ drop drop ] [ [ 1 sub dup [ cons ] dip ] dip dup i ] ifte ] dup i ] dip map 1 [ mul ] fold ] swap cons map",
+   "macro_length": 6,
+   "length": 51,
+   "macros_used": [
+    "k1-pow"
+   ],
+   "note": "k1-pow = product of n copies of x built with range+map"
+  },
+  {
+   "id": "mbpp-152",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "k1-sort",
+   "program": "nil [ over over [ swap lt? ] swap cons filter [ swap ] dip swap [ swap ] dip swap swap over [ swap lt? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter [ swap ] dip swap [ swap ] dip swap quote swap cat cat ] fold",
+   "macro_length": 1,
+   "length": 57,
+   "macros_used": [
+    "k1-sort"
+   ],
+   "note": "merge sort not needed: output is just the sorted list; k1-sort is an O(n^2) insertion sort via two filters per element"
+  },
+  {
+   "id": "mbpp-836",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 26,
+   "total": 26,
+   "macro_program": "take 1 1000 1000 mul neg 0 0 k1-pack4 [ [ k1-unpack4 ] dip [ inc ] dip swap [ add ] dip [ drop lt? ] [ [ [ drop drop ] dip ] dip swap over over swap ] [ ] ifte [ drop 0 lt? ] [ drop drop 0 0 ] [ ] ifte k1-pack4 ] fold head",
+   "program": "nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold 1 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul mul 0 swap sub 0 0 nil swap cons swap cons swap cons swap cons [ [ uncons swap uncons swap uncons swap uncons swap drop ] dip [ 1 add ] dip swap [ add ] dip [ drop lt? ] [ [ [ drop drop ] dip ] dip swap over over swap ] [ ] ifte [ drop 0 lt? ] [ drop drop 0 0 ] [ ] ifte nil swap cons swap cons swap cons swap cons ] fold uncons swap drop",
+   "macro_length": 62,
+   "length": 180,
+   "macros_used": [
+    "1000",
+    "head",
+    "inc",
+    "k1-pack4",
+    "k1-unpack4",
+    "neg",
+    "take"
+   ],
+   "note": "Kadane with packed (best_len best_sum cur_sum cur_len); best_len starts at 1 to match end-start+1 when size=0"
+  },
+  {
+   "id": "mbpp-841",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 22,
+   "total": 22,
+   "macro_program": "take 0 nil k1-pack2 [ [ k1-unpack2 ] dip over over [ gt? ] swap cons filter len k1--rot cons k1--rot add swap k1-pack2 ] fold head",
+   "program": "nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip over over [ swap lt? ] swap cons filter 0 [ drop 1 add ] fold [ swap ] dip swap [ swap ] dip swap cons [ swap ] dip swap [ swap ] dip swap add swap nil swap cons swap cons ] fold uncons swap drop",
+   "macro_length": 27,
+   "length": 115,
+   "macros_used": [
+    "gt?",
+    "head",
+    "k1--rot",
+    "k1-pack2",
+    "k1-unpack2",
+    "len",
+    "take"
+   ],
+   "note": "fold with packed (count seen): count += |seen > item|, seen = item cons seen"
+  },
+  {
+   "id": "mbpp-644",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 26,
+   "total": 26,
+   "macro_program": "over over take reverse k1--rot drop-n cat",
+   "program": "over over nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold nil [ cons ] fold [ swap ] dip swap [ swap ] dip swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold cat",
+   "macro_length": 7,
+   "length": 118,
+   "macros_used": [
+    "drop-n",
+    "k1--rot",
+    "reverse",
+    "take"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mbpp-41",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "[ even? ] filter",
+   "program": "[ 1 1 add over over div mul sub 0 eq? ] filter",
+   "macro_length": 4,
+   "length": 13,
+   "macros_used": [
+    "even?"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mbpp-925",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 24,
+   "total": 24,
+   "macro_program": "product",
+   "program": "1 [ mul ] fold",
+   "macro_length": 1,
+   "length": 5,
+   "macros_used": [
+    "product"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mbpp-577",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 16,
+   "total": 16,
+   "macro_program": "k1-range1 product 10 mod",
+   "program": "0 quote dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap [ lt? ] swap cons filter [ 1 add ] map 1 [ mul ] fold 1 1 add dup add 1 add dup add over over div mul sub",
+   "macro_length": 4,
+   "length": 161,
+   "macros_used": [
+    "10",
+    "k1-range1",
+    "mod",
+    "product"
+   ],
+   "note": "n! mod 10 directly; needs k1-range1 because `range` refuses for n>=8 (quotation depth 32)"
+  },
+  {
+   "id": "mbpp-218",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 18,
+   "total": 18,
+   "macro_program": "over over k1-gcd div swap drop dec",
+   "program": "over over [ [ drop dup 0 eq? ] [ drop drop ] [ [ dup [ over over div mul sub ] dip swap ] dip dup i ] ifte ] dup i div swap drop 1 sub",
+   "macro_length": 7,
+   "length": 39,
+   "macros_used": [
+    "dec",
+    "k1-gcd"
+   ],
+   "note": "k1-gcd is a self-applying Euclid loop; fine since it converges in <8 steps for these inputs"
+  },
+  {
+   "id": "mbpp-589",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 26,
+   "total": 26,
+   "macro_program": "dup k1-range1 [ sq ] map swap [ le? ] swap cons filter swap [ ge? ] swap cons filter",
+   "program": "dup 0 quote dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap [ lt? ] swap cons filter [ 1 add ] map [ dup mul ] map swap [ swap lt? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter swap [ lt? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter",
+   "macro_length": 20,
+   "length": 185,
+   "macros_used": [
+    "ge?",
+    "k1-range1",
+    "le?",
+    "sq"
+   ],
+   "note": "squares of 1..b filtered into [a,b]; k1-range1 goes up to 256 without recursion"
+  },
+  {
+   "id": "mbpp-970",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "min2",
+   "program": "[ over lt? ] [ swap drop ] [ drop ] ifte",
+   "macro_length": 1,
+   "length": 12,
+   "macros_used": [
+    "min2"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mbpp-176",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "add add",
+   "program": "add add",
+   "macro_length": 2,
+   "length": 2,
+   "macros_used": [],
+   "note": ""
+  },
+  {
+   "id": "mbpp-54",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "k1-sort",
+   "program": "nil [ over over [ swap lt? ] swap cons filter [ swap ] dip swap [ swap ] dip swap swap over [ swap lt? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter [ swap ] dip swap [ swap ] dip swap quote swap cat cat ] fold",
+   "macro_length": 1,
+   "length": 57,
+   "macros_used": [
+    "k1-sort"
+   ],
+   "note": "counting sort not needed: output is just the sorted list"
+  },
+  {
+   "id": "mbpp-733",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "over len dec 0 swap -1 k1-pack3 k1--rot [ [ [ drop ] dip ] dip [ k1-unpack3 ] k1-dip2 [ drop drop drop le? ] [ [ over over add 2 div ] k1-dip3 k1-rot [ [ dup ] k1-dip2 k1-rot k1-code733 ] dip [ drop 0 eq? ] [ drop drop dup dec [ drop ] k1-dip2 swap ] [ [ drop 1 eq? ] [ [ drop dec swap drop ] dip ] [ [ drop inc swap [ swap drop ] dip ] dip ] ifte ] ifte ] [ drop drop ] ifte k1-pack3 ] swap cons swap cons 7 range k1--rot fold tail tail head",
+   "program": "over 0 [ drop 1 add ] fold 1 sub 0 swap 0 1 sub nil swap cons swap cons swap cons [ swap ] dip swap [ swap ] dip swap [ [ [ drop ] dip ] dip [ uncons swap uncons swap uncons swap drop ] swap [ dip ] dip [ drop drop drop swap lt? [ ] [ drop false ] [ drop true ] ifte ] [ [ over over add 1 1 add div ] swap [ swap [ dip ] dip ] dip [ swap ] dip swap [ [ dup ] swap [ dip ] dip [ swap ] dip swap [ swap ] dip nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop over over eq? [ ] [ drop drop drop 0 ] [ drop lt? [ ] [ drop 1 ] [ drop 1 1 add ] ifte ] ifte ] dip [ drop 0 eq? ] [ drop drop dup 1 sub [ drop ] swap [ dip ] dip swap ] [ [ drop 1 eq? ] [ [ drop 1 sub swap drop ] dip ] [ [ drop 1 add swap [ swap drop ] dip ] dip ] ifte ] ifte ] [ drop drop ] ifte nil swap cons swap cons swap cons ] swap cons swap cons 1 1 add 1 add dup add 1 add nil swap [ [ drop 0 eq? ] [ drop drop ] [ [ 1 sub dup [ cons ] dip ] dip dup i ] ifte ] dup i [ swap ] dip swap [ swap ] dip swap fold uncons drop uncons drop uncons swap drop",
+   "macro_length": 111,
+   "length": 327,
+   "macros_used": [
+    "-1",
+    "2",
+    "7",
+    "dec",
+    "head",
+    "inc",
+    "k1--rot",
+    "k1-code733",
+    "k1-dip2",
+    "k1-dip3",
+    "k1-pack3",
+    "k1-rot",
+    "k1-unpack3",
+    "le?",
+    "len",
+    "range",
+    "tail"
+   ],
+   "note": "replays the reference binary search on unsorted inputs too; same (l r res) fold shape as mbpp-34"
+  },
+  {
+   "id": "mbpp-466",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 24,
+   "total": 24,
+   "macro_program": "0 over dec -1 k1-pack3 k1--rot [ [ [ drop ] dip ] dip [ k1-unpack3 ] k1-dip2 [ drop drop -1 eq? ] [ [ over over add 2 div ] k1-dip3 k1-rot [ [ dup ] k1-dip2 k1-rot k1-code466 ] dip [ drop 0 eq? ] [ drop drop ] [ [ drop 1 eq? ] [ [ drop dec swap drop ] dip ] [ [ drop inc swap [ swap drop ] dip ] dip ] ifte ] ifte ] [ drop drop ] ifte k1-pack3 ] swap cons swap cons 7 range k1--rot fold tail tail head",
+   "program": "0 over 1 sub 0 1 sub nil swap cons swap cons swap cons [ swap ] dip swap [ swap ] dip swap [ [ [ drop ] dip ] dip [ uncons swap uncons swap uncons swap drop ] swap [ dip ] dip [ drop drop 0 1 sub eq? ] [ [ over over add 1 1 add div ] swap [ swap [ dip ] dip ] dip [ swap ] dip swap [ [ dup ] swap [ dip ] dip [ swap ] dip swap dup [ [ over ] dip [ 0 eq? ] [ drop drop true ] [ over over 1 sub nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop [ nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop ] dip swap swap lt? [ ] [ drop false ] [ drop true ] ifte ] ifte ] dip swap [ ] [ drop [ swap 1 sub eq? ] [ drop drop drop true ] [ swap drop over over 1 add nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop [ nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop ] dip swap swap lt? [ ] [ drop false ] [ drop true ] ifte ] ifte [ ] [ drop 0 ] [ drop 1 1 add ] ifte ] [ drop drop drop drop 1 ] ifte ] dip [ drop 0 eq? ] [ drop drop ] [ [ drop 1 eq? ] [ [ drop 1 sub swap drop ] dip ] [ [ drop 1 add swap [ swap drop ] dip ] dip ] ifte ] ifte ] [ drop drop ] ifte nil swap cons swap cons swap cons ] swap cons swap cons 1 1 add 1 add dup add 1 add nil swap [ [ drop 0 eq? ] [ drop drop ] [ [ 1 sub dup [ cons ] dip ] dip dup i ] ifte ] dup i [ swap ] dip swap [ swap ] dip swap fold uncons drop uncons drop uncons swap drop",
+   "macro_length": 102,
+   "length": 529,
+   "macros_used": [
+    "-1",
+    "2",
+    "7",
+    "dec",
+    "head",
+    "inc",
+    "k1--rot",
+    "k1-code466",
+    "k1-dip2",
+    "k1-dip3",
+    "k1-pack3",
+    "k1-rot",
+    "k1-unpack3",
+    "range",
+    "tail"
+   ],
+   "note": "replays the recursive peak search as the same (l r res) fold; k1-c1/k1-c2 short-circuit the `or` conditions so arr[mid-1]/arr[mid+1] are not read out of range"
+  },
+  {
+   "id": "mbpp-239",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 24,
+   "total": 24,
+   "macro_program": "[ dup 0 eq? ] [ drop drop 0 ] [ dec k1-range swap inc k1-range [ drop dup len k1-range swap [ swap 2 div nth ] swap cons map k1-prefix ] fold last ] ifte",
+   "program": "[ dup 0 eq? ] [ drop drop 0 ] [ 1 sub 0 quote dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap [ lt? ] swap cons filter swap 1 add 0 quote dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap [ lt? ] swap cons filter [ drop dup 0 [ drop 1 add ] fold 0 quote dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap [ lt? ] swap cons filter swap [ swap 1 1 add div nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop ] swap cons map 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold ] fold 0 [ swap drop ] fold ] ifte",
+   "macro_length": 37,
+   "length": 558,
+   "macros_used": [
+    "2",
+    "dec",
+    "inc",
+    "k1-prefix",
+    "k1-range",
+    "last",
+    "len",
+    "nth"
+   ],
+   "note": "row DP: R_1 = 0..m, R_j = prefix sums of x -> R_{j-1}[x//2]; naive recursion would exceed quotation depth 32"
+  },
+  {
+   "id": "mbpp-126",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 26,
+   "total": 26,
+   "macro_program": "over over min2 k1-range [ 0 gt? ] filter k1--rot [ [ over mod ] dip [ swap ] dip swap mod add 0 eq? ] swap cons swap cons filter sum",
+   "program": "over over [ over lt? ] [ swap drop ] [ drop ] ifte 0 quote dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap [ lt? ] swap cons filter [ 0 swap lt? ] filter [ swap ] dip swap [ swap ] dip swap [ [ over over over div mul sub ] dip [ swap ] dip swap over over div mul sub add 0 eq? ] swap cons swap cons filter 0 [ add ] fold",
+   "macro_length": 32,
+   "length": 201,
+   "macros_used": [
+    "gt?",
+    "k1--rot",
+    "k1-range",
+    "min2",
+    "mod",
+    "sum"
+   ],
+   "note": "candidates 1..min-1 from k1-range (min up to 100), filter (a mod i)+(b mod i)==0"
+  },
+  {
+   "id": "mbpp-235",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 17,
+   "total": 17,
+   "macro_program": "6 range swap [ over odd? bool>int k1--rot swap 2 swap k1-pow over over div 2 mod [ over over swap le? bool>int mul swap drop ] dip k1-rot max2 mul ] swap cons map sum",
+   "program": "1 1 add 1 add dup add nil swap [ [ drop 0 eq? ] [ drop drop ] [ [ 1 sub dup [ cons ] dip ] dip dup i ] ifte ] dup i swap [ over 1 1 add over over div mul sub 1 eq? [ ] [ drop 1 ] [ drop 0 ] ifte [ swap ] dip swap [ swap ] dip swap swap 1 1 add swap swap [ drop ] swap quote cat [ nil swap [ [ drop 0 eq? ] [ drop drop ] [ [ 1 sub dup [ cons ] dip ] dip dup i ] ifte ] dup i ] dip map 1 [ mul ] fold over over div 1 1 add over over div mul sub [ over over swap swap lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte mul swap drop ] dip [ swap ] dip swap [ over lt? ] [ drop ] [ swap drop ] ifte mul ] swap cons map 0 [ add ] fold",
+   "macro_length": 36,
+   "length": 193,
+   "macros_used": [
+    "2",
+    "6",
+    "bool>int",
+    "k1--rot",
+    "k1-pow",
+    "k1-rot",
+    "le?",
+    "max2",
+    "mod",
+    "odd?",
+    "range",
+    "sum"
+   ],
+   "note": "no bit ops: per bit k<6, value 2^k * [2^k<=n] * max(bit_k(n), k odd), summed"
+  },
+  {
+   "id": "mbpp-536",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 23,
+   "total": 23,
+   "macro_program": "over len over add dec over div k1-range swap [ mul ] swap cons map swap [ swap nth ] swap cons map",
+   "program": "over 0 [ drop 1 add ] fold over add 1 sub over div 0 quote dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap [ lt? ] swap cons filter swap [ mul ] swap cons map swap [ swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons swap drop ] swap cons map",
+   "macro_length": 23,
+   "length": 218,
+   "macros_used": [
+    "dec",
+    "k1-range",
+    "len",
+    "nth"
+   ],
+   "note": "indices 0, n, 2n, ... via k1-range(ceil(len/n)), then map nth"
+  },
+  {
+   "id": "mbpp-962",
+   "source": "mbpp",
+   "author": "1",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 21,
+   "total": 21,
+   "macro_program": "[ dec 2 div k1-sumnat ] dip 2 div k1-sumnat swap sub",
+   "program": "[ 1 sub 1 1 add div dup 1 add mul ] dip 1 1 add div dup 1 add mul swap sub",
+   "macro_length": 12,
+   "length": 23,
+   "macros_used": [
+    "2",
+    "dec",
+    "k1-sumnat"
+   ],
+   "note": "closed form; floor div agrees with the reference's int() truncation on every test"
+  },
+  {
+   "id": "mbpp-656",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 21,
+   "total": 21,
+   "macro_program": "dup [ k2-nsmallest ] dip [ swap ] dip k2-nsmallest k2-zip [ k2-unpair sub abs ] map sum",
+   "program": "dup [ nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons [ 1 1 add dup add 1 add dup add mul nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons swap [ add ] swap cons map ] map nil [ cat ] fold swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold swap nil nil swap cons swap cons [ drop uncons swap uncons swap drop over uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold swap over cons [ [ [ [ uncons ] dip ] dip [ eq? [ ] [ drop 1 ] [ drop 0 ] ifte swap 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte mul 1 eq? ] [ drop drop drop 1 cons ] [ drop swap [ cons ] dip cons ] ifte ] swap cons nil 0 cons swap fold uncons drop nil [ cons ] fold ] dip nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold ] dip [ swap ] dip nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons [ 1 1 add dup add 1 add dup add mul nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons swap [ add ] swap cons map ] map nil [ cat ] fold swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold swap nil nil swap cons swap cons [ drop uncons swap uncons swap drop over uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold swap over cons [ [ [ [ uncons ] dip ] dip [ eq? [ ] [ drop 1 ] [ drop 0 ] ifte swap 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte mul 1 eq? ] [ drop drop drop 1 cons ] [ drop swap [ cons ] dip cons ] ifte ] swap cons nil 0 cons swap fold uncons drop nil [ cons ] fold ] dip nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold swap nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop null? ] [ drop nil swap cons swap cons ] [ [ swap uncons ] dip nil swap cons swap cons swap [ cons ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ uncons swap uncons swap drop sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map 0 [ add ] fold",
+   "macro_length": 18,
+   "length": 760,
+   "macros_used": [
+    "abs",
+    "k2-nsmallest",
+    "k2-unpair",
+    "k2-zip",
+    "sum"
+   ],
+   "note": "sort replaced by k2-nsmallest (repeated min extraction, n<=5); zip + abs diff"
+  },
+  {
+   "id": "mbpp-286",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 18,
+   "total": 18,
+   "macro_program": "[ take ] dip swap quote [ drop ] swap cat swap k2-range swap map nil [ cat ] fold k2-kadane",
+   "program": "[ nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold ] dip swap quote [ drop ] swap cat swap nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons [ 1 1 add dup add 1 add dup add mul nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons swap [ add ] swap cons map ] map nil [ cat ] fold swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold swap map nil [ cat ] fold 0 1 sub 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul mul 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul mul 0 nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip add swap over [ over lt? ] [ drop ] [ swap drop ] ifte swap 0 [ over lt? ] [ drop ] [ swap drop ] ifte nil swap cons swap cons ] fold uncons swap uncons swap drop drop",
+   "macro_length": 21,
+   "length": 374,
+   "macros_used": [
+    "k2-kadane",
+    "k2-range",
+    "take"
+   ],
+   "note": "repeat take-n list k times via map+cat fold, then k2-kadane"
+  },
+  {
+   "id": "mbpp-429",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "k2-zip [ k2-unpair k2-band ] map",
+   "program": "swap nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop null? ] [ drop nil swap cons swap cons ] [ [ swap uncons ] dip nil swap cons swap cons swap [ cons ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ uncons swap uncons swap drop [ [ over div 1 1 add over over div mul sub ] dip swap [ over div 1 1 add over over div mul sub ] dip mul mul ] swap cons swap cons nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons nil 1 cons [ drop dup uncons swap drop dup add cons ] fold swap map 0 [ add ] fold ] map",
+   "macro_length": 6,
+   "length": 194,
+   "macros_used": [
+    "k2-band",
+    "k2-unpair",
+    "k2-zip"
+   ],
+   "note": "bitwise and as sum of bit products over k2-pow2s"
+  },
+  {
+   "id": "mbpp-313",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 26,
+   "total": 26,
+   "macro_program": "[ 0 ge? ] filter head",
+   "program": "[ 0 lt? [ ] [ drop false ] [ drop true ] ifte ] filter uncons swap drop",
+   "macro_length": 6,
+   "length": 19,
+   "macros_used": [
+    "ge?",
+    "head"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mbpp-373",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "mul mul",
+   "program": "mul mul",
+   "macro_length": 2,
+   "length": 2,
+   "macros_used": [],
+   "note": ""
+  },
+  {
+   "id": "mbpp-524",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 26,
+   "total": 26,
+   "macro_program": "take nil [ k2-lis-best over add k2-pair cons ] fold k2-seconds 0 [ max2 ] fold",
+   "program": "nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold nil [ over over [ [ uncons swap uncons swap drop drop ] dip lt? ] swap cons filter [ uncons swap uncons swap drop swap drop ] map 0 [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold over add nil swap cons swap cons cons ] fold [ uncons swap uncons swap drop swap drop ] map 0 [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+   "macro_length": 16,
+   "length": 131,
+   "macros_used": [
+    "k2-lis-best",
+    "k2-pair",
+    "k2-seconds",
+    "max2",
+    "take"
+   ],
+   "note": "O(n^2) DP: fold keeps (value msis) pairs; k2-lis-best shared with mbpp-548"
+  },
+  {
+   "id": "mbpp-309",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 26,
+   "total": 26,
+   "macro_program": "max2",
+   "program": "[ over lt? ] [ drop ] [ swap drop ] ifte",
+   "macro_length": 1,
+   "length": 12,
+   "macros_used": [
+    "max2"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mbpp-548",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "nil [ k2-lis-best inc k2-pair cons ] fold k2-seconds 0 [ max2 ] fold",
+   "program": "nil [ over over [ [ uncons swap uncons swap drop drop ] dip lt? ] swap cons filter [ uncons swap uncons swap drop swap drop ] map 0 [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold 1 add nil swap cons swap cons cons ] fold [ uncons swap uncons swap drop swap drop ] map 0 [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+   "macro_length": 14,
+   "length": 81,
+   "macros_used": [
+    "inc",
+    "k2-lis-best",
+    "k2-pair",
+    "k2-seconds",
+    "max2"
+   ],
+   "note": "same DP as mbpp-524 with +1 instead of +value"
+  },
+  {
+   "id": "mbpp-572",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "dup [ swap k2-count 1 eq? ] swap cons filter",
+   "program": "dup [ swap [ eq? ] swap cons filter 0 [ drop 1 add ] fold 1 eq? ] swap cons filter",
+   "macro_length": 10,
+   "length": 22,
+   "macros_used": [
+    "k2-count"
+   ],
+   "note": "filter body closes over the whole list"
+  },
+  {
+   "id": "mbpp-142",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "[ k2-zip ] dip k2-zip [ k2-unpair [ k2-unpair over ] dip eq? [ eq? ] dip bool>int swap bool>int mul ] map sum",
+   "program": "[ swap nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop null? ] [ drop nil swap cons swap cons ] [ [ swap uncons ] dip nil swap cons swap cons swap [ cons ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold ] dip swap nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop null? ] [ drop nil swap cons swap cons ] [ [ swap uncons ] dip nil swap cons swap cons swap [ cons ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ uncons swap uncons swap drop [ uncons swap uncons swap drop over ] dip eq? [ eq? ] dip [ ] [ drop 1 ] [ drop 0 ] ifte swap [ ] [ drop 1 ] [ drop 0 ] ifte mul ] map 0 [ add ] fold",
+   "macro_length": 24,
+   "length": 188,
+   "macros_used": [
+    "bool>int",
+    "k2-unpair",
+    "k2-zip",
+    "sum"
+   ],
+   "note": "zip twice, nested pairs"
+  },
+  {
+   "id": "mbpp-366",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "uncons 0 k2-pair [ [ k2-unpair ] dip dup [ [ over ] dip mul max2 ] dip swap [ swap drop ] dip k2-pair ] fold k2-unpair swap drop",
+   "program": "uncons 0 nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip dup [ [ over ] dip mul [ over lt? ] [ drop ] [ swap drop ] ifte ] dip swap [ swap drop ] dip nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop",
+   "macro_length": 30,
+   "length": 57,
+   "macros_used": [
+    "k2-pair",
+    "k2-unpair",
+    "max2"
+   ],
+   "note": "fold with (prev best) accumulator; best starts at 0 (all test values nonneg)"
+  },
+  {
+   "id": "mbpp-588",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "dup max swap min sub",
+   "program": "dup uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold swap uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold sub",
+   "macro_length": 5,
+   "length": 35,
+   "macros_used": [
+    "max",
+    "min"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mbpp-777",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "[ dup 0 eq? ] [ drop min ] [ over k2-dedup [ [ [ swap [ lt? ] swap cons filter len ] dip lt? ] swap cons swap cons ] dip swap filter sum ] ifte",
+   "program": "[ dup 0 eq? ] [ drop uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold ] [ over nil [ [ over over [ eq? ] swap cons filter 0 [ drop 1 add ] fold 0 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte 1 eq? ] [ drop ] [ cons ] ifte ] fold nil [ cons ] fold [ [ [ swap [ lt? ] swap cons filter 0 [ drop 1 add ] fold ] dip lt? ] swap cons swap cons ] dip swap filter 0 [ add ] fold ] ifte",
+   "macro_length": 38,
+   "length": 111,
+   "macros_used": [
+    "k2-dedup",
+    "len",
+    "min",
+    "sum"
+   ],
+   "note": "no sort: distinct v is among the n smallest iff count(<v) < n; n=0 branch returns min (reference returns arr[0] after sort)"
+  },
+  {
+   "id": "mbpp-807",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 26,
+   "total": 26,
+   "macro_program": "[ odd? ] filter [ dup null? ] [ drop -1 ] [ head ] ifte",
+   "program": "[ 1 1 add over over div mul sub 1 eq? ] filter [ dup null? ] [ drop 0 1 sub ] [ uncons swap drop ] ifte",
+   "macro_length": 16,
+   "length": 29,
+   "macros_used": [
+    "-1",
+    "head",
+    "odd?"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mbpp-579",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "unsolved",
+   "solved": false,
+   "passed": 0,
+   "total": 27,
+   "macro_program": "",
+   "program": "",
+   "macro_length": 0,
+   "length": 0,
+   "macros_used": [],
+   "note": "output order is CPython set iteration order (tuple(set(a)^set(b))), not sorted; reproducing it means simulating the hash table"
+  },
+  {
+   "id": "mbpp-4",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "k2-nlargest",
+   "program": "nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons [ 1 1 add dup add 1 add dup add mul nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons swap [ add ] swap cons map ] map nil [ cat ] fold swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold swap nil nil swap cons swap cons [ drop uncons swap uncons swap drop over uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold swap over cons [ [ [ [ uncons ] dip ] dip [ eq? [ ] [ drop 1 ] [ drop 0 ] ifte swap 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte mul 1 eq? ] [ drop drop drop 1 cons ] [ drop swap [ cons ] dip cons ] ifte ] swap cons nil 0 cons swap fold uncons drop nil [ cons ] fold ] dip nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold",
+   "macro_length": 1,
+   "length": 329,
+   "macros_used": [
+    "k2-nlargest"
+   ],
+   "note": "repeated max extraction with k2-remove1; n<=5"
+  },
+  {
+   "id": "mbpp-539",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "k2-zip [ k2-unpair k2-pow ] map",
+   "program": "swap nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop null? ] [ drop nil swap cons swap cons ] [ [ swap uncons ] dip nil swap cons swap cons swap [ cons ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ uncons swap uncons swap drop swap quote [ drop ] swap cat swap nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons [ 1 1 add dup add 1 add dup add mul nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons swap [ add ] swap cons map ] map nil [ cat ] fold swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold swap map 1 [ mul ] fold ] map",
+   "macro_length": 6,
+   "length": 292,
+   "macros_used": [
+    "k2-pow",
+    "k2-unpair",
+    "k2-zip"
+   ],
+   "note": "k2-pow = product over a k2-range list (recursion-free range, exponents up to 70)"
+  },
+  {
+   "id": "mbpp-663",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 24,
+   "total": 24,
+   "macro_program": "[ over over le? ] [ drop drop drop -1 ] [ [ [ over ] dip lt? ] [ drop drop drop -1 ] [ [ over ] dip sub swap mod sub ] ifte ] ifte",
+   "program": "[ over over swap lt? [ ] [ drop false ] [ drop true ] ifte ] [ drop drop drop 0 1 sub ] [ [ [ over ] dip lt? ] [ drop drop drop 0 1 sub ] [ [ over ] dip sub swap over over div mul sub sub ] ifte ] ifte",
+   "macro_length": 38,
+   "length": 58,
+   "macros_used": [
+    "-1",
+    "le?",
+    "mod"
+   ],
+   "note": "closed form n - ((n-y) mod x), -1 when y>=x or y>n"
+  },
+  {
+   "id": "mbpp-824",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "nil 0 cons [ [ uncons ] dip [ drop 1 eq? ] [ swap drop cons 0 cons ] [ [ odd? ] [ swap drop cons 0 cons ] [ drop drop 1 cons ] ifte ] ifte ] fold uncons drop reverse",
+   "program": "nil 0 cons [ [ uncons ] dip [ drop 1 eq? ] [ swap drop cons 0 cons ] [ [ 1 1 add over over div mul sub 1 eq? ] [ swap drop cons 0 cons ] [ drop drop 1 cons ] ifte ] ifte ] fold uncons drop nil [ cons ] fold",
+   "macro_length": 45,
+   "length": 58,
+   "macros_used": [
+    "odd?",
+    "reverse"
+   ],
+   "note": "reference mutates while iterating; emulated as 'drop an even, keep the next element unconditionally' (flag . out) fold"
+  },
+  {
+   "id": "mbpp-799",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 25,
+   "total": 25,
+   "macro_program": "2 swap k2-pow mul",
+   "program": "1 1 add swap swap quote [ drop ] swap cat swap nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons [ 1 1 add dup add 1 add dup add mul nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons swap [ add ] swap cons map ] map nil [ cat ] fold swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold swap map 1 [ mul ] fold mul",
+   "macro_length": 4,
+   "length": 222,
+   "macros_used": [
+    "2",
+    "k2-pow"
+   ],
+   "note": "n * 2^d; faithful only while n < 2^(32-d), which every test satisfies"
+  },
+  {
+   "id": "mbpp-564",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "take nil 0 k2-pair [ [ k2-unpair ] dip dup [ [ over ] dip [ eq? not ] swap cons filter len add ] dip swap [ cons ] dip k2-pair ] fold k2-unpair swap drop",
+   "program": "nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold nil 0 nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip dup [ [ over ] dip [ eq? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter 0 [ drop 1 add ] fold add ] dip swap [ cons ] dip nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop",
+   "macro_length": 37,
+   "length": 118,
+   "macros_used": [
+    "k2-pair",
+    "k2-unpair",
+    "len",
+    "not",
+    "take"
+   ],
+   "note": "fold with (seen count) accumulator"
+  },
+  {
+   "id": "mbpp-249",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 27,
+   "total": 27,
+   "macro_program": "swap [ swap contains 1 eq? ] swap cons filter",
+   "program": "swap [ swap [ eq? ] swap cons filter 0 [ drop 1 add ] fold 0 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte 1 eq? ] swap cons filter",
+   "macro_length": 10,
+   "length": 36,
+   "macros_used": [
+    "contains"
+   ],
+   "note": ""
+  },
+  {
+   "id": "mbpp-96",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 13,
+   "total": 13,
+   "macro_program": "dup k2-range1 swap [ swap mod 0 eq? ] swap cons filter len",
+   "program": "dup nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons [ 1 1 add dup add 1 add dup add mul nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons swap [ add ] swap cons map ] map nil [ cat ] fold swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold [ 1 add ] map swap [ swap over over div mul sub 0 eq? ] swap cons filter 0 [ drop 1 add ] fold",
+   "macro_length": 13,
+   "length": 229,
+   "macros_used": [
+    "k2-range1",
+    "len",
+    "mod"
+   ],
+   "note": "needs k2-range1: basis range refuses above n=7"
+  },
+  {
+   "id": "mbpp-107",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 26,
+   "total": 26,
+   "macro_program": "k2-range-ab [ k2-hexcount ] map sum",
+   "program": "1 add nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons [ 1 1 add dup add 1 add dup add mul nil 1 1 add 1 add dup mul cons 1 1 add dup add dup add cons 1 1 add 1 add dup add 1 add cons 1 1 add 1 add dup add cons 1 1 add dup add 1 add cons 1 1 add dup add cons 1 1 add 1 add cons 1 1 add cons 1 cons 0 cons swap [ add ] swap cons map ] map nil [ cat ] fold swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold swap nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold [ 0 [ [ drop drop 0 eq? ] [ drop swap drop ] [ [ [ dup 1 1 add dup add dup add dup add over over div mul sub 1 1 add dup add 1 add dup add lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte ] dip add [ 1 1 add dup add dup add dup add div ] dip ] dip dup i ] ifte ] dup i ] map 0 [ add ] fold",
+   "macro_length": 6,
+   "length": 351,
+   "macros_used": [
+    "k2-hexcount",
+    "k2-range-ab",
+    "sum"
+   ],
+   "note": "k2-hexcount is a self-applying while loop over base-16 digits (2 iterations here)"
+  },
+  {
+   "id": "mbpp-591",
+   "source": "mbpp",
+   "author": "2",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 26,
+   "total": 26,
+   "macro_program": "[ tail null? ] [ ] [ dup last swap dup head swap tail reverse tail reverse swap quote cat swap cons ] ifte",
+   "program": "[ uncons drop null? ] [ ] [ dup 0 [ swap drop ] fold swap dup uncons swap drop swap uncons drop nil [ cons ] fold uncons drop nil [ cons ] fold swap quote cat swap cons ] ifte",
+   "macro_length": 24,
+   "length": 42,
+   "macros_used": [
+    "head",
+    "last",
+    "reverse",
+    "tail"
+   ],
+   "note": "singleton guarded by ifte"
+  },
+  {
+   "id": "leetcode-pass-the-pillow",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "over dec 2 mul mod [ over lt? ] [ swap drop inc ] [ swap 2 mul dec swap sub ] ifte",
+   "program": "over 1 sub 1 1 add mul over over div mul sub [ over lt? ] [ swap drop 1 add ] [ swap 1 1 add mul 1 sub swap sub ] ifte",
+   "macro_length": 23,
+   "length": 34,
+   "macros_used": [
+    "2",
+    "dec",
+    "inc",
+    "mod"
+   ],
+   "note": "closed form: time mod 2(n-1), reflect past n"
+  },
+  {
+   "id": "leetcode-two-out-of-three",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "[ [ [ k3-has ] dip ] dip [ swap [ k3-has ] dip add ] dip swap [ k3-has ] dip add swap drop 1 gt? ] swap cons swap cons swap cons 100 k3-range1 swap filter",
+   "program": "[ [ [ [ dup ] dip swap [ eq? ] swap cons filter 0 [ drop 1 add ] fold 0 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte ] dip ] dip [ swap [ [ dup ] dip swap [ eq? ] swap cons filter 0 [ drop 1 add ] fold 0 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte ] dip add ] dip swap [ [ dup ] dip swap [ eq? ] swap cons filter 0 [ drop 1 add ] fold 0 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte ] dip add swap drop 1 swap lt? ] swap cons swap cons swap cons 1 1 add dup add 1 add dup add dup mul [ lt? ] swap cons nil 0 cons dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap filter [ 1 add ] map swap filter",
+   "macro_length": 38,
+   "length": 316,
+   "macros_used": [
+    "100",
+    "gt?",
+    "k3-has",
+    "k3-range1"
+   ],
+   "note": "filter 1..100 by membership count; shared range fails past n=7 (depth cap), uses flat k3-range"
+  },
+  {
+   "id": "leetcode-distribute-money-to-maximum-children",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "[ lt? ] [ drop drop -1 ] [ [ 8 mul swap lt? ] [ swap drop dec ] [ [ 8 mul 4 sub eq? ] [ swap drop 2 sub ] [ sub 7 div ] ifte ] ifte ] ifte",
+   "program": "[ lt? ] [ drop drop 0 1 sub ] [ [ 1 1 add dup add dup add mul swap lt? ] [ swap drop 1 sub ] [ [ 1 1 add dup add dup add mul 1 1 add dup add sub eq? ] [ swap drop 1 1 add sub ] [ sub 1 1 add 1 add dup add 1 add div ] ifte ] ifte ] ifte",
+   "macro_length": 44,
+   "length": 73,
+   "macros_used": [
+    "-1",
+    "2",
+    "4",
+    "7",
+    "8",
+    "dec"
+   ],
+   "note": "nested ifte on reference case split"
+  },
+  {
+   "id": "leetcode-find-the-maximum-achievable-number",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "2 mul add",
+   "program": "1 1 add mul add",
+   "macro_length": 3,
+   "length": 5,
+   "macros_used": [
+    "2"
+   ],
+   "note": ""
+  },
+  {
+   "id": "leetcode-calculate-delayed-arrival-time",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 31,
+   "total": 31,
+   "macro_program": "add 6 4 mul mod",
+   "program": "add 1 1 add 1 add dup add 1 1 add dup add mul over over div mul sub",
+   "macro_length": 5,
+   "length": 19,
+   "macros_used": [
+    "4",
+    "6",
+    "mod"
+   ],
+   "note": ""
+  },
+  {
+   "id": "leetcode-xor-operation-in-an-array",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "over over 2 mod swap 2 mod mul [ 2 div dup [ add dec ] dip dec k3-xorrange swap k3-xorrange k3-xor 2 mul ] dip add",
+   "program": "over over 1 1 add over over div mul sub swap 1 1 add over over div mul sub mul [ 1 1 add div dup [ add 1 sub ] dip 1 sub dup 1 1 add dup add over over div mul sub [ 0 eq? ] [ drop ] [ [ 1 eq? ] [ drop drop 1 ] [ [ 1 1 add eq? ] [ drop 1 add ] [ drop drop 0 ] ifte ] ifte ] ifte swap dup 1 1 add dup add over over div mul sub [ 0 eq? ] [ drop ] [ [ 1 eq? ] [ drop drop 1 ] [ [ 1 1 add eq? ] [ drop 1 add ] [ drop drop 0 ] ifte ] ifte ] ifte over over nil 1 cons dup dup 0 [ swap drop ] fold 1 1 add mul [ mul ] swap cons map cat dup dup 0 [ swap drop ] fold 1 1 add mul [ mul ] swap cons map cat dup dup 0 [ swap drop ] fold 1 1 add mul [ mul ] swap cons map cat dup dup 0 [ swap drop ] fold 1 1 add mul [ mul ] swap cons map cat [ [ [ over ] dip swap div 1 1 add over over div mul sub swap [ over ] dip swap div 1 1 add over over div mul sub mul mul ] swap cons swap cons ] dip swap map 0 [ add ] fold 1 1 add mul [ add ] dip sub 1 1 add mul ] dip add",
+   "macro_length": 27,
+   "length": 279,
+   "macros_used": [
+    "2",
+    "dec",
+    "k3-xor",
+    "k3-xorrange",
+    "mod"
+   ],
+   "note": "O(1) prefix-xor identity; the one remaining xor is k3-xor (and via per-bit digit products over k3-pows)"
+  },
+  {
+   "id": "leetcode-number-of-students-doing-homework-at-a-given-time",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "dup [ le? bool>int ] swap cons swap [ ge? bool>int ] swap cons [ swap ] dip map [ map ] dip k3-dot",
+   "program": "dup [ swap lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte ] swap cons swap [ lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte ] swap cons [ swap ] dip map [ map ] dip 0 cons [ [ uncons ] dip [ [ uncons ] dip ] dip swap [ mul ] dip add cons ] fold uncons swap drop",
+   "macro_length": 24,
+   "length": 92,
+   "macros_used": [
+    "bool>int",
+    "ge?",
+    "k3-dot",
+    "le?"
+   ],
+   "note": "zip via k3-dot: fold over A with B as the accumulator tail"
+  },
+  {
+   "id": "leetcode-find-the-distance-value-between-two-arrays",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "[ [ swap ] dip [ [ sub abs ] dip le? ] swap cons swap cons filter len 0 eq? ] swap cons swap cons filter len",
+   "program": "[ [ swap ] dip [ [ sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] dip swap lt? [ ] [ drop false ] [ drop true ] ifte ] swap cons swap cons filter 0 [ drop 1 add ] fold 0 eq? ] swap cons swap cons filter 0 [ drop 1 add ] fold",
+   "macro_length": 28,
+   "length": 64,
+   "macros_used": [
+    "abs",
+    "le?",
+    "len"
+   ],
+   "note": "nested filter with two-value closure"
+  },
+  {
+   "id": "leetcode-harshad-number",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "dup k3-digitsum [ mod 0 eq? ] [ swap drop ] [ drop drop -1 ] ifte",
+   "program": "dup 1 1 add dup add 1 add dup add dup nil 1 cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons swap drop [ [ [ swap div ] dip over over div mul sub ] swap cons swap cons ] dip swap map 0 [ add ] fold [ over over div mul sub 0 eq? ] [ swap drop ] [ drop drop 0 1 sub ] ifte",
+   "macro_length": 17,
+   "length": 123,
+   "macros_used": [
+    "-1",
+    "k3-digitsum",
+    "mod"
+   ],
+   "note": "k3-digitsum = map over powers of ten, no recursion"
+  },
+  {
+   "id": "leetcode-minimum-sum-of-four-digit-number-after-splitting-digits",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "dup 10 mod swap dup 10 div 10 mod swap dup 100 div 10 mod swap 1000 div over over add [ min2 ] dip [ [ over over add ] dip ] dip [ [ [ min2 ] dip ] dip ] dip [ swap ] dip [ [ add ] dip ] dip over over add [ min2 min2 ] dip swap 9 mul add",
+   "program": "dup 1 1 add dup add 1 add dup add over over div mul sub swap dup 1 1 add dup add 1 add dup add div 1 1 add dup add 1 add dup add over over div mul sub swap dup 1 1 add dup add 1 add dup add dup mul div 1 1 add dup add 1 add dup add over over div mul sub swap 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul div over over add [ [ over lt? ] [ swap drop ] [ drop ] ifte ] dip [ [ over over add ] dip ] dip [ [ [ [ over lt? ] [ swap drop ] [ drop ] ifte ] dip ] dip ] dip [ swap ] dip [ [ add ] dip ] dip over over add [ [ over lt? ] [ swap drop ] [ drop ] ifte [ over lt? ] [ swap drop ] [ drop ] ifte ] dip swap 1 1 add 1 add dup mul mul add",
+   "macro_length": 67,
+   "length": 191,
+   "macros_used": [
+    "10",
+    "100",
+    "1000",
+    "9",
+    "min2",
+    "mod"
+   ],
+   "note": "no sort: total + 9*(sum of two smallest), two smallest = min(a+b, c+d, min(a,b)+min(c,d))"
+  },
+  {
+   "id": "leetcode-maximum-number-of-balls-in-a-box",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "unsolved",
+   "solved": false,
+   "passed": 0,
+   "total": 40,
+   "macro_program": "",
+   "program": "",
+   "macro_length": 0,
+   "length": 0,
+   "macros_used": [],
+   "note": "fuel: ranges hold up to 90002 numbers (100k step cap); histogram over 46 digit sums has no closed form the basis affords"
+  },
+  {
+   "id": "leetcode-divisible-and-non-divisible-sums-difference",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "over over div dup inc mul mul [ dup inc mul 2 div ] dip sub",
+   "program": "over over div dup 1 add mul mul [ dup 1 add mul 1 1 add div ] dip sub",
+   "macro_length": 16,
+   "length": 20,
+   "macros_used": [
+    "2",
+    "inc"
+   ],
+   "note": "closed form n(n+1)/2 - m k(k+1), k = n div m"
+  },
+  {
+   "id": "leetcode-count-distinct-numbers-on-board",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "dec 1 max2",
+   "program": "1 sub 1 [ over lt? ] [ drop ] [ swap drop ] ifte",
+   "macro_length": 3,
+   "length": 15,
+   "macros_used": [
+    "dec",
+    "max2"
+   ],
+   "note": ""
+  },
+  {
+   "id": "leetcode-maximum-height-of-a-triangle",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "over over k3-trih [ swap k3-trih ] dip max2",
+   "program": "over over [ [ [ dup 1 add 1 1 add div dup mul ] dip ] dip [ swap lt? [ ] [ drop false ] [ drop true ] ifte ] dip [ swap ] dip [ 1 1 add div dup 1 add mul ] dip swap lt? [ ] [ drop false ] [ drop true ] ifte [ [ ] [ drop 1 ] [ drop 0 ] ifte ] dip [ ] [ drop 1 ] [ drop 0 ] ifte mul 1 eq? ] swap cons swap cons 1 1 add dup add 1 add dup add dup add [ lt? ] swap cons nil 0 cons dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap filter [ 1 add ] map swap filter 0 [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold [ swap [ [ [ dup 1 add 1 1 add div dup mul ] dip ] dip [ swap lt? [ ] [ drop false ] [ drop true ] ifte ] dip [ swap ] dip [ 1 1 add div dup 1 add mul ] dip swap lt? [ ] [ drop false ] [ drop true ] ifte [ [ ] [ drop 1 ] [ drop 0 ] ifte ] dip [ ] [ drop 1 ] [ drop 0 ] ifte mul 1 eq? ] swap cons swap cons 1 1 add dup add 1 add dup add dup add [ lt? ] swap cons nil 0 cons dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap filter [ 1 add ] map swap filter 0 [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold ] dip [ over lt? ] [ drop ] [ swap drop ] ifte",
+   "macro_length": 9,
+   "length": 612,
+   "macros_used": [
+    "k3-trih",
+    "max2"
+   ],
+   "note": "filter heights 1..20 by odd/even row sums fitting, both starting colours"
+  },
+  {
+   "id": "leetcode-number-of-common-factors",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "over over min2 k3-range1 [ [ k3-divides-both ] swap cons swap cons ] dip swap filter len",
+   "program": "over over [ over lt? ] [ swap drop ] [ drop ] ifte [ lt? ] swap cons nil 0 cons dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap filter [ 1 add ] map [ [ [ over ] dip swap over over div mul sub 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte [ swap over over div mul sub 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte ] dip mul 1 eq? ] swap cons swap cons ] dip swap filter 0 [ drop 1 add ] fold",
+   "macro_length": 17,
+   "length": 255,
+   "macros_used": [
+    "k3-divides-both",
+    "k3-range1",
+    "len",
+    "min2"
+   ],
+   "note": "no gcd loop: count x in 1..min(a,b) dividing both"
+  },
+  {
+   "id": "leetcode-find-the-child-who-has-the-ball-after-k-seconds",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "over dec over over mod [ div ] dip [ drop odd? ] [ swap drop sub dec ] [ swap drop swap drop ] ifte",
+   "program": "over 1 sub over over over over div mul sub [ div ] dip [ drop 1 1 add over over div mul sub 1 eq? ] [ swap drop sub 1 sub ] [ swap drop swap drop ] ifte",
+   "macro_length": 26,
+   "length": 41,
+   "macros_used": [
+    "dec",
+    "mod",
+    "odd?"
+   ],
+   "note": "divmod by n-1, parity of the quotient"
+  },
+  {
+   "id": "leetcode-count-numbers-with-unique-digits-ii",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "over 10 div over 10 div over sub inc k3-range swap [ add ] swap cons map [ [ [ over 10 mul sub 0 max2 ] dip [ over ] dip swap 10 mul sub 9 min2 [ [ dup ] dip ] dip [ swap ] dip swap dup 100 lt? bool>int over 100 div swap sub over 10 lt? bool>int [ over 10 div 10 mod ] dip 2 mul sub [ [ dup 0 eq? bool>int 3 mul over 10 mod swap sub ] dip ] dip [ [ [ drop ] dip ] dip ] dip nil swap cons swap cons swap cons dup uncons [ uncons ] dip [ [ head ] dip ] dip k3-pdiff3 0 eq? bool>int [ [ over over ] dip [ [ k3-between ] swap cons swap cons ] dip swap filter len ] dip [ [ swap sub inc ] dip ] dip [ sub ] dip 1 swap sub mul swap drop ] swap cons swap cons ] dip swap map sum",
+   "program": "over 1 1 add dup add 1 add dup add div over 1 1 add dup add 1 add dup add div over sub 1 add [ lt? ] swap cons nil 0 cons dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap filter swap [ add ] swap cons map [ [ [ over 1 1 add dup add 1 add dup add mul sub 0 [ over lt? ] [ drop ] [ swap drop ] ifte ] dip [ over ] dip swap 1 1 add dup add 1 add dup add mul sub 1 1 add 1 add dup mul [ over lt? ] [ swap drop ] [ drop ] ifte [ [ dup ] dip ] dip [ swap ] dip swap dup 1 1 add dup add 1 add dup add dup mul lt? [ ] [ drop 1 ] [ drop 0 ] ifte over 1 1 add dup add 1 add dup add dup mul div swap sub over 1 1 add dup add 1 add dup add lt? [ ] [ drop 1 ] [ drop 0 ] ifte [ over 1 1 add dup add 1 add dup add div 1 1 add dup add 1 add dup add over over div mul sub ] dip 1 1 add mul sub [ [ dup 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte 1 1 add 1 add mul over 1 1 add dup add 1 add dup add over over div mul sub swap sub ] dip ] dip [ [ [ drop ] dip ] dip ] dip nil swap cons swap cons swap cons dup uncons [ uncons ] dip [ [ uncons swap drop ] dip ] dip over over sub [ [ over ] dip swap over sub ] dip mul [ drop ] dip [ sub ] dip mul 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte [ [ over over ] dip [ [ [ over ] dip swap lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte [ lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte ] dip mul 1 eq? ] swap cons swap cons ] dip swap filter 0 [ drop 1 add ] fold ] dip [ [ swap sub 1 add ] dip ] dip [ sub ] dip 1 swap sub mul swap drop ] swap cons swap cons ] dip swap map 0 [ add ] fold",
+   "macro_length": 175,
+   "length": 602,
+   "macros_used": [
+    "10",
+    "100",
+    "2",
+    "3",
+    "9",
+    "bool>int",
+    "head",
+    "inc",
+    "k3-between",
+    "k3-pdiff3",
+    "k3-range",
+    "len",
+    "max2",
+    "min2",
+    "mod",
+    "sum"
+   ],
+   "note": "per-number brute force is ~100 steps x 1001 numbers (over fuel); instead map over ten-number prefixes (<=112): leading-zero sentinels -1/-2/-3, k3-pdiff3 for distinct prefix, count last digits analytically"
+  },
+  {
+   "id": "leetcode-count-symmetric-integers",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "over over 10 quote [ over over mod [ over over div swap ] dip [ over over mod ] dip [ [ div inc ] dip ] dip [ add ] dip sub ] cat 10 quote cat [ over over div [ [ swap ] dip ] dip [ dup dup dup mul mul [ mul ] dip add ] dip [ add ] dip swap dup ] cat [ swap ] dip swap quote cat [ sub swap ] cat swap quote cat [ swap sub mul ] cat 1000 dup mul 100 mul quote cat [ [ swap dup mul ] dip mul sub inc 0 swap lt? ] cat 9 100 mul k3-range swap filter len [ [ [ [ 10 inc mul ] dip ] dip k3-between ] swap cons swap cons 9 k3-range1 swap filter len ] dip add",
+   "program": "over over 1 1 add dup add 1 add dup add quote [ over over over over div mul sub [ over over div swap ] dip [ over over over over div mul sub ] dip [ [ div 1 add ] dip ] dip [ add ] dip sub ] cat 1 1 add dup add 1 add dup add quote cat [ over over div [ [ swap ] dip ] dip [ dup dup dup mul mul [ mul ] dip add ] dip [ add ] dip swap dup ] cat [ swap ] dip swap quote cat [ sub swap ] cat swap quote cat [ swap sub mul ] cat 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul dup mul 1 1 add dup add 1 add dup add dup mul mul quote cat [ [ swap dup mul ] dip mul sub 1 add 0 swap lt? ] cat 1 1 add 1 add dup mul 1 1 add dup add 1 add dup add dup mul mul [ lt? ] swap cons nil 0 cons dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap filter swap filter 0 [ drop 1 add ] fold [ [ [ [ 1 1 add dup add 1 add dup add 1 add mul ] dip ] dip [ over ] dip swap lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte [ lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte ] dip mul 1 eq? ] swap cons swap cons 1 1 add 1 add dup mul [ lt? ] swap cons nil 0 cons dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap filter [ 1 add ] map swap filter 0 [ drop 1 add ] fold ] dip add",
+   "macro_length": 146,
+   "length": 644,
+   "macros_used": [
+    "10",
+    "100",
+    "1000",
+    "9",
+    "inc",
+    "k3-between",
+    "k3-range",
+    "k3-range1",
+    "len",
+    "mod"
+   ],
+   "note": "enumerate 900 (a,b,c) with d=a+b-c; constants closed into the quotation via quote/cat and ifte-free checks (g - K q^2 >= 0) to fit fuel (88.5k)"
+  },
+  {
+   "id": "leetcode-count-square-sum-triples",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 23,
+   "total": 23,
+   "macro_program": "dup [ [ 4 4 mul over over mod [ div ] dip ] dip [ over over sq swap sq add ] dip le? bool>int [ over over sub odd? bool>int ] dip mul [ over over gt? bool>int ] dip mul [ 1 ge? bool>int ] dip mul swap drop 1 eq? ] swap cons 2 dup mul dup mul dup mul k3-range swap filter 7 dup add k3-range [ 2 add ] map [ [ 4 4 mul over over mod [ div ] dip ] dip [ [ k3-divides-both ] swap cons swap cons ] dip swap filter len 0 eq? ] swap cons filter over [ [ 4 4 mul over over mod [ div ] dip sq swap sq add ] dip swap div ] swap cons map sum 2 mul swap drop",
+   "program": "dup [ [ 1 1 add dup add 1 1 add dup add mul over over over over div mul sub [ div ] dip ] dip [ over over dup mul swap dup mul add ] dip swap lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte [ over over sub 1 1 add over over div mul sub 1 eq? [ ] [ drop 1 ] [ drop 0 ] ifte ] dip mul [ over over swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte ] dip mul [ 1 lt? [ ] [ drop false ] [ drop true ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte ] dip mul swap drop 1 eq? ] swap cons 1 1 add dup mul dup mul dup mul [ lt? ] swap cons nil 0 cons dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap filter swap filter 1 1 add 1 add dup add 1 add dup add [ lt? ] swap cons nil 0 cons dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat dup dup 0 [ drop 1 add ] fold [ add ] swap cons map cat swap filter [ 1 1 add add ] map [ [ 1 1 add dup add 1 1 add dup add mul over over over over div mul sub [ div ] dip ] dip [ [ [ over ] dip swap over over div mul sub 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte [ swap over over div mul sub 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte ] dip mul 1 eq? ] swap cons swap cons ] dip swap filter 0 [ drop 1 add ] fold 0 eq? ] swap cons filter over [ [ 1 1 add dup add 1 1 add dup add mul over over over over div mul sub [ div ] dip dup mul swap dup mul add ] dip swap div ] swap cons map 0 [ add ] fold 1 1 add mul swap drop",
+   "macro_length": 139,
+   "length": 661,
+   "macros_used": [
+    "2",
+    "4",
+    "7",
+    "bool>int",
+    "ge?",
+    "gt?",
+    "k3-divides-both",
+    "k3-range",
+    "le?",
+    "len",
+    "mod",
+    "odd?",
+    "sq",
+    "sum"
+   ],
+   "note": "O(n^2) brute force is over fuel; Euclid's formula: primitive (m,n) pairs (coprime via k3-divides-both over 2..15), 2*sum n div (m^2+n^2)"
+  },
+  {
+   "id": "leetcode-sum-of-digits-in-base-k",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "k3-basesum",
+   "program": "dup nil 1 cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons swap drop [ [ [ swap div ] dip over over div mul sub ] swap cons swap cons ] dip swap map 0 [ add ] fold",
+   "macro_length": 1,
+   "length": 92,
+   "macros_used": [
+    "k3-basesum"
+   ],
+   "note": "map over powers of k built by repeated cons"
+  },
+  {
+   "id": "leetcode-minimum-element-after-replacement-with-digit-sum",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "[ k3-digitsum ] map min",
+   "program": "[ 1 1 add dup add 1 add dup add dup nil 1 cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons over [ dup uncons swap drop ] dip mul cons swap drop [ [ [ swap div ] dip over over div mul sub ] swap cons swap cons ] dip swap map 0 [ add ] fold ] map uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold",
+   "macro_length": 5,
+   "length": 120,
+   "macros_used": [
+    "k3-digitsum",
+    "min"
+   ],
+   "note": ""
+  },
+  {
+   "id": "leetcode-calculate-money-in-leetcode-bank",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "dup 7 div swap 7 mod over 2 mul over add inc over mul 2 div [ drop dup 7 add mul 7 mul 2 div ] dip add",
+   "program": "dup 1 1 add 1 add dup add 1 add div swap 1 1 add 1 add dup add 1 add over over div mul sub over 1 1 add mul over add 1 add over mul 1 1 add div [ drop dup 1 1 add 1 add dup add 1 add add mul 1 1 add 1 add dup add 1 add mul 1 1 add div ] dip add",
+   "macro_length": 29,
+   "length": 72,
+   "macros_used": [
+    "2",
+    "7",
+    "inc",
+    "mod"
+   ],
+   "note": "closed form from reference"
+  },
+  {
+   "id": "leetcode-count-operations-to-obtain-zero",
+   "source": "leetcode",
+   "author": "3",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "0 k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step k3-euclid-step [ drop drop ] dip",
+   "program": "0 [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop 0 eq? ] [ ] [ [ over over div ] dip add [ over over over over div mul sub ] dip [ [ swap drop ] dip ] dip ] ifte [ drop drop ] dip",
+   "macro_length": 32,
+   "length": 916,
+   "macros_used": [
+    "k3-euclid-step"
+   ],
+   "note": "Euclid with quotient counting, unrolled 26 times (Fibonacci bound for inputs <= 1e5) since recursion is capped at ~7 levels"
+  },
+  {
+   "id": "leetcode-find-the-key-of-the-numbers",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "[ nil swap cons swap cons swap cons over [ div 10 mod ] swap cons map min mul ] swap cons swap cons swap cons nil 1000 cons 100 cons 10 cons 1 cons swap map sum",
+   "program": "[ nil swap cons swap cons swap cons over [ div 1 1 add dup add 1 add dup add over over div mul sub ] swap cons map uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold mul ] swap cons swap cons swap cons nil 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul cons 1 1 add dup add 1 add dup add dup mul cons 1 1 add dup add 1 add dup add cons 1 cons swap map 0 [ add ] fold",
+   "macro_length": 38,
+   "length": 107,
+   "macros_used": [
+    "10",
+    "100",
+    "1000",
+    "min",
+    "mod",
+    "sum"
+   ],
+   "note": "map over the 4 place values with the 3 inputs consed into the body; per place, min of the 3 digits times the place"
+  },
+  {
+   "id": "leetcode-minimum-cuts-to-divide-a-circle",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "[ 1 eq? ] [ drop 0 ] [ [ odd? ] [ ] [ 2 div ] ifte ] ifte",
+   "program": "[ 1 eq? ] [ drop 0 ] [ [ 1 1 add over over div mul sub 1 eq? ] [ ] [ 1 1 add div ] ifte ] ifte",
+   "macro_length": 21,
+   "length": 32,
+   "macros_used": [
+    "2",
+    "odd?"
+   ],
+   "note": ""
+  },
+  {
+   "id": "leetcode-number-of-days-in-a-month",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 33,
+   "total": 33,
+   "macro_program": "[ 2 eq? ] [ drop [ k4-leap? ] [ drop 7 4 mul inc ] [ drop 7 4 mul ] ifte ] [ swap drop [ dup 8 lt? bool>int swap even? bool>int eq? ] [ drop 10 3 mul ] [ drop 10 3 mul inc ] ifte ] ifte",
+   "program": "[ 1 1 add eq? ] [ drop [ dup 1 1 add dup add over over div mul sub 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte over 1 1 add dup add 1 add dup add dup mul over over div mul sub 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte sub swap 1 1 add dup add 1 add dup add dup mul 1 1 add dup add mul over over div mul sub 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte add 1 eq? ] [ drop 1 1 add 1 add dup add 1 add 1 1 add dup add mul 1 add ] [ drop 1 1 add 1 add dup add 1 add 1 1 add dup add mul ] ifte ] [ swap drop [ dup 1 1 add dup add dup add lt? [ ] [ drop 1 ] [ drop 0 ] ifte swap 1 1 add over over div mul sub 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte eq? ] [ drop 1 1 add dup add 1 add dup add 1 1 add 1 add mul ] [ drop 1 1 add dup add 1 add dup add 1 1 add 1 add mul 1 add ] ifte ] ifte",
+   "macro_length": 53,
+   "length": 233,
+   "macros_used": [
+    "10",
+    "2",
+    "3",
+    "4",
+    "7",
+    "8",
+    "bool>int",
+    "even?",
+    "inc",
+    "k4-leap?"
+   ],
+   "note": "30-day months are exactly those where (month<8) == (month even); k4-leap? is (y%4==0)-(y%100==0)+(y%400==0)==1"
+  },
+  {
+   "id": "leetcode-number-of-even-and-odd-bits",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "0 0 k4-rot nil swap cons swap cons swap cons k4-junk8 swap [ drop uncons swap uncons swap head dup 4 mod dup 2 mod swap 2 div [ k4-rot ] dip add [ k4-rot ] dip [ add ] dip k4-rot 4 div nil swap cons swap cons swap cons ] fold 2 take",
+   "program": "0 0 [ swap ] dip swap nil swap cons swap cons swap cons nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons swap [ drop uncons swap uncons swap uncons swap drop dup 1 1 add dup add over over div mul sub dup 1 1 add over over div mul sub swap 1 1 add div [ [ swap ] dip swap ] dip add [ [ swap ] dip swap ] dip [ add ] dip [ swap ] dip swap 1 1 add dup add div nil swap cons swap cons swap cons ] fold 1 1 add nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold",
+   "macro_length": 55,
+   "length": 160,
+   "macros_used": [
+    "2",
+    "4",
+    "head",
+    "k4-junk8",
+    "k4-rot",
+    "mod",
+    "take"
+   ],
+   "note": "no bit ops: fold 8 times over a junk list with packed acc (e o n), peeling two bits per step as n%4"
+  },
+  {
+   "id": "leetcode-sum-multiples",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 38,
+   "total": 38,
+   "macro_program": "dup 3 k4-sum-multiples-of over 5 k4-sum-multiples-of add over 7 k4-sum-multiples-of add over 3 5 mul k4-sum-multiples-of sub over 3 7 mul k4-sum-multiples-of sub over 5 7 mul k4-sum-multiples-of sub swap 3 5 mul 7 mul k4-sum-multiples-of add",
+   "program": "dup 1 1 add 1 add swap over div dup 1 add mul 1 1 add div mul over 1 1 add dup add 1 add swap over div dup 1 add mul 1 1 add div mul add over 1 1 add 1 add dup add 1 add swap over div dup 1 add mul 1 1 add div mul add over 1 1 add 1 add 1 1 add dup add 1 add mul swap over div dup 1 add mul 1 1 add div mul sub over 1 1 add 1 add 1 1 add 1 add dup add 1 add mul swap over div dup 1 add mul 1 1 add div mul sub over 1 1 add dup add 1 add 1 1 add 1 add dup add 1 add mul swap over div dup 1 add mul 1 1 add div mul sub swap 1 1 add 1 add 1 1 add dup add 1 add mul 1 1 add 1 add dup add 1 add mul swap over div dup 1 add mul 1 1 add div mul add",
+   "macro_length": 37,
+   "length": 186,
+   "macros_used": [
+    "3",
+    "5",
+    "7",
+    "k4-sum-multiples-of"
+   ],
+   "note": "closed form by inclusion-exclusion; range-based filter is impossible (range dies past n=7 on the depth limit)"
+  },
+  {
+   "id": "leetcode-get-maximum-in-generated-array",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 31,
+   "total": 31,
+   "macro_program": "nil 1 cons 0 cons k4-stern-double k4-stern-double k4-stern-double k4-stern-double k4-stern-double k4-stern-double k4-stern-double swap inc take max",
+   "program": "nil 1 cons 0 cons uncons dup quote nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap over add [ swap ] dip swap swap cons over cons nil swap cons swap cons ] fold uncons drop uncons swap drop nil [ cons ] fold uncons dup quote nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap over add [ swap ] dip swap swap cons over cons nil swap cons swap cons ] fold uncons drop uncons swap drop nil [ cons ] fold uncons dup quote nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap over add [ swap ] dip swap swap cons over cons nil swap cons swap cons ] fold uncons drop uncons swap drop nil [ cons ] fold uncons dup quote nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap over add [ swap ] dip swap swap cons over cons nil swap cons swap cons ] fold uncons drop uncons swap drop nil [ cons ] fold uncons dup quote nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap over add [ swap ] dip swap swap cons over cons nil swap cons swap cons ] fold uncons drop uncons swap drop nil [ cons ] fold uncons dup quote nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap over add [ swap ] dip swap swap cons over cons nil swap cons swap cons ] fold uncons drop uncons swap drop nil [ cons ] fold uncons dup quote nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap over add [ swap ] dip swap swap cons over cons nil swap cons swap cons ] fold uncons drop uncons swap drop nil [ cons ] fold swap 1 add nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold",
+   "macro_length": 16,
+   "length": 424,
+   "macros_used": [
+    "inc",
+    "k4-stern-double",
+    "max",
+    "take"
+   ],
+   "note": "Stern diatomic sequence: 7 fold-based doublings of (0 1) give nums[0..128]; take n+1, max. No indexing needed"
+  },
+  {
+   "id": "leetcode-count-of-matches-in-tournament",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "dec",
+   "program": "1 sub",
+   "macro_length": 1,
+   "length": 2,
+   "macros_used": [
+    "dec"
+   ],
+   "note": ""
+  },
+  {
+   "id": "leetcode-find-the-pivot-integer",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "dup dup inc mul 2 div swap inc k4-iota swap [ swap sq eq? ] swap cons filter [ null? ] [ drop -1 ] [ head ] ifte",
+   "program": "dup dup 1 add mul 1 1 add div swap 1 add nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat dup cat dup cat dup cat dup cat dup cat dup cat [ swap drop over [ null? ] [ drop 0 ] [ uncons swap drop 1 add ] ifte [ swap lt? ] [ swap drop cons ] [ drop drop ] ifte ] [ swap ] dip swap cons nil swap fold nil [ cons ] fold swap [ swap dup mul eq? ] swap cons filter [ null? ] [ drop 0 1 sub ] [ uncons swap drop ] ifte",
+   "macro_length": 29,
+   "length": 116,
+   "macros_used": [
+    "-1",
+    "2",
+    "head",
+    "inc",
+    "k4-iota",
+    "sq"
+   ],
+   "note": "pivot is the integer sqrt of n(n+1)/2; filter over k4-iota (fold-built 0..n, ~28k fuel at n=1000)"
+  },
+  {
+   "id": "leetcode-total-distance-traveled",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "over dec 4 div 0 max2 min2 add 10 mul",
+   "program": "over 1 sub 1 1 add dup add div 0 [ over lt? ] [ drop ] [ swap drop ] ifte [ over lt? ] [ swap drop ] [ drop ] ifte add 1 1 add dup add 1 add dup add mul",
+   "macro_length": 10,
+   "length": 45,
+   "macros_used": [
+    "10",
+    "4",
+    "dec",
+    "max2",
+    "min2"
+   ],
+   "note": "closed form: injections = min(additional, max(0, (main-1)//4))"
+  },
+  {
+   "id": "leetcode-account-balance-after-rounded-purchase",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "5 add 10 div 10 mul 100 swap sub",
+   "program": "1 1 add dup add 1 add add 1 1 add dup add 1 add dup add div 1 1 add dup add 1 add dup add mul 1 1 add dup add 1 add dup add dup mul swap sub",
+   "macro_length": 9,
+   "length": 41,
+   "macros_used": [
+    "10",
+    "100",
+    "5"
+   ],
+   "note": ""
+  },
+  {
+   "id": "leetcode-smallest-divisible-digit-product-i",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "swap 10 k4-iota16 swap [ add ] swap cons map swap [ swap k4-digit-product swap k4-divisible? ] swap cons filter head",
+   "program": "swap 1 1 add dup add 1 add dup add nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat [ swap drop over [ null? ] [ drop 0 ] [ uncons swap drop 1 add ] ifte [ swap lt? ] [ swap drop cons ] [ drop drop ] ifte ] [ swap ] dip swap cons nil swap fold nil [ cons ] fold swap [ add ] swap cons map swap [ swap nil nil swap cons swap cons nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons swap [ drop uncons swap uncons swap drop [ drop 0 eq? ] [ ] [ over 1 1 add dup add 1 add dup add over over div mul sub cons [ 1 1 add dup add 1 add dup add div ] dip ] ifte nil swap cons swap cons ] fold uncons drop uncons swap drop 1 [ mul ] fold swap over over div mul sub 0 eq? ] swap cons filter uncons swap drop",
+   "macro_length": 21,
+   "length": 189,
+   "macros_used": [
+    "10",
+    "head",
+    "k4-digit-product",
+    "k4-divisible?",
+    "k4-iota16"
+   ],
+   "note": "answer is within n..n+9 (a multiple of 10 has digit product 0), so map+filter over 10 candidates, no loop"
+  },
+  {
+   "id": "leetcode-water-bottles",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "dec over dec swap div add",
+   "program": "1 sub over 1 sub swap div add",
+   "macro_length": 6,
+   "length": 8,
+   "macros_used": [
+    "dec"
+   ],
+   "note": "closed form nb + (nb-1)//(ne-1)"
+  },
+  {
+   "id": "leetcode-count-largest-group",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "unsolved",
+   "solved": false,
+   "passed": 0,
+   "total": 40,
+   "macro_program": "",
+   "program": "",
+   "macro_length": 0,
+   "length": 0,
+   "macros_used": [],
+   "note": "unsolved: n up to 10000 needs a digit-sum histogram over every 1..n; k4-digit-sum is ~350 fuel each (3.5M total vs 100k) and fold-built ranges cap at 1024"
+  },
+  {
+   "id": "leetcode-form-smallest-number-from-two-digit-arrays",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "[ swap [ [ over over eq? ] [ drop ] [ over over min2 10 mul [ max2 ] dip add ] ifte ] swap cons map min min2 ] swap cons 100 swap fold",
+   "program": "[ swap [ [ over over eq? ] [ drop ] [ over over [ over lt? ] [ swap drop ] [ drop ] ifte 1 1 add dup add 1 add dup add mul [ [ over lt? ] [ drop ] [ swap drop ] ifte ] dip add ] ifte ] swap cons map uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ over lt? ] [ swap drop ] [ drop ] ifte ] swap cons 1 1 add dup add 1 add dup add dup mul swap fold",
+   "macro_length": 36,
+   "length": 102,
+   "macros_used": [
+    "10",
+    "100",
+    "max2",
+    "min",
+    "min2"
+   ],
+   "note": "nested loop: fold over nums1 with nums2 consed into the body as a list literal, inner map over nums2"
+  },
+  {
+   "id": "leetcode-distribute-candies-among-children-i",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "dup inc k4-iota128 k4-rot k4-rot [ [ swap sub ] dip over over min2 k4-rot k4-rot sub 0 max2 sub inc 0 max2 ] swap cons swap cons map sum",
+   "program": "dup 1 add nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat dup cat dup cat dup cat [ swap drop over [ null? ] [ drop 0 ] [ uncons swap drop 1 add ] ifte [ swap lt? ] [ swap drop cons ] [ drop drop ] ifte ] [ swap ] dip swap cons nil swap fold nil [ cons ] fold [ swap ] dip swap [ swap ] dip swap [ [ swap sub ] dip over over [ over lt? ] [ swap drop ] [ drop ] ifte [ swap ] dip swap [ swap ] dip swap sub 0 [ over lt? ] [ drop ] [ swap drop ] ifte sub 1 add 0 [ over lt? ] [ drop ] [ swap drop ] ifte ] swap cons swap cons map 0 [ add ] fold",
+   "macro_length": 30,
+   "length": 157,
+   "macros_used": [
+    "inc",
+    "k4-iota128",
+    "k4-rot",
+    "max2",
+    "min2",
+    "sum"
+   ],
+   "note": "sum over a in 0..limit of the count of valid b: max(0, min(limit,n-a) - max(0,n-a-limit) + 1)"
+  },
+  {
+   "id": "leetcode-add-two-integers",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "add",
+   "program": "add",
+   "macro_length": 1,
+   "length": 1,
+   "macros_used": [],
+   "note": ""
+  },
+  {
+   "id": "leetcode-smallest-even-multiple",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "[ even? ] [ ] [ dup add ] ifte",
+   "program": "[ 1 1 add over over div mul sub 0 eq? ] [ ] [ dup add ] ifte",
+   "macro_length": 10,
+   "length": 19,
+   "macros_used": [
+    "even?"
+   ],
+   "note": ""
+  },
+  {
+   "id": "leetcode-minimum-amount-of-time-to-fill-cups",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "dup max swap sum inc 2 div max2",
+   "program": "dup uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold swap 0 [ add ] fold 1 add 1 1 add div [ over lt? ] [ drop ] [ swap drop ] ifte",
+   "macro_length": 8,
+   "length": 41,
+   "macros_used": [
+    "2",
+    "inc",
+    "max",
+    "max2",
+    "sum"
+   ],
+   "note": "max(max(a), ceil(sum/2)); no sorting needed"
+  },
+  {
+   "id": "leetcode-smallest-number-with-all-set-bits",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 40,
+   "total": 40,
+   "macro_program": "[ swap drop [ over dec swap lt? ] [ drop dup add ] [ drop ] ifte ] swap cons k4-junk16 1 k4-rot fold dec",
+   "program": "[ swap drop [ over 1 sub swap lt? ] [ drop dup add ] [ drop ] ifte ] swap cons nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat 1 [ swap ] dip swap fold 1 sub",
+   "macro_length": 26,
+   "length": 50,
+   "macros_used": [
+    "dec",
+    "k4-junk16",
+    "k4-rot"
+   ],
+   "note": "conditional doubling as a fold over a 16-junk list (16 > 11 doublings needed for n<=1000); while-loop form would exceed the depth limit"
+  },
+  {
+   "id": "leetcode-fibonacci-number",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 17,
+   "total": 17,
+   "macro_program": "k4-iota128 nil 1 cons 0 cons [ drop uncons swap uncons swap drop swap over add nil swap cons swap cons ] fold head",
+   "program": "nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat dup cat dup cat dup cat [ swap drop over [ null? ] [ drop 0 ] [ uncons swap drop 1 add ] ifte [ swap lt? ] [ swap drop cons ] [ drop drop ] ifte ] [ swap ] dip swap cons nil swap fold nil [ cons ] fold nil 1 cons 0 cons [ drop uncons swap uncons swap drop swap over add nil swap cons swap cons ] fold uncons swap drop",
+   "macro_length": 24,
+   "length": 98,
+   "macros_used": [
+    "head",
+    "k4-iota128"
+   ],
+   "note": "fold over an iota with packed (a b) acc; range itself refuses past n=7"
+  },
+  {
+   "id": "leetcode-count-integers-with-even-digit-sum",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "solved",
+   "solved": true,
+   "passed": 34,
+   "total": 34,
+   "macro_program": "dup k4-digit-sum 2 mod sub 2 div",
+   "program": "dup nil nil swap cons swap cons nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons swap [ drop uncons swap uncons swap drop [ drop 0 eq? ] [ ] [ over 1 1 add dup add 1 add dup add over over div mul sub cons [ 1 1 add dup add 1 add dup add div ] dip ] ifte nil swap cons swap cons ] fold uncons drop uncons swap drop 0 [ add ] fold 1 1 add over over div mul sub sub 1 1 add div",
+   "macro_length": 7,
+   "length": 101,
+   "macros_used": [
+    "2",
+    "k4-digit-sum",
+    "mod"
+   ],
+   "note": "closed form (num - digitsum(num)%2)//2"
+  },
+  {
+   "id": "leetcode-convert-integer-to-the-sum-of-two-no-zero-integers",
+   "source": "leetcode",
+   "author": "4",
+   "claimed": "unsolved",
+   "solved": false,
+   "passed": 0,
+   "total": 40,
+   "macro_program": "",
+   "program": "",
+   "macro_length": 0,
+   "length": 0,
+   "macros_used": [],
+   "note": "unsolved on fuel: linear search needs >=611 candidates (test 10606) x two zero-free checks; k4-digit-product is ~380 fuel per number (~460k vs 100k), an unrolled 5-digit check still ~130k; digit-DP not attempted"
+  }
+ ]
+}

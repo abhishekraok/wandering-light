@@ -1,0 +1,42 @@
+# Author K=1 macros (world-behaviours probe, #118).
+# Stack shuffles
+k1-rot: [ swap ] dip swap
+k1--rot: k1-rot k1-rot
+k1-dip2: swap [ dip ] dip
+k1-dip3: swap [ k1-dip2 ] dip
+k1-pick2: [ over ] dip swap
+k1-pick3: [ k1-pick2 ] dip swap
+k1-pick4: [ k1-pick3 ] dip swap
+# Packed accumulators: a b -> ( a b ); ( a b ) -> a b
+k1-pack2: nil swap cons swap cons
+k1-unpack2: uncons swap uncons swap drop
+k1-pack3: nil swap cons swap cons swap cons
+k1-unpack3: uncons swap uncons swap uncons swap drop
+k1-pack4: nil swap cons swap cons swap cons swap cons
+k1-unpack4: uncons swap uncons swap uncons swap uncons swap drop
+# Arithmetic
+k1-pow: swap [ drop ] swap quote cat [ range ] dip map product
+k1-gcd: [ [ drop dup 0 eq? ] [ drop drop ] [ [ dup [ mod ] dip swap ] dip dup i ] ifte ] dup i
+k1-sumnat: dup inc mul
+# Lists
+k1-at: [ dup 0 lt? ] [ over len add ] [ ] ifte nth
+k1-insert: over over [ gt? ] swap cons filter k1--rot swap over [ le? ] swap cons filter k1--rot quote swap cat cat
+k1-sort: nil [ k1-insert ] fold
+# Loops: self-applying `range` nests ~4 quotation levels per iteration and
+# MAX_QUOTATION_DEPTH is 32, so `range n` refuses for n >= 8. Build long index
+# lists by doubling seven times (no recursion at all), then filter to length.
+k1-dbl: dup dup len [ add ] swap cons map cat
+k1-iota128: 0 quote k1-dbl k1-dbl k1-dbl k1-dbl k1-dbl k1-dbl k1-dbl
+k1-iota256: k1-iota128 k1-dbl
+k1-range: k1-iota256 swap [ lt? ] swap cons filter
+k1-range1: k1-range [ inc ] map
+# prefix sums: ( 1 2 3 ) -> ( 1 3 6 )
+k1-prefix: 0 nil k1-pack2 [ [ k1-unpack2 ] dip k1-rot add dup [ cons ] dip swap k1-pack2 ] fold k1-unpack2 swap drop reverse
+# Binary-search step codes for the MBPP search behaviours (they must be
+# replayed exactly, unsorted inputs included). Each maps (array, [n|x], mid)
+# to 0/1/2 and a fold over `7 range` with a packed (l r res) state replays it.
+k1-code34: over over k1-at over inc eq? [ ] [ drop drop drop 0 ] [ drop over over dec k1-at eq? swap drop [ ] [ drop 1 ] [ drop 2 ] ifte ] ifte
+k1-code733: [ swap ] dip nth over over eq? [ ] [ drop drop drop 0 ] [ drop lt? [ ] [ drop 1 ] [ drop 2 ] ifte ] ifte
+k1-c1: [ 0 eq? ] [ drop drop true ] [ over over dec nth [ nth ] dip swap le? ] ifte
+k1-c2: [ swap dec eq? ] [ drop drop drop true ] [ swap drop over over inc nth [ nth ] dip swap le? ] ifte
+k1-code466: dup [ [ over ] dip k1-c1 ] dip swap [ ] [ drop k1-c2 [ ] [ drop 0 ] [ drop 2 ] ifte ] [ drop drop drop drop 1 ] ifte
