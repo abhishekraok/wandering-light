@@ -3809,6 +3809,10 @@ class Task:
     alternative_programs: tuple[tuple[str, ...], ...] = ()
     basis: str = BASIS
     witness_source: str = "authored"
+    # The program as its author wrote it, when it was written over a macro
+    # library and expanded to `program` (stack-pbe-world-v1, #120). Empty for
+    # witnesses written directly in the basis.
+    macro_program: str = ""
     schema_version: int = SCHEMA_VERSION
 
 
