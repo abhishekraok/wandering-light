@@ -91,15 +91,13 @@ carries a certified distance or an authored witness rather than an estimate.
 
 ## Results
 
-Headlines are in [`docs/RESULTS.md`](docs/RESULTS.md). As of September 2026, on
-the 40-task `stack_pbe_v4` eval sample, `gpt-5.6-luna` solves 15/40, a
-1m-parameter next-op policy with beam search 7–10/40 across two seeds, and BFS
-at 100,000 nodes 6/40. On `deep-corpus-v1` a 90K-parameter rollout policy solves
-60/96 held-out tasks against 14/96 for an OPT-125M SFT solver. The earlier
-induction/proposer line (OPT-125M, SFT then GRPO on `wl-core-pyhash-v1`) is
-recorded under "Legacy typed-list line" in
-[`docs/RESULTS_DETAILED.md`](docs/RESULTS_DETAILED.md); its checkpoints remain
-on the Hub. Training curves for that line are in
+Numbers live in one place. [`docs/RESULTS.md`](docs/RESULTS.md) has the
+headlines with their caveats: frontier and local language models, BFS, and the
+learned policies on `stack_pbe_v4` and `deep-corpus-v1`.
+[`docs/RESULTS_DETAILED.md`](docs/RESULTS_DETAILED.md) has every run, including
+the earlier induction/proposer line (OPT-125M, SFT then GRPO on
+`wl-core-pyhash-v1`) under "Legacy typed-list line"; its checkpoints remain on
+the Hub, and its training curves are in
 [WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg).
 
 ## Installation
@@ -135,8 +133,8 @@ Note: pip won't respect `uv.lock`, so transitive versions may drift.
 ## Testing
 
 ```bash
-uv run pytest              # offline; excludes the two `network` model-download tests
-uv run pytest -m network   # the two that download a model
+uv run pytest              # offline; excludes the tests marked `network`
+uv run pytest -m network   # model downloads; the rollout-debugger replay tests also need a Hub token for the private policy checkpoint
 uv run ./lint.sh ci        # what CI runs: ruff check + ruff format --check
 ```
 
@@ -304,12 +302,14 @@ The policies behind the results above are small encoders trained on witness
 prefixes, selected on validation by beam search:
 
 ```bash
-uv run python experiments/train_rollout_policy.py --output-dir runs/policy --size-arm 90k --device cpu   # deep-corpus-v1
-uv run python experiments/compute_optimal_mark28.py --run-dir runs/mark28 --train-device cpu --devices cpu   # stack_pbe_v4, three size arms
+uv run python experiments/train_rollout_policy.py --output-dir runs/policy --corpus-dir wandering_light/training/data/deep_corpus_v1 --size-arm 90k --device cpu
+uv run python experiments/compute_optimal_mark28.py campaign --run-dir runs/mark28 --train-device cpu --devices cpu   # stack_pbe_v4, three size arms
 ```
 
-Each report under `reports/` lists the exact command, seed and checkpoint it
-was produced from; start from the report rather than from these defaults when
+The first trains on `deep-corpus-v1` (the script defaults to `v2`); the second
+runs the whole `stack_pbe_v4` sweep, and `--help` lists its single stages. Each
+report under `reports/` records the exact command, seed and checkpoint it was
+produced from; start from the report rather than from these defaults when
 reproducing a number.
 
 <details>
@@ -320,12 +320,14 @@ lists, then ran GRPO with TRL. The scripts remain; the proposer was retired in
 drop-proposer (#27) and its numbers are in the results ledger.
 
 ```bash
-uv run python wandering_light/training/sft.py --no-eval          # quick check, no online evaluation
-uv run python wandering_light/training/sft.py --full-run         # full dataset; add --task proposer for the proposer
-uv run python wandering_light/training/rl_grpo.py --batch-size 32 --model-name $SFT_OUTPUT_DIR --full-run --wandb-run-name $NAME
-uv run python wandering_light/evals/evaluate_proposer.py --model abhishekraok/proposer-basicfns-opt125m-sft2k --solver-model abhishekraok/induction-basicfns-opt125m-longsft
+PYTHONHASHSEED=0 uv run python wandering_light/training/sft.py --no-eval          # quick check, no online evaluation
+PYTHONHASHSEED=0 uv run python wandering_light/training/sft.py --full-run         # full dataset; add --task proposer for the proposer
+PYTHONHASHSEED=0 uv run python wandering_light/training/rl_grpo.py --batch-size 32 --model-name $SFT_OUTPUT_DIR --full-run --wandb-run-name $NAME
+PYTHONHASHSEED=0 uv run python wandering_light/evals/evaluate_proposer.py --model abhishekraok/proposer-basicfns-opt125m-sft2k --solver-model abhishekraok/induction-basicfns-opt125m-longsft
 ```
 
-Evaluate the SFT output with the `trained_local` command under Evaluation
-before starting RL; a success rate between 30 and 70 % leaves GRPO a gradient.
+The online evaluation and the proposer scorer load `wl-core-pyhash-v1`, which
+refuses to run without a fixed `PYTHONHASHSEED`. Evaluate the SFT output with
+the `trained_local` command under Evaluation before starting RL; a success rate
+between 30 and 70 % leaves GRPO a gradient.
 </details>
