@@ -38,10 +38,67 @@ from wandering_light.stack_pbe import BASIS, OPS
 from wandering_light.stack_policy import encode_item, encode_targets, item_array
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from wandering_light.stack_machine import Op
     from wandering_light.stack_pbe import Task
     from wandering_light.stack_policy import PolicyScorer
 
 Product = tuple[tuple, ...]  # one stack per shown example
+Node = tuple[Product, tuple[str, ...], float]  # (product, program, log-probability)
+
+
+class BeamObserver:
+    """Told what ``beam_solve`` decided, in the order it decided it.
+
+    Every hook is a no-op here. Nothing an observer returns is read, so a
+    recorded search and an unrecorded one are the same search; the stack
+    debugger's trace recorder is the one implementation, and
+    ``tests/test_stack_debugger_trace.py`` asserts the transparency.
+    """
+
+    def layer_started(self, depth: int, beam: Sequence[Node]) -> None:
+        """The nodes about to be expanded, in beam order."""
+
+    def expansion_attempted(
+        self,
+        depth: int,
+        node: int,
+        op_index: int,
+        successor: Product | None,
+        reason: str | None,
+        fuel: int,
+        stepped: int,
+    ) -> None:
+        """One op tried on one node: the product it made, or why it could not."""
+
+    def layer_scored(self, depth: int, log_probs, legal) -> None:
+        """The policy's normalized rows for the layer, one per node."""
+
+    def layer_retained(
+        self,
+        depth: int,
+        beam: Sequence[Node],
+        verdicts: Mapping[tuple[int, int], str],
+        parents: Sequence[tuple[int, int]],
+    ) -> None:
+        """What survived, and for each ranked successor why it did or did not.
+
+        ``verdicts`` maps ``(node, op_index)`` to ``retained``, ``duplicate``,
+        ``guard:close`` or ``guard:type``; a successor the ranking never
+        reached, because the beam filled first, is absent. ``parents[rank]`` is
+        the ``(node, op_index)`` that produced ``beam[rank]``.
+        """
+
+    def search_terminated(
+        self,
+        termination: str,
+        depth: int,
+        executions: int,
+        fuel: int,
+        expansions: int,
+    ) -> None:
+        """The last thing said."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,21 +116,34 @@ def key_of(product: Product) -> tuple:
     return tuple(tuple(value_key(v) for v in stack) for stack in product)
 
 
-def step_all(product: Product, op) -> tuple[Product | None, int, int]:
-    """Apply ``op`` to every example: ``(product or None, fuel, stacks stepped)``.
+def step_all_explained(
+    product: Product, op: Op
+) -> tuple[Product | None, int, int, str | None]:
+    """``step_all`` plus the machine's reason when an example refuses the op.
 
-    The machine is asked example by example and stops at the first refusal, so
-    the last value is what the attempt cost even when it fails.
+    The reason names the example that refused, because a product moves only
+    when every example moves: an op the first stack accepts and the third
+    rejects is refused, and the display should say which one.
     """
     moved = []
     fuel = 0
     for stepped, stack in enumerate(product):
         outcome = step_raw(op, stack, DEFAULT_FUEL_LIMIT, 0)
         if isinstance(outcome, str):
-            return None, fuel, stepped
+            return None, fuel, stepped, f"example {stepped}: {outcome}"
         moved.append(outcome[0])
         fuel += outcome[1]
-    return tuple(moved), fuel, len(product)
+    return tuple(moved), fuel, len(product), None
+
+
+def step_all(product: Product, op) -> tuple[Product | None, int, int]:
+    """Apply ``op`` to every example: ``(product or None, fuel, stacks stepped)``.
+
+    The machine is asked example by example and stops at the first refusal, so
+    the last value is what the attempt cost even when it fails.
+    """
+    moved, fuel, stepped, _reason = step_all_explained(product, op)
+    return moved, fuel, stepped
 
 
 def beam_solve(
@@ -84,8 +154,10 @@ def beam_solve(
     max_depth: int = 48,
     guard: str = "both",
     budget: int | None = None,
+    observer: BeamObserver | None = None,
 ) -> BeamResult:
     started = time.perf_counter()
+    watch = observer if observer is not None else BeamObserver()
     inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
     outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
     if guard in ("close", "both") and any(
@@ -95,10 +167,11 @@ def beam_solve(
     target = key_of(outputs)
     targets = encode_targets(outputs)
     seen = {key_of(inputs)}
-    beam: list[tuple[Product, tuple[str, ...], float]] = [(inputs, (), 0.0)]
+    beam: list[Node] = [(inputs, (), 0.0)]
     executions = fuel = expansions = 0
 
     def result(program, termination, depth):
+        watch.search_terminated(termination, depth, executions, fuel, expansions)
         return BeamResult(
             program,
             termination,
@@ -113,14 +186,18 @@ def beam_solve(
         remaining = max_depth - depth - 1
         successors = []  # (node index, op index, product, program)
         legal = np.zeros((len(beam), len(OPS)), dtype=bool)
+        watch.layer_started(depth, beam)
         for node, (product, program, _) in enumerate(beam):
             expansions += 1
             for index, op in enumerate(OPS):
                 if budget is not None and executions >= budget:
                     return result(None, "budget", depth + 1)
-                moved, spent, stepped = step_all(product, op)
+                moved, spent, stepped, reason = step_all_explained(product, op)
                 executions += stepped
                 fuel += spent
+                watch.expansion_attempted(
+                    depth, node, index, moved, reason, spent, stepped
+                )
                 if moved is None:
                     continue
                 legal[node, index] = True
@@ -137,22 +214,32 @@ def beam_solve(
             for product, _, _ in beam
         ]
         log_probs = scorer.log_probs(blocks, legal)
+        watch.layer_scored(depth, log_probs, legal)
         ranked = sorted(
             successors,
             key=lambda s: beam[s[0]][2] + log_probs[s[0], s[1]],
             reverse=True,
         )
         next_beam = []
+        verdicts: dict[tuple[int, int], str] = {}
+        parents: list[tuple[int, int]] = []
         for node, index, product, program in ranked:
-            if guard != "off" and blocked(product[0], remaining, guard) is not None:
-                continue
+            if guard != "off":
+                why = blocked(product[0], remaining, guard)
+                if why is not None:
+                    verdicts[node, index] = f"guard:{why}"
+                    continue
             key = key_of(product)
             if key in seen:
+                verdicts[node, index] = "duplicate"
                 continue
             seen.add(key)
+            verdicts[node, index] = "retained"
+            parents.append((node, index))
             next_beam.append((product, program, beam[node][2] + log_probs[node, index]))
             if len(next_beam) == beam_width:
                 break
+        watch.layer_retained(depth, next_beam, verdicts, parents)
         if not next_beam:
             return result(None, "frontier_exhausted", depth + 1)
         beam = next_beam

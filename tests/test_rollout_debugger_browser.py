@@ -107,12 +107,12 @@ def test_keys_move_through_the_trace(page):
     view.keyboard.press("r")
     view.wait_for_timeout(150)
     before = view.inner_text("#exp-sub")
-    view.keyboard.press("ArrowRight")
+    view.keyboard.press("ArrowDown")
     view.wait_for_timeout(150)
     assert view.inner_text("#exp-sub") != before
 
     depth = view.inner_text("#r-depth")
-    view.keyboard.press("ArrowDown")
+    view.keyboard.press("ArrowRight")
     view.wait_for_timeout(200)
     assert view.inner_text("#r-depth") != depth
 
@@ -127,7 +127,7 @@ def test_stepping_an_action_selects_the_state_it_came_from(page):
     view, _ = page
     view.keyboard.press("r")
     view.wait_for_timeout(150)
-    view.keyboard.press("ArrowDown")  # a depth with more than one parent
+    view.keyboard.press("ArrowRight")  # a depth with more than one parent
     view.wait_for_timeout(200)
 
     for _ in range(6):
@@ -136,7 +136,7 @@ def test_stepping_an_action_selects_the_state_it_came_from(page):
         # And the beam column highlights exactly that state.
         assert view.locator(".node.sel").count() == 1
         assert f"#{parent + 1}" in view.inner_text("#insp-title")
-        view.keyboard.press("ArrowRight")
+        view.keyboard.press("ArrowDown")
         view.wait_for_timeout(90)
 
 
@@ -144,7 +144,7 @@ def test_selecting_a_state_jumps_to_its_first_action(page):
     view, _ = page
     view.keyboard.press("r")
     view.wait_for_timeout(150)
-    view.keyboard.press("ArrowDown")
+    view.keyboard.press("ArrowRight")
     view.wait_for_timeout(200)
     if view.evaluate("layers()[S.depth].nodes.length") < 2:
         pytest.skip("this layer has a single beam state")

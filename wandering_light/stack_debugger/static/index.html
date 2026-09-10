@@ -1,0 +1,1071 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Watch the stack solver think</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=Instrument+Serif&display=swap">
+<style>
+:root {
+  --ground:#E5E6E2; --panel:#F1F2EE; --well:#D9DBD5; --raise:#FAFBF8;
+  --ink:#1B1E20; --ink-dim:#5C6469; --ink-ghost:#A5ACAD; --rule:#C6C9C3;
+  --gold:#8A6410; --gold-soft:#C9A44E; --blue:#2F5C87;
+  --refuse:#9A3B2E; --allow:#4A7238; --mark:#7A4F9C;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:#141719; --panel:#1C2023; --well:#0F1214; --raise:#232829;
+    --ink:#E6E4DE; --ink-dim:#8A9096; --ink-ghost:#4E5659; --rule:#2A2F33;
+    --gold:#D8A54A; --gold-soft:#8C7233; --blue:#6E9BC9;
+    --refuse:#C2685C; --allow:#7FA86B; --mark:#B48AD6;
+  }
+}
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+body {
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:13px; line-height:1.45; -webkit-font-smoothing:antialiased;
+}
+.label {
+  font-family:"IBM Plex Sans Condensed","Helvetica Neue",sans-serif;
+  font-weight:600; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-dim);
+}
+.machine { height:100dvh; min-height:600px; display:grid; grid-template-rows:auto auto auto auto minmax(0,1fr) auto; }
+
+.plate { display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
+  padding:10px 18px 8px; border-bottom:1px solid var(--rule); background:var(--panel); }
+.plate .name { font-family:"Instrument Serif",Georgia,serif; font-size:24px; line-height:1; }
+.plate .sub { color:var(--ink-dim); font-size:11.5px; }
+.readouts { margin-left:auto; display:flex; gap:18px; align-items:center; flex-wrap:wrap; }
+.readout { display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
+.readout .v { font-size:14px; font-weight:600; font-variant-numeric:tabular-nums; }
+.readout.exec .v { color:var(--blue); }
+.readout.depth .v { color:var(--gold); }
+.badge { font-size:11px; padding:3px 8px; border:1px solid var(--rule); border-radius:2px;
+  color:var(--ink-dim); white-space:nowrap; }
+.badge.ok { color:var(--allow); border-color:color-mix(in srgb,var(--allow) 45%,transparent); }
+.badge.bad { color:var(--refuse); border-color:color-mix(in srgb,var(--refuse) 55%,transparent); }
+.badge.warn { color:var(--gold); border-color:color-mix(in srgb,var(--gold) 55%,transparent); }
+
+/* task strip */
+.strip { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:6px 18px;
+  padding:8px 18px; border-bottom:1px solid var(--rule); background:var(--well); font-size:12px; }
+.strip .cellrow { min-width:0; display:flex; align-items:baseline; gap:9px; }
+.strip .v { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.strip .examples { grid-column:1; display:flex; flex-direction:column; gap:2px; }
+.strip .ex { display:flex; align-items:center; gap:6px; white-space:nowrap; overflow:hidden; }
+.strip .ex .arrow { color:var(--ink-ghost); }
+.strip .right { grid-column:2; grid-row:1 / span 2; display:flex; flex-direction:column; gap:4px; min-width:0; }
+
+/* alive strip */
+.alive { display:flex; align-items:center; gap:10px; padding:5px 18px; border-bottom:1px solid var(--rule); background:var(--panel); font-size:11px; color:var(--ink-dim); }
+.alive .cells { display:flex; gap:2px; flex:1; min-width:0; }
+.alive .cell { flex:1; height:12px; border-radius:1px; background:var(--well); cursor:pointer; position:relative; min-width:4px; }
+.alive .cell.on { background:color-mix(in srgb,var(--allow) 55%,var(--well)); }
+.alive .cell.off { background:color-mix(in srgb,var(--refuse) 40%,var(--well)); }
+.alive .cell.fit { background:color-mix(in srgb,var(--gold) 80%,var(--well)); }
+.alive .cell.cur { outline:2px solid var(--gold); outline-offset:1px; }
+.alive .cell.unreached { opacity:.35; }
+
+.story {
+  padding:6px 18px; border-bottom:1px solid var(--rule); background:var(--panel);
+  font-size:12px; color:var(--ink-dim);
+  display:flex; gap:20px; align-items:baseline; justify-content:space-between;
+}
+.story .line { min-width:0; }
+.story b { color:var(--ink); font-weight:600; }
+.story .hint { flex:none; color:var(--ink-ghost); white-space:nowrap; }
+.story .alive-t { color:var(--allow); }
+.story .dead-t { color:var(--refuse); }
+
+/* bench */
+.bench { display:grid; grid-template-columns:minmax(230px,.9fr) minmax(0,1.35fr) minmax(300px,1.15fr); min-height:0; }
+.col { min-height:0; display:flex; flex-direction:column; border-right:1px solid var(--rule); }
+.col:last-child { border-right:none; }
+.col > .head { padding:7px 14px 5px; border-bottom:1px solid var(--rule); display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.col > .body { flex:1; min-height:0; overflow-y:auto; padding:8px 12px 14px; scrollbar-width:thin; }
+
+/* beam list */
+.node { padding:5px 8px; border:1px solid var(--rule); border-left:3px solid var(--rule);
+  border-radius:2px; background:var(--raise); margin-bottom:4px; cursor:pointer; }
+.node:hover { border-color:var(--gold-soft); }
+.node.sel { border-left-color:var(--gold); background:color-mix(in srgb,var(--gold) 8%,var(--raise)); }
+.node.witness { border-left-color:var(--allow); }
+.node .top { display:flex; align-items:baseline; gap:8px; }
+.node .r { font-size:10px; color:var(--ink-dim); min-width:20px; }
+.node .lp { margin-left:auto; font-size:11px; color:var(--blue); font-variant-numeric:tabular-nums; }
+.node .prog { font-size:11px; color:var(--ink-dim); overflow-wrap:anywhere; margin:1px 0; }
+.node .stk { margin-top:2px; }
+
+/* program tokens */
+.prog .tk { display:inline-block; margin:0 3px 1px 0; }
+.prog .tk.d1 { color:var(--mark); }
+.prog .tk.d2 { color:color-mix(in srgb,var(--mark) 70%,var(--blue)); }
+.prog .tk.d3 { color:var(--blue); }
+.prog .tk.br { font-weight:600; }
+.prog .tk.cur { background:color-mix(in srgb,var(--gold) 28%,transparent); border-radius:2px; padding:0 2px; }
+.prog .tk.done { opacity:.55; }
+
+/* stacks as chips */
+.stk { display:flex; flex-wrap:wrap; align-items:center; gap:2px 3px; min-width:0; }
+.stk.compact { flex-wrap:nowrap; overflow:hidden; }
+.chip { display:inline-flex; align-items:center; padding:0 5px; height:18px; line-height:18px; font-size:11.5px;
+  border-radius:3px; border:1px solid var(--rule); background:var(--raise); white-space:nowrap; }
+.chip.int { color:var(--ink); }
+.chip.bool { color:var(--blue); font-style:italic; }
+.chip.sym { color:var(--ink-dim); border-style:dashed; }
+.chip.mark { color:var(--mark); border-color:var(--mark); font-weight:600; padding:0 4px; }
+.chip.new { box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 55%,transparent); }
+.chip.ell { color:var(--ink-ghost); border-color:transparent; }
+.grp { display:inline-flex; align-items:center; gap:2px; padding:1px 3px; border-radius:4px;
+  border:1px solid color-mix(in srgb,var(--blue) 40%,var(--rule)); background:color-mix(in srgb,var(--blue) 6%,transparent); }
+.grp > .paren { color:var(--blue); font-size:11px; }
+.grp.new { box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 55%,transparent); }
+.open { display:inline-flex; align-items:center; gap:2px; padding:1px 3px; border-radius:4px;
+  border:1px dashed var(--mark); background:color-mix(in srgb,var(--mark) 7%,transparent); }
+.open > .lbl { color:var(--mark); font-size:10px; margin-right:2px; }
+.stk .empty { color:var(--ink-ghost); font-size:11px; }
+.stk .tick { color:var(--allow); font-weight:600; margin-left:4px; }
+.stk .cross { color:var(--ink-ghost); margin-left:4px; }
+
+/* op tape */
+.exp { display:grid; grid-template-columns:auto 70px 1fr auto; gap:6px 8px; align-items:center;
+  padding:3px 7px; border-radius:2px; border:1px solid transparent; font-size:12px; cursor:pointer; }
+.exp:hover { border-color:var(--rule); }
+.exp.cur { border-color:var(--gold); background:color-mix(in srgb,var(--gold) 9%,transparent); }
+.exp .o { font-size:10px; color:var(--ink-ghost); font-variant-numeric:tabular-nums; min-width:16px; }
+.exp .fn { font-weight:500; }
+.exp .fn.gt { color:var(--allow); }
+.exp .lp { font-size:11px; color:var(--blue); font-variant-numeric:tabular-nums; text-align:right; }
+.exp .succ { grid-column:1/5; padding-left:24px; }
+.exp .why { grid-column:1/5; padding-left:24px; font-size:11px; color:var(--ink-dim); }
+.oc { font-size:10px; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
+.oc.retained { color:var(--allow); }
+.oc.fit { color:var(--gold); font-weight:600; }
+.oc.duplicate { color:var(--ink-ghost); }
+.oc.refused { color:var(--refuse); }
+.oc.cut { color:var(--ink-ghost); }
+.oc.guard { color:var(--refuse); opacity:.8; }
+.oc.captured { color:var(--mark); }
+.oc.executed { color:var(--ink-dim); }
+.oc.legal { color:var(--allow); }
+.gt-tag { margin-left:6px; font-size:10px; color:var(--allow); letter-spacing:.04em; }
+.keycap { display:inline-block; min-width:15px; text-align:center; font-size:10px; padding:0 3px;
+  border:1px solid var(--rule); border-bottom-width:2px; border-radius:3px; background:var(--raise);
+  color:var(--gold); margin-right:5px; }
+
+/* inspector */
+.kv { display:grid; grid-template-columns:auto 1fr; gap:3px 10px; font-size:12px; margin-bottom:8px; }
+.kv .k { color:var(--ink-dim); }
+.kv .v { overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.exrow { display:grid; grid-template-columns:auto 1fr auto 1fr; gap:6px; align-items:center; padding:4px 0; border-bottom:1px dashed var(--rule); }
+.exrow .n { font-size:10px; color:var(--ink-dim); min-width:22px; }
+.exrow .arrow { color:var(--ink-ghost); font-size:11px; }
+.bar { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; font-size:12px; padding:2px 0; cursor:pointer; }
+.bar .track { position:relative; height:14px; background:var(--well); border-radius:2px; overflow:hidden; }
+.bar .fill { position:absolute; inset:0 auto 0 0; background:color-mix(in srgb,var(--blue) 45%,transparent); }
+.bar .nm { position:absolute; left:5px; top:0; line-height:14px; font-size:11px; }
+.bar .pc { font-size:11px; color:var(--ink-dim); font-variant-numeric:tabular-nums; min-width:52px; text-align:right; }
+.bar.refused .fill { background:color-mix(in srgb,var(--refuse) 22%,transparent); }
+.bar.picked .fill { background:color-mix(in srgb,var(--gold) 50%,transparent); }
+.bar.witness .track { box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--allow) 60%,transparent); }
+.bar .tried { margin-left:8px; font-size:10px; color:var(--gold); letter-spacing:.04em; }
+.bar .gt { margin-left:8px; font-size:10px; color:var(--allow); letter-spacing:.04em; }
+.gtline { font-size:11.5px; color:var(--allow); padding:3px 0 6px; border-bottom:1px solid color-mix(in srgb,var(--allow) 25%,transparent); margin-bottom:6px; }
+.gtline b { color:var(--ink); font-weight:600; }
+.label.off { padding:3px 0 6px; text-transform:none; letter-spacing:0; font-size:11.5px; }
+h4.sec { margin:12px 0 6px; font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:600;
+  font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-dim);
+  border-top:1px solid var(--rule); padding-top:9px; }
+h4.sec:first-child { border-top:none; margin-top:0; padding-top:0; }
+.tokens { display:flex; flex-wrap:wrap; gap:2px; font-size:10.5px; }
+.tokens .t { padding:0 3px; border:1px solid var(--rule); border-radius:2px; background:var(--raise); }
+.tokens .t.sep { color:var(--gold); border-color:var(--gold); }
+.tokens .t.tgt { background:color-mix(in srgb,var(--blue) 8%,var(--raise)); }
+.note { font-size:11.5px; color:var(--ink-dim); margin:4px 0; }
+.note b { color:var(--ink); }
+.note.prior { padding:4px 7px 2px; border-bottom:1px solid var(--rule); margin-bottom:4px; }
+.prior-v { color:var(--mark); font-variant-numeric:tabular-nums; }
+
+/* play frames */
+.frame { display:grid; grid-template-columns:auto 1fr; gap:6px 8px; align-items:center; padding:2px 6px; border-radius:2px; font-size:12px; }
+.frame .tx { color:var(--ink-dim); }
+.frame.enter .tx, .frame.leave .tx, .frame.iter .tx, .frame.branch .tx { color:var(--mark); }
+.frame.refused .tx { color:var(--refuse); }
+.frame.push .tx { color:var(--blue); }
+.frame .stk { grid-column:2; }
+.frame.l1 { margin-left:14px; } .frame.l2 { margin-left:28px; } .frame.l3 { margin-left:42px; } .frame.l4 { margin-left:56px; }
+.step { padding:4px 8px; border:1px solid var(--rule); border-left:3px solid var(--rule); border-radius:2px; background:var(--raise); margin-bottom:3px; cursor:pointer; display:flex; gap:8px; align-items:baseline; }
+.step.cur { border-left-color:var(--gold); background:color-mix(in srgb,var(--gold) 8%,var(--raise)); }
+.step .i { font-size:10px; color:var(--ink-dim); min-width:22px; }
+.step .op { font-weight:500; }
+.step .runs { margin-left:auto; font-size:10px; color:var(--mark); }
+.step.refused { border-left-color:var(--refuse); }
+
+/* program anatomy */
+.qnode { margin:2px 0 2px 0; border-left:2px solid color-mix(in srgb,var(--mark) 45%,transparent); padding-left:6px; }
+.qnode.focus { border-left-color:var(--gold); background:color-mix(in srgb,var(--gold) 6%,transparent); border-radius:2px; }
+.qnode > .qhead { display:flex; align-items:baseline; gap:6px; cursor:pointer; padding:2px 4px; font-size:12px; }
+.qnode > .qhead .br { color:var(--mark); font-weight:600; }
+.qnode > .qhead .role { font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--mark); }
+.qnode > .qhead .runs { margin-left:auto; font-size:10px; color:var(--ink-dim); }
+.qnode > .qtail { color:var(--mark); font-weight:600; padding:0 4px; font-size:12px; }
+.leaf { display:flex; gap:8px; align-items:baseline; padding:1px 4px; border-radius:2px; cursor:pointer; font-size:12.5px; }
+.leaf .i { font-size:10px; color:var(--ink-ghost); min-width:20px; }
+.leaf.cur { background:color-mix(in srgb,var(--gold) 22%,transparent); }
+.leaf.done { opacity:.55; }
+.leaf.refused { color:var(--refuse); }
+.leaf .runs { margin-left:auto; font-size:10px; color:var(--mark); }
+.exrow.call { grid-template-columns:auto 1fr auto 1fr; }
+.exrow.call .n { color:var(--mark); min-width:0; font-size:10px; letter-spacing:.04em; text-transform:uppercase; }
+
+/* map */
+.map { width:100%; height:190px; border:1px solid var(--rule); border-radius:2px; background:var(--well); }
+.map .pt { transition:cx .25s ease, cy .25s ease; }
+
+.keys { padding:7px 18px; border-top:1px solid var(--rule); background:var(--panel);
+  display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:11px; color:var(--ink-dim); }
+.keys kbd { font-family:inherit; font-size:11px; padding:1px 5px; margin-right:4px;
+  border:1px solid var(--rule); border-bottom-width:2px; border-radius:3px; background:var(--raise); color:var(--ink); }
+.overlay { position:fixed; inset:0; background:color-mix(in srgb,var(--ground) 82%,transparent);
+  display:flex; align-items:center; justify-content:center; padding:28px; z-index:10; }
+.overlay .sheet { max-width:960px; max-height:88vh; overflow-y:auto; background:var(--panel);
+  border:1px solid var(--rule); border-radius:3px; padding:22px 26px 24px; box-shadow:0 8px 40px rgba(0,0,0,.18); }
+.overlay h3 { margin:16px 0 8px; font-family:"Instrument Serif",Georgia,serif; font-weight:400; font-size:20px; }
+.overlay h3:first-child { margin-top:0; }
+.overlay p { margin:5px 0; font-size:12.5px; color:var(--ink-dim); line-height:1.55; }
+.overlay b { color:var(--ink); }
+.overlay .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; }
+.overlay .cols .label { display:block; margin-bottom:3px; }
+.spin { color:var(--gold); }
+.err { color:var(--refuse); }
+</style>
+</head>
+<body>
+<div class="machine">
+  <div class="plate">
+    <span class="name">Watch the stack solver think</span>
+    <span class="sub" id="taskline">loading…</span>
+    <div class="readouts">
+      <div class="readout depth"><span class="label">depth</span><span class="v" id="r-depth">–</span></div>
+      <div class="readout exec"><span class="label">executions</span><span class="v" id="r-exec">–</span></div>
+      <div class="readout"><span class="label">beam</span><span class="v" id="r-beam">–</span></div>
+      <span class="badge" id="r-term">–</span>
+      <span class="badge" id="r-mode">replay</span>
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="cellrow"><span class="label">behaviour</span><span class="v" id="behaviour"></span></div>
+    <div class="right">
+      <div class="cellrow"><span class="label">witness</span><span class="v prog" id="witness"></span></div>
+      <div class="cellrow"><span class="label">found</span><span class="v prog" id="found"></span></div>
+    </div>
+    <div class="examples" id="examples"></div>
+  </div>
+
+  <div class="alive" id="alive"></div>
+  <div class="story" id="story"></div>
+
+  <div class="bench">
+    <div class="col">
+      <div class="head"><span class="label" id="beam-title">beam · 1–9 , .</span><span class="sub" id="beam-sub"></span></div>
+      <div class="body" id="beam"></div>
+    </div>
+    <div class="col">
+      <div class="head"><span class="label" id="exp-title">ops tried · ↑ ↓</span><span class="sub" id="exp-sub"></span></div>
+      <div class="body" id="tape"></div>
+    </div>
+    <div class="col">
+      <div class="head"><span class="label" id="insp-title">node</span><span class="sub" id="insp-sub"></span></div>
+      <div class="body" id="insp"></div>
+    </div>
+  </div>
+
+  <div class="keys" id="keys"></div>
+</div>
+<div class="overlay" id="help" hidden></div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const DRIVE_KEYS = ["a","s","d","f","g","h","j","k","l"];
+const S = {
+  session: null, depth: 0, node: 0, cursor: 0,
+  mode: "replay", panel: "actions",
+  showWitness: true, showRefused: false, playing: false, timer: null,
+  drive: null, driveHistory: [], driveStates: [], play: null, playStep: 0, playFocus: null,
+  state: null, error: null, help: false,
+};
+const fmt = (x, n = 2) => (x === null || x === undefined) ? "–" : Number(x).toFixed(n);
+const pct = (x) => (x === null || x === undefined) ? "–" : (100 * x).toFixed(1) + "%";
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const layers = () => S.session ? S.session.trace.layers : [];
+const layer = () => layers()[S.depth] || null;
+const ops = () => S.session ? S.session.trace.ops : [];
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+// ---------------------------------------------------------------------------
+// deep link
+function params() {
+  const q = new URLSearchParams(location.search);
+  const out = {};
+  for (const key of ["task","behaviour","bucket","cohort_only","seed","beam_width","max_depth","guard","budget"]) {
+    if (q.has(key)) out[key] = q.get(key);
+  }
+  return out;
+}
+function syncURL() {
+  if (!S.session) return;
+  const q = new URLSearchParams();
+  q.set("task", S.session.task.index);
+  const s = S.session.settings;
+  q.set("beam_width", s.beam_width); q.set("max_depth", s.max_depth); q.set("guard", s.guard);
+  if (s.budget !== null) q.set("budget", s.budget);
+  history.replaceState(null, "", "?" + q.toString());
+}
+async function api(path, query) {
+  const q = new URLSearchParams();
+  for (const [k, v] of Object.entries(query || {})) if (v !== undefined && v !== null) q.set(k, v);
+  const response = await fetch(path + (q.toString() ? "?" + q : ""));
+  if (!response.ok) {
+    let detail = response.statusText;
+    try { detail = (await response.json()).detail || detail; } catch (e) {}
+    throw new Error(detail);
+  }
+  return response.json();
+}
+async function loadSession(query) {
+  S.error = null; S.session = null; S.mode = "replay"; S.play = null; S.drive = null; S.driveHistory = [];
+  $("taskline").innerHTML = '<span class="spin">running the beam…</span>';
+  render();
+  try {
+    const session = await api("/api/session", query);
+    S.session = session; S.depth = 0; S.node = 0; S.cursor = 0; S.panel = "actions"; S.state = null;
+    focusFirstExecuted();
+    syncURL();
+  } catch (error) {
+    S.error = error.message;
+  }
+  render();
+}
+
+// ---------------------------------------------------------------------------
+// stack parsing: the machine's own printing, read back into chips
+function tokenize(text) { return text.match(/\(|\)|…|[^\s()]+/g) || []; }
+function parseStack(text) {
+  const tokens = tokenize(text);
+  if (tokens[0] === "[") tokens.shift();
+  if (tokens[tokens.length - 1] === "]") tokens.pop();
+  const root = []; const stack = [root];
+  for (const tk of tokens) {
+    const top = stack[stack.length - 1];
+    if (tk === "(") { const g = {t:"lst", items:[]}; top.push(g); stack.push(g.items); }
+    else if (tk === ")") { if (stack.length > 1) stack.pop(); }
+    else if (tk === "MARK") top.push({t:"mark"});
+    else if (tk === "nil") top.push({t:"lst", items:[]});
+    else if (tk === "true" || tk === "false") top.push({t:"bool", v:tk});
+    else if (tk === "…") top.push({t:"ell"});
+    else if (/^-?\d+$/.test(tk)) top.push({t:"int", v:tk});
+    else top.push({t:"sym", v:tk});
+  }
+  return root;
+}
+function valueHTML(v, mark) {
+  if (v.t === "int") return `<span class="chip int">${esc(v.v)}</span>`;
+  if (v.t === "bool") return `<span class="chip bool">${v.v}</span>`;
+  if (v.t === "sym") return `<span class="chip sym">${esc(v.v)}</span>`;
+  if (v.t === "mark") return `<span class="chip mark">[</span>`;
+  if (v.t === "ell") return `<span class="chip ell">…</span>`;
+  if (v.t === "lst") {
+    if (!v.items.length) return `<span class="grp"><span class="paren">nil</span></span>`;
+    return `<span class="grp"><span class="paren">(</span>${v.items.map((i) => valueHTML(i)).join("")}<span class="paren">)</span></span>`;
+  }
+  return "";
+}
+// Chips bottom-to-top left-to-right. From the last MARK onward the values sit
+// inside an open quotation, which the machine will fold into one list at `]`,
+// so they are drawn in a dashed group after the opener.
+function stackHTML(text, opts) {
+  opts = opts || {};
+  const items = parseStack(text);
+  if (!items.length) return `<span class="stk ${opts.compact ? "compact" : ""}"><span class="empty">empty stack</span></span>`;
+  const changedFrom = opts.diffFrom !== undefined ? commonPrefix(parseStack(opts.diffFrom), items) : items.length;
+  let html = ""; let open = null; let depthMarks = 0;
+  const parts = [];
+  items.forEach((v, i) => {
+    const fresh = i >= changedFrom;
+    let piece = valueHTML(v);
+    if (fresh) piece = piece.replace(/^<span class="(chip|grp)/, '<span class="$1 new');
+    if (v.t === "mark") {
+      if (open !== null) parts.push(open + "</span>");
+      open = `<span class="open">${piece}`;
+      depthMarks += 1;
+    } else if (open !== null) open += piece;
+    else parts.push(piece);
+  });
+  if (open !== null) parts.push(open + "</span>");
+  html = parts.join("");
+  const cls = "stk" + (opts.compact ? " compact" : "");
+  const tail = opts.match === true ? '<span class="tick">✓</span>' : (opts.match === false ? '<span class="cross">≠</span>' : "");
+  return `<span class="${cls}">${html}${tail}</span>`;
+}
+function commonPrefix(a, b) {
+  let n = 0;
+  while (n < a.length && n < b.length && same(a[n], b[n])) n += 1;
+  return n;
+}
+function progHTML(program, opts) {
+  opts = opts || {};
+  let depth = 0;
+  return (program || []).map((name, i) => {
+    let cls = "tk";
+    if (name === "]") depth = Math.max(0, depth - 1);
+    if (depth > 0) cls += " d" + Math.min(3, depth);
+    if (name === "[" || name === "]") cls += " br";
+    if (opts.cursor !== undefined) cls += (i < opts.cursor) ? " done" : (i === opts.cursor ? " cur" : "");
+    if (name === "[") depth += 1;
+    return `<span class="${cls}">${esc(name)}</span>`;
+  }).join("");
+}
+
+// ---------------------------------------------------------------------------
+// witness ground truth: only from the node that is on the witness
+function witnessAt(depth) {
+  const overlay = S.session && S.session.witness_overlay[depth];
+  return overlay ? overlay.witnesses[0] : null;
+}
+function witnessNode(depth) { const w = witnessAt(depth); return w ? w.node : null; }
+function witnessNext(depth) { const w = witnessAt(depth); return (w && w.node !== null) ? w.next : null; }
+function onWitness(depth, program) {
+  const witness = S.session ? S.session.witnesses[0] : [];
+  return same(program, witness.slice(0, depth));
+}
+function driveGroundTruth() {
+  const witness = S.session ? S.session.witnesses[0] : [];
+  if (!S.showWitness || !same(S.driveHistory, witness.slice(0, S.driveHistory.length))) return null;
+  return witness[S.driveHistory.length] || null;
+}
+
+// ---------------------------------------------------------------------------
+// navigation
+function focusFirstExecuted() {
+  const l = layer(); if (!l) return;
+  const row = l.expansions[S.node] || [];
+  const at = row.findIndex((e) => e && e.outcome !== "refused");
+  S.cursor = at >= 0 ? at : 0;
+}
+function focusNode(index) {
+  const l = layer(); if (!l) return;
+  S.node = Math.max(0, Math.min(l.nodes.length - 1, index));
+  focusFirstExecuted();
+  render();
+}
+function setDepth(next) {
+  const total = layers().length; if (!total) return;
+  S.depth = Math.max(0, Math.min(total - 1, next));
+  S.node = 0; focusFirstExecuted(); S.state = null;
+  render();
+}
+// ↓ follows the op at the cursor into the next layer when the search kept its
+// result; ↑ goes back to the node and op that produced the selected node. So
+// the two keys walk the search tree rather than jumping between layers and
+// forgetting what was selected. An op whose result was not kept has no node
+// below it, so ↓ then lands on the next layer's first node and the story says
+// why the op went nowhere.
+function descend() {
+  const l = layer(); if (!l || S.depth >= layers().length - 1) return;
+  const e = (l.expansions[S.node] || [])[S.cursor];
+  const rank = e && e.verdict === "retained"
+    ? l.retained.findIndex((r) => r.parent[0] === S.node && r.parent[1] === S.cursor) : -1;
+  S.depth += 1; S.node = Math.max(0, rank); focusFirstExecuted(); S.state = null;
+  render();
+}
+function ascend() {
+  if (S.depth === 0) return;
+  const previous = layers()[S.depth - 1];
+  const from = previous.retained[S.node];
+  S.depth -= 1; S.state = null;
+  if (from) { S.node = from.parent[0]; S.cursor = from.parent[1]; } else { S.node = 0; focusFirstExecuted(); }
+  render();
+}
+function gotoWitness() {
+  const w = witnessAt(S.depth);
+  if (!w || w.node === null) return;
+  S.node = w.node; S.state = null;
+  const at = ops().indexOf(w.next);
+  if (at >= 0) S.cursor = at; else focusFirstExecuted();
+  render();
+}
+function stepCursor(delta) {
+  const l = layer(); if (!l) return;
+  const width = ops().length;
+  let node = S.node, cursor = S.cursor + delta;
+  while (cursor < 0 || cursor >= width) {
+    if (cursor < 0) { if (node === 0) { if (S.depth === 0) { cursor = 0; break; } setDepth(S.depth - 1); S.node = layer().nodes.length - 1; S.cursor = width - 1; render(); return; } node -= 1; cursor += width; }
+    else { if (node >= l.nodes.length - 1) { if (S.depth >= layers().length - 1) { cursor = width - 1; break; } setDepth(S.depth + 1); return; } node += 1; cursor -= width; }
+  }
+  S.node = node; S.cursor = cursor; S.state = null; render();
+}
+function play() {
+  if (S.playing) { S.playing = false; clearInterval(S.timer); render(); return; }
+  S.playing = true;
+  S.timer = setInterval(() => {
+    const l = layer(); if (!l) return;
+    const atEnd = S.depth === layers().length - 1 && S.node === l.nodes.length - 1 && S.cursor === ops().length - 1;
+    if (atEnd) { S.playing = false; clearInterval(S.timer); render(); return; }
+    stepCursor(1);
+  }, 45);
+  render();
+}
+function reset() { S.playing = false; clearInterval(S.timer); setDepth(0); }
+function currentPath() {
+  const l = layer(); if (!l) return [];
+  return l.nodes[S.node] ? l.nodes[S.node].program : [];
+}
+async function loadState(path) {
+  S.state = null; render();
+  try {
+    S.state = await api("/api/state", { task: S.session.task.index, path: path.join(","), max_depth: S.session.settings.max_depth, guard: S.session.settings.guard });
+  } catch (error) { S.state = { error: error.message }; }
+  render();
+}
+function openPanel(name) {
+  S.panel = S.panel === name ? "actions" : name;
+  if (S.panel !== "actions" && !S.state && S.mode === "replay") loadState(currentPath());
+  render();
+}
+
+// drive
+async function driveTo(path) {
+  S.drive = null; render();
+  try {
+    S.drive = await api("/api/state", { task: S.session.task.index, path: path.join(","), max_depth: S.session.settings.max_depth, guard: S.session.settings.guard });
+    S.driveStates = S.drive.trail;
+    S.driveHistory = path;
+    S.cursor = Math.max(0, S.drive.ops.findIndex((o) => o.rank === 1));
+  } catch (error) { S.drive = { error: error.message }; }
+  render();
+}
+function enterDrive() { S.playing = false; clearInterval(S.timer); S.mode = "drive"; S.panel = "actions"; driveTo(currentPath()); }
+function exitDrive() { S.mode = "replay"; S.panel = "actions"; S.state = null; render(); }
+function driveApplyRank(rank) {
+  if (!S.drive || !S.drive.ops) return;
+  const entry = S.drive.ops.find((o) => o.rank === rank);
+  if (entry) driveTo([...S.driveHistory, entry.op]);
+}
+function driveApplyCursor() {
+  if (!S.drive || !S.drive.ops) return;
+  const entry = S.drive.ops[S.cursor];
+  if (entry && entry.outcome !== "refused") driveTo([...S.driveHistory, entry.op]);
+}
+function driveUndo() { if (S.driveHistory.length) driveTo(S.driveHistory.slice(0, -1)); }
+function driveStep(delta) {
+  if (!S.drive || !S.drive.ops) return;
+  S.cursor = Math.max(0, Math.min(S.drive.ops.length - 1, S.cursor + delta)); render();
+}
+
+// play
+async function enterPlay(which) {
+  S.playing = false; clearInterval(S.timer);
+  let program;
+  if (which === "witness") program = "witness";
+  else { const found = S.session.result.program; if (!found) return; program = found.join(","); }
+  S.mode = "play"; S.play = null; S.playStep = 0; S.playFocus = null; render();
+  try { S.play = await api("/api/play", { task: S.session.task.index, program }); S.play.which = which; }
+  catch (error) { S.play = { error: error.message }; }
+  render();
+}
+function playStep(delta) {
+  if (!S.play || !S.play.steps) return;
+  S.playStep = Math.max(0, Math.min(S.play.steps.length - 1, S.playStep + delta));
+  S.playFocus = focusFor(S.playStep); render();
+}
+// Which section to explain at a step: the quotation a combinator consumes is
+// the one written right before it, and an op inside brackets belongs to the
+// innermost quotation around it. Otherwise nothing is focused.
+function focusFor(step) {
+  const a = S.play && S.play.anatomy; if (!a || !step) return null;
+  const at = step - 1;
+  const consumed = a.nodes.find((n) => n.end === at - 1);
+  if (consumed && S.play.program[at] !== "[" && S.play.program[at] !== "]") {
+    const op = S.play.program[at];
+    if (["i","dip","map","filter","fold","ifte"].includes(op)) return consumed.id;
+  }
+  let inner = null;
+  for (const n of a.nodes) if (n.end !== null && n.start < at && at < n.end && (inner === null || n.depth > a.nodes[inner].depth)) inner = n.id;
+  return inner;
+}
+function cycleFocus() {
+  const a = S.play && S.play.anatomy; if (!a || !a.nodes.length) return;
+  const ids = a.nodes.map((n) => n.id);
+  const at = ids.indexOf(S.playFocus);
+  S.playFocus = ids[(at + 1) % ids.length]; render();
+}
+function exitPlay() { S.mode = "replay"; S.play = null; render(); }
+
+// ---------------------------------------------------------------------------
+// rendering
+function renderHeader() {
+  const s = S.session;
+  if (!s) { if (S.error) $("taskline").innerHTML = `<span class="err">${esc(S.error)}</span>`; return; }
+  const pol = s.provenance.policy || {};
+  $("taskline").textContent = `eval ${s.task.index} · ${s.task.behaviour} · bucket ${s.task.bucket}${s.task.in_cohort ? " · #101 cohort" : ""} · policy ${pol.arm || "?"}-s${pol.seed ?? "?"} · beam ${s.settings.beam_width} × depth ${s.settings.max_depth} · guard ${s.settings.guard}`;
+  const l = layer();
+  $("r-depth").textContent = S.mode === "drive" ? `${S.driveHistory.length} driven` : (S.mode === "play" ? `${S.playStep} / ${S.play && S.play.steps ? S.play.steps.length - 1 : "?"}` : (l ? `${l.depth} / ${s.result.depth}` : "–"));
+  $("r-exec").textContent = s.result.executions.toLocaleString();
+  $("r-beam").textContent = l ? `${l.nodes.length} → ${l.retained.length}` : "–";
+  const term = $("r-term");
+  term.className = "badge";
+  if (S.mode === "drive") {
+    const solved = S.drive && S.drive.solved;
+    term.textContent = solved ? "solved by hand" : "driving";
+    term.classList.add(solved ? "ok" : "warn");
+  } else if (S.mode === "play") {
+    term.textContent = S.play && S.play.label ? `playing ${S.play.which === "witness" ? S.play.label : "found program"}` : "playing";
+    term.classList.add("warn");
+  } else {
+    const r = s.result;
+    let text = r.termination;
+    if (r.program) text += r.solved ? " · solved" : (r.shown ? " · memorised" : " · fits nothing");
+    term.textContent = text;
+    term.classList.add(r.solved ? "ok" : (r.termination === "fit" ? "warn" : "bad"));
+  }
+  $("r-mode").textContent = S.mode;
+  $("behaviour").innerHTML = `<b>${esc(s.task.behaviour)}</b> — ${esc(s.task.summary)} · ${s.task.examples} shown, ${s.task.held_out} held out · witness ${s.task.length} ops${s.witnesses.length > 1 ? ` (+${s.witnesses.length - 1} alternative${s.witnesses.length > 2 ? "s" : ""})` : ""} · ${fmt(s.result.seconds, 2)} s`;
+  const shownExamples = s.task.inputs.slice(0, 6);
+  $("examples").innerHTML = shownExamples.map((given, i) =>
+    `<div class="ex"><span class="label">ex ${i + 1}</span>${stackHTML(given, {compact:true})}<span class="arrow">→</span>${stackHTML(s.task.outputs[i], {compact:true})}</div>`).join("");
+  const witnessCursor = S.mode === "play" && S.play && S.play.which === "witness" ? S.playStep - 1 : (S.mode === "replay" && witnessNode(S.depth) !== null && S.showWitness ? S.depth : undefined);
+  $("witness").innerHTML = progHTML(s.witnesses[0], {cursor: witnessCursor});
+  const found = s.result.program;
+  const foundCursor = S.mode === "play" && S.play && S.play.which === "found" ? S.playStep - 1 : undefined;
+  $("found").innerHTML = found ? progHTML(found, {cursor: foundCursor}) + ` <span class="note">${found.length} ops</span>` : `<span class="note">nothing — ${esc(s.result.termination)}</span>`;
+}
+
+function renderAlive() {
+  const host = $("alive"); const s = S.session;
+  if (!s) { host.innerHTML = ""; return; }
+  const total = s.settings.max_depth;
+  const overlay = s.witness_overlay;
+  const cells = [];
+  for (let d = 0; d < total; d += 1) {
+    const o = overlay[d];
+    let cls = "cell";
+    if (!o) cls += " unreached";
+    else if (s.result.termination === "fit" && d === overlay.length - 1) cls += " fit";
+    else cls += o.witnesses[0].survives ? " on" : " off";
+    if (S.mode === "replay" && d === S.depth) cls += " cur";
+    const title = o ? `depth ${d}: witness ${o.witnesses[0].survives ? "alive" : "gone"}${o.witnesses[0].rank ? ` · next ${o.witnesses[0].next} ranked ${o.witnesses[0].rank}/${o.witnesses[0].legal}` : ""}` : `depth ${d}: not reached`;
+    cells.push(`<span class="${cls}" data-depth="${d}" title="${esc(title)}"></span>`);
+  }
+  const lastAlive = overlay.reduce((acc, o, d) => o.witnesses[0].survives ? d : acc, -1);
+  host.innerHTML = `<span class="label">witness in beam</span><span class="cells">${cells.join("")}</span><span>${lastAlive < 0 ? "never past depth 0" : `alive through depth ${lastAlive}`} of ${s.task.length} ops · <kbd>→</kbd> deeper <kbd>←</kbd> back</span>`;
+  host.querySelectorAll(".cell").forEach((el) => el.addEventListener("click", () => { if (S.mode !== "replay") { S.mode = "replay"; } setDepth(Number(el.dataset.depth)); }));
+}
+
+function renderStory() {
+  const host = $("story");
+  if (!S.session) { host.innerHTML = ""; return; }
+  if (S.mode === "drive") {
+    const n = S.driveHistory.length;
+    host.innerHTML = `<span class="line">driving by hand: <b>${n}</b> op${n === 1 ? "" : "s"} applied${n ? ` — <b>${esc(S.driveHistory.join(" "))}</b>` : ""}. The table is the policy's ranking from here; the machine's verdict is next to each op.</span><span class="hint">a–l apply rank 1–9 · ↑↓ then → or Enter any op · ← or w undo · m back</span>`;
+    return;
+  }
+  if (S.mode === "play") {
+    if (!S.play || !S.play.steps) { host.innerHTML = '<span class="line spin">stepping the program…</span>'; return; }
+    const st = S.play.steps[S.playStep];
+    host.innerHTML = `<span class="line">playing <b>${esc(S.play.label)}</b>: step <b>${st.index}</b> of ${S.play.steps.length - 1}${st.op ? ` — <b>${esc(st.op)}</b>${st.inner ? " runs code; its inner work is in the middle column" : ""}` : " — the inputs"}${st.refused ? ` · <span class="dead-t">refused: ${esc(st.refused)}</span>` : ""}${st.matches && st.matches.every(Boolean) ? ' · <span class="alive-t">every example matches its target</span>' : ""}</span><span class="hint">→ ← step · m back</span>`;
+    return;
+  }
+  const l = layer(); if (!l) return;
+  const node = l.nodes[S.node];
+  const e = (l.expansions[S.node] || [])[S.cursor];
+  const op = ops()[S.cursor];
+  const w = witnessAt(S.depth);
+  let verdict = "";
+  if (!e) verdict = "was never tried: the search stopped first";
+  else if (e.outcome === "refused") verdict = `is <span class="dead-t">refused</span> by the machine (${esc(e.reason)})`;
+  else {
+    verdict = e.outcome === "captured" ? "is <b>captured</b> as a symbol inside the open quotation" : "<b>runs</b>";
+    const v = e.verdict;
+    if (v === "retained") { const r = l.retained.findIndex((x) => x.parent[0] === S.node && x.parent[1] === S.cursor); verdict += ` and its result is <span class="alive-t">kept</span> at rank ${r + 1} of ${l.retained.length}`; }
+    else if (v === "fit") verdict += ` and its result <b>matches every shown target</b> — the search stops here`;
+    else if (v === "duplicate") verdict += ` but its result is a state the search already had`;
+    else if (v && v.startsWith("guard")) verdict += ` but the quotation guard drops it (<b>${esc(v.slice(6))}</b>: ${v === "guard:close" ? "more open [ than ops left" : "the open body can never run"})`;
+    else if (v === "cut") verdict += ` but it ranked below the beam's cut`;
+    else if (!l.ranked) verdict += `; this layer was never ranked`;
+  }
+  let wit = "";
+  if (S.showWitness && w) {
+    if (w.node === S.node) wit = ` · this node is <span class="alive-t">on the witness</span>; its next op <b>${esc(w.next)}</b> ${w.rank ? `ranked <b>${w.rank}</b> of ${w.legal} at ${pct(w.probability)}` : "was not scored"}`;
+    else if (w.node !== null) wit = ` · the witness is node <b>${w.node + 1}</b> here`;
+    else wit = ` · <span class="dead-t">the witness left the beam before this depth</span>`;
+  }
+  const follows = e && e.verdict === "retained" && S.depth < layers().length - 1;
+  host.innerHTML = `<span class="line">depth <b>${l.depth}</b> · node <b>${S.node + 1}</b> of ${l.nodes.length} (log-p ${fmt(node.log_probability)}) · op <b>${esc(op)}</b> ${verdict}${wit}</span><span class="hint">${follows ? "→ follows this op" : (e && e.outcome !== "refused" ? "→ cannot follow: not kept" : "")} · ${witnessNode(S.depth) !== null ? "g witness · " : ""}? help</span>`;
+}
+
+function renderBeam() {
+  const host = $("beam");
+  if (!S.session) { host.innerHTML = ""; return; }
+  if (S.mode === "drive") {
+    $("beam-title").textContent = "trail · w undo";
+    $("beam-sub").textContent = "";
+    const inputs = S.session.task.inputs[0];
+    let html = `<div class="node"><div class="top"><span class="r">start</span></div>${stackHTML(inputs)}</div>`;
+    S.driveHistory.forEach((name, i) => {
+      const after = S.driveStates[i + 1], before = S.driveStates[i];
+      html += `<div class="node ${i === S.driveHistory.length - 1 ? "sel" : ""}"><div class="top"><span class="r">${i + 1}</span><span class="fn">${esc(name)}</span></div>${after ? stackHTML(after, {compact:true, diffFrom: before}) : ""}</div>`;
+    });
+    host.innerHTML = html; return;
+  }
+  if (S.mode === "play") {
+    $("beam-title").textContent = "program anatomy · → ←";
+    $("beam-sub").textContent = S.play && S.play.steps ? `${S.play.steps.length - 1} ops` : "";
+    if (!S.play || !S.play.steps) { host.innerHTML = S.play && S.play.error ? `<span class="err">${esc(S.play.error)}</span>` : '<span class="spin">…</span>'; return; }
+    host.innerHTML = anatomyHTML();
+    host.querySelectorAll(".leaf").forEach((el) => el.addEventListener("click", () => { S.playStep = Number(el.dataset.step); S.playFocus = focusFor(S.playStep); render(); }));
+    host.querySelectorAll(".qhead").forEach((el) => el.addEventListener("click", (event) => { event.stopPropagation(); S.playFocus = Number(el.dataset.id); render(); }));
+    const cur = host.querySelector(".leaf.cur"); if (cur) cur.scrollIntoView({block:"nearest"});
+    return;
+  }
+  const l = layer(); if (!l) { host.innerHTML = ""; return; }
+  $("beam-title").textContent = `beam at depth ${l.depth} · 1–9 , .`;
+  $("beam-sub").textContent = `${l.nodes.length} node${l.nodes.length === 1 ? "" : "s"} expanded`;
+  const wnode = S.showWitness ? witnessNode(S.depth) : null;
+  host.innerHTML = l.nodes.map((node, i) => {
+    const cls = "node" + (i === S.node ? " sel" : "") + (i === wnode ? " witness" : "");
+    return `<div class="${cls}" data-i="${i}"><div class="top"><span class="r">${i + 1}</span>${i === wnode ? '<span class="gt-tag">witness</span>' : ""}<span class="lp">${fmt(node.log_probability)}</span></div><div class="prog">${node.program.length ? progHTML(node.program) : '<span class="note">the input</span>'}</div><div class="stk-wrap">${stackHTML(node.states[0], {compact:true})}</div></div>`;
+  }).join("");
+  host.querySelectorAll(".node").forEach((el) => el.addEventListener("click", () => focusNode(Number(el.dataset.i))));
+  const cur = host.querySelector(".node.sel"); if (cur) cur.scrollIntoView({block:"nearest"});
+}
+
+// The program as its own tree: brackets nest, and each quotation carries the
+// role the walker saw it run in. Leaves are the steps; the current one is
+// highlighted and the ones already taken are dimmed.
+function anatomyHTML() {
+  const play = S.play; const program = play.program; const a = play.anatomy || {nodes: [], runtime: []};
+  const starts = new Map(a.nodes.map((n) => [n.start, n]));
+  const stepOf = (i) => play.steps[i + 1];
+  const leaf = (i) => {
+    const st = stepOf(i); const cls = "leaf" + (i + 1 === S.playStep ? " cur" : (i + 1 < S.playStep ? " done" : "")) + (st && st.refused ? " refused" : "");
+    return `<div class="${cls}" data-step="${i + 1}"><span class="i">${i + 1}</span><span class="op">${esc(program[i])}</span>${st && st.inner ? '<span class="runs">runs code</span>' : ""}</div>`;
+  };
+  const render = (from, to) => {
+    let html = ""; let i = from;
+    while (i <= to) {
+      const node = starts.get(i);
+      if (node && node.end !== null) {
+        const focus = node.id === S.playFocus;
+        const roles = node.roles.length ? node.roles.map(esc).join(", ") : "never run";
+        html += `<div class="qnode ${focus ? "focus" : ""}"><div class="qhead" data-id="${node.id}"><span class="i">${i + 1}</span><span class="br">[</span><span class="role">${roles}</span><span class="runs">${node.runs ? `ran ${node.runs}×` : ""}</span></div>`;
+        html += render(i + 1, node.end - 1);
+        html += `<div class="qtail"><span class="leaf ${node.end + 1 === S.playStep ? "cur" : (node.end + 1 < S.playStep ? "done" : "")}" data-step="${node.end + 1}"><span class="i">${node.end + 1}</span>]</span></div></div>`;
+        i = node.end + 1;
+      } else { html += leaf(i); i += 1; }
+    }
+    return html;
+  };
+  let html = `<div class="leaf ${S.playStep === 0 ? "cur" : "done"}" data-step="0"><span class="i">0</span><span class="op">inputs</span></div>` + render(0, program.length - 1);
+  if (a.runtime && a.runtime.length) {
+    html += `<h4 class="sec">quotations built at runtime</h4>` + a.runtime.map((r) => `<div class="note"><b>${esc(r.body)}</b> · ${r.roles.map(esc).join(", ")} · ran ${r.runs}×</div>`).join("");
+  }
+  return html;
+}
+function sectionHTML() {
+  const a = S.play && S.play.anatomy; if (!a) return "";
+  const node = a.nodes.find((n) => n.id === S.playFocus);
+  if (!node) return `<h4 class="sec">section · b picks one</h4><div class="note">Step onto a combinator or inside a quotation, or press <b>b</b>, to see what that section did on the shown examples.</div>`;
+  const body = node.body ? stackHTML("[ " + node.body + " ]", {compact:true}) : '<span class="note">not a plain literal</span>';
+  let html = `<h4 class="sec">section · ops ${node.start + 1}–${node.end + 1}</h4><div class="note">${body}</div>`;
+  if (!node.runs) return html + `<div class="note">This quotation never ran on the shown examples.</div>`;
+  html += `<div class="note">${node.roles.map(esc).join(", ")} · ran <b>${node.runs}×</b> on the shown examples${node.examples.length < node.runs ? ` · ${node.examples.length} distinct rows` : ""}</div>`;
+  html += node.examples.map((row) => `<div class="exrow call"><span class="n">${esc(row.role.replace(/^\w+ /, ""))}</span>${stackHTML(row.input, {compact:true})}<span class="arrow">→</span>${row.refused ? `<span class="err">${esc(row.refused)}</span>` : stackHTML(row.output, {compact:true, diffFrom: row.input})}</div>`).join("");
+  return html;
+}
+
+function verdictBadge(e) {
+  if (!e) return '<span class="oc cut">not tried</span>';
+  if (e.outcome === "refused") return '<span class="oc refused">refused</span>';
+  const v = e.verdict;
+  if (v === "retained") return '<span class="oc retained">kept</span>';
+  if (v === "fit") return '<span class="oc fit">fit ✓</span>';
+  if (v === "duplicate") return '<span class="oc duplicate">seen</span>';
+  if (v && v.startsWith("guard")) return `<span class="oc guard">guard ${esc(v.slice(6))}</span>`;
+  if (v === "cut") return '<span class="oc cut">cut</span>';
+  return `<span class="oc ${e.outcome}">${e.outcome}</span>`;
+}
+
+function renderTape() {
+  const host = $("tape");
+  if (!S.session) { host.innerHTML = ""; return; }
+  if (S.mode === "drive") {
+    $("exp-title").textContent = "ops from here · ↑ ↓ then → or Enter";
+    if (!S.drive || !S.drive.ops) { $("exp-sub").textContent = ""; host.innerHTML = S.drive && S.drive.error ? `<span class="err">${esc(S.drive.error)}</span>` : '<span class="spin">scoring…</span>'; return; }
+    $("exp-sub").textContent = `${S.drive.legal} of ${S.drive.ops.length} legal · ${S.drive.remaining} ops left`;
+    const gt = driveGroundTruth();
+    const prior = S.drive.prior;
+    const priorOf = (op) => prior && prior.ops[op] !== undefined ? prior.ops[op] : null;
+    const priorLine = prior ? `<div class="note prior">train prior ${esc(prior.condition)} (${prior.n} witness steps): ${Object.entries(prior.ops).slice(0, 5).map(([op, p]) => `<b>${esc(op)}</b> ${pct(p)}`).join(" · ")}${Object.keys(prior.ops).length > 5 ? " · …" : ""}${prior.n ? "" : " — never seen in training"}</div><div class="note">right column: policy · <span class="prior-v">prior</span></div>` : "";
+    host.innerHTML = priorLine + S.drive.ops.map((o, i) => {
+      const key = o.rank && o.rank <= 9 ? `<span class="keycap">${DRIVE_KEYS[o.rank - 1]}</span>` : "";
+      const isGT = gt && o.op === gt;
+      const badge = o.outcome === "refused" ? '<span class="oc refused">refused</span>' : (o.guard ? `<span class="oc guard">guard ${esc(o.guard)}</span>` : (o.outcome === "captured" ? '<span class="oc captured">captured</span>' : '<span class="oc legal">legal</span>'));
+      const succ = o.successor ? `<div class="succ">${stackHTML(o.successor, {compact:true, diffFrom: S.drive.states[0]})}</div>` : (o.reason ? `<div class="why">${esc(o.reason)}</div>` : "");
+      return `<div class="exp ${i === S.cursor ? "cur" : ""}" data-i="${i}"><span class="o">${o.rank ? "#" + o.rank : ""}</span>${badge}<span class="fn ${isGT ? "gt" : ""}">${key}${esc(o.op)}${isGT ? '<span class="gt-tag">witness next</span>' : ""}</span><span class="lp">${o.probability !== null ? pct(o.probability) : ""}${prior ? ` <span class="prior-v">${priorOf(o.op) !== null ? pct(priorOf(o.op)) : "–"}</span>` : ""}</span>${i === S.cursor ? succ : ""}</div>`;
+    }).join("");
+    host.querySelectorAll(".exp").forEach((el) => el.addEventListener("click", () => { S.cursor = Number(el.dataset.i); render(); }));
+    return;
+  }
+  if (S.mode === "play") {
+    $("exp-title").textContent = "inside the op · example 1";
+    if (!S.play || !S.play.steps) { $("exp-sub").textContent = ""; host.innerHTML = ""; return; }
+    const st = S.play.steps[S.playStep];
+    if (!st.inner) {
+      $("exp-sub").textContent = st.op ? "one step, no inner work" : "";
+      const prev = S.play.steps[S.playStep - 1];
+      host.innerHTML = st.op ? `<div class="note"><b>${esc(st.op)}</b> is a single machine step${st.fuel !== undefined ? ` (fuel ${st.fuel})` : ""}.</div>${prev ? `<div class="note">before</div>${stackHTML(prev.states[0])}` : ""}<div class="note">after</div>${stackHTML(st.states[0], prev ? {diffFrom: prev.states[0]} : {})}` : '<div class="note">Step through the program with → and ←. Ops that run a quotation show their inner work here.</div>';
+      return;
+    }
+    $("exp-sub").textContent = `${st.inner.frames.length} inner frame${st.inner.frames.length === 1 ? "" : "s"}${st.inner.truncated ? " (truncated)" : ""}${st.inner.fuel !== null ? ` · fuel ${st.inner.fuel}` : ""}${st.inner.agrees_with_machine === false ? " · WALKER DISAGREES WITH MACHINE" : ""}`;
+    let prevStack = null;
+    host.innerHTML = st.inner.frames.map((f) => {
+      const html = `<div class="frame ${f.kind} l${Math.min(4, f.level)}"><span class="oc ${f.kind === "apply" ? "executed" : f.kind}">${f.kind}</span><span class="tx">${esc(f.text)}</span>${stackHTML(f.stack, prevStack !== null && (f.kind === "apply" || f.kind === "push") ? {diffFrom: prevStack} : {})}</div>`;
+      prevStack = f.stack; return html;
+    }).join("");
+    return;
+  }
+  const l = layer(); if (!l) { host.innerHTML = ""; return; }
+  const node = l.nodes[S.node];
+  const row = l.expansions[S.node] || [];
+  $("exp-title").textContent = `ops tried on node ${S.node + 1} · ↑ ↓`;
+  const c = l.counts;
+  $("exp-sub").textContent = `${row.filter((e) => e && e.outcome !== "refused").length} of ${ops().length} legal here · layer: ${c.executed} run, ${c.verdicts.retained || 0} kept${c.verdicts.fit ? ", 1 fit" : ""}`;
+  const scores = l.scores ? l.scores[S.node] : null;
+  const gt = S.showWitness && witnessNode(S.depth) === S.node ? witnessNext(S.depth) : null;
+  const top = scores ? Math.max(...scores.filter((v) => v !== null).map(Math.exp), 1e-9) : 1;
+  host.innerHTML = ops().map((name, i) => {
+    const e = row[i];
+    const lp = scores && scores[i] !== null ? scores[i] : null;
+    const isGT = gt === name;
+    const succ = e && e.successor ? `<div class="succ">${stackHTML(e.successor, {compact:true, diffFrom: node.states[0]})}</div>` : (e && e.reason ? `<div class="why">${esc(e.reason)}</div>` : "");
+    return `<div class="exp ${i === S.cursor ? "cur" : ""}" data-i="${i}"><span class="o">${i + 1}</span>${verdictBadge(e)}<span class="fn ${isGT ? "gt" : ""}">${esc(name)}${isGT ? '<span class="gt-tag">witness next</span>' : ""}</span><span class="lp">${lp !== null ? pct(Math.exp(lp)) : ""}</span>${i === S.cursor ? succ : ""}</div>`;
+  }).join("");
+  host.querySelectorAll(".exp").forEach((el) => el.addEventListener("click", () => { S.cursor = Number(el.dataset.i); S.state = null; render(); }));
+  const cur = host.querySelector(".exp.cur"); if (cur) cur.scrollIntoView({block:"nearest"});
+}
+
+function exampleRows(states, matches, diffFrom) {
+  const s = S.session;
+  return states.map((text, i) => `<div class="exrow"><span class="n">ex ${i + 1}</span>${stackHTML(text, {match: matches ? matches[i] : undefined, diffFrom: diffFrom ? diffFrom[i] : undefined})}<span class="arrow">target</span>${stackHTML(s.task.outputs[i], {compact:true})}</div>`).join("");
+}
+function actionBars(entries, pickedName, witnessName) {
+  const shown = entries.filter((e) => S.showRefused || e.probability !== null);
+  const top = Math.max(1e-9, ...shown.map((e) => e.probability || 0));
+  return shown.map((entry, index) => {
+    const p = entry.probability || 0;
+    const width = 100 * p / top;
+    const key = entry.rank && entry.rank <= 9 && S.mode === "drive" ? `<span class="keycap">${DRIVE_KEYS[entry.rank - 1]}</span>` : "";
+    const cls = "bar" + (entry.probability === null ? " refused" : "") + (entry.op === pickedName ? " picked" : "") + (witnessName && entry.op === witnessName ? " witness" : "");
+    return `<div class="${cls}" data-op="${esc(entry.op)}"><div class="track"><div class="fill" style="width:${width}%"></div><span class="nm">${key}${esc(entry.op)}${entry.op === pickedName ? '<span class="tried">at cursor</span>' : ""}${witnessName && entry.op === witnessName ? '<span class="gt">witness next</span>' : ""}</span></div><span class="pc">${entry.probability === null ? "masked" : pct(entry.probability)}</span></div>`;
+  }).join("");
+}
+function witnessLine(entries, witnessName) {
+  if (!witnessName) return "";
+  const at = entries.findIndex((e) => e.op === witnessName);
+  const legal = entries.filter((e) => e.probability !== null).length;
+  if (at < 0 || entries[at].probability === null) return `<div class="gtline">witness next: <b>${esc(witnessName)}</b> — refused here</div>`;
+  return `<div class="gtline">witness next: <b>${esc(witnessName)}</b>, ranked <b>${entries[at].rank}</b> of ${legal} at ${pct(entries[at].probability)}</div>`;
+}
+
+function renderInspector() {
+  const host = $("insp");
+  if (!S.session) { host.innerHTML = S.error ? `<span class="err">${esc(S.error)}</span>` : ""; return; }
+  if (S.mode === "drive") {
+    $("insp-title").textContent = "state by hand";
+    if (!S.drive || !S.drive.ops) { $("insp-sub").textContent = ""; host.innerHTML = ""; return; }
+    $("insp-sub").textContent = S.drive.solved ? "every example matches" : `${S.drive.matches.filter(Boolean).length} of ${S.drive.matches.length} examples match`;
+    const entries = S.drive.ops.slice().sort((a, b) => (b.probability || -1) - (a.probability || -1));
+    const gt = driveGroundTruth();
+    host.innerHTML = `<h4 class="sec">every example</h4>${exampleRows(S.drive.states, S.drive.matches)}` +
+      `<h4 class="sec">policy ranking · x masked ops</h4>${witnessLine(entries, gt)}${actionBars(entries, S.drive.ops[S.cursor] ? S.drive.ops[S.cursor].op : null, gt)}` +
+      (S.panel === "encoding" ? encodingHTML(S.drive.encoding) : "") +
+      `<h4 class="sec">where the walk sits · policy space</h4>${progressSVG(S.drive.progress)}`;
+    host.querySelectorAll(".bar").forEach((el) => el.addEventListener("click", () => { const i = S.drive.ops.findIndex((o) => o.op === el.dataset.op); if (i >= 0) { S.cursor = i; render(); } }));
+    return;
+  }
+  if (S.mode === "play") {
+    $("insp-title").textContent = "every example after this step";
+    if (!S.play || !S.play.steps) { $("insp-sub").textContent = ""; host.innerHTML = ""; return; }
+    const st = S.play.steps[S.playStep]; const prev = S.play.steps[S.playStep - 1];
+    $("insp-sub").textContent = st.matches ? `${st.matches.filter(Boolean).length} of ${st.matches.length} match` : "";
+    host.innerHTML = sectionHTML() +
+      `<h4 class="sec">every example after step ${st.index}${st.op ? ` · ${esc(st.op)}` : ""}</h4>${exampleRows(st.states, st.matches, prev ? prev.states : null)}` +
+      `<div class="note" style="margin-top:10px">${S.play.solved_shown ? "The program reproduces every shown output." : (S.play.refused ? `The machine refused at step ${S.play.steps.length - 1}.` : "The program does not reproduce every shown output.")}</div>`;
+    return;
+  }
+  const l = layer(); if (!l) { host.innerHTML = ""; return; }
+  const node = l.nodes[S.node];
+  const row = l.expansions[S.node] || [];
+  const scores = l.scores ? l.scores[S.node] : null;
+  $("insp-title").textContent = `node ${S.node + 1} at depth ${l.depth}`;
+  $("insp-sub").textContent = node.program.length ? `${node.program.length} ops · log-p ${fmt(node.log_probability)}` : "the input";
+  const gt = S.showWitness && witnessNode(S.depth) === S.node ? witnessNext(S.depth) : null;
+  const picked = ops()[S.cursor];
+  let html = `<h4 class="sec">every example · this node</h4>${exampleRows(node.states)}`;
+  if (S.panel === "logits" || S.panel === "encoding") {
+    if (!S.state) html += `<h4 class="sec">${S.panel}</h4><div class="note spin">fetching…</div>`;
+    else if (S.state.error) html += `<div class="err">${esc(S.state.error)}</div>`;
+    else if (S.panel === "logits") {
+      const rows = S.state.ops.slice().sort((a, b) => b.logit - a.logit);
+      html += `<h4 class="sec">raw logits · all ${rows.length} ops · v closes</h4>` + rows.map((o) => `<div class="bar ${o.outcome === "refused" ? "refused" : ""}"><div class="track"><span class="nm">${esc(o.op)}${o.outcome === "refused" ? ' <span class="tried" style="color:var(--refuse)">masked</span>' : ""}</span></div><span class="pc">${fmt(o.logit, 2)}</span></div>`).join("");
+    } else html += encodingHTML(S.state.encoding);
+  }
+  const entries = ops().map((name, i) => ({ op: name, probability: scores && scores[i] !== null ? Math.exp(scores[i]) : null, rank: null }));
+  entries.sort((a, b) => (b.probability || -1) - (a.probability || -1));
+  let rank = 0; entries.forEach((e) => { if (e.probability !== null) e.rank = ++rank; });
+  html += `<h4 class="sec">policy ranking · x masked ops · v logits · e tokens</h4>`;
+  if (!scores) html += `<div class="note">This layer was never scored: the search ${S.session.result.termination === "fit" ? "found a fit" : "stopped"} while expanding it.</div>`;
+  else html += witnessLine(entries, gt) + actionBars(entries, picked, gt);
+  if (!gt && S.showWitness && scores) html += `<div class="label off">${witnessNode(S.depth) === null ? "off the witness path — it says nothing here" : "the witness is a different node here"}</div>`;
+  html += `<h4 class="sec">where the beam sits · policy space</h4>${mapSVG()}`;
+  host.innerHTML = html;
+  host.querySelectorAll(".bar[data-op]").forEach((el) => el.addEventListener("click", () => { const i = ops().indexOf(el.dataset.op); if (i >= 0) { S.cursor = i; S.state = null; render(); } }));
+}
+function encodingHTML(enc) {
+  if (!enc) return "";
+  return `<h4 class="sec">what the model sees · e closes</h4><div class="note">One item per example: state tokens, a separator, then target tokens. The state keeps its top ${enc.state_cap} tokens.</div>` +
+    enc.items.map((it, i) => `<div class="note"><b>ex ${i + 1}</b> · ${it.state_tokens.length} state tokens${it.state_overflow ? ` (<span class="err">${it.state_overflow} dropped from the bottom</span>)` : ""}, ${it.target_tokens.length} target</div><div class="tokens">${it.state_tokens.map((t) => `<span class="t">${esc(t)}</span>`).join("")}<span class="t sep">SEP</span>${it.target_tokens.map((t) => `<span class="t tgt">${esc(t)}</span>`).join("")}</div>`).join("");
+}
+function mapSVG() {
+  const map = S.session.map;
+  if (!map || !map.points.length) return '<div class="note">no map</div>';
+  const points = map.points;
+  const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  const spanX = (maxX - minX) || 1, spanY = (maxY - minY) || 1;
+  const sx = (x) => 16 + 268 * (x - minX) / spanX, sy = (y) => 168 - 146 * (y - minY) / spanY;
+  const depth = layer().depth;
+  const dots = points.map((p) => {
+    if (p.kind === "start") return `<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="4" fill="var(--ink)"><title>start</title></circle>`;
+    if (p.kind === "target") return `<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="6" fill="none" stroke="var(--gold)" stroke-width="2"><title>target</title></circle>`;
+    // Retained at layer d are the nodes of layer d+1.
+    const isCurrentLayer = p.depth === depth - 1;
+    const isSel = isCurrentLayer && p.rank === S.node;
+    const faded = p.depth >= depth;
+    return `<circle class="pt" cx="${sx(p.x)}" cy="${sy(p.y)}" r="${isSel ? 4.5 : 2.4}" fill="${isSel ? "var(--gold)" : (isCurrentLayer ? "var(--blue)" : "var(--ink-ghost)")}" opacity="${faded ? .18 : (isCurrentLayer ? .95 : .5)}"><title>depth ${p.depth + 1} rank ${p.rank + 1}: ${esc(p.program.join(" "))} · dist ${p.distance_to_target}</title></circle>`;
+  });
+  const [a, b] = map.explained_variance;
+  return `<svg class="map" viewBox="0 0 300 190"><text x="8" y="14" font-size="9" fill="var(--ink-dim)">PCA of retained nodes · ${pct(a)} + ${pct(b)} of variance · ring = solved</text>${dots.join("")}</svg>`;
+}
+function progressSVG(progress) {
+  if (!progress || !progress.points.length) return "";
+  const points = progress.points;
+  const offAxis = Math.max(0.35, ...points.map((p) => Math.abs(p.y)));
+  const sx = (x) => 30 + 240 * Math.max(-0.05, Math.min(1.12, x)) / 1.12, sy = (y) => 165 - 120 * (y / offAxis);
+  const line = points.map((p, i) => `${i ? "L" : "M"}${sx(p.x)},${sy(p.y)}`).join(" ");
+  const dots = points.map((p, i) => `<circle class="pt" cx="${sx(p.x)}" cy="${sy(p.y)}" r="${i === points.length - 1 ? 4.5 : 2.5}" fill="${i === points.length - 1 ? "var(--gold)" : "var(--ink-ghost)"}"><title>step ${i}: x ${p.x}, dist ${p.distance_to_target}</title></circle>`);
+  return `<svg class="map" viewBox="0 0 300 190"><line x1="${sx(0)}" y1="165" x2="${sx(1)}" y2="165" stroke="var(--rule)"/><circle cx="${sx(1)}" cy="165" r="6" fill="none" stroke="var(--gold)" stroke-width="2"/><text x="${sx(0) - 4}" y="180" font-size="9" fill="var(--ink-dim)">input</text><text x="${sx(1) - 14}" y="180" font-size="9" fill="var(--ink-dim)">solved</text><path d="${line}" fill="none" stroke="var(--blue)" stroke-width="1.2" opacity=".7"/>${dots.join("")}</svg>`;
+}
+
+function renderKeys() {
+  const replay = [["↑ ↓","op"],["→ ←","follow op deeper / back to parent"],["1–9 , .","node"],["g","witness node"],["space","run"],["r","reset"],["t","witness"],["x","masked"],["v","logits"],["e","tokens"],["m","drive"],["p","play witness"],["o","play found"],["n","new task"],["?","help"]];
+  const drive = [["a–l","apply rank 1–9"],["↑ ↓ then → or Enter","any op"],["← or w","undo"],["e","tokens"],["x","masked"],["m","back"]];
+  const play = [["→ ←","step"],["b","next section"],["p / o","witness / found"],["m","back"]];
+  const set = S.mode === "drive" ? drive : (S.mode === "play" ? play : replay);
+  $("keys").innerHTML = set.map(([k, v]) => `<span><kbd>${k}</kbd>${v}</span>`).join("");
+}
+function renderHelp() {
+  const host = $("help");
+  host.hidden = !S.help;
+  if (!S.help) return;
+  host.innerHTML = `<div class="sheet">
+<h3>What this is</h3>
+<p>The <b>mark-28</b> beam search, run on one <b>stack_pbe_v4</b> eval task and recorded whole. A task is k shown examples, each an input stack and a target stack; the search moves all k stacks together with one program. Every op is tried on every beam node; the policy scores each node once and ranks the successors; the widest 64 survive. A successor that reproduces every shown target is a <b>fit</b>; grading on the 8 held-out examples happens after.</p>
+<h3>Reading a stack</h3>
+<p>Chips run bottom to top, left to right. A <b>[</b> chip opens a quotation: from there to the next <b>]</b> every op is captured as a dashed symbol instead of running, and <b>]</b> folds the dashed group into one list. Lists are drawn in parentheses; <b>nil</b> is the empty list. Gold rings mark what the op at the cursor changed.</p>
+<div class="cols">
+<div><span class="label">replay</span><p><b>↑ ↓</b> walk the 28 ops tried on the selected node, across nodes and depths. <b>→</b> follows the op at the cursor deeper, into the node it produced, when the search kept it; <b>←</b> goes back to the node and op that produced the selected node. <b>1–9 , .</b> select a node; <b>g</b> jumps to the witness node at this depth, cursor on the witness's next op. The alive strip is clickable for a plain jump to a depth. <b>space</b> runs. <b>t</b> toggles the witness marks; <b>x</b> shows masked ops in the ranking; <b>v</b> fetches the raw logits; <b>e</b> shows the exact tokens the model saw.</p></div>
+<div><span class="label">drive</span><p>The line above the table is the <b>train prior</b>: how often each op follows the previous op in the train witnesses, at top level or inside an open quotation, and each row shows the policy's probability then the prior's in purple. Where they agree the policy may be repeating the corpus; where they differ it has read something off the state or the target. <b>m</b> takes the selected node's program and lets you continue by hand. <b>a s d f g h j k l</b> apply the policy's rank 1–9; <b>↑ ↓</b> pick any op and <b>→</b> or <b>Enter</b> applies it, refused ones excepted; <b>←</b> or <b>w</b> undoes. Every state shows all k examples and the policy's ranking from there.</p></div>
+<div><span class="label">play</span><p><b>p</b> steps the authored witness through the machine, <b>o</b> the program the search found. Ops that run a quotation (i, dip, map, filter, fold, ifte) open up in the middle column: each element visited, each branch taken, each leaf op applied, on the first example. The left column is the program's own tree: each <b>[ … ]</b> is a section labelled with the role the machine ran it in (fold body, ifte condition, map body…) and how many times; the right column shows that section's input → output rows across every shown example. Stepping onto a combinator focuses the section it consumes; <b>b</b> cycles sections.</p></div>
+</div>
+<h3>Verdicts on the tape</h3>
+<p><b>refused</b> — the machine's guard said no on some example (the reason is shown). <b>captured</b> — inside an open [, the op became a symbol. <b>kept</b> — in the next beam, at the rank shown. <b>seen</b> — a state the search already had. <b>guard close</b> — more open [ than ops left; <b>guard type</b> — the open body can never run (prune-open-mark-states, #70). <b>cut</b> — ranked below the 64th successor. <b>fit</b> — every shown target matched.</p>
+<h3>The witness</h3>
+<p>The authored program is ground truth only along its own path. Where a beam node is on it, its next op is marked and its rank in the policy's ordering is shown; the strip above says at which depth the beam last held the witness prefix. Off that path nothing is marked — from a state the witness never visits, no op is "correct".</p>
+<p><b>?</b> or <b>esc</b> closes.</p></div>`;
+}
+function render() {
+  renderHeader(); renderAlive(); renderStory(); renderBeam(); renderTape(); renderInspector(); renderKeys(); renderHelp();
+}
+
+// ---------------------------------------------------------------------------
+// keys
+document.addEventListener("keydown", (event) => {
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+  const key = event.key;
+  if (S.help) { if (key === "?" || key === "Escape") { S.help = false; render(); } return; }
+  if (!S.session) return;
+  if (key === "?") { S.help = true; render(); return; }
+  if (key === "n") {
+    const next = params(); delete next.task; delete next.seed;
+    if (!next.behaviour && !next.bucket) next.cohort_only = "true";
+    loadSession(next); return;
+  }
+  if (S.mode === "drive") {
+    const rank = DRIVE_KEYS.indexOf(key.toLowerCase());
+    if (rank >= 0) { driveApplyRank(rank + 1); return; }
+    if (key === "ArrowUp") { event.preventDefault(); driveStep(-1); return; }
+    if (key === "ArrowDown") { event.preventDefault(); driveStep(1); return; }
+    if (key === "Enter" || key === "ArrowRight") { event.preventDefault(); driveApplyCursor(); return; }
+    if (key === "ArrowLeft") { event.preventDefault(); driveUndo(); return; }
+    if (key === "w") { driveUndo(); return; }
+    if (key === "m" || key === "Escape") { exitDrive(); return; }
+    if (key === "e") { S.panel = S.panel === "encoding" ? "actions" : "encoding"; render(); return; }
+    if (key === "x") { S.showRefused = !S.showRefused; render(); return; }
+    if (key === "t") { S.showWitness = !S.showWitness; render(); return; }
+    return;
+  }
+  if (S.mode === "play") {
+    if (key === "b") { cycleFocus(); return; }
+    if (key === "ArrowLeft" || key === "ArrowUp") { event.preventDefault(); playStep(-1); return; }
+    if (key === "ArrowRight" || key === "ArrowDown") { event.preventDefault(); playStep(1); return; }
+    if (key === "m" || key === "Escape") { exitPlay(); return; }
+    if (key === "p") { enterPlay("witness"); return; }
+    if (key === "o") { enterPlay("found"); return; }
+    return;
+  }
+  // The ops are listed vertically, so ↑ ↓ move through them; → goes deeper
+  // into the search by following the op at the cursor, ← comes back up.
+  if (key === "ArrowUp") { event.preventDefault(); stepCursor(-1); return; }
+  if (key === "ArrowDown") { event.preventDefault(); stepCursor(1); return; }
+  if (key === "ArrowLeft") { event.preventDefault(); ascend(); return; }
+  if (key === "ArrowRight") { event.preventDefault(); descend(); return; }
+  if (key === "g") { gotoWitness(); return; }
+  if (key >= "1" && key <= "9") { focusNode(Number(key) - 1); return; }
+  if (key === ",") { focusNode(S.node - 1); return; }
+  if (key === ".") { focusNode(S.node + 1); return; }
+  if (key === " ") { event.preventDefault(); play(); return; }
+  if (key === "r") { reset(); return; }
+  if (key === "t") { S.showWitness = !S.showWitness; render(); return; }
+  if (key === "x") { S.showRefused = !S.showRefused; render(); return; }
+  if (key === "v") { openPanel("logits"); return; }
+  if (key === "e") { openPanel("encoding"); return; }
+  if (key === "m") { enterDrive(); return; }
+  if (key === "p") { enterPlay("witness"); return; }
+  if (key === "o") { enterPlay("found"); return; }
+});
+
+(function boot() {
+  const query = params();
+  if (!query.task && !query.behaviour && !query.bucket && !query.seed) query.cohort_only = "true";
+  loadSession(query);
+})();
+</script>
+</body>
+</html>

@@ -1,5 +1,11 @@
 # Compute-optimal policy size on `mark-28` / `stack_pbe_v4`
 
+> **Correction, 2026-09-09.** The 44-op `bounds_cover_list_flag` solve and the 28-op
+> `all_positive` solve quoted below are held-out-surviving shortcuts, not the
+> behaviours (the first tests only the list head, the second returns the minimum);
+> the longest verified solves are 12 ops. Numbers are unchanged. See
+> `docs/STATUS.md`, Superseded, and stack-rollout-debugger (#115).
+
 Issue: [compute-optimal-mark-28 (#101)](../../../../issues/101). Source `4fd2eb9`
 (`claude/issue-101-compute-optimal-mark28`), clean; counters corrected and hits
 replayed at `f96efc2` (see Caveats). Campaign 2026-09-03 08:44–15:01 PDT

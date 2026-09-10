@@ -20,8 +20,8 @@ uv run python -m wandering_light.rollout_debugger.cli trace --distance 5 --seed 
 
 | replay | | drive | |
 |---|---|---|---|
-| `← →` | expansion | `a s d f g h j k l` | apply the rank 1–9 action |
-| `↑ ↓` | layer | `w` | undo one step |
+| `↑ ↓` | expansion | `a s d f g h j k l` | apply the rank 1–9 action |
+| `→ ←` | layer | `w` | undo one step |
 | `1`–`9` | select beam node | `m` | back to replay |
 | `space` | run / pause | | |
 | `r` | reset | | |

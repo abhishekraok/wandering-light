@@ -203,7 +203,7 @@ mark { background:color-mix(in srgb,var(--gold) 28%,transparent); color:inherit;
       <div class="body" id="beam"></div>
     </div>
     <div class="col">
-      <div class="head"><span class="label" id="exp-title">actions tried · ← →</span><span class="sub" id="exp-sub"></span></div>
+      <div class="head"><span class="label" id="exp-title">actions tried · ↑ ↓</span><span class="sub" id="exp-sub"></span></div>
       <div class="body" id="tape"></div>
     </div>
     <div class="col">
@@ -518,7 +518,7 @@ function renderStory() {
           `before any action was tried from it.`
         : "") +
     witnessClause(l) +
-    `</span><span class="hint">← → action · ↑ ↓ depth · ? help</span>`;
+    `</span><span class="hint">↑ ↓ action · → ← depth · ? help</span>`;
 }
 
 // Whether the certified path is still among the states being expanded. This is
@@ -560,8 +560,8 @@ function renderHelp() {
     <h3>Keys</h3>
     <div class="cols">
       <div>
-        <p><b>← →</b> previous / next action tried<br>
-        <b>↑ ↓</b> previous / next depth<br>
+        <p><b>↑ ↓</b> previous / next action tried<br>
+        <b>→ ←</b> next / previous depth<br>
         <b>1–9</b> jump to a beam state<br>
         <b>space</b> run / pause · <b>r</b> reset</p>
       </div>
@@ -878,7 +878,7 @@ function renderMap() {
 
 function renderKeys() {
   const replay = [
-    ["← →", "action tried"], ["↑ ↓", "depth"], ["1–9", "beam state"],
+    ["↑ ↓", "action tried"], ["→ ←", "depth"], ["1–9", "beam state"],
     ["space", "run/pause"], ["r", "reset"], ["v", "logits"], ["e", "encoding"],
     ["x", "incompatible"], ["t", "witness"], ["m", "drive"], ["n", "new task"],
     ["?", "help"],
@@ -920,10 +920,11 @@ document.addEventListener("keydown", async (event) => {
   }
 
   switch (key.toLowerCase()) {
-    case "arrowright": event.preventDefault(); step(1); break;
-    case "arrowleft": event.preventDefault(); step(-1); break;
-    case "arrowdown": event.preventDefault(); setDepth(S.depth + 1); break;
-    case "arrowup": event.preventDefault(); setDepth(S.depth - 1); break;
+    // The tape is vertical, so ↑ ↓ move through it; → goes deeper, ← back.
+    case "arrowdown": event.preventDefault(); step(1); break;
+    case "arrowup": event.preventDefault(); step(-1); break;
+    case "arrowright": event.preventDefault(); setDepth(S.depth + 1); break;
+    case "arrowleft": event.preventDefault(); setDepth(S.depth - 1); break;
     case " ": event.preventDefault(); if (S.mode === "replay") play(); break;
     case "r": reset(); break;
     case "v": await loadLogits(); break;

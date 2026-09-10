@@ -153,6 +153,7 @@ Run the linter through `uv run` so the pinned ruff is used rather than one on `P
 │   ├── shortest_path_data.py, stack_machine_corpus.py   # certified-shortest corpus generation
 │   ├── proposer_pilot/graph.py      # TrajectoryGraph, the persistent state graph
 │   ├── rollout_debugger/            # interactive rollout debugger (see its README)
+│   ├── stack_debugger/              # the same for the mark-28 beam on stack_pbe_v4
 │   ├── evals/                       # run_evaluation, trajectory_graph_app, dashboard, explorer, data manifests
 │   └── training/                    # sft.py, rl_grpo.py, deep-corpus tokenizer and data
 ├── experiments/                     # the scripts behind every report
@@ -282,6 +283,18 @@ uv run python -m wandering_light.rollout_debugger.cli serve --port 8000
 It fetches the published policy checkpoint from the Hub on first use (a Hub
 token is needed) or takes `--checkpoint DIR`. Keys and what makes the replay
 trustworthy are in [its README](wandering_light/rollout_debugger/README.md).
+
+### Stack debugger
+The same instrument for the `mark-28` beam on `stack_pbe_v4`: every shown
+example's stack side by side, all 28 ops with the machine's verdict, the
+authored witness overlaid, and a play mode that opens `map`, `fold` and `ifte`
+into their inner steps:
+
+```bash
+uv run python -m wandering_light.stack_debugger.cli serve --port 8010
+```
+
+Keys and modes are in [its README](wandering_light/stack_debugger/README.md).
 
 ### Stack machine explorer
 [`docs/stack_machine_explorer.html`](docs/stack_machine_explorer.html) is a
