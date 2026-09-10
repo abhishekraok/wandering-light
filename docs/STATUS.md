@@ -8,16 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-09-10 (paused)
-
-## Paused
-
-**Paused 2026-09-08, for about a month on induce-text**
-([moving-arena-induce-text (#88)](../../issues/88)). Resume from
-[program-first-generator (#107)](../../issues/107). The highways programme
-(#94, #96, #98, goal #99) is defined and deliberately not started. Every other
-open issue is a standing goal or labeled `parked`, with its state as the last
-comment. Nothing is running, and nothing measured lives off `main`.
+Last updated: 2026-09-10
 
 ## What is true now
 
@@ -80,7 +71,7 @@ claim a number supports.
 
 ## In flight
 
-Nothing. The project is paused; see the top of this file.
+Nothing running. Open lines: training on `stack_pbe_world_v1` alongside v4 (follow-on (d) of training-data-sources (#118)), scaling world-behaviour authoring to the ~2,600 public pool, and the highways programme (#94, #96, #98, goal #99).
 
 ## Superseded
 
