@@ -11,7 +11,7 @@ form and expanded to `mark-28`; every program re-verified on every test by `repo
 |---|---|---|---|
 | leetcode | 42/45 (93%) | 105.0 | 25.0 |
 | mbpp | 49/50 (98%) | 123 | 20 |
-| **all** | 91/95 (96%) | 111 | 24 |
+| **all** | 91/95 (96%) | 114 | 24 |
 
 Claimed-vs-verified mismatches: 0; missing ids: 0; duplicates: 0.
 
@@ -26,7 +26,7 @@ By author: canonical 91/95 (96%).
 | 11-20 | 8 | 34 |
 | 21-40 | 6 | 37 |
 | 41+ | 68 | 120 |
-| median | 111 | 43.0 |
+| median | 114 | 43.0 |
 
 Exact matches with a v4 witness: 5 (leetcode-add-two-integers, mbpp-309, mbpp-588, mbpp-925, mbpp-970). Same skeleton as a v4 witness: 5.
 
@@ -112,10 +112,10 @@ Exact matches with a v4 witness: 5 (leetcode-add-two-integers, mbpp-309, mbpp-58
 | mbpp-54 | 93 | `dup 0 [ max2 ] fold inc [ [ over 0 lt? ] [ add ] [ drop ] ifte ] swap cons map sort` |
 | leetcode-form-smallest-number-from-two-digit-arrays | 102 | `[ swap [ [ over over eq? ] [ drop ] [ over over min2 10 mul [ max2 ] dip add ] ifte ] swap cons map min min2 ] swap cons 100 swap fold` |
 | leetcode-count-integers-with-even-digit-sum | 103 | `dup digit-sum 2 mod sub 2 div` |
-| mbpp-218 | 105 | `over over gcd div swap drop dec` |
 | leetcode-find-the-key-of-the-numbers | 107 | `[ nil swap cons swap cons swap cons over [ div 10 mod ] swap cons map min mul ] swap cons swap cons swap cons nil 1000 cons 100 cons 10 cons 1 cons swap map sum` |
 | leetcode-minimum-element-after-replacement-with-digit-sum | 108 | `[ digit-sum ] map min` |
 | leetcode-harshad-number | 111 | `dup digit-sum [ mod 0 eq? ] [ swap drop ] [ drop drop -1 ] ifte` |
+| mbpp-218 | 114 | `over over gcd div swap drop dec` |
 | mbpp-841 | 115 | `take 0 nil pack2 [ [ unpack2 ] dip over over [ gt? ] swap cons filter len -rot cons -rot add swap pack2 ] fold head` |
 | mbpp-564 | 118 | `take nil 0 pack2 [ [ unpack2 ] dip dup [ [ over ] dip [ eq? not ] swap cons filter len add ] dip swap [ cons ] dip pack2 ] fold unpack2 swap drop` |
 | mbpp-777 | 123 | `[ dup 0 le? ] [ drop min ] [ over dedup [ [ [ swap [ lt? ] swap cons filter len ] dip lt? ] swap cons swap cons ] dip swap filter sum ] ifte` |

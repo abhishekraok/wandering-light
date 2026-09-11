@@ -2,7 +2,7 @@
   "basis": "mark-28",
   "catalogue": {
     "behaviours": 183,
-    "digest": "sha256:83a3ac012e1d9099ca9a6fceed0b21bcb5de572debacdba5ccd3a110273dd7e9",
+    "digest": "sha256:8a3541278aa53911721f6273e0908c2abe44a47f02be5933f27e329b5fdd886a",
     "skeletons": 177
   },
   "config": {
@@ -32,25 +32,25 @@
   "hub": {
     "repo_id": "abhishekraok/wandering-light-stack-pbe-world-v2",
     "repo_type": "dataset",
-    "revision": "58275e387abc41c3f473a0c46a92a70e6cd248cc"
+    "revision": "091ec5c1d51ce47ab353ab7583cd35ec3d48e5f8"
   },
   "schema_version": 2,
   "split_policy": "by-behaviour-hash eval_share=0.1",
   "splits": {
     "eval": {
       "behaviours": 15,
-      "bytes": 8306,
+      "bytes": 8314,
       "path": "stack_pbe_world_v2_eval.jsonl.gz",
       "records": 15,
-      "sha256": "sha256:0665bfa5001381eab179b0ee8a205f9330506c3dddbedf77fb212d19bda8edf1",
+      "sha256": "sha256:ab0e20c0bc97b9317935b267558dd98dfb1907b65964eb23d6f3ad437a055fd3",
       "skeletons": 15
     },
     "train": {
       "behaviours": 168,
-      "bytes": 94558,
+      "bytes": 94579,
       "path": "stack_pbe_world_v2_train.jsonl.gz",
       "records": 168,
-      "sha256": "sha256:3598c8ccb198f935c00c6989821a2a570fd39d1c57792e62e1b0c993fd8868f6",
+      "sha256": "sha256:92aee33ee983d57ee7c08923e582bfba611c761991b2f21f6065d053dc4b07f0",
       "skeletons": 162
     }
   }

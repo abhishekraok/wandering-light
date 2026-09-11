@@ -26,8 +26,9 @@ Behaviours sampled by `experiments/world_behaviours/extract.py` (seed 17, wider 
   ~7 Euclid steps (`gcd 832040 514229` refused); it is now a 32-step fold, at
   ~7× the fuel (700 vs 105), which broke one fuel-tight witness
   (`leetcode-number-of-self-divisible-permutations`, 14/14 → 12/14) until a
-  Codex repair (22k tokens, `repairs.jsonl`) hoisted the coprime test out of
-  the inner loop (worst case 64k fuel). Macro form median stayed at 24 tokens after migration
+  Codex repair (22k tokens, `repairs.jsonl`) replaced `gcd` with a
+  divisibility-based coprime test exact for values ≤ 12, the problem's stated
+  bound (worst case 64k fuel). Macro form median stayed at 24 tokens after migration
   (16 in the authors' dialects); expanded median 163 ops, up from the
   probe's 111, because medium problems carry more state.
 - **Overlap with v4 stays negligible**: one exact witness match (`mbpp-517`,
@@ -39,7 +40,7 @@ Behaviours sampled by `experiments/world_behaviours/extract.py` (seed 17, wider 
 |---|---|---|---|
 | codearc | 34/34 (100%) | 175.5 | 24.5 |
 | leetcode-hard | 2/5 (40%) | 1080.0 | 242.0 |
-| leetcode-medium | 21/25 (84%) | 150 | 41 |
+| leetcode-medium | 21/25 (84%) | 152 | 41 |
 | mbpp | 35/36 (97%) | 143 | 16 |
 | **all** | 92/100 (92%) | 164.0 | 24.5 |
 
@@ -143,10 +144,10 @@ Exact matches with a v4 witness: 1 (mbpp-517). Same skeleton as a v4 witness: 4.
 | codearc-368 | 137 | `[ over 0 lt? ] [ 2 add over div swap ] [ over div swap ] ifte [ mul ] swap cons swap range1 swap map` |
 | leetcode-bulb-switcher-ii | 138 | `[ dup 0 lt? ] [ 0 ] [ [ dup 0 eq? ] [ 1 ] [ [ over 0 le? ] [ 1 ] [ [ over 1 eq? ] [ 2 ] [ [ over 2 eq? ] [ [ dup 1 eq? ] [ 3 ] [ 4 ] ifte ] [ [ dup 1 eq? ] [ 4 ] [ [ dup 2 eq? ] [ 7 ] [ 8 ] ifte ] ifte ] ifte ] ifte ] ifte ] ifte ] ifte [ drop drop ] dip` |
 | mbpp-149 | 143 | `take nil [ over over [ [ head ] dip sub abs 1 eq? ] swap cons filter seconds 0 [ max2 ] fold inc pack2 cons ] fold seconds 1 [ max2 ] fold` |
-| leetcode-mirror-reflection | 144 | `over over gcd dup [ div 2 mod ] dip rot swap div 2 mod [ dup 1 eq? ] [ drop ] [ drop drop 2 ] ifte` |
 | codearc-868 | 146 | `[ [ unpack2 ] dip2 pick3 pick2 cons pick3 [ pick4 ] dip swap pick4 pick4 [ [ sub abs ] dip eq? ] swap cons swap cons filter len add pack2 [ drop drop drop drop ] dip ] swap cons [ nil 0 pack2 ] dip fold unpack2 swap drop` |
 | leetcode-apply-operations-to-make-sum-of-array-greater-than-or-equal-to-k | 150 | `[ dup 0 le? ] [ ] [ 4 mul dup isqrt dup sq pick2 lt? bool>int add swap drop 2 sub ] ifte` |
 | leetcode-egg-drop-with-2-eggs-and-n-floors | 152 | `dup 8 mul 1 add isqrt 1 sub 2 div dup over pick2 1 add mul 2 div pick3 lt? bool>int add [ drop drop ] dip` |
+| leetcode-mirror-reflection | 153 | `over over gcd dup [ div 2 mod ] dip rot swap div 2 mod [ dup 1 eq? ] [ drop ] [ drop drop 2 ] ifte` |
 | mbpp-60 | 158 | `take nil [ over over [ [ unpack2 drop ] dip sub abs 1 le? ] swap cons filter seconds 0 [ max2 ] fold inc pack2 cons ] fold seconds 0 [ max2 ] fold` |
 | codearc-597 | 161 | `div dup range1 swap [ [ dup dup inc mul swap 2 mul inc mul 6 div ] dip le? ] swap cons filter len` |
 | codearc-960 | 163 | `[ dup odd? bool>int swap abs digits 3 contains mul 1 eq? ] filter sum` |
@@ -169,9 +170,9 @@ Exact matches with a v4 witness: 1 (mbpp-517). Same skeleton as a v4 witness: 4.
 | mbpp-485 | 234 | `[ sort ] dip take [ palindrome? ] filter -1 [ max2 ] fold` |
 | leetcode-sum-of-numbers-with-units-digit-k | 239 | `[ over 0 eq? ] [ drop drop 0 ] [ over 10 min2 range1 -rot [ rot mul sub dup 0 ge? bool>int swap 10 mod 0 eq? bool>int mul 1 eq? ] swap cons swap cons filter [ null? ] [ drop -1 ] [ head ] ifte ] ifte` |
 | mbpp-48 | 248 | `dup 4 powers swap [ [ over ge? ] [ swap div 2 mod 0 eq? ] [ drop drop false ] ifte ] swap cons filter sum add` |
-| codearc-94 | 254 | `abs swap abs gcd dup range1 swap [ swap mod 0 eq? ] swap cons filter sum` |
 | mbpp-765 | 258 | `inc dup dup log2 add log2 add` |
 | mbpp-909 | 260 | `dup range swap 0 pack2 [ drop unpack2 [ dup 1 eq? ] [ ] [ drop dec dup palindrome? bool>int ] ifte pack2 ] fold unpack2 drop` |
+| codearc-94 | 263 | `abs swap abs gcd dup range1 swap [ swap mod 0 eq? ] swap cons filter sum` |
 | codearc-509 | 265 | `digits dup len range swap [ swap drop-n uncons [ add ] swap cons map ] swap cons map nil [ cat ] fold` |
 | leetcode-water-bottles-ii | 265 | `over pick2 pick2 pack3 pick2 abs pick2 abs add 2 add 2 mul pack2 [ drop drop ] dip unpack2 range swap [ drop unpack3 [ over over ge? ] [ pick2 1 add pick2 pick2 sub 1 add pick2 1 add pack3 [ drop drop drop ] dip ] [ pack3 ] ifte ] fold head` |
 | codearc-1054 | 305 | `decimal-digits dup len dec range swap [ drop dup tail zip [ unpack2 add inc 2 div ] map ] fold head` |

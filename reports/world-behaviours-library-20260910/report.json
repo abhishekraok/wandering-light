@@ -33,7 +33,7 @@
     "total": 95
    }
   },
-  "length_median": 111,
+  "length_median": 114,
   "length_hist": {
    "41+": 68,
    "1-5": 6,
@@ -1267,9 +1267,9 @@
    "passed": 27,
    "total": 27,
    "macro_program": "over over gcd div swap drop dec",
-   "program": "over over [ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] dip [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte nil swap cons swap cons nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat dup cat swap [ drop uncons swap uncons swap drop [ dup 0 eq? ] [ nil swap cons swap cons ] [ dup [ over over div mul sub ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap drop div swap drop 1 sub",
+   "program": "over over [ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] dip [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte [ lt? ] [ swap ] [ ] ifte nil swap cons swap cons nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat dup cat swap [ drop uncons swap uncons swap drop [ dup 0 eq? ] [ nil swap cons swap cons ] [ dup [ over over div mul sub ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap drop div swap drop 1 sub",
    "macro_length": 7,
-   "length": 105,
+   "length": 114,
    "macros_used": [
     "dec",
     "gcd"
