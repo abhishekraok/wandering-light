@@ -24,7 +24,9 @@ for k in $LETTERS; do
   cp "$W/$R/codex_$k.log" "$MAIN_ROOT/.claude/codex-logs/$NAME/"
   el=$(( $(cat "$W/$R/codex_$k.end") - $(cat "$W/$R/codex_$k.start") ))
   tok=$(grep -A1 "^tokens used" "$W/$R/codex_$k.log" | tail -1)
-  echo "{\"author\": \"$k\", \"seconds\": $el, \"tokens\": \"$tok\", \"model\": \"gpt-6-astra\", \"effort\": \"high\"}" >> "$R/authors/runs.jsonl"
+  status=$(cat "$W/$R/codex_$k.status" 2>/dev/null || echo null)
+  settings=$(cat "$W/$R/codex_$k.settings")  # written by run_authors.sh: the settings actually used
+  echo "{\"author\": \"$k\", \"seconds\": $el, \"tokens\": \"$tok\", \"status\": $status, \"model\": $(python3 -c "import json,sys;print(json.dumps(json.loads(sys.argv[1])['model']))" "$settings"), \"effort\": $(python3 -c "import json,sys;print(json.dumps(json.loads(sys.argv[1])['effort']))" "$settings")}" >> "$R/authors/runs.jsonl"
   git -C "$W" status --short | grep -v '^??' && { echo "author $k changed tracked files"; exit 1; } || true
 done
 cat "$R/authors/runs.jsonl"

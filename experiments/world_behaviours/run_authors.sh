@@ -19,17 +19,26 @@ for k in $LETTERS; do
   (
     cd "$W" || exit 1
     date +%s > "$R/codex_$k.start"
+    printf '{"model": "%s", "effort": "%s"}\n' "$MODEL" "$EFFORT" > "$R/codex_$k.settings"
     codex exec --skip-git-repo-check -s workspace-write -m "$MODEL" -c "model_reasoning_effort=$EFFORT" \
       -o "$R/codex_${k}_last.md" \
       "Read $R/BRIEF.md and follow it exactly. You are author $k. Your ids are listed in $R/assign_$k.txt. Write your output to $R/programs_$k.jsonl; your macro file is experiments/world_behaviours/macros_$k.txt." \
       > "$R/codex_$k.log" 2>&1
+    status=$?
     date +%s > "$R/codex_$k.end"
+    echo "$status" > "$R/codex_$k.status"
+    exit "$status"
   ) &
+  pids="${pids:-} $!"
 done
-wait
+failed=0
+for pid in $pids; do
+  wait "$pid" || failed=1
+done
 for k in $LETTERS; do
   W="$MAIN_ROOT/.claude/worktrees/codex-$k"
   el=$(( $(cat "$W/$R/codex_$k.end") - $(cat "$W/$R/codex_$k.start") ))
   tok=$(grep -A1 "^tokens used" "$W/$R/codex_$k.log" | tail -1)
-  echo "{\"author\": \"$k\", \"seconds\": $el, \"tokens\": \"$tok\", \"model\": \"$MODEL\", \"effort\": \"$EFFORT\"}"
+  echo "{\"author\": \"$k\", \"seconds\": $el, \"tokens\": \"$tok\", \"status\": $(cat "$W/$R/codex_$k.status"), \"model\": \"$MODEL\", \"effort\": \"$EFFORT\"}"
 done
+[ "$failed" = 0 ] || { echo "one or more authors exited non-zero (see codex_<k>.status and .log)" >&2; exit 1; }
