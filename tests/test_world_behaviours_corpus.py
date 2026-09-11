@@ -139,7 +139,7 @@ def test_generated_examples_break_a_coincidental_invariant() -> None:
             {"args": [[5, 2]], "out": [2, 5]},
         ],
     }
-    extended = extract.extend_mbpp(17, item)
+    extended = extract.extend(17, item)
     assert extended is not None
     generated = [t for t in extended["tests"] if t.get("generated")]
     assert any(len(set(t["args"][0])) < len(t["args"][0]) for t in generated), (
