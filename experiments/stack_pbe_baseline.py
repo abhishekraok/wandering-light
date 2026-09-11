@@ -168,6 +168,20 @@ def list_models(provider: str) -> int:
             for m in genai.list_models()
             if "generateContent" in m.supported_generation_methods
         )
+    elif provider == "codex":
+        import json as json_module
+        from pathlib import Path
+
+        cache = (
+            Path(os.getenv("CODEX_HOME", Path.home() / ".codex")) / "models_cache.json"
+        )
+        with open(cache) as handle:
+            listed = json_module.load(handle)["models"]
+        names = sorted(
+            f"{m['slug']} ({', '.join(e['effort'] for e in m.get('supported_reasoning_levels', []))})"
+            for m in listed
+            if m.get("visibility") == "list"
+        )
     elif provider == "ollama":
         from ollama import Client
 
@@ -244,6 +258,8 @@ def solve_with_llm(task: Task, generator, samples: int) -> list[str]:
     for _ in range(samples):
         try:
             candidates.append(parse_response(generator.generate(prompt)))
+            if getattr(generator, "last_meta", None):
+                GENERATION.setdefault(id(task), []).append(generator.last_meta)
         except Exception as error:  # broad on purpose - see docstring
             print(
                 f"  {task.behaviour}: generation failed, scoring as unsolved "
@@ -251,6 +267,8 @@ def solve_with_llm(task: Task, generator, samples: int) -> list[str]:
                 file=sys.stderr,
             )
             candidates.append("")
+            if getattr(generator, "last_meta", None):
+                GENERATION.setdefault(id(task), []).append(generator.last_meta)
             # Kept on the task so the JSON says *why* a candidate is empty --
             # a deadline hit and a model that answered nothing look the same
             # otherwise, and the distinction is the finding in
@@ -260,6 +278,8 @@ def solve_with_llm(task: Task, generator, samples: int) -> list[str]:
 
 
 ERRORS: dict[int, list[str]] = {}
+# Per-call cost and tool attempts, for generators that report them (codex).
+GENERATION: dict[int, list[dict]] = {}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -279,7 +299,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--model", default="claude-opus-5")
     parser.add_argument(
         "--provider",
-        choices=("openai", "gemini", "ollama", "anthropic"),
+        choices=("openai", "gemini", "ollama", "anthropic", "codex"),
         default="anthropic",
     )
     parser.add_argument(
@@ -334,6 +354,13 @@ def main(argv: list[str] | None = None) -> int:
                 args.model, effort=args.effort
             ),
             "gemini": lambda: solver_module.GeminiTokenGenerator(args.model),
+            # An OpenAI model through `codex exec` on a subscription, trimmed
+            # to the API protocol -- see the class. Records tool attempts and
+            # token usage per task so the row can say it stayed the API
+            # protocol (codex-exec-frontier-effort-curve, #123).
+            "codex": lambda: solver_module.CodexExecTokenGenerator(
+                args.model, effort=args.effort
+            ),
             "ollama": lambda: solver_module.OllamaTokenGenerator(
                 args.model,
                 timeout=args.ollama_timeout,
@@ -442,6 +469,15 @@ def main(argv: list[str] | None = None) -> int:
             # was 58% of every artifact and already sits in the pinned corpus.
             # `load(args.corpus)[task_index]` is the join.
             "corpus": str(args.corpus),
+            **(
+                {
+                    "model": args.model,
+                    "provider": args.provider,
+                    "effort": args.effort,
+                }
+                if args.backend == "llm"
+                else {}
+            ),
             "candidates": [
                 {
                     "task_index": index_of[id(task)],
@@ -455,6 +491,11 @@ def main(argv: list[str] | None = None) -> int:
                         else "failed"
                     ),
                     **({"errors": ERRORS[id(task)]} if id(task) in ERRORS else {}),
+                    **(
+                        {"generation": GENERATION[id(task)]}
+                        if id(task) in GENERATION
+                        else {}
+                    ),
                 }
                 for task, score in zip(tasks, scores, strict=True)
             ],

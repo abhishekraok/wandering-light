@@ -130,6 +130,7 @@ def test_every_provider_is_reachable_by_name():
         "OpenAITokenGenerator",
         "GeminiTokenGenerator",
         "OllamaTokenGenerator",
+        "CodexExecTokenGenerator",
     ):
         assert hasattr(solver_module, name)
     generator = solver_module.AnthropicTokenGenerator("claude-opus-5", effort="low")
@@ -150,3 +151,65 @@ def test_a_failed_generation_costs_one_candidate_not_the_run(sum_task):
 
     assert solve_with_llm(sum_task, Exploding(), samples=2) == ["", ""]
     assert not grade("", sum_task).parsed
+
+
+def test_codex_events_yield_the_last_message_and_count_tool_attempts():
+    """`codex exec --json` is a stream; the answer is the last agent message.
+
+    A completed item that is neither a message nor an error is a tool attempt.
+    With the tool features off it fails closed, and the count is what lets a
+    row say it stayed the API protocol (#123).
+    """
+    import json
+
+    from wandering_light.solver import CodexExecTokenGenerator
+
+    lines = [
+        json.dumps({"type": "thread.started", "thread_id": "t"}),
+        "not json",
+        json.dumps(
+            {
+                "type": "item.completed",
+                "item": {"type": "command_execution", "command": "python3 -c 1"},
+            }
+        ),
+        json.dumps(
+            {
+                "type": "item.completed",
+                "item": {"type": "error", "message": "Code Mode is unavailable"},
+            }
+        ),
+        json.dumps(
+            {
+                "type": "item.completed",
+                "item": {"type": "agent_message", "text": "0 [ add ] fold"},
+            }
+        ),
+        json.dumps(
+            {
+                "type": "turn.completed",
+                "usage": {"input_tokens": 7594, "output_tokens": 17},
+            }
+        ),
+    ]
+    message, meta = CodexExecTokenGenerator.parse_events(lines)
+    assert message == "0 [ add ] fold"
+    assert meta["tool_calls"] == 1
+    assert meta["errors"] == ["Code Mode is unavailable"]
+    assert meta["usage"]["input_tokens"] == 7594
+
+
+def test_codex_command_disables_every_tool_and_replaces_the_instructions(tmp_path):
+    (tmp_path / "auth.json").write_text("{}")
+    from wandering_light.solver import CodexExecTokenGenerator
+
+    generator = CodexExecTokenGenerator(
+        "gpt-6-astra", effort="low", codex_home=tmp_path
+    )
+    argv = generator.command()
+    assert "--disable" in argv and "shell_tool" in argv and "code_mode_host" in argv
+    assert "--strict-config" in argv and "--ephemeral" in argv
+    assert any(a.startswith("model_instructions_file=") for a in argv)
+    assert 'model_reasoning_effort="low"' in argv
+    assert argv[-1] == "-"
+    assert (tmp_path / "instructions.md").read_text().strip()
