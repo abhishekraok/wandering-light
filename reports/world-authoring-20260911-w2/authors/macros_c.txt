@@ -1,0 +1,43 @@
+# Author C, wave 2. Helpers preserve the supplied references.
+kc-first-or-minus1: [ null? ] [ drop -1 ] [ head ] ifte
+kc-prime?: [ dup 2 lt? ] [ drop false ] [ dup isqrt range1 tail swap [ swap mod 0 eq? ] swap cons filter null? ] ifte
+# State is (seen, count); item pairs are counted once, including duplicates.
+kc-equal-pairs: nil 0 pack2 [ [ unpack2 ] dip pick2 over count rot add [ cons ] dip pack2 ] fold second
+kc-difference-pairs: [ [ [ unpack2 ] dip pick2 over [ sub abs ] swap cons map ] dip [ eq? ] swap cons filter len rot add [ cons ] dip pack2 ] swap cons nil 0 pack2 swap fold second
+# Binary search must follow midpoint decisions even on unsorted lists.
+kc-bisect-right: over len 0 swap pack4 zeros16 swap [ drop unpack4 [ over over lt? ] [ over over add 2 div [ pick4 over nth pick4 swap lt? ] [ swap drop ] [ inc rot drop swap ] ifte ] [ ] ifte pack4 ] fold third
+kc-perrin: range 3 0 2 pack3 [ drop unpack3 rot pick2 add pack3 ] fold head
+kc-catalan: range 1 [ dup 2 mul inc 2 mul rot mul swap 2 add div ] fold
+kc-fibonacci-pair: [ dup 0 eq? ] [ drop 0 pack2 ] [ range swap dup pack2 [ drop unpack2 over add swap pack2 ] fold ] ifte
+kc-reverse-binary: dup bitlen range swap 0 pack2 [ drop unpack2 over 2 mod swap 2 mul add swap 2 div swap pack2 ] fold second
+# Product states are (best, minimum ending here, maximum ending here).
+kc-product-best: pick2 over max2 [ rot drop ] dip -rot pack3
+kc-max-product: uncons dup dup pack3 [ [ unpack3 ] dip [ pack2 ] dip swap [ mul ] pick2 cons map swap cons dup min swap max kc-product-best ] fold head
+kc-ending-products: dup [ mul ] dip [ swap ] dip mul swap
+kc-mbpp-product: 0 1 1 pack3 [ [ unpack3 ] dip [ dup 0 eq? ] [ drop drop drop 1 1 ] [ [ dup 0 gt? ] [ kc-ending-products [ 1 min2 ] dip ] [ kc-ending-products swap 1 max2 ] ifte ] ifte kc-product-best ] fold head
+# Increasing-subsequence sum DP over a prefix; elements past n stay unchanged.
+kc-msis-prefix: over over drop-n [ take ] dip swap nil [ lis-best over add pack2 cons ] fold reverse seconds swap cat
+kc-bitonic-sum: over over kc-msis-prefix [ over reverse swap kc-msis-prefix reverse ] dip zip swap zip [ unpack2 swap unpack2 add swap sub ] map max
+# Nondecreasing factorization frontier; each node is (remaining product, minimum factor).
+kc-factor-children: swap unpack2 [ dup ] dip [ [ pick2 swap ge? ] [ drop [ over eq? ] [ drop drop true ] [ [ over sq ge? ] [ swap mod 0 eq? ] [ drop drop false ] ifte ] ifte ] [ drop drop drop false ] ifte ] swap cons swap cons [ swap ] dip filter swap [ over div swap pack2 ] swap cons map
+kc-factor-layer: swap drop [ unpack2 ] dip [ drop drop null? ] [ drop pack2 ] [ [ swap ] dip [ kc-factor-children ] swap cons map flatten dup [ head 1 eq? ] filter len rot add [ [ head 1 eq? not ] filter ] dip pack2 ] ifte
+kc-factor-count: [ dup 1 eq? ] [ drop 1 ] [ [ dup 1 lt? ] [ drop 0 ] [ dup dec 10 2 mul min2 range1 2 drop-n over [ swap mod 0 eq? ] swap cons filter swap 3 pack2 quote 0 pack2 swap [ kc-factor-layer ] swap cons zeros16 -rot fold second ] ifte ] ifte
+kc-dice-count: dup len 1 gt? bool>int swap product kc-factor-count swap sub
+kc-sieve: swap [ [ [ over eq? ] [ drop drop true ] [ mod 0 eq? not ] ifte ] swap cons filter ] fold
+kc-prime-using: [ over over head le? ] [ swap contains 1 eq? ] [ swap [ swap mod 0 eq? ] swap cons filter null? ] ifte
+kc-reverse-decimal: 0 kc-reverse-decimal-step kc-reverse-decimal-step kc-reverse-decimal-step kc-reverse-decimal-step kc-reverse-decimal-step kc-reverse-decimal-step kc-reverse-decimal-step kc-reverse-decimal-step swap drop
+# Filter primes, then their reversals; add an extra larger partner exactly when reference appends it early.
+kc-emirps: dup 0 max2 decimal-digits len 10 swap pow isqrt range1 tail [ kc-small-prime? ] filter [ kc-interval [ 2 ge? ] filter ] dip dup [ kc-sieve ] dip reverse [ over kc-reverse-decimal [ over kc-prime-using ] [ swap drop eq? not ] [ drop drop drop false ] ifte ] swap cons filter dup dup [ over kc-reverse-decimal [ pick2 lt? ] [ rot drop contains 1 eq? ] [ drop drop drop false ] ifte ] swap cons filter cat sort
+kc-small-prime?: dup range1 tail swap [ swap mod 0 eq? ] swap cons filter len 1 eq?
+kc-interval: over sub inc range swap [ add ] swap cons map
+kc-reverse-decimal-step: [ over 0 eq? ] [ ] [ swap dup 10 mod rot 10 mul add swap 10 div swap ] ifte
+kc-digit-sum3: dup 100 div over 10 div 10 mod add swap 10 mod add
+# Prefix q, upper bound N, limit S -> (block start, block end), or empty.
+kc-digit-block: [ pick2 1000 ge? ] [ [ pick2 over kc-prefix-windows-ok? ] [ kc-digit-block-core ] [ drop drop drop nil ] ifte ] [ kc-digit-block-core ] ifte
+kc-digit-block-core: pick2 1000 mod kc-digit-sum3 sub 9 min2 [ swap 10 mul ] dip swap rot over sub rot min2 [ dup 0 lt? ] [ drop drop nil ] [ over add pack2 quote ] ifte
+kc-digit-blocks: over 10 div 100 swap kc-interval -rot [ kc-digit-block ] swap cons swap cons map flatten
+kc-block-count: unpack2 swap sub inc
+kc-block-sum: unpack2 over over add -rot swap sub inc mul 2 div
+kc-block-closest: swap unpack2 [ max2 ] dip min2
+kc-digit-answer: dup [ kc-block-count ] map sum over [ kc-block-sum ] map sum over 2 mul over 2 mul pick3 dec add swap div pick3 swap [ kc-block-closest ] swap cons map pick2 pick2 [ [ over mul ] dip sub abs pack2 ] swap cons swap cons map uncons [ [ over second over second le? ] [ drop ] [ swap drop ] ifte ] fold head [ drop ] dip3 swap pack3
+kc-prefix-windows-ok?: [ over 1000 10 mul lt? ] [ [ digit-sum ] dip le? ] [ [ digits dup len 3 sub range swap [ swap drop-n 4 take sum ] swap cons map ] dip [ gt? ] swap cons filter null? ] ifte

@@ -1,0 +1,24 @@
+# Author b, wave 2. Stack effects list deepest inputs first.
+kb-divides-either: [ over swap divides? bool>int ] dip swap [ divides? bool>int ] dip add 0 gt?
+kb-min-squares-step: over swap dup isqrt range1 -rot [ rot sq sub nth inc ] swap cons swap cons map min quote cat
+kb-allones?: [ dup 0 gt? ] [ inc pows2 swap contains 1 eq? ] [ -1 eq? ] ifte
+kb-set-unset: [ kb-allones? ] [ ] [ dup pows2 swap [ swap div 2 mod 0 eq? ] swap cons filter head add ] ifte
+kb-digit-weight: [ dup 0 lt? ] [ abs digits uncons neg swap sum add ] [ digit-sum ] ifte
+kb-key-gt?: [ head ] dip head gt?
+kb-key-le?: kb-key-gt? not
+kb-key-insert: over over [ kb-key-gt? ] swap cons filter -rot swap over [ kb-key-le? ] swap cons filter -rot quote swap cat cat
+kb-bacteria-pred: [ pick2 0 eq? ] [ drop drop drop false ] [ between ] ifte
+kb-unswallowable?: rot dup rot add [ inc ] dip [ kb-bacteria-pred ] swap cons swap cons filter null?
+kb-sequence-step: dup tail swap unpack4 6 mul swap 10 mul sub swap 6 mul add swap sub quote cat
+kb-persistence-step: drop unpack2 [ over 10 lt? ] [ ] [ inc [ digit-product ] dip ] ifte pack2
+kb-xor-magnitude: [ dup 0 lt? ] [ neg dec ] [ ] ifte
+kb-signed-xor: over 0 lt? bool>int over 0 lt? bool>int add 2 mod [ [ kb-xor-magnitude ] dip kb-xor-magnitude bxor ] dip [ dup 1 eq? ] [ drop neg dec ] [ drop ] ifte
+kb-xor-pairs-step: [ unpack2 ] dip pick2 over [ kb-signed-xor ] swap cons map sum rot add [ cons ] dip pack2
+kb-digit-sequence-step: drop unpack3 [ pick2 over ge? ] [ [ inc ] dip over dup inc swap 10 swap pow mul 9 mul add ] [ ] ifte pack3
+kb-set-at: [ over over take ] dip quote cat [ inc drop-n ] dip swap cat
+kb-swap-item: [ pick3 pick2 eq? ] [ [ drop ] dip nth swap drop ] [ [ pick3 over eq? ] [ drop nth swap drop ] [ drop drop swap nth ] ifte ] ifte
+kb-swap-indices: pick2 len range [ pack3 ] dip swap unpack3 [ kb-swap-item ] swap cons swap cons swap cons map
+kb-choose-child: [ dup inc pick3 len lt? ] [ [ pick2 over nth pick3 pick2 inc nth ge? ] [ inc ] [ ] ifte ] [ ] ifte
+kb-heap-step: drop unpack2 dup 2 mul inc [ dup pick3 len lt? ] [ kb-choose-child [ pick2 over nth pick3 pick3 nth lt? ] [ dup [ kb-swap-indices ] dip ] [ drop ] ifte ] [ drop ] ifte pack2
+kb-sift: pack2 zeros16 swap [ kb-heap-step ] fold head
+kb-heapify: dup len 2 div range reverse swap [ kb-sift ] fold

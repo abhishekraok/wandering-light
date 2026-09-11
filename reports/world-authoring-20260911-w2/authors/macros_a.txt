@@ -1,0 +1,23 @@
+# Author a helpers for wave 2.
+ka-ceildiv: [ neg ] dip div neg
+ka-popcount: abs pows2 swap [ swap div 2 mod ] swap cons map sum
+ka-complement: neg dec
+# Signed XOR via complement identities; magnitudes below 2^32.
+ka-xor: [ over 0 lt? ] [ [ ka-complement ] dip [ dup 0 lt? ] [ ka-complement bxor ] [ bxor ka-complement ] ifte ] [ [ dup 0 lt? ] [ ka-complement bxor ka-complement ] [ bxor ] ifte ] ifte
+ka-factorial: range1 product
+ka-lcm: over over max2 [ over over mul [ gcd ] dip swap div abs ] dip [ 0 lt? ] [ drop neg ] [ drop ] ifte
+# One binary-search transition: (list target low high) -> updated state.
+ka-bisect-step: drop unpack4 [ lt? ] [ over over add 2 div [ pick4 over nth pick4 lt? ] [ inc [ swap drop ] dip swap ] [ swap drop ] ifte ] [ ] ifte pack4
+# Relation follows Python's short-circuit ordering, including a later zero.
+ka-related: [ over over mod 0 eq? ] [ drop drop true ] [ swap mod 0 eq? ] ifte
+ka-divchain-step: over over [ [ unpack2 drop ] dip ka-related ] swap cons filter seconds 0 [ max2 ] fold inc pack2 cons
+ka-candy-step: [ inc 2 div ] map dup last over swap cons zip [ sum ] map
+ka-equalize-step: drop unpack2 [ over dup min swap max eq? ] [ ] [ [ ka-candy-step ] dip inc ] ifte pack2
+# Reversed low 32 bits order signed integers by their least differing bit.
+ka-oddity-key: pows2 swap [ swap div 2 mod ] swap cons map 0 [ swap 2 mul add ] fold
+# Compare (popcount value) pairs lexicographically.
+ka-bitpair-lt: [ over head over head eq? ] [ [ second ] dip second lt? ] [ [ head ] dip head lt? ] ifte
+ka-bitpair-insert: over over [ ka-bitpair-lt not ] swap cons filter -rot swap over [ ka-bitpair-lt ] swap cons filter -rot quote swap cat cat
+# Enumerate every subset as (cardinality sum), retaining multiplicity.
+ka-subsets-step: [ dup ] dip [ [ unpack2 ] dip add [ inc ] dip pack2 ] swap cons map cat
+ka-interval-power: [ dec ] dip pows2 -rot [ pick2 div [ swap div ] dip lt? ] swap cons swap cons filter last

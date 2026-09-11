@@ -46,6 +46,10 @@ divides-both: [ over ] dip swap mod 0 eq? bool>int [ swap mod 0 eq? bool>int ] d
 gcd: [ abs ] dip abs [ lt? ] [ swap ] [ ] ifte pack2 zeros16 dup cat swap [ drop unpack2 [ dup 0 eq? ] [ pack2 ] [ dup [ mod ] dip swap pack2 ] ifte ] fold head
 # isqrt: n -- floor(sqrt(n)), 0 for n <= 0; Newton from n, 32 steps
 isqrt: [ dup 0 le? ] [ drop 0 ] [ dup pack2 zeros16 dup cat swap [ drop unpack2 over over div over add 2 div min2 pack2 ] fold unpack2 swap drop ] ifte
+# lcm: a b -- lcm(|a|, |b|), 0 if either is 0 (as math.lcm)
+lcm: over over mul abs [ gcd ] dip [ over 0 eq? ] [ drop drop 0 ] [ swap div ] ifte
+# prime?: n -- n is prime (trial division to isqrt n; false below 2)
+prime?: [ dup 2 lt? ] [ drop false ] [ dup isqrt range1 tail swap [ swap mod 0 eq? ] swap cons filter null? ] ifte
 pow: swap [ drop ] swap quote cat [ range ] dip map product
 sum-multiples: swap over div dup inc mul 2 div mul
 leap?: dup 4 mod 0 eq? bool>int over 100 mod 0 eq? bool>int sub swap 100 4 mul mod 0 eq? bool>int add 1 eq?
@@ -104,6 +108,10 @@ max-subarray-sum: -1 1000 mul 1000 mul 0 pack2 [ [ unpack2 ] dip add swap over m
 
 flatten: nil [ cat ] fold
 # inversions: list -- number of pairs i < j with list[i] > list[j]
+# set-at: list i x -- list with element i replaced by x (0 <= i < len)
+set-at: [ over over take ] dip quote cat [ inc drop-n ] dip swap cat
+# bisect-right: sorted-list x -- index of the first element greater than x (16 halvings, len <= 65536)
+bisect-right: over len 0 swap pack4 zeros16 swap [ drop unpack4 [ over over lt? ] [ over over add 2 div [ pick4 over nth pick4 swap lt? ] [ swap drop ] [ inc rot drop swap ] ifte ] [ ] ifte pack4 ] fold third
 inversions: nil 0 pack2 [ [ unpack2 ] dip pick2 over [ gt? ] swap cons filter len rot add [ cons ] dip pack2 ] fold unpack2 swap drop
 
 # ---- ranges: no recursion, so no nesting cap; fuel grows with n ------------
@@ -130,6 +138,8 @@ digits: nil nil swap cons swap cons zeros16 swap [ drop uncons swap head [ drop 
 decimal-digits: [ dup 0 eq? ] [ drop nil 0 cons ] [ digits ] ifte
 from-digits: 0 [ swap 10 mul add ] fold
 palindrome?: [ dup 0 lt? ] [ drop false ] [ digits dup reverse eq? ] ifte
+# next-palindrome: n -- smallest palindrome greater than n (0 for n < 0)
+next-palindrome: [ dup 0 lt? ] [ drop 0 ] [ dup digits dup len inc 2 div take from-digits dup digits dup reverse cat from-digits over decimal-digits dup reverse tail cat from-digits pick2 inc digits dup reverse cat from-digits pick3 inc decimal-digits dup reverse tail cat from-digits pack4 swap drop over digits len 10 swap pow inc cons swap [ gt? ] swap cons filter min ] ifte
 digit-sum: digits sum
 digit-product: digits product
 # powers: k -- ( k^19 k^18 ... k 1 ); base-digit-sum: n k -- digit sum of n in base k, valid for 0 <= n < k^20
@@ -144,6 +154,9 @@ pows2: nil 1 cons pows2-step pows2-step pows2-step pows2-step pows2-step
 bitlen: pows2 swap [ le? ] swap cons filter len
 log2: bitlen dec
 pow2: pows2 swap nth
+# popcount: n -- number of set bits of |n|, |n| < 2^32; sxor: a b -- Python's a ^ b for any signs, |a|, |b| < 2^31
+popcount: abs pows2 swap [ swap div 2 mod ] swap cons map sum
+sxor: [ over 0 lt? ] [ [ neg dec ] dip [ dup 0 lt? ] [ neg dec bxor ] [ bxor neg dec ] ifte ] [ [ dup 0 lt? ] [ neg dec bxor neg dec ] [ bxor ] ifte ] ifte
 pows2-step: dup dup last 2 mul [ mul ] swap cons map cat
 band: pows2 [ [ [ over ] dip swap div 2 mod swap [ over ] dip swap div 2 mod mul mul ] swap cons swap cons ] dip swap map sum
 bxor: over over band 2 mul [ add ] dip sub

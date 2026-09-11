@@ -1,0 +1,3 @@
+Wrote [programs_d.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-d/reports/world-authoring-20260911-w2/programs_d.jsonl) and [macros_d.txt](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-d/experiments/world_behaviours/macros_d.txt).
+
+All 24 IDs recorded; 23 fully verified. `codearc-721` is unsolved: 5/34 tests pass before fuel exhaustion. Printed both files. No tracked files changed.
