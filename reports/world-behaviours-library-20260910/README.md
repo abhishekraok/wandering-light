@@ -32,7 +32,7 @@ Exact matches with a v4 witness: 5 (leetcode-add-two-integers, mbpp-309, mbpp-58
 
 ## Macros
 
-110 macros defined across `macros*.txt`; median expansion ratio (`mark-28` ops per macro-form token) on verified programs: 4.0.
+133 macros defined across `macros*.txt`; median expansion ratio (`mark-28` ops per macro-form token) on verified programs: 4.0.
 
 | macro | verified programs using it |
 |---|---|

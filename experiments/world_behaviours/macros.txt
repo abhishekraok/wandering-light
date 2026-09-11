@@ -51,6 +51,7 @@ lcm: over over mul abs [ gcd ] dip [ over 0 eq? ] [ drop drop 0 ] [ swap div ] i
 # prime?: n -- n is prime (trial division to isqrt n; false below 2)
 prime?: [ dup 2 lt? ] [ drop false ] [ dup isqrt range1 tail swap [ swap mod 0 eq? ] swap cons filter null? ] ifte
 triangle: dup inc mul 2 div
+choose2: dup dec mul 2 div
 # ceil-div: a b -- ceil(a / b), b != 0
 ceil-div: [ neg ] dip div neg
 factorial: range1 product
@@ -123,6 +124,9 @@ head-or-neg1: -1 quote cat head
 key-gt?: [ head ] dip head gt?
 insert-by-head: over over [ key-gt? ] swap cons filter -rot swap over [ key-gt? not ] swap cons filter -rot quote swap cat cat
 sort-by-head: nil [ insert-by-head ] fold
+# enumerate: list -- ( (0 a0) (1 a1) ... ); index-of: list x -- index of the first x (refuses if absent)
+enumerate: dup len range swap zip
+index-of: [ enumerate ] dip [ swap second eq? ] swap cons filter head head
 # adjacent: list -- ( (a0 a1) (a1 a2) ... ); differences: list -- ( a0-a1 a1-a2 ... )
 adjacent: dup 1 drop-n zip
 differences: adjacent [ unpack2 sub ] map
@@ -172,6 +176,8 @@ pows2: nil 1 cons pows2-step pows2-step pows2-step pows2-step pows2-step
 bitlen: pows2 swap [ le? ] swap cons filter len
 log2: bitlen dec
 pow2: pows2 swap nth
+# highest-pow2: n -- largest power of two <= n, 1 <= n < 2^32
+highest-pow2: pows2 swap [ le? ] swap cons filter last
 # popcount: n -- number of set bits of |n|, |n| < 2^32; sxor: a b -- Python's a ^ b for any signs, |a|, |b| < 2^31
 popcount: abs pows2 swap [ swap div 2 mod ] swap cons map sum
 sxor: [ over 0 lt? ] [ [ neg dec ] dip [ dup 0 lt? ] [ neg dec bxor ] [ bxor neg dec ] ifte ] [ [ dup 0 lt? ] [ neg dec bxor neg dec ] [ bxor ] ifte ] ifte

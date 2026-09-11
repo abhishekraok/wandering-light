@@ -1,0 +1,11 @@
+# Author c helpers for wave 5.
+kc-enumerate: dup len range swap zip
+kc-unit-digit: abs 10 mod
+kc-negatives: [ 0 lt? ] filter
+kc-nonnegatives: [ 0 ge? ] filter
+kc-ten-to-twenty: 100 sq sq 100 mul sq
+kc-toggle-even-bits: [ dup 0 gt? ] [ dup bitlen range [ even? ] filter [ pow2 ] map sum bxor ] [ ] ifte
+kc-even-factor-sum: [ dup 0 eq? ] [ drop 1 ] [ [ dup 2 eq? ] [ drop 3 ] [ dup range1 [ even? ] filter swap [ swap divides? ] swap cons filter sum ] ifte ] ifte
+kc-optimal-removal: [ dup 0 count 1 gt? ] [ min ] [ [ dup kc-negatives len odd? ] [ [ dup 0 contains 1 eq? ] [ kc-negatives min ] [ kc-negatives max ] ifte ] [ [ dup kc-nonnegatives null? ] [ kc-negatives min ] [ kc-nonnegatives min ] ifte ] ifte ] ifte
+kc-consecutive-step: [ [ over head add ] dip eq? ] [ drop drop ] [ drop cons ] ifte
+kc-sequence-step: over over dec nth 4 mul pick2 pick2 2 sub nth 5 mul sub pick2 pick2 3 sub nth 3 mul add swap drop quote cat

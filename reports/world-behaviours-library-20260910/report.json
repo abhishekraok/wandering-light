@@ -168,7 +168,7 @@
     6
    ]
   ],
-  "macros_defined": 110,
+  "macros_defined": 133,
   "unsolved_reasons": [
    [
     "unsolved on fuel: linear search needs >=611 candidates (test",

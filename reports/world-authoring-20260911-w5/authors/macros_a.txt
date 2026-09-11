@@ -1,0 +1,19 @@
+# Author a, wave 5.
+ka-choose2: dup dec mul 2 div
+# Binary-search states preserve the reference's decisions on unsorted input.
+ka-last-search-step: [ dup third over fourth le? ] [ dup third over fourth add 2 div [ over head over at pick2 second eq? ] [ dup [ 4 swap set-at ] dip inc 2 swap set-at ] [ [ over head over at pick2 second gt? ] [ dec 3 swap set-at ] [ inc 2 swap set-at ] ifte ] ifte ] [ ] ifte
+ka-missing-step: [ dup second over third le? ] [ dup second over third add 2 div [ over head over at over eq? ] [ inc 1 swap set-at ] [ dec 2 swap set-at ] ifte ] [ ] ifte
+ka-trunc-half: [ dup 0 lt? ] [ neg 2 div neg ] [ 2 div ] ifte
+ka-first-missing-step: [ dup fifth 0 eq? ] [ [ dup second over third gt? ] [ dup third inc 3 swap set-at 4 1 set-at ] [ [ dup head over second at over second eq? not ] [ dup second 3 swap set-at 4 1 set-at ] [ dup second over third add ka-trunc-half [ over head over at over eq? ] [ inc 1 swap set-at ] [ 2 swap set-at ] ifte ] ifte ] ifte ] [ ] ifte
+# Stable alternation exhausts the minority sign, then appends the remainder.
+ka-alternate: dup [ 0 lt? ] filter swap [ 0 ge? ] filter over len over len min2 range -rot nil pack3 [ drop dup head head over second head pack2 over third swap cat [ dup head tail swap second tail ] dip pack3 ] fold unpack3 [ cat ] dip swap cat
+# Maximum rectangle anchored at the left edge of a nonempty suffix.
+ka-prefix-area: dup head 0 0 pack3 [ over head min2 over second inc over over mul pick3 third max2 pack3 swap drop ] fold third
+ka-cube: dup dup mul mul
+ka-odd-digits?: decimal-digits [ even? ] filter null?
+# p n -- (p^valuation triangular-count), for a prime p dividing positive n.
+ka-factor-info: over powers reverse tail swap [ swap divides? ] swap cons filter len dup 8 mul inc isqrt dec 2 div [ pow ] dip pack2
+# Count the initial run of sevens; the active flag stays zero after its end.
+ka-leading-sevens: 0 1 pack2 [ [ unpack2 ] dip 7 eq? bool>int mul dup [ add ] dip pack2 ] fold head
+# Accumulate reversed digits, commuting each completed 89 across trailing sevens.
+ka-rewrite-digit: [ dup 9 eq? ] [ [ over null? ] [ cons ] [ [ over head 8 eq? ] [ drop tail dup ka-leading-sevens over over take [ drop-n ] dip [ 8 cons 9 cons ] dip swap cat ] [ cons ] ifte ] ifte ] [ cons ] ifte

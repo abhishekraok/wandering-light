@@ -1,0 +1,65 @@
+# Author-file names -> canonical library tokens or @inline (see experiments/world_behaviours/aliases.txt).
+# Read by migrate.py for this report only. Wave 5 of world-authoring-500 (#127).
+# author a
+ka-choose2: choose2
+ka-last-search-step: @inline
+ka-missing-step: @inline
+ka-trunc-half: @inline
+ka-first-missing-step: @inline
+ka-alternate: @inline
+ka-prefix-area: @inline
+ka-cube: @inline
+ka-odd-digits?: @inline
+ka-factor-info: @inline
+ka-leading-sevens: @inline
+ka-rewrite-digit: @inline
+# author b
+kb-first-even-odd: @inline
+kb-highest-power: highest-pow2
+kb-decimal-sum: @inline
+kb-signed-bits: @inline
+kb-index: @inline
+kb-inc-poorest: @inline
+kb-dec-richest: @inline
+kb-lucky-sieve: @inline
+kb-swap-at: @inline
+kb-partition-step: @inline
+kb-subsequence-score: @inline
+kb-substring-score: @inline
+kb-score-pair: @inline
+kb-divisor-count-list: @inline
+kb-common-score-list: @inline
+kb-best-score-list: @inline
+# author c
+kc-enumerate: enumerate
+kc-unit-digit: @inline
+kc-negatives: @inline
+kc-nonnegatives: @inline
+kc-ten-to-twenty: @inline
+kc-toggle-even-bits: @inline
+kc-even-factor-sum: @inline
+kc-optimal-removal: @inline
+kc-consecutive-step: @inline
+kc-sequence-step: @inline
+# author d
+kd-newman-step: @inline
+kd-exchange-step: @inline
+kd-factor-divide: @inline
+kd-factor-step: @inline
+kd-garden-step: @inline
+kd-tail2: @inline
+kd-tail4: @inline
+kd-tail8: @inline
+kd-tail16: @inline
+kd-tail32: @inline
+kd-tail64: @inline
+kd-tail128: @inline
+kd-nth-small: @inline
+kd-2p60: @inline
+kd-bitlen128: @inline
+kd-round-even: @inline
+kd-float-positive: @inline
+kd-float-ratio: @inline
+kd-scrap-step: @inline
+kd-sieve-primes: @inline
+kd-nth: @inline
