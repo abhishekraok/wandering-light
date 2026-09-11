@@ -1,0 +1,26 @@
+{"id": "mbpp-340", "program": "[ 0 gt? ] filter sort 3 take sum", "status": "solved", "note": "shape: filter positive values, sort, take up to three, sum"}
+{"id": "mbpp-555", "program": "dup inc mul 2 div dup dec mul", "status": "solved", "note": "shape: triangular number S, then S*(S-1), including negative inputs"}
+{"id": "mbpp-496", "program": "[ sort ] dip take", "status": "solved", "note": "shape: sort and take; nonpositive n yields empty, oversized n takes all"}
+{"id": "mbpp-626", "program": "[ dup 0 lt? ] [ drop -1 ] [ sq ] ifte", "status": "solved", "note": "shape: negative guard, otherwise square"}
+{"id": "mbpp-498", "program": "[ over over mod 0 eq? ] [ swap drop ] [ [ dup 0 lt? ] [ drop drop 1 ] [ gcd ] ifte ] ifte", "status": "solved", "note": "shape: preserve signed early return and negative-y empty loop; otherwise gcd"}
+{"id": "mbpp-458", "program": "mul", "status": "solved", "note": "shape: scalar multiplication"}
+{"id": "mbpp-661", "program": "take [ dup len 2 le? ] [ sum ] [ dup 3 drop-n swap dup head over 2 take sum pick2 3 take dup sum swap min sub pick3 third pack4 swap drop [ kb-dp3-step ] fold third ] ifte", "status": "solved", "note": "shape: reference first-three initialization followed by four-field rolling DP"}
+{"id": "mbpp-697", "program": "[ even? ] filter len", "status": "solved", "note": "shape: count even values"}
+{"id": "mbpp-389", "program": "range 2 1 pack2 [ drop unpack2 dup rot add pack2 ] fold head", "status": "solved", "note": "shape: fold Lucas recurrence from (2,1)"}
+{"id": "mbpp-282", "program": "zip [ unpack2 sub ] map", "status": "solved", "note": "shape: zip truncates to shorter list, subtract pairs"}
+{"id": "mbpp-882", "program": "mul 2 mul", "status": "solved", "note": "shape: twice the product, as reference implements"}
+{"id": "mbpp-112", "program": "add 2 mul", "status": "solved", "note": "shape: twice the sum"}
+{"id": "mbpp-843", "program": "[ over 1 le? ] [ drop drop 1 ] [ over over len mul range -rot dup len range swap zip [ unpack2 dup quote pack3 ] map 1 1 pack3 swap [ kb-ugly-step ] swap cons fold second ] ifte", "status": "solved", "note": "shape: stable heap-merge emulation with per-stream queues and live generator exhaustion; keeps only consecutive deduplication"}
+{"id": "codearc-139", "program": "[ dup sq mul ] map", "status": "solved", "note": "shape: map integer cube"}
+{"id": "codearc-420", "program": "[ dup 1000 lt? ] [ range-between [ dup kb-digit-under1000 eq? ] filter ] [ range-between [ dup kb-digit-fast-sum eq? ] filter ] ifte", "status": "solved", "note": "shape: enumerate interval and compute positional digit powers; shorter arithmetic path below 1000"}
+{"id": "codearc-871", "program": "[ dup len range swap zip ] dip over -rot [ kb-twosum-row ] swap cons swap cons map [ null? not ] filter head", "status": "solved", "note": "shape: nested ordered search over indexed values, excluding equal indices and choosing first match"}
+{"id": "codearc-166", "program": "reverse nil [ kb-div-chain-step ] fold seconds max", "status": "solved", "note": "shape: reverse fold over (value,DP) pairs, preserving reference divisibility order and short circuit"}
+{"id": "codearc-459", "program": "[ [ dup ] dip pow swap sub ] swap cons map sum", "status": "solved", "note": "shape: map x**n-x with captured exponent, then sum"}
+{"id": "codearc-752", "program": "dup len [ [ 0 eq? not ] filter nil 0 pack2 [ kb-merge-step ] fold unpack2 [ dup 0 eq? ] [ drop ] [ cons ] ifte reverse ] dip over len sub range [ drop 0 ] map cat", "status": "solved", "note": "shape: fold nonzero values with a pending tile, merge equal pairs once, then pad to original length"}
+{"id": "codearc-828", "program": "dup digits len dup 10 swap pow dec 9 div [ swap inc mul ] dip sub", "status": "solved", "note": "shape: decimal digit count and reference closed formula"}
+{"id": "codearc-671", "program": "over over mod [ [ neg ] dip mod ] dip min2", "status": "solved", "note": "shape: compute both Python remainders and take minimum, including negative divisors"}
+{"id": "codearc-1105", "program": "[ sum ] dip2 over over add [ swap sub inc ] dip mul mul 2 div", "status": "solved", "note": "shape: reference polynomial formula, including reversed bounds"}
+{"id": "codearc-1019", "program": "pack3 sort unpack3 [ [ add ] dip le? ] [ drop drop drop 0 ] [ sq [ sq [ sq ] dip add ] dip [ eq? ] [ drop drop 2 ] [ [ gt? ] [ drop drop 1 ] [ drop drop 3 ] ifte ] ifte ] ifte", "status": "solved", "note": "shape: sorted sides; triangle inequality then squared-side classification"}
+{"id": "codearc-843", "program": "[ dup 0 eq? ] [ drop 4 ] [ dup pows2 swap [ swap div odd? ] swap cons filter head over over add pick2 over bxor pick2 div 4 div add [ drop drop ] dip ] ifte", "status": "solved", "note": "shape: next equal-popcount integer via lowest set bit and carry; reference zero returns 4"}
+{"id": "codearc-522", "program": "mul", "status": "solved", "note": "shape: scalar multiplication"}
+{"id": "codearc-921", "program": "dup 2 div range1 [ 2 ge? ] filter [ prime? ] filter [ range1 3 drop-n ] dip rot [ kb-factor-match? ] swap cons swap cons filter", "status": "solved", "note": "shape: precompute possible prime factors; test smallest plus largest divisor, excluding primes"}

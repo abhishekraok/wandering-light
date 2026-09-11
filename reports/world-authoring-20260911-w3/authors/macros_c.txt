@@ -1,0 +1,46 @@
+# Author c helpers for wave 3.
+# Set helpers follow CPython 3.12 Objects/setobject.c (64-bit integer hashes in |n| < 10^6).
+# https://github.com/python/cpython/blob/v3.12.11/Objects/setobject.c
+kc-irange: over sub inc range swap [ add ] swap cons map
+kc-cuboid: 2 pick3 pick3 mul pick2 [ pick4 ] dip swap [ pick4 ] dip swap add mul add mul [ drop drop drop ] dip
+kc-elevator: pick2 dec over fourth mul pick2 pick4 sub abs pick4 dec add pick2 head mul 2 pick3 second mul pick3 third add add min2 [ drop drop drop ] dip
+kc-distribute-positive: over over div pick2 pick2 mod pick2 pack3 [ drop drop ] dip unpack3 range -rot [ [ swap ] dip lt? bool>int add ] swap cons swap cons map
+kc-factorial: range1 product
+kc-rencontres: over kc-factorial over kc-factorial pick3 pick3 sub kc-factorial mul div pick2 pick2 sub kc-derangements mul [ drop drop ] dip
+kc-power-sum: [ dup 0 lt? ] [ drop drop 0 ] [ range swap [ swap drop mul inc ] swap cons 1 swap fold ] ifte
+kc-first-duplicate: nil nil pack2 [ [ unpack2 ] dip [ over null? ] [ [ pick2 over contains 1 eq? ] [ quote swap drop pack2 ] [ swap [ cons ] dip pack2 ] ifte ] [ drop pack2 ] ifte ] fold second
+kc-index: [ dup len range zip ] dip [ swap head eq? ] swap cons filter head second
+kc-repeat-step: over over kc-index pick2 len pick3 pick3 kc-index sub pack2 [ drop drop ] dip
+kc-first-repeat: nil nil pack2 [ [ unpack2 ] dip [ over null? ] [ [ pick2 over contains 1 eq? ] [ swap drop over over kc-repeat-step [ drop ] dip pack2 ] [ swap [ quote cat ] dip pack2 ] ifte ] [ drop pack2 ] ifte ] fold second
+kc-factorial-divisible: [ dup 2 le? ] [ drop 1 ] [ dup dec range1 swap 1 1 pack3 [ [ unpack3 ] dip [ drop over 0 eq? ] [ drop pack3 ] [ swap drop dup [ mul over mod ] dip pack3 ] ifte ] fold third ] ifte
+kc-derangement-step: over over dec pick4 pick4 add mul pack2 [ drop drop drop ] dip
+kc-derangements: [ dup 0 eq? ] [ drop 1 ] [ range1 tail 1 0 pack2 [ [ unpack2 ] dip kc-derangement-step ] fold second ] ifte
+kc-swap-at: pick2 pick2 pick4 pick3 nth set-at over pick4 pick4 nth set-at [ drop drop drop ] dip
+kc-dnf-zero: pick3 pick3 pick3 kc-swap-at pick3 inc pick3 inc pick3 pack4 [ drop drop drop drop ] dip
+kc-dnf-one: pick3 pick3 pick3 inc pick3 pack4 [ drop drop drop drop ] dip
+kc-dnf-other: pick3 pick2 pick2 kc-swap-at pick3 pick3 pick3 dec pack4 [ drop drop drop drop ] dip
+kc-dnf-step: unpack4 [ over over le? ] [ [ pick3 pick2 nth 0 eq? ] [ kc-dnf-zero ] [ [ pick3 pick2 nth 1 eq? ] [ kc-dnf-one ] [ kc-dnf-other ] ifte ] ifte ] [ pack4 ] ifte
+kc-maxsize: 2 8 sq dec pow dec
+kc-split-product: pick2 pick2 take from-digits pick3 pick3 drop-n pick2 pick4 sub take from-digits mul pick3 pick2 drop-n from-digits mul [ drop drop drop ] dip
+kc-split-inner: over len dec over inc swap kc-irange -rot [ rot kc-split-product ] swap cons swap cons map max
+kc-slice-index: [ dup 0 lt? ] [ over len add 0 max2 ] [ ] ifte
+kc-slice-prefix: kc-slice-index take
+kc-slice-suffix: kc-slice-index drop-n
+kc-remove-station: over over dec kc-slice-prefix pick2 pick2 kc-slice-suffix cat [ drop drop ] dip
+kc-rider-next: pick4 inc pick4 pick4 pick4 add 100 gt? bool>int [ [ [ pick4 ] dip swap ] dip swap ] dip swap pick4 2 sub eq? bool>int add add pick4 [ pick4 ] dip swap [ pick4 ] dip swap add 100 le? bool>int [ [ [ [ pick4 ] dip swap ] dip swap ] dip swap ] dip swap [ pick4 ] dip swap 2 sub eq? not bool>int mul mul pick4 add pack3 [ drop drop drop drop drop ] dip
+kc-riders: over over kc-remove-station -rot swap drop [ [ [ unpack3 ] dip ] dip kc-rider-next ] swap cons 0 1 0 pack3 swap fold second
+kc-coin-next: swap over len [ le? ] swap cons filter swap [ swap dec nth ] swap cons map kc-maxsize [ min2 ] fold inc kc-maxsize min2
+kc-int-hash: [ dup -1 eq? ] [ dec ] [ ] ifte
+kc-uint64: [ dup 0 lt? ] [ 2 8 sq pow add ] [ ] ifte
+kc-probe-valid: [ swap nth ] dip [ over null? ] [ drop drop true ] [ swap head eq? ] ifte
+kc-probe-block: [ dup 9 add pick3 len lt? ] [ dup 9 add kc-irange ] [ quote ] ifte -rot [ kc-probe-valid ] swap cons swap cons filter [ dup null? ] [ drop -1 ] [ head ] ifte
+kc-probe-advance: pick4 5 mul 1 add pick4 32 div add pick2 len mod pick4 32 div pick3 pick3 [ [ [ [ pick4 ] dip swap ] dip swap ] dip swap ] dip swap kc-probe-block pack3 [ drop drop drop drop drop ] dip
+kc-probe-step: [ unpack3 ] dip2 [ pick2 0 lt? ] [ kc-probe-advance ] [ drop drop pack3 ] ifte
+kc-probe-init: dup kc-int-hash pick2 len mod over kc-int-hash kc-uint64 -1 pack3 [ drop drop ] dip
+kc-set-insert: over over kc-probe swap quote set-at
+kc-empty-table: range [ drop nil ] map
+kc-set-resize: dup flatten over len 4 mul kc-empty-table [ kc-set-insert ] fold swap drop
+kc-set-union: cat dedup 8 kc-empty-table 0 pack2 [ kc-set-add ] fold head flatten
+kc-set-add: [ unpack2 ] dip pick2 over kc-set-insert [ drop ] dip rot drop swap inc pack2 [ dup second 5 mul over head len dec 3 mul ge? ] [ unpack2 [ kc-set-resize ] dip pack2 ] [ ] ifte
+kc-probe-slow: over len 16 add range -rot over over kc-probe-init -rot [ [ drop ] dip2 kc-probe-step ] swap cons swap cons fold third
+kc-probe: dup kc-int-hash pick2 len mod [ dup pick3 pick3 kc-probe-valid ] [ [ drop drop ] dip ] [ drop kc-probe-slow ] ifte

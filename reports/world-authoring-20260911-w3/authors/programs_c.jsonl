@@ -1,0 +1,24 @@
+{"id": "mbpp-483", "program": "kc-factorial-divisible", "status": "solved", "note": "shape: fold factorial residues until divisible; preserve the reference fallback x-1 and 1 for x<=2"}
+{"id": "mbpp-93", "program": "pow", "status": "solved", "note": "shape: exponentiation; preserves zero exponent and signed bases"}
+{"id": "mbpp-205", "program": "[ neg dec ] map", "status": "solved", "note": "shape: map integer bitwise complement as -x-1"}
+{"id": "mbpp-560", "program": "kc-set-union", "status": "solved", "note": "shape: CPython integer-set insertion, collision probing and table-order rehash; signed integer hashes in the extractor domain"}
+{"id": "mbpp-531", "program": "[ take ] dip range swap nil 0 cons pack2 [ drop unpack2 over over kc-coin-next cons pack2 ] fold second head", "status": "solved", "note": "shape: minimum-coin dynamic programming over the first m coins; retain sys.maxsize for unreachable amounts"}
+{"id": "mbpp-379", "program": "kc-cuboid", "status": "solved", "note": "shape: 2*(l*w+l*h+w*h)"}
+{"id": "mbpp-665", "program": "dup head over over [ eq? not ] swap cons filter -rot [ eq? ] swap cons filter cat", "status": "solved", "note": "shape: stable partition; move every occurrence of the first element to the end"}
+{"id": "mbpp-22", "program": "kc-first-duplicate [ dup null? ] [ drop -1 ] [ head ] ifte", "status": "solved", "note": "shape: seen-value fold with a frozen first-duplicate result; -1 when absent"}
+{"id": "mbpp-815", "program": "dup range [ dec 0 0 rot pack4 ] dip swap [ drop kc-dnf-step ] fold head", "status": "solved", "note": "shape: fold n iterations of the literal low/mid/high swaps; preserve untouched suffix and all non-0/1 values"}
+{"id": "mbpp-926", "program": "kc-rencontres", "status": "solved", "note": "shape: binomial coefficient times derangements computed by a two-value recurrence"}
+{"id": "mbpp-972", "program": "cat", "status": "solved", "note": "shape: concatenate the two input lists"}
+{"id": "mbpp-649", "program": "kc-irange swap [ swap at ] swap cons map sum", "status": "solved", "note": "shape: inclusive signed index range with Python negative indexing, empty if reversed"}
+{"id": "codearc-332", "program": "over over sub abs inc [ add ] dip mul 2 div", "status": "solved", "note": "shape: arithmetic series including both endpoints in either order"}
+{"id": "codearc-292", "program": "decimal-digits dup len 2 sub range1 swap [ swap kc-split-inner ] swap cons map max", "status": "solved", "note": "shape: enumerate every pair of decimal split positions and maximize the product of the three parsed parts"}
+{"id": "codearc-402", "program": "[ over 0 le? ] [ drop drop drop 1 ] [ [ pow ] dip mod ] ifte", "status": "solved", "note": "shape: modular power; the reference returns 1 before reduction for nonpositive exponents"}
+{"id": "codearc-342", "program": "[ inc range ] dip [ kc-power-sum ] swap cons map sum", "status": "solved", "note": "shape: sum finite geometric series by Horner folds; negative bounds yield empty sums"}
+{"id": "codearc-477", "program": "abs [ over over mod 2 mul over eq? ] [ drop ] [ over over mod 2 mul over gt? bool>int [ over over div ] dip add mul swap drop ] ifte", "status": "solved", "note": "shape: nearest multiple via quotient and remainder; exact halfway inputs return unchanged"}
+{"id": "codearc-28", "program": "dup len range zip [ unpack2 mul ] map 1 drop-n", "status": "solved", "note": "shape: pair coefficients with indices, multiply, and discard constant term"}
+{"id": "codearc-985", "program": "dup product [ swap div ] swap cons map", "status": "solved", "note": "shape: total product divided by each element using Python floor division"}
+{"id": "codearc-711", "program": "kc-first-repeat", "status": "solved", "note": "shape: freeze the first repeated value; report its first index and repeat distance"}
+{"id": "codearc-1050", "program": "kc-elevator", "status": "solved", "note": "shape: compute elevator and walking times literally, including signed inputs"}
+{"id": "codearc-483", "program": "kc-riders", "status": "solved", "note": "shape: literal Python prefix/suffix slices followed by rider/distance fold; both rider increments can fire together"}
+{"id": "codearc-538", "program": "over over gcd [ div ] swap cons [ swap pack2 ] dip map", "status": "solved", "note": "shape: signed lap counts divided by nonnegative gcd, in reversed argument order"}
+{"id": "codearc-1082", "program": "[ dup 0 le? ] [ drop drop nil ] [ [ 0 max2 ] dip kc-distribute-positive ] ifte", "status": "solved", "note": "shape: quotient/remainder distribution, clamping negative item counts and handling nonpositive recipient counts"}
