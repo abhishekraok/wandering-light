@@ -1,0 +1,36 @@
+# Author d, wave 4. Stack inputs are deepest first.
+kd-indices: over len range -rot [ [ swap nth ] dip eq? ] swap cons swap cons filter
+# Round a nonnegative rational to nearest integer, ties to even.
+kd-round-even: over over div [ over over mod 2 mul ] dip pack3 swap drop [ unpack3 drop lt? ] [ third inc ] [ [ unpack3 drop eq? ] [ third dup 2 mod add ] [ third ] ifte ] ifte
+# Contribution of a maximal arithmetic run.
+kd-run-sum: [ dup len 3 lt? ] [ drop 0 ] [ sum ] ifte
+kd-run-step: [ over len 2 lt? ] [ cons ] [ [ over dup head swap second sub pick2 head pick2 swap sub eq? ] [ cons ] [ [ dup head [ kd-run-sum add ] dip ] dip pack2 reverse ] ifte ] ifte
+kd-pair-step: [ [ unpack2 ] dip ] dip over sub pick3 swap count rot add [ cons ] dip pack2
+# Binary search state is (arr low high), or a singleton once returned.
+kd-max-right?: [ over lt? ] [ pick3 over inc at pick4 pick2 at lt? ] [ false ] ifte
+kd-max-left?: [ pick2 gt? ] [ pick3 over at pick4 pick2 dec at lt? ] [ false ] ifte
+kd-max-search: unpack3 [ gt? ] [ drop drop head quote ] [ [ eq? ] [ drop at quote ] [ over over add 2 div [ kd-max-right? ] [ [ drop drop ] dip at quote ] [ [ kd-max-left? ] [ dec [ drop drop ] dip at quote ] [ [ pick3 pick3 at pick4 pick2 at gt? ] [ dec swap drop pack3 ] [ inc rot drop swap pack3 ] ifte ] ifte ] ifte ] ifte ] ifte
+# Decimal digit counts at place f over 1..N. Inputs N digit f.
+kd-digit-place: pick2 inc over 10 mul div over mul pick3 inc pick2 10 mul mod pick3 pick3 mul sub 0 max2 pick2 min2 add [ pick2 0 eq? ] [ swap sub 0 max2 ] [ [ drop ] dip ] ifte [ drop drop ] dip
+# Inputs digit N. Count all places, then include the representation of zero.
+kd-digit-total: over 0 eq? bool>int [ swap 10 powers -rot [ rot kd-digit-place ] swap cons swap cons map sum ] dip add
+kd-digit-prefix: [ dup 0 lt? ] [ drop zeros8 0 cons 0 cons ] [ 10 range swap [ kd-digit-total ] swap cons map ] ifte
+kd-prime-candidate?: [ dup 2 eq? ] [ drop true ] [ dup 2 gt? bool>int swap odd? bool>int mul 1 eq? ] ifte
+kd-prime-pair?: [ over kd-prime-candidate? ] [ [ dup kd-prime-candidate? ] [ [ over prime? ] [ prime? ] [ false ] ifte ] [ false ] ifte ] [ false ] ifte
+kd-gap-step: [ pick2 null? ] [ over add [ kd-prime-pair? ] [ pack2 swap drop ] [ drop drop ] ifte ] [ drop drop ] ifte
+# Permutation nodes carry (unused digits, numeric prefix).
+kd-perm-child: 10 mul pick2 add [ swap remove1 ] dip pack2
+kd-perm-children: unpack2 over dedup -rot [ kd-perm-child ] swap cons swap cons map
+# Source: https://github.com/python/cpython/blob/3.12/Objects/setobject.c
+# CPython 3.12 integer-set layout: 8-slot initial table, 9 extra linear probes,
+# perturb >>= 5, and growth at fill*5 >= mask*3. Slots are () or (integer).
+# Integer hashes below 2^61 equal the integer, except -1 hashes to -2.
+kd-hash: [ dup -1 eq? ] [ dec ] [ ] ifte [ dup 0 lt? ] [ 2 32 pow sq add ] [ ] ifte
+kd-empty8: zeros8 [ drop nil ] map
+kd-empty-offset: 0 -1 pack2 [ [ unpack2 ] dip [ over 0 lt? ] [ [ null? ] [ drop drop dup ] [ drop ] ifte ] [ drop ] ifte [ inc ] dip pack2 ] fold second
+kd-probe-group: [ over len over sub 10 ge? ] [ over over drop-n 10 take ] [ over over drop-n 1 take ] ifte kd-empty-offset
+kd-probe-step: unpack3 [ kd-probe-group ] dip swap [ dup 0 ge? ] [ [ drop ] dip add swap drop quote ] [ drop 32 div swap 5 mul inc over add pick2 len mod swap pack3 ] ifte
+kd-set-slot: over len 16 add range -rot over len over swap mod swap pack3 [ drop [ dup len 1 eq? ] [ ] [ kd-probe-step ] ifte ] fold head
+kd-set-insert: over over kd-hash kd-set-slot swap quote set-at
+kd-set-grow: dup len 4 mul range [ drop nil ] map swap flatten swap [ kd-set-insert ] fold
+kd-set-order: dedup kd-empty8 [ kd-set-insert [ dup flatten len 5 mul over len dec 3 mul ge? ] [ kd-set-grow ] [ ] ifte ] fold flatten

@@ -1,0 +1,26 @@
+{"id": "mbpp-735", "program": "[ dup 1 eq? ] [ ] [ [ dup 0 lt? ] [ -1 dec sxor ] [ dup bitlen dec 0 max2 pow2 dec 1 bxor sxor ] ifte ] ifte", "status": "solved", "note": "shape: signed bit mask, preserving zero and one branches"}
+{"id": "mbpp-225", "program": "over over sub abs inc range [ pack3 ] dip swap [ ka-find-min-step ] fold unpack3 swap drop at", "status": "solved", "note": "shape: bounded binary search; retains Python negative indexing and low >= high return"}
+{"id": "mbpp-71", "program": "dup len dup range -rot pack2 [ ka-comb-step ] fold head", "status": "solved", "note": "shape: shrinking-gap compare/swap passes; preserves premature termination when gap reaches zero"}
+{"id": "mbpp-435", "program": "10 mod", "status": "solved", "note": "shape: Python remainder, including negative integers"}
+{"id": "mbpp-36", "program": "[ dup 1 eq? ] [ drop [ 10 mul ] dip div ] [ dec 10 swap pow rot mul over mod 10 mul swap div ] ifte", "status": "solved", "note": "shape: decimal long division; first quotient is not reduced modulo ten"}
+{"id": "mbpp-943", "program": "over len over len add range [ nil pack3 ] dip swap [ ka-merge-step ] fold third reverse", "status": "solved", "note": "shape: head-by-head heap merge; does not sort malformed inputs"}
+{"id": "mbpp-345", "program": "ka-differences [ neg ] map", "status": "solved", "note": "shape: adjacent differences, including empty lists"}
+{"id": "mbpp-404", "program": "min2", "status": "solved", "note": "shape: scalar minimum"}
+{"id": "mbpp-702", "program": "[ [ sort ] dip ] dip [ dup [ dec take ] dip ] dip swap [ ka-max-window ] dip swap sub", "status": "solved", "note": "shape: largest valid window in first n-1 sorted entries; preserves skipped endpoint and n-1 baseline"}
+{"id": "mbpp-929", "program": "count", "status": "solved", "note": "shape: count equal items"}
+{"id": "mbpp-127", "program": "mul", "status": "solved", "note": "shape: integer multiplication"}
+{"id": "mbpp-236", "program": "[ over over lt? ] [ drop drop -1 ] [ over over sub ka-tri [ 2 mul sub ka-tri ] dip add ] ifte", "status": "solved", "note": "shape: both reference triangle polynomials, including negative lower offsets"}
+{"id": "mbpp-924", "program": "max2", "status": "solved", "note": "shape: scalar maximum"}
+{"id": "codearc-856", "program": "[ sort ] dip dec at", "status": "solved", "note": "shape: sorted rank with Python negative indexing"}
+{"id": "codearc-59", "program": "dup len range [ even? ] filter swap [ swap nth ] swap cons map [ odd? ] filter sum", "status": "solved", "note": "shape: odd values at zero-based even positions"}
+{"id": "codearc-1106", "program": "nil -1 pack3 zeros128 swap [ ka-happy-step ] fold third", "status": "solved", "note": "shape: track square-digit states and return actual cycle length; 128-step bound covers the integer domain"}
+{"id": "codearc-1102", "program": "dup len range swap nil pack2 [ drop unpack2 over last cons [ ka-differences ] dip pack2 ] fold second", "status": "solved", "note": "shape: fold through difference rows, prepending each last value"}
+{"id": "codearc-498", "program": "6 10 mul 0 pack2 [ [ unpack2 ] dip [ over 1 eq? ] [ drop pack2 ] [ swap drop [ over 3 sub gt? ] [ min2 1 pack2 ] [ drop 3 sub 0 pack2 ] ifte ] ifte ] fold head", "status": "solved", "note": "shape: remaining time plus stopped flag preserves first early return"}
+{"id": "codearc-1048", "program": "[ [ pick2 pick2 count over lt? ] [ drop cons ] [ drop drop ] ifte ] swap cons nil swap fold reverse", "status": "solved", "note": "shape: fold retaining at most N occurrences in original order"}
+{"id": "codearc-90", "program": "dup head 0 lt? bool>int 2 mul 1 swap sub [ [ abs decimal-digits ] map flatten from-digits ] dip mul", "status": "solved", "note": "shape: concatenate decimal representations and retain first-item sign"}
+{"id": "codearc-167", "program": "[ pow ] swap cons map", "status": "solved", "note": "shape: map exponentiation"}
+{"id": "codearc-1042", "program": "swap 6 mul sub 5 add [ dup 5 lt? ] [ 5 swap div log2 neg ] [ 5 div log2 ] ifte", "status": "solved", "note": "shape: integer log ratio with truncation toward zero below one"}
+{"id": "codearc-294", "program": "dup product swap dup dedup over [ swap count inc ] swap cons map product dec swap min pick2 over div pack4", "status": "solved", "note": "shape: product and frequency-factor count, preserving composite and signed factors"}
+{"id": "codearc-977", "program": "[ 2 swap pow ] map sum", "status": "solved", "note": "shape: sum powers of two"}
+{"id": "codearc-336", "program": "[ null? ] [ drop 0 ] [ dup max over min sub inc swap len sub ] ifte", "status": "solved", "note": "shape: inclusive span minus length; duplicates can give negative results"}
+{"id": "codearc-475", "program": "dup max dec [ dup 1 lt? ] [ drop drop -1 ] [ swap dup head [ sub ] swap cons map 0 [ gcd ] fold [ dup 0 eq? ] [ drop ] [ [ over over ge? ] [ swap drop ] [ swap range1 swap [ swap divides? ] swap cons filter max ] ifte ] ifte ] ifte", "status": "solved", "note": "shape: gcd of differences, restricted to candidates strictly below max(arr)"}

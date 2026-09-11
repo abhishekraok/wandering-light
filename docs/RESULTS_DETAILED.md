@@ -125,6 +125,7 @@ Later waves, same settings (four `codex exec` agents, gpt-6-astra high, ~25 beha
 | 1 (2026-09-10) | [w1](../reports/world-authoring-20260910/README.md) | 36 MBPP, 34 CodeARC, 30 LeetCode med/hard | 92/100 | 164 / 24.5 | 372k, 14 min | 16 / 128 (94 → 110) | 7 fuel (LeetCode), 1 set order |
 | 2 (2026-09-11) | [w2](../reports/world-authoring-20260911-w2/README.md) | 50 MBPP, 50 CodeARC | 97/100 (MBPP 50/50, CodeARC 47/50) | 144 / 17 | 289k, 11 min | 7 / 90 (110 → 117) | 3 fuel (CodeARC); one identity repaired from an empty program |
 | 3 (2026-09-11) | [w3](../reports/world-authoring-20260911-w3/README.md) | 50 MBPP, 50 CodeARC | 99/100 (MBPP 50/50, CodeARC 49/50) | 151 / 20 | 277k, 6 min | 8 / 106 (117 → 125) | 1 fuel (CodeARC) |
+| 4 (2026-09-11) | [w4](../reports/world-authoring-20260911-w4/README.md) | 50 MBPP, 50 CodeARC | 100/100 | 126 / 18.5 | 432k, 7 min | 4 / 68 (125 → 129) | 0; one identity repaired from an empty program; 9 exact v4 witness matches |
 
 
 ## Library hygiene (#124): canonical macro library and hypothesis-breaking MBPP examples

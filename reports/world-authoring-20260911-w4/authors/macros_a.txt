@@ -1,0 +1,14 @@
+# Author a: reference-preserving helpers.
+ka-tri: inc dup inc mul 2 div
+ka-differences: dup 1 drop-n zip [ unpack2 sub ] map
+ka-merge-a: [ [ uncons ] dip swap ] dip swap cons
+ka-merge-b: [ uncons ] dip swap cons
+ka-merge-step: drop unpack3 [ pick2 null? ] [ ka-merge-b ] [ [ over null? ] [ ka-merge-a ] [ [ pick2 head pick2 head le? ] [ ka-merge-a ] [ ka-merge-b ] ifte ] ifte ] ifte pack3
+ka-find-min-step: drop unpack3 [ over over lt? ] [ over over add 2 div pick3 swap at pick3 pick2 at sub [ dup 0 eq? ] [ drop dec ] [ [ dup 0 gt? ] [ drop over over add 2 div inc rot drop swap ] [ drop over over add 2 div swap drop ] ifte ] ifte ] [ ] ifte pack3
+ka-happy-step: drop unpack3 [ dup -1 eq? ] [ drop [ over contains 1 eq? ] [ over over swap ka-index inc pack3 ] [ over cons swap digits [ sq ] map sum swap -1 pack3 ] ifte ] [ pack3 ] ifte
+ka-index: over len range -rot [ [ swap at ] dip eq? ] swap cons swap cons filter head
+ka-swap-at: pick2 pick2 nth pick3 pick2 nth -rot [ set-at ] dip2 set-at
+ka-comb-pass: over len over sub range swap [ over add [ pick2 pick2 nth pick3 pick2 nth gt? ] [ ka-swap-at ] [ drop drop ] ifte ] swap cons [ swap ] dip fold
+ka-comb-step: drop unpack2 [ dup 1 gt? ] [ 10 mul 10 3 add div dup [ ka-comb-pass ] dip ] [ ] ifte pack2
+ka-window-count: [ swap ] dip [ [ sub ] dip [ over 0 ge? ] [ le? ] [ drop drop false ] ifte ] swap cons swap cons filter len
+ka-max-window: over swap [ ka-window-count ] swap cons swap cons map 1 [ max2 ] fold
