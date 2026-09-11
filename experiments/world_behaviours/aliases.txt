@@ -1,0 +1,101 @@
+# Author-file names -> canonical library tokens (library-hygiene, #124).
+# `@inline` means the name was a one-behaviour helper: migrate.py substitutes
+# its original body (from reports/world-behaviours-library-20260910/authors/)
+# into the program's macro form, after rewriting that body through this table.
+# Used only by migrate.py; verify.py never loads this file.
+
+
+# --- author 1 ---
+k1-rot: rot
+k1--rot: -rot
+k1-dip2: dip2
+k1-dip3: dip3
+k1-pick2: pick2
+k1-pick3: pick3
+k1-pick4: pick4
+k1-pack2: pack2
+k1-unpack2: unpack2
+k1-pack3: pack3
+k1-unpack3: unpack3
+k1-pack4: pack4
+k1-unpack4: unpack4
+k1-pow: pow
+k1-gcd: gcd
+k1-sumnat: dup inc mul
+k1-at: at
+k1-insert: insert
+k1-sort: sort
+k1-dbl: double
+k1-iota128: 16 8 mul range
+k1-iota256: 16 16 mul range
+k1-range: range
+k1-range1: range1
+k1-prefix: prefix-sums
+k1-code34: @inline
+k1-code733: @inline
+k1-c1: @inline
+k1-c2: @inline
+k1-code466: @inline
+
+# --- author 2 ---
+k2-16: 16
+k2-pair: pack2
+k2-unpair: unpack2
+k2-count: count
+k2-range10: 10 range
+k2-range100: 100 range
+k2-range: range
+k2-range1: range1
+k2-range-ab: range-between
+k2-pow: pow
+k2-zip: zip
+k2-seconds: seconds
+k2-dedup: dedup
+k2-remove1: remove1
+k2-nlargest: nlargest
+k2-nsmallest: nsmallest
+k2-kadane: max-subarray-sum
+k2-pow2s: pows2
+k2-band: band
+k2-hexcount: @inline
+k2-lis-best: lis-best
+
+# --- author 3 ---
+k3-double: double
+k3-range: range
+k3-range1: range1
+k3-has: @inline
+k3-pdouble: pows2-step
+k3-pows: pows2
+k3-and: band
+k3-xor: bxor
+k3-xorrange: @inline
+k3-dot: dot
+k3-powstep: powers-step
+k3-powlist: powers
+k3-basesum: base-digit-sum
+k3-digitsum: digit-sum
+k3-between: between
+k3-euclid-step: @inline
+k3-tri-fits: @inline
+k3-trih: @inline
+k3-divides-both: divides-both
+k3-pdiff3: @inline
+
+# --- author 4 ---
+k4-rot: rot
+k4-junk8: zeros8
+k4-junk16: zeros16
+k4-junk128: zeros128
+k4-junk1024: zeros1024
+k4-iota-over: drop range
+k4-iota: range
+k4-iota16: range
+k4-iota128: range
+k4-digits: digits
+k4-digit-sum: digit-sum
+k4-digit-product: digit-product
+k4-divisible?: divides?
+k4-sum-multiples-of: sum-multiples
+k4-leap?: leap?
+k4-stern-double: @inline

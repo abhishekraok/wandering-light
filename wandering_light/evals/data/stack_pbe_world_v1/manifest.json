@@ -2,12 +2,12 @@
   "basis": "mark-28",
   "catalogue": {
     "behaviours": 91,
-    "digest": "sha256:ccf0a8c7dd4872327285128ee4a7505316b40975cd35944c4ddb40f9b8ab1155",
-    "skeletons": 88
+    "digest": "sha256:a552e50f7cea16c407fd01c240c0cb7743a9b035af51bca57ec89c7ab5ee2fab",
+    "skeletons": 89
   },
   "config": {
     "issue": "https://github.com/abhishekraok/wandering-light/issues/120",
-    "probe": "reports/world-behaviours-probe-20260909",
+    "probe": "reports/world-behaviours-library-20260910",
     "shown_per_task": 6,
     "sources": [
       "leetcode",
@@ -17,8 +17,8 @@
   },
   "corpus": "stack_pbe_world_v1",
   "counts": {
-    "distinct_input_stacks": 2138,
-    "held_out_examples": 2254,
+    "distinct_input_stacks": 2244,
+    "held_out_examples": 2332,
     "shown_examples": 546,
     "tasks": 91
   },
@@ -27,18 +27,18 @@
   "hub": {
     "repo_id": "abhishekraok/wandering-light-stack-pbe-world-v1",
     "repo_type": "dataset",
-    "revision": "ff35444423240c34c08a3559598db3578b6fe243"
+    "revision": "fa60b4292b273b6c24072bf895a71b031f318127"
   },
   "schema_version": 2,
   "split_policy": "train-only",
   "splits": {
     "train": {
       "behaviours": 91,
-      "bytes": 40761,
+      "bytes": 48689,
       "path": "stack_pbe_world_v1_train.jsonl.gz",
       "records": 91,
-      "sha256": "sha256:fe5506a0becb65ae28acb112a15c36629481b49a7b15b23a2ae37f952b725c00",
-      "skeletons": 88
+      "sha256": "sha256:29b977c2c85df66ed782a1733b6cf3e0b3a47c253146f98cdf496035f4e11fa1",
+      "skeletons": 89
     }
   }
 }

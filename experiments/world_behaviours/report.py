@@ -97,6 +97,11 @@ def v4_witnesses() -> dict[str, tuple[str, str]]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("directory", type=Path)
+    parser.add_argument(
+        "--no-findings",
+        action="store_true",
+        help="omit the prose findings written for the 2026-09-09 run",
+    )
     args = parser.parse_args(argv)
     d = args.directory
 
@@ -116,6 +121,8 @@ def main(argv: list[str] | None = None) -> int:
     missing = sorted(set(behaviours) - set(seen))
 
     results = []
+    absent = sorted({r["id"] for r in rows} - set(behaviours))
+    rows = [r for r in rows if r["id"] in behaviours]
     for row in rows:
         b = behaviours[row["id"]]
         tokens = row["program"].split()
@@ -174,6 +181,7 @@ def main(argv: list[str] | None = None) -> int:
         "behaviours": len(behaviours),
         "authored_rows": len(rows),
         "missing": missing,
+        "programs_without_behaviour": absent,
         "duplicates": duplicates,
         "claim_mismatches": mismatched,
         "solved": len(solved),
@@ -207,7 +215,7 @@ def main(argv: list[str] | None = None) -> int:
         "(seed 17, ints and flat int lists only, ≤ 3 arguments); programs authored by Claude in macro",
         "form and expanded to `mark-28`; every program re-verified on every test by `report.py`.",
         "",
-        FINDINGS,
+        "" if args.no_findings else FINDINGS,
         "## Verified",
         "",
         "| source | verified | median witness length (`mark-28` ops) | median macro-form length |",
