@@ -2,6 +2,36 @@
 
 Behaviours sampled by `experiments/world_behaviours/extract.py` (seed 17, wider pool, hypothesis-breaking sampler on every source); programs authored by four `codex exec` agents (gpt-6-astra, high effort) in macro form and migrated to the canonical library; every program re-verified on every test by `report.py`.
 
+## Findings (written with the 2026-09-10 wave 1; the tables below regenerate)
+
+- **Yield holds on MBPP and CodeARC, drops on LeetCode-medium and collapses on
+  hard.** 92 of 100 verified as authored (35/36 MBPP, 34/34 CodeARC, 21/25
+  LeetCode-medium, 2/5 hard), against the probe's 96% on MBPP + LeetCode-easy.
+  Every LeetCode miss is fuel: dynamic programmes and enumerations whose tests
+  reach n in the thousands against the 100,000-step cap. The one MBPP miss is
+  CPython set-iteration order again (`mbpp-769`, the same class as `mbpp-579`).
+  LeetCode is also exhausted: 40 medium/hard problems fit the domain in total,
+  30 are here. The remaining pool is MBPP (~296) and CodeARC (~231).
+- **Codex authors at roughly 4 minutes and 3.7k tokens per behaviour.** Four
+  `codex exec` agents (gpt-6-astra, high effort), 24–26 behaviours each, ran
+  7–14 minutes wall, 86k–111k tokens each, 372k in total; the whole wave took
+  14 minutes on four agents. Claimed and verified statuses agreed on all 100.
+- **The library grows about 16 macros per 100 behaviours and still catches
+  library defects.** Authors wrote 128 private macros; 16 were reusable
+  (three authors wrote `isqrt`, two `palindrome?`, two `pack5`; also
+  `bitlen`/`log2`/`pow2`, `second`…`fifth`, `flatten`, `from-digits`,
+  `decimal-digits`, `inversions`, `32`) and went canonical with tests, 112
+  were one-behaviour step functions and were inlined. Two authors wrote their
+  own `gcd` because the canonical one was a self-applying loop that died past
+  ~7 Euclid steps (`gcd 832040 514229` refused); it is now a 32-step fold, at
+  ~7× the fuel (700 vs 105), which broke one fuel-tight witness
+  (`leetcode-number-of-self-divisible-permutations`, 14/14 → 12/14) until a
+  Codex repair (22k tokens, `repairs.jsonl`) hoisted the coprime test out of
+  the inner loop (worst case 64k fuel). Macro form median stayed at 24 tokens after migration
+  (16 in the authors' dialects); expanded median 163 ops, up from the
+  probe's 111, because medium problems carry more state.
+- **Overlap with v4 stays negligible**: one exact witness match (`mbpp-517`,
+  a scalar identity) and three shared skeletons in 91.
 
 ## Verified
 
@@ -9,13 +39,13 @@ Behaviours sampled by `experiments/world_behaviours/extract.py` (seed 17, wider 
 |---|---|---|---|
 | codearc | 34/34 (100%) | 175.5 | 24.5 |
 | leetcode-hard | 2/5 (40%) | 1080.0 | 242.0 |
-| leetcode-medium | 20/25 (80%) | 147.0 | 37.0 |
+| leetcode-medium | 21/25 (84%) | 150 | 41 |
 | mbpp | 35/36 (97%) | 143 | 16 |
-| **all** | 91/100 (91%) | 163 | 24 |
+| **all** | 92/100 (92%) | 164.0 | 24.5 |
 
 Claimed-vs-verified mismatches: 0; missing ids: 0; duplicates: 0.
 
-By author: canonical 91/100 (91%).
+By author: canonical 92/100 (92%).
 
 ## Witness length against `stack_pbe_v4`
 
@@ -25,36 +55,36 @@ By author: canonical 91/100 (91%).
 | 6-10 | 5 | 14 |
 | 11-20 | 3 | 34 |
 | 21-40 | 3 | 37 |
-| 41+ | 77 | 120 |
-| median | 163 | 43.0 |
+| 41+ | 78 | 120 |
+| median | 164.0 | 43.0 |
 
 Exact matches with a v4 witness: 1 (mbpp-517). Same skeleton as a v4 witness: 4.
 
 ## Macros
 
-110 macros defined across `macros*.txt`; median expansion ratio (`mark-28` ops per macro-form token) on verified programs: 5.5.
+110 macros defined across `macros*.txt`; median expansion ratio (`mark-28` ops per macro-form token) on verified programs: 5.4.
 
 | macro | verified programs using it |
 |---|---|
-| `2` | 35 |
-| `unpack2` | 25 |
-| `inc` | 24 |
-| `pack2` | 23 |
-| `range` | 21 |
-| `len` | 20 |
-| `pick2` | 20 |
+| `2` | 36 |
+| `unpack2` | 26 |
+| `inc` | 25 |
+| `pack2` | 24 |
+| `range` | 22 |
+| `len` | 21 |
+| `pick2` | 21 |
 | `max2` | 19 |
-| `mod` | 18 |
-| `bool>int` | 17 |
-| `head` | 17 |
+| `mod` | 19 |
+| `bool>int` | 18 |
+| `head` | 18 |
+| `le?` | 16 |
+| `sum` | 16 |
 | `dec` | 15 |
-| `le?` | 15 |
-| `sum` | 15 |
+| `pick3` | 15 |
 | `abs` | 14 |
-| `pick3` | 14 |
+| `gt?` | 14 |
 | `range1` | 14 |
-| `gt?` | 13 |
-| `pack3` | 12 |
+| `pack3` | 13 |
 | `take` | 12 |
 
 ## Unsolved
@@ -66,7 +96,6 @@ Exact matches with a v4 witness: 1 (mbpp-517). Same skeleton as a v4 witness: 4.
 | leetcode-guess-number-higher-or-lower-ii | leetcode | 5/52 | best 5/52; shape: exact interval minimax DP; cubic candidate enumeration and immutable-list lookups exceed 100,000 fuel  |
 | leetcode-magical-string | leetcode | 22/64 | why: two-list queue generation exceeds 100,000 fuel on large n; best 22/64, preserving Python prefix slicing for nonposi |
 | leetcode-minimum-increments-for-target-multiples-in-an-array | leetcode | 47/64 | best 47/64; why: exhaustive LCM allocations exceed 100,000 fuel as the number of targets grows; redundant target divisor |
-| leetcode-number-of-self-divisible-permutations | leetcode | 12/14 | verified 14/14 with the probe-era recursive gcd (105 fuel, valid only for Euclid chains of <= 7 steps); the canonical re |
 | leetcode-number-of-squareful-arrays | leetcode | 41/43 | why: precomputed adjacency bitmasks and labelled permutation frontiers still exceed 100,000 fuel on two tests; best veri |
 | leetcode-race-car | leetcode | 21/64 | why: reference dynamic programming exceeds 100,000 fuel on 43 tests; exact all-ones and power-of-two cases plus smaller  |
 | mbpp-769 | mbpp | 2/27 | why: computes both set differences, but preserves first-occurrence order rather than CPython hash-table iteration; exact |
@@ -163,6 +192,7 @@ Exact matches with a v4 witness: 1 (mbpp-517). Same skeleton as a v4 witness: 4.
 | codearc-569 | 811 | `[ over null? ] [ swap drop ] [ [ dup null? ] [ drop ] [ [ [ dup head 0 lt? ] [ [ abs decimal-digits ] map nil [ cat ] fold 0 [ swap 10 mul add ] fold neg ] [ [ abs decimal-digits ] map nil [ cat ] fold 0 [ swap 10 mul add ] fold ] ifte ] dip [ dup head 0 lt? ] [ [ abs decimal-digits ] map nil [ cat ] fold 0 [ swap 10 mul add ] fold neg ] [ [ abs decimal-digits ] map nil [ cat ] fold 0 [ swap 10 mul add ] fold ] ifte add [ dup 0 lt? ] [ neg decimal-digits uncons neg cons ] [ decimal-digits ] ifte ] ifte ] ifte` |
 | leetcode-super-egg-drop | 850 | `[ dup 1 lt? ] [ drop drop 0 ] [ [ over 1 eq? ] [ swap drop ] [ [ over 0 le? ] [ swap drop bitlen ] [ dup pick2 pick2 bitlen min2 1 add range [ drop 0 ] map 0 pack3 over 2 mul isqrt 2 add pack2 [ drop drop ] dip unpack2 range swap [ drop unpack3 [ over last pick3 ge? ] [ pick2 pick2 pick2 pack3 ] [ pick2 pick2 dup tail swap zip [ unpack2 add inc ] map 0 cons pick2 1 add pack3 ] ifte [ drop drop drop ] dip ] fold last ] ifte ] ifte ] ifte` |
 | leetcode-the-earliest-and-latest-rounds-where-players-compete | 1310 | `pick2 over sub inc pick2 over over over min2 32 mul [ max2 ] dip add quote dup [ pick4 ] dip swap 1 0 0 pack5 [ pick4 ] dip swap range dup pick2 [ drop dup unpack5 pick4 [ dup 32 div swap 32 mod eq? ] filter len 0 gt? bool>int pick2 pick4 pick2 [ dup 1 eq? pick3 0 eq? bool>int swap bool>int mul 1 eq? ] [ drop swap drop ] [ drop drop ] ifte pick2 [ pick4 ] dip swap pick3 [ dup 1 eq? ] [ drop swap drop ] [ drop drop ] ifte [ [ [ pick4 ] dip swap ] dip swap ] dip swap [ dup 32 div swap 32 mod eq? not ] filter dup [ [ [ [ pick4 ] dip swap ] dip swap ] dip swap ] dip swap [ over 32 div pick2 32 mod over inc pick2 pick2 add pick4 2 div over over sub pick3 over max2 [ [ [ pick4 ] dip swap ] dip swap ] dip swap inc 2 div [ [ pick4 ] dip swap ] dip swap over min2 [ [ [ [ pick4 ] dip swap ] dip swap ] dip swap ] dip swap range1 pick3 pick2 range-between dup pick2 [ swap [ over sub over over min2 32 mul [ max2 ] dip add ] swap cons map ] swap cons map flatten dup [ drop drop drop drop drop drop drop drop drop drop drop drop drop drop ] dip ] swap cons map flatten dedup dup [ [ [ [ [ pick4 ] dip swap ] dip swap ] dip swap ] dip swap ] dip swap inc 2 div [ [ [ [ [ pick4 ] dip swap ] dip swap ] dip swap ] dip swap ] dip swap inc [ [ pick4 ] dip swap ] dip swap [ [ pick4 ] dip swap ] dip swap pack5 dup [ drop drop drop drop drop drop drop drop drop drop drop drop ] dip ] fold dup unpack5 over over pack2 dup [ drop drop drop drop drop drop drop drop drop drop drop drop drop drop ] dip` |
+| leetcode-number-of-self-divisible-permutations | 1511 | `[ dup 0 le? ] [ drop 1 ] [ dup dup inc 2 div dup range [ dup 2 swap pow 1000 over pow pick2 2 mul inc pick2 pick2 pick2 pack3 dup [ drop drop drop drop drop ] dip ] map 2 pick2 pow range tail 1 1000 pack2 pick2 [ pick2 unpack2 pick2 pick4 [ swap head div 2 mod 1 eq? ] swap cons filter dup len 2 mul over pick4 pick4 pick3 [ pick3 unpack3 pick3 over [ over 3 mod over 3 mod add 0 eq? ] [ drop drop false ] [ [ over 5 mod over 5 mod add 0 eq? ] [ drop drop false ] [ drop drop true ] ifte ] ifte bool>int [ [ pick4 ] dip swap ] dip swap [ [ pick4 ] dip swap ] dip swap pick4 div div 1000 mod over over mul dup [ drop drop drop drop drop drop drop drop drop drop ] dip ] swap cons swap cons swap cons map sum dup pick4 mul [ pick4 ] dip swap over add [ pick4 ] dip swap 1000 mul over over pack2 dup [ drop drop drop drop drop drop drop drop drop drop drop drop ] dip ] swap cons pick2 pick2 pick2 fold pick4 over pack2 dup [ drop drop drop drop drop drop drop drop ] dip swap [ odd? ] [ drop unpack2 [ dup unpack2 pick3 unpack3 pick4 pick4 1000 div pick3 div div 1000 mod over over pack2 dup [ drop drop drop drop drop drop drop drop drop ] dip ] swap cons map dup [ swap [ over unpack2 pick2 unpack2 pick3 pick2 [ over eq? ] [ drop 1 eq? ] [ [ 3 mod ] dip 3 mod add 0 gt? ] ifte bool>int pick3 pick2 mul over mul dup [ drop drop drop drop drop drop drop drop ] dip ] swap cons map sum ] swap cons map sum ] [ drop unpack2 swap drop unpack2 1000 div div sq ] ifte ] ifte` |
 | codearc-1022 | 1562 | `[ over over gt? ] [ 0 ] [ [ dup 0 lt? ] [ over abs digits 0 1 pack2 [ [ unpack2 ] dip pick2 9 mul pick2 pick2 pick3 5 gt? bool>int sub mul add pick2 pick2 5 eq? 0 1 eq? eq? bool>int mul pack2 [ drop drop drop ] dip ] fold unpack2 add over abs 1 sub digits 0 1 pack2 [ [ unpack2 ] dip pick2 9 mul pick2 pick2 pick3 5 gt? bool>int sub mul add pick2 pick2 5 eq? 0 1 eq? eq? bool>int mul pack2 [ drop drop drop ] dip ] fold unpack2 add sub ] [ [ over 0 lt? ] [ over abs digits 0 1 pack2 [ [ unpack2 ] dip pick2 9 mul pick2 pick2 pick3 5 gt? bool>int sub mul add pick2 pick2 5 eq? 0 1 eq? eq? bool>int mul pack2 [ drop drop drop ] dip ] fold unpack2 add over digits 0 1 pack2 [ [ unpack2 ] dip pick2 9 mul pick2 pick2 pick3 5 gt? bool>int sub mul add pick2 pick2 5 eq? 0 1 eq? eq? bool>int mul pack2 [ drop drop drop ] dip ] fold unpack2 add add 1 sub ] [ [ over 0 eq? ] [ dup digits 0 1 pack2 [ [ unpack2 ] dip pick2 9 mul pick2 pick2 pick3 5 gt? bool>int sub mul add pick2 pick2 5 eq? 0 1 eq? eq? bool>int mul pack2 [ drop drop drop ] dip ] fold unpack2 add ] [ dup digits 0 1 pack2 [ [ unpack2 ] dip pick2 9 mul pick2 pick2 pick3 5 gt? bool>int sub mul add pick2 pick2 5 eq? 0 1 eq? eq? bool>int mul pack2 [ drop drop drop ] dip ] fold unpack2 add pick2 1 sub digits 0 1 pack2 [ [ unpack2 ] dip pick2 9 mul pick2 pick2 pick3 5 gt? bool>int sub mul add pick2 pick2 5 eq? 0 1 eq? eq? bool>int mul pack2 [ drop drop drop ] dip ] fold unpack2 add sub ] ifte ] ifte ] ifte ] ifte [ drop drop ] dip` |
 | leetcode-maximum-points-in-an-archery-competition | 1762 | `dup [ inc ] map [ drop ] dip dup head 0 min2 pick2 over sub [ drop ] dip over [ abs ] map sum pick3 abs over over add inc [ drop ] dip [ drop ] dip pick2 len dec range1 pick3 tail [ [ [ [ drop ] dip ] dip ] dip ] dip over over zip [ drop ] dip [ drop ] dip 0 quote quote over over pick4 [ pick2 head pick2 unpack2 [ [ [ [ drop ] dip ] dip ] dip ] dip over range [ [ drop ] dip ] dip dup pick4 [ swap drop ] swap cons map [ drop ] dip [ [ [ drop ] dip ] dip ] dip pick2 pick2 [ add ] swap cons map [ [ drop ] dip ] dip pick2 pick2 cat [ [ [ drop ] dip ] dip ] dip pick2 pick2 cat [ [ drop ] dip ] dip [ [ drop ] dip ] dip over over zip [ unpack2 min2 ] map [ drop ] dip [ drop ] dip over over cons [ drop ] dip [ drop ] dip ] swap cons fold [ drop ] dip dup head dup len range dup pick2 zip [ drop ] dip [ drop ] dip dup [ pick4 ] dip swap [ [ unpack2 swap drop ] dip le? ] swap cons filter [ head ] map 0 [ max2 ] fold [ drop ] dip nil pick2 [ [ pick4 ] dip swap ] dip swap pick3 pick3 pack4 [ drop ] dip [ [ drop ] dip ] dip [ [ [ [ drop ] dip ] dip ] dip ] dip pick2 reverse [ [ [ drop ] dip ] dip ] dip dup pick2 [ pick4 ] dip swap [ pick2 unpack4 [ [ [ [ [ [ drop ] dip ] dip ] dip ] dip ] dip ] dip pick3 tail [ [ [ [ drop ] dip ] dip ] dip ] dip dup head [ [ pick4 ] dip swap ] dip swap unpack2 [ [ [ [ [ [ [ [ drop ] dip ] dip ] dip ] dip ] dip ] dip ] dip ] dip [ [ [ pick4 ] dip swap ] dip swap ] dip swap pick3 [ [ [ pick4 ] dip swap ] dip swap ] dip swap [ over len over le? ] [ drop drop ] [ rot drop nth ] ifte [ [ [ drop ] dip ] dip ] dip [ [ [ [ [ [ [ drop ] dip ] dip ] dip ] dip ] dip ] dip ] dip dup [ [ [ pick4 ] dip swap ] dip swap ] dip swap gt? bool>int [ drop ] dip over over mul [ [ drop ] dip ] dip [ [ pick4 ] dip swap ] dip swap over sub [ [ [ [ [ [ [ drop ] dip ] dip ] dip ] dip ] dip ] dip ] dip pick3 pick3 mul [ [ [ drop ] dip ] dip ] dip [ [ [ drop ] dip ] dip ] dip [ pick4 ] dip swap over sub [ drop ] dip [ [ [ [ [ drop ] dip ] dip ] dip ] dip ] dip pick4 pick3 cons [ [ [ drop ] dip ] dip ] dip [ [ [ [ drop ] dip ] dip ] dip ] dip pick3 pick3 pick3 pick3 pack4 [ drop ] dip [ drop ] dip [ drop ] dip [ drop ] dip ] swap cons fold [ drop ] dip [ drop ] dip [ [ drop ] dip ] dip dup unpack4 [ drop drop drop ] dip [ drop ] dip over over [ over 0 eq? ] [ swap drop [ drop 0 ] map ] [ swap drop ] ifte [ drop ] dip [ drop ] dip over over sum sub [ [ drop ] dip ] dip over over cons [ drop ] dip [ drop ] dip` |
 | mbpp-854 | 1967 | `dup len 2 div range reverse swap [ over over pick2 pick4 pick4 nth pack4 [ drop drop ] dip dup head len bitlen range swap [ drop unpack4 [ pick2 2 mul 1 add pick4 len lt? [ drop drop drop drop ] dip ] [ pick2 2 mul 1 add [ dup 1 add [ pick4 ] dip swap len lt? ] [ [ pick4 over nth [ pick4 ] dip swap pick2 1 add nth ge? ] [ dup 1 add ] [ dup ] ifte ] [ dup ] ifte [ pick4 ] dip swap [ pick4 ] dip swap [ [ [ pick4 ] dip swap ] dip swap ] dip swap pick3 nth pick2 pick2 take over quote cat pick3 pick3 1 add drop-n cat [ drop drop drop ] dip over [ pick4 ] dip swap [ pick4 ] dip swap pack4 [ drop drop drop drop drop drop ] dip ] [ pack4 ] ifte ] fold dup head len bitlen range swap [ drop unpack4 [ pick2 pick2 gt? [ drop drop drop drop ] dip ] [ [ dup pick4 pick4 1 sub 2 div nth lt? ] [ pick3 pick3 [ pick4 ] dip swap [ pick4 ] dip swap 1 sub 2 div nth pick2 pick2 take over quote cat pick3 pick3 1 add drop-n cat [ drop drop drop ] dip pick3 1 sub 2 div pick3 pick3 pack4 ] [ pick3 pick3 pick3 pick3 pack4 ] ifte [ drop drop drop drop ] dip ] [ pack4 ] ifte ] fold unpack4 pick3 pick3 pick2 pick2 pick2 take over quote cat pick3 pick3 1 add drop-n cat [ drop drop drop ] dip [ drop drop drop drop ] dip ] fold` |

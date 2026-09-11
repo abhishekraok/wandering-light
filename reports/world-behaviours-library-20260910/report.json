@@ -17,12 +17,28 @@
     "total": 50
    }
   },
+  "by_source_difficulty": {
+   "leetcode": {
+    "solved": 42,
+    "total": 45
+   },
+   "mbpp": {
+    "solved": 49,
+    "total": 50
+   }
+  },
+  "by_author": {
+   "canonical": {
+    "solved": 91,
+    "total": 95
+   }
+  },
   "length_median": 111,
   "length_hist": {
-   "41+": 67,
+   "41+": 68,
    "1-5": 6,
    "11-20": 8,
-   "21-40": 7,
+   "21-40": 6,
    "6-10": 3
   },
   "v4_length_median": 43.0,
@@ -152,7 +168,7 @@
     6
    ]
   ],
-  "macros_defined": 94,
+  "macros_defined": 110,
   "unsolved_reasons": [
    [
     "unsolved on fuel: linear search needs >=611 candidates (test",
@@ -176,6 +192,7 @@
   {
    "id": "leetcode-account-balance-after-rounded-purchase",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -195,6 +212,7 @@
   {
    "id": "leetcode-add-two-integers",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -210,6 +228,7 @@
   {
    "id": "leetcode-calculate-delayed-arrival-time",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -229,6 +248,7 @@
   {
    "id": "leetcode-calculate-money-in-leetcode-bank",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -249,6 +269,7 @@
   {
    "id": "leetcode-convert-integer-to-the-sum-of-two-no-zero-integers",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "unsolved",
    "solved": false,
@@ -264,6 +285,7 @@
   {
    "id": "leetcode-count-distinct-numbers-on-board",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -282,6 +304,7 @@
   {
    "id": "leetcode-count-integers-with-even-digit-sum",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -301,6 +324,7 @@
   {
    "id": "leetcode-count-largest-group",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "unsolved",
    "solved": false,
@@ -316,6 +340,7 @@
   {
    "id": "leetcode-count-numbers-with-unique-digits-ii",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -347,6 +372,7 @@
   {
    "id": "leetcode-count-of-matches-in-tournament",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -364,6 +390,7 @@
   {
    "id": "leetcode-count-operations-to-obtain-zero",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -381,6 +408,7 @@
   {
    "id": "leetcode-count-square-sum-triples",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -411,6 +439,7 @@
   {
    "id": "leetcode-count-symmetric-integers",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -437,6 +466,7 @@
   {
    "id": "leetcode-distribute-candies-among-children-i",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -459,6 +489,7 @@
   {
    "id": "leetcode-distribute-money-to-maximum-children",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -481,6 +512,7 @@
   {
    "id": "leetcode-divisible-and-non-divisible-sums-difference",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -499,6 +531,7 @@
   {
    "id": "leetcode-fibonacci-number",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -517,6 +550,7 @@
   {
    "id": "leetcode-find-the-child-who-has-the-ball-after-k-seconds",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -536,6 +570,7 @@
   {
    "id": "leetcode-find-the-distance-value-between-two-arrays",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -555,6 +590,7 @@
   {
    "id": "leetcode-find-the-key-of-the-numbers",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -577,6 +613,7 @@
   {
    "id": "leetcode-find-the-maximum-achievable-number",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -594,6 +631,7 @@
   {
    "id": "leetcode-find-the-pivot-integer",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -616,6 +654,7 @@
   {
    "id": "leetcode-form-smallest-number-from-two-digit-arrays",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -637,6 +676,7 @@
   {
    "id": "leetcode-get-maximum-in-generated-array",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -659,6 +699,7 @@
   {
    "id": "leetcode-harshad-number",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -678,6 +719,7 @@
   {
    "id": "leetcode-maximum-height-of-a-triangle",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -702,6 +744,7 @@
   {
    "id": "leetcode-maximum-number-of-balls-in-a-box",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "unsolved",
    "solved": false,
@@ -717,6 +760,7 @@
   {
    "id": "leetcode-minimum-amount-of-time-to-fill-cups",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -738,6 +782,7 @@
   {
    "id": "leetcode-minimum-cuts-to-divide-a-circle",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -756,6 +801,7 @@
   {
    "id": "leetcode-minimum-element-after-replacement-with-digit-sum",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -774,6 +820,7 @@
   {
    "id": "leetcode-minimum-sum-of-four-digit-number-after-splitting-digits",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -796,6 +843,7 @@
   {
    "id": "leetcode-number-of-common-factors",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -816,6 +864,7 @@
   {
    "id": "leetcode-number-of-days-in-a-month",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -842,6 +891,7 @@
   {
    "id": "leetcode-number-of-even-and-odd-bits",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -865,6 +915,7 @@
   {
    "id": "leetcode-number-of-students-doing-homework-at-a-given-time",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -885,6 +936,7 @@
   {
    "id": "leetcode-pass-the-pillow",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -905,6 +957,7 @@
   {
    "id": "leetcode-smallest-divisible-digit-product-i",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -926,6 +979,7 @@
   {
    "id": "leetcode-smallest-even-multiple",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -943,6 +997,7 @@
   {
    "id": "leetcode-smallest-number-with-all-set-bits",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -962,6 +1017,7 @@
   {
    "id": "leetcode-sum-multiples",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -982,6 +1038,7 @@
   {
    "id": "leetcode-sum-of-digits-in-base-k",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -999,6 +1056,7 @@
   {
    "id": "leetcode-total-distance-traveled",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1020,6 +1078,7 @@
   {
    "id": "leetcode-two-out-of-three",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1040,6 +1099,7 @@
   {
    "id": "leetcode-water-bottles",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1057,6 +1117,7 @@
   {
    "id": "leetcode-xor-operation-in-an-array",
    "source": "leetcode",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1079,6 +1140,7 @@
   {
    "id": "mbpp-107",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1102,6 +1164,7 @@
   {
    "id": "mbpp-126",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1124,6 +1187,7 @@
   {
    "id": "mbpp-142",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1144,6 +1208,7 @@
   {
    "id": "mbpp-152",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1161,6 +1226,7 @@
   {
    "id": "mbpp-171",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1178,6 +1244,7 @@
   {
    "id": "mbpp-176",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1193,15 +1260,16 @@
   {
    "id": "mbpp-218",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
    "passed": 27,
    "total": 27,
    "macro_program": "over over gcd div swap drop dec",
-   "program": "over over [ [ drop dup 0 eq? ] [ drop drop ] [ [ dup [ over over div mul sub ] dip swap ] dip dup i ] ifte ] dup i div swap drop 1 sub",
+   "program": "over over [ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] dip [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte nil swap cons swap cons nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat dup cat swap [ drop uncons swap uncons swap drop [ dup 0 eq? ] [ nil swap cons swap cons ] [ dup [ over over div mul sub ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap drop div swap drop 1 sub",
    "macro_length": 7,
-   "length": 39,
+   "length": 105,
    "macros_used": [
     "dec",
     "gcd"
@@ -1211,6 +1279,7 @@
   {
    "id": "mbpp-219",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1236,6 +1305,7 @@
   {
    "id": "mbpp-235",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1264,6 +1334,7 @@
   {
    "id": "mbpp-239",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1288,6 +1359,7 @@
   {
    "id": "mbpp-249",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1305,6 +1377,7 @@
   {
    "id": "mbpp-286",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1324,6 +1397,7 @@
   {
    "id": "mbpp-309",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1341,6 +1415,7 @@
   {
    "id": "mbpp-313",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1359,6 +1434,7 @@
   {
    "id": "mbpp-34",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1389,6 +1465,7 @@
   {
    "id": "mbpp-366",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1408,6 +1485,7 @@
   {
    "id": "mbpp-373",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1423,6 +1501,7 @@
   {
    "id": "mbpp-4",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1443,6 +1522,7 @@
   {
    "id": "mbpp-41",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1460,6 +1540,7 @@
   {
    "id": "mbpp-429",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1479,6 +1560,7 @@
   {
    "id": "mbpp-466",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1512,6 +1594,7 @@
   {
    "id": "mbpp-524",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1533,6 +1616,7 @@
   {
    "id": "mbpp-536",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1555,6 +1639,7 @@
   {
    "id": "mbpp-539",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1574,6 +1659,7 @@
   {
    "id": "mbpp-54",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1593,6 +1679,7 @@
   {
    "id": "mbpp-548",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1614,6 +1701,7 @@
   {
    "id": "mbpp-564",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1635,6 +1723,7 @@
   {
    "id": "mbpp-572",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1652,6 +1741,7 @@
   {
    "id": "mbpp-577",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1672,6 +1762,7 @@
   {
    "id": "mbpp-579",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "unsolved",
    "solved": false,
@@ -1687,6 +1778,7 @@
   {
    "id": "mbpp-588",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1705,6 +1797,7 @@
   {
    "id": "mbpp-589",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1725,6 +1818,7 @@
   {
    "id": "mbpp-591",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1745,6 +1839,7 @@
   {
    "id": "mbpp-623",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1762,6 +1857,7 @@
   {
    "id": "mbpp-644",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1784,6 +1880,7 @@
   {
    "id": "mbpp-646",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1802,6 +1899,7 @@
   {
    "id": "mbpp-656",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1823,6 +1921,7 @@
   {
    "id": "mbpp-663",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1843,6 +1942,7 @@
   {
    "id": "mbpp-733",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1876,6 +1976,7 @@
   {
    "id": "mbpp-777",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1897,6 +1998,7 @@
   {
    "id": "mbpp-799",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1919,6 +2021,7 @@
   {
    "id": "mbpp-807",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1938,6 +2041,7 @@
   {
    "id": "mbpp-824",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1956,6 +2060,7 @@
   {
    "id": "mbpp-836",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -1979,6 +2084,7 @@
   {
    "id": "mbpp-841",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -2002,6 +2108,7 @@
   {
    "id": "mbpp-846",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -2034,6 +2141,7 @@
   {
    "id": "mbpp-925",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -2051,6 +2159,7 @@
   {
    "id": "mbpp-96",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -2070,6 +2179,7 @@
   {
    "id": "mbpp-962",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,
@@ -2090,6 +2200,7 @@
   {
    "id": "mbpp-970",
    "source": "mbpp",
+   "difficulty": "",
    "author": "canonical",
    "claimed": "solved",
    "solved": true,

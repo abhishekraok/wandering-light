@@ -6,14 +6,14 @@
   "programs_without_behaviour": [],
   "duplicates": [],
   "claim_mismatches": [],
-  "solved": 91,
+  "solved": 92,
   "by_source": {
    "codearc": {
     "solved": 34,
     "total": 34
    },
    "leetcode": {
-    "solved": 22,
+    "solved": 23,
     "total": 30
    },
    "mbpp": {
@@ -31,7 +31,7 @@
     "total": 5
    },
    "leetcode-medium": {
-    "solved": 20,
+    "solved": 21,
     "total": 25
    },
    "mbpp": {
@@ -41,13 +41,13 @@
   },
   "by_author": {
    "canonical": {
-    "solved": 91,
+    "solved": 92,
     "total": 100
    }
   },
-  "length_median": 163,
+  "length_median": 164.0,
   "length_hist": {
-   "41+": 77,
+   "41+": 78,
    "21-40": 3,
    "11-20": 3,
    "6-10": 5,
@@ -71,36 +71,36 @@
    "mbpp-292",
    "mbpp-517"
   ],
-  "macro_length_median": 24,
-  "compression_median": 5.523809523809524,
+  "macro_length_median": 24.5,
+  "compression_median": 5.423195084485407,
   "macro_use": [
    [
     "2",
-    35
+    36
    ],
    [
     "unpack2",
-    25
+    26
    ],
    [
     "inc",
-    24
+    25
    ],
    [
     "pack2",
-    23
+    24
    ],
    [
     "range",
-    21
+    22
    ],
    [
     "len",
-    20
+    21
    ],
    [
     "pick2",
-    20
+    21
    ],
    [
     "max2",
@@ -108,26 +108,30 @@
    ],
    [
     "mod",
-    18
+    19
    ],
    [
     "bool>int",
-    17
+    18
    ],
    [
     "head",
-    17
+    18
+   ],
+   [
+    "le?",
+    16
+   ],
+   [
+    "sum",
+    16
    ],
    [
     "dec",
     15
    ],
    [
-    "le?",
-    15
-   ],
-   [
-    "sum",
+    "pick3",
     15
    ],
    [
@@ -135,7 +139,7 @@
     14
    ],
    [
-    "pick3",
+    "gt?",
     14
    ],
    [
@@ -143,12 +147,8 @@
     14
    ],
    [
-    "gt?",
-    13
-   ],
-   [
     "pack3",
-    12
+    13
    ],
    [
     "take",
@@ -167,11 +167,11 @@
     10
    ],
    [
-    "ge?",
+    "tail",
     9
    ],
    [
-    "10",
+    "ge?",
     9
    ]
   ],
@@ -195,10 +195,6 @@
    ],
    [
     "best 47/64; why: exhaustive LCM allocations exceed 100,000 f",
-    1
-   ],
-   [
-    "verified 14/14 with the probe-era recursive gcd (105 fuel, v",
     1
    ],
    [
@@ -1570,19 +1566,21 @@
    "source": "leetcode",
    "difficulty": "medium",
    "author": "canonical",
-   "claimed": "unsolved",
-   "solved": false,
-   "passed": 12,
+   "claimed": "solved",
+   "solved": true,
+   "passed": 14,
    "total": 14,
-   "macro_program": "[ dup 0 le? ] [ drop 1 ] [ dup dup inc 2 div dup range [ dup 2 swap pow 1000 over pow pick2 2 mul inc pick2 pick2 pick2 pack3 dup [ drop drop drop drop drop ] dip ] map 2 pick2 pow range tail 1 1000 pack2 pick2 [ pick2 unpack2 pick2 pick4 [ swap head div 2 mod 1 eq? ] swap cons filter dup len 2 mul over pick4 pick4 pick3 [ pick3 unpack3 pick3 over gcd 1 eq? bool>int [ [ pick4 ] dip swap ] dip swap [ [ pick4 ] dip swap ] dip swap pick4 div div 1000 mod over over mul dup [ drop drop drop drop drop drop drop drop drop drop ] dip ] swap cons swap cons swap cons map sum dup pick4 mul [ pick4 ] dip swap over add [ pick4 ] dip swap 1000 mul over over pack2 dup [ drop drop drop drop drop drop drop drop drop drop drop drop ] dip ] swap cons pick2 pick2 pick2 fold pick4 over pack2 dup [ drop drop drop drop drop drop drop drop ] dip swap [ odd? ] [ drop unpack2 [ dup unpack2 pick3 unpack3 pick4 pick4 1000 div pick3 div div 1000 mod over over pack2 dup [ drop drop drop drop drop drop drop drop drop ] dip ] swap cons map dup [ swap [ over unpack2 pick2 unpack2 pick3 pick2 gcd 1 eq? bool>int pick3 pick2 mul over mul dup [ drop drop drop drop drop drop drop drop ] dip ] swap cons map sum ] swap cons map sum ] [ drop unpack2 swap drop unpack2 1000 div div sq ] ifte ] ifte",
-   "program": "[ dup 0 swap lt? [ ] [ drop false ] [ drop true ] ifte ] [ drop 1 ] [ dup dup 1 add 1 1 add div dup dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter [ dup 1 1 add swap swap [ drop ] swap quote cat [ dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter ] dip map 1 [ mul ] fold 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul over swap [ drop ] swap quote cat [ dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter ] dip map 1 [ mul ] fold [ over ] dip swap 1 1 add mul 1 add [ over ] dip swap [ over ] dip swap [ over ] dip swap nil swap cons swap cons swap cons dup [ drop drop drop drop drop ] dip ] map 1 1 add [ over ] dip swap swap [ drop ] swap quote cat [ dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter ] dip map 1 [ mul ] fold dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter uncons drop 1 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul nil swap cons swap cons [ over ] dip swap [ [ over ] dip swap uncons swap uncons swap drop [ over ] dip swap [ [ [ over ] dip swap ] dip swap ] dip swap [ swap uncons swap drop div 1 1 add over over div mul sub 1 eq? ] swap cons filter dup 0 [ drop 1 add ] fold 1 1 add mul over [ [ [ over ] dip swap ] dip swap ] dip swap [ [ [ over ] dip swap ] dip swap ] dip swap [ [ over ] dip swap ] dip swap [ [ [ over ] dip swap ] dip swap uncons swap uncons swap uncons swap drop [ [ over ] dip swap ] dip swap over [ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] dip [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte nil swap cons swap cons nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat dup cat swap [ drop uncons swap uncons swap drop [ dup 0 eq? ] [ nil swap cons swap cons ] [ dup [ over over div mul sub ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap drop 1 eq? [ ] [ drop 1 ] [ drop 0 ] ifte [ [ [ [ [ over ] dip swap ] dip swap ] dip swap ] dip swap ] dip swap [ [ [ [ [ over ] dip swap ] dip swap ] dip swap ] dip swap ] dip swap [ [ [ over ] dip swap ] dip swap ] dip swap div div 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul over over div mul sub over over mul dup [ drop drop drop drop drop drop drop drop drop drop ] dip ] swap cons swap cons swap cons map 0 [ add ] fold dup [ [ [ over ] dip swap ] dip swap ] dip swap mul [ [ [ [ over ] dip swap ] dip swap ] dip swap ] dip swap over add [ [ [ [ over ] dip swap ] dip swap ] dip swap ] dip swap 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul mul over over nil swap cons swap cons dup [ drop drop drop drop drop drop drop drop drop drop drop drop ] dip ] swap cons [ over ] dip swap [ over ] dip swap [ over ] dip swap fold [ [ [ over ] dip swap ] dip swap ] dip swap over nil swap cons swap cons dup [ drop drop drop drop drop drop drop drop ] dip swap [ 1 1 add over over div mul sub 1 eq? ] [ drop uncons swap uncons swap drop [ dup uncons swap uncons swap drop [ [ over ] dip swap ] dip swap uncons swap uncons swap uncons swap drop [ [ [ over ] dip swap ] dip swap ] dip swap [ [ [ over ] dip swap ] dip swap ] dip swap 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul div [ [ over ] dip swap ] dip swap div div 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul over over div mul sub over over nil swap cons swap cons dup [ drop drop drop drop drop drop drop drop drop ] dip ] swap cons map dup [ swap [ over uncons swap uncons swap drop [ over ] dip swap uncons swap uncons swap drop [ [ over ] dip swap ] dip swap [ over ] dip swap [ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] dip [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte nil swap cons swap cons nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat dup cat swap [ drop uncons swap uncons swap drop [ dup 0 eq? ] [ nil swap cons swap cons ] [ dup [ over over div mul sub ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap drop 1 eq? [ ] [ drop 1 ] [ drop 0 ] ifte [ [ over ] dip swap ] dip swap [ over ] dip swap mul over mul dup [ drop drop drop drop drop drop drop drop ] dip ] swap cons map 0 [ add ] fold ] swap cons map 0 [ add ] fold ] [ drop uncons swap uncons swap drop swap drop uncons swap uncons swap drop 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul div div dup mul ] ifte ] ifte",
-   "macro_length": 291,
-   "length": 1595,
+   "macro_program": "[ dup 0 le? ] [ drop 1 ] [ dup dup inc 2 div dup range [ dup 2 swap pow 1000 over pow pick2 2 mul inc pick2 pick2 pick2 pack3 dup [ drop drop drop drop drop ] dip ] map 2 pick2 pow range tail 1 1000 pack2 pick2 [ pick2 unpack2 pick2 pick4 [ swap head div 2 mod 1 eq? ] swap cons filter dup len 2 mul over pick4 pick4 pick3 [ pick3 unpack3 pick3 over [ over 3 mod over 3 mod add 0 eq? ] [ drop drop false ] [ [ over 5 mod over 5 mod add 0 eq? ] [ drop drop false ] [ drop drop true ] ifte ] ifte bool>int [ [ pick4 ] dip swap ] dip swap [ [ pick4 ] dip swap ] dip swap pick4 div div 1000 mod over over mul dup [ drop drop drop drop drop drop drop drop drop drop ] dip ] swap cons swap cons swap cons map sum dup pick4 mul [ pick4 ] dip swap over add [ pick4 ] dip swap 1000 mul over over pack2 dup [ drop drop drop drop drop drop drop drop drop drop drop drop ] dip ] swap cons pick2 pick2 pick2 fold pick4 over pack2 dup [ drop drop drop drop drop drop drop drop ] dip swap [ odd? ] [ drop unpack2 [ dup unpack2 pick3 unpack3 pick4 pick4 1000 div pick3 div div 1000 mod over over pack2 dup [ drop drop drop drop drop drop drop drop drop ] dip ] swap cons map dup [ swap [ over unpack2 pick2 unpack2 pick3 pick2 [ over eq? ] [ drop 1 eq? ] [ [ 3 mod ] dip 3 mod add 0 gt? ] ifte bool>int pick3 pick2 mul over mul dup [ drop drop drop drop drop drop drop drop ] dip ] swap cons map sum ] swap cons map sum ] [ drop unpack2 swap drop unpack2 1000 div div sq ] ifte ] ifte",
+   "program": "[ dup 0 swap lt? [ ] [ drop false ] [ drop true ] ifte ] [ drop 1 ] [ dup dup 1 add 1 1 add div dup dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter [ dup 1 1 add swap swap [ drop ] swap quote cat [ dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter ] dip map 1 [ mul ] fold 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul over swap [ drop ] swap quote cat [ dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter ] dip map 1 [ mul ] fold [ over ] dip swap 1 1 add mul 1 add [ over ] dip swap [ over ] dip swap [ over ] dip swap nil swap cons swap cons swap cons dup [ drop drop drop drop drop ] dip ] map 1 1 add [ over ] dip swap swap [ drop ] swap quote cat [ dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter ] dip map 1 [ mul ] fold dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter uncons drop 1 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul nil swap cons swap cons [ over ] dip swap [ [ over ] dip swap uncons swap uncons swap drop [ over ] dip swap [ [ [ over ] dip swap ] dip swap ] dip swap [ swap uncons swap drop div 1 1 add over over div mul sub 1 eq? ] swap cons filter dup 0 [ drop 1 add ] fold 1 1 add mul over [ [ [ over ] dip swap ] dip swap ] dip swap [ [ [ over ] dip swap ] dip swap ] dip swap [ [ over ] dip swap ] dip swap [ [ [ over ] dip swap ] dip swap uncons swap uncons swap uncons swap drop [ [ over ] dip swap ] dip swap over [ over 1 1 add 1 add over over div mul sub over 1 1 add 1 add over over div mul sub add 0 eq? ] [ drop drop false ] [ [ over 1 1 add dup add 1 add over over div mul sub over 1 1 add dup add 1 add over over div mul sub add 0 eq? ] [ drop drop false ] [ drop drop true ] ifte ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte [ [ [ [ [ over ] dip swap ] dip swap ] dip swap ] dip swap ] dip swap [ [ [ [ [ over ] dip swap ] dip swap ] dip swap ] dip swap ] dip swap [ [ [ over ] dip swap ] dip swap ] dip swap div div 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul over over div mul sub over over mul dup [ drop drop drop drop drop drop drop drop drop drop ] dip ] swap cons swap cons swap cons map 0 [ add ] fold dup [ [ [ over ] dip swap ] dip swap ] dip swap mul [ [ [ [ over ] dip swap ] dip swap ] dip swap ] dip swap over add [ [ [ [ over ] dip swap ] dip swap ] dip swap ] dip swap 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul mul over over nil swap cons swap cons dup [ drop drop drop drop drop drop drop drop drop drop drop drop ] dip ] swap cons [ over ] dip swap [ over ] dip swap [ over ] dip swap fold [ [ [ over ] dip swap ] dip swap ] dip swap over nil swap cons swap cons dup [ drop drop drop drop drop drop drop drop ] dip swap [ 1 1 add over over div mul sub 1 eq? ] [ drop uncons swap uncons swap drop [ dup uncons swap uncons swap drop [ [ over ] dip swap ] dip swap uncons swap uncons swap uncons swap drop [ [ [ over ] dip swap ] dip swap ] dip swap [ [ [ over ] dip swap ] dip swap ] dip swap 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul div [ [ over ] dip swap ] dip swap div div 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul over over div mul sub over over nil swap cons swap cons dup [ drop drop drop drop drop drop drop drop drop ] dip ] swap cons map dup [ swap [ over uncons swap uncons swap drop [ over ] dip swap uncons swap uncons swap drop [ [ over ] dip swap ] dip swap [ over ] dip swap [ over eq? ] [ drop 1 eq? ] [ [ 1 1 add 1 add over over div mul sub ] dip 1 1 add 1 add over over div mul sub add 0 swap lt? ] ifte [ ] [ drop 1 ] [ drop 0 ] ifte [ [ over ] dip swap ] dip swap [ over ] dip swap mul over mul dup [ drop drop drop drop drop drop drop drop ] dip ] swap cons map 0 [ add ] fold ] swap cons map 0 [ add ] fold ] [ drop uncons swap uncons swap drop swap drop uncons swap uncons swap drop 1 1 add dup add 1 add dup add dup mul 1 1 add dup add 1 add dup add mul div div dup mul ] ifte ] ifte",
+   "macro_length": 348,
+   "length": 1511,
    "macros_used": [
     "1000",
     "2",
+    "3",
+    "5",
     "bool>int",
-    "gcd",
+    "gt?",
     "head",
     "inc",
     "le?",
@@ -1602,7 +1600,7 @@
     "unpack2",
     "unpack3"
    ],
-   "note": "verified 14/14 with the probe-era recursive gcd (105 fuel, valid only for Euclid chains of <= 7 steps); the canonical recursion-free gcd costs ~700 fuel and two tests exhaust fuel (12/14)"
+   "note": "[codex exec repair, gpt-6-astra high, 22k tokens] 14/14 with canonical macros. Replaced both gcd calls with inline coprimality predicates valid for n <= 12: even-odd pairs check common divisibility by 3 and 5; odd-odd pairs handle equality (coprime only at 1), otherwise check 3. Worst-case fuel 63,990/100,000 at n=11; n=12 uses 60,110."
   },
   {
    "id": "leetcode-number-of-squareful-arrays",

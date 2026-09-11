@@ -103,6 +103,11 @@ def main(argv: list[str] | None = None) -> int:
         help="omit the prose findings written for the 2026-09-09 run",
     )
     parser.add_argument(
+        "--findings-file",
+        type=Path,
+        help="markdown inserted after the intro (a hand-written findings section that survives regeneration)",
+    )
+    parser.add_argument(
         "--title",
         default="World-behaviours probe: can MBPP and LeetCode-easy behaviours get `mark-28` witnesses?",
     )
@@ -241,7 +246,11 @@ def main(argv: list[str] | None = None) -> int:
         "",
         args.intro,
         "",
-        "" if args.no_findings else FINDINGS,
+        args.findings_file.read_text()
+        if args.findings_file
+        else ""
+        if args.no_findings
+        else FINDINGS,
         "## Verified",
         "",
         "| source | verified | median witness length (`mark-28` ops) | median macro-form length |",
