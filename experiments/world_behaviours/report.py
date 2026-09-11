@@ -102,6 +102,18 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="omit the prose findings written for the 2026-09-09 run",
     )
+    parser.add_argument(
+        "--title",
+        default="World-behaviours probe: can MBPP and LeetCode-easy behaviours get `mark-28` witnesses?",
+    )
+    parser.add_argument(
+        "--intro",
+        default=(
+            "training-data-sources (#118). Behaviours sampled by `experiments/world_behaviours/extract.py`\n"
+            "(seed 17, ints and flat int lists only, ≤ 3 arguments); programs authored by Claude in macro\n"
+            "form and expanded to `mark-28`; every program re-verified on every test by `report.py`."
+        ),
+    )
     args = parser.parse_args(argv)
     d = args.directory
 
@@ -136,6 +148,7 @@ def main(argv: list[str] | None = None) -> int:
             {
                 "id": row["id"],
                 "source": b["source"],
+                "difficulty": b.get("difficulty", ""),
                 "author": row["author"],
                 "claimed": row.get("status"),
                 "solved": bool(expanded) and res.get("passed") == res["total"],
@@ -156,6 +169,15 @@ def main(argv: list[str] | None = None) -> int:
         by_source[r["source"]][1] += 1
         by_source[r["source"]][0] += r["solved"]
     mismatched = [r["id"] for r in results if (r["claimed"] == "solved") != r["solved"]]
+    by_group = collections.defaultdict(lambda: [0, 0])
+    for r in results:
+        key = f"{r['source']}-{r['difficulty']}" if r["difficulty"] else r["source"]
+        by_group[key][1] += 1
+        by_group[key][0] += r["solved"]
+    by_author = collections.defaultdict(lambda: [0, 0])
+    for r in results:
+        by_author[r["author"]][1] += 1
+        by_author[r["author"]][0] += r["solved"]
 
     lengths = [r["length"] for r in solved]
     hist = collections.Counter(bucket(n) for n in lengths)
@@ -186,6 +208,12 @@ def main(argv: list[str] | None = None) -> int:
         "claim_mismatches": mismatched,
         "solved": len(solved),
         "by_source": {k: {"solved": v[0], "total": v[1]} for k, v in by_source.items()},
+        "by_source_difficulty": {
+            k: {"solved": v[0], "total": v[1]} for k, v in sorted(by_group.items())
+        },
+        "by_author": {
+            k: {"solved": v[0], "total": v[1]} for k, v in sorted(by_author.items())
+        },
         "length_median": statistics.median(lengths) if lengths else None,
         "length_hist": dict(hist),
         "v4_length_median": statistics.median(v4_lengths) if v4_lengths else None,
@@ -209,11 +237,9 @@ def main(argv: list[str] | None = None) -> int:
         return f"{a}/{b} ({100 * a / b:.0f}%)" if b else "-"
 
     lines = [
-        "# World-behaviours probe: can MBPP and LeetCode-easy behaviours get `mark-28` witnesses?",
+        f"# {args.title}",
         "",
-        "training-data-sources (#118). Behaviours sampled by `experiments/world_behaviours/extract.py`",
-        "(seed 17, ints and flat int lists only, ≤ 3 arguments); programs authored by Claude in macro",
-        "form and expanded to `mark-28`; every program re-verified on every test by `report.py`.",
+        args.intro,
         "",
         "" if args.no_findings else FINDINGS,
         "## Verified",
@@ -221,9 +247,15 @@ def main(argv: list[str] | None = None) -> int:
         "| source | verified | median witness length (`mark-28` ops) | median macro-form length |",
         "|---|---|---|---|",
     ]
-    for src, (n_solved, n_total) in sorted(by_source.items()):
-        ls = [r["length"] for r in solved if r["source"] == src]
-        ms = [r["macro_length"] for r in solved if r["source"] == src]
+    for src, (n_solved, n_total) in sorted(by_group.items()):
+        rows_ = [
+            r
+            for r in solved
+            if (f"{r['source']}-{r['difficulty']}" if r["difficulty"] else r["source"])
+            == src
+        ]
+        ls = [r["length"] for r in rows_]
+        ms = [r["macro_length"] for r in rows_]
         lines.append(
             f"| {src} | {pct(n_solved, n_total)} | {statistics.median(ls) if ls else '-'} | {statistics.median(ms) if ms else '-'} |"
         )
@@ -233,6 +265,10 @@ def main(argv: list[str] | None = None) -> int:
     lines += [
         "",
         f"Claimed-vs-verified mismatches: {len(mismatched)}; missing ids: {len(missing)}; duplicates: {len(duplicates)}.",
+        "",
+        "By author: "
+        + "; ".join(f"{k} {pct(v[0], v[1])}" for k, v in sorted(by_author.items()))
+        + ".",
         "",
         "## Witness length against `stack_pbe_v4`",
         "",
