@@ -1,0 +1,1 @@
+{"id": "leetcode-number-of-self-divisible-permutations", "program": "", "status": "unsolved", "note": "verified 14/14 with the probe-era recursive gcd (105 fuel, valid only for Euclid chains of <= 7 steps); the canonical recursion-free gcd costs ~700 fuel and two tests exhaust fuel (12/14)"}

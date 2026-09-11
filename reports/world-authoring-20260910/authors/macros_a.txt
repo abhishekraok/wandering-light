@@ -1,0 +1,28 @@
+# Author a helpers for world-authoring-20260910.
+ka-inversions: nil 0 pack2 [ [ unpack2 ] dip pick2 over [ gt? ] swap cons filter len rot add [ cons ] dip pack2 ] fold unpack2 swap drop
+ka-isqrt: [ dup 0 eq? ] [ ] [ dup digits len 4 mul inc range swap dup pack2 [ drop unpack2 over over div over add 2 div min2 pack2 ] fold unpack2 swap drop ] ifte
+ka-complement: dup abs pows2 swap [ le? ] swap cons filter last 2 mul 2 max2 [ over 0 lt? ] [ 2 mul ] [ ] ifte swap sub dec
+ka-unsigned: [ dup 0 lt? ] [ neg dec ] [ ] ifte
+ka-nofive: digits 0 1 pack2 [ [ unpack2 ] dip pick2 9 mul pick2 pick2 pick3 5 gt? bool>int sub mul add pick2 pick2 5 eq? 0 1 eq? eq? bool>int mul pack2 [ drop drop drop ] dip ] fold unpack2 add
+ka-diff-count: [ [ sub abs ] dip eq? ] swap cons swap cons filter len
+ka-prod-max: [ unpack2 ] dip [ dup pick2 gt? ] [ [ pick2 over mul pick3 ge? ] [ pick2 over mul over pack2 ] [ pick2 pick2 pack2 ] ifte ] [ dup over pack2 ] ifte [ drop drop drop ] dip
+ka-prod-min: [ unpack2 ] dip [ dup pick2 gt? ] [ [ pick2 over mul pick3 le? ] [ pick2 over mul over pack2 ] [ pick2 pick2 pack2 ] ifte ] [ dup over pack2 ] ifte [ drop drop drop ] dip
+ka-signed-xor: [ over 0 lt? over 0 lt? eq? ] [ [ ka-unsigned ] dip ka-unsigned bxor ] [ [ ka-unsigned ] dip ka-unsigned bxor inc ] ifte
+ka-diff-pairs-step: [ unpack2 ] dip2 pick3 pick2 cons pick3 [ pick4 ] dip swap pick4 pick4 ka-diff-count add pack2 [ drop drop drop drop ] dip
+ka-first-step: drop unpack3 unpack3 [ pick2 pick2 le? ] [ pick2 pick2 add 2 div [ pick4 ] dip swap over nth [ [ pick4 ] dip swap ] dip swap [ [ pick4 ] dip swap ] dip swap [ pick2 [ [ [ [ pick4 ] dip swap ] dip swap ] dip swap ] dip swap eq? ] [ [ [ pick4 ] dip swap ] dip swap pick4 1 sub [ pick4 ] dip swap pack3 ] [ [ pick2 [ [ [ [ pick4 ] dip swap ] dip swap ] dip swap ] dip swap gt? ] [ [ [ pick4 ] dip swap ] dip swap pick4 1 sub [ [ pick4 ] dip swap ] dip swap pack3 ] [ pick3 1 add [ [ pick4 ] dip swap ] dip swap [ [ pick4 ] dip swap ] dip swap pack3 ] ifte ] ifte pack3 [ drop drop drop drop drop drop drop ] dip ] [ pack3 pack3 ] ifte
+ka-prod-step: [ unpack3 ] dip pick2 over ka-prod-max pick2 pick2 ka-prod-min [ pick4 ] dip swap pick2 head pick2 head max2 max2 pick2 pick2 pack3 [ drop drop drop drop drop drop ] dip
+ka-water-step: drop unpack3 [ over over ge? ] [ pick2 1 add pick2 pick2 sub 1 add pick2 1 add pack3 [ drop drop drop ] dip ] [ pack3 ] ifte
+ka-from-digits: 0 [ swap 10 mul add ] fold
+ka-mirror: [ digits dup reverse ] dip [ dup 1 eq? ] [ drop tail ] [ drop ] ifte cat ka-from-digits
+ka-next-pal: dup digits dup len 2 mod over pick2 len 1 add 2 div take ka-from-digits dup pick2 ka-mirror over over [ [ pick4 ] dip swap ] dip swap lt? bool>int add pick3 ka-mirror [ drop drop drop drop drop ] dip
+ka-pal-step: drop unpack2 over ka-next-pal dup 1 add pick2 pick2 cons pack2 [ drop drop drop ] dip
+ka-bitlen: pows2 swap [ le? ] swap cons filter len
+ka-egg-next: dup tail swap zip [ unpack2 add inc ] map 0 cons
+ka-egg-step: drop unpack3 [ over last pick3 ge? ] [ pick2 pick2 pick2 pack3 ] [ pick2 pick2 ka-egg-next pick2 1 add pack3 ] ifte [ drop drop drop ] dip
+ka-arr-compatible: over over mod 0 eq? bool>int over pick3 mod 0 eq? bool>int add 0 gt? [ drop drop ] dip
+ka-arr-expand: over swap [ ka-arr-compatible ] swap cons filter swap [ swap remove1 ] swap cons map
+ka-arr-step: [ ka-arr-expand ] swap cons map nil [ cat ] fold
+ka-set: pick2 pick2 take over quote cat pick3 pick3 1 add drop-n cat [ drop drop drop ] dip
+ka-heap-down: drop unpack4 [ pick2 2 mul 1 add pick4 len lt? [ drop drop drop drop ] dip ] [ pick2 2 mul 1 add [ dup 1 add [ pick4 ] dip swap len lt? ] [ [ pick4 over nth [ pick4 ] dip swap pick2 1 add nth ge? ] [ dup 1 add ] [ dup ] ifte ] [ dup ] ifte [ pick4 ] dip swap [ pick4 ] dip swap [ [ [ pick4 ] dip swap ] dip swap ] dip swap pick3 nth ka-set over [ pick4 ] dip swap [ pick4 ] dip swap pack4 [ drop drop drop drop drop drop ] dip ] [ pack4 ] ifte
+ka-heap-up: drop unpack4 [ pick2 pick2 gt? [ drop drop drop drop ] dip ] [ [ dup pick4 pick4 1 sub 2 div nth lt? ] [ pick3 pick3 [ pick4 ] dip swap [ pick4 ] dip swap 1 sub 2 div nth ka-set pick3 1 sub 2 div pick3 pick3 pack4 ] [ pick3 pick3 pick3 pick3 pack4 ] ifte [ drop drop drop drop ] dip ] [ pack4 ] ifte
+ka-heap-sift: over over pick2 pick4 pick4 nth pack4 [ drop drop ] dip dup head len ka-bitlen range swap [ ka-heap-down ] fold dup head len ka-bitlen range swap [ ka-heap-up ] fold unpack4 pick3 pick3 pick2 ka-set [ drop drop drop drop ] dip

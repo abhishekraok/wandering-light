@@ -1,0 +1,39 @@
+# Author c helpers for world-authoring-20260910.
+kc-palindrome?: [ dup 0 lt? ] [ drop false ] [ digits dup reverse eq? ] ifte
+kc-decimal-digits: [ dup 0 eq? ] [ drop nil 0 cons ] [ digits ] ifte
+kc-log2: pows2 swap [ le? ] swap cons filter len dec
+kc-odd-weight: over sub swap inc mul inc 2 div
+kc-concat-number: [ dup head 0 lt? ] [ kc-join-absolute neg ] [ kc-join-absolute ] ifte
+kc-signed-digits: [ dup 0 lt? ] [ neg kc-decimal-digits uncons neg cons ] [ kc-decimal-digits ] ifte
+kc-near-score: over over sub abs 2 mul -rot gt? bool>int add
+kc-choose-low: [ pick2 over kc-near-score pick2 pick2 kc-near-score le? ] [ drop drop ] [ drop swap drop ] ifte
+kc-digit-block: [ over over mul 9 mul pick3 lt? ] [ over over mul 9 mul -rot [ sub ] dip2 [ 10 mul ] dip inc ] [ ] ifte
+kc-isqrt: pows2 reverse swap [ [ pick2 pick2 add sq over le? ] [ drop add ] [ drop drop ] ifte ] swap cons 0 swap fold
+kc-smallest-factor: dup dup kc-isqrt range1 tail swap [ swap divides? ] swap cons filter [ dup null? ] [ drop ] [ head swap drop ] ifte
+kc-factor-sum-step: unpack2 [ over 1 gt? ] [ swap dup kc-smallest-factor swap over div [ add ] dip swap ] [ ] ifte pack2
+kc-gcd: [ abs ] dip abs over over max2 kc-log2 2 mul 2 add range -rot pack2 [ drop unpack2 [ dup 0 eq? ] [ ] [ dup [ mod ] dip swap ] ifte pack2 ] fold unpack2 drop
+kc-valid-palindrome?: [ dup 10 gt? ] [ kc-palindrome? ] [ drop false ] ifte
+kc-nearest-pal-step: [ unpack2 ] dip [ over 0 gt? ] [ drop pack2 ] [ [ drop ] dip over over add [ dup kc-valid-palindrome? ] [ [ drop ] dip pack2 ] [ drop over over sub [ dup kc-valid-palindrome? ] [ [ drop ] dip pack2 ] [ drop drop 0 pack2 ] ifte ] ifte ] ifte
+kc-set-difference: [ swap contains 0 eq? ] swap cons filter dedup
+kc-op-child-pair: over pick3 div over pick3 [ pick4 ] dip swap mod inc add pack2 pick2 pick4 div inc pick2 [ pick4 ] dip swap [ pick4 ] dip swap [ [ [ pick4 ] dip swap ] dip swap ] dip swap mod sub inc add pack2 pack2 [ drop drop drop ] dip
+kc-op-children: nil 5 cons 10 inc cons -rot [ kc-op-child-pair ] swap cons swap cons map nil [ cat ] fold
+kc-op-step: [ dup head null? ] [ ] [ unpack3 [ uncons unpack2 ] dip2 pick3 over sub abs pick3 add [ swap ] dip min2 swap [ pick3 over le? bool>int pick3 pick3 ge? bool>int add 0 gt? ] [ [ drop drop ] dip2 pack3 ] [ [ kc-op-children cat ] dip2 pack3 ] ifte ] ifte
+kc-op-search: [ [ drop head null? ] [ drop ] [ [ zeros1024 swap [ drop kc-op-step ] fold ] dip dup i ] ifte ] dup i
+kc-dessert-input: dup [ 0 lt? ] filter sum 2 mul [ add ] swap cons [ swap ] dip map swap [ abs ] map sort reverse
+kc-dessert-roots: dup sum [ pack3 ] swap cons swap cons map
+kc-three-costs: over over add over over add [ drop ] dip2 pack3 reverse
+kc-dessert-upper: unpack3 2 mul swap drop add
+kc-dessert-children: unpack3 [ uncons ] dip over sub swap -rot [ kc-three-costs ] dip2 [ pack3 ] swap cons swap cons map
+kc-dessert-step: [ dup head null? ] [ ] [ unpack3 [ over over eq? ] [ [ drop ] dip2 nil -rot pack3 ] [ [ uncons ] dip2 pick2 head pick2 pick2 kc-choose-low [ swap drop ] dip swap pick2 kc-dessert-upper pick2 pick2 kc-choose-low [ swap drop ] dip swap [ pick2 head over ge? bool>int pick3 kc-dessert-upper pick2 le? bool>int add 0 gt? ] [ [ drop ] dip2 pack3 ] [ [ kc-dessert-children swap cat ] dip2 pack3 ] ifte ] ifte ] ifte
+kc-dessert-search: [ [ drop head null? ] [ drop ] [ [ zeros1024 swap [ drop kc-dessert-step ] fold ] dip dup i ] ifte ] dup i
+kc-fast-nth: range swap [ drop tail ] fold head
+kc-pow2: pows2 swap nth
+kc-race-option: pick2 over 2 div [ pick4 ] dip swap kc-pow2 sub dec kc-fast-nth pick2 add pick4 add inc [ drop drop drop drop ] dip
+kc-race-baseline: pick3 pick4 pick4 2 mul pick3 sub kc-fast-nth pick3 add inc pack2 [ drop drop drop drop ] dip
+kc-race-step: dup kc-log2 inc dup kc-pow2 [ dec pick2 eq? ] [ drop swap drop cons ] [ over dec range pick4 pick3 pick3 [ kc-race-option ] swap cons swap cons swap cons map [ kc-race-baseline unpack2 ] dip swap [ min2 ] fold cons ] ifte
+kc-square-edge: [ unpack2 ] dip2 [ add ] dip swap contains 1 eq? [ ] [ drop ] [ drop drop 0 ] ifte
+kc-square-descriptor: [ unpack2 ] dip2 [ swap ] dip [ kc-square-edge ] swap cons swap cons map sum pack2
+kc-label-child: over [ eq? false eq? ] swap cons filter swap tail head pack2
+kc-label-expand: uncons swap head over swap [ [ head ] dip swap div 2 mod 1 eq? ] swap cons filter swap [ kc-label-child ] swap cons map
+kc-duplicate-factor: dup dedup swap [ swap count range1 product ] swap cons map product
+kc-join-absolute: [ abs kc-decimal-digits ] map nil [ cat ] fold 0 [ swap 10 mul add ] fold

@@ -1,0 +1,34 @@
+# Author b helpers; stack effects are deepest first.
+kb-choose2: dup dec mul 2 div
+kb-min-subarray: dup head 0 pack2 [ [ unpack2 ] dip add swap over min2 swap 0 min2 pack2 ] fold unpack2 drop
+kb-py-slice-start: [ dup 0 lt? ] [ over len add 0 max2 ] [ ] ifte
+kb-signed32: pows2 last dup rot add over 2 mul mod swap sub
+kb-sum-squares: dup dup inc mul swap 2 mul inc mul 6 div
+kb-second: tail head
+kb-third: tail tail head
+kb-drop-bottom4: [ [ [ drop ] dip ] dip ] dip
+kb-stock-step: pack2 dup head head over kb-second unpack2 sub max2 over head kb-second pick2 kb-second kb-second pick2 add max2 pick2 head kb-third over cons kb-drop-bottom4 pack3
+kb-stock-round: drop unpack2 over zip dup head kb-second neg 0 nil pack3 [ kb-stock-step ] fold kb-third reverse pack2
+kb-rot-tight: dup head head swap dup kb-third swap kb-second contains mul
+kb-rot-loose: dup head kb-second over kb-third len mul over head head pick2 kb-third pick3 kb-second [ lt? ] swap cons filter len mul add swap drop
+kb-rot-step: pack3 dup kb-rot-tight swap kb-rot-loose pack2
+kb-rot-count: [ 1 0 pack2 ] dip [ kb-rot-step ] swap cons fold sum
+kb-isqrt: dup pack2 zeros16 swap [ drop unpack2 over over div over add 2 div min2 pack2 ] fold kb-second
+kb-factor-once: pack3 dup head head over kb-second div swap dup head kb-second swap dup kb-third swap kb-second div add pack2
+kb-factor-maybe: [ drop over head swap mod 0 eq? ] [ kb-factor-once ] [ drop drop ] ifte
+kb-factor-step: [ drop over head swap mod 0 eq? ] [ [ [ drop ] dip2 kb-factor-maybe ] swap cons swap cons zeros16 -rot fold ] [ drop drop ] ifte
+kb-derivative: dup kb-isqrt range1 tail over 0 pack2 pick2 [ kb-factor-step ] swap cons fold unpack2 [ [ dup 1 gt? ] [ div ] [ drop drop 0 ] ifte ] dip add 1 max2
+kb-gcd: pack2 zeros16 swap [ drop unpack2 [ dup 0 eq? ] [ pack2 ] [ dup [ mod ] dip swap pack2 ] ifte ] fold head
+kb-lcm: [ over over mod 0 eq? ] [ drop abs ] [ [ over mod 0 eq? ] [ swap drop abs ] [ over over kb-gcd [ mul ] dip div abs ] ifte ] ifte
+kb-lcm-at: pack3 dup kb-second over head take over kb-second pick2 head nth pick2 kb-third kb-lcm quote cat over kb-second pick2 head inc drop-n cat swap drop
+kb-assign-one: over len range -rot [ kb-lcm-at ] swap cons swap cons map
+kb-assign-target: [ kb-assign-one ] swap cons map nil [ cat ] fold
+kb-uncovered: swap [ mod 0 eq? ] swap cons filter null?
+kb-allocation-cost: zip [ unpack2 neg swap mod ] map sum
+kb-maximal-divisors: dup [ swap [ mod 0 eq? ] swap cons filter len 1 eq? ] swap cons filter
+kb-fourth: tail tail tail head
+kb-fifth: tail tail tail tail head
+kb-pack5: nil swap cons swap cons swap cons swap cons swap cons
+kb-unpack5: uncons swap uncons swap uncons swap uncons swap uncons swap drop
+kb-mag-count: [ dup kb-third 1 eq? ] [ dup kb-fifth over kb-fourth rot head head min2 add ] [ kb-fifth ] ifte
+kb-magq-step: drop [ dup kb-fourth 0 gt? ] [ [ dup head null? ] [ kb-unpack5 [ swap drop reverse nil ] dip3 kb-pack5 ] [ ] ifte dup head tail over kb-second pick2 kb-third cons [ pick2 head head 2 eq? ] [ pick2 kb-third cons ] [ ] ifte pick2 kb-third 3 swap sub pick3 kb-fourth pick4 head head sub pick4 kb-mag-count [ kb-drop-bottom4 ] dip2 kb-pack5 ] [ ] ifte
