@@ -13,15 +13,24 @@ it is the easy end of the split (median witness 26 ops against 40).
 
 | solver | config | tasks | solved | wall (s) |
 |---|---|---:|---:|---:|
+| `gpt-6-astra` (via `codex exec`) | effort low / medium / high | sample 40 | **24 / 24 / 23 (60.0% / 60.0% / 57.5%)** | 606 / 661 / 840 |
 | `gpt-5.6-luna` | effort high | sample 40 | **15 (37.5%)** | 2,286 |
+| `gpt-5.6-terra` (via `codex exec`) | effort high | sample 40 | 16 (40.0%) | 1,344 |
 | BFS | 100,000 nodes | sample 40 | 6 (15.0%) | 3,917 |
 | `qwen3:30b-a3b` (local, 4090) | 300 s deadline | sample 40 | 6 (15.0%) | 3,381 |
 | BFS | 10,000 nodes | full 1,800 | 120 (6.7%) | 22,803 |
 | beam 64 × depth 48, 1m next-op policy trained on v4 train | seeds 0 / 1, CPU | sample 40 | 7 (17.5%) / **10 (25.0%)** | 131 / 126 |
 
-One luna solve and one BFS solve are the `aligned_matches` sampler shortcut,
-so 14 and 5 compute the behaviour. BFS solves nothing at 6+ ops; qwen3
-nothing at 16+; luna's wall is ~40 ops.
+One solve per frontier arm and one BFS solve are the `aligned_matches`
+sampler shortcut, so 23 (astra), 15 (terra), 14 (luna) and 5 (BFS) compute
+the behaviour. BFS solves nothing at 6+ ops; qwen3 nothing at 16+; every
+frontier arm solves 0 or 1 of the sample's 12 tasks past 40 ops. Astra fits
+the shown examples on 38–40 of 40 tasks and 15–16 of those are memorisations,
+so shown-only grading would say 100%; its effort setting moved median
+reasoning only 256 → 396 tokens per task, which is why the curve is flat.
+Luna re-run through `codex exec` scores 12/40 against the API row's 15,
+agreeing on 33 of 40 tasks (one-sample noise).
+[codex-exec report](../reports/stack-pbe-v4-codex-exec-20260910/README.md)
 
 **v3 anchor, same protocol on the 40-behaviour predecessor:** luna 30/40
 (75.0%) on its sample 40, `gpt-5.6-terra` 377/440 (85.7%) on the full split,
