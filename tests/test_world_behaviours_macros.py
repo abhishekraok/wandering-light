@@ -60,6 +60,7 @@ CASES = [
     ("odd?", (4,), [F]),
     ("divides?", (6, 3), [T]),
     ("gcd", (832040, 514229), [1]),
+    ("gcd", (5702887, 3524578), [1]),  # F(34), F(33): 32 steps, the stated bound
     ("gcd", (-4, -6), [2]),
     ("isqrt", (0,), [0]),
     ("isqrt", (-9,), [0]),
@@ -199,6 +200,13 @@ def test_every_macro_has_a_case() -> None:
     covered = {tok for program, _, _ in CASES for tok in program.split()}
     missing = sorted(set(MACROS) - covered)
     assert not missing, f"macros without a test case: {missing}"
+
+
+def test_gcd_bound_is_the_stated_one() -> None:
+    """32 steps suffice below F(34); the next Fibonacci pair needs 33 and is outside the contract."""
+    outcome = run_program(expand(["gcd"], MACROS), to_stack((9227465, 5702887)))
+    assert not isinstance(outcome, str), outcome
+    assert outcome[0][0] != Int(1)  # documented as unsupported, not silently right
 
 
 def test_isqrt_matches_python() -> None:

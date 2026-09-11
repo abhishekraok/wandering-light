@@ -39,7 +39,9 @@ odd?: 2 mod 1 eq?
 divides?: mod 0 eq?
 between: [ over ] dip le? bool>int [ ge? bool>int ] dip mul 1 eq?
 divides-both: [ over ] dip swap mod 0 eq? bool>int [ swap mod 0 eq? bool>int ] dip mul 1 eq?
-# gcd: a b -- gcd(|a|, |b|), 32 Euclid steps (enough below 2^45), no recursion
+# gcd: a b -- gcd(|a|, |b|), 32 Euclid steps, no recursion; exact whenever the smaller
+# argument is below F(34) = 5,702,887 (worst case: consecutive Fibonacci numbers), which
+# covers the extractor's |n| < 10^6; the test pins both sides of the boundary
 gcd: [ abs ] dip abs pack2 zeros16 dup cat swap [ drop unpack2 [ dup 0 eq? ] [ pack2 ] [ dup [ mod ] dip swap pack2 ] ifte ] fold head
 # isqrt: n -- floor(sqrt(n)), 0 for n <= 0; Newton from n, 32 steps
 isqrt: [ dup 0 le? ] [ drop 0 ] [ dup pack2 zeros16 dup cat swap [ drop unpack2 over over div over add 2 div min2 pack2 ] fold unpack2 swap drop ] ifte
