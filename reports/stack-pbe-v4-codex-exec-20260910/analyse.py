@@ -24,6 +24,11 @@ ARMS = (
 )
 
 
+def load_json(path: Path) -> dict:
+    with open(path) as handle:
+        return json.load(handle)
+
+
 def v3_names(root: Path) -> set[str]:
     sys.path.insert(0, str(root))
     from wandering_light.stack_pbe import load
@@ -34,12 +39,12 @@ def v3_names(root: Path) -> set[str]:
 def main() -> None:
     root = HERE.parent.parent
     hand_written = v3_names(root)
-    api = json.load(open(API_ROW))
+    api = load_json(API_ROW)
     lengths = {x["behaviour"]: len(x["witness"].split()) for x in api["candidates"]}
     for arm, _ in ARMS:
         path = HERE / f"{arm}.json"
         if path.exists():
-            for name, row in json.load(open(path))["by_behaviour"].items():
+            for name, row in load_json(path)["by_behaviour"].items():
                 lengths[name] = row["witness_length"]
 
     def bucket_of(name):
@@ -58,7 +63,7 @@ def main() -> None:
         if not path.exists():
             print(f"| {label} | (not run) |")
             continue
-        d = json.load(open(path))
+        d = load_json(path)
         rows[arm] = d
         c = d["candidates"]
         gen = [g for x in c for g in x.get("generation", [])]
@@ -97,7 +102,7 @@ def main() -> None:
     hand = [x for x in api_c if x["behaviour"] in hand_written]
     sol = [x for x in api_c if x["behaviour"] not in hand_written]
     print(
-        f"| luna high, API row | "
+        "| luna high, API row | "
         + " | ".join(
             f"{sum(x['verdict'] == 'solved' for x in api_c if bucket_of(x['behaviour']) == b)}/{sum(bucket_of(x['behaviour']) == b for x in api_c)}"
             for b in labels
@@ -127,7 +132,7 @@ def main() -> None:
         print(
             f"agree on {agree}/{len(codex_c)}; both solve {both}; API only {api_only}; codex only {codex_only}"
         )
-        for a, b in zip(api_c, codex_c):
+        for a, b in zip(api_c, codex_c, strict=True):
             if (a["verdict"] == "solved") != (b["verdict"] == "solved"):
                 print(
                     f"  {a['behaviour']} ({lengths[a['behaviour']]} ops): API {a['verdict']}, codex {b['verdict']}"
