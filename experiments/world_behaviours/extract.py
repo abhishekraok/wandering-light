@@ -97,14 +97,29 @@ def run_solution(src: str, entry: str, cases: list[list]) -> list:
         return [["err", "timeout"]] * len(cases)
 
 
-def infer_invariants(given: list[list]) -> list[dict]:
-    """Per-argument constraints every given input satisfies.
+RELAXABLE = (
+    "sorted",
+    "distinct",
+    "nonneg",
+    "positive",
+    "min_len",
+    "bounded_by",
+    "member_of",
+)
+STRICT_SHARE = 0.6  # candidates drawn with every inferred property kept
 
-    The reference solutions have preconditions their asserts respect (sorted
-    input, distinct values, an index within the list). Shape mutation that
-    ignores them makes the reference answer its failure value on most drawn
-    inputs, which is faithful and uninformative. So each drawn argument keeps
-    every property all the given ones share.
+
+def infer_invariants(given: list[list]) -> list[dict]:
+    """Per-argument properties every given input shares.
+
+    These are hypotheses, not preconditions: three asserts that happen to use
+    distinct elements say nothing about duplicates. A reference with a real
+    precondition (a sorted list, an index inside it) answers its failure value
+    when the property is broken, and ``select_examples`` bounds how much of
+    the set such answers may take; a reference without one just answers, and
+    the example then discriminates a shortcut (``dedup sort`` for ``sort``)
+    that inputs drawn only under the hypothesis would let through. So most
+    candidates keep every property and the rest relax one (``mutate``).
     """
     n_args = len(given[0])
     lists = [i for i in range(n_args) if isinstance(given[0][i], list)]
@@ -153,6 +168,83 @@ def infer_invariants(given: list[list]) -> list[dict]:
     return out
 
 
+def holding_properties(specs: list[dict]) -> list[tuple[int, str]]:
+    """The (argument, property) pairs the given inputs happen to satisfy."""
+    return [
+        (i, key)
+        for i, spec in enumerate(specs)
+        for key in RELAXABLE
+        if key in spec and spec[key] not in (False, None, 0)
+    ]
+
+
+def relax(specs: list[dict], which: tuple[int, str]) -> list[dict]:
+    """Copy ``specs`` with one inferred property switched off and marked to violate.
+
+    Merely not enforcing a property leaves it to chance (a random list of
+    seven values from nine is often distinct anyway); the hypothesis is only
+    tested by an input that breaks it, so ``mutate`` forces the violation.
+    """
+    i, key = which
+    relaxed = [dict(spec) for spec in specs]
+    if key in ("bounded_by", "member_of"):
+        relaxed[i][f"{key}_was"] = relaxed[i][key]
+    relaxed[i][key] = (
+        0 if key == "min_len" else None if key in ("bounded_by", "member_of") else False
+    )
+    relaxed[i]["violate"] = key
+    return relaxed
+
+
+def violate_list(
+    rng: random.Random, values: list[int], key: str, spec: dict
+) -> list[int]:
+    hi = spec["hi"]
+    if key == "distinct":
+        if len(values) < 2:
+            values = values + values[:1] or [rng.randint(0, hi)] * 2
+        else:
+            i, j = rng.sample(range(len(values)), 2)
+            values[i] = values[j]
+    elif key == "sorted":
+        if len(values) < 2:
+            values = [*values, rng.randint(0, hi)]
+        if values == sorted(values):
+            values = (
+                list(reversed(values))
+                if values[0] != values[-1]
+                else [values[0] + 1, *values]
+            )
+    elif key == "nonneg":
+        values = values or [0]
+        values[rng.randrange(len(values))] = -rng.randint(1, hi)
+    elif key == "positive":
+        values = values or [1]
+        values[rng.randrange(len(values))] = 0
+    elif key == "min_len":
+        values = values[: rng.randint(0, max(spec["min_len"] - 1, 0))]
+    return values
+
+
+def violate_int(
+    rng: random.Random, value: int, key: str, spec: dict, fresh: list
+) -> int:
+    if key == "nonneg":
+        return -rng.randint(1, max(abs(spec["hi"]), 1))
+    if key == "positive":
+        return 0
+    if key == "bounded_by":
+        n = len(fresh[spec["bounded_by_was"]])
+        return rng.choice([-1, n + 1, n + rng.randint(2, 5)])
+    if key == "member_of":
+        members = set(fresh[spec["member_of_was"]])
+        candidate = max(members, default=0) + 1
+        while candidate in members:
+            candidate += 1
+        return candidate
+    return value
+
+
 def mutate(rng: random.Random, args: list, specs: list[dict]) -> list:
     """Draw fresh arguments with the shapes of ``args`` under ``specs``."""
     fresh: list = []
@@ -166,7 +258,10 @@ def mutate(rng: random.Random, args: list, specs: list[dict]) -> list:
                 values = rng.sample(range(lo, hi + 1), n)
             else:
                 values = [rng.randint(lo, hi) for _ in range(n)]
-            fresh.append(sorted(values) if spec["sorted"] else values)
+            values = sorted(values) if spec["sorted"] else values
+            if spec.get("violate"):
+                values = violate_list(rng, values, spec["violate"], spec)
+            fresh.append(values)
         else:
             fresh.append(None)  # ints may depend on lists; fill in below
     for i, spec in enumerate(specs):
@@ -175,15 +270,50 @@ def mutate(rng: random.Random, args: list, specs: list[dict]) -> list:
         j = spec["member_of"]
         if j is not None and fresh[j] and rng.random() < 0.7:
             fresh[i] = rng.choice(fresh[j])
-            continue
-        j = spec["bounded_by"]
-        if j is not None:
-            fresh[i] = rng.randint(0, len(fresh[j]))
-            continue
-        hi = max(abs(spec["hi"]), abs(spec["lo"]), 5)
-        lo = 1 if spec["positive"] else 0 if spec["nonneg"] else -hi
-        fresh[i] = rng.randint(lo, hi)
+        elif spec["bounded_by"] is not None:
+            fresh[i] = rng.randint(0, len(fresh[spec["bounded_by"]]))
+        else:
+            hi = max(abs(spec["hi"]), abs(spec["lo"]), 5)
+            lo = 1 if spec["positive"] else 0 if spec["nonneg"] else -hi
+            fresh[i] = rng.randint(lo, hi)
+        if spec.get("violate"):
+            fresh[i] = violate_int(rng, fresh[i], spec["violate"], spec, fresh)
     return fresh
+
+
+def select_relaxed(
+    rng: random.Random, pool: list[dict], want: int, share_cap: float
+) -> list[dict]:
+    """Round-robin over the relaxed property, each turn diversity-capped."""
+    by_key: dict[str, list[dict]] = {}
+    for t in pool:
+        by_key.setdefault(t["relaxed"], []).append(t)
+    chosen: list[dict] = []
+    counts: dict[str, int] = {}
+    keys = sorted(by_key)
+    while keys and len(chosen) < want:
+        for key in list(keys):
+            if len(chosen) >= want:
+                break
+            candidates = by_key[key]
+            candidates.sort(key=lambda t: counts.get(json.dumps(t["out"]), 0))
+            picked = None
+            for t in candidates:
+                out_key = json.dumps(t["out"])
+                if counts.get(out_key, 0) + 1 <= max(2, share_cap * (len(chosen) + 1)):
+                    picked = t
+                    break
+            if picked is None:
+                keys.remove(key)
+                continue
+            candidates.remove(picked)
+            chosen.append(picked)
+            counts[json.dumps(picked["out"])] = (
+                counts.get(json.dumps(picked["out"]), 0) + 1
+            )
+            if not candidates:
+                keys.remove(key)
+    return chosen
 
 
 def select_examples(
@@ -326,21 +456,51 @@ def extend_mbpp(seed: int, item: dict) -> dict | None:
     rng = random.Random(f"{seed}:{item['id']}")
     given = [t["args"] for t in item["tests"]]
     specs = infer_invariants(given)
-    fresh = [mutate(rng, rng.choice(given), specs) for _ in range(MBPP_CANDIDATES)]
+    strict = [
+        mutate(rng, rng.choice(given), specs)
+        for _ in range(int(MBPP_CANDIDATES * STRICT_SHARE))
+    ]
+    # Relax each holding property in turn, so every hypothesis is tested
+    # equally often rather than at the mercy of a random draw.
+    holding = holding_properties(specs)
+    relaxed_keys = [
+        holding[n % len(holding)] if holding else None
+        for n in range(MBPP_CANDIDATES - len(strict))
+    ]
+    relaxed = [
+        mutate(rng, rng.choice(given), relax(specs, which) if which else specs)
+        for which in relaxed_keys
+    ]
+    fresh = strict + relaxed
     results = run_solution(item["solution"], item["entry"], given + fresh)
     for t, r in zip(item["tests"], results[: len(given)], strict=True):
         if r[0] != "ok" or r[1] != t["out"]:
             return None  # the shipped solution fails its own assert; skip
     seen = {json.dumps(a) for a in given}
-    pool = []
-    for args, r in zip(fresh, results[len(given) :], strict=True):
+    pools: dict[bool, list[dict]] = {True: [], False: []}
+    for index, (args, r) in enumerate(zip(fresh, results[len(given) :], strict=True)):
         key = json.dumps(args)
         if r[0] != "ok" or not in_domain(r[1]) or key in seen:
             continue
         seen.add(key)
-        pool.append({"args": args, "out": r[1], "generated": True})
-    extra = select_examples(
-        rng, pool, MBPP_EXTRA, OUTPUT_SHARE_CAP, MIN_TESTS - len(item["tests"])
+        pools[index >= len(strict)].append(
+            {
+                "args": args,
+                "out": r[1],
+                "generated": True,
+                "relaxed": index >= len(strict),
+            }
+        )
+    # Relaxed candidates that the reference accepted carry the discriminating
+    # cases, so they get their own quota rather than competing on output count.
+    quota = int(MBPP_EXTRA * (1 - STRICT_SHARE))
+    extra = select_examples(rng, pools[True], quota, OUTPUT_SHARE_CAP, 0)
+    extra += select_examples(
+        rng,
+        pools[False],
+        MBPP_EXTRA - len(extra),
+        OUTPUT_SHARE_CAP,
+        MIN_TESTS - len(item["tests"]) - len(extra),
     )
     if len(item["tests"]) + len(extra) < MIN_TESTS:
         return None

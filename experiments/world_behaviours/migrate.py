@@ -4,8 +4,11 @@ Reads the 2026-09-09 probe's ``programs_*.jsonl``, replaces every author-file
 macro name with its canonical tokens from ``aliases.txt`` (recursively, since
 an alias body may name another alias), inlines the one-behaviour helpers
 marked ``@inline`` from the author files kept under ``<out>/authors/``, and
-writes one ``programs_canonical.jsonl`` that the canonical ``macros.txt``
-alone can expand. ``report.py`` then re-verifies every program.
+applies the explicit repairs in ``<out>/repairs.jsonl`` (``{"id", "program",
+"note"}`` per line, replacing that behaviour's program), and writes one
+``programs_canonical.jsonl`` that the canonical ``macros.txt`` alone can
+expand. ``report.py`` then re-verifies every program. Repairs are an input,
+not an edit of the output, so re-running the migration reproduces them.
 
 Usage:
     uv run python experiments/world_behaviours/migrate.py \
@@ -43,6 +46,18 @@ def author_bodies(authors_dir: Path) -> dict[str, list[str]]:
     return bodies
 
 
+def load_repairs(path: Path) -> dict[str, dict]:
+    """Explicit per-behaviour program overrides, applied after rewriting."""
+    if not path.exists():
+        return {}
+    repairs = {}
+    for line in path.read_text().splitlines():
+        if line.strip():
+            row = json.loads(line)
+            repairs[row["id"]] = row
+    return repairs
+
+
 def rewrite(
     tokens: list[str],
     aliases: dict[str, list[str]],
@@ -77,9 +92,10 @@ def main(argv: list[str] | None = None) -> int:
         for line in file.open():
             if line.strip():
                 rows.append(json.loads(line))
+    repairs = load_repairs(args.out_dir / "repairs.jsonl")
     unresolved = set()
     out = args.out_dir / "programs_canonical.jsonl"
-    changed = 0
+    changed = repaired = 0
     with out.open("w") as fh:
         for row in sorted(rows, key=lambda r: r["id"]):
             tokens = row["program"].split()
@@ -88,19 +104,25 @@ def main(argv: list[str] | None = None) -> int:
                 if tok.startswith("k") and "-" in tok and tok not in canonical:
                     unresolved.add(tok)
             changed += rewritten != tokens
-            fh.write(
-                json.dumps(
-                    {
-                        "id": row["id"],
-                        "program": " ".join(rewritten),
-                        "status": row.get("status"),
-                        "note": row.get("note", ""),
-                        "author_program": row["program"],
-                    }
-                )
-                + "\n"
-            )
-    print(f"{len(rows)} programs, {changed} rewritten -> {out}")
+            record = {
+                "id": row["id"],
+                "program": " ".join(rewritten),
+                "status": row.get("status"),
+                "note": row.get("note", ""),
+                "author_program": row["program"],
+            }
+            if (
+                row["id"] in repairs
+                and repairs[row["id"]].get("status", "solved") == "solved"
+            ):
+                repair = repairs[row["id"]]
+                record["program"] = repair["program"]
+                record["status"] = "solved"
+                record["note"] = repair["note"]
+                record["migrated_program"] = " ".join(rewritten)
+                repaired += 1
+            fh.write(json.dumps(record) + "\n")
+    print(f"{len(rows)} programs, {changed} rewritten, {repaired} repaired -> {out}")
     if unresolved:
         print("UNRESOLVED author names:", sorted(unresolved))
         return 1

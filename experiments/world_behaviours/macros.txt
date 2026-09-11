@@ -104,16 +104,21 @@ range1: range [ inc ] map
 range-between: inc range swap drop-n
 
 # ---- digits ----------------------------------------------------------------
-# digits: n -- ( most-significant ... least-significant ), nil for 0; up to 8 digits
-digits: nil nil swap cons swap cons zeros8 swap [ drop uncons swap head [ drop 0 eq? ] [ ] [ over 10 mod cons [ 10 div ] dip ] ifte nil swap cons swap cons ] fold uncons drop head
+# Contracts: the extractor's integer domain is |n| < 10^6; every helper here is
+# valid well past it and the bound is stated, since a fixed-width fold silently
+# truncates beyond it. Tests pin the stated boundaries.
+# digits: n -- ( most-significant ... least-significant ), nil for 0; valid for 0 <= n < 10^16
+digits: nil nil swap cons swap cons zeros16 swap [ drop uncons swap head [ drop 0 eq? ] [ ] [ over 10 mod cons [ 10 div ] dip ] ifte nil swap cons swap cons ] fold uncons drop head
 digit-sum: digits sum
 digit-product: digits product
-powers: nil 1 cons powers-step powers-step powers-step powers-step powers-step powers-step swap drop
+# powers: k -- ( k^19 k^18 ... k 1 ); base-digit-sum: n k -- digit sum of n in base k, valid for 0 <= n < k^20
+powers: nil 1 cons powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step powers-step swap drop
 powers-step: over [ dup head ] dip mul cons
 base-digit-sum: dup powers [ [ [ swap div ] dip mod ] swap cons swap cons ] dip swap map sum
 
 # ---- bits ------------------------------------------------------------------
-pows2: nil 1 cons pows2-step pows2-step pows2-step pows2-step
+# pows2: ( 1 2 4 ... 2^31 ); band / bxor: a b -- bitwise and / xor, valid for 0 <= a, b < 2^32
+pows2: nil 1 cons pows2-step pows2-step pows2-step pows2-step pows2-step
 pows2-step: dup dup last 2 mul [ mul ] swap cons map cat
 band: pows2 [ [ [ over ] dip swap div 2 mod swap [ over ] dip swap div 2 mod mul mul ] swap cons swap cons ] dip swap map sum
 bxor: over over band 2 mul [ add ] dip sub

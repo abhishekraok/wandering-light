@@ -112,3 +112,74 @@ def test_macro_program_defaults_for_older_payloads() -> None:
         tags=(),
     )
     assert task.macro_program == ""
+
+
+def test_generated_examples_break_a_coincidental_invariant() -> None:
+    """Three asserts with distinct elements must not restrict sort to distinct inputs.
+
+    Codex review on #125: under the strict inferred `distinct` property the
+    shortcut `dedup sort` passed every generated example of the sorting
+    behaviours. Relaxed candidates must include duplicates, and the shortcut
+    must fail the resulting set.
+    """
+    import random
+
+    extract = _module("extract")
+    verify = _module("verify")
+    item = {
+        "source": "mbpp",
+        "id": "mbpp-sort-test",
+        "name": "sort_list",
+        "description": "Write a function to sort a list.",
+        "solution": "def sort_list(xs):\n    return sorted(xs)\n",
+        "entry": "sort_list",
+        "tests": [
+            {"args": [[3, 1, 2]], "out": [1, 2, 3]},
+            {"args": [[9, 4, 7, 1]], "out": [1, 4, 7, 9]},
+            {"args": [[5, 2]], "out": [2, 5]},
+        ],
+    }
+    extended = extract.extend_mbpp(17, item)
+    assert extended is not None
+    generated = [t for t in extended["tests"] if t.get("generated")]
+    assert any(len(set(t["args"][0])) < len(t["args"][0]) for t in generated), (
+        "no generated input contains a duplicate"
+    )
+    macros = verify.load_macros()
+    shortcut = verify.check(verify.expand(["dedup", "sort"], macros), extended)
+    assert shortcut["passed"] < shortcut["total"]
+    honest = verify.check(verify.expand(["sort"], macros), extended)
+    assert honest["passed"] == honest["total"]
+    random.seed(0)  # keep the module-level RNG untouched for other tests
+
+
+def test_migration_preserves_recorded_repairs(tmp_path: Path) -> None:
+    """Codex review on #125: re-running migrate.py must not lose a repaired witness."""
+    import shutil
+
+    migrate = _module("migrate")
+    probe = tmp_path / "probe"
+    probe.mkdir()
+    (probe / "programs_1.jsonl").write_text(
+        json.dumps(
+            {
+                "id": "mbpp-644",
+                "program": "over over take reverse k1--rot drop-n cat",
+                "status": "solved",
+            }
+        )
+        + "\n"
+    )
+    out = tmp_path / "out"
+    shutil.copytree(
+        ROOT / "reports" / "world-behaviours-library-20260910" / "authors",
+        out / "authors",
+    )
+    shutil.copy(
+        ROOT / "reports" / "world-behaviours-library-20260910" / "repairs.jsonl",
+        out / "repairs.jsonl",
+    )
+    assert migrate.main([str(probe), str(out)]) == 0
+    (row,) = [json.loads(l) for l in (out / "programs_canonical.jsonl").open()]
+    assert row["program"].startswith("[ dup 0 eq? ]")
+    assert row["migrated_program"] == "over over take reverse -rot drop-n cat"
