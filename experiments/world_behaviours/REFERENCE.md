@@ -118,6 +118,22 @@ the useful ones into the canonical library and inlines one-behaviour helpers
 (`migrate.py`, `aliases.txt`), so write them freely: a word you needed three
 times is a highway candidate.
 
+## Running authors with Codex
+
+Bulk authoring runs through `codex exec`, one agent per worktree, model
+pinned so batches stay comparable:
+
+```bash
+codex exec --skip-git-repo-check -s workspace-write -m gpt-6-astra \
+  -c model_reasoning_effort=high -o <report>/codex_K_last.md \
+  "Read <report>/BRIEF.md and follow it exactly. Your ids: ... Write to <report>/programs_K.jsonl."
+```
+
+The repair batch on library-hygiene (#124) cost about 29k tokens per five
+witnesses at these settings. Run the hypothesis-breaking sampler on the
+behaviours **before** authoring, so witnesses are verified against those
+inputs from the start.
+
 ## Working method
 
 1. `--show` the behaviour. Read the reference Python: the tests define the
