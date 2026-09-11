@@ -1,17 +1,22 @@
-"""Sample world-authored behaviours (MBPP, LeetCode-easy) inside the mark-28 domain.
+"""Sample world-authored behaviours (MBPP, LeetCode, CodeARC) inside the mark-28 domain.
 
-training-data-sources (#118). A behaviour is eligible when every test argument
-and result is an int or a flat list of ints (no bools, no nesting, no strings),
-it takes at most three arguments, and it has enough examples to grade a program
-on data it was never shown. MBPP ships three asserts per problem, so extra
-examples are drawn by mutating the given arguments under the invariants they
-share (sortedness, distinctness, sign, an index staying inside its list),
-running the reference solution, and picking a set in which no output value
-dominates; LeetCode ships ~100 tests and needs no generation.
+training-data-sources (#118), world-authoring-500 (#127). A behaviour is
+eligible when every test argument and result is an int or a flat list of ints
+(no bools, no nesting, no strings), it takes at most three arguments, and it
+has enough examples to grade a program on data it was never shown. Every
+source ships a reference solution, so each behaviour gets extra examples
+drawn by mutating the given arguments: most keep the properties the given
+inputs share (sortedness, distinctness, sign, an index staying inside its
+list), the rest deliberately break one, and the reference answers. MBPP
+ships three asserts and CodeARC ten invocations per problem; LeetCode ships
+~100 tests, of which the first 40 are kept before extension. (The 2026-09-09
+probe extended MBPP only; its behaviours are frozen under ``reports/``.)
 
 Usage:
-    uv run --with datasets python experiments/world_behaviours/extract.py \
-        --out reports/world-behaviours-probe-20260909/behaviours.jsonl
+    uv run --with 'datasets>=4.0' python experiments/world_behaviours/extract.py \
+        --out reports/world-authoring-20260910/behaviours.jsonl \
+        --take mbpp=36,codearc=34,leetcode=30 --leetcode-difficulty Medium,Hard \
+        --exclude reports/world-behaviours-library-20260910/behaviours.jsonl
 """
 
 from __future__ import annotations
@@ -31,8 +36,8 @@ MAX_ARGS = 3
 SHOWN = 6
 MIN_TESTS = 10
 MAX_TESTS = 40
-MBPP_EXTRA = 24  # generated examples to keep per behaviour
-MBPP_CANDIDATES = 96  # draws to choose them from
+EXTRA = 24  # generated examples to keep per behaviour
+CANDIDATES = 96  # draws to choose them from
 OUTPUT_SHARE_CAP = 0.4  # no output value may exceed this share of the generated set
 
 
@@ -417,13 +422,15 @@ def parse_leetcode_input(text: str) -> list:
     ]
 
 
-def leetcode_candidates(rng: random.Random) -> list[dict]:
+def leetcode_candidates(
+    rng: random.Random, difficulties: tuple[str, ...] = ("Easy",)
+) -> list[dict]:
     from datasets import load_dataset
 
     rows = load_dataset("newfacade/LeetCodeDataset", split="train+test")
     out = []
     for row in rows:
-        if row["difficulty"] != "Easy":
+        if row["difficulty"] not in difficulties:
             continue
         tests = []
         try:
@@ -450,13 +457,92 @@ def leetcode_candidates(rng: random.Random) -> list[dict]:
                 "entry": row["entry_point"],
                 "tests": [{"args": a, "out": w} for a, w in tests[:MAX_TESTS]],
                 "tags": row["tags"],
+                "difficulty": row["difficulty"].lower(),
             }
         )
     return out
 
 
-def extend_mbpp(seed: int, item: dict) -> dict | None:
-    """Add generated examples to an MBPP behaviour, checking the given asserts too.
+def parse_codearc_invocation(source: str, printed: str):
+    """``print('Result 1: ' + str(f(1, 2)))`` printed ``Result 1: 3`` -> (f, [1, 2], 3)."""
+    expr = ast.parse(source.strip()).body[0].value
+    if not (isinstance(expr, ast.Call) and isinstance(expr.func, ast.Name)):
+        raise ValueError(source)
+    (concat,) = expr.args
+    call = concat.right.args[0]
+    if not isinstance(call, ast.Call) or not isinstance(call.func, ast.Name):
+        raise ValueError(source)
+    prefix = ast.literal_eval(concat.left)
+    if not printed.startswith(prefix):
+        raise ValueError(printed)
+    args = [ast.literal_eval(a) for a in call.args]
+    return call.func.id, args, ast.literal_eval(printed[len(prefix) :])
+
+
+def codearc_candidates(rng: random.Random) -> list[dict]:
+    """CodeARC's 1,114 functions with their ten recorded invocations each.
+
+    The ``annotated`` rows carry the docstring and the real function name; the
+    ``anonymous`` twins (same ``problem_id``) are the same function renamed.
+    """
+    from datasets import load_dataset
+
+    problems = {
+        row["problem_id"]: row
+        for row in load_dataset("anjiangwei/CodeARC-Problems", split="train")
+        if row["type"] == "annotated"
+    }
+    invocations: dict[int, list] = {}
+    for row in load_dataset("anjiangwei/CodeARC-Invocations", split="train"):
+        if row["type"] != "annotated":
+            continue
+        try:
+            parsed = (
+                None
+                if row["errored"]
+                else parse_codearc_invocation(row["input"], row["output"])
+            )
+        except (SyntaxError, ValueError, AttributeError, IndexError):
+            parsed = None  # strings, floats, nested structures: out of domain
+        invocations.setdefault(row["problem_id"], []).append(parsed)
+    out = []
+    for pid, row in sorted(problems.items()):
+        parsed = invocations.get(pid, [])
+        if not parsed or any(p is None for p in parsed):
+            continue
+        names = {p[0] for p in parsed}
+        if len(names) != 1:
+            continue
+        (entry,) = names
+        tests = [(list(map(as_plain, a)), as_plain(w)) for _, a, w in parsed]
+        if not all(
+            len(a) <= MAX_ARGS and all(in_domain(x) for x in a) and in_domain(w)
+            for a, w in tests
+        ):
+            continue
+        functions = [
+            node
+            for node in ast.walk(ast.parse(row["code"]))
+            if isinstance(node, ast.FunctionDef) and node.name == entry
+        ]
+        if not functions:
+            continue
+        out.append(
+            {
+                "source": "codearc",
+                "id": f"codearc-{pid}",
+                "name": entry,
+                "description": ast.get_docstring(functions[0]) or entry,
+                "solution": row["code"],
+                "entry": entry,
+                "tests": [{"args": a, "out": w} for a, w in tests],
+            }
+        )
+    return out
+
+
+def extend(seed: int, item: dict) -> dict | None:
+    """Add generated examples to a behaviour, checking the given tests too.
 
     Seeded per behaviour so a change to the sampler never changes which
     behaviours the source-level shuffle selects.
@@ -466,14 +552,14 @@ def extend_mbpp(seed: int, item: dict) -> dict | None:
     specs = infer_invariants(given)
     strict = [
         mutate(rng, rng.choice(given), specs)
-        for _ in range(int(MBPP_CANDIDATES * STRICT_SHARE))
+        for _ in range(int(CANDIDATES * STRICT_SHARE))
     ]
     # Relax each holding property in turn, so every hypothesis is tested
     # equally often rather than at the mercy of a random draw.
     holding = holding_properties(specs)
     relaxed_keys = [
         holding[n % len(holding)] if holding else None
-        for n in range(MBPP_CANDIDATES - len(strict))
+        for n in range(CANDIDATES - len(strict))
     ]
     relaxed = [
         mutate(rng, rng.choice(given), relax(specs, which) if which else specs)
@@ -503,12 +589,12 @@ def extend_mbpp(seed: int, item: dict) -> dict | None:
         )
     # Relaxed candidates that the reference accepted carry the discriminating
     # cases, so they get their own quota, spread evenly over the properties.
-    quota = int(MBPP_EXTRA * (1 - STRICT_SHARE))
+    quota = int(EXTRA * (1 - STRICT_SHARE))
     extra = select_relaxed(rng, pools[True], quota, OUTPUT_SHARE_CAP)
     extra += select_examples(
         rng,
         pools[False],
-        MBPP_EXTRA - len(extra),
+        EXTRA - len(extra),
         OUTPUT_SHARE_CAP,
         MIN_TESTS - len(item["tests"]) - len(extra),
     )
@@ -531,6 +617,23 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--per-source", type=int, default=PER_SOURCE)
     parser.add_argument(
+        "--take",
+        default="mbpp,leetcode",
+        help="sources to draw from, optionally with counts: mbpp=36,codearc=34,leetcode=30",
+    )
+    parser.add_argument(
+        "--leetcode-difficulty",
+        default="Easy",
+        help="comma-separated: Easy,Medium,Hard",
+    )
+    parser.add_argument(
+        "--exclude",
+        type=Path,
+        action="append",
+        default=[],
+        help="behaviours.jsonl whose ids are skipped (already authored); repeatable",
+    )
+    parser.add_argument(
         "--ids-from",
         type=Path,
         help="restrict to the behaviour ids in this behaviours.jsonl (regenerate a fixed set)",
@@ -541,22 +644,34 @@ def main(argv: list[str] | None = None) -> int:
         if args.ids_from
         else None
     )
+    exclude = {json.loads(line)["id"] for path in args.exclude for line in path.open()}
+    take: dict[str, int] = {}
+    for spec in args.take.split(","):
+        name, _, count = spec.partition("=")
+        take[name.strip()] = int(count) if count else args.per_source
     rng = random.Random(args.seed)
 
-    pools = {"mbpp": mbpp_candidates(rng), "leetcode": leetcode_candidates(rng)}
+    loaders = {
+        "mbpp": lambda: mbpp_candidates(rng),
+        "leetcode": lambda: leetcode_candidates(
+            rng, tuple(args.leetcode_difficulty.split(","))
+        ),
+        "codearc": lambda: codearc_candidates(rng),
+    }
     chosen: list[dict] = []
     stats = {}
-    for source, candidates in pools.items():
-        pool = sorted(candidates, key=lambda r: r["id"])
+    for source, want in take.items():
+        pool = sorted(loaders[source](), key=lambda r: r["id"])
         rng.shuffle(pool)
+        pool = [item for item in pool if item["id"] not in exclude]
         if keep_ids is not None:
             pool = [item for item in pool if item["id"] in keep_ids]
         kept, tried = [], 0
         for candidate in pool:
-            if keep_ids is None and len(kept) >= args.per_source:
+            if keep_ids is None and len(kept) >= want:
                 break
             tried += 1
-            item = extend_mbpp(args.seed, candidate) if source == "mbpp" else candidate
+            item = extend(args.seed, candidate)
             if item is None:
                 continue
             kept.append(finalize(item))

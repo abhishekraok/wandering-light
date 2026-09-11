@@ -11,9 +11,11 @@ form and expanded to `mark-28`; every program re-verified on every test by `repo
 |---|---|---|---|
 | leetcode | 42/45 (93%) | 105.0 | 25.0 |
 | mbpp | 49/50 (98%) | 123 | 20 |
-| **all** | 91/95 (96%) | 111 | 24 |
+| **all** | 91/95 (96%) | 114 | 24 |
 
 Claimed-vs-verified mismatches: 0; missing ids: 0; duplicates: 0.
+
+By author: canonical 91/95 (96%).
 
 ## Witness length against `stack_pbe_v4`
 
@@ -22,15 +24,15 @@ Claimed-vs-verified mismatches: 0; missing ids: 0; duplicates: 0.
 | 1-5 | 6 | 15 |
 | 6-10 | 3 | 14 |
 | 11-20 | 8 | 34 |
-| 21-40 | 7 | 37 |
-| 41+ | 67 | 120 |
-| median | 111 | 43.0 |
+| 21-40 | 6 | 37 |
+| 41+ | 68 | 120 |
+| median | 114 | 43.0 |
 
 Exact matches with a v4 witness: 5 (leetcode-add-two-integers, mbpp-309, mbpp-588, mbpp-925, mbpp-970). Same skeleton as a v4 witness: 5.
 
 ## Macros
 
-94 macros defined across `macros*.txt`; median expansion ratio (`mark-28` ops per macro-form token) on verified programs: 4.0.
+110 macros defined across `macros*.txt`; median expansion ratio (`mark-28` ops per macro-form token) on verified programs: 4.0.
 
 | macro | verified programs using it |
 |---|---|
@@ -91,7 +93,6 @@ Exact matches with a v4 witness: 5 (leetcode-add-two-integers, mbpp-309, mbpp-58
 | leetcode-pass-the-pillow | 34 | `over dec 2 mul mod [ over lt? ] [ swap drop inc ] [ swap 2 mul dec swap sub ] ifte` |
 | mbpp-588 | 35 | `dup max swap min sub` |
 | mbpp-249 | 36 | `swap [ swap contains 1 eq? ] swap cons filter` |
-| mbpp-218 | 39 | `over over gcd div swap drop dec` |
 | leetcode-account-balance-after-rounded-purchase | 41 | `5 add 10 div 10 mul 100 swap sub` |
 | leetcode-find-the-child-who-has-the-ball-after-k-seconds | 41 | `over dec over over mod [ div ] dip [ drop odd? ] [ swap drop sub dec ] [ swap drop swap drop ] ifte` |
 | leetcode-minimum-amount-of-time-to-fill-cups | 41 | `dup max swap sum inc 2 div max2` |
@@ -114,6 +115,7 @@ Exact matches with a v4 witness: 5 (leetcode-add-two-integers, mbpp-309, mbpp-58
 | leetcode-find-the-key-of-the-numbers | 107 | `[ nil swap cons swap cons swap cons over [ div 10 mod ] swap cons map min mul ] swap cons swap cons swap cons nil 1000 cons 100 cons 10 cons 1 cons swap map sum` |
 | leetcode-minimum-element-after-replacement-with-digit-sum | 108 | `[ digit-sum ] map min` |
 | leetcode-harshad-number | 111 | `dup digit-sum [ mod 0 eq? ] [ swap drop ] [ drop drop -1 ] ifte` |
+| mbpp-218 | 114 | `over over gcd div swap drop dec` |
 | mbpp-841 | 115 | `take 0 nil pack2 [ [ unpack2 ] dip over over [ gt? ] swap cons filter len -rot cons -rot add swap pack2 ] fold head` |
 | mbpp-564 | 118 | `take nil 0 pack2 [ [ unpack2 ] dip dup [ [ over ] dip [ eq? not ] swap cons filter len add ] dip swap [ cons ] dip pack2 ] fold unpack2 swap drop` |
 | mbpp-777 | 123 | `[ dup 0 le? ] [ drop min ] [ over dedup [ [ [ swap [ lt? ] swap cons filter len ] dip lt? ] swap cons swap cons ] dip swap filter sum ] ifte` |

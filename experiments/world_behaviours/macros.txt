@@ -15,6 +15,7 @@
 9: 1 1 add 1 add dup mul
 10: 1 1 add dup add 1 add dup add
 16: 8 dup add
+32: 16 dup add
 100: 10 dup mul
 1000: 10 dup mul 10 mul
 -1: 0 1 sub
@@ -38,7 +39,13 @@ odd?: 2 mod 1 eq?
 divides?: mod 0 eq?
 between: [ over ] dip le? bool>int [ ge? bool>int ] dip mul 1 eq?
 divides-both: [ over ] dip swap mod 0 eq? bool>int [ swap mod 0 eq? bool>int ] dip mul 1 eq?
-gcd: [ [ drop dup 0 eq? ] [ drop drop ] [ [ dup [ mod ] dip swap ] dip dup i ] ifte ] dup i
+# gcd: a b -- gcd(|a|, |b|), 32 Euclid steps, no recursion; exact whenever the smaller
+# argument is below F(34) = 5,702,887 in either order (operands are put in descending order
+# first; worst case: consecutive Fibonacci numbers), which covers the extractor's |n| < 10^6;
+# the tests pin both sides of the boundary
+gcd: [ abs ] dip abs [ lt? ] [ swap ] [ ] ifte pack2 zeros16 dup cat swap [ drop unpack2 [ dup 0 eq? ] [ pack2 ] [ dup [ mod ] dip swap pack2 ] ifte ] fold head
+# isqrt: n -- floor(sqrt(n)), 0 for n <= 0; Newton from n, 32 steps
+isqrt: [ dup 0 le? ] [ drop 0 ] [ dup pack2 zeros16 dup cat swap [ drop unpack2 over over div over add 2 div min2 pack2 ] fold unpack2 swap drop ] ifte
 pow: swap [ drop ] swap quote cat [ range ] dip map product
 sum-multiples: swap over div dup inc mul 2 div mul
 leap?: dup 4 mod 0 eq? bool>int over 100 mod 0 eq? bool>int sub swap 100 4 mul mod 0 eq? bool>int add 1 eq?
@@ -59,6 +66,8 @@ pack3: nil swap cons swap cons swap cons
 unpack3: uncons swap uncons swap uncons swap drop
 pack4: nil swap cons swap cons swap cons swap cons
 unpack4: uncons swap uncons swap uncons swap uncons swap drop
+pack5: nil swap cons swap cons swap cons swap cons swap cons
+unpack5: uncons swap uncons swap uncons swap uncons swap uncons swap drop
 
 # ---- lists -----------------------------------------------------------------
 len: 0 [ drop inc ] fold
@@ -67,6 +76,10 @@ product: 1 [ mul ] fold
 reverse: nil [ cons ] fold
 head: uncons swap drop
 tail: uncons drop
+second: tail head
+third: tail tail head
+fourth: tail tail tail head
+fifth: tail tail tail tail head
 last: 0 [ swap drop ] fold
 max: uncons [ max2 ] fold
 min: uncons [ min2 ] fold
@@ -89,6 +102,10 @@ nsmallest: range swap nil pack2 [ drop unpack2 over min swap over cons [ remove1
 lis-best: over over [ [ unpack2 drop ] dip lt? ] swap cons filter seconds 0 [ max2 ] fold
 max-subarray-sum: -1 1000 mul 1000 mul 0 pack2 [ [ unpack2 ] dip add swap over max2 swap 0 max2 pack2 ] fold unpack2 drop
 
+flatten: nil [ cat ] fold
+# inversions: list -- number of pairs i < j with list[i] > list[j]
+inversions: nil 0 pack2 [ [ unpack2 ] dip pick2 over [ gt? ] swap cons filter len rot add [ cons ] dip pack2 ] fold unpack2 swap drop
+
 # ---- ranges: no recursion, so no nesting cap; fuel grows with n ------------
 double: dup dup len [ add ] swap cons map cat
 zeros8: nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons
@@ -109,6 +126,10 @@ range-between: inc range swap drop-n
 # truncates beyond it. Tests pin the stated boundaries.
 # digits: n -- ( most-significant ... least-significant ), nil for 0; valid for 0 <= n < 10^16
 digits: nil nil swap cons swap cons zeros16 swap [ drop uncons swap head [ drop 0 eq? ] [ ] [ over 10 mod cons [ 10 div ] dip ] ifte nil swap cons swap cons ] fold uncons drop head
+# decimal-digits: like digits but ( 0 ) for 0, as str(n) would be
+decimal-digits: [ dup 0 eq? ] [ drop nil 0 cons ] [ digits ] ifte
+from-digits: 0 [ swap 10 mul add ] fold
+palindrome?: [ dup 0 lt? ] [ drop false ] [ digits dup reverse eq? ] ifte
 digit-sum: digits sum
 digit-product: digits product
 # powers: k -- ( k^19 k^18 ... k 1 ); base-digit-sum: n k -- digit sum of n in base k, valid for 0 <= n < k^20
@@ -119,6 +140,10 @@ base-digit-sum: dup powers [ [ [ swap div ] dip mod ] swap cons swap cons ] dip 
 # ---- bits ------------------------------------------------------------------
 # pows2: ( 1 2 4 ... 2^31 ); band / bxor: a b -- bitwise and / xor, valid for 0 <= a, b < 2^32
 pows2: nil 1 cons pows2-step pows2-step pows2-step pows2-step pows2-step
+# bitlen: n -- int.bit_length(n) for 0 <= n < 2^32; log2: n -- floor(log2 n), -1 for 0; pow2: k -- 2^k, 0 <= k <= 31
+bitlen: pows2 swap [ le? ] swap cons filter len
+log2: bitlen dec
+pow2: pows2 swap nth
 pows2-step: dup dup last 2 mul [ mul ] swap cons map cat
 band: pows2 [ [ [ over ] dip swap div 2 mod swap [ over ] dip swap div 2 mod mul mul ] swap cons swap cons ] dip swap map sum
 bxor: over over band 2 mul [ add ] dip sub

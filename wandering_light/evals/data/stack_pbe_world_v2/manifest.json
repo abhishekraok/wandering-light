@@ -1,0 +1,57 @@
+{
+  "basis": "mark-28",
+  "catalogue": {
+    "behaviours": 183,
+    "digest": "sha256:8a3541278aa53911721f6273e0908c2abe44a47f02be5933f27e329b5fdd886a",
+    "skeletons": 177
+  },
+  "config": {
+    "eval_share": 0.1,
+    "issue": "https://github.com/abhishekraok/wandering-light/issues/127",
+    "probe": [
+      "reports/world-behaviours-library-20260910",
+      "reports/world-authoring-20260910"
+    ],
+    "shown_per_task": 6,
+    "sources": [
+      "codearc",
+      "leetcode",
+      "mbpp"
+    ],
+    "witness_source": "translated"
+  },
+  "corpus": "stack_pbe_world_v2",
+  "counts": {
+    "distinct_input_stacks": 4696,
+    "held_out_examples": 5034,
+    "shown_examples": 1098,
+    "tasks": 183
+  },
+  "generator": "experiments/world_behaviours/build_corpus.py",
+  "generator_description": "Behaviours are human-written programming problems with tests (codearc, leetcode, mbpp) restricted to ints and flat int lists; witnesses were authored by Claude and Codex sessions in macro form over experiments/world_behaviours/macros*.txt and expanded to the basis; examples are the upstream tests extended by inputs that keep or deliberately break the properties the given inputs share, run through the reference solution. Split policy: by-behaviour-hash eval_share=0.1.",
+  "hub": {
+    "repo_id": "abhishekraok/wandering-light-stack-pbe-world-v2",
+    "repo_type": "dataset",
+    "revision": "091ec5c1d51ce47ab353ab7583cd35ec3d48e5f8"
+  },
+  "schema_version": 2,
+  "split_policy": "by-behaviour-hash eval_share=0.1",
+  "splits": {
+    "eval": {
+      "behaviours": 15,
+      "bytes": 8314,
+      "path": "stack_pbe_world_v2_eval.jsonl.gz",
+      "records": 15,
+      "sha256": "sha256:ab0e20c0bc97b9317935b267558dd98dfb1907b65964eb23d6f3ad437a055fd3",
+      "skeletons": 15
+    },
+    "train": {
+      "behaviours": 168,
+      "bytes": 94579,
+      "path": "stack_pbe_world_v2_train.jsonl.gz",
+      "records": 168,
+      "sha256": "sha256:92aee33ee983d57ee7c08923e582bfba611c761991b2f21f6065d053dc4b07f0",
+      "skeletons": 162
+    }
+  }
+}

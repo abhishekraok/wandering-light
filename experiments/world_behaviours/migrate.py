@@ -5,7 +5,9 @@ macro name with its canonical tokens from ``aliases.txt`` (recursively, since
 an alias body may name another alias), inlines the one-behaviour helpers
 marked ``@inline`` from the author files kept under ``<out>/authors/``, and
 applies the explicit repairs in ``<out>/repairs.jsonl`` (``{"id", "program",
-"note"}`` per line, replacing that behaviour's program), and writes one
+"note"}`` per line, replacing that behaviour's program; ``"status":
+"unsolved"`` instead records that the migrated program no longer verifies and
+why), and writes one
 ``programs_canonical.jsonl`` that the canonical ``macros.txt`` alone can
 expand. ``report.py`` then re-verifies every program. Repairs are an input,
 not an edit of the output, so re-running the migration reproduces them.
@@ -111,16 +113,18 @@ def main(argv: list[str] | None = None) -> int:
                 "note": row.get("note", ""),
                 "author_program": row["program"],
             }
-            if (
-                row["id"] in repairs
-                and repairs[row["id"]].get("status", "solved") == "solved"
-            ):
+            if row["id"] in repairs:
                 repair = repairs[row["id"]]
-                record["program"] = repair["program"]
-                record["status"] = "solved"
-                record["note"] = repair["note"]
                 record["migrated_program"] = " ".join(rewritten)
-                repaired += 1
+                if repair.get("status", "solved") == "solved":
+                    record["program"] = repair["program"]
+                    record["status"] = "solved"
+                    repaired += 1
+                else:
+                    # the author's program no longer verifies under the
+                    # canonical library (a macro's cost or contract changed)
+                    record["status"] = "unsolved"
+                record["note"] = repair["note"]
             fh.write(json.dumps(record) + "\n")
     print(f"{len(rows)} programs, {changed} rewritten, {repaired} repaired -> {out}")
     if unresolved:

@@ -1,0 +1,3 @@
+Wrote and printed [programs_c.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-c/reports/world-authoring-20260910/programs_c.jsonl) and [macros_c.txt](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-c/experiments/world_behaviours/macros_c.txt).
+
+All 24 IDs are recorded. Whole-file verification: **20 solved, 4 unsolved**, with reasons and pass counts documented. No tracked files changed.

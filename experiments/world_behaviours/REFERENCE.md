@@ -96,15 +96,18 @@ exhaust it.
 
 `experiments/world_behaviours/macros.txt` is the canonical library, one name and
 one body per concept, every macro tested in `tests/test_world_behaviours_macros.py`.
-Read it before writing anything: constants `2`…`10 16 100 1000 -1`; scalars
+Read it before writing anything: constants `2`…`10 16 32 100 1000 -1`; scalars
 `neg inc dec abs sq max2 min2 mod not gt? le? ge? bool>int even? odd? divides?
-between divides-both gcd pow sum-multiples leap?`; shuffles `rot -rot dip2 dip3
-pick2 pick3 pick4`; packed accumulators `pack2 unpack2 pack3 unpack3 pack4
-unpack4`; lists `len sum product reverse head tail last max min take drop-n nth
-at contains count dedup remove1 zip seconds dot prefix-sums insert sort nlargest
-nsmallest lis-best max-subarray-sum`; ranges `range range1 range-between` plus
-`zeros8/16/128/1024`; digits `digits digit-sum digit-product powers
-base-digit-sum`; bits `pows2 band bxor`.
+between divides-both gcd isqrt pow sum-multiples leap?`; shuffles `rot -rot dip2
+dip3 pick2 pick3 pick4`; packed accumulators `pack2 unpack2` … `pack5 unpack5`;
+lists `len sum product reverse head tail second third fourth fifth last max min
+take drop-n nth at contains count dedup remove1 zip seconds dot prefix-sums
+flatten inversions insert sort nlargest nsmallest lis-best max-subarray-sum`;
+ranges `range range1 range-between` plus `zeros8/16/128/1024`; digits `digits
+decimal-digits from-digits digit-sum digit-product palindrome? powers
+base-digit-sum`; bits `pows2 bitlen log2 pow2 band bxor`. `gcd` is a 32-step
+fold (~700 fuel a call; exact while the smaller argument is below 5.7M): in a
+hot inner loop prefer a divisibility test.
 
 `range` is recursion-free and costs about 0.4k fuel at n ≤ 16 and 4.8k at
 n = 1000 (valid to 65,536), so index lists are cheap; `sort` is an insertion
@@ -129,8 +132,9 @@ codex exec --skip-git-repo-check -s workspace-write -m gpt-6-astra \
   "Read <report>/BRIEF.md and follow it exactly. Your ids: ... Write to <report>/programs_K.jsonl."
 ```
 
-The repair batch on library-hygiene (#124) cost about 29k tokens per five
-witnesses at these settings. Run the hypothesis-breaking sampler on the
+Wave 1 of world-authoring-500 (#127) cost about 3.7k tokens and 4 minutes of
+agent time per behaviour at these settings (four agents, ~25 each, 14 minutes
+wall); a single-witness repair about 22k tokens. Run the hypothesis-breaking sampler on the
 behaviours **before** authoring, so witnesses are verified against those
 inputs from the start.
 

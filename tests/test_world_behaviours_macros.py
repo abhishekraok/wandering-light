@@ -32,6 +32,7 @@ CASES = [
     ("9", (), [9]),
     ("10", (), [10]),
     ("16", (), [16]),
+    ("32", (), [32]),
     ("100", (), [100]),
     ("1000", (), [1000]),
     ("-1", (), [-1]),
@@ -58,6 +59,31 @@ CASES = [
     ("even?", (4,), [T]),
     ("odd?", (4,), [F]),
     ("divides?", (6, 3), [T]),
+    ("gcd", (832040, 514229), [1]),
+    ("gcd", (5702887, 3524578), [1]),  # F(34), F(33): 32 steps, the stated bound
+    ("gcd", (3524578, 5702887), [1]),  # same pair, smaller operand first
+    ("gcd", (-3524578, 5702887), [1]),
+    ("gcd", (-4, -6), [2]),
+    ("isqrt", (0,), [0]),
+    ("isqrt", (-9,), [0]),
+    ("isqrt", (999999,), [999]),
+    ("pack5 unpack5", (1, 2, 3, 4, 5), [1, 2, 3, 4, 5]),
+    ("pack5 second", (1, 2, 3, 4, 5), [2]),
+    ("pack5 third", (1, 2, 3, 4, 5), [3]),
+    ("pack5 fourth", (1, 2, 3, 4, 5), [4]),
+    ("pack5 fifth", (1, 2, 3, 4, 5), [5]),
+    ("flatten", ([[1, 2], [], [3]],), [[1, 2, 3]]),
+    ("inversions", ([3, 1, 2],), [2]),
+    ("inversions", ([],), [0]),
+    ("decimal-digits", (0,), [[0]]),
+    ("decimal-digits", (120,), [[1, 2, 0]]),
+    ("from-digits", ([1, 2, 0],), [120]),
+    ("palindrome?", (12321,), [T]),
+    ("palindrome?", (-121,), [F]),
+    ("bitlen", (0,), [0]),
+    ("bitlen", (5,), [3]),
+    ("log2", (8,), [3]),
+    ("pow2", (10,), [1024]),
     ("divides?", (7, 3), [F]),
     ("between", (5, 1, 10), [T]),
     ("between", (11, 1, 10), [F]),
@@ -176,6 +202,22 @@ def test_every_macro_has_a_case() -> None:
     covered = {tok for program, _, _ in CASES for tok in program.split()}
     missing = sorted(set(MACROS) - covered)
     assert not missing, f"macros without a test case: {missing}"
+
+
+def test_gcd_bound_is_the_stated_one() -> None:
+    """32 steps suffice below F(34); the next Fibonacci pair needs 33 and is outside the contract."""
+    outcome = run_program(expand(["gcd"], MACROS), to_stack((9227465, 5702887)))
+    assert not isinstance(outcome, str), outcome
+    assert outcome[0][0] != Int(1)  # documented as unsupported, not silently right
+
+
+def test_isqrt_matches_python() -> None:
+    import math
+
+    for n in [*range(200), 4095, 4096, 65535, 10**6 - 1, 2**40]:
+        outcome = run_program(expand(["isqrt"], MACROS), to_stack((n,)))
+        assert not isinstance(outcome, str), (n, outcome)
+        assert outcome[0][0] == Int(math.isqrt(n)), n
 
 
 def test_range_is_cheap_and_needs_no_recursion() -> None:
