@@ -549,6 +549,8 @@ def extend(seed: int, item: dict) -> dict | None:
     """
     rng = random.Random(f"{seed}:{item['id']}")
     given = [t["args"] for t in item["tests"]]
+    if len({len(args) for args in given}) != 1:
+        return None  # a default parameter: the tests disagree on the arity
     specs = infer_invariants(given)
     strict = [
         mutate(rng, rng.choice(given), specs)
