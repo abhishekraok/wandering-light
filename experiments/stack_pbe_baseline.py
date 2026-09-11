@@ -295,6 +295,13 @@ def main(argv: list[str] | None = None) -> int:
         help="bfs only: the #70 open-quotation guard; off reproduces unpruned numbers",
     )
     parser.add_argument("--tasks", type=int, default=0, help="0 means every task")
+    parser.add_argument(
+        "--shard",
+        default=None,
+        help="K/N: after the split, seed and --tasks selection, keep every Nth task "
+        "starting at K, so N processes can cover a split concurrently; `task_index` "
+        "in the output JSON is the join",
+    )
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--model", default="claude-opus-5")
     parser.add_argument(
@@ -344,6 +351,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.tasks:
         rng.shuffle(tasks)
         tasks = tasks[: args.tasks]
+    if args.shard:
+        k, n = (int(part) for part in args.shard.split("/"))
+        tasks = tasks[k::n]
 
     generator = None
     if args.backend == "llm":
@@ -441,6 +451,7 @@ def main(argv: list[str] | None = None) -> int:
             "budget": args.budget,
             "guard": args.guard,
             "partial": partial,
+            **({"shard": args.shard} if args.shard else {}),
             "tasks_planned": planned,
             "tasks": report.tasks,
             "solved": report.solved,
