@@ -115,10 +115,10 @@ The 91 probe witnesses rewritten from four author dialects (129 macros) to one c
 | MBPP held-out: median share of the most common output | 0.23 | 0.10 |
 | MBPP behaviours with one output above half the held-out set | 10 | 0 |
 | violating examples per MBPP behaviour | 0 | median 9 (by property: nonneg 144, positive 107, distinct 69, min_len 31, bounded_by 19, sorted 8) |
-| held-out examples, all 91 tasks | 2,254 | 2,462 |
+| held-out examples, all 91 tasks | 2,254 | 2,332 |
 | `base-digit-sum(128, 2)`, `band(65536, 65536)` | 0, 0 (7-digit / 16-bit helpers) | 1, 65536 (20 digits / 32 bits, contracts stated) |
 
-Corpus republished at Hub revision `fa60b4292b273b6c24072bf895a71b031f318127` (91 tasks, all re-graded solved, 2,363 distinct input stacks). Repairs: two `codex exec` agents (gpt-6-astra, effort high), five witnesses each, ~29k tokens each, 10/10 verified; one more (`mbpp-4`, n outside [0, len]) after the re-review fix that let index relations to argument 0 be violated.
+Corpus republished at Hub revision `fa60b4292b273b6c24072bf895a71b031f318127` (91 tasks, all re-graded solved, 2,244 distinct input stacks). Repairs: two `codex exec` agents (gpt-6-astra, effort high), five witnesses each, ~29k tokens each, 10/10 verified; one more (`mbpp-4`, n outside [0, len]) after the re-review fix that let index relations to argument 0 be violated.
 
 ## Stack PBE v4 — compute-optimal policy size (#101), 300-task eval cohort
 
