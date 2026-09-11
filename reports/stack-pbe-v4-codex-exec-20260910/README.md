@@ -2,8 +2,8 @@
 
 Date: 2026-09-10 · [codex-exec-frontier-effort-curve (#123)](../../issues/123)
 · corpus `stack_pbe_v4` (Hub revision `00c2a999`), seed-17 40-task eval sample,
-the same sample as every v4 frontier and local-arm row. Phase 2 (the full
-1,800-task split, for the authorship split at matched length) has not run.
+the same sample as every v4 frontier and local-arm row. Phase 2, astra low on
+the full 1,800-task split, is the last section; it corrects one phase-1 claim.
 
 ## Protocol
 
@@ -106,8 +106,8 @@ programs; it says the effort setting does not make astra think more here.
 A curve that varies compute would need a model that responds to the setting
 (luna and terra do) or a prompt that asks for it.
 
-**The length wall does not move.** Every arm solves 0 or 1 of the 12 tasks
-past 40 ops. The three long solves are each a different behaviour on a
+**The length wall does not move on this sample** (phase 2 shows it is the
+sample's, not the model's). Every arm solves 0 or 1 of the 12 tasks past 40 ops. The three long solves are each a different behaviour on a
 different arm: terra's 54-op `farther_choice_from_target`, astra low's 59-op
 `farthest_from_target_last_tie` (astra high memorised the same task), and
 astra medium and high's 49-op `positive_balance_prefix_count` with a
@@ -135,7 +135,75 @@ between witnesses is 79.8%, so success is composition; the sample's median
 witness is 26 ops against the split's 40; one sample per task at the model's
 default temperature, and same-task verdicts flip between runs.
 
+## Phase 2: astra low on the full 1,800-task split
+
+Same protocol, `gpt-6-astra` at effort low (it tied astra high on the sample
+at a third of the wall clock), every eval task once, six concurrent shards
+(`--shard k/6`, merged on `task_index`), 90 minutes wall, 1,800 calls, 14.3M
+input tokens, 851k output. **0 tool attempts.** Full tables:
+[`astra_low_v4_full_analysis.md`](astra_low_v4_full_analysis.md).
+
+| solver | tasks | solved | memorised | shown-only | `aligned_matches` shortcut |
+|---|---:|---:|---:|---:|---:|
+| `gpt-6-astra` low | full 1,800 | **995 (55.3%)** | 714 | 94.9% | 20 → 975 real |
+| `gpt-6-astra` low | sample 40 | 24 (60.0%) | 16 | 100.0% | 1 → 23 real |
+| BFS 10,000 nodes | full 1,800 | 120 (6.7%) | 22 | 7.9% | 0 |
+
+| solver | 1–10 ops | 11–20 | 21–40 | 41–80 | 81+ |
+|---|---:|---:|---:|---:|---:|
+| astra low | 358/360 | 193/240 | 230/360 | **140/520** | **74/320** |
+| BFS 10k | 120/360 | 0/240 | 0/360 | 0/520 | 0/320 |
+
+**The 40-op wall was the sample's, not the model's.** Phase 1 read 0–1 of 12
+past 40 ops as a wall. On the full split astra solves **214 of the 840 tasks
+past 40 ops (25.5%)**, and the sample's twelve long tasks simply came from
+behaviours astra rarely solves (`positive_balance_prefix_count` 5/40,
+`farther_choice_from_target` 1/40, `axis_point_count` 0/40,
+`bounds_cover_list_flag` 5/40) while missing the ones it does:
+`aligned_maxima` (69-op witness) 30/40, `pair_floor_averages` (69) 26/40,
+`manhattan_point_radii` (94) 25/40, `median_floor` (253) **17/40**. Its
+programs are far shorter than the witnesses — the `median_floor` solve is a
+filter-partition sort with two length counts, roughly half the witness — which
+is the same fact the search side keeps meeting: witness length is an upper
+bound on program length, not a difficulty. The sample number (60.0%) sits 4.7
+points above the split (55.3%), the direction the baseline report predicted.
+
+**Memorisation is 40% of the split, and it concentrates on bit-valued
+behaviours.** 714 of 1,800 candidates fit every shown pair and fail the
+held-out set; shown-only grading would say 94.9%. The behaviours where
+memorisation dominates return a flag or a small count: `axis_point_count`
+38/40 memorised, `farther_choice_from_target` 38, `positive_balance_prefix_count`
+35, `bounds_cover_list_flag` 35, `span_inside_interval` 34,
+`nondecreasing_indicator` 34, `positive_majority_three` 33, `all_positive`
+31. Eight held-out pairs are weak evidence when the output is one bit: a wrong
+program passes them by coincidence roughly 1 in 256 times per candidate, and
+some of the "solves" on flag behaviours are that — `bounds_cover_list_flag`'s
+five solves include a count-of-elements-equal-to-5. Behaviours with structured
+outputs (lists, sums) are where a held-out pass means what it says. A
+per-behaviour held-out count sized to the output's entropy is the corpus-side
+fix; it is filed on the issue, not done here.
+
+**The authorship question cannot be answered on this corpus, and the table
+says why.** Hand-written (v3) behaviours: 318/320. Sol-written: 677/1,480. At
+matched length the comparison exists only where both authors have behaviours:
+1–10 ops, **279/280 hand-written against 79/80 sol-written**, identical at the
+ceiling; 21–40 ops, one hand-written behaviour (`prefix_sums`, 39/40) against
+eight sol-written (191/320). Every behaviour past 25 ops is sol-written.
+Authorship and length are confounded **by construction**, because the brief
+that produced the 180 asked for longer, branch-bearing behaviours. Within the
+single-author set, solve rate falls monotonically with witness length (79/80,
+193/240, 191/320, 140/520, 74/320), so what the split does show is that
+difficulty is length-structured inside one author. The many-worlds objection
+is neither confirmed nor refuted here. The corpus that could test it exists:
+`stack_pbe_world_v1`'s 91 behaviours are human-specified (MBPP, LeetCode-easy)
+with agent-written witnesses at a 102-op median, the missing cell of the
+table. BFS at 10,000 nodes, the search-side control, solves only 1–10-op
+behaviours on either side (40/280 hand-written, 80/80 sol-written, the latter
+being `push_back` and `rotate_left`).
+
 ## Files
 
-`run_phase1.sh` launched the five arms; `analyse.py` produced the tables
-above from the five JSONs and the API row; `*.log` carry per-task progress.
+`run_phase1.sh` launched the five sample arms and `analyse.py` produced their
+tables; `run_phase2.sh` launched the six full-split shards
+(`astra_low_v4_full_shard{0..5}.json`) and `analyse_phase2.py` merged them
+into `astra_low_v4_full_analysis.md`; `*.log` carry per-task progress.
