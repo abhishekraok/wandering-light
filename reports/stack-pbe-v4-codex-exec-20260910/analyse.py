@@ -115,19 +115,19 @@ def main() -> None:
         codex_c = rows["luna_high_v4_sample40"]["candidates"]
         agree = sum(
             (a["verdict"] == "solved") == (b["verdict"] == "solved")
-            for a, b in zip(api_c, codex_c)
+            for a, b in zip(api_c, codex_c, strict=True)
         )
         both = sum(
             a["verdict"] == "solved" and b["verdict"] == "solved"
-            for a, b in zip(api_c, codex_c)
+            for a, b in zip(api_c, codex_c, strict=True)
         )
         api_only = sum(
             a["verdict"] == "solved" and b["verdict"] != "solved"
-            for a, b in zip(api_c, codex_c)
+            for a, b in zip(api_c, codex_c, strict=True)
         )
         codex_only = sum(
             a["verdict"] != "solved" and b["verdict"] == "solved"
-            for a, b in zip(api_c, codex_c)
+            for a, b in zip(api_c, codex_c, strict=True)
         )
         print(
             f"agree on {agree}/{len(codex_c)}; both solve {both}; API only {api_only}; codex only {codex_only}"
