@@ -82,32 +82,41 @@ want. See v4 witnesses such as `maximum_subarray_sum` for the full pattern.
 quotation: with `state Q` on the stack, `dup i` runs `Q` with `Q` still on the
 stack, so `Q`'s else-branch can end in `dup i` to recurse.
 
-**Warning, found by every author in the first probe:** `MAX_QUOTATION_DEPTH`
-is 32 and each iteration of a self-applying loop nests about four levels, so
-`range` refuses past **n = 7** ("quotation nested too deep") and any `dup i`
-loop dies after ~8 iterations, sooner inside a `map`/`fold` body. Build index
-lists without recursion instead: a literal cons chain, or doubling with
-`dup dup len [ add ] swap cons map cat` (`k1-range`, `k2-range`, `k3-range`,
-`k4-iota` in the author macro files all do this; up to 1,024 elements for
-~10k fuel), then `fold` over the list with a packed state. Fuel is 100,000
-steps per test; a fold costs ~3 per element, a `10` constant inside a body
-costs 8 ops per use, and nested ranges over thousands exhaust it.
+**Warning:** `MAX_QUOTATION_DEPTH` is 32 and each iteration of a self-applying
+loop nests about four levels, so any `dup i` loop dies after ~7 iterations,
+sooner inside a `map`/`fold` body (continuation-on-stack, #122, is the fix; not
+built). Loop by folding over an index list from `range` with a packed state
+instead. Fuel is 100,000 steps per test; a fold costs ~3 per element, a `10`
+constant inside a body costs 8 ops per use, and nested ranges over thousands
+exhaust it.
 
 **Recursion on lists** has the same depth cap; use `fold` and rebuild.
 
 ## Macros
 
-`experiments/world_behaviours/macros.txt` is shared. It has constants, `neg
-inc dec abs max2 min2 sq mod not gt? le? ge? bool>int even? odd?`, and list
-words `len sum product reverse head tail last max min range range1 take drop-n
-nth contains`. Read it: bodies are short and show the idioms.
+`experiments/world_behaviours/macros.txt` is the canonical library, one name and
+one body per concept, every macro tested in `tests/test_world_behaviours_macros.py`.
+Read it before writing anything: constants `2`…`10 16 100 1000 -1`; scalars
+`neg inc dec abs sq max2 min2 mod not gt? le? ge? bool>int even? odd? divides?
+between divides-both gcd pow sum-multiples leap?`; shuffles `rot -rot dip2 dip3
+pick2 pick3 pick4`; packed accumulators `pack2 unpack2 pack3 unpack3 pack4
+unpack4`; lists `len sum product reverse head tail last max min take drop-n nth
+at contains count dedup remove1 zip seconds dot prefix-sums insert sort nlargest
+nsmallest lis-best max-subarray-sum`; ranges `range range1 range-between` plus
+`zeros8/16/128/1024`; digits `digits digit-sum digit-product powers
+base-digit-sum`; bits `pows2 band bxor`.
+
+`range` is recursion-free and costs about 0.4k fuel at n ≤ 16 and 4.8k at
+n = 1000 (valid to 65,536), so index lists are cheap; `sort` is an insertion
+sort, fine at these list sizes. "Needs sort" is not a reason to give up.
 
 Add your own macros to **your** file `experiments/world_behaviours/macros_K.txt`
 (K = your author number), same `name: body` format, one per line. Names must
-not collide with basis ops or existing macros; prefix with `kK-` if in doubt.
-Every `macros*.txt` in the directory is loaded. Macros are the point of the
-probe as much as programs: a word you needed three times is a highway
-candidate.
+not collide with basis ops or existing macros; prefix with `kK-`. Every
+`macros*.txt` in the directory is loaded. After a batch, a merge pass folds
+the useful ones into the canonical library and inlines one-behaviour helpers
+(`migrate.py`, `aliases.txt`), so write them freely: a word you needed three
+times is a highway candidate.
 
 ## Working method
 

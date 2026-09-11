@@ -1,6 +1,10 @@
-# Shared macro library for authoring mark-28 programs (#118).
-# name: body   -- body may use other macros; expansion is recursive.
-# Constants
+# Canonical macro library for authoring mark-28 programs (library-hygiene, #124).
+# name: body   -- bodies may use other macros; expansion is recursive.
+# One name and one body per concept. Every macro has a test in
+# tests/test_world_behaviours_macros.py. Stack effects in comments read
+# ( inputs -- outputs ), deepest first.
+
+# ---- constants -------------------------------------------------------------
 2: 1 1 add
 3: 1 1 add 1 add
 4: 1 1 add dup add
@@ -10,26 +14,53 @@
 8: 1 1 add dup add dup add
 9: 1 1 add 1 add dup mul
 10: 1 1 add dup add 1 add dup add
+16: 8 dup add
 100: 10 dup mul
 1000: 10 dup mul 10 mul
 -1: 0 1 sub
-# Scalars
+
+# ---- scalars ---------------------------------------------------------------
 neg: 0 swap sub
 inc: 1 add
 dec: 1 sub
 abs: [ dup 0 lt? ] [ neg ] [ ] ifte
+sq: dup mul
 max2: [ over lt? ] [ drop ] [ swap drop ] ifte
 min2: [ over lt? ] [ swap drop ] [ drop ] ifte
-sq: dup mul
 mod: over over div mul sub
+not: [ ] [ drop false ] [ drop true ] ifte
+bool>int: [ ] [ drop 1 ] [ drop 0 ] ifte
 gt?: swap lt?
 le?: gt? not
 ge?: lt? not
-not: [ ] [ drop false ] [ drop true ] ifte
-bool>int: [ ] [ drop 1 ] [ drop 0 ] ifte
 even?: 2 mod 0 eq?
 odd?: 2 mod 1 eq?
-# Lists
+divides?: mod 0 eq?
+between: [ over ] dip le? bool>int [ ge? bool>int ] dip mul 1 eq?
+divides-both: [ over ] dip swap mod 0 eq? bool>int [ swap mod 0 eq? bool>int ] dip mul 1 eq?
+gcd: [ [ drop dup 0 eq? ] [ drop drop ] [ [ dup [ mod ] dip swap ] dip dup i ] ifte ] dup i
+pow: swap [ drop ] swap quote cat [ range ] dip map product
+sum-multiples: swap over div dup inc mul 2 div mul
+leap?: dup 4 mod 0 eq? bool>int over 100 mod 0 eq? bool>int sub swap 100 4 mul mod 0 eq? bool>int add 1 eq?
+
+# ---- stack shuffles --------------------------------------------------------
+rot: [ swap ] dip swap
+-rot: rot rot
+dip2: swap [ dip ] dip
+dip3: swap [ dip2 ] dip
+pick2: [ over ] dip swap
+pick3: [ pick2 ] dip swap
+pick4: [ pick3 ] dip swap
+
+# ---- packed accumulators ---------------------------------------------------
+pack2: nil swap cons swap cons
+unpack2: uncons swap uncons swap drop
+pack3: nil swap cons swap cons swap cons
+unpack3: uncons swap uncons swap uncons swap drop
+pack4: nil swap cons swap cons swap cons swap cons
+unpack4: uncons swap uncons swap uncons swap uncons swap drop
+
+# ---- lists -----------------------------------------------------------------
 len: 0 [ drop inc ] fold
 sum: 0 [ add ] fold
 product: 1 [ mul ] fold
@@ -39,14 +70,50 @@ tail: uncons drop
 last: 0 [ swap drop ] fold
 max: uncons [ max2 ] fold
 min: uncons [ min2 ] fold
-# range: n -> ( 0 1 ... n-1 ) via a self-applying quotation. CAPPED AT n = 7 by
-# MAX_QUOTATION_DEPTH = 32; see REFERENCE.md and the k1-/k2-/k3-/k4- range macros.
-range: nil swap [ [ drop 0 eq? ] [ drop drop ] [ [ 1 sub dup [ cons ] dip ] dip dup i ] ifte ] dup i
-range1: range [ inc ] map
-# take: nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop reverse
 take: nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ cons [ 1 sub ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop reverse
 drop-n: nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop 0 swap lt? ] [ drop [ 1 sub ] dip quote swap cons ] [ cons quote swap cons ] ifte ] fold uncons drop uncons swap drop reverse
-# nth: lst i -> element at index i (0-based)
 nth: drop-n head
-# contains: [ eq? ] swap cons filter len 0 gt? bool>int
+at: [ dup 0 lt? ] [ over len add ] [ ] ifte nth
 contains: [ eq? ] swap cons filter len 0 gt? bool>int
+count: [ eq? ] swap cons filter len
+dedup: nil [ [ over over contains 1 eq? ] [ drop ] [ cons ] ifte ] fold reverse
+remove1: [ [ [ uncons ] dip ] dip [ eq? bool>int swap 0 eq? bool>int mul 1 eq? ] [ drop drop drop 1 cons ] [ drop swap [ cons ] dip cons ] ifte ] swap cons nil 0 cons swap fold uncons drop reverse
+zip: swap nil pack2 [ [ unpack2 ] dip [ drop drop null? ] [ drop pack2 ] [ [ swap uncons ] dip pack2 swap [ cons ] dip swap pack2 ] ifte ] fold unpack2 swap drop reverse
+seconds: [ unpack2 swap drop ] map
+dot: 0 cons [ [ uncons ] dip [ [ uncons ] dip ] dip swap [ mul ] dip add cons ] fold head
+prefix-sums: 0 nil pack2 [ [ unpack2 ] dip rot add dup [ cons ] dip swap pack2 ] fold unpack2 swap drop reverse
+insert: over over [ gt? ] swap cons filter -rot swap over [ le? ] swap cons filter -rot quote swap cat cat
+sort: nil [ insert ] fold
+nlargest: range swap nil pack2 [ drop unpack2 over max swap over cons [ remove1 ] dip pack2 ] fold unpack2 swap drop reverse
+nsmallest: range swap nil pack2 [ drop unpack2 over min swap over cons [ remove1 ] dip pack2 ] fold unpack2 swap drop reverse
+lis-best: over over [ [ unpack2 drop ] dip lt? ] swap cons filter seconds 0 [ max2 ] fold
+max-subarray-sum: -1 1000 mul 1000 mul 0 pack2 [ [ unpack2 ] dip add swap over max2 swap 0 max2 pack2 ] fold unpack2 drop
+
+# ---- ranges: no recursion, so no nesting cap; fuel grows with n ------------
+double: dup dup len [ add ] swap cons map cat
+zeros8: nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons
+zeros16: zeros8 dup cat
+zeros128: zeros16 dup cat dup cat dup cat
+zeros1024: zeros128 dup cat dup cat dup cat
+# double-by: ( list L -- list ++ (list + L) ), L = len list, so no len is recomputed
+double-by: [ dup ] dip [ add ] swap cons map cat
+# range: n -- ( 0 1 ... n-1 ). Doubles ( 0 ) only while shorter than n, at most 16 times;
+# the accumulator carries ( list L ) so each idle iteration is O(1).
+range: dup zeros16 swap nil 0 cons 1 pack2 swap [ [ [ drop unpack2 swap drop ] dip lt? ] [ drop drop unpack2 over over double-by rot drop swap dup add pack2 ] [ drop drop ] ifte ] swap cons fold unpack2 drop swap [ lt? ] swap cons filter
+range1: range [ inc ] map
+range-between: inc range swap drop-n
+
+# ---- digits ----------------------------------------------------------------
+# digits: n -- ( most-significant ... least-significant ), nil for 0; up to 8 digits
+digits: nil nil swap cons swap cons zeros8 swap [ drop uncons swap head [ drop 0 eq? ] [ ] [ over 10 mod cons [ 10 div ] dip ] ifte nil swap cons swap cons ] fold uncons drop head
+digit-sum: digits sum
+digit-product: digits product
+powers: nil 1 cons powers-step powers-step powers-step powers-step powers-step powers-step swap drop
+powers-step: over [ dup head ] dip mul cons
+base-digit-sum: dup powers [ [ [ swap div ] dip mod ] swap cons swap cons ] dip swap map sum
+
+# ---- bits ------------------------------------------------------------------
+pows2: nil 1 cons pows2-step pows2-step pows2-step pows2-step
+pows2-step: dup dup last 2 mul [ mul ] swap cons map cat
+band: pows2 [ [ [ over ] dip swap div 2 mod swap [ over ] dip swap div 2 mod mul mul ] swap cons swap cons ] dip swap map sum
+bxor: over over band 2 mul [ add ] dip sub
