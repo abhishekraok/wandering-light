@@ -30,9 +30,13 @@ for k in $LETTERS; do
   git -C "$W" status --short | grep -v '^??' && { echo "author $k changed tracked files"; exit 1; } || true
 done
 cat "$R/authors/runs.jsonl"
-cp "$R"/authors/macros_?.txt experiments/world_behaviours/ 2>/dev/null || true
+# Raw verification loads the canonical library plus this wave's author files from
+# a scratch directory, so nothing in experiments/world_behaviours/ is touched.
+STAGE="$(mktemp -d)"
+cp experiments/world_behaviours/macros.txt "$STAGE/"
+for k in $LETTERS; do cp "$R/authors/macros_$k.txt" "$STAGE/" 2>/dev/null || true; done
 cp "$R/behaviours.jsonl" "$R/authors/behaviours.jsonl"
-uv run python experiments/world_behaviours/report.py "$R/authors" --no-findings \
+uv run python experiments/world_behaviours/report.py "$R/authors" --no-findings --macros "$STAGE/macros.txt" \
   --title "$NAME raw (author dialects)" --intro "raw author outputs before the merge pass" \
   | python3 -c "import sys,json; d=json.load(sys.stdin); print(json.dumps({k:d[k] for k in ('solved','claim_mismatches','by_source_difficulty','by_author','length_median','macro_length_median')}, indent=1))"
-rm -f experiments/world_behaviours/macros_?.txt "$R/authors/behaviours.jsonl"
+rm -rf "$STAGE" "$R/authors/behaviours.jsonl"
