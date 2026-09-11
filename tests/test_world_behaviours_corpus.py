@@ -183,3 +183,32 @@ def test_migration_preserves_recorded_repairs(tmp_path: Path) -> None:
     (row,) = [json.loads(l) for l in (out / "programs_canonical.jsonl").open()]
     assert row["program"].startswith("[ dup 0 eq? ]")
     assert row["migrated_program"] == "over over take reverse -rot drop-n cat"
+
+
+def test_relations_to_argument_zero_are_scheduled_and_violated() -> None:
+    """Codex re-review on #125: an index or membership relation to argument 0 is a relation, not a disabled property."""
+    import random
+
+    extract = _module("extract")
+    given = [
+        [[3, 1, 4], 1],
+        [[9, 4, 7, 1], 4],
+        [[5, 2], 2],
+    ]  # int is an index into, and a member of, the list
+    specs = extract.infer_invariants(given)
+    assert specs[1]["bounded_by"] == 0
+    assert specs[1]["member_of"] == 0
+    holding = extract.holding_properties(specs)
+    assert (1, "bounded_by") in holding
+    assert (1, "member_of") in holding
+    rng = random.Random(3)
+    outside = [
+        extract.mutate(rng, given[0], extract.relax(specs, (1, "bounded_by")))
+        for _ in range(20)
+    ]
+    assert all(not 0 <= n <= len(xs) for xs, n in outside)
+    strangers = [
+        extract.mutate(rng, given[0], extract.relax(specs, (1, "member_of")))
+        for _ in range(20)
+    ]
+    assert all(n not in xs for xs, n in strangers)

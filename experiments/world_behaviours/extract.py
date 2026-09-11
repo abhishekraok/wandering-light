@@ -170,11 +170,19 @@ def infer_invariants(given: list[list]) -> list[dict]:
 
 def holding_properties(specs: list[dict]) -> list[tuple[int, str]]:
     """The (argument, property) pairs the given inputs happen to satisfy."""
+
+    def holds(spec: dict, key: str) -> bool:
+        if key not in spec:
+            return False
+        if key in ("bounded_by", "member_of"):
+            return spec[key] is not None  # an argument index; 0 is a relation
+        return bool(spec[key])
+
     return [
         (i, key)
         for i, spec in enumerate(specs)
         for key in RELAXABLE
-        if key in spec and spec[key] not in (False, None, 0)
+        if holds(spec, key)
     ]
 
 
@@ -483,18 +491,20 @@ def extend_mbpp(seed: int, item: dict) -> dict | None:
         if r[0] != "ok" or not in_domain(r[1]) or key in seen:
             continue
         seen.add(key)
-        pools[index >= len(strict)].append(
+        is_relaxed = index >= len(strict)
+        which = relaxed_keys[index - len(strict)] if is_relaxed else None
+        pools[is_relaxed].append(
             {
                 "args": args,
                 "out": r[1],
                 "generated": True,
-                "relaxed": index >= len(strict),
+                "relaxed": f"{which[0]}:{which[1]}" if which else None,
             }
         )
     # Relaxed candidates that the reference accepted carry the discriminating
-    # cases, so they get their own quota rather than competing on output count.
+    # cases, so they get their own quota, spread evenly over the properties.
     quota = int(MBPP_EXTRA * (1 - STRICT_SHARE))
-    extra = select_examples(rng, pools[True], quota, OUTPUT_SHARE_CAP, 0)
+    extra = select_relaxed(rng, pools[True], quota, OUTPUT_SHARE_CAP)
     extra += select_examples(
         rng,
         pools[False],

@@ -73,14 +73,14 @@
    ],
    [
     "max2",
+    16
+   ],
+   [
+    "len",
     15
    ],
    [
     "head",
-    14
-   ],
-   [
-    "len",
     14
    ],
    [
@@ -100,15 +100,15 @@
     10
    ],
    [
+    "min2",
+    9
+   ],
+   [
     "rot",
     9
    ],
    [
     "7",
-    8
-   ],
-   [
-    "min2",
     8
    ],
    [
@@ -1428,14 +1428,17 @@
    "solved": true,
    "passed": 27,
    "total": 27,
-   "macro_program": "nlargest",
-   "program": "dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter swap nil nil swap cons swap cons [ drop uncons swap uncons swap drop over uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold swap over cons [ [ [ [ uncons ] dip ] dip [ eq? [ ] [ drop 1 ] [ drop 0 ] ifte swap 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte mul 1 eq? ] [ drop drop drop 1 cons ] [ drop swap [ cons ] dip cons ] ifte ] swap cons nil 0 cons swap fold uncons drop nil [ cons ] fold ] dip nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold",
-   "macro_length": 1,
-   "length": 231,
+   "macro_program": "over len min2 0 max2 nlargest",
+   "program": "over 0 [ drop 1 add ] fold [ over lt? ] [ swap drop ] [ drop ] ifte 0 [ over lt? ] [ drop ] [ swap drop ] ifte dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter swap nil nil swap cons swap cons [ drop uncons swap uncons swap drop over uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold swap over cons [ [ [ [ uncons ] dip ] dip [ eq? [ ] [ drop 1 ] [ drop 0 ] ifte swap 0 eq? [ ] [ drop 1 ] [ drop 0 ] ifte mul 1 eq? ] [ drop drop drop 1 cons ] [ drop swap [ cons ] dip cons ] ifte ] swap cons nil 0 cons swap fold uncons drop nil [ cons ] fold ] dip nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold",
+   "macro_length": 6,
+   "length": 264,
    "macros_used": [
+    "len",
+    "max2",
+    "min2",
     "nlargest"
    ],
-   "note": "repeated max extraction with k2-remove1; n<=5"
+   "note": "heapq.nlargest(n, nums) returns the whole list sorted descending when n exceeds len(nums) and [] when n < 0; clamp n to [0, len] before the library nlargest, which refuses on an empty remainder. Repair 2026-09-10 (#124, Codex re-review)."
   },
   {
    "id": "mbpp-41",

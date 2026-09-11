@@ -39,16 +39,16 @@ Exact matches with a v4 witness: 5 (leetcode-add-two-integers, mbpp-309, mbpp-58
 | `mod` | 20 |
 | `dec` | 18 |
 | `range` | 17 |
-| `max2` | 15 |
+| `max2` | 16 |
+| `len` | 15 |
 | `head` | 14 |
-| `len` | 14 |
 | `10` | 12 |
 | `sum` | 11 |
 | `le?` | 11 |
 | `bool>int` | 10 |
+| `min2` | 9 |
 | `rot` | 9 |
 | `7` | 8 |
-| `min2` | 8 |
 | `take` | 8 |
 | `100` | 7 |
 | `4` | 7 |
@@ -138,10 +138,10 @@ Exact matches with a v4 witness: 5 (leetcode-add-two-integers, mbpp-309, mbpp-58
 | mbpp-429 | 220 | `zip [ unpack2 band ] map` |
 | leetcode-sum-of-digits-in-base-k | 222 | `base-digit-sum` |
 | leetcode-smallest-divisible-digit-product-i | 228 | `swap 10 range swap [ add ] swap cons map swap [ swap digit-product swap divides? ] swap cons filter head` |
-| mbpp-4 | 231 | `nlargest` |
 | leetcode-number-of-days-in-a-month | 233 | `[ 2 eq? ] [ drop [ leap? ] [ drop 7 4 mul inc ] [ drop 7 4 mul ] ifte ] [ swap drop [ dup 8 lt? bool>int swap even? bool>int eq? ] [ drop 10 3 mul ] [ drop 10 3 mul inc ] ifte ] ifte` |
 | leetcode-two-out-of-three | 250 | `[ [ [ [ dup ] dip swap contains ] dip ] dip [ swap [ [ dup ] dip swap contains ] dip add ] dip swap [ [ dup ] dip swap contains ] dip add swap drop 1 gt? ] swap cons swap cons swap cons 100 range1 swap filter` |
 | mbpp-107 | 253 | `range-between [ 0 [ [ drop drop 0 eq? ] [ drop swap drop ] [ [ [ dup 16 mod 10 ge? bool>int ] dip add [ 16 div ] dip ] dip dup i ] ifte ] dup i ] map sum` |
+| mbpp-4 | 264 | `over len min2 0 max2 nlargest` |
 | mbpp-286 | 276 | `[ take ] dip swap quote [ drop ] swap cat swap range swap map nil [ cat ] fold max-subarray-sum` |
 | leetcode-xor-operation-in-an-array | 298 | `over over 2 mod swap 2 mod mul [ 2 div dup [ add dec ] dip dec dup 4 mod [ 0 eq? ] [ drop ] [ [ 1 eq? ] [ drop drop 1 ] [ [ 2 eq? ] [ drop inc ] [ drop drop 0 ] ifte ] ifte ] ifte swap dup 4 mod [ 0 eq? ] [ drop ] [ [ 1 eq? ] [ drop drop 1 ] [ [ 2 eq? ] [ drop inc ] [ drop drop 0 ] ifte ] ifte ] ifte bxor 2 mul ] dip add` |
 | mbpp-219 | 311 | `[ sort ] dip over len over sub [ dup len range ] dip2 [ [ over over lt? bool>int ] dip [ swap drop ] dip rot swap ge? bool>int add 0 gt? ] swap cons swap cons filter swap [ swap nth ] swap cons map` |

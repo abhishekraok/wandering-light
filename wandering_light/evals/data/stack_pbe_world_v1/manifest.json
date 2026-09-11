@@ -2,7 +2,7 @@
   "basis": "mark-28",
   "catalogue": {
     "behaviours": 91,
-    "digest": "sha256:1e67463a0b1d47be78a64cf6c6f40a0fd404a729f2fef257b52f13d500ee3e0b",
+    "digest": "sha256:a552e50f7cea16c407fd01c240c0cb7743a9b035af51bca57ec89c7ab5ee2fab",
     "skeletons": 89
   },
   "config": {
@@ -17,7 +17,7 @@
   },
   "corpus": "stack_pbe_world_v1",
   "counts": {
-    "distinct_input_stacks": 2256,
+    "distinct_input_stacks": 2244,
     "held_out_examples": 2332,
     "shown_examples": 546,
     "tasks": 91
@@ -27,17 +27,17 @@
   "hub": {
     "repo_id": "abhishekraok/wandering-light-stack-pbe-world-v1",
     "repo_type": "dataset",
-    "revision": "ad573433a33ab807a7ad236fdd1b69782faf70e2"
+    "revision": "fa60b4292b273b6c24072bf895a71b031f318127"
   },
   "schema_version": 2,
   "split_policy": "train-only",
   "splits": {
     "train": {
       "behaviours": 91,
-      "bytes": 49058,
+      "bytes": 48689,
       "path": "stack_pbe_world_v1_train.jsonl.gz",
       "records": 91,
-      "sha256": "sha256:d4de5ef17352874292f70d67e334d7d6078baa26aac221f1294a788e123f2ebd",
+      "sha256": "sha256:29b977c2c85df66ed782a1733b6cf3e0b3a47c253146f98cdf496035f4e11fa1",
       "skeletons": 89
     }
   }
