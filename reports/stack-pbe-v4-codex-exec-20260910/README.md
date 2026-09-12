@@ -32,6 +32,35 @@ and token usage are recorded per task under `generation` in each JSON.
 **No arm attempted a tool call on any task**, so every row below is one
 untooled sample per task, the API protocol.
 
+### Correction: the committed runs did not use the private home
+
+The table above was measured by hand, with `CODEX_HOME` set on the command
+line. The generator that produced **every JSON in this directory** built the
+private home but never put it in the subprocess environment, so `codex exec`
+loaded the invoking user's `~/.codex` instead: its `AGENTS.md` (a page of the
+owner's ML background and writing preferences), `config.toml` and plugins sat
+above every prompt. Found by Codex's review of PR #126 and fixed in
+`CodexExecTokenGenerator.environment()`; the probe is direct — asked whether
+its context named the user's employer, the model answered *"YES Allen
+Institute for AI (Ai2)"* before the fix and *"NO"* after.
+
+**What it cost: 480 input tokens per task, and nothing measurable in the
+results.** The `astra_low` sample arm was re-run with the home actually
+private (`astra_low_v4_sample40_fixedhome.json`): **23/40 against 24/40**,
+paired agreement **37/40**, the three flips going both ways
+(`drop_last` and `farthest_from_target_last_tie` lost, `bounds_cover_list_flag`
+gained). That is the same one-sample temperature noise as the luna pair below
+(33/40), and the leaked page says nothing about stack machines, the ops or the
+corpus. The numbers in this report stand as measured; they were measured with
+that page in context, which is what this section is for.
+
+**The per-arm effort flag was not affected**, which matters because the
+inherited `config.toml` pins `model_reasoning_effort = "high"`. Command-line
+`-c` overrides it: paired over the same 40 tasks, astra high reasons more than
+astra low on **32 of 40** tasks with no ties, where an ignored flag would give
+about 20. The flat effort curve below is a fact about the model, not about the
+config that leaked.
+
 Arms: `gpt-5.6-luna` high as the anchor against the API row (same model,
 effort, sample, seed); `gpt-5.6-terra` high; `gpt-6-astra` at low, medium and
 high, the effort curve. Five arms ran concurrently, 200 calls, 49 minutes wall.
@@ -204,6 +233,7 @@ being `push_back` and `rotate_left`).
 ## Files
 
 `run_phase1.sh` launched the five sample arms and `analyse.py` produced their
-tables; `run_phase2.sh` launched the six full-split shards
+tables; `astra_low_v4_sample40_fixedhome.json` is the post-fix replicate of one
+arm, the check on what the leaked home cost; `run_phase2.sh` launched the six full-split shards
 (`astra_low_v4_full_shard{0..5}.json`) and `analyse_phase2.py` merged them
 into `astra_low_v4_full_analysis.md`; `*.log` carry per-task progress.

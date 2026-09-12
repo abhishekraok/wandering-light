@@ -59,7 +59,7 @@ Guard `body` alone: 1.30x / 1.71x / 2.30x at depths 4/5/6. Authored witnesses pr
 
 ## Stack PBE v4 — 220 behaviours, eval split 1,800 tasks
 
-`stack_pbe_v4`, `mark-28`, witness median 43 ops. [report](../reports/stack-pbe-v4-baseline-20260901/README.md), [local-arm report](../reports/stack-pbe-v4-local-arm-20260902/README.md), [codex-exec report](../reports/stack-pbe-v4-codex-exec-20260910/README.md), [rerun-baselines-v4 (#85)](../../issues/85), [codex-exec-frontier-effort-curve (#123)](../../issues/123).
+`stack_pbe_v4`, `mark-28`, witness median 43 ops. [report](../reports/stack-pbe-v4-baseline-20260901/README.md), [local-arm report](../reports/stack-pbe-v4-local-arm-20260902/README.md), [codex-exec report](../reports/stack-pbe-v4-codex-exec-20260910/README.md), [rerun-baselines-v4 (#85)](../../issues/85), [codex-exec-frontier-effort-curve (#123)](../../issues/123). **The `codex exec` rows were run with the invoking user's `~/.codex` in context** (a generator bug, fixed after the runs); a post-fix replicate of one arm agrees 37/40, see the report's correction section.
 
 | solver | config | tasks | solved | memorised | wall (s) | notes | artifact |
 |---|---|---:|---:|---:|---:|---|---|
@@ -79,6 +79,7 @@ Guard `body` alone: 1.30x / 1.71x / 2.30x at depths 4/5/6. Authored witnesses pr
 | `gpt-6-astra` | effort medium, via `codex exec` | sample 40 | 24 (60.0%) | 16 | 661 | shown-only 100%; 1 is the shortcut → 23 real; 278 reasoning tok/task | `…/astra_medium_v4_sample40.json` |
 | `gpt-6-astra` | effort high, via `codex exec` | sample 40 | **23 (57.5%)** | 15 | 840 | shown-only 95%; 1 is the shortcut → 22 real; 396 reasoning tok/task, effort barely engaged | `…/astra_high_v4_sample40.json` |
 | `gpt-6-astra` | effort low, via `codex exec`, 6 shards | full 1,800 | **995 (55.3%)** | 714 | 33,487 | shown-only 94.9%; 20 are the shortcut → 975 real; 214/840 at 41+ ops, `median_floor` (253) 17/40; hand-written 318/320 vs sol-written 677/1,480, matched only at 1–10 ops (279/280 vs 79/80) | `…/astra_low_v4_full_shard{0..5}.json`, `…/astra_low_v4_full_analysis.md` |
+| `gpt-6-astra` | effort low, via `codex exec`, private home actually applied | sample 40 | 23 (57.5%) | 17 | 601 | replicate after the CODEX_HOME fix; paired agreement 37/40 with the row above, 480 fewer input tok/task | `…/astra_low_v4_sample40_fixedhome.json` |
 | beam 64 × depth 48, 1m policy, seed 0 | trained on v4 train, LR 1.25e-4, cpu (8 threads) | sample 40 | 7 (17.5%) | 0 | 131 |  | `compute-optimal-mark28-20260903/timing/1m-s0-cpu.json` |
 | beam 64 × depth 48, 1m policy, seed 0 | trained on v4 train, LR 1.25e-4, cuda | sample 40 | 7 (17.5%) | 0 | 120 | same program on both devices | `…/timing/1m-s0-cuda.json` |
 | beam 64 × depth 48, 1m policy, seed 1 | trained on v4 train, LR 1.25e-4, cpu (8 threads) | sample 40 | 10 (25.0%) | 1 | 126 |  | `…/timing/1m-s1-cpu.json` |
