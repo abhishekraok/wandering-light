@@ -1,0 +1,16 @@
+# Author d helpers.
+kd-primes-below: range 2 drop-n nil [ [ over over [ swap divides? ] swap cons filter null? ] [ cons ] [ drop ] ifte ] fold
+kd-factorial: range1 product
+kd-binomial: dup kd-factorial [ over swap sub inc swap range-between product ] dip div
+kd-digit-sum: [ [ over 10 lt? ] [ drop ] [ [ dup 10 mod swap 10 div ] dip dup i add ] ifte ] dup i
+kd-digit-square-sum: [ [ over 10 lt? ] [ drop sq ] [ [ dup 10 mod sq swap 10 div ] dip dup i add ] ifte ] dup i
+kd-happy-prime-end: zeros16 swap [ drop [ dup 6 gt? ] [ kd-digit-square-sum ] [ ] ifte ] fold 1 eq?
+# Exact chunk sum for 0 <= n < 1000; the general helper processes base-1000 chunks.
+kd-three-digit-sum: dup 10 div over 100 div add 9 mul sub
+kd-fast-digit-sum: [ [ over 1000 lt? ] [ drop kd-three-digit-sum ] [ [ dup 1000 mod kd-three-digit-sum swap 1000 div ] dip dup i add ] ifte ] dup i
+# Inclusive range using its width, including ranges with a negative start.
+kd-span: over sub inc range swap [ add ] swap cons map
+# Repunit weights for inverting t + floor(t/10) + ... on the extractor domain.
+kd-repunits: nil 1 cons dup head 10 mul inc cons dup head 10 mul inc cons dup head 10 mul inc cons dup head 10 mul inc cons dup head 10 mul inc cons
+kd-invert-floor-sum: dup kd-repunits swap [ le? ] swap cons filter swap 0 pack2 [ [ unpack2 ] dip pick2 over div 9 min2 dup [ mul ] dip [ rot swap sub ] dip rot 10 mul add pack2 ] fold second
+kd-comfort-group: pack3 dup head kd-invert-floor-sum 10 mul 9 add over third min2 over dup head 9 mul over second max2 swap dup head 9 mul 8 add swap third min2 kd-span rot drop swap [ over dup kd-fast-digit-sum add min2 swap sub 0 max2 ] swap cons map sum

@@ -1,0 +1,31 @@
+# Author a, wave 3. Helpers preserve reference edge cases.
+ka-indices: swap [ swap at ] swap cons map
+ka-py-take: [ dup 0 lt? ] [ over len add ] [ ] ifte take
+ka-first-or-minus-one: -1 quote cat head
+ka-pair-count-step: [ unpack2 ] dip2 over sub pick3 swap count rot add [ cons ] dip pack2
+ka-pair-xor-step: [ unpack2 ] dip pick2 over [ sxor ] swap cons map sum rot add [ cons ] dip pack2
+ka-odometer: abs digits [ [ dup 5 ge? ] [ dec ] [ ] ifte ] map 0 [ swap 9 mul add ] fold
+ka-key-gt: [ head ] dip head gt?
+ka-key-le: ka-key-gt not
+ka-insert-key: over over [ ka-key-gt ] swap cons filter -rot swap over [ ka-key-le ] swap cons filter -rot quote swap cat cat
+ka-sort-key: nil [ ka-insert-key ] fold
+ka-radix-modulus: 1 pack2 zeros16 swap [ drop unpack2 [ over over gt? ] [ 10 mul ] [ ] ifte pack2 ] fold second
+ka-poly-term: unpack3 rot pick3 sub [ [ dup 0 lt? ] [ false ] [ over len over gt? ] ifte ] [ nth -rot swap nth mul ] [ drop drop drop drop 0 ] ifte
+ka-poly-coeff: pack3 dup second len range swap [ ka-poly-term ] swap cons map sum
+ka-every-third: dup len range [ 3 mod 0 eq? ] filter ka-indices
+ka-third-element: [ pick2 3 mod 0 eq? ] [ swap drop swap 3 div nth ] [ drop swap nth ] ifte
+ka-perm-child: unpack2 10 mul pick2 add [ swap remove1 ] dip pack2
+ka-perm-expand: dup head dedup swap [ ka-perm-child ] swap cons map
+ka-perm-level: [ ka-perm-expand ] map flatten
+ka-perm-step: drop unpack2 ka-perm-level dup seconds rot cat swap pack2
+ka-scale: 1000 dup mul 1000 mul
+ka-pow25: dup sq sq sq dup sq mul mul
+ka-root-step: drop unpack3 over over add 2 div [ dup ka-pow25 pick4 le? ] [ rot drop swap ] [ swap drop ] ifte pack3
+ka-wind-root: dup sq sq ka-scale ka-pow25 mul swap inc ka-scale mul 0 swap pack3 zeros16 dup cat dup cat swap [ ka-root-step ] fold second
+ka-round-ratio: over over mod 2 mul over [ over over eq? ] [ drop drop div dup odd? bool>int add ] [ gt? bool>int [ div ] dip add ] ifte
+ka-6215: 6 2 1 5 pack4 from-digits
+ka-3965: 3 9 6 5 pack4 from-digits
+ka-131200: 10 3 add 10 mul 1 add 10 mul 2 add 100 mul
+ka-113700: 10 1 add 10 mul 3 add 10 mul 7 add 100 mul
+ka-divisor-sum: dup isqrt range1 [ 1 gt? ] filter over [ swap mod 0 eq? ] swap cons filter swap [ over div [ over over eq? ] [ drop ] [ add ] ifte ] swap cons map sum inc
+ka-amicable-step: [ over over contains 1 eq? ] [ drop ] [ dup ka-divisor-sum [ over over eq? ] [ drop drop ] [ [ dup ka-divisor-sum pick2 eq? ] [ cons cons ] [ drop drop ] ifte ] ifte ] ifte

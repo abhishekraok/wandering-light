@@ -1,0 +1,23 @@
+# Author b helpers; packed states use canonical pack/unpack order.
+kb-dp3-step: over second over add pick2 head pick2 add pick3 fourth add max2 pick2 third max2 [ [ dup second swap third ] dip ] dip swap pack4
+kb-div-related?: [ over over mod 0 eq? ] [ drop drop true ] [ swap mod 0 eq? ] ifte
+kb-div-chain-step: over over [ [ unpack2 drop ] dip kb-div-related? ] swap cons filter seconds 0 [ max2 ] fold inc pack2 cons
+kb-merge-step: [ unpack2 ] dip [ over 0 eq? ] [ swap drop pack2 ] [ [ over over eq? ] [ add cons 0 pack2 ] [ [ cons ] dip pack2 ] ifte ] ifte
+kb-digit-list: [ dup 10 lt? ] [ quote ] [ dup 10 div kb-digit-prefix swap 10 mod quote cat ] ifte
+kb-digit-prefix: [ dup 10 lt? ] [ quote ] [ dup 10 div kb-digit-prefix2 swap 10 mod quote cat ] ifte
+kb-digit-prefix2: digits
+kb-small-pow: zeros16 swap take swap 1 pack2 [ drop unpack2 over mul pack2 ] fold second
+kb-digit-position-sum: kb-digit-list 0 0 pack2 [ [ unpack2 ] dip swap inc dup [ kb-small-pow ] dip [ add ] dip pack2 ] fold head
+kb-digit-fast-sum: [ dup 10 lt? ] [ ] [ [ dup 100 lt? ] [ dup 10 div swap 10 mod sq add ] [ [ dup 1000 lt? ] [ dup 100 div over 10 div 10 mod sq add swap 10 mod dup sq mul add ] [ kb-digit-position-sum ] ifte ] ifte ] ifte
+kb-twosum-match?: [ drop over head swap head eq? ] [ drop drop drop false ] [ [ [ second ] dip second add ] dip eq? ] ifte
+kb-twosum-row: [ over ] dip [ kb-twosum-match? ] swap cons swap cons filter [ dup null? ] [ drop drop nil ] [ head head swap head swap pack2 ] ifte
+kb-factor-match?: [ over [ swap mod 0 eq? ] swap cons filter ] dip [ over null? ] [ drop drop drop false ] [ [ drop head eq? ] [ drop drop drop false ] [ [ dup head swap last add ] dip eq? swap drop ] ifte ] ifte
+kb-digit-under1000: [ dup 100 ge? ] [ dup 100 div over 10 div 10 mod sq add swap 10 mod dup sq mul add ] [ [ dup 10 lt? ] [ ] [ dup 10 div swap 10 mod sq add ] ifte ] ifte
+# Heap-merge streams carry stable input id, multiplier, and queued future values.
+kb-stream-value: third head
+kb-stream-min: uncons [ [ over kb-stream-value over kb-stream-value le? ] [ drop ] [ swap drop ] ifte ] fold
+kb-stream-grow: [ unpack3 ] dip pick2 mul quote cat pack3
+kb-stream-pop: unpack3 tail [ dup null? ] [ drop drop drop nil ] [ pack3 ] ifte
+kb-grow-pop: [ drop over head eq? ] [ [ drop ] dip kb-stream-grow kb-stream-pop ] [ [ drop ] dip kb-stream-grow ] ifte
+kb-pop-selected: [ over head eq? ] [ drop kb-stream-pop ] [ drop ] ifte
+kb-ugly-step: swap drop [ over third swap ge? ] [ drop ] [ drop unpack3 pick2 kb-stream-min dup head swap kb-stream-value [ pick3 eq? ] [ drop [ rot ] dip [ kb-pop-selected ] swap cons map [ null? not ] filter -rot pack3 ] [ [ [ swap drop inc ] dip ] dip [ [ swap ] dip ] dip dup [ [ kb-grow-pop ] swap cons swap cons map [ null? not ] filter ] dip rot pack3 ] ifte ] ifte
