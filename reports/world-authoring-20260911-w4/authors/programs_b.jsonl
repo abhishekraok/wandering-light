@@ -1,0 +1,26 @@
+{"id": "mbpp-690", "program": "kb-adjacent [ unpack2 mul ] map", "status": "solved", "note": "shape: adjacent pairs mapped to products; empty input stays empty"}
+{"id": "mbpp-443", "program": "min", "status": "solved", "note": "shape: minimum fold, matching the reference despite its name"}
+{"id": "mbpp-953", "program": "[ dup 0 le? ] [ drop drop 0 ] [ [ dup min count ] dip min2 ] ifte", "status": "solved", "note": "shape: count the minimum, capped at n; n <= 0 returns zero"}
+{"id": "mbpp-229", "program": "range [ 0 pack2 ] dip swap [ kb-partition-step ] fold head", "status": "solved", "note": "shape: index fold carries array and partition boundary; reproduces in-place swaps"}
+{"id": "mbpp-632", "program": "dup [ 0 eq? not ] filter swap [ 0 eq? ] filter cat", "status": "solved", "note": "shape: stable nonzero filter followed by zeros"}
+{"id": "mbpp-448", "program": "[ dup 0 eq? ] [ drop 3 ] [ [ dup 1 eq? ] [ drop 3 ] [ 2 sub range 3 0 2 5 pack4 [ kb-perrin-step ] fold fourth ] ifte ] ifte", "status": "solved", "note": "shape: Perrin recurrence fold with cumulative sum; negative n retains initial sum five"}
+{"id": "mbpp-638", "program": "kb-wind-chill", "status": "solved", "note": "shape: fixed-point 25th root of v^4 at scale 10^12, followed by the wind-chill polynomial and ties-to-even rounding"}
+{"id": "mbpp-35", "program": "dup inc mul", "status": "solved", "note": "shape: n times n+1, including negatives"}
+{"id": "mbpp-267", "program": "dup sq 4 mul dec mul 3 div", "status": "solved", "note": "shape: integer polynomial; numerator is divisible by three"}
+{"id": "mbpp-685", "program": "inc primes-below sum", "status": "solved", "note": "shape: generate primes through n and sum"}
+{"id": "mbpp-42", "program": "drop dup [ swap count 1 gt? ] swap cons filter sum", "status": "solved", "note": "shape: sum every occurrence of repeated values; ignores n like the reference"}
+{"id": "mbpp-8", "program": "[ sq ] map", "status": "solved", "note": "shape: elementwise square"}
+{"id": "mbpp-232", "program": "[ sort reverse ] dip take", "status": "solved", "note": "shape: descending sort and capped take; nonpositive n returns empty"}
+{"id": "codearc-535", "program": "dup [ swap count even? ] swap cons filter", "status": "solved", "note": "shape: preserve occurrences whose total count is even"}
+{"id": "codearc-740", "program": "dec 8 mul inc isqrt inc 2 div", "status": "solved", "note": "shape: integer square root of the reference quadratic"}
+{"id": "codearc-680", "program": "kb-adjacent [ unpack2 swap sub 0 max2 ] map sum", "status": "solved", "note": "shape: sum positive adjacent price differences"}
+{"id": "codearc-691", "program": "dup isqrt range1 1 drop-n [ [ 4 max2 ] dip range-between ] dip [ over swap kb-factor-sum [ over over eq? ] [ drop drop false ] [ divides? ] ifte ] swap cons filter", "status": "solved", "note": "shape: generate trial divisors once; sum prime factors with multiplicity by descending power division, then test divisibility"}
+{"id": "codearc-288", "program": "[ divides? ] swap cons filter", "status": "solved", "note": "shape: divisibility filter, preserving order and duplicates"}
+{"id": "codearc-106", "program": "popcount", "status": "solved", "note": "shape: population count of absolute value matches bin(n)[2:].count"}
+{"id": "codearc-734", "program": "decimal-digits dup sum swap len dup dec factorial swap range [ drop 1 ] map from-digits mul mul", "status": "solved", "note": "shape: digit sum times (length-1)! times the decimal repunit"}
+{"id": "codearc-636", "program": "[ range1 ] dip [ mul ] swap cons map", "status": "solved", "note": "shape: map factor over 1..limit; nonpositive limit yields empty"}
+{"id": "codearc-306", "program": "[ dup len range kb-index-pairs swap ] dip [ [ kb-pair-total ] dip eq? ] swap cons swap cons filter nil [ kb-select-pair ] fold sum", "status": "solved", "note": "shape: enumerate pairs in reference order, then greedily collect disjoint matching indices"}
+{"id": "codearc-260", "program": "swap [ gcd 1 eq? ] swap cons filter", "status": "solved", "note": "shape: gcd filter handles either sign and zero"}
+{"id": "codearc-466", "program": "swap [ [ over over ge? ] [ add ] [ over swap gcd add ] ifte ] fold", "status": "solved", "note": "shape: attack fold adds monster or gcd according to the reference branch"}
+{"id": "codearc-53", "program": "[ [ dup 0 lt? ] [ neg digits uncons neg swap sum add ] [ digit-sum ] ifte 0 gt? ] filter len", "status": "solved", "note": "shape: negate only the leading digit of a negative number, then test digit sum"}
+{"id": "codearc-49", "program": "2 div 2 mul [ over over gt? ] [ drop drop -1 ] [ swap drop ] ifte", "status": "solved", "note": "shape: largest even <= y, returning -1 if below x"}

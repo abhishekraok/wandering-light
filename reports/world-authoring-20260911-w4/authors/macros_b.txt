@@ -1,0 +1,27 @@
+# Author b, wave 4. Helpers use the canonical library.
+kb-adjacent: dup 1 drop-n zip
+# list i j -- list with positions i and j exchanged.
+kb-swap-at: pick2 over nth pick3 pick3 nth [ swap ] dip [ set-at ] dip2 set-at
+kb-partition-step: [ unpack2 ] dip [ pick2 over nth 0 lt? ] [ over [ kb-swap-at ] dip inc pack2 ] [ drop pack2 ] ifte
+kb-perrin-step: drop unpack4 pick3 pick3 add [ rot drop ] dip2 dup [ add ] dip swap pack4
+kb-index-pairs: dup [ over inc drop-n swap [ swap pack2 ] swap cons map ] swap cons map flatten
+kb-pair-total: over head over swap nth [ swap second nth ] dip add
+kb-select-pair: [ over over head contains 1 eq? ] [ drop ] [ [ over over second contains 1 eq? ] [ drop ] [ cat ] ifte ] ifte
+# Descending (d^e, e) pairs for e=16,8,4,2,1; covers multiplicity <=31.
+kb-factor-power-double: dup head unpack2 [ sq ] dip dup add pack2 cons
+kb-factor-powers: 1 pack2 quote kb-factor-power-double kb-factor-power-double kb-factor-power-double kb-factor-power-double
+kb-factor-power-step: swap unpack2 rot mul [ unpack2 ] dip2 [ pick3 pick2 divides? ] [ [ [ swap ] dip div swap ] dip add pack2 ] [ drop drop pack2 ] ifte
+kb-factor-step: [ unpack2 ] dip [ pick2 over divides? ] [ dup kb-factor-powers swap [ kb-factor-power-step ] swap cons [ pack2 ] dip2 [ swap ] dip fold ] [ drop pack2 ] ifte
+kb-factor-sum: swap 0 pack2 [ kb-factor-step ] fold unpack2 [ over 1 eq? ] [ swap drop ] [ add ] ifte
+# Fixed-point real arithmetic, scale 10^12. pow25 is exact integer arithmetic.
+kb-scale: 1000 sq sq
+kb-pow25: dup sq sq sq dup sq mul mul
+kb-root25-step: drop unpack3 over over add 2 div [ dup kb-pow25 pick4 le? ] [ [ swap drop ] dip swap ] [ [ drop ] dip ] ifte pack3
+kb-wind-power: dup sq sq kb-scale kb-pow25 mul swap inc kb-scale mul 0 swap pack3 zeros16 dup cat dup cat swap [ kb-root25-step ] fold second
+# numerator positive-denominator -- rounded quotient, ties to even; handles negative numerators.
+kb-round-even: over over div -rot over over mod [ swap drop ] dip dup add [ over over lt? ] [ drop drop inc ] [ [ over over eq? ] [ drop drop [ dup odd? ] [ inc ] [ ] ifte ] [ drop drop ] ifte ] ifte
+kb-6215: 6 10 mul 2 add 10 mul 1 add 10 mul 5 add
+kb-131200: 1 10 mul 3 add 10 mul 1 add 10 mul 2 add 100 mul
+kb-3965: 3 10 mul 9 add 10 mul 6 add 10 mul 5 add
+kb-113700: 1 10 mul 1 add 10 mul 3 add 10 mul 7 add 100 mul
+kb-wind-chill: [ kb-wind-power ] dip dup kb-6215 mul kb-131200 add kb-scale mul [ kb-3965 mul kb-113700 sub mul ] dip add 100 sq kb-scale mul kb-round-even

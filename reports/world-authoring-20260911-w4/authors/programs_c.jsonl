@@ -1,0 +1,24 @@
+{"id": "mbpp-672", "program": "max2 max2", "status": "solved", "note": "shape: maximum of three scalars"}
+{"id": "mbpp-503", "program": "kc-adjacent [ sum ] map", "status": "solved", "note": "shape: zip adjacent elements and sum; empty input stays empty"}
+{"id": "mbpp-789", "program": "mul", "status": "solved", "note": "shape: scalar multiplication, including negative inputs"}
+{"id": "mbpp-21", "program": "[ range1 ] dip [ mul ] swap cons map", "status": "solved", "note": "shape: map multiples over 1..m; nonpositive m gives an empty list"}
+{"id": "mbpp-412", "program": "dup len range swap [ kc-remove-odd-step ] fold", "status": "solved", "note": "shape: fold indices over the mutating list and remove the first occurrence; preserves skipped elements and duplicates"}
+{"id": "mbpp-275", "program": "[ take ] dip [ kc-ceil-div ] swap cons map dup len range1 zip [ head -1 gt? ] filter [ dup null? ] [ drop 0 ] [ sort-by-head last second ] ifte", "status": "solved", "note": "shape: ceiling division of first n elements, then rightmost maximum strictly above the reference sentinel -1"}
+{"id": "mbpp-586", "program": "[ drop ] dip slice-index over over drop-n [ take ] dip swap cat", "status": "solved", "note": "shape: Python slice rotation with negative-index normalization; n is ignored"}
+{"id": "mbpp-447", "program": "[ dup sq mul ] map", "status": "solved", "note": "shape: cube each signed integer"}
+{"id": "mbpp-514", "program": "sum", "status": "solved", "note": "shape: sum fold with zero on empty input"}
+{"id": "mbpp-847", "program": "", "status": "solved", "note": "shape: identity; machine lists are immutable"}
+{"id": "mbpp-116", "program": "[ dup head 0 lt? ] [ kc-join-ints neg ] [ kc-join-ints ] ifte", "status": "solved", "note": "shape: concatenate decimal representations, preserving a leading minus sign and multi-digit elements"}
+{"id": "mbpp-629", "program": "[ even? ] filter", "status": "solved", "note": "shape: stable filter for even signed integers"}
+{"id": "codearc-446", "program": "[ dup 0 eq? ] [ ] [ dec 9 mod inc ] ifte", "status": "solved", "note": "shape: reference modular formula, including negative integers and the zero special case"}
+{"id": "codearc-111", "program": "count", "status": "solved", "note": "shape: count structural equality matches"}
+{"id": "codearc-328", "program": "pack3 [ kc-triangle ] map product", "status": "solved", "note": "shape: product of three integer triangular factors, also valid for negative dimensions"}
+{"id": "codearc-1032", "program": "[ prefix-sums dup len range zip ] dip over len [ [ swap head lt? ] swap cons filter seconds ] dip quote cat head", "status": "solved", "note": "shape: first prefix sum exceeding hd, with list length as fallback; retains the early return with negative sizes"}
+{"id": "codearc-532", "program": "sort kc-adjacent [ unpack2 swap sub ] map max", "status": "solved", "note": "shape: sort then maximize adjacent differences"}
+{"id": "codearc-663", "program": "[ kc-power-ratio ] dip kc-power-ratio reverse zip [ product ] map unpack2 kc-reverse-compare", "status": "solved", "note": "shape: compare integer powers by cross multiplication, supporting negative and zero exponents; reverse comparison sign; matches all supplied tests, but does not emulate floating-point logarithm rounding near equality"}
+{"id": "codearc-4", "program": "[ dup 0 eq? ] [ drop ] [ [ dup 0 lt? ] [ gcd neg ] [ gcd ] ifte ] ifte", "status": "solved", "note": "shape: Euclidean gcd with the reference sign of b, returning a unchanged when b is zero"}
+{"id": "codearc-1063", "program": "add swap sub 0 max2", "status": "solved", "note": "shape: clamp on + wait - cap at zero"}
+{"id": "codearc-918", "program": "[ even? ] filter sum", "status": "solved", "note": "shape: sum even signed integers"}
+{"id": "codearc-333", "program": "dup [ odd? ] filter sort nil pack2 [ kc-sort-odd-step ] fold second reverse", "status": "solved", "note": "shape: fold through original positions, consuming sorted odds while keeping evens in place"}
+{"id": "codearc-525", "program": "over over gcd [ add ] dip div", "status": "solved", "note": "shape: divide sum by nonnegative gcd; exact because gcd divides both operands"}
+{"id": "codearc-67", "program": "kc-adjacent [ unpack2 gt? bool>int ] map dup len range1 zip [ head 1 eq? ] filter seconds -1 quote swap cat last", "status": "solved", "note": "shape: largest index of a strict adjacent decrease, or -1 including empty input"}

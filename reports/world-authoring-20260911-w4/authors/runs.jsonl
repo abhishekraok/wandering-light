@@ -1,0 +1,4 @@
+{"author": "a", "seconds": 307, "tokens": "102,078", "status": 0, "model": "gpt-6-astra", "effort": "high"}
+{"author": "b", "seconds": 295, "tokens": "112,985", "status": 0, "model": "gpt-6-astra", "effort": "high"}
+{"author": "c", "seconds": 135, "tokens": "50,270", "status": 0, "model": "gpt-6-astra", "effort": "high"}
+{"author": "d", "seconds": 445, "tokens": "166,922", "status": 0, "model": "gpt-6-astra", "effort": "high"}

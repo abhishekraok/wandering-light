@@ -1,0 +1,9 @@
+# Author c, wave 4. Helpers preserve the supplied references' edge cases.
+kc-adjacent: dup 1 drop-n zip
+kc-ceil-div: [ neg ] dip div neg
+kc-triangle: dup inc mul 2 div
+kc-join-ints: [ abs decimal-digits ] map flatten from-digits
+kc-remove-odd-step: [ over len lt? ] [ over swap nth [ dup odd? ] [ remove1 ] [ drop ] ifte ] [ drop ] ifte
+kc-sort-odd-step: [ unpack2 ] dip [ dup odd? ] [ drop [ uncons ] dip swap ] [ ] ifte cons pack2
+kc-power-ratio: dup head swap second dup [ abs pow ] dip [ dup 0 lt? ] [ drop 1 swap ] [ drop 1 ] ifte pack2
+kc-reverse-compare: [ over over lt? ] [ drop drop 1 ] [ [ eq? ] [ drop drop 0 ] [ drop drop -1 ] ifte ] ifte

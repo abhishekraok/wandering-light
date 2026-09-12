@@ -1,0 +1,1 @@
+{"id": "mbpp-847", "program": "dup drop", "status": "solved", "note": "the behaviour is the identity (copy a list); the author submitted the empty program, which the verifier does not accept as a witness, so a two-op identity stands in"}
