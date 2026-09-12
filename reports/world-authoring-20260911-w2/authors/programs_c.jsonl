@@ -1,0 +1,24 @@
+{"id": "mbpp-641", "program": "dup 7 mul 5 sub mul 2 div", "status": "solved", "note": "shape: integer nonagonal formula; numerator is always even"}
+{"id": "mbpp-594", "program": "dup [ even? ] filter kc-first-or-minus1 swap [ odd? ] filter kc-first-or-minus1 sub", "status": "solved", "note": "shape: parity filters; missing parity defaults to -1"}
+{"id": "mbpp-849", "program": "dup range1 [ kc-prime? ] filter swap [ swap mod 0 eq? ] swap cons filter sum", "status": "solved", "note": "shape: sum distinct prime divisors; zero has no candidates"}
+{"id": "mbpp-463", "program": "kc-mbpp-product", "status": "solved", "note": "shape: packed ending-product recurrence; zero resets to 1 and empty returns 0"}
+{"id": "mbpp-587", "program": "", "status": "solved", "note": "shape: identity; tuple output is normalized to a flat list"}
+{"id": "mbpp-385", "program": "kc-perrin", "status": "solved", "note": "shape: fold over the three-term Perrin recurrence"}
+{"id": "mbpp-183", "program": "[ take ] dip abs kc-difference-pairs", "status": "solved", "note": "shape: prefix-limited pair fold; compares absolute differences including negative k"}
+{"id": "mbpp-786", "program": "kc-bisect-right", "status": "solved", "note": "shape: packed binary-search bounds; preserves midpoint decisions on unsorted inputs"}
+{"id": "mbpp-831", "program": "take kc-equal-pairs", "status": "solved", "note": "shape: count equal prior elements in the requested prefix"}
+{"id": "mbpp-583", "program": "kc-catalan", "status": "solved", "note": "shape: Catalan multiplicative recurrence; nonpositive input returns 1"}
+{"id": "mbpp-968", "program": "over dec min2 rot mul swap div", "status": "solved", "note": "shape: min(B-1,N), then Python floor division"}
+{"id": "mbpp-245", "program": "kc-bitonic-sum", "status": "solved", "note": "shape: increasing-sum DP on first n and reversed last n; untouched positions retain original values"}
+{"id": "codearc-629", "program": "[ dup 0 eq? ] [ drop ] [ [ dup 0 lt? ] [ gcd neg ] [ gcd ] ifte ] ifte", "status": "solved", "note": "shape: Euclidean gcd with divisor sign; y=0 returns x unchanged"}
+{"id": "codearc-198", "program": "kc-bisect-right", "status": "solved", "note": "shape: packed binary-search bounds; preserves midpoint decisions on unsorted inputs"}
+{"id": "codearc-462", "program": "kc-digit-blocks kc-digit-answer", "status": "unsolved", "note": "why: fuel exhausted on larger ranges; current 13/34, best 14/34 before generalizing prefix-window validation; final-digit interval summaries and exact rational closest-point selection"}
+{"id": "codearc-472", "program": "kc-fibonacci-pair", "status": "solved", "note": "shape: Fibonacci pair fold; zero and negative iteration branches match reference"}
+{"id": "codearc-376", "program": "kc-dice-count", "status": "unsolved", "note": "29/34; why: breadth-first nondecreasing factorizations exceed fuel on large products; includes reference bounds and original-set subtraction"}
+{"id": "codearc-142", "program": "kc-max-product", "status": "solved", "note": "shape: min/max ending-product fold initialized from first element"}
+{"id": "codearc-585", "program": "kc-emirps", "status": "solved", "note": "shape: prime sieve and decimal reversal (up to eight digits); larger partner is duplicated when both members are in range"}
+{"id": "codearc-154", "program": "dup [ swap count 1 eq? ] swap cons filter", "status": "solved", "note": "shape: retain elements with total count exactly one in original order"}
+{"id": "codearc-74", "program": "[ drop drop kc-prime? ] [ drop swap drop ] [ swap drop swap drop ] ifte", "status": "solved", "note": "shape: primality predicate selects x or y; n<2 is composite"}
+{"id": "codearc-233", "program": "[ sort prefix-sums dup len range zip ] dip [ [ head ] dip ge? ] swap cons filter head second", "status": "solved", "note": "shape: first sorted prefix reaching threshold, preserving early return even with negative values"}
+{"id": "codearc-507", "program": "kc-reverse-binary", "status": "solved", "note": "shape: fold low bits into reversed binary integer; zero returns zero"}
+{"id": "codearc-810", "program": "[ dup 0 lt? ] [ [ over len neg lt? ] [ drop drop -1 ] [ dup [ at ] dip neg pow 1 swap div ] ifte ] [ [ over len ge? ] [ drop drop -1 ] [ dup [ nth ] dip pow ] ifte ] ifte", "status": "solved", "note": "shape: bounds-checked indexing and exponentiation; negative indices use Python indexing"}

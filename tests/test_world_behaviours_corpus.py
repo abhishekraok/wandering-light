@@ -185,6 +185,24 @@ def test_migration_preserves_recorded_repairs(tmp_path: Path) -> None:
     assert row["migrated_program"] == "over over take reverse -rot drop-n cat"
 
 
+def test_migration_prefers_the_reports_own_alias_table(tmp_path: Path) -> None:
+    """Codex review on #129: author letters repeat across waves, so `ka-complement`
+    meant one thing in wave 1 and another in wave 2; a wave's aliases.txt wins."""
+    migrate = _module("migrate")
+    probe = tmp_path / "probe"
+    probe.mkdir()
+    (probe / "programs_a.jsonl").write_text(
+        json.dumps({"id": "x-1", "program": "ka-complement", "status": "solved"}) + "\n"
+    )
+    out = tmp_path / "out"
+    (out / "authors").mkdir(parents=True)
+    (out / "authors" / "macros_a.txt").write_text("ka-complement: neg dec\n")
+    (out / "aliases.txt").write_text("ka-complement: @inline\n")
+    assert migrate.main([str(probe), str(out)]) == 0
+    (row,) = [json.loads(l) for l in (out / "programs_canonical.jsonl").open()]
+    assert row["program"] == "neg dec"
+
+
 def test_relations_to_argument_zero_are_scheduled_and_violated() -> None:
     """Codex re-review on #125: an index or membership relation to argument 0 is a relation, not a disabled property."""
     import random

@@ -1,0 +1,17 @@
+# Author d, wave 2. Helpers preserve the supplied Python references.
+kd-choose: [ over over lt? ] [ drop drop 0 ] [ dup range1 product [ dup range1 rot rot sub [ add ] swap cons map product ] dip div ] ifte
+kd-pal-even: digits dup reverse cat from-digits
+kd-pal-odd: decimal-digits dup reverse tail cat from-digits
+kd-next-pal: [ dup 0 lt? ] [ drop 0 ] [ dup digits dup len inc 2 div take from-digits dup kd-pal-even over kd-pal-odd pick2 inc kd-pal-even pick3 inc kd-pal-odd pack4 swap drop over digits len 10 swap pow inc cons swap [ gt? ] swap cons filter min ] ifte
+kd-popcount: pows2 swap [ swap div 2 mod ] swap cons map sum
+kd-pop-root-step: [ dup 9 gt? ] [ kd-popcount ] [ ] ifte
+kd-mobius-step: [ unpack2 ] dip [ pick2 over sq divides? ] [ drop drop 0 pack2 ] [ [ pick2 over divides? ] [ rot swap div swap neg pack2 ] [ drop pack2 ] ifte ] ifte
+kd-65: 8 sq inc
+kd-sierpinski-increment: dup 4 div kd-65 mul swap 4 mod nil kd-65 4 sub cons 7 8 mul cons 9 cons 4 cons swap nth add
+kd-nearest-step: [ pick2 over sub abs pick2 pick2 sub abs ge? ] [ drop swap drop ] [ drop drop ] ifte
+kd-chameleon-order: [ dup 0 ge? bool>int over 3 lt? bool>int mul 1 eq? ] [ over over at [ 3 range swap [ eq? not ] swap cons filter swap [ swap nth ] swap cons map sort ] dip quote cat ] [ drop sort ] ifte
+kd-ant-start: 100 100 mul 10 2 mul 3 add sub
+kd-ant-turn: [ drop over over contains 1 eq? ] [ [ dup [ remove1 ] dip ] dip inc 4 mod ] [ [ dup [ cons ] dip ] dip dec 4 mod ] ifte
+kd-ant-step: swap drop [ unpack3 kd-ant-turn ] dip over nth swap [ add ] dip pack3
+kd-ant-core: dup 0 max2 range swap 2 mul inc dup neg [ 1 swap -1 ] dip pack4 nil 0 0 pack3 swap [ kd-ant-step ] swap cons fold head len
+kd-ant: [ dup kd-ant-start gt? ] [ kd-ant-start sub dup 100 4 add mod swap over sub 100 4 add div 3 4 mul mul swap kd-ant-start add ] [ 0 swap ] ifte kd-ant-core add

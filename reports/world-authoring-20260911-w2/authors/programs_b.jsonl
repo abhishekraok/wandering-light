@@ -1,0 +1,26 @@
+{"id": "mbpp-426", "program": "[ odd? ] filter", "status": "solved", "note": "shape: filter odd integers, preserving order and duplicates"}
+{"id": "mbpp-817", "program": "[ kb-divides-either ] swap cons swap cons filter", "status": "solved", "note": "shape: filter with both captured divisors"}
+{"id": "mbpp-86", "program": "dup dec mul 3 mul inc", "status": "solved", "note": "shape: centered hexagonal polynomial, including negative inputs"}
+{"id": "mbpp-325", "program": "[ dup 3 le? ] [ ] [ range1 nil 0 cons [ kb-min-squares-step ] fold last ] ifte", "status": "solved", "note": "shape: dynamic programming over square predecessors; returns n unchanged for n <= 3"}
+{"id": "mbpp-671", "program": "kb-set-unset", "status": "solved", "note": "shape: find lowest zero bit by floor division; retain positive all-ones inputs and -1"}
+{"id": "mbpp-264", "program": "[ dup 2 le? ] [ 10 2 mul inc mul 2 div ] [ 2 sub 4 mul 10 2 mul inc add ] ifte", "status": "solved", "note": "shape: piecewise dog-age arithmetic on integer-output domain"}
+{"id": "mbpp-221", "program": "[ even? ] filter [ null? ] [ drop -1 ] [ head ] ifte", "status": "solved", "note": "shape: filter and first element, with -1 fallback"}
+{"id": "mbpp-135", "program": "dup 2 mul dec mul", "status": "solved", "note": "shape: hexagonal polynomial"}
+{"id": "mbpp-141", "program": "sort", "status": "solved", "note": "shape: ascending sort, preserving duplicates"}
+{"id": "mbpp-209", "program": "[ kb-heapify ] dip 0 swap kb-set-at 0 kb-sift", "status": "solved", "note": "shape: bottom-up heapify and root replacement; sift down choosing the right child on ties"}
+{"id": "mbpp-57", "program": "[ sort reverse ] dip 1 max2 take from-digits", "status": "solved", "note": "shape: descending sort then decimal fold; n <= 0 still uses the first element"}
+{"id": "mbpp-710", "program": "dup head swap last pack2", "status": "solved", "note": "shape: pack first and last elements"}
+{"id": "mbpp-289", "program": "dup 4 div over 100 div sub over 100 4 mul div add add 7 mod", "status": "solved", "note": "shape: Gregorian leap-day arithmetic with Python floor division for negatives"}
+{"id": "codearc-314", "program": "[ 2 mod 2 mul 1 swap sub ] map sum", "status": "solved", "note": "shape: sum +1 for even and -1 for odd"}
+{"id": "codearc-172", "program": "take nil 0 pack2 [ kb-xor-pairs-step ] fold second", "status": "solved", "note": "shape: pairwise XOR fold with complement normalization for Python signed integers"}
+{"id": "codearc-481", "program": "over swap [ kb-unswallowable? ] swap cons swap cons filter len", "status": "solved", "note": "shape: nested filter preserving multiplicity and the reference any(j) exclusion of zero"}
+{"id": "codearc-801", "program": "dedup sum", "status": "solved", "note": "shape: sum distinct values"}
+{"id": "codearc-381", "program": "1 10 inc pack3 zeros16 swap [ kb-digit-sequence-step ] fold unpack3 rot swap sub over over swap mod pick2 dec swap sub 10 swap pow rot mul div 10 mod", "status": "solved", "note": "shape: fold reference digit-width boundaries, then reproduce floor division of the negative offset"}
+{"id": "codearc-72", "program": "[ dup kb-digit-weight swap pack2 ] map nil [ kb-key-insert ] fold seconds", "status": "solved", "note": "shape: stable insertion sort by digit weight; only the leading digit of a negative number is negated"}
+{"id": "codearc-718", "program": "[ swap contains 0 eq? ] swap cons filter", "status": "solved", "note": "shape: filter elements absent from the second list"}
+{"id": "codearc-119", "program": "[ drop ] dip range swap [ drop ] swap quote cat map flatten max-subarray-sum", "status": "solved", "note": "shape: repeat the full list k times and fold maximum subarray; n is ignored by the reference"}
+{"id": "codearc-565", "program": "[ dup 0 lt? ] [ [ reverse ] dip 3 swap sub ] [ ] ifte [ dup 4 lt? ] [ nth ] [ 3 sub range swap [ drop kb-sequence-step ] fold last ] ifte", "status": "solved", "note": "shape: four-value recurrence fold, with reversed initial values for negative indices"}
+{"id": "codearc-155", "program": "dedup product", "status": "solved", "note": "shape: multiply distinct values"}
+{"id": "codearc-594", "program": "0 pack2 zeros16 swap [ kb-persistence-step ] fold second", "status": "solved", "note": "shape: packed number/count fold, stopping updates once the number has one digit"}
+{"id": "codearc-153", "program": "digit-sum", "status": "solved", "note": "shape: decimal digit sum"}
+{"id": "codearc-738", "program": "dup min swap max over over swap sub pack3", "status": "solved", "note": "shape: pack minimum, maximum, and their difference"}

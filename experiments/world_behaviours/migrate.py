@@ -3,7 +3,8 @@
 Reads the 2026-09-09 probe's ``programs_*.jsonl``, replaces every author-file
 macro name with its canonical tokens from ``aliases.txt`` (recursively, since
 an alias body may name another alias), inlines the one-behaviour helpers
-marked ``@inline`` from the author files kept under ``<out>/authors/``, and
+marked ``@inline`` from the author files kept under ``<out>/authors/`` (using
+``<out>/aliases.txt`` when it exists, else the global ``aliases.txt``), and
 applies the explicit repairs in ``<out>/repairs.jsonl`` (``{"id", "program",
 "note"}`` per line, replacing that behaviour's program; ``"status":
 "unsolved"`` instead records that the migrated program no longer verifies and
@@ -86,7 +87,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("out_dir", type=Path)
     args = parser.parse_args(argv)
 
-    aliases = read_table(ALIASES)
+    # a wave's own alias table wins: author letters repeat across waves
+    alias_file = args.out_dir / "aliases.txt"
+    aliases = read_table(alias_file if alias_file.exists() else ALIASES)
     bodies = author_bodies(args.out_dir / "authors")
     canonical = load_macros()
     rows = []

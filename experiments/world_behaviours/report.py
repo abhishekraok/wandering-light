@@ -103,6 +103,11 @@ def main(argv: list[str] | None = None) -> int:
         help="omit the prose findings written for the 2026-09-09 run",
     )
     parser.add_argument(
+        "--macros",
+        type=Path,
+        help="macros.txt to load (its sibling macros*.txt are loaded too); default: the canonical library",
+    )
+    parser.add_argument(
         "--findings-file",
         type=Path,
         help="markdown inserted after the intro (a hand-written findings section that survives regeneration)",
@@ -125,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
     behaviours = {
         json.loads(l)["id"]: json.loads(l) for l in (d / "behaviours.jsonl").open()
     }
-    macros = load_macros()
+    macros = load_macros(args.macros) if args.macros else load_macros()
     rows = []
     for file in sorted(d.glob("programs_*.jsonl")):
         for line in file.open():

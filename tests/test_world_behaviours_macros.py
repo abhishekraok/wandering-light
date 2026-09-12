@@ -84,6 +84,29 @@ CASES = [
     ("bitlen", (5,), [3]),
     ("log2", (8,), [3]),
     ("pow2", (10,), [1024]),
+    ("popcount", (0,), [0]),
+    ("popcount", (255,), [8]),
+    ("popcount", (-6,), [2]),
+    ("sxor", (12, 10), [6]),
+    ("sxor", (-12, 10), [-2]),
+    ("sxor", (12, -10), [-6]),
+    ("sxor", (-12, -10), [2]),
+    ("prime?", (1,), [F]),
+    ("prime?", (2,), [T]),
+    ("prime?", (97,), [T]),
+    ("prime?", (91,), [F]),
+    ("lcm", (4, 6), [12]),
+    ("lcm", (-4, 6), [12]),
+    ("lcm", (0, 5), [0]),
+    ("set-at", ([1, 2, 3], 1, 9), [[1, 9, 3]]),
+    ("set-at", ([1, 2, 3], 2, 9), [[1, 2, 9]]),
+    ("bisect-right", ([1, 2, 4, 4, 5], 4), [4]),
+    ("bisect-right", ([1, 2, 4, 4, 5], 0), [0]),
+    ("bisect-right", ([], 3), [0]),
+    ("next-palindrome", (123,), [131]),
+    ("next-palindrome", (9,), [11]),
+    ("next-palindrome", (0,), [1]),
+    ("next-palindrome", (-5,), [0]),
     ("divides?", (7, 3), [F]),
     ("between", (5, 1, 10), [T]),
     ("between", (11, 1, 10), [F]),
@@ -209,6 +232,14 @@ def test_gcd_bound_is_the_stated_one() -> None:
     outcome = run_program(expand(["gcd"], MACROS), to_stack((9227465, 5702887)))
     assert not isinstance(outcome, str), outcome
     assert outcome[0][0] != Int(1)  # documented as unsupported, not silently right
+
+
+def test_sxor_matches_python() -> None:
+    for a in range(-20, 21, 3):
+        for b in range(-20, 21, 7):
+            outcome = run_program(expand(["sxor"], MACROS), to_stack((a, b)))
+            assert not isinstance(outcome, str), (a, b, outcome)
+            assert outcome[0][0] == Int(a ^ b), (a, b)
 
 
 def test_isqrt_matches_python() -> None:

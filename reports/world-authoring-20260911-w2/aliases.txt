@@ -1,0 +1,98 @@
+# Author-file names -> canonical library tokens or @inline (see experiments/world_behaviours/aliases.txt).
+# Read by migrate.py for this report only.
+# --- wave 2 of world-authoring-500 (#127): authors a-d (codex exec), bodies in
+# reports/world-authoring-20260911-w2/authors/ ---
+# author a
+ka-ceildiv: @inline
+ka-popcount: popcount
+ka-complement: neg dec
+ka-xor: sxor
+ka-factorial: @inline
+ka-lcm: lcm
+ka-bisect-step: @inline
+ka-related: @inline
+ka-divchain-step: @inline
+ka-candy-step: @inline
+ka-equalize-step: @inline
+ka-oddity-key: @inline
+ka-bitpair-lt: @inline
+ka-bitpair-insert: @inline
+ka-subsets-step: @inline
+ka-interval-power: @inline
+# author b
+kb-divides-either: @inline
+kb-min-squares-step: @inline
+kb-allones?: @inline
+kb-set-unset: @inline
+kb-digit-weight: @inline
+kb-key-gt?: @inline
+kb-key-le?: @inline
+kb-key-insert: @inline
+kb-bacteria-pred: @inline
+kb-unswallowable?: @inline
+kb-sequence-step: @inline
+kb-persistence-step: @inline
+kb-xor-magnitude: @inline
+kb-signed-xor: sxor
+kb-xor-pairs-step: @inline
+kb-digit-sequence-step: @inline
+kb-set-at: set-at
+kb-swap-item: @inline
+kb-swap-indices: @inline
+kb-choose-child: @inline
+kb-heap-step: @inline
+kb-sift: @inline
+kb-heapify: @inline
+# author c
+kc-first-or-minus1: @inline
+kc-prime?: prime?
+kc-equal-pairs: @inline
+kc-difference-pairs: @inline
+kc-bisect-right: bisect-right
+kc-perrin: @inline
+kc-catalan: @inline
+kc-fibonacci-pair: @inline
+kc-reverse-binary: @inline
+kc-product-best: @inline
+kc-max-product: @inline
+kc-ending-products: @inline
+kc-mbpp-product: @inline
+kc-msis-prefix: @inline
+kc-bitonic-sum: @inline
+kc-factor-children: @inline
+kc-factor-layer: @inline
+kc-factor-count: @inline
+kc-dice-count: @inline
+kc-sieve: @inline
+kc-prime-using: @inline
+kc-reverse-decimal: @inline
+kc-emirps: @inline
+kc-small-prime?: @inline
+kc-interval: @inline
+kc-reverse-decimal-step: @inline
+kc-digit-sum3: @inline
+kc-digit-block: @inline
+kc-digit-block-core: @inline
+kc-digit-blocks: @inline
+kc-block-count: @inline
+kc-block-sum: @inline
+kc-block-closest: @inline
+kc-digit-answer: @inline
+kc-prefix-windows-ok?: @inline
+# author d
+kd-choose: @inline
+kd-pal-even: @inline
+kd-pal-odd: @inline
+kd-next-pal: next-palindrome
+kd-popcount: popcount
+kd-pop-root-step: @inline
+kd-mobius-step: @inline
+kd-65: 8 sq inc
+kd-sierpinski-increment: @inline
+kd-nearest-step: @inline
+kd-chameleon-order: @inline
+kd-ant-start: @inline
+kd-ant-turn: @inline
+kd-ant-step: @inline
+kd-ant-core: @inline
+kd-ant: @inline

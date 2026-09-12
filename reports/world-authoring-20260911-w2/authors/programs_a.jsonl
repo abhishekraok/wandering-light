@@ -1,0 +1,26 @@
+{"id": "mbpp-801", "program": "pack3 dedup len [ dup 3 eq? ] [ drop 0 ] [ 4 swap sub ] ifte", "status": "solved", "note": "shape: count distinct values; three distinct returns zero"}
+{"id": "mbpp-89", "program": "dec", "status": "solved", "note": "shape: scalar subtraction, including negative inputs"}
+{"id": "mbpp-199", "program": "pows2 swap [ le? ] swap cons filter last", "status": "solved", "note": "shape: largest eligible power; nonpositive input returns zero"}
+{"id": "mbpp-581", "program": "2 mul over add mul", "status": "solved", "note": "shape: b * (2*s + b)"}
+{"id": "mbpp-324", "program": "0 0 0 pack3 [ [ unpack3 ] dip [ pick3 odd? ] [ [ swap ] dip add swap ] [ add ] ifte [ inc ] dip2 pack3 ] fold tail", "status": "solved", "note": "shape: index and two sums in a packed fold; odd-index sum comes first"}
+{"id": "mbpp-736", "program": "over len dup range [ 0 swap pack4 ] dip swap [ ka-bisect-step ] fold third", "status": "solved", "note": "shape: bisect_left midpoint transitions, including unsorted inputs"}
+{"id": "mbpp-609", "program": "over dec max2 swap [ mul ] dip div", "status": "solved", "note": "shape: A * max(B-1,N) // B, preserving floor division"}
+{"id": "mbpp-189", "program": "take dup len inc range1 swap [ swap contains 0 eq? ] swap cons filter head", "status": "solved", "note": "shape: first absent positive in the first n elements"}
+{"id": "mbpp-169", "program": "[ dup 2 le? ] [ ] [ 2 sub range 1 2 pack2 [ drop unpack2 dup 2 mul rot add pack2 ] fold second ] ifte", "status": "solved", "note": "shape: Pell recurrence; returns n unchanged when n <= 2"}
+{"id": "mbpp-28", "program": "[ lt? ] [ drop drop 0 ] [ over over sub ka-factorial [ ka-factorial ] dip mul [ ka-factorial ] dip div ] ifte", "status": "solved", "note": "shape: binomial factorial ratio with k > n guard"}
+{"id": "mbpp-119", "program": "take 0 [ ka-xor ] fold", "status": "solved", "note": "shape: signed XOR over range(n); negative n selects nothing"}
+{"id": "mbpp-520", "program": "uncons [ ka-lcm ] fold", "status": "solved", "note": "shape: LCM fold; mixed signs yield positive LCM, two negative operands yield negative LCM"}
+{"id": "mbpp-620", "program": "take reverse nil [ ka-divchain-step ] fold seconds max", "status": "solved", "note": "shape: reverse dynamic program for a divisible adjacency chain; preserves prefix length and short-circuit modulo"}
+{"id": "codearc-473", "program": "dup len over dup max swap min sub 2 add mul range swap 0 pack2 [ ka-equalize-step ] fold unpack2 swap last pack2", "status": "solved", "note": "shape: synchronous rounded half-sharing with a frozen state after equality; n*(spread+2) transition bound"}
+{"id": "codearc-391", "program": "[ dup 0 le? ] [ drop 0 ] [ dup log2 swap ka-popcount add ] ifte", "status": "solved", "note": "shape: bit length minus one plus popcount; nonpositive returns zero"}
+{"id": "codearc-1109", "program": "dup rot swap sub [ sub ] dip ka-ceildiv 1 max2", "status": "solved", "note": "shape: max(ceil((column-night)/(day-night)),1), including negative denominators"}
+{"id": "codearc-715", "program": "[ dup ka-oddity-key swap pack2 ] map uncons [ [ over head over head lt? ] [ swap drop ] [ drop ] ifte ] fold second", "status": "solved", "note": "shape: maximize reversed low 32 bits, including two-complement ordering for negatives"}
+{"id": "codearc-893", "program": "[ lt? ] swap cons filter len", "status": "solved", "note": "shape: count all elements less than target, preserving unsorted-input behaviour"}
+{"id": "codearc-7", "program": "dup [ swap count 1 eq? ] swap cons filter", "status": "solved", "note": "shape: retain exactly-once values in input order"}
+{"id": "codearc-130", "program": "[ even? ] filter", "status": "solved", "note": "shape: filter even integers"}
+{"id": "codearc-677", "program": "[ dup 0 eq? ] [ drop 1 ] [ dec isqrt inc 2 div inc ] ifte", "status": "solved", "note": "shape: integer ceil square root, halved and incremented"}
+{"id": "codearc-814", "program": "over sub inc range swap [ add ] swap cons map", "status": "solved", "note": "shape: shifted range, including negative starts and reversed intervals"}
+{"id": "codearc-937", "program": "[ dup ka-popcount swap pack2 ] map nil [ ka-bitpair-insert ] fold seconds", "status": "solved", "note": "shape: lexicographic insertion sort on (popcount(abs(x)), x)"}
+{"id": "codearc-544", "program": "dup [ ka-interval-power ] dip over div mul", "status": "solved", "note": "shape: find greatest power-of-two divisor available in the interval, then its largest multiple"}
+{"id": "codearc-587", "program": "abs neg", "status": "solved", "note": "shape: negative absolute value"}
+{"id": "codearc-580", "program": "0 0 pack2 quote [ ka-subsets-step ] fold swap [ swap head eq? ] swap cons filter seconds swap [ le? ] swap cons filter max", "status": "solved", "note": "shape: enumerate subset cardinalities and sums, then maximize eligible k-town sums"}
