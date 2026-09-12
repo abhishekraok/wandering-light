@@ -233,3 +233,81 @@ def test_codex_runs_against_its_private_home_not_the_users(tmp_path, monkeypatch
     generator = CodexExecTokenGenerator("gpt-6-astra", codex_home=private)
     assert generator.env["CODEX_HOME"] == str(private)
     assert generator.env["CODEX_HOME"] != str(real_home)
+
+
+def test_codex_timeout_reports_its_own_failure_not_the_previous_call(
+    tmp_path, monkeypatch
+):
+    """A failed call must not inherit the previous task's telemetry.
+
+    `solve_with_llm` reads `last_meta` on the failure path too, so if a timeout
+    left the previous call's metadata in place the failed task would be
+    credited with that task's tokens and duration (Codex review on PR #126).
+    """
+    import subprocess
+
+    (tmp_path / "auth.json").write_text("{}")
+    from wandering_light.solver import CodexExecTokenGenerator
+
+    generator = CodexExecTokenGenerator("gpt-6-astra", codex_home=tmp_path, timeout=0.5)
+    generator.last_meta = {
+        "usage": {"input_tokens": 7594},
+        "seconds": 12.3,
+        "tool_calls": 0,
+    }
+
+    killed = []
+
+    class Hanging:
+        pid = 4242
+        returncode = None
+
+        def communicate(self, *args, **kwargs):
+            if "timeout" in kwargs or args[1:]:
+                raise subprocess.TimeoutExpired("codex", 0.5)
+            return ("", "")
+
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: Hanging())
+    monkeypatch.setattr(
+        CodexExecTokenGenerator, "kill_group", staticmethod(killed.append)
+    )
+
+    with pytest.raises(subprocess.TimeoutExpired):
+        generator.generate("anything")
+
+    assert killed, "the process group must be killed, not left running"
+    assert generator.last_meta["timed_out"] is True
+    assert "usage" not in generator.last_meta, (
+        "stale token counts leaked into a failed call"
+    )
+    assert generator.last_meta["seconds"] < 12.3
+
+
+def test_codex_launches_in_its_own_process_group(tmp_path, monkeypatch):
+    """A timeout must be able to kill the native binary, not just the launcher."""
+    import subprocess
+
+    (tmp_path / "auth.json").write_text("{}")
+    from wandering_light.solver import CodexExecTokenGenerator
+
+    generator = CodexExecTokenGenerator("gpt-6-astra", codex_home=tmp_path)
+    seen = {}
+
+    class Done:
+        pid = 1
+        returncode = 0
+
+        def communicate(self, *args, **kwargs):
+            return (
+                '{"type":"item.completed","item":{"type":"agent_message","text":"dup"}}',
+                "",
+            )
+
+    def record(*args, **kwargs):
+        seen.update(kwargs)
+        return Done()
+
+    monkeypatch.setattr(subprocess, "Popen", record)
+    assert generator.generate("prompt") == "dup"
+    assert seen["start_new_session"] is True
+    assert seen["env"]["CODEX_HOME"] == str(tmp_path)

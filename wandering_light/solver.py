@@ -1368,25 +1368,62 @@ class CodexExecTokenGenerator(TokenGenerator):
                 meta["usage"] = usage
         return message, meta
 
+    @staticmethod
+    def kill_group(process) -> None:
+        """SIGKILL the whole process group, not just the child we spawned.
+
+        The npm `codex` is a Node launcher that spawns the native binary, so a
+        kill aimed at the child reaches the launcher and leaves inference
+        running past the deadline, letting requests pile up across tasks
+        (Codex review on PR #126). Falls back to killing the child alone if
+        the group is already gone.
+        """
+        import os
+        import signal
+
+        try:
+            os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            process.kill()
+
     def generate(self, prompt: str) -> str:
         import subprocess
 
         started = time.time()
-        run = subprocess.run(
+        # Cleared before the call rather than written only after it. A caller
+        # that catches the exception reads `last_meta` on the failure path too
+        # -- `solve_with_llm` does -- and a failed call must not be handed the
+        # previous task's token counts (Codex review on PR #126).
+        self.last_meta = None
+        # `start_new_session` puts the CLI in its own process group so a
+        # timeout can take the whole group; see `kill_group`.
+        process = subprocess.Popen(
             self.command(),
-            input=prompt,
-            capture_output=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            timeout=self.timeout,
-            check=False,
             env=self.env,
+            start_new_session=True,
         )
-        message, meta = self.parse_events(run.stdout.splitlines())
+        try:
+            stdout, stderr = process.communicate(prompt, timeout=self.timeout)
+        except subprocess.TimeoutExpired:
+            self.kill_group(process)
+            process.communicate()
+            self.last_meta = {
+                "tool_calls": 0,
+                "errors": [f"timeout after {self.timeout:.0f}s"],
+                "seconds": round(time.time() - started, 1),
+                "timed_out": True,
+            }
+            raise
+        message, meta = self.parse_events(stdout.splitlines())
         meta["seconds"] = round(time.time() - started, 1)
         self.last_meta = meta
-        if run.returncode != 0:
+        if process.returncode != 0:
             raise RuntimeError(
-                f"codex exec exited {run.returncode}: {run.stderr.strip()[-200:]}"
+                f"codex exec exited {process.returncode}: {stderr.strip()[-200:]}"
             )
         self.llm_io_history.append((prompt, message))
         return message
