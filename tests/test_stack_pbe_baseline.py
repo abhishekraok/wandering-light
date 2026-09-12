@@ -130,6 +130,7 @@ def test_every_provider_is_reachable_by_name():
         "OpenAITokenGenerator",
         "GeminiTokenGenerator",
         "OllamaTokenGenerator",
+        "CodexExecTokenGenerator",
     ):
         assert hasattr(solver_module, name)
     generator = solver_module.AnthropicTokenGenerator("claude-opus-5", effort="low")
@@ -150,3 +151,163 @@ def test_a_failed_generation_costs_one_candidate_not_the_run(sum_task):
 
     assert solve_with_llm(sum_task, Exploding(), samples=2) == ["", ""]
     assert not grade("", sum_task).parsed
+
+
+def test_codex_events_yield_the_last_message_and_count_tool_attempts():
+    """`codex exec --json` is a stream; the answer is the last agent message.
+
+    A completed item that is neither a message nor an error is a tool attempt.
+    With the tool features off it fails closed, and the count is what lets a
+    row say it stayed the API protocol (#123).
+    """
+    import json
+
+    from wandering_light.solver import CodexExecTokenGenerator
+
+    lines = [
+        json.dumps({"type": "thread.started", "thread_id": "t"}),
+        "not json",
+        json.dumps(
+            {
+                "type": "item.completed",
+                "item": {"type": "command_execution", "command": "python3 -c 1"},
+            }
+        ),
+        json.dumps(
+            {
+                "type": "item.completed",
+                "item": {"type": "error", "message": "Code Mode is unavailable"},
+            }
+        ),
+        json.dumps(
+            {
+                "type": "item.completed",
+                "item": {"type": "agent_message", "text": "0 [ add ] fold"},
+            }
+        ),
+        json.dumps(
+            {
+                "type": "turn.completed",
+                "usage": {"input_tokens": 7594, "output_tokens": 17},
+            }
+        ),
+    ]
+    message, meta = CodexExecTokenGenerator.parse_events(lines)
+    assert message == "0 [ add ] fold"
+    assert meta["tool_calls"] == 1
+    assert meta["errors"] == ["Code Mode is unavailable"]
+    assert meta["usage"]["input_tokens"] == 7594
+
+
+def test_codex_command_disables_every_tool_and_replaces_the_instructions(tmp_path):
+    (tmp_path / "auth.json").write_text("{}")
+    from wandering_light.solver import CodexExecTokenGenerator
+
+    generator = CodexExecTokenGenerator(
+        "gpt-6-astra", effort="low", codex_home=tmp_path
+    )
+    argv = generator.command()
+    assert "--disable" in argv and "shell_tool" in argv and "code_mode_host" in argv
+    assert "--strict-config" in argv and "--ephemeral" in argv
+    assert any(a.startswith("model_instructions_file=") for a in argv)
+    assert 'model_reasoning_effort="low"' in argv
+    assert argv[-1] == "-"
+    assert (tmp_path / "instructions.md").read_text().strip()
+
+
+def test_codex_runs_against_its_private_home_not_the_users(tmp_path, monkeypatch):
+    """The private CODEX_HOME is only private if the subprocess is told to use it.
+
+    Without `CODEX_HOME` in the child's environment, Codex loads the caller's
+    home instead: its `AGENTS.md`, config and plugins land above the prompt.
+    Every run in reports/stack-pbe-v4-codex-exec-20260910 was made that way,
+    and the model could name the user's employer when asked.
+    """
+    real_home = tmp_path / "real"
+    real_home.mkdir()
+    (real_home / "auth.json").write_text("{}")
+    monkeypatch.setenv("CODEX_HOME", str(real_home))
+    from wandering_light.solver import CodexExecTokenGenerator
+
+    private = tmp_path / "private"
+    generator = CodexExecTokenGenerator("gpt-6-astra", codex_home=private)
+    assert generator.env["CODEX_HOME"] == str(private)
+    assert generator.env["CODEX_HOME"] != str(real_home)
+
+
+def test_codex_timeout_reports_its_own_failure_not_the_previous_call(
+    tmp_path, monkeypatch
+):
+    """A failed call must not inherit the previous task's telemetry.
+
+    `solve_with_llm` reads `last_meta` on the failure path too, so if a timeout
+    left the previous call's metadata in place the failed task would be
+    credited with that task's tokens and duration (Codex review on PR #126).
+    """
+    import subprocess
+
+    (tmp_path / "auth.json").write_text("{}")
+    from wandering_light.solver import CodexExecTokenGenerator
+
+    generator = CodexExecTokenGenerator("gpt-6-astra", codex_home=tmp_path, timeout=0.5)
+    generator.last_meta = {
+        "usage": {"input_tokens": 7594},
+        "seconds": 12.3,
+        "tool_calls": 0,
+    }
+
+    killed = []
+
+    class Hanging:
+        pid = 4242
+        returncode = None
+
+        def communicate(self, *args, **kwargs):
+            if "timeout" in kwargs or args[1:]:
+                raise subprocess.TimeoutExpired("codex", 0.5)
+            return ("", "")
+
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: Hanging())
+    monkeypatch.setattr(
+        CodexExecTokenGenerator, "kill_group", staticmethod(killed.append)
+    )
+
+    with pytest.raises(subprocess.TimeoutExpired):
+        generator.generate("anything")
+
+    assert killed, "the process group must be killed, not left running"
+    assert generator.last_meta["timed_out"] is True
+    assert "usage" not in generator.last_meta, (
+        "stale token counts leaked into a failed call"
+    )
+    assert generator.last_meta["seconds"] < 12.3
+
+
+def test_codex_launches_in_its_own_process_group(tmp_path, monkeypatch):
+    """A timeout must be able to kill the native binary, not just the launcher."""
+    import subprocess
+
+    (tmp_path / "auth.json").write_text("{}")
+    from wandering_light.solver import CodexExecTokenGenerator
+
+    generator = CodexExecTokenGenerator("gpt-6-astra", codex_home=tmp_path)
+    seen = {}
+
+    class Done:
+        pid = 1
+        returncode = 0
+
+        def communicate(self, *args, **kwargs):
+            return (
+                '{"type":"item.completed","item":{"type":"agent_message","text":"dup"}}',
+                "",
+            )
+
+    def record(*args, **kwargs):
+        seen.update(kwargs)
+        return Done()
+
+    monkeypatch.setattr(subprocess, "Popen", record)
+    assert generator.generate("prompt") == "dup"
+    assert seen["start_new_session"] is True
+    assert seen["env"]["CODEX_HOME"] == str(tmp_path)
