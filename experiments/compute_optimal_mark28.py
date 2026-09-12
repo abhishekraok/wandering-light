@@ -56,6 +56,15 @@ from wandering_light.stack_policy import (
 
 REPO = Path(__file__).resolve().parents[1]
 CORPUS_MANIFEST = REPO / "wandering_light/evals/data/stack_pbe_v4/manifest.json"
+# world-plus-v4-policy (#134): the driver can load several corpora at once. The
+# first is the primary: its eval split is the default cohort and its name the
+# default validation corpus. Behaviour names are the corpus key (Task has no
+# corpus field), and `corpus()` refuses a name that two corpora share.
+CORPUS_MANIFESTS: list[Path] = [CORPUS_MANIFEST]
+CORPUS_OF: dict[str, str] = {}
+EVAL_CORPUS: str | None = None  # None -> the primary corpus
+VALIDATION_CORPUS: str | None = None  # None -> every loaded corpus
+DROP_BEHAVIOURS: frozenset[str] = frozenset()
 WANDB_ENTITY = "abhishekraok-na"
 WANDB_PROJECT = "wandering-light-rollout-policy"
 
@@ -109,15 +118,25 @@ def provenance() -> dict[str, Any]:
             ["git", *args], cwd=REPO, capture_output=True, text=True, check=True
         ).stdout.strip()
 
-    manifest = json.loads(CORPUS_MANIFEST.read_text())
+    def block(path: Path) -> dict[str, Any]:
+        manifest = json.loads(path.read_text())
+        return {
+            "name": manifest["corpus"],
+            "hub": manifest.get("hub"),
+            "splits": {k: v["sha256"] for k, v in manifest["splits"].items()},
+        }
+
+    corpora = [block(path) for path in CORPUS_MANIFESTS]
     return {
         "commit": git("rev-parse", "HEAD"),
         "dirty": bool(git("status", "--porcelain", "--untracked-files=no")),
-        "corpus": {
-            "name": manifest["corpus"],
-            "hub": manifest["hub"],
-            "splits": {k: v["sha256"] for k, v in manifest["splits"].items()},
-        },
+        # `corpus` stays the primary one so older readers keep working; a mixed
+        # run is described by `corpora`, which lists every manifest loaded.
+        "corpus": corpora[0],
+        "corpora": corpora,
+        "eval_corpus": EVAL_CORPUS or corpora[0]["name"],
+        "validation_corpus": VALIDATION_CORPUS,
+        "dropped_behaviours": sorted(DROP_BEHAVIOURS),
         "recorded_at_utc": datetime.now(UTC).isoformat(),
     }
 
@@ -139,8 +158,29 @@ def write_json(path: Path, value: Any) -> None:
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
 
 
+def corpus_name(manifest: Path) -> str:
+    return json.loads(manifest.read_text())["corpus"]
+
+
+def primary_corpus() -> str:
+    return corpus_name(CORPUS_MANIFESTS[0])
+
+
 def corpus() -> list[Task]:
-    return load(fetch_corpus(CORPUS_MANIFEST))
+    """Every task of every manifest in ``CORPUS_MANIFESTS``, primary first."""
+    tasks: list[Task] = []
+    CORPUS_OF.clear()
+    for manifest in CORPUS_MANIFESTS:
+        name = corpus_name(manifest)
+        loaded = load(fetch_corpus(manifest))
+        shared = sorted({t.behaviour for t in loaded} & set(CORPUS_OF))
+        if shared:
+            raise ValueError(
+                f"{name}: behaviour names shared with an earlier corpus: {shared[:5]}"
+            )
+        CORPUS_OF.update({t.behaviour: name for t in loaded})
+        tasks += loaded
+    return tasks
 
 
 def bucket_of(length: int) -> str:
@@ -150,9 +190,18 @@ def bucket_of(length: int) -> str:
     raise ValueError(length)
 
 
-def cohort(tasks: list[Task]) -> list[tuple[int, Task]]:
-    """The same eval tasks for every cell: seed-17 shuffle, first N per bucket."""
-    eval_tasks = [(i, t) for i, t in enumerate(tasks) if t.split == "eval"]
+def cohort(tasks: list[Task], eval_corpus: str | None = None) -> list[tuple[int, Task]]:
+    """The same eval tasks for every cell: seed-17 shuffle, first N per bucket.
+
+    Only the eval corpus's own tasks are eligible, and the index is its
+    position in that corpus's task list, so adding a second corpus to
+    ``CORPUS_MANIFESTS`` leaves an existing cohort (and every recorded
+    ``task_index``) unchanged. Mixing the pools instead would silently reseed
+    the shuffle over a larger set and give a different 300 tasks.
+    """
+    name = eval_corpus or EVAL_CORPUS or (primary_corpus() if CORPUS_OF else None)
+    own = [t for t in tasks if name is None or CORPUS_OF.get(t.behaviour) == name]
+    eval_tasks = [(i, t) for i, t in enumerate(own) if t.split == "eval"]
     random.Random(COHORT_SEED).shuffle(eval_tasks)
     taken: dict[str, list] = defaultdict(list)
     for index, task in eval_tasks:
@@ -166,12 +215,24 @@ TRAIN_TASK_CAP = 0
 
 
 def training_rows(tasks: list[Task]):
-    train = [t for t in tasks if t.split == "train"]
+    """Fit and validation rows over the train splits of every loaded corpus.
+
+    ``DROP_BEHAVIOURS`` removes behaviours before either set is built (the
+    eval-overlap filter). ``VALIDATION_CORPUS`` restricts model selection to
+    one corpus's holdout, which is what makes two runs over different corpus
+    mixes report the same quantity as ``best_validation_cross_entropy``; the
+    other corpora's holdout tasks then enter neither set and stay a holdout.
+    """
+    train = [
+        t for t in tasks if t.split == "train" and t.behaviour not in DROP_BEHAVIOURS
+    ]
     if TRAIN_TASK_CAP:
         train = random.Random(COHORT_SEED).sample(train, TRAIN_TASK_CAP)
     fit = witness_rows([t for t in train if not validation_skeleton(t)])
-    validation = witness_rows([t for t in train if validation_skeleton(t)])
-    return fit, validation
+    held = [t for t in train if validation_skeleton(t)]
+    if VALIDATION_CORPUS is not None:
+        held = [t for t in held if CORPUS_OF.get(t.behaviour) == VALIDATION_CORPUS]
+    return fit, witness_rows(held)
 
 
 def architecture(arm: str) -> PolicyArchitecture:
@@ -316,6 +377,10 @@ def train(run_dir: Path, tasks, device, arms, seeds, chosen, use_wandb, log) -> 
                     "learning_rate": lr,
                     "epochs": EPOCHS,
                     "validation": "1 in 10 train skeletons by sha256",
+                    "validation_corpus": VALIDATION_CORPUS,
+                    "dropped_behaviours": sorted(DROP_BEHAVIOURS),
+                    "train_rows": len(rows[0]),
+                    "validation_rows": len(rows[1]),
                     "provenance": provenance(),
                 },
             )
@@ -325,8 +390,20 @@ def train(run_dir: Path, tasks, device, arms, seeds, chosen, use_wandb, log) -> 
             )
 
 
+def cell_path(run_dir: Path, arm: str, seed: int, device: str) -> Path:
+    """One file per (arm, seed, device, eval corpus).
+
+    The primary corpus keeps the #101 filename so a v4 cell stays comparable
+    with the recorded campaign; a second corpus's cells get a suffix instead of
+    overwriting them.
+    """
+    name = EVAL_CORPUS or primary_corpus()
+    suffix = "" if name == primary_corpus() else f"-{name}"
+    return run_dir / "timing" / f"{arm}-s{seed}-{device}{suffix}.json"
+
+
 def time_cell(run_dir: Path, tasks, arm, seed, device, log) -> Path:
-    out = run_dir / "timing" / f"{arm}-s{seed}-{device}.json"
+    out = cell_path(run_dir, arm, seed, device)
     if out.exists():
         return out
     if device == "cpu":
@@ -366,6 +443,7 @@ def time_cell(run_dir: Path, tasks, arm, seed, device, log) -> Path:
             "arm": arm,
             "seed": seed,
             "device": device,
+            "eval_corpus": EVAL_CORPUS or primary_corpus(),
             "beam_width": BEAM_WIDTH,
             "max_depth": MAX_DEPTH,
             "guard": GUARD,
@@ -377,7 +455,8 @@ def time_cell(run_dir: Path, tasks, arm, seed, device, log) -> Path:
         },
     )
     log(
-        f"RESULT time {arm} s{seed} {device}: {solved}/{len(rows)} solved, "
+        f"RESULT time {arm} s{seed} {device} {EVAL_CORPUS or primary_corpus()} "
+        f"beam {BEAM_WIDTH} depth {MAX_DEPTH}: {solved}/{len(rows)} solved, "
         f"{time.perf_counter() - started:.0f}s"
     )
     return out
@@ -401,11 +480,16 @@ def replay(run_dir: Path, tasks, log) -> None:
     identical; the row then gains ``executions``, ``fuel_replayed`` and
     ``seconds_replayed`` beside the values as first recorded.
     """
-    by_index = dict(cohort(tasks))
+    cohorts: dict[str, dict[int, Task]] = {}
     for path in sorted((run_dir / "timing").glob("*.json")):
         cell = json.loads(path.read_text())
         if cell.get("replay"):
             continue
+        # A cell recorded before #134 has no eval_corpus and is the primary's.
+        name = cell.get("eval_corpus") or primary_corpus()
+        if name not in cohorts:
+            cohorts[name] = dict(cohort(tasks, eval_corpus=name))
+        by_index = cohorts[name]
         device = cell["device"]
         if device == "cpu":
             torch.set_num_threads(CPU_THREADS)
@@ -437,6 +521,8 @@ def replay(run_dir: Path, tasks, log) -> None:
             "hits": hits,
             "mismatches": mismatches,
             "seconds": time.perf_counter() - started,
+            # the cell's own cohort, not whatever EVAL_CORPUS this replay ran with
+            "eval_corpus": name,
             "provenance": provenance(),
             "note": (
                 "executions and fuel_replayed count per op executed on one example "
@@ -633,6 +719,8 @@ def aggregate(run_dir: Path, log) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     global EPOCHS, TASKS_PER_BUCKET, TRAIN_TASK_CAP
+    global CORPUS_MANIFESTS, EVAL_CORPUS, VALIDATION_CORPUS, DROP_BEHAVIOURS
+    global BEAM_WIDTH, MAX_DEPTH
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -657,12 +745,53 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--epochs", type=int, default=EPOCHS)
     parser.add_argument("--tasks-per-bucket", type=int, default=TASKS_PER_BUCKET)
     parser.add_argument("--train-tasks", type=int, default=0, help="cap, 0 = all")
+    parser.add_argument(
+        "--corpus",
+        nargs="+",
+        type=Path,
+        default=list(CORPUS_MANIFESTS),
+        help="corpus manifests to train on, primary first (default: stack_pbe_v4)",
+    )
+    parser.add_argument(
+        "--eval-corpus",
+        help="corpus whose eval split forms the cohort (default: the primary)",
+    )
+    parser.add_argument(
+        "--validation-corpus",
+        help="corpus whose train holdout selects the best epoch (default: all)",
+    )
+    parser.add_argument(
+        "--drop-behaviours",
+        type=Path,
+        help="file of behaviour ids, one per line, excluded from training",
+    )
+    parser.add_argument("--beam-width", type=int, default=BEAM_WIDTH)
+    parser.add_argument("--max-depth", type=int, default=MAX_DEPTH)
     args = parser.parse_args(argv)
     EPOCHS, TASKS_PER_BUCKET, TRAIN_TASK_CAP = (
         args.epochs,
         args.tasks_per_bucket,
         args.train_tasks,
     )
+    dropped = frozenset(
+        line.strip()
+        for line in (
+            args.drop_behaviours.read_text().splitlines()
+            if args.drop_behaviours
+            else []
+        )
+        if line.strip() and not line.startswith("#")
+    )
+    CORPUS_MANIFESTS, DROP_BEHAVIOURS = list(args.corpus), dropped
+    EVAL_CORPUS, VALIDATION_CORPUS = args.eval_corpus, args.validation_corpus
+    BEAM_WIDTH, MAX_DEPTH = args.beam_width, args.max_depth
+    names = [corpus_name(path) for path in CORPUS_MANIFESTS]
+    for chosen, flag in (
+        (EVAL_CORPUS, "--eval-corpus"),
+        (VALIDATION_CORPUS, "--validation-corpus"),
+    ):
+        if chosen is not None and chosen not in names:
+            parser.error(f"{flag} {chosen!r} is not one of {names}")
     args.run_dir.mkdir(parents=True, exist_ok=True)
     log_file = (args.run_dir / "runner.log").open("a")
 
