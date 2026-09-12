@@ -89,6 +89,55 @@ def row_sets(v4: list[Task], world: list[Task]) -> dict[str, list[Task]]:
     }
 
 
+def leakage(v4: list[Task], world: list[Task], dropped: set[str]) -> dict[str, Any]:
+    """What the mixed arm could have memorised of the sets it is scored on.
+
+    The model-selection holdout is drawn from v4's *train* split, so removing
+    world's overlap with v4 *eval* does not by itself make the headline
+    comparison clean: a world behaviour identical to a v4 holdout behaviour
+    would let the mixed arm train on its own validation answers. This records
+    both directions so the artifact carries the audit.
+    """
+
+    def identities(tasks: list[Task]) -> tuple[set[str], set[str]]:
+        return (
+            {" ".join(t.program) for t in tasks},
+            {t.skeleton or skeleton(t.program) for t in tasks},
+        )
+
+    world_train = [
+        t for t in world if t.split == "train" and t.behaviour not in dropped
+    ]
+    w_prog, w_skel = identities(world_train)
+    out: dict[str, Any] = {"dropped_from_world_train": sorted(dropped)}
+    for name, pool in (
+        (
+            "v4_holdout",
+            [t for t in v4 if t.split == "train" and validation_skeleton(t)],
+        ),
+        (
+            "v4_fit",
+            [t for t in v4 if t.split == "train" and not validation_skeleton(t)],
+        ),
+        ("v4_eval", [t for t in v4 if t.split == "eval"]),
+    ):
+        behaviours = {}
+        for task in pool:
+            behaviours.setdefault(task.behaviour, task)
+        out[name] = {
+            "behaviours": len(behaviours),
+            "world_train_shares_program": sorted(
+                b for b, t in behaviours.items() if " ".join(t.program) in w_prog
+            ),
+            "world_train_shares_skeleton": sorted(
+                b
+                for b, t in behaviours.items()
+                if (t.skeleton or skeleton(t.program)) in w_skel
+            ),
+        }
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--checkpoint", type=Path, action="append", required=True)
@@ -96,6 +145,11 @@ def main(argv: list[str] | None = None) -> int:
         "--device", default="cuda" if torch.cuda.is_available() else "cpu"
     )
     parser.add_argument("--batch", type=int, default=BATCH)
+    parser.add_argument(
+        "--dropped",
+        action="append",
+        help="behaviour excluded from the mixed arm's training, for the audit",
+    )
     parser.add_argument("--out", type=Path)
     args = parser.parse_args(argv)
 
@@ -106,7 +160,11 @@ def main(argv: list[str] | None = None) -> int:
     shape = {name: {"tasks": len(sets[name]), "rows": len(rows[name])} for name in sets}
     print(json.dumps(shape, indent=1))
 
-    out: dict[str, Any] = {"row_sets": shape, "checkpoints": {}}
+    audit = leakage(v4, world, set(args.dropped or ()))
+    for key in ("v4_holdout", "v4_eval"):
+        shared = audit[key]["world_train_shares_skeleton"]
+        print(f"leakage into {key}: {shared or 'none'}")
+    out: dict[str, Any] = {"row_sets": shape, "leakage": audit, "checkpoints": {}}
     for checkpoint in args.checkpoint:
         model = load_policy(checkpoint, device=args.device)
         model.eval()
