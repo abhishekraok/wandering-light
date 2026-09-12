@@ -1,0 +1,16 @@
+kb-first-even-odd: dup [ even? ] filter head-or-neg1 swap [ odd? ] filter head-or-neg1
+kb-highest-power: pows2 swap [ le? ] swap cons filter last
+kb-decimal-sum: range swap 0 pack2 [ drop unpack2 over 10 mod add swap 10 div swap pack2 ] fold second
+kb-signed-bits: dup pows2 swap [ le? ] swap cons filter 1 drop-n reverse swap [ swap div 2 mod 2 mul dec ] swap cons map
+kb-index: [ eq? bool>int [ unpack2 ] dip add 1 min2 [ dup 0 eq? ] [ swap inc swap ] [ ] ifte pack2 ] swap cons [ 0 0 pack2 ] dip fold head
+kb-inc-poorest: dup min over over kb-index swap inc set-at
+kb-dec-richest: dup max over over kb-index swap dec set-at
+kb-lucky-sieve: [ dup len range swap zip ] dip [ swap head [ dup 0 eq? ] [ drop drop true ] [ swap mod 0 eq? not ] ifte ] swap cons filter seconds
+kb-swap-at: pack3 dup unpack3 pick2 swap nth set-at swap dup [ third ] dip unpack3 drop nth set-at
+kb-partition-step: unpack3 [ over over lt? ] [ [ pick2 pick2 nth 0 lt? ] [ [ inc ] dip ] [ [ pick2 over nth 0 gt? ] [ dec ] [ pack3 dup unpack3 kb-swap-at swap unpack3 [ drop ] dip2 ] ifte ] ifte ] [ ] ifte pack3
+kb-subsequence-score: 0 1 pack2 [ [ unpack2 ] dip over mul [ 2 mul ] dip rot 10 inc mul add swap pack2 ] fold head
+kb-substring-score: 0 0 0 pack3 [ [ unpack3 ] dip pick3 inc mul [ swap 10 mul ] dip add dup rot add [ inc ] dip2 pack3 ] fold third
+kb-score-pair: [ dup 10 lt? ] [ dup ] [ [ dup 100 lt? ] [ dup 10 div 10 inc mul swap 10 mod 2 mul add dup ] [ decimal-digits dup kb-subsequence-score swap kb-substring-score ] ifte ] ifte
+kb-divisor-count-list: swap [ swap [ dup sq pick2 le? ] [ [ over over mod 0 eq? ] [ [ over over div eq? ] [ drop drop 1 ] [ drop drop 2 ] ifte ] [ drop drop 0 ] ifte ] [ drop drop 0 ] ifte ] swap cons map sum
+kb-common-score-list: [ kb-score-pair over over min2 [ [ eq? ] [ drop ] [ gcd ] ifte ] dip ] dip [ pick2 1 eq? ] [ drop drop drop 0 ] [ [ over eq? bool>int ] dip swap [ kb-divisor-count-list dec ] dip sub ] ifte
+kb-best-score-list: [ dup ] dip kb-common-score-list [ pick2 head over lt? ] [ [ swap drop nil ] dip cons swap quote cat ] [ [ pick2 head over eq? ] [ drop quote cat ] [ drop drop ] ifte ] ifte

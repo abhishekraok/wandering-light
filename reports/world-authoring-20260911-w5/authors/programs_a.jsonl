@@ -1,0 +1,26 @@
+{"id": "mbpp-728", "program": "zip [ sum ] map", "status": "solved", "note": "shape: zip and sum pairs"}
+{"id": "mbpp-316", "program": "over len dec 0 swap -1 pack5 zeros16 dup cat swap [ drop ka-last-search-step ] fold fifth", "status": "solved", "note": "shape: packed binary search with last-hit state, including unsorted input"}
+{"id": "mbpp-323", "program": "over over drop-n [ 0 max2 take ka-alternate ] dip cat", "status": "solved", "note": "shape: stable negative-positive alternation of the first max(n,0) items; suffix unchanged"}
+{"id": "mbpp-161", "program": "[ swap contains 0 eq? ] swap cons filter", "status": "solved", "note": "shape: exclusion filter preserving order and duplicates"}
+{"id": "mbpp-681", "program": "[ even? ] [ drop 2 ] [ dup isqrt range1 2 drop-n over [ swap divides? ] swap cons filter swap quote cat head ] ifte", "status": "solved", "note": "shape: trial divisors; even nonpositive inputs return 2, odd negatives return themselves"}
+{"id": "mbpp-62", "program": "min", "status": "solved", "note": "shape: minimum fold"}
+{"id": "mbpp-358", "program": "zip [ unpack2 mod ] map", "status": "solved", "note": "shape: zip and Python modulo"}
+{"id": "mbpp-25", "program": "[ sort ] dip over last [ take ] dip 1 pack2 [ [ unpack2 ] dip [ pick2 eq? ] [ drop pack2 ] [ rot drop swap over mul pack2 ] ifte ] fold second", "status": "solved", "note": "shape: sorted prefix fold; previous starts at the full list last element"}
+{"id": "mbpp-166", "program": "take dup [ even? ] filter len ka-choose2 swap [ odd? ] filter len ka-choose2 add", "status": "solved", "note": "shape: count same-parity unordered pairs within range(N)"}
+{"id": "mbpp-627", "program": "0 0 pack5 zeros16 dup cat swap [ drop ka-first-missing-step ] fold fourth", "status": "solved", "note": "shape: reference early returns and binary search with truncating midpoint"}
+{"id": "mbpp-714", "program": "[ dup 1 le? ] [ 1 eq? not bool>int ] [ dup isqrt range1 1 drop-n over [ swap divides? ] swap cons filter [ prime? ] filter over [ ka-factor-info ] swap cons map dup [ head ] map product rot swap div 1 eq? not bool>int swap [ second ] map sum add ] ifte", "status": "solved", "note": "shape: sum triangular-inverse prime valuations and count the remaining large prime; n <= 0 returns 1"}
+{"id": "mbpp-371", "program": "pack3 zeros16 dup cat swap [ drop ka-missing-step ] fold second", "status": "solved", "note": "shape: reference binary-search branches with Python negative indexing"}
+{"id": "mbpp-881", "program": "dup [ even? ] filter head-or-neg1 swap [ odd? ] filter head-or-neg1 add", "status": "solved", "note": "shape: first even plus first odd, each defaulting to -1"}
+{"id": "codearc-574", "program": "[ range1 ] dip [ swap [ add ] dip mod ] swap cons 0 swap fold inc", "status": "solved", "note": "shape: Josephus recurrence fold, including nonpositive n and negative k"}
+{"id": "codearc-295", "program": "dup len range zip [ unpack2 [ odd? ] [ drop sq ] [ drop ] ifte ] map sum", "status": "solved", "note": "shape: indexed map squaring only odd positions"}
+{"id": "codearc-125", "program": "pows2 swap [ le? ] swap cons filter last", "status": "solved", "note": "shape: largest power of two no greater than n"}
+{"id": "codearc-620", "program": "dup len range swap [ swap drop-n ka-prefix-area ] swap cons map 0 [ max2 ] fold", "status": "solved", "note": "shape: maximum over prefix rectangles of every suffix; clamp maximum at zero"}
+{"id": "codearc-799", "program": "pack3 [ 3 mul 4 div ] map product", "status": "solved", "note": "shape: floor each dimension times 3/4, then multiply"}
+{"id": "codearc-393", "program": "range [ drop 0 ] map [ over min dup [ add ] dip swap [ remove1 ] dip cons ] fold max", "status": "solved", "note": "shape: fold over till loads, replacing one minimum per customer"}
+{"id": "codearc-177", "program": "adjacent [ product ] map", "status": "solved", "note": "shape: adjacent pair products"}
+{"id": "codearc-173", "program": "sort", "status": "solved", "note": "shape: ascending sort preserving multiplicity"}
+{"id": "codearc-293", "program": "over sub inc range swap [ add ] swap cons map", "status": "solved", "note": "shape: shifted range supporting negative bounds and reversed intervals"}
+{"id": "codearc-203", "program": "inc 2 div sq swap 2 div sq sub", "status": "solved", "note": "shape: exact reference difference of squared floor divisions"}
+{"id": "codearc-138", "program": "[ head 0 lt? ] [ [ abs decimal-digits ] map flatten from-digits neg ] [ [ decimal-digits ] map flatten from-digits ] ifte", "status": "solved", "note": "shape: concatenate decimal representations; leading negative sets sign"}
+{"id": "codearc-219", "program": "[ decimal-digits ] map flatten nil [ ka-rewrite-digit ] fold reverse", "status": "solved", "note": "shape: digit scan moving every 89 left across preceding sevens until the rewrite is stable"}
+{"id": "codearc-452", "program": "over abs over abs max2 dup isqrt range1 [ odd? ] filter [ ka-cube ] map swap [ le? ] swap cons filter [ ka-odd-digits? ] filter dup reverse [ neg ] map swap cat -rot [ between ] swap cons swap cons filter", "status": "solved", "note": "shape: generate odd-root cubes up to the absolute interval bound, filter odd digits, mirror and select interval"}

@@ -51,7 +51,7 @@ Exact matches with a v4 witness: 2 (codearc-22, mbpp-972). Same skeleton as a v4
 
 ## Macros
 
-125 macros defined across `macros*.txt`; median expansion ratio (`mark-28` ops per macro-form token) on verified programs: 5.1.
+133 macros defined across `macros*.txt`; median expansion ratio (`mark-28` ops per macro-form token) on verified programs: 5.1.
 
 | macro | verified programs using it |
 |---|---|

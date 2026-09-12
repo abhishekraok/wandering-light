@@ -1,6 +1,6 @@
 # world-authoring-500 (#127), wave 2: 100 MBPP / CodeARC behaviours authored by codex exec
 
-Behaviours sampled by `experiments/world_behaviours/extract.py` (seed 17, MBPP remainder and CodeARC, excluding the probe and wave 1, hypothesis-breaking sampler on every source); programs authored by four `codex exec` agents (gpt-6-astra, high effort) in macro form and migrated to the canonical library; every program re-verified on every test by `report.py`.
+Behaviours sampled by `experiments/world_behaviours/extract.py` (seed 17, MBPP remainder and CodeARC, excluding the probe and waves 1–1, hypothesis-breaking sampler on every source); programs authored by four `codex exec` agents (gpt-6-astra, high effort) in macro form and migrated to the canonical library; every program re-verified on every test by `report.py`.
 
 ## Findings (written with the 2026-09-11 wave 2; the tables below regenerate)
 
@@ -50,7 +50,7 @@ Exact matches with a v4 witness: 0 (none). Same skeleton as a v4 witness: 1.
 
 ## Macros
 
-117 macros defined across `macros*.txt`; median expansion ratio (`mark-28` ops per macro-form token) on verified programs: 5.7.
+133 macros defined across `macros*.txt`; median expansion ratio (`mark-28` ops per macro-form token) on verified programs: 5.7.
 
 | macro | verified programs using it |
 |---|---|

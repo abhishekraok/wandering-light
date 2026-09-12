@@ -1,0 +1,28 @@
+# Author d helpers, wave 5.
+kd-newman-step: over last swap over sub [ over swap nth ] dip pick2 swap nth add quote cat
+kd-exchange-step: dup 2 5 range-between swap [ swap div ] swap cons map pick2 [ swap kd-nth ] swap cons map sum max2 quote cat
+kd-factor-divide: drop unpack3 [ pick2 over mod 0 eq? ] [ rot over div -rot dup [ add ] dip ] [ ] ifte pack3
+kd-factor-step: [ unpack2 ] dip [ pick2 over sq ge? ] [ pack3 zeros16 dup cat swap [ kd-factor-divide ] fold unpack3 drop pack2 ] [ drop pack2 ] ifte
+kd-garden-step: [ unpack4 ] dip [ dup 0 gt? ] [ drop [ [ drop dup ] dip ] dip ] [ [ dup 0 lt? ] [ drop max2 pick2 pick2 sub ] [ drop ] ifte ] ifte inc [ inc ] dip3 pack4
+
+# Binary decomposition for small indices, with a general fallback.
+kd-tail2: tail tail
+kd-tail4: kd-tail2 kd-tail2
+kd-tail8: kd-tail4 kd-tail4
+kd-tail16: kd-tail8 kd-tail8
+kd-tail32: kd-tail16 kd-tail16
+kd-tail64: kd-tail32 kd-tail32
+kd-tail128: kd-tail64 kd-tail64
+kd-nth-small: [ dup 32 4 mul ge? ] [ [ kd-tail128 ] dip 32 4 mul sub ] [ ] ifte [ dup 32 dup add ge? ] [ [ kd-tail64 ] dip 32 dup add sub ] [ ] ifte [ dup 32 ge? ] [ [ kd-tail32 ] dip 32 sub ] [ ] ifte [ dup 16 ge? ] [ [ kd-tail16 ] dip 16 sub ] [ ] ifte [ dup 8 ge? ] [ [ kd-tail8 ] dip 8 sub ] [ ] ifte [ dup 4 ge? ] [ [ kd-tail4 ] dip 4 sub ] [ ] ifte [ dup 2 ge? ] [ [ kd-tail2 ] dip 2 sub ] [ ] ifte [ dup 1 ge? ] [ [ tail ] dip 1 sub ] [ ] ifte drop head
+# Binary64 helpers: fixed-point units 2^-60, for normal values of magnitude
+# >= 0.01 and < 2^23. Intermediate integers retain all rounding information.
+kd-2p60: 2 sq sq sq sq 2 div sq sq
+kd-bitlen128: pows2 pows2-step pows2-step swap [ le? ] swap cons filter len
+# Positive rational to fixed-point binary64, round-to-nearest, ties-to-even.
+kd-round-even: over over div [ pick2 pick2 mod 2 mul pick2 gt? ] [ inc ] [ [ pick2 pick2 mod 2 mul pick2 eq? ] [ [ dup odd? ] [ inc ] [ ] ifte ] [ ] ifte ] ifte [ drop drop ] dip
+kd-float-positive: [ kd-2p60 mul ] dip over over div kd-bitlen128 100 2 div 3 add sub pow2 dup [ mul ] dip [ kd-round-even ] dip mul
+kd-float-ratio: [ dup 0 lt? ] [ neg [ neg ] dip ] [ ] ifte [ over 0 eq? ] [ drop ] [ [ over 0 lt? ] [ [ neg ] dip kd-float-positive neg ] [ kd-float-positive ] ifte ] ifte
+kd-scrap-step: 100 kd-float-ratio kd-2p60 swap sub kd-2p60 kd-float-ratio kd-float-ratio
+# Sieve odd candidates; retained as the best partial prime-index witness.
+kd-sieve-primes: [ dup 2 lt? ] [ drop nil ] [ dup isqrt inc primes-below 1 drop-n swap inc range [ odd? ] filter 1 drop-n [ [ [ over eq? ] [ drop drop true ] [ mod 0 eq? not ] ifte ] swap cons filter ] fold 2 cons ] ifte
+kd-nth: [ dup 32 8 mul ge? ] [ nth ] [ kd-nth-small ] ifte

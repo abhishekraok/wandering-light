@@ -126,6 +126,9 @@ Later waves, same settings (four `codex exec` agents, gpt-6-astra high, ~25 beha
 | 2 (2026-09-11) | [w2](../reports/world-authoring-20260911-w2/README.md) | 50 MBPP, 50 CodeARC | 97/100 (MBPP 50/50, CodeARC 47/50) | 144 / 17 | 289k, 11 min | 7 / 90 (110 → 117) | 3 fuel (CodeARC); one identity repaired from an empty program |
 | 3 (2026-09-11) | [w3](../reports/world-authoring-20260911-w3/README.md) | 50 MBPP, 50 CodeARC | 99/100 (MBPP 50/50, CodeARC 49/50) | 151 / 20 | 277k, 6 min | 8 / 106 (117 → 125) | 1 fuel (CodeARC) |
 | 4 (2026-09-11) | [w4](../reports/world-authoring-20260911-w4/README.md) | 50 MBPP, 50 CodeARC | 100/100 | 126 / 18.5 | 432k, 7 min | 4 / 68 (125 → 129) | 0; one identity repaired from an empty program; 9 exact v4 witness matches |
+| 5 (2026-09-11) | [w5](../reports/world-authoring-20260911-w5/README.md) | 50 MBPP, 50 CodeARC | 98/100 (MBPP 49/50, CodeARC 49/50) | 128 / 16.5 | 318k, 10 min | 4 / 59 (129 → 133) | 1 set order (MBPP), 1 fuel (CodeARC); 7 exact v4 witness matches |
+
+Totals over the five waves: 486/500 verified (MBPP 234/236, CodeARC 229/234, LeetCode medium 21/25, hard 2/5), 1.69M tokens, 48 minutes wall, library 94 → 133. `stack_pbe_world_v3` = the probe's 91 + 486 = 577 tasks, 522 train / 55 eval by behaviour-id hash (10%), 3,462 shown and 13,788 held-out examples, 12,853 distinct input stacks, median witness 134 ops; every earlier report regenerated under the final library before the build (all counts unchanged). Manifest pinned at `wandering_light/evals/data/stack_pbe_world_v3/`.
 
 
 ## Library hygiene (#124): canonical macro library and hypothesis-breaking MBPP examples

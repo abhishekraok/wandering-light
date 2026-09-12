@@ -1,0 +1,24 @@
+{"id": "mbpp-383", "program": "kc-toggle-even-bits", "status": "solved", "note": "shape: xor with even-position mask below bit length; nonpositive input unchanged"}
+{"id": "mbpp-101", "program": "[ drop ] dip dec at", "status": "solved", "note": "shape: Python indexing; reference comparison expression never mutates or sorts"}
+{"id": "mbpp-470", "program": "adjacent [ unpack2 add ] map", "status": "solved", "note": "shape: map adjacent pair sums; empty list stays empty"}
+{"id": "mbpp-499", "program": "dup add", "status": "solved", "note": "shape: double the signed radius"}
+{"id": "mbpp-162", "program": "0 max2 dup inc 2 div over over sub inc mul swap drop", "status": "solved", "note": "shape: arithmetic series of positive terms with matching parity"}
+{"id": "mbpp-453", "program": "kc-even-factor-sum", "status": "solved", "note": "shape: sum even divisors; preserve reference exceptions 0 -> 1 and 2 -> 3"}
+{"id": "mbpp-867", "program": "take sum 2 mod 2 swap sub", "status": "solved", "note": "shape: parity of first n elements; even sum returns 2"}
+{"id": "mbpp-763", "program": "[ sort ] dip take differences [ neg ] map kc-ten-to-twenty [ min2 ] fold", "status": "solved", "note": "shape: sort entire input, compare first n elements; retain 10**20 sentinel"}
+{"id": "mbpp-106", "program": "swap cat", "status": "solved", "note": "shape: second list followed by first"}
+{"id": "mbpp-168", "program": "count", "status": "solved", "note": "shape: equality count"}
+{"id": "mbpp-908", "program": "take kc-enumerate [ unpack2 eq? ] filter [ head ] map head-or-neg1", "status": "solved", "note": "shape: first fixed index in prefix; identity equals value equality for tested cached small integers"}
+{"id": "mbpp-750", "program": "cat", "status": "solved", "note": "shape: concatenate lists in input order"}
+{"id": "codearc-144", "program": "[ product ] dip mod", "status": "solved", "note": "shape: product followed by Python remainder, including negative divisor"}
+{"id": "codearc-770", "program": "kc-optimal-removal", "status": "solved", "note": "shape: reproduce zero-count and negative-parity branches, including nonnegative zero"}
+{"id": "codearc-148", "program": "[ odd? ] filter", "status": "solved", "note": "shape: filter odd signed integers"}
+{"id": "codearc-606", "program": "decimal-digits [ sq decimal-digits ] map flatten from-digits", "status": "solved", "note": "shape: square each decimal digit then concatenate decimal representations"}
+{"id": "codearc-425", "program": "2 div over sub dup [ sub ] dip pack2", "status": "solved", "note": "shape: solve heads/legs equations on admitted integer-list output domain"}
+{"id": "codearc-365", "program": "[ uncons quote ] dip [ kc-consecutive-step ] swap cons fold reverse", "status": "solved", "note": "shape: fold against last retained value; accumulate in reverse"}
+{"id": "codearc-45", "program": "[ kc-unit-digit ] dip kc-unit-digit mul", "status": "solved", "note": "shape: multiply absolute unit digits as string reference does"}
+{"id": "codearc-9", "program": "[ 0 gt? ] filter", "status": "solved", "note": "shape: retain strictly positive elements"}
+{"id": "codearc-1087", "program": "dup [ inc range 3 drop-n swap [ kc-sequence-step ] fold ] dip at", "status": "solved", "note": "shape: append indexed recurrence to full original list; preserve extra seeds and negative final indexing"}
+{"id": "codearc-113", "program": "kc-enumerate [ head even? ] filter seconds [ even? ] filter sum", "status": "solved", "note": "shape: sum even elements at even indices"}
+{"id": "codearc-399", "program": "0 0 pack2 [ [ unpack2 ] dip rot add over max2 pack2 ] fold unpack2 max2", "status": "solved", "note": "shape: fold packed previous two best sums, initialized to zero"}
+{"id": "codearc-983", "program": "kc-enumerate [ second odd? ] filter [ head ] map head-or-neg1", "status": "solved", "note": "shape: first odd index or -1 for no match"}

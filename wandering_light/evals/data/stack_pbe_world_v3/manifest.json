@@ -1,0 +1,61 @@
+{
+  "basis": "mark-28",
+  "catalogue": {
+    "behaviours": 577,
+    "digest": "sha256:5b09531d87c548428c9c384191234424442828e20ce4d6391ef410a855ba6243",
+    "skeletons": 510
+  },
+  "config": {
+    "eval_share": 0.1,
+    "issue": "https://github.com/abhishekraok/wandering-light/issues/127",
+    "probe": [
+      "reports/world-behaviours-library-20260910",
+      "reports/world-authoring-20260910",
+      "reports/world-authoring-20260911-w2",
+      "reports/world-authoring-20260911-w3",
+      "reports/world-authoring-20260911-w4",
+      "reports/world-authoring-20260911-w5"
+    ],
+    "shown_per_task": 6,
+    "sources": [
+      "codearc",
+      "leetcode",
+      "mbpp"
+    ],
+    "witness_source": "translated"
+  },
+  "corpus": "stack_pbe_world_v3",
+  "counts": {
+    "distinct_input_stacks": 12853,
+    "held_out_examples": 13788,
+    "shown_examples": 3462,
+    "tasks": 577
+  },
+  "generator": "experiments/world_behaviours/build_corpus.py",
+  "generator_description": "Behaviours are human-written programming problems with tests (codearc, leetcode, mbpp) restricted to ints and flat int lists; witnesses were authored by Claude and Codex sessions in macro form over experiments/world_behaviours/macros*.txt and expanded to the basis; examples are the upstream tests extended by inputs that keep or deliberately break the properties the given inputs share, run through the reference solution. Split policy: by-behaviour-hash eval_share=0.1.",
+  "hub": {
+    "repo_id": "abhishekraok/wandering-light-stack-pbe-world-v3",
+    "repo_type": "dataset",
+    "revision": "0997c5a41a42157210c5781daecec487c0f4cc5b"
+  },
+  "schema_version": 2,
+  "split_policy": "by-behaviour-hash eval_share=0.1",
+  "splits": {
+    "eval": {
+      "behaviours": 55,
+      "bytes": 28413,
+      "path": "stack_pbe_world_v3_eval.jsonl.gz",
+      "records": 55,
+      "sha256": "sha256:28a181e1987d42e9da5ff08654998dc98ec9cccfefdcc22856a3bf63cf1604fd",
+      "skeletons": 54
+    },
+    "train": {
+      "behaviours": 522,
+      "bytes": 273914,
+      "path": "stack_pbe_world_v3_train.jsonl.gz",
+      "records": 522,
+      "sha256": "sha256:27571d20b0a97b4d9e4d856745d005bdaadeaf95aec7555de0365dcc55d7fd2d",
+      "skeletons": 466
+    }
+  }
+}
