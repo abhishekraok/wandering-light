@@ -213,3 +213,23 @@ def test_codex_command_disables_every_tool_and_replaces_the_instructions(tmp_pat
     assert 'model_reasoning_effort="low"' in argv
     assert argv[-1] == "-"
     assert (tmp_path / "instructions.md").read_text().strip()
+
+
+def test_codex_runs_against_its_private_home_not_the_users(tmp_path, monkeypatch):
+    """The private CODEX_HOME is only private if the subprocess is told to use it.
+
+    Without `CODEX_HOME` in the child's environment, Codex loads the caller's
+    home instead: its `AGENTS.md`, config and plugins land above the prompt.
+    Every run in reports/stack-pbe-v4-codex-exec-20260910 was made that way,
+    and the model could name the user's employer when asked.
+    """
+    real_home = tmp_path / "real"
+    real_home.mkdir()
+    (real_home / "auth.json").write_text("{}")
+    monkeypatch.setenv("CODEX_HOME", str(real_home))
+    from wandering_light.solver import CodexExecTokenGenerator
+
+    private = tmp_path / "private"
+    generator = CodexExecTokenGenerator("gpt-6-astra", codex_home=private)
+    assert generator.env["CODEX_HOME"] == str(private)
+    assert generator.env["CODEX_HOME"] != str(real_home)

@@ -1299,6 +1299,17 @@ class CodexExecTokenGenerator(TokenGenerator):
         (home / "instructions.md").write_text(instructions)
         (home / "workdir").mkdir(exist_ok=True)
         self.home = home
+        # The private home is only private if the subprocess is told to use it.
+        # Without this the child inherits the caller's CODEX_HOME (or the
+        # default `~/.codex`) and Codex loads that home's `AGENTS.md`, config
+        # and plugins on top of the prompt -- which is what every run in
+        # reports/stack-pbe-v4-codex-exec-20260910 did before this line existed
+        # (Codex review on PR #126). Separate from `command()` so a test can
+        # assert on it without running anything.
+        self.env = self.environment()
+
+    def environment(self) -> dict:
+        return {**os.environ, "CODEX_HOME": str(self.home)}
 
     def command(self) -> list[str]:
         argv = [
@@ -1368,6 +1379,7 @@ class CodexExecTokenGenerator(TokenGenerator):
             text=True,
             timeout=self.timeout,
             check=False,
+            env=self.env,
         )
         message, meta = self.parse_events(run.stdout.splitlines())
         meta["seconds"] = round(time.time() - started, 1)
