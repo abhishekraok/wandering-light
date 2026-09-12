@@ -97,6 +97,8 @@ TASKS_PER_BUCKET = 60
 COHORT_SEED = 17
 BEAM_WIDTH = 64
 MAX_DEPTH = 48
+# The #101 values, kept so a cell run at another budget gets its own filename.
+DEFAULT_BEAM_WIDTH, DEFAULT_MAX_DEPTH = BEAM_WIDTH, MAX_DEPTH
 GUARD = "both"
 # Wall-clock range fixed before any cell ran; it brackets a beam hit on either
 # device. The executions range was set with the counter fix (see `replay`): it
@@ -399,6 +401,12 @@ def cell_path(run_dir: Path, arm: str, seed: int, device: str) -> Path:
     """
     name = EVAL_CORPUS or primary_corpus()
     suffix = "" if name == primary_corpus() else f"-{name}"
+    # A deeper structural cell must not overwrite the primary one it is compared
+    # against, so a non-default depth or beam width goes in the name too.
+    if MAX_DEPTH != DEFAULT_MAX_DEPTH:
+        suffix += f"-d{MAX_DEPTH}"
+    if BEAM_WIDTH != DEFAULT_BEAM_WIDTH:
+        suffix += f"-b{BEAM_WIDTH}"
     return run_dir / "timing" / f"{arm}-s{seed}-{device}{suffix}.json"
 
 
