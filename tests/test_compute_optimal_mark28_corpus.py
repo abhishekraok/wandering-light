@@ -87,6 +87,9 @@ def two_corpora(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(driver, "VALIDATION_CORPUS", None)
     monkeypatch.setattr(driver, "DROP_BEHAVIOURS", frozenset())
     monkeypatch.setattr(driver, "TRAIN_TASK_CAP", 0)
+    # corpus() mutates CORPUS_OF in place; a fresh dict keeps the synthetic
+    # behaviour names from leaking into later tests (Codex review on #135).
+    monkeypatch.setattr(driver, "CORPUS_OF", {})
     return paths, tasks
 
 

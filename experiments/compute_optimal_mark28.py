@@ -582,10 +582,35 @@ def archive(run_dir: Path, log) -> None:
         log(f"RESULT archive {path.name} -> {done[path.name]['artifact']}")
 
 
+def aggregate_cells(run_dir: Path) -> list[dict[str, Any]]:
+    """The timing cells one aggregate covers: the active eval corpus and budget.
+
+    A run directory can hold cells for several eval corpora and search budgets
+    (`cell_path` names them apart), but the aggregate tables are keyed by
+    device, arm and seed. Mixing them would silently let one corpus's cell
+    overwrite another's, so only the active corpus and budget are read, and two
+    cells for one key are refused (Codex review on #135).
+    """
+    corpus = EVAL_CORPUS or primary_corpus()
+    cells = []
+    seen: set[tuple[str, str, int]] = set()
+    for path in sorted((run_dir / "timing").glob("*.json")):
+        cell = json.loads(path.read_text())
+        # A cell recorded before #134 has no eval_corpus and is the primary's.
+        if (cell.get("eval_corpus") or primary_corpus()) != corpus:
+            continue
+        if (cell.get("beam_width"), cell.get("max_depth")) != (BEAM_WIDTH, MAX_DEPTH):
+            continue
+        key = (cell["device"], cell["arm"], cell["seed"])
+        if key in seen:
+            raise ValueError(f"{path}: a second cell for {key} in {corpus}")
+        seen.add(key)
+        cells.append(cell)
+    return cells
+
+
 def aggregate(run_dir: Path, log) -> Path:
-    cells = [
-        json.loads(p.read_text()) for p in sorted((run_dir / "timing").glob("*.json"))
-    ]
+    cells = aggregate_cells(run_dir)
     arms = sorted({c["arm"] for c in cells}, key=lambda a: list(ARMS).index(a))
     buckets = [bucket_of(low) for low, _ in BUCKETS]
     table: dict[str, dict[str, dict[str, dict[str, Any]]]] = {}

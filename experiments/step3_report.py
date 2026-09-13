@@ -358,7 +358,14 @@ def main(argv: list[str] | None = None) -> int:
         ]
         for checkpoint, scored in sorted(ce["checkpoints"].items()):
             short = "/".join(Path(checkpoint).parts[-3:])
-            row = [short] + [f"{scored['cross_entropy'][n]:.4f}" for n in names]
+            row = [short] + [
+                (
+                    f"{scored['cross_entropy'][n]:.4f}"
+                    if scored["cross_entropy"][n] is not None
+                    else "empty"
+                )
+                for n in names
+            ]
             lines.append("| " + " | ".join(row) + " |")
         lines += [
             "",
