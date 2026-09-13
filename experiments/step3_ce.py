@@ -168,10 +168,15 @@ def main(argv: list[str] | None = None) -> int:
     for checkpoint in args.checkpoint:
         model = load_policy(checkpoint, device=args.device)
         model.eval()
+        # An empty set scores None rather than dividing by zero: after the
+        # contaminated world eval behaviours are removed, `world-eval-dirty`
+        # is empty by construction, and that emptiness is itself the check.
         scores = {
             name: _mean_cross_entropy(
                 model, rows[name], args.batch, torch.device(args.device)
             )
+            if rows[name]
+            else None
             for name in sets
         }
         state_path = checkpoint / "trainer_state.json"
@@ -186,7 +191,12 @@ def main(argv: list[str] | None = None) -> int:
         }
         print(
             f"{checkpoint}: "
-            + " ".join(f"{name}={scores[name]:.4f}" for name in sorted(scores))
+            + " ".join(
+                f"{name}={scores[name]:.4f}"
+                if scores[name] is not None
+                else f"{name}=empty"
+                for name in sorted(scores)
+            )
         )
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)

@@ -56,10 +56,18 @@ def spread(values: list[float]) -> str:
     return f"{statistics.mean(values):.4f} ± {statistics.stdev(values):.4f}"
 
 
-def bucket_rates(cell: dict[str, Any]) -> dict[str, tuple[int, int]]:
+def scored_rows(cell: dict[str, Any], excluded: frozenset[str]) -> list[dict[str, Any]]:
+    """The rows a result is read on: every row except excluded behaviours."""
+    return [r for r in cell["rows"] if r["behaviour"] not in excluded]
+
+
+def bucket_rates(
+    cell: dict[str, Any], excluded: frozenset[str] = frozenset()
+) -> dict[str, tuple[int, int]]:
+    rows_all = scored_rows(cell, excluded)
     out: dict[str, tuple[int, int]] = {}
     for bucket in BUCKETS:
-        rows = [r for r in cell["rows"] if r["bucket"] == bucket]
+        rows = [r for r in rows_all if r["bucket"] == bucket]
         out[bucket] = (sum(r["solved"] for r in rows), len(rows))
     return out
 
@@ -70,10 +78,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mixed", type=Path, required=True)
     parser.add_argument("--arm", default="1m")
     parser.add_argument("--ce", type=Path)
+    parser.add_argument(
+        "--world-exclude",
+        type=Path,
+        help="world eval behaviours already seen in training; scored separately",
+    )
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
 
     arms = {"v4-only": args.baseline, "v4+world": args.mixed}
+    world_excluded: frozenset[str] = frozenset()
+    if args.world_exclude:
+        world_excluded = frozenset(
+            line.strip()
+            for line in args.world_exclude.read_text().splitlines()
+            if line.strip() and not line.startswith("#")
+        )
     states = {name: trainer_states(path, args.arm) for name, path in arms.items()}
     seeds = sorted(set(states["v4-only"]) & set(states["v4+world"]))
     report: dict[str, Any] = {"arm": args.arm, "seeds": seeds, "validation_ce": {}}
@@ -128,7 +148,15 @@ def main(argv: list[str] | None = None) -> int:
         per_arm = {name: cells(path, args.arm, corpus) for name, path in arms.items()}
         if not any(per_arm.values()):
             continue
+        excluded = world_excluded if corpus == "stack_pbe_world_v3" else frozenset()
         lines += [f"## Solve rate, {title}", ""]
+        if excluded:
+            lines += [
+                f"Scored on the {len(next(iter(next(iter(per_arm.values())).values()))['rows']) - len(excluded)} "
+                f"clean behaviours; the {len(excluded)} whose program or skeleton "
+                "already appears in a training set are counted in the last row only.",
+                "",
+            ]
         header = "| bucket | " + " | ".join(
             f"{name} s{seed}" for name in arms for seed in sorted(per_arm[name])
         )
@@ -137,7 +165,7 @@ def main(argv: list[str] | None = None) -> int:
             "|---" * (1 + sum(len(v) for v in per_arm.values())) + "|",
         ]
         rates = {
-            name: {seed: bucket_rates(cell) for seed, cell in seeded.items()}
+            name: {seed: bucket_rates(cell, excluded) for seed, cell in seeded.items()}
             for name, seeded in per_arm.items()
         }
         for bucket in BUCKETS:
@@ -147,26 +175,45 @@ def main(argv: list[str] | None = None) -> int:
                     hit, total = rates[name][seed][bucket]
                     row.append(f"{hit}/{total}" if total else "-")
             lines.append("| " + " | ".join(row) + " |")
-        overall = ["**all**"]
+        overall = ["**all scored**"]
         for name in arms:
             for seed in sorted(per_arm[name]):
-                cell = per_arm[name][seed]
-                hit = sum(r["solved"] for r in cell["rows"])
-                overall.append(f"{hit}/{len(cell['rows'])}")
-        lines += ["| " + " | ".join(overall) + " |", ""]
+                rows = scored_rows(per_arm[name][seed], excluded)
+                overall.append(f"{sum(r['solved'] for r in rows)}/{len(rows)}")
+        lines.append("| " + " | ".join(overall) + " |")
+        if excluded:
+            dirty = ["excluded (seen in training)"]
+            for name in arms:
+                for seed in sorted(per_arm[name]):
+                    rows = [
+                        r
+                        for r in per_arm[name][seed]["rows"]
+                        if r["behaviour"] in excluded
+                    ]
+                    dirty.append(f"{sum(r['solved'] for r in rows)}/{len(rows)}")
+            lines.append("| " + " | ".join(dirty) + " |")
+        lines.append("")
         report.setdefault("solve", {})[corpus] = {
             name: {
                 seed: {
                     "buckets": {b: list(rates[name][seed][b]) for b in BUCKETS},
-                    "solved": sum(r["solved"] for r in cell["rows"]),
-                    "shown_fit": sum(r["shown_fit"] for r in cell["rows"]),
-                    "tasks": len(cell["rows"]),
-                    "coverage": sum(r["solved"] for r in cell["rows"])
-                    / len(cell["rows"]),
-                    "cost_covered_seconds": sum(
-                        r["seconds"] for r in cell["rows"] if r["solved"]
+                    "solved": sum(r["solved"] for r in scored_rows(cell, excluded)),
+                    "shown_fit": sum(
+                        r["shown_fit"] for r in scored_rows(cell, excluded)
                     ),
-                    "total_seconds": sum(r["seconds"] for r in cell["rows"]),
+                    "tasks": len(scored_rows(cell, excluded)),
+                    "coverage": sum(r["solved"] for r in scored_rows(cell, excluded))
+                    / max(1, len(scored_rows(cell, excluded))),
+                    "cost_covered_seconds": sum(
+                        r["seconds"] for r in scored_rows(cell, excluded) if r["solved"]
+                    ),
+                    "total_seconds": sum(
+                        r["seconds"] for r in scored_rows(cell, excluded)
+                    ),
+                    "excluded_behaviours": sorted(excluded),
+                    "excluded_solved": sum(
+                        r["solved"] for r in cell["rows"] if r["behaviour"] in excluded
+                    ),
                     "beam_width": cell["beam_width"],
                     "max_depth": cell["max_depth"],
                 }
