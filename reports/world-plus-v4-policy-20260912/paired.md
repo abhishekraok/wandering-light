@@ -11,7 +11,7 @@ A delta is only worth reading against the seed spread in the same row.
 
 ## Verified solves, v4 eval cohort (300 tasks, beam 64 x depth 48)
 
-A graded solve passes the task's held-out examples. A verified solve also computes the behaviour: its program is a catalogue witness, or it agrees with the Python reference on 2,000 sampler draws and 2,000 perturbed draws. Cells read verified / graded.
+A graded solve passes the task's held-out examples. A verified solve also computes the behaviour: its program is a catalogue witness, or it agrees with the Python reference on 10,000 sampler draws and 10,000 perturbed draws and 10,000 dense draws, each counted only where the catalogue witness computes the reference. Cells read verified / graded.
 
 | bucket | v4-only s0 | v4-only s1 | v4-only s2 | v4+world s0 | v4+world s1 | v4+world s2 |
 |---|---|---|---|---|---|---|
@@ -24,8 +24,8 @@ A graded solve passes the task's held-out examples. A verified solve also comput
 
 Programs that pass held-out grading without computing the behaviour:
 
-- `all_positive`, 28 ops: fails 96/2000 sampler draws and 339/2000 perturbed; e.g. {'args': [[6, 4]], 'reference': 1}
-- `bounds_cover_list_flag`, 44 ops: fails 498/2000 sampler draws and 229/1827 perturbed; e.g. {'args': [[7, -3, 8, -5, -9], 6, 7], 'reference': 0}
+- `all_positive`, 28 ops: fails 464/10000 sampler, 1685/10000 perturbed, 1127/10000 dense draws; e.g. {'args': [[6, 4]], 'reference': 1}
+- `bounds_cover_list_flag`, 44 ops: fails 2534/10000 sampler, 1199/9083 perturbed, 1579/9088 dense draws; e.g. {'args': [[7, -3, 8, -5, -9], 6, 7], 'reference': 0}
 
 ## Solve rate, v4 eval cohort (300 tasks, beam 64 x depth 48)
 
@@ -51,6 +51,14 @@ Scored on the 44 clean behaviours; the 11 whose program or skeleton already appe
 | 41+ | 0/40 | 0/40 | 0/40 | 0/40 | 0/40 | 0/40 |
 | **all scored** | 1/44 | 0/44 | 0/44 | 1/44 | 0/44 | 0/44 |
 | excluded (seen in training) | 2/11 | 2/11 | 3/11 | 2/11 | 2/11 | 3/11 |
+
+## Structural check: world eval at depth 192 (beam 64)
+
+Same weights and beam as the primary world cell, four times the depth. Clean behaviours only.
+
+| arm | seed | clean within depth 48 | solved at depth 48 | clean within depth 192 | solved at depth 192 | wall at 192 (s) |
+|---|---|---|---|---|---|---|
+| v4-only | 0 | 4 | 1/44 | 26 | 1/44 | 1876 |
 
 ## Cross-entropy on held-out row sets (experiments/step3_ce.py)
 

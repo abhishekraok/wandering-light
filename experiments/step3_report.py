@@ -216,8 +216,22 @@ def main(argv: list[str] | None = None) -> int:
             cell = by_arm[name][seed]
             total.append(f"{cell['verified_total']}/{cell['graded_total']}")
         lines += ["| " + " | ".join(total) + " |", ""]
-        shortcuts = [p for p in verified["programs"] if p["verdict"] == "shortcut"]
-        undecided = [p for p in verified["programs"] if p["verdict"] == "inconclusive"]
+        # The file may also judge programs only an epoch snapshot solved; list
+        # the ones these best-checkpoint cells solved.
+        best_solved = {
+            (row["behaviour"], " ".join(row["program"]))
+            for path in arms.values()
+            for cell in cells(path, args.arm, "stack_pbe_v4").values()
+            for row in cell["rows"]
+            if row["solved"]
+        }
+        in_table = [
+            p
+            for p in verified["programs"]
+            if (p["behaviour"], p["program"]) in best_solved
+        ]
+        shortcuts = [p for p in in_table if p["verdict"] == "shortcut"]
+        undecided = [p for p in in_table if p["verdict"] == "inconclusive"]
         if undecided:
             lines += [
                 "Programs the verification could not decide (too few in-domain draws "
@@ -236,16 +250,21 @@ def main(argv: list[str] | None = None) -> int:
             ]
             for item in shortcuts:
                 draws = item.get("draws", {})
-                example = (draws.get("sampler", {}) or {}).get("counterexample") or (
-                    draws.get("perturbed", {}) or {}
-                ).get("counterexample")
+                modes = [m for m in ("sampler", "perturbed", "dense") if m in draws]
+                example = next(
+                    (
+                        draws[m]["counterexample"]
+                        for m in modes
+                        if draws[m].get("counterexample")
+                    ),
+                    None,
+                )
+                fails = ", ".join(
+                    f"{draws[m]['failed']}/{draws[m]['tested']} {m}" for m in modes
+                )
                 lines.append(
                     f"- `{item['behaviour']}`, {len(item['program'].split())} ops: "
-                    f"fails {draws.get('sampler', {}).get('failed')}/"
-                    f"{draws.get('sampler', {}).get('tested')} sampler draws and "
-                    f"{draws.get('perturbed', {}).get('failed')}/"
-                    f"{draws.get('perturbed', {}).get('tested')} perturbed; "
-                    f"e.g. {example}"
+                    f"fails {fails} draws; e.g. {example}"
                 )
             lines.append("")
 
