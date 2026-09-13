@@ -86,6 +86,25 @@ def counts(
     }
 
 
+def step_pairs(
+    steps_a: int, steps_b: int, epochs: list[int]
+) -> list[tuple[int, int, int]]:
+    """(v4+world epoch, v4-only epoch, step gap) at the nearest step count.
+
+    steps_a and steps_b are optimizer steps per epoch. A v4+world epoch keeps its
+    partner only when the gap is at most half a v4-only epoch, so an epoch past
+    the end of v4-only training is left unpaired rather than matched to the last
+    one. The gap is v4-only steps minus v4+world steps.
+    """
+    pairs = []
+    for epoch_b in epochs:
+        epoch_a = min(epochs, key=lambda e: (abs(e * steps_a - epoch_b * steps_b), e))
+        gap = epoch_a * steps_a - epoch_b * steps_b
+        if 2 * abs(gap) <= steps_a:
+            pairs.append((epoch_b, epoch_a, gap))
+    return pairs
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--baseline", type=Path, required=True)
@@ -214,19 +233,134 @@ def main(argv: list[str] | None = None) -> int:
         )
         summary[epoch] = {"deltas": deltas, "complete": len(deltas) == len(args.seeds)}
         lines.append(f"| {epoch} | " + " | ".join(cells_row) + f" | {mean} |")
-    lines += [
-        "",
-        "Steps per epoch: v4-only "
-        + ", ".join(
-            str(grid["v4-only"][s][1].get("steps", "-")) for s in args.seeds[:1]
+    first = args.epochs[0]
+    per_epoch = {
+        name: grid[name][args.seeds[0]][first].get("steps", 0) // first for name in arms
+    }
+    steps_a, steps_b = per_epoch["v4-only"], per_epoch["v4+world"]
+    lines += [""]
+    matched_step: list[dict[str, Any]] = []
+    if steps_a and steps_b:
+        lines += [
+            f"Steps per epoch: v4-only {steps_a}, v4+world {steps_b} (batch 256), a "
+            f"ratio of {steps_b / steps_a:.2f}.",
+            "",
+            f"## Matched-step paired difference in {key} solves (v4+world minus v4-only)",
+            "",
+            "Each v4+world epoch against the v4-only epoch nearest in optimizer steps, "
+            "kept only within half a v4-only epoch. The gap is v4-only steps minus "
+            "v4+world steps.",
+            "",
+            "| v4+world epoch | v4-only epoch | step gap | s0 | s1 | s2 | mean |",
+            "|---|---|---|---|---|---|---|",
+        ]
+        for epoch_b, epoch_a, gap in step_pairs(steps_a, steps_b, args.epochs):
+            deltas, cells_row = [], []
+            for seed in args.seeds:
+                a, b = grid["v4-only"][seed][epoch_a], grid["v4+world"][seed][epoch_b]
+                if key in a and key in b:
+                    deltas.append(b[key] - a[key])
+                    cells_row.append(f"{b[key] - a[key]:+d}")
+                else:
+                    cells_row.append("-")
+            complete = len(deltas) == len(args.seeds)
+            mean = f"{statistics.mean(deltas):+.1f}" if complete else "-"
+            matched_step.append(
+                {
+                    "v4_world_epoch": epoch_b,
+                    "v4_only_epoch": epoch_a,
+                    "step_gap": gap,
+                    "deltas": deltas,
+                    "complete": complete,
+                }
+            )
+            lines.append(
+                f"| {epoch_b} | {epoch_a} | {gap:+d} | "
+                + " | ".join(cells_row)
+                + f" | {mean} |"
+            )
+        lines += [""]
+
+    # Per-seed summaries over the searched epochs. The peak picks the epoch by
+    # solves on the eval cohort itself, so it bounds each arm from above; the
+    # mean over epochs is only reported when every epoch was searched in both.
+    searched = {
+        name: {
+            seed: {
+                e: grid[name][seed][e][key]
+                for e in args.epochs
+                if key in grid[name][seed][e]
+            }
+            for seed in args.seeds
+        }
+        for name in arms
+    }
+    full = all(
+        len(searched[name][seed]) == len(args.epochs)
+        for name in arms
+        for seed in args.seeds
+    )
+    peak: dict[str, Any] = {}
+    if all(searched[name][seed] for name in arms for seed in args.seeds):
+        lines += [
+            f"## Per-seed summaries over searched epochs ({key} solves)",
+            "",
+            "Peak is the best searched epoch chosen by solves on this cohort, so it is "
+            "an upper bound for each arm, not a selection rule. Mean over epochs is "
+            "shown only when both arms were searched at every epoch.",
+            "",
+            "| summary | " + " | ".join(f"s{s}" for s in args.seeds) + " | mean |",
+            "|---" * (2 + len(args.seeds)) + "|",
+        ]
+        rows_out: dict[str, list[float]] = {}
+        for name in arms:
+            best = [
+                max(searched[name][s].items(), key=lambda kv: (kv[1], -kv[0]))
+                for s in args.seeds
+            ]
+            rows_out[f"{name} peak"] = [v for _, v in best]
+            peak[name] = {
+                str(s): {"epoch": e, "solves": v}
+                for s, (e, v) in zip(args.seeds, best, strict=True)
+            }
+            lines.append(
+                f"| {name} peak (epoch) | "
+                + " | ".join(f"{v} ({e})" for e, v in best)
+                + f" | {statistics.mean(v for _, v in best):.1f} |"
+            )
+        diff = [
+            b - a
+            for a, b in zip(
+                rows_out["v4-only peak"], rows_out["v4+world peak"], strict=True
+            )
+        ]
+        peak["difference"] = diff
+        lines.append(
+            "| difference | "
+            + " | ".join(f"{d:+d}" for d in diff)
+            + f" | {statistics.mean(diff):+.1f} |"
         )
-        + ", v4+world "
-        + ", ".join(
-            str(grid["v4+world"][s][1].get("steps", "-")) for s in args.seeds[:1]
-        )
-        + " (batch 256). Arm B's epoch e is about arm A's epoch 1.37e in steps.",
-        "",
-    ]
+        if full:
+            means = {
+                name: [statistics.mean(searched[name][s].values()) for s in args.seeds]
+                for name in arms
+            }
+            mdiff = [
+                b - a for a, b in zip(means["v4-only"], means["v4+world"], strict=True)
+            ]
+            peak["epoch_mean"] = {**means, "difference": mdiff}
+            for name in arms:
+                lines.append(
+                    f"| {name} mean over epochs {args.epochs[0]}-{args.epochs[-1]} | "
+                    + " | ".join(f"{m:.1f}" for m in means[name])
+                    + f" | {statistics.mean(means[name]):.1f} |"
+                )
+            lines.append(
+                "| difference of means | "
+                + " | ".join(f"{d:+.1f}" for d in mdiff)
+                + f" | {statistics.mean(mdiff):+.1f} |"
+            )
+        lines += [""]
     if inconclusive:
         lines += [
             "Programs the verification could not decide (too few in-domain draws in a "
@@ -239,7 +373,12 @@ def main(argv: list[str] | None = None) -> int:
     (args.out / "epochs.md").write_text("\n".join(lines) + "\n")
     (args.out / "epochs.json").write_text(
         json.dumps(
-            {"grid": grid, "matched_epoch": summary},
+            {
+                "grid": grid,
+                "matched_epoch": summary,
+                "matched_step": matched_step,
+                "per_seed": peak,
+            },
             indent=2,
             sort_keys=True,
             default=list,
