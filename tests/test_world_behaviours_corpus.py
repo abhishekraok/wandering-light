@@ -230,3 +230,80 @@ def test_relations_to_argument_zero_are_scheduled_and_violated() -> None:
         for _ in range(20)
     ]
     assert all(n not in xs for xs, n in strangers)
+
+
+def test_excluding_eval_behaviours_leaves_the_train_payload_unchanged(
+    tmp_path: Path,
+) -> None:
+    """world-plus-v4-policy (#134): contaminated eval behaviours are removed.
+
+    A behaviour's split depends only on its own id, so removing eval behaviours
+    must not move anything between splits: the train payload digest is the
+    same with and without the exclusion, which keeps a run trained on the
+    earlier revision valid against the new one.
+    """
+    build_corpus = _module("build_corpus")
+    ids = [f"mbpp-{n}" for n in range(12)]
+    probe = tmp_path / "probe"
+    probe.mkdir()
+    with (probe / "behaviours.jsonl").open("w") as fh:
+        for behaviour_id in ids:
+            fh.write(
+                json.dumps(
+                    {
+                        "id": behaviour_id,
+                        "source": "mbpp",
+                        "description": "Double a number.",
+                        "tests": [{"args": [n], "out": 2 * n} for n in range(8)],
+                        "shown": [0, 1, 2],
+                        "held_out": [3, 4, 5, 6, 7],
+                    }
+                )
+                + "\n"
+            )
+    (probe / "report.json").write_text(
+        json.dumps(
+            {
+                "results": [
+                    {
+                        "id": i,
+                        "solved": True,
+                        "program": "dup add",
+                        "macro_program": "dup add",
+                    }
+                    for i in ids
+                ]
+            }
+        )
+    )
+    # a share between the ids' buckets, so both splits are populated
+    share = sorted(build_corpus.eval_bucket(i) for i in ids)[len(ids) // 2]
+    full = build_corpus.build(probe, share)
+    eval_ids = frozenset(t.behaviour for t in full if t.split == "eval")
+    assert eval_ids
+    assert len(eval_ids) < len(ids)
+
+    dropped = frozenset(sorted(eval_ids)[: max(1, len(eval_ids) // 2)])
+    kept = build_corpus.build(probe, share, dropped)
+    assert {t.behaviour for t in kept}.isdisjoint(dropped)
+    assert [t for t in kept if t.split == "train"] == [
+        t for t in full if t.split == "train"
+    ]
+
+    before = tmp_path / "before"
+    after = tmp_path / "after"
+    build_corpus.write(full, before, probe, "stack_pbe_world_test", share, 134)
+    build_corpus.write(
+        kept, after, probe, "stack_pbe_world_test", share, 134, dropped, "test"
+    )
+    digest = {
+        d: json.loads((d / "manifest.json").read_text())["splits"]
+        for d in (before, after)
+    }
+    assert digest[before]["train"]["sha256"] == digest[after]["train"]["sha256"]
+    assert digest[after]["eval"]["records"] == digest[before]["eval"]["records"] - len(
+        dropped
+    )
+    recorded = json.loads((after / "manifest.json").read_text())["config"]
+    assert recorded["excluded_behaviours"] == sorted(dropped)
+    assert recorded["exclusion_reason"] == "test"

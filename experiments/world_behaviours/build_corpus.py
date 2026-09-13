@@ -160,7 +160,18 @@ def as_dirs(probe_dirs: Path | list[Path]) -> list[Path]:
     return [probe_dirs] if isinstance(probe_dirs, Path) else list(probe_dirs)
 
 
-def build(probe_dirs: Path | list[Path], eval_share: float = 0.0) -> list[Task]:
+def build(
+    probe_dirs: Path | list[Path],
+    eval_share: float = 0.0,
+    exclude: frozenset[str] = frozenset(),
+) -> list[Task]:
+    """Tasks for every verified behaviour, minus ``exclude``.
+
+    ``exclude`` removes a behaviour from the corpus outright rather than moving
+    it between splits, and a behaviour's split depends only on its own id, so
+    excluding eval behaviours leaves the train split and its payload digest
+    unchanged.
+    """
     macros = load_macros()
     tasks: list[Task] = []
     for probe_dir in as_dirs(probe_dirs):
@@ -172,7 +183,7 @@ def build(probe_dirs: Path | list[Path], eval_share: float = 0.0) -> list[Task]:
         tasks += [
             build_task(behaviours[r["id"]], r, macros, eval_share)
             for r in sorted(report["results"], key=lambda r: r["id"])
-            if r["solved"]
+            if r["solved"] and r["id"] not in exclude
         ]
     if len({t.behaviour for t in tasks}) != len(tasks):
         raise ValueError("duplicate behaviour ids")
@@ -186,6 +197,8 @@ def write(
     corpus_name: str = CORPUS_NAME,
     eval_share: float = 0.0,
     issue: int = 120,
+    exclude: frozenset[str] = frozenset(),
+    exclude_reason: str = "",
 ) -> Path:
     corpus_dir.mkdir(parents=True, exist_ok=True)
     splits = {}
@@ -235,6 +248,8 @@ def write(
             "shown_per_task": max(t.examples for t in tasks),
             "witness_source": "translated",
             "eval_share": eval_share,
+            "excluded_behaviours": sorted(exclude),
+            "exclusion_reason": exclude_reason,
             "issue": f"https://github.com/abhishekraok/wandering-light/issues/{issue}",
         },
         "split_policy": policy,
@@ -273,12 +288,31 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--corpus-dir", type=Path)
     parser.add_argument("--eval-share", type=float, default=0.0)
     parser.add_argument("--issue", type=int, default=120)
+    parser.add_argument(
+        "--exclude-behaviours",
+        type=Path,
+        help="file of behaviour ids to leave out; its '#' lines are recorded as the reason",
+    )
     parser.add_argument("--publish", action="store_true")
     args = parser.parse_args(argv)
     corpus_dir = args.corpus_dir or DATA_DIR / args.corpus_name
     repo_id = hub_repo_id(args.corpus_name)
 
-    tasks = build(args.probe_dirs, args.eval_share)
+    exclude: frozenset[str] = frozenset()
+    reason = ""
+    if args.exclude_behaviours:
+        lines = args.exclude_behaviours.read_text().splitlines()
+        exclude = frozenset(
+            line.strip() for line in lines if line.strip() and not line.startswith("#")
+        )
+        reason = " ".join(
+            line.lstrip("#").strip() for line in lines if line.startswith("#")
+        )
+    tasks = build(args.probe_dirs, args.eval_share, exclude)
+    if exclude:
+        present = {t.behaviour for t in build(args.probe_dirs, args.eval_share)}
+        if missing := sorted(exclude - present):
+            parser.error(f"--exclude-behaviours names unknown behaviours: {missing}")
     manifest = write(
         tasks,
         corpus_dir,
@@ -286,6 +320,8 @@ def main(argv: list[str] | None = None) -> int:
         args.corpus_name,
         args.eval_share,
         args.issue,
+        exclude,
+        reason,
     )
     corpus_hub.verify_corpus_files(corpus_dir)
     print(f"{len(tasks)} tasks -> {manifest}")
