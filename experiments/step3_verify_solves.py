@@ -165,6 +165,7 @@ def main(argv: list[str] | None = None) -> int:
             {
                 "arm": arm,
                 "seed": cell["seed"],
+                "policy_epoch": cell.get("policy_epoch"),
                 "graded": graded,
                 "verified": verified,
                 "graded_total": sum(graded.values()),
@@ -173,7 +174,9 @@ def main(argv: list[str] | None = None) -> int:
             }
         )
         print(
-            f"{arm:8s} s{cell['seed']}: graded {sum(graded.values())}, verified "
+            f"{arm:8s} s{cell['seed']}"
+            f"{'' if cell.get('policy_epoch') is None else '-e' + str(cell['policy_epoch'])}"
+            f": graded {sum(graded.values())}, verified "
             f"{sum(verified.values())} of {len(cell['rows'])} | "
             + " ".join(f"{b} {verified[b]}/{graded[b]}" for b in BUCKETS)
         )

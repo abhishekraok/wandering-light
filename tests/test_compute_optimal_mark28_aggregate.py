@@ -33,6 +33,7 @@ def run_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setattr(driver, "EVAL_CORPUS", None)
     monkeypatch.setattr(driver, "BEAM_WIDTH", driver.DEFAULT_BEAM_WIDTH)
     monkeypatch.setattr(driver, "MAX_DEPTH", driver.DEFAULT_MAX_DEPTH)
+    monkeypatch.setattr(driver, "POLICY_EPOCH", None)
     return tmp_path
 
 
@@ -81,3 +82,17 @@ def test_aggregate_writes_world_coverage_for_the_world_scope(
         for seed_cell in per_arm.values()
     }
     assert tasks == {55}
+
+
+def test_epoch_snapshot_cells_are_their_own_scope(run_dir: Path, monkeypatch) -> None:
+    """A cell searched on an epoch snapshot never mixes with best-checkpoint cells."""
+    snap = json.loads((run_dir / "timing" / "1m-s0-cuda.json").read_text())
+    snap["policy_epoch"] = 3
+    (run_dir / "timing" / "1m-s0-cuda-e3.json").write_text(json.dumps(snap))
+    assert all(c.get("policy_epoch") is None for c in driver.aggregate_cells(run_dir))
+    assert len(driver.aggregate_cells(run_dir)) == 3
+    monkeypatch.setattr(driver, "POLICY_EPOCH", 3)
+    assert [c["policy_epoch"] for c in driver.aggregate_cells(run_dir)] == [3]
+    assert driver.cell_path(run_dir, "1m", 0, "cuda").name == "1m-s0-cuda-e3.json"
+    assert driver.policy_dir(run_dir, "1m", 0, 3).name == "1m-s0-e3"
+    assert driver.policy_dir(run_dir, "1m", 0).name == "1m-s0"

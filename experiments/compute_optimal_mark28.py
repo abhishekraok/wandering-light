@@ -65,6 +65,10 @@ CORPUS_OF: dict[str, str] = {}
 EVAL_CORPUS: str | None = None  # None -> the primary corpus
 VALIDATION_CORPUS: str | None = None  # None -> every loaded corpus
 DROP_BEHAVIOURS: frozenset[str] = frozenset()
+# Epoch-resolved runs (#134): save weights at these epochs, and search a chosen
+# epoch's weights instead of the best-validation checkpoint.
+SAVE_EPOCHS: frozenset[int] = frozenset()
+POLICY_EPOCH: int | None = None
 WANDB_ENTITY = "abhishekraok-na"
 WANDB_PROJECT = "wandering-light-rollout-policy"
 
@@ -261,7 +265,9 @@ def wandb_run(name: str, config: dict[str, Any], tags: list[str], enabled: bool)
     )
 
 
-def _fit(arm, seed, lr, epochs, rows, device, run_name, use_wandb, log):
+def _fit(
+    arm, seed, lr, epochs, rows, device, run_name, use_wandb, log, on_epoch_end=None
+):
     run = wandb_run(
         run_name,
         {
@@ -287,6 +293,7 @@ def _fit(arm, seed, lr, epochs, rows, device, run_name, use_wandb, log):
             validation_batch_size=ARMS[arm]["val_batch"],
             seed=seed,
             device=device,
+            epoch_end=on_epoch_end,
             epoch_callback=lambda row: (
                 log(
                     f"  {arm} s{seed} lr={lr:g} epoch {row['epoch']} "
@@ -348,6 +355,54 @@ def probe_lr(run_dir: Path, tasks, device, arms, use_wandb, log) -> dict[str, fl
     return chosen
 
 
+def policy_dir(run_dir: Path, arm: str, seed: int, epoch: int | None = None) -> Path:
+    """The best-validation checkpoint, or the snapshot saved at ``epoch``."""
+    name = f"{arm}-s{seed}" if epoch is None else f"{arm}-s{seed}-e{epoch}"
+    return run_dir / "policies" / name
+
+
+def snapshotter(run_dir: Path, arm: str, seed: int, lr: float, rows):
+    """Save the weights at every epoch in ``SAVE_EPOCHS``.
+
+    #101 and step 3 selected epoch 1 or 2 for every v4-only seed, and solve
+    counts track the selected epoch across runs, so the best checkpoint alone
+    cannot separate a data effect from training length. Training is
+    deterministic: the snapshot at the best epoch equals the best checkpoint.
+    """
+
+    def save(epoch: int, model, row: dict[str, Any]) -> None:
+        out = policy_dir(run_dir, arm, seed, epoch)
+        if epoch not in SAVE_EPOCHS or out.exists():
+            return
+        save_policy(
+            out,
+            model,
+            trainer_state={
+                **row,
+                "snapshot_epoch": epoch,
+                "seed": seed,
+                "learning_rate": lr,
+                "batch_size": ARMS[arm]["batch"],
+                "parameters": model.parameter_count,
+                "train_rows": len(rows[0]),
+                "validation_rows": len(rows[1]),
+            },
+            manifest={
+                "arm": arm,
+                "seed": seed,
+                "learning_rate": lr,
+                "epochs": EPOCHS,
+                "snapshot_epoch": epoch,
+                "validation_corpus": VALIDATION_CORPUS,
+                "dropped_behaviours": sorted(DROP_BEHAVIOURS),
+                "provenance": provenance(),
+            },
+            wandb_url=None,
+        )
+
+    return save
+
+
 def train(run_dir: Path, tasks, device, arms, seeds, chosen, use_wandb, log) -> None:
     rows = None
     for arm in arms:
@@ -367,6 +422,9 @@ def train(run_dir: Path, tasks, device, arms, seeds, chosen, use_wandb, log) -> 
                 f"mark28-{arm}-s{seed}-lr{lr:g}",
                 use_wandb,
                 log,
+                on_epoch_end=(
+                    snapshotter(run_dir, arm, seed, lr, rows) if SAVE_EPOCHS else None
+                ),
             )
             save_policy(
                 out,
@@ -407,6 +465,8 @@ def cell_path(run_dir: Path, arm: str, seed: int, device: str) -> Path:
         suffix += f"-d{MAX_DEPTH}"
     if BEAM_WIDTH != DEFAULT_BEAM_WIDTH:
         suffix += f"-b{BEAM_WIDTH}"
+    if POLICY_EPOCH is not None:
+        suffix += f"-e{POLICY_EPOCH}"
     return run_dir / "timing" / f"{arm}-s{seed}-{device}{suffix}.json"
 
 
@@ -417,7 +477,7 @@ def time_cell(run_dir: Path, tasks, arm, seed, device, log) -> Path:
     if device == "cpu":
         torch.set_num_threads(CPU_THREADS)
     scorer = PolicyScorer(
-        load_policy(run_dir / "policies" / f"{arm}-s{seed}", device=device), device
+        load_policy(policy_dir(run_dir, arm, seed, POLICY_EPOCH), device=device), device
     )
     rows = []
     started = time.perf_counter()
@@ -452,6 +512,7 @@ def time_cell(run_dir: Path, tasks, arm, seed, device, log) -> Path:
             "seed": seed,
             "device": device,
             "eval_corpus": EVAL_CORPUS or primary_corpus(),
+            "policy_epoch": POLICY_EPOCH,
             "beam_width": BEAM_WIDTH,
             "max_depth": MAX_DEPTH,
             "guard": GUARD,
@@ -502,7 +563,8 @@ def replay(run_dir: Path, tasks, log) -> None:
         if device == "cpu":
             torch.set_num_threads(CPU_THREADS)
         policy = load_policy(
-            run_dir / "policies" / f"{cell['arm']}-s{cell['seed']}", device=device
+            policy_dir(run_dir, cell["arm"], cell["seed"], cell.get("policy_epoch")),
+            device=device,
         )
         scorer = PolicyScorer(policy, device)
         started = time.perf_counter()
@@ -600,6 +662,8 @@ def aggregate_cells(run_dir: Path) -> list[dict[str, Any]]:
         if (cell.get("eval_corpus") or primary_corpus()) != corpus:
             continue
         if (cell.get("beam_width"), cell.get("max_depth")) != (BEAM_WIDTH, MAX_DEPTH):
+            continue
+        if cell.get("policy_epoch") != POLICY_EPOCH:
             continue
         key = (cell["device"], cell["arm"], cell["seed"])
         if key in seen:
@@ -753,7 +817,7 @@ def aggregate(run_dir: Path, log) -> Path:
 def main(argv: list[str] | None = None) -> int:
     global EPOCHS, TASKS_PER_BUCKET, TRAIN_TASK_CAP
     global CORPUS_MANIFESTS, EVAL_CORPUS, VALIDATION_CORPUS, DROP_BEHAVIOURS
-    global BEAM_WIDTH, MAX_DEPTH
+    global BEAM_WIDTH, MAX_DEPTH, SAVE_EPOCHS, POLICY_EPOCH
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -800,6 +864,17 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--beam-width", type=int, default=BEAM_WIDTH)
     parser.add_argument("--max-depth", type=int, default=MAX_DEPTH)
+    parser.add_argument(
+        "--save-epochs",
+        nargs="+",
+        type=int,
+        help="also save the weights at these epochs, as policies/<arm>-s<seed>-e<N>",
+    )
+    parser.add_argument(
+        "--policy-epoch",
+        type=int,
+        help="search the snapshot saved at this epoch instead of the best checkpoint",
+    )
     args = parser.parse_args(argv)
     EPOCHS, TASKS_PER_BUCKET, TRAIN_TASK_CAP = (
         args.epochs,
@@ -818,6 +893,7 @@ def main(argv: list[str] | None = None) -> int:
     CORPUS_MANIFESTS, DROP_BEHAVIOURS = list(args.corpus), dropped
     EVAL_CORPUS, VALIDATION_CORPUS = args.eval_corpus, args.validation_corpus
     BEAM_WIDTH, MAX_DEPTH = args.beam_width, args.max_depth
+    SAVE_EPOCHS, POLICY_EPOCH = frozenset(args.save_epochs or ()), args.policy_epoch
     names = [corpus_name(path) for path in CORPUS_MANIFESTS]
     for chosen, flag in (
         (EVAL_CORPUS, "--eval-corpus"),

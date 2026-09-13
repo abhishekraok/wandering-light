@@ -44,6 +44,7 @@ def cells(
     arm: str,
     corpus: str | None,
     budget: tuple[int, int] = PRIMARY_BUDGET,
+    policy_epoch: int | None = None,
 ) -> dict[int, dict[str, Any]]:
     """Timing cells for one arm, one eval corpus and one search budget, by seed.
 
@@ -57,6 +58,8 @@ def cells(
         if corpus is not None and cell.get("eval_corpus") != corpus:
             continue
         if (cell.get("beam_width"), cell.get("max_depth")) != budget:
+            continue
+        if cell.get("policy_epoch") != policy_epoch:
             continue
         if cell["seed"] in out:
             raise ValueError(f"{run_dir}: two {corpus} cells for seed {cell['seed']}")

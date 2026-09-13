@@ -326,8 +326,15 @@ def train_policy(
     seed: int,
     device: str | torch.device,
     epoch_callback: Callable[[dict[str, Any]], None] | None = None,
+    epoch_end: Callable[[int, StackPairPolicy, dict[str, Any]], None] | None = None,
 ) -> tuple[StackPairPolicy, dict[str, Any]]:
-    """Plain Adam at a constant LR; the lowest-validation-CE weights come back."""
+    """Plain Adam at a constant LR; the lowest-validation-CE weights come back.
+
+    ``epoch_end(epoch, model, row)`` runs after each epoch's validation, with
+    the model in eval mode holding that epoch's weights, so a caller can save
+    them. Selecting the best-validation weights alone confounds a comparison
+    between runs with how long the selected weights trained (#134).
+    """
     if not train or not validation:
         raise ValueError("train and validation rows must both be non-empty")
     seed_everything(seed)
@@ -365,6 +372,8 @@ def train_policy(
         history.append(row)
         if epoch_callback is not None:
             epoch_callback(dict(row))
+        if epoch_end is not None:
+            epoch_end(epoch, model, dict(row))
         if validation_loss < best[0]:
             best = (
                 validation_loss,
