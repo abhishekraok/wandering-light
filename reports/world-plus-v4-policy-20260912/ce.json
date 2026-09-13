@@ -1,0 +1,158 @@
+{
+  "checkpoints": {
+    "checkpoints/step3-20260912/mixed/policies/1m-s0": {
+      "cross_entropy": {
+        "v4-fit": 0.38850921183645853,
+        "v4-holdout": 0.8434172570247621,
+        "world-eval-all": 1.0248722801900236,
+        "world-eval-clean": 1.0781811992986166,
+        "world-eval-dirty": 0.6516721473040517,
+        "world-holdout": 1.1741778820205107
+      },
+      "device": "cuda",
+      "recorded_best_epoch": 2,
+      "recorded_best_validation_cross_entropy": 0.8434172570247621
+    },
+    "checkpoints/step3-20260912/mixed/policies/1m-s1": {
+      "cross_entropy": {
+        "v4-fit": 0.2296427746758289,
+        "v4-holdout": 0.8688935670984506,
+        "world-eval-all": 0.9141372100276686,
+        "world-eval-clean": 0.9785705609597323,
+        "world-eval-dirty": 0.46305819090932965,
+        "world-holdout": 1.1110517105253617
+      },
+      "device": "cuda",
+      "recorded_best_epoch": 4,
+      "recorded_best_validation_cross_entropy": 0.8688935670984506
+    },
+    "checkpoints/step3-20260912/mixed/policies/1m-s2": {
+      "cross_entropy": {
+        "v4-fit": 0.29817825920318125,
+        "v4-holdout": 0.8605653238369756,
+        "world-eval-all": 0.9497897609152239,
+        "world-eval-clean": 1.006233878623509,
+        "world-eval-dirty": 0.5546410649023575,
+        "world-holdout": 1.1393932034979446
+      },
+      "device": "cuda",
+      "recorded_best_epoch": 3,
+      "recorded_best_validation_cross_entropy": 0.8605653238369756
+    },
+    "checkpoints/step3-20260912/v4only/policies/1m-s0": {
+      "cross_entropy": {
+        "v4-fit": 0.5484079030783052,
+        "v4-holdout": 0.9519338886126212,
+        "world-eval-all": 2.7461919184756036,
+        "world-eval-clean": 2.7725914917732606,
+        "world-eval-dirty": 2.5613766162005707,
+        "world-holdout": 2.6723608282701634
+      },
+      "device": "cuda",
+      "recorded_best_epoch": 1,
+      "recorded_best_validation_cross_entropy": 0.9519338886126212
+    },
+    "checkpoints/step3-20260912/v4only/policies/1m-s1": {
+      "cross_entropy": {
+        "v4-fit": 0.3365346663794145,
+        "v4-holdout": 0.9453802117554273,
+        "world-eval-all": 3.814455243413926,
+        "world-eval-clean": 3.863587428431158,
+        "world-eval-dirty": 3.470494836589924,
+        "world-holdout": 3.7003151072133886
+      },
+      "device": "cuda",
+      "recorded_best_epoch": 2,
+      "recorded_best_validation_cross_entropy": 0.9453802117554273
+    },
+    "checkpoints/step3-20260912/v4only/policies/1m-s2": {
+      "cross_entropy": {
+        "v4-fit": 0.5554274405124069,
+        "v4-holdout": 0.9649544986894786,
+        "world-eval-all": 2.820150658305057,
+        "world-eval-clean": 2.8466654807220717,
+        "world-eval-dirty": 2.634528093277269,
+        "world-holdout": 2.68467572521118
+      },
+      "device": "cuda",
+      "recorded_best_epoch": 1,
+      "recorded_best_validation_cross_entropy": 0.9649544986894786
+    }
+  },
+  "leakage": {
+    "dropped_from_world_train": [
+      "codearc-128",
+      "mbpp-404",
+      "mbpp-970"
+    ],
+    "v4_eval": {
+      "behaviours": 45,
+      "world_train_shares_program": [],
+      "world_train_shares_skeleton": []
+    },
+    "v4_fit": {
+      "behaviours": 159,
+      "world_train_shares_program": [
+        "add_pair",
+        "append",
+        "count_equal",
+        "keep_positive",
+        "max_pair",
+        "maximum",
+        "minimum",
+        "product",
+        "scale_by",
+        "span",
+        "square_each",
+        "sum"
+      ],
+      "world_train_shares_skeleton": [
+        "add_pair",
+        "add_to_each",
+        "append",
+        "count_equal",
+        "double_each",
+        "keep_positive",
+        "max_pair",
+        "maximum",
+        "minimum",
+        "product",
+        "scale_by",
+        "span",
+        "square_each",
+        "sum"
+      ]
+    },
+    "v4_holdout": {
+      "behaviours": 16,
+      "world_train_shares_program": [],
+      "world_train_shares_skeleton": []
+    }
+  },
+  "row_sets": {
+    "v4-fit": {
+      "rows": 313560,
+      "tasks": 6360
+    },
+    "v4-holdout": {
+      "rows": 26040,
+      "tasks": 640
+    },
+    "world-eval-all": {
+      "rows": 11305,
+      "tasks": 55
+    },
+    "world-eval-clean": {
+      "rows": 9892,
+      "tasks": 44
+    },
+    "world-eval-dirty": {
+      "rows": 1413,
+      "tasks": 11
+    },
+    "world-holdout": {
+      "rows": 11312,
+      "tasks": 46
+    }
+  }
+}

@@ -1,0 +1,1138 @@
+{
+  "arm": "1m",
+  "ce": {
+    "checkpoints": {
+      "checkpoints/step3-20260912/mixed/policies/1m-s0": {
+        "cross_entropy": {
+          "v4-fit": 0.38850921183645853,
+          "v4-holdout": 0.8434172570247621,
+          "world-eval-all": 1.0248722801900236,
+          "world-eval-clean": 1.0781811992986166,
+          "world-eval-dirty": 0.6516721473040517,
+          "world-holdout": 1.1741778820205107
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 2,
+        "recorded_best_validation_cross_entropy": 0.8434172570247621
+      },
+      "checkpoints/step3-20260912/mixed/policies/1m-s1": {
+        "cross_entropy": {
+          "v4-fit": 0.2296427746758289,
+          "v4-holdout": 0.8688935670984506,
+          "world-eval-all": 0.9141372100276686,
+          "world-eval-clean": 0.9785705609597323,
+          "world-eval-dirty": 0.46305819090932965,
+          "world-holdout": 1.1110517105253617
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 4,
+        "recorded_best_validation_cross_entropy": 0.8688935670984506
+      },
+      "checkpoints/step3-20260912/mixed/policies/1m-s2": {
+        "cross_entropy": {
+          "v4-fit": 0.29817825920318125,
+          "v4-holdout": 0.8605653238369756,
+          "world-eval-all": 0.9497897609152239,
+          "world-eval-clean": 1.006233878623509,
+          "world-eval-dirty": 0.5546410649023575,
+          "world-holdout": 1.1393932034979446
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 3,
+        "recorded_best_validation_cross_entropy": 0.8605653238369756
+      },
+      "checkpoints/step3-20260912/v4only/policies/1m-s0": {
+        "cross_entropy": {
+          "v4-fit": 0.5484079030783052,
+          "v4-holdout": 0.9519338886126212,
+          "world-eval-all": 2.7461919184756036,
+          "world-eval-clean": 2.7725914917732606,
+          "world-eval-dirty": 2.5613766162005707,
+          "world-holdout": 2.6723608282701634
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 1,
+        "recorded_best_validation_cross_entropy": 0.9519338886126212
+      },
+      "checkpoints/step3-20260912/v4only/policies/1m-s1": {
+        "cross_entropy": {
+          "v4-fit": 0.3365346663794145,
+          "v4-holdout": 0.9453802117554273,
+          "world-eval-all": 3.814455243413926,
+          "world-eval-clean": 3.863587428431158,
+          "world-eval-dirty": 3.470494836589924,
+          "world-holdout": 3.7003151072133886
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 2,
+        "recorded_best_validation_cross_entropy": 0.9453802117554273
+      },
+      "checkpoints/step3-20260912/v4only/policies/1m-s2": {
+        "cross_entropy": {
+          "v4-fit": 0.5554274405124069,
+          "v4-holdout": 0.9649544986894786,
+          "world-eval-all": 2.820150658305057,
+          "world-eval-clean": 2.8466654807220717,
+          "world-eval-dirty": 2.634528093277269,
+          "world-holdout": 2.68467572521118
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 1,
+        "recorded_best_validation_cross_entropy": 0.9649544986894786
+      }
+    },
+    "leakage": {
+      "dropped_from_world_train": [
+        "codearc-128",
+        "mbpp-404",
+        "mbpp-970"
+      ],
+      "v4_eval": {
+        "behaviours": 45,
+        "world_train_shares_program": [],
+        "world_train_shares_skeleton": []
+      },
+      "v4_fit": {
+        "behaviours": 159,
+        "world_train_shares_program": [
+          "add_pair",
+          "append",
+          "count_equal",
+          "keep_positive",
+          "max_pair",
+          "maximum",
+          "minimum",
+          "product",
+          "scale_by",
+          "span",
+          "square_each",
+          "sum"
+        ],
+        "world_train_shares_skeleton": [
+          "add_pair",
+          "add_to_each",
+          "append",
+          "count_equal",
+          "double_each",
+          "keep_positive",
+          "max_pair",
+          "maximum",
+          "minimum",
+          "product",
+          "scale_by",
+          "span",
+          "square_each",
+          "sum"
+        ]
+      },
+      "v4_holdout": {
+        "behaviours": 16,
+        "world_train_shares_program": [],
+        "world_train_shares_skeleton": []
+      }
+    },
+    "row_sets": {
+      "v4-fit": {
+        "rows": 313560,
+        "tasks": 6360
+      },
+      "v4-holdout": {
+        "rows": 26040,
+        "tasks": 640
+      },
+      "world-eval-all": {
+        "rows": 11305,
+        "tasks": 55
+      },
+      "world-eval-clean": {
+        "rows": 9892,
+        "tasks": 44
+      },
+      "world-eval-dirty": {
+        "rows": 1413,
+        "tasks": 11
+      },
+      "world-holdout": {
+        "rows": 11312,
+        "tasks": 46
+      }
+    }
+  },
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "solve": {
+    "stack_pbe_v4": {
+      "v4+world": {
+        "0": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              32,
+              60
+            ],
+            "11-20": [
+              12,
+              60
+            ],
+            "21-40": [
+              1,
+              60
+            ],
+            "41+": [
+              0,
+              60
+            ],
+            "6-10": [
+              8,
+              60
+            ]
+          },
+          "cost_covered_seconds": 9.800008840000373,
+          "coverage": 0.17666666666666667,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 63,
+          "solved": 53,
+          "tasks": 300,
+          "total_seconds": 923.6411103429782
+        },
+        "1": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              60,
+              60
+            ],
+            "11-20": [
+              10,
+              60
+            ],
+            "21-40": [
+              6,
+              60
+            ],
+            "41+": [
+              1,
+              60
+            ],
+            "6-10": [
+              28,
+              60
+            ]
+          },
+          "cost_covered_seconds": 34.3991516910246,
+          "coverage": 0.35,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 120,
+          "solved": 105,
+          "tasks": 300,
+          "total_seconds": 739.6622303569457
+        },
+        "2": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              51,
+              60
+            ],
+            "11-20": [
+              14,
+              60
+            ],
+            "21-40": [
+              5,
+              60
+            ],
+            "41+": [
+              0,
+              60
+            ],
+            "6-10": [
+              33,
+              60
+            ]
+          },
+          "cost_covered_seconds": 30.522137743049825,
+          "coverage": 0.3433333333333333,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 118,
+          "solved": 103,
+          "tasks": 300,
+          "total_seconds": 716.5392950860551
+        }
+      },
+      "v4-only": {
+        "0": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              32,
+              60
+            ],
+            "11-20": [
+              16,
+              60
+            ],
+            "21-40": [
+              0,
+              60
+            ],
+            "41+": [
+              0,
+              60
+            ],
+            "6-10": [
+              0,
+              60
+            ]
+          },
+          "cost_covered_seconds": 7.606005262037797,
+          "coverage": 0.16,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 54,
+          "solved": 48,
+          "tasks": 300,
+          "total_seconds": 870.5144495661152
+        },
+        "1": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              41,
+              60
+            ],
+            "11-20": [
+              16,
+              60
+            ],
+            "21-40": [
+              0,
+              60
+            ],
+            "41+": [
+              0,
+              60
+            ],
+            "6-10": [
+              6,
+              60
+            ]
+          },
+          "cost_covered_seconds": 10.62891483502608,
+          "coverage": 0.21,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 75,
+          "solved": 63,
+          "tasks": 300,
+          "total_seconds": 894.687623477148
+        },
+        "2": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              31,
+              60
+            ],
+            "11-20": [
+              17,
+              60
+            ],
+            "21-40": [
+              0,
+              60
+            ],
+            "41+": [
+              0,
+              60
+            ],
+            "6-10": [
+              0,
+              60
+            ]
+          },
+          "cost_covered_seconds": 12.477593712996168,
+          "coverage": 0.16,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 53,
+          "solved": 48,
+          "tasks": 300,
+          "total_seconds": 918.9953742969446
+        }
+      }
+    },
+    "stack_pbe_world_v3": {
+      "v4+world": {
+        "0": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              0,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              1,
+              1
+            ]
+          },
+          "cost_covered_seconds": 0.747914892002882,
+          "coverage": 0.022727272727272728,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 2,
+          "max_depth": 48,
+          "shown_fit": 1,
+          "solved": 1,
+          "tasks": 44,
+          "total_seconds": 182.1714223530289
+        },
+        "1": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              0,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              0,
+              1
+            ]
+          },
+          "cost_covered_seconds": 0,
+          "coverage": 0.0,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 2,
+          "max_depth": 48,
+          "shown_fit": 0,
+          "solved": 0,
+          "tasks": 44,
+          "total_seconds": 167.0537004980215
+        },
+        "2": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              0,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              0,
+              1
+            ]
+          },
+          "cost_covered_seconds": 0,
+          "coverage": 0.0,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 3,
+          "max_depth": 48,
+          "shown_fit": 0,
+          "solved": 0,
+          "tasks": 44,
+          "total_seconds": 184.10901329302578
+        }
+      },
+      "v4-only": {
+        "0": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              1,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              0,
+              1
+            ]
+          },
+          "cost_covered_seconds": 1.4252415119990474,
+          "coverage": 0.022727272727272728,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 2,
+          "max_depth": 48,
+          "shown_fit": 1,
+          "solved": 1,
+          "tasks": 44,
+          "total_seconds": 176.57135545202618
+        },
+        "1": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              0,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              0,
+              1
+            ]
+          },
+          "cost_covered_seconds": 0,
+          "coverage": 0.0,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 2,
+          "max_depth": 48,
+          "shown_fit": 0,
+          "solved": 0,
+          "tasks": 44,
+          "total_seconds": 196.76996726002108
+        },
+        "2": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              0,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              0,
+              1
+            ]
+          },
+          "cost_covered_seconds": 0,
+          "coverage": 0.0,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 3,
+          "max_depth": 48,
+          "shown_fit": 0,
+          "solved": 0,
+          "tasks": 44,
+          "total_seconds": 192.0661734450041
+        }
+      }
+    }
+  },
+  "validation_ce": {
+    "0": {
+      "best_epoch": {
+        "v4_only": 1,
+        "v4_world": 2
+      },
+      "delta": -0.10851663158785907,
+      "rows": {
+        "v4_only": [
+          313560,
+          26040
+        ],
+        "v4_world": [
+          429078,
+          26040
+        ]
+      },
+      "v4_only": 0.9519338886126212,
+      "v4_world": 0.8434172570247621
+    },
+    "1": {
+      "best_epoch": {
+        "v4_only": 2,
+        "v4_world": 4
+      },
+      "delta": -0.07648664465697674,
+      "rows": {
+        "v4_only": [
+          313560,
+          26040
+        ],
+        "v4_world": [
+          429078,
+          26040
+        ]
+      },
+      "v4_only": 0.9453802117554273,
+      "v4_world": 0.8688935670984506
+    },
+    "2": {
+      "best_epoch": {
+        "v4_only": 1,
+        "v4_world": 3
+      },
+      "delta": -0.10438917485250299,
+      "rows": {
+        "v4_only": [
+          313560,
+          26040
+        ],
+        "v4_world": [
+          429078,
+          26040
+        ]
+      },
+      "v4_only": 0.9649544986894786,
+      "v4_world": 0.8605653238369756
+    }
+  },
+  "validation_ce_summary": {
+    "delta_mean": -0.0964641503657796,
+    "delta_sd": 0.0174236771530724,
+    "v4_only": [
+      0.9519338886126212,
+      0.9453802117554273,
+      0.9649544986894786
+    ],
+    "v4_world": [
+      0.8434172570247621,
+      0.8688935670984506,
+      0.8605653238369756
+    ]
+  },
+  "verified_solves": {
+    "cells": [
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 32,
+          "11-20": 16,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "graded_total": 48,
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 32,
+          "11-20": 16,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "verified_total": 48
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 41,
+          "11-20": 16,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 6
+        },
+        "graded_total": 63,
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 41,
+          "11-20": 16,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 6
+        },
+        "verified_total": 63
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 31,
+          "11-20": 17,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "graded_total": 48,
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 31,
+          "11-20": 15,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "verified_total": 46
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 32,
+          "11-20": 12,
+          "21-40": 1,
+          "41+": 0,
+          "6-10": 8
+        },
+        "graded_total": 53,
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 32,
+          "11-20": 11,
+          "21-40": 1,
+          "41+": 0,
+          "6-10": 8
+        },
+        "verified_total": 52
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 60,
+          "11-20": 10,
+          "21-40": 6,
+          "41+": 1,
+          "6-10": 28
+        },
+        "graded_total": 105,
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 60,
+          "11-20": 10,
+          "21-40": 6,
+          "41+": 0,
+          "6-10": 28
+        },
+        "verified_total": 104
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 51,
+          "11-20": 14,
+          "21-40": 5,
+          "41+": 0,
+          "6-10": 33
+        },
+        "graded_total": 103,
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 51,
+          "11-20": 13,
+          "21-40": 5,
+          "41+": 0,
+          "6-10": 33
+        },
+        "verified_total": 102
+      }
+    ],
+    "draws_per_mode": 2000,
+    "programs": [
+      {
+        "behaviour": "all_positive",
+        "draws": {
+          "perturbed": {
+            "counterexample": {
+              "args": [
+                [
+                  5,
+                  3
+                ]
+              ],
+              "reference": 1
+            },
+            "failed": 339,
+            "tested": 2000
+          },
+          "sampler": {
+            "counterexample": {
+              "args": [
+                [
+                  6,
+                  4
+                ]
+              ],
+              "reference": 1
+            },
+            "failed": 96,
+            "tested": 2000
+          }
+        },
+        "program": "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte",
+        "verdict": "shortcut"
+      },
+      {
+        "behaviour": "bounds_cover_list_flag",
+        "draws": {
+          "perturbed": {
+            "counterexample": {
+              "args": [
+                [
+                  -16,
+                  -10,
+                  -12,
+                  6,
+                  8,
+                  -12,
+                  15,
+                  -18,
+                  0,
+                  11
+                ],
+                -20,
+                -14
+              ],
+              "reference": 0
+            },
+            "failed": 229,
+            "tested": 1827
+          },
+          "sampler": {
+            "counterexample": {
+              "args": [
+                [
+                  7,
+                  -3,
+                  8,
+                  -5,
+                  -9
+                ],
+                6,
+                7
+              ],
+              "reference": 0
+            },
+            "failed": 498,
+            "tested": 2000
+          }
+        },
+        "program": "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons swap drop",
+        "verdict": "shortcut"
+      },
+      {
+        "behaviour": "count_in_range",
+        "program": "[ [ swap drop lt? ] [ [ drop swap lt? ] [ drop drop drop 1 add ] [ drop drop drop ] ifte ] [ drop drop drop ] ifte ] swap cons swap cons 0 swap fold",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "drop_last",
+        "draws": {
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 1828
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          }
+        },
+        "program": "nil [ cons ] fold uncons [ nil [ cons ] fold ] dip drop",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "drop_last",
+        "program": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "drop_last",
+        "draws": {
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 1828
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          }
+        },
+        "program": "nil [ cons ] fold uncons quote cat nil [ cons ] fold uncons drop",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "drop_last",
+        "draws": {
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 1828
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          }
+        },
+        "program": "nil [ cons ] fold uncons swap nil [ cons ] fold swap drop",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "increment_each",
+        "program": "[ 1 add ] map",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "keep_below",
+        "program": "[ lt? ] swap cons filter",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "keep_negative",
+        "program": "[ 0 lt? ] filter",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "keep_zeros",
+        "draws": {
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          }
+        },
+        "program": "0 [ drop 0 eq? ] swap cons filter",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "keep_zeros",
+        "program": "[ 0 eq? ] filter",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "min_pair",
+        "draws": {
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          }
+        },
+        "program": "[ over lt? ] [ swap ] [ ] ifte drop",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "negate_each",
+        "program": "[ 0 swap sub ] map",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "negate_each",
+        "draws": {
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          }
+        },
+        "program": "nil [ 0 swap sub cons ] fold nil [ cons ] fold",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "push_back",
+        "draws": {
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          }
+        },
+        "program": "quote cat",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "reverse",
+        "program": "nil [ cons ] fold",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "rotate_left",
+        "draws": {
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 1828
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 2000
+          }
+        },
+        "program": "uncons quote cat",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "shared_value_occurrences",
+        "program": "[ swap [ eq? ] swap cons filter null? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter 0 [ drop 1 add ] fold",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      }
+    ],
+    "seed": 134
+  }
+}
