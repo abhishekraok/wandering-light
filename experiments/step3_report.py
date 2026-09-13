@@ -36,14 +36,30 @@ def trainer_states(run_dir: Path, arm: str) -> dict[int, dict[str, Any]]:
     return out
 
 
-def cells(run_dir: Path, arm: str, corpus: str | None) -> dict[int, dict[str, Any]]:
-    """Timing cells for one arm and one eval corpus, keyed by seed."""
+PRIMARY_BUDGET = (64, 48)  # (beam width, max depth) of every #101 cell
+
+
+def cells(
+    run_dir: Path,
+    arm: str,
+    corpus: str | None,
+    budget: tuple[int, int] = PRIMARY_BUDGET,
+) -> dict[int, dict[str, Any]]:
+    """Timing cells for one arm, one eval corpus and one search budget, by seed.
+
+    Keyed by seed alone, so the budget filter is what stops a structural cell
+    (same corpus and seed, deeper search) from silently replacing the primary
+    cell it is meant to be read beside.
+    """
     out = {}
     for path in sorted((run_dir / "timing").glob(f"{arm}-s*.json")):
         cell = json.loads(path.read_text())
-        name = cell.get("eval_corpus")
-        if corpus is not None and name != corpus:
+        if corpus is not None and cell.get("eval_corpus") != corpus:
             continue
+        if (cell.get("beam_width"), cell.get("max_depth")) != budget:
+            continue
+        if cell["seed"] in out:
+            raise ValueError(f"{run_dir}: two {corpus} cells for seed {cell['seed']}")
         out[cell["seed"]] = cell
     return out
 
@@ -281,6 +297,54 @@ def main(argv: list[str] | None = None) -> int:
             }
             for name in arms
         }
+
+    structural = {
+        name: cells(path, args.arm, "stack_pbe_world_v3", budget=(64, 192))
+        for name, path in arms.items()
+    }
+    if any(structural.values()):
+        primary = {
+            name: cells(path, args.arm, "stack_pbe_world_v3")
+            for name, path in arms.items()
+        }
+        lines += [
+            "## Structural check: world eval at depth 192 (beam 64)",
+            "",
+            "Same weights and beam as the primary world cell, four times the depth. "
+            "Clean behaviours only.",
+            "",
+            "| arm | seed | clean within depth 48 | solved at depth 48 | clean within depth 192 | solved at depth 192 | wall at 192 (s) |",
+            "|---|---|---|---|---|---|---|",
+        ]
+        for name in arms:
+            for seed, deep in sorted(structural[name].items()):
+                shallow = primary[name].get(seed)
+                deep_rows = scored_rows(deep, world_excluded)
+                row = [name, str(seed)]
+                if shallow:
+                    rows48 = scored_rows(shallow, world_excluded)
+                    row += [
+                        str(sum(r["length"] <= 48 for r in rows48)),
+                        f"{sum(r['solved'] for r in rows48)}/{len(rows48)}",
+                    ]
+                else:
+                    row += ["-", "-"]
+                row += [
+                    str(sum(r["length"] <= 192 for r in deep_rows)),
+                    f"{sum(r['solved'] for r in deep_rows)}/{len(deep_rows)}",
+                    f"{deep['cell_seconds']:.0f}",
+                ]
+                lines.append("| " + " | ".join(row) + " |")
+                report.setdefault("structural", {}).setdefault(name, {})[seed] = {
+                    "solved_depth_192": sum(r["solved"] for r in deep_rows),
+                    "tasks": len(deep_rows),
+                    "within_depth_192": sum(r["length"] <= 192 for r in deep_rows),
+                    "solved_behaviours": sorted(
+                        {r["behaviour"] for r in deep_rows if r["solved"]}
+                    ),
+                    "cell_seconds": deep["cell_seconds"],
+                }
+        lines.append("")
 
     if args.ce and args.ce.exists():
         ce = json.loads(args.ce.read_text())
