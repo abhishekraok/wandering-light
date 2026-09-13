@@ -1,0 +1,44 @@
+{
+  "arm": "1m",
+  "dropped_behaviours": [],
+  "epochs": 6,
+  "learning_rate": 0.000125,
+  "provenance": {
+    "commit": "571b09381a660a9049f706c0bbd90d87f2d1d489",
+    "corpora": [
+      {
+        "hub": {
+          "repo_id": "abhishekraok/wandering-light-stack-pbe-v4",
+          "repo_type": "dataset",
+          "revision": "00c2a9996d32df8d1894b45f4246a66b6df46c25"
+        },
+        "name": "stack_pbe_v4",
+        "splits": {
+          "eval": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+          "train": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b"
+        }
+      }
+    ],
+    "corpus": {
+      "hub": {
+        "repo_id": "abhishekraok/wandering-light-stack-pbe-v4",
+        "repo_type": "dataset",
+        "revision": "00c2a9996d32df8d1894b45f4246a66b6df46c25"
+      },
+      "name": "stack_pbe_v4",
+      "splits": {
+        "eval": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+        "train": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b"
+      }
+    },
+    "dirty": false,
+    "dropped_behaviours": [],
+    "eval_corpus": "stack_pbe_v4",
+    "recorded_at_utc": "2026-09-13T02:20:04.650222+00:00",
+    "validation_corpus": null
+  },
+  "seed": 1,
+  "snapshot_epoch": 2,
+  "validation_corpus": null,
+  "wandb_url": null
+}

@@ -282,6 +282,68 @@
     {
       "arm": "v4only",
       "graded": {
+        "1-5": 60,
+        "11-20": 13,
+        "21-40": 9,
+        "41+": 1,
+        "6-10": 1
+      },
+      "graded_total": 84,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 60,
+        "11-20": 13,
+        "21-40": 9,
+        "41+": 0,
+        "6-10": 1
+      },
+      "verified_total": 83
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 60,
+        "11-20": 17,
+        "21-40": 6,
+        "41+": 2,
+        "6-10": 6
+      },
+      "graded_total": 91,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 60,
+        "11-20": 13,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 6
+      },
+      "verified_total": 86
+    },
+    {
+      "arm": "v4only",
+      "graded": {
         "1-5": 42,
         "11-20": 14,
         "21-40": 0,
@@ -375,6 +437,68 @@
     {
       "arm": "v4only",
       "graded": {
+        "1-5": 56,
+        "11-20": 17,
+        "21-40": 5,
+        "41+": 0,
+        "6-10": 2
+      },
+      "graded_total": 80,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 56,
+        "11-20": 14,
+        "21-40": 5,
+        "41+": 0,
+        "6-10": 2
+      },
+      "verified_total": 77
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 52,
+        "11-20": 13,
+        "21-40": 3,
+        "41+": 0,
+        "6-10": 4
+      },
+      "graded_total": 72,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 52,
+        "11-20": 13,
+        "21-40": 3,
+        "41+": 0,
+        "6-10": 4
+      },
+      "verified_total": 72
+    },
+    {
+      "arm": "v4only",
+      "graded": {
         "1-5": 40,
         "11-20": 14,
         "21-40": 0,
@@ -464,6 +588,68 @@
         "6-10": 15
       },
       "verified_total": 88
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 58,
+        "11-20": 12,
+        "21-40": 7,
+        "41+": 1,
+        "6-10": 14
+      },
+      "graded_total": 92,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 58,
+        "11-20": 12,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 14
+      },
+      "verified_total": 90
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 49,
+        "11-20": 15,
+        "21-40": 5,
+        "41+": 1,
+        "6-10": 6
+      },
+      "graded_total": 76,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 49,
+        "11-20": 15,
+        "21-40": 5,
+        "41+": 0,
+        "6-10": 6
+      },
+      "verified_total": 75
     },
     {
       "arm": "mixed",
@@ -561,6 +747,68 @@
     {
       "arm": "mixed",
       "graded": {
+        "1-5": 53,
+        "11-20": 18,
+        "21-40": 9,
+        "41+": 0,
+        "6-10": 29
+      },
+      "graded_total": 109,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 52,
+        "11-20": 14,
+        "21-40": 9,
+        "41+": 0,
+        "6-10": 29
+      },
+      "verified_total": 104
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 45,
+        "11-20": 13,
+        "21-40": 7,
+        "41+": 0,
+        "6-10": 12
+      },
+      "graded_total": 77,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 45,
+        "11-20": 11,
+        "21-40": 7,
+        "41+": 0,
+        "6-10": 12
+      },
+      "verified_total": 75
+    },
+    {
+      "arm": "mixed",
+      "graded": {
         "1-5": 32,
         "11-20": 11,
         "21-40": 0,
@@ -654,6 +902,68 @@
     {
       "arm": "mixed",
       "graded": {
+        "1-5": 59,
+        "11-20": 15,
+        "21-40": 4,
+        "41+": 1,
+        "6-10": 32
+      },
+      "graded_total": 111,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 59,
+        "11-20": 14,
+        "21-40": 4,
+        "41+": 0,
+        "6-10": 32
+      },
+      "verified_total": 109
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 46,
+        "11-20": 13,
+        "21-40": 2,
+        "41+": 0,
+        "6-10": 9
+      },
+      "graded_total": 70,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 46,
+        "11-20": 13,
+        "21-40": 2,
+        "41+": 0,
+        "6-10": 9
+      },
+      "verified_total": 70
+    },
+    {
+      "arm": "mixed",
+      "graded": {
         "1-5": 31,
         "11-20": 17,
         "21-40": 0,
@@ -743,6 +1053,68 @@
         "6-10": 18
       },
       "verified_total": 94
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 54,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 15
+      },
+      "graded_total": 91,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 54,
+        "11-20": 14,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 15
+      },
+      "verified_total": 90
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 48,
+        "11-20": 16,
+        "21-40": 5,
+        "41+": 2,
+        "6-10": 11
+      },
+      "graded_total": 82,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 48,
+        "11-20": 15,
+        "21-40": 5,
+        "41+": 1,
+        "6-10": 11
+      },
+      "verified_total": 80
     }
   ],
   "draws_per_mode": 10000,
@@ -753,6 +1125,129 @@
     "dense"
   ],
   "programs": [
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                0
+              ],
+              [
+                2
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 625,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 806,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "tested": 10000
+        }
+      },
+      "program": "nil cons [ swap uncons swap uncons swap [ [ swap ] dip [ eq? ] [ drop swap drop ] [ drop drop ] ifte ] dip swap cons ] fold",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                2,
+                0,
+                2
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 767,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                2,
+                0
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 84,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                0,
+                2,
+                1,
+                3
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 401,
+          "tested": 10000
+        }
+      },
+      "program": "0 [ lt? ] swap cons filter null? [ ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "shortcut"
+    },
     {
       "behaviour": "all_positive",
       "draws": {
@@ -1006,6 +1501,28 @@
           "tested": 10000
         }
       },
+      "program": "nil [ cons ] fold uncons [ [ over eq? ] [ swap drop ] [ drop ] ifte ] swap cons map nil [ cons ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "drop_last",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9116
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9096
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
       "program": "nil [ cons ] fold uncons [ nil [ cons ] fold ] dip drop",
       "verdict": "genuine"
     },
@@ -1014,6 +1531,28 @@
       "program": "nil [ cons ] fold uncons drop nil [ cons ] fold",
       "verdict": "genuine",
       "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "drop_last",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9116
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9096
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold uncons nil swap cons cat nil [ cons ] fold uncons drop",
+      "verdict": "genuine"
     },
     {
       "behaviour": "drop_last",
@@ -1120,6 +1659,78 @@
       "program": "[ 0 lt? ] filter",
       "verdict": "genuine",
       "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "keep_negative",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                -2,
+                1,
+                -2,
+                -1,
+                2,
+                -2
+              ]
+            ],
+            "reference": [
+              -2,
+              -2,
+              -1,
+              -2
+            ]
+          },
+          "failed": 5736,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                0,
+                3,
+                2,
+                11,
+                -5,
+                -16,
+                -2,
+                -14,
+                1
+              ]
+            ],
+            "reference": [
+              -5,
+              -16,
+              -2,
+              -14
+            ]
+          },
+          "failed": 1122,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                -6,
+                5,
+                0
+              ]
+            ],
+            "reference": [
+              -6
+            ]
+          },
+          "failed": 2665,
+          "tested": 10000
+        }
+      },
+      "program": "[ 0 swap lt? [ ] [ drop false ] [ drop true ] ifte ] filter",
+      "verdict": "shortcut"
     },
     {
       "behaviour": "keep_zeros",
@@ -1264,6 +1875,28 @@
       "program": "[ 0 swap sub ] map",
       "verdict": "genuine",
       "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "negate_each",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ dup 0 1 add div 1 1 add mul sub ] map",
+      "verdict": "genuine"
     },
     {
       "behaviour": "negate_each",

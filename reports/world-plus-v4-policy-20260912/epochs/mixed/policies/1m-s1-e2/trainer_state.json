@@ -1,0 +1,13 @@
+{
+  "batch_size": 256,
+  "epoch": 2,
+  "learning_rate": 0.000125,
+  "parameters": 655836,
+  "seconds": 373.36428533699655,
+  "seed": 1,
+  "snapshot_epoch": 2,
+  "train_cross_entropy": 0.6076825993758711,
+  "train_rows": 429078,
+  "validation_cross_entropy": 0.9002894634475357,
+  "validation_rows": 26040
+}
