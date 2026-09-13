@@ -64,9 +64,34 @@ Cost to clear the cohort, (coverage, total wall-clock): CPU 0.185 / 1,009 s,
 0.175 / 1,374 s, 0.182 / 2,198 s; CUDA 0.185 / 887 s, 0.175 / 940 s,
 0.180 / 1,074 s, for 1m / 2m / 10m. Per-execution AUC at 1–5 ops: 0.315 /
 0.312 / 0.315. Every arm's validation CE bottoms at 0.925–0.976 at epoch 1 or 2
-and rises after. Eleven of the cohort's 43 behaviours are ever solved; the
-longest verified solves are 12 ops (the 44-op and 28-op solves the report quotes
-are held-out-surviving shortcuts; `docs/STATUS.md`, Superseded, 2026-09-09).
+and rises after. Eleven of the cohort's 43 behaviours are ever solved at these
+checkpoints; the longest verified solve is 10m seed 1's 22-op `capped_sum`, which
+world-plus-v4-policy (#134) later verified, and the 44-op and 28-op solves the report
+quotes are held-out-surviving shortcuts. Every arm here was selected at epoch 1 or 2;
+the 1m arm retrained under the same recipe and searched at epochs 3–6 verifies 31-
+and 40-op catalogue witnesses and up to 94 of 300 tasks, so at least the 1m rates
+understate what its training reaches (`docs/STATUS.md`, Superseded).
+
+## Stack PBE v4 — adding world-authored training data (300-task eval cohort)
+
+The 1m policy above, trained on v4 train alone and with `stack_pbe_world_v3` train
+added (world behaviours whose program or skeleton equals a v4 eval witness dropped,
+model selection on the same v4 holdout), three seeds, searched at every epoch 1–6.
+Verified solves of 300, mean of three seeds.
+[report](../reports/world-plus-v4-policy-20260912/README.md),
+[world-plus-v4-policy (#134)](../../issues/134)
+
+| | v4 only | v4 + world |
+|---|---:|---:|
+| holdout CE at the best-validation epoch | 0.954 | 0.858 |
+| verified solves at the best-validation epoch (v4 only 1–2, v4 + world 2–4) | 52.3 | 86.0 |
+| verified solves, mean over epochs 1–6 | 72.3 | 80.1 |
+| verified solves at each seed's best epoch (chosen on the cohort) | 87.0 | 105.0 |
+
+The search difference is one behaviour, `keep_below`, whose 6-op witness occurs
+inside 156 world training programs and no v4 training program: summed over seeds and
+epochs 1–6 it gains 186 solves against the cohort's net 141. 29 of the 43 cohort
+behaviours are never solved by either arm.
 
 ## `deep-corpus-v1` — learned solver against search (96 held-out tasks, 12 per distance 1–8)
 

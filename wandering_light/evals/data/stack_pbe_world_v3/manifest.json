@@ -1,12 +1,26 @@
 {
   "basis": "mark-28",
   "catalogue": {
-    "behaviours": 577,
-    "digest": "sha256:5b09531d87c548428c9c384191234424442828e20ce4d6391ef410a855ba6243",
+    "behaviours": 566,
+    "digest": "sha256:9670ebb7a0401497686abb228b66ee0fcf4eebf8a6f230d108da08338a06cccb",
     "skeletons": 510
   },
   "config": {
     "eval_share": 0.1,
+    "excluded_behaviours": [
+      "codearc-121",
+      "codearc-173",
+      "codearc-221",
+      "mbpp-282",
+      "mbpp-383",
+      "mbpp-458",
+      "mbpp-503",
+      "mbpp-62",
+      "mbpp-649",
+      "mbpp-924",
+      "mbpp-940"
+    ],
+    "exclusion_reason": "World-v3 eval behaviours whose witness program or skeleton already appears in a training set: stack_pbe_v4 (either split) or stack_pbe_world_v3 train. Found by world-plus-v4-policy (#134); removed from the corpus with the owner's approval. mbpp-62 and mbpp-924 are verbatim v4 train witnesses and mbpp-458 shares a v4 train skeleton; the other eight recur inside world train because v3 split by behaviour-id hash rather than by skeleton.",
     "issue": "https://github.com/abhishekraok/wandering-light/issues/127",
     "probe": [
       "reports/world-behaviours-library-20260910",
@@ -26,28 +40,28 @@
   },
   "corpus": "stack_pbe_world_v3",
   "counts": {
-    "distinct_input_stacks": 12853,
-    "held_out_examples": 13788,
-    "shown_examples": 3462,
-    "tasks": 577
+    "distinct_input_stacks": 12620,
+    "held_out_examples": 13536,
+    "shown_examples": 3396,
+    "tasks": 566
   },
   "generator": "experiments/world_behaviours/build_corpus.py",
   "generator_description": "Behaviours are human-written programming problems with tests (codearc, leetcode, mbpp) restricted to ints and flat int lists; witnesses were authored by Claude and Codex sessions in macro form over experiments/world_behaviours/macros*.txt and expanded to the basis; examples are the upstream tests extended by inputs that keep or deliberately break the properties the given inputs share, run through the reference solution. Split policy: by-behaviour-hash eval_share=0.1.",
   "hub": {
     "repo_id": "abhishekraok/wandering-light-stack-pbe-world-v3",
     "repo_type": "dataset",
-    "revision": "0997c5a41a42157210c5781daecec487c0f4cc5b"
+    "revision": "3c05f5700548e2f9f42b5a7a19e09910627caaa9"
   },
   "schema_version": 2,
   "split_policy": "by-behaviour-hash eval_share=0.1",
   "splits": {
     "eval": {
-      "behaviours": 55,
-      "bytes": 28413,
+      "behaviours": 44,
+      "bytes": 22974,
       "path": "stack_pbe_world_v3_eval.jsonl.gz",
-      "records": 55,
-      "sha256": "sha256:28a181e1987d42e9da5ff08654998dc98ec9cccfefdcc22856a3bf63cf1604fd",
-      "skeletons": 54
+      "records": 44,
+      "sha256": "sha256:4748bf1375b93c88065eead295ad20f1abbf6fe382fb6965d6667c9847f5778a",
+      "skeletons": 44
     },
     "train": {
       "behaviours": 522,

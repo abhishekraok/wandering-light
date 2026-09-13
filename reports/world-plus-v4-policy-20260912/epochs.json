@@ -1,0 +1,917 @@
+{
+  "grid": {
+    "v4+world": {
+      "0": {
+        "1": {
+          "buckets": {
+            "1-5": 31,
+            "11-20": 15,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 7
+          },
+          "graded": 53,
+          "source": "study",
+          "steps": 1677,
+          "tasks": 300,
+          "train_ce": 1.1873657004087834,
+          "unverified_programs": [],
+          "validation_ce": 0.8982840249432213,
+          "verified": 53
+        },
+        "2": {
+          "buckets": {
+            "1-5": 32,
+            "11-20": 11,
+            "21-40": 1,
+            "41+": 0,
+            "6-10": 8
+          },
+          "graded": 53,
+          "source": "best",
+          "steps": 3354,
+          "tasks": 300,
+          "train_ce": 0.6072671009117223,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte"
+            ]
+          ],
+          "validation_ce": 0.8434172570247621,
+          "verified": 52
+        },
+        "3": {
+          "buckets": {
+            "1-5": 47,
+            "11-20": 15,
+            "21-40": 6,
+            "41+": 0,
+            "6-10": 21
+          },
+          "graded": 89,
+          "source": "study",
+          "steps": 5031,
+          "tasks": 300,
+          "train_ce": 0.4666308485869702,
+          "unverified_programs": [],
+          "validation_ce": 1.0010336229878087,
+          "verified": 89
+        },
+        "4": {
+          "buckets": {
+            "1-5": 53,
+            "11-20": 15,
+            "21-40": 6,
+            "41+": 0,
+            "6-10": 11
+          },
+          "graded": 86,
+          "source": "study",
+          "steps": 6708,
+          "tasks": 300,
+          "train_ce": 0.39491297328224706,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "[ 0 lt? ] filter null? [ ] [ drop 1 ] [ drop 0 ] ifte"
+            ]
+          ],
+          "validation_ce": 0.98273559488276,
+          "verified": 85
+        },
+        "5": {
+          "buckets": {
+            "1-5": 52,
+            "11-20": 14,
+            "21-40": 9,
+            "41+": 0,
+            "6-10": 29
+          },
+          "graded": 109,
+          "source": "study",
+          "steps": 8385,
+          "tasks": 300,
+          "train_ce": 0.35331971984114774,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "[ 0 lt? ] filter null? [ ] [ drop 1 ] [ drop 0 ] ifte"
+            ],
+            [
+              "keep_negative",
+              "[ 0 swap lt? [ ] [ drop false ] [ drop true ] ifte ] filter"
+            ]
+          ],
+          "validation_ce": 0.9354276074059364,
+          "verified": 104
+        },
+        "6": {
+          "buckets": {
+            "1-5": 45,
+            "11-20": 11,
+            "21-40": 7,
+            "41+": 0,
+            "6-10": 12
+          },
+          "graded": 77,
+          "source": "study",
+          "steps": 10062,
+          "tasks": 300,
+          "train_ce": 0.325656808027911,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "[ 0 lt? ] filter null? [ ] [ drop 1 ] [ drop 0 ] ifte"
+            ],
+            [
+              "all_positive",
+              "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte"
+            ]
+          ],
+          "validation_ce": 1.0123443544918125,
+          "verified": 75
+        }
+      },
+      "1": {
+        "1": {
+          "buckets": {
+            "1-5": 32,
+            "11-20": 11,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 0
+          },
+          "graded": 43,
+          "source": "study",
+          "steps": 1677,
+          "tasks": 300,
+          "train_ce": 1.1827248629619789,
+          "unverified_programs": [],
+          "validation_ce": 0.9517691851028466,
+          "verified": 43
+        },
+        "2": {
+          "buckets": {
+            "1-5": 37,
+            "11-20": 11,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 16
+          },
+          "graded": 66,
+          "source": "study",
+          "steps": 3354,
+          "tasks": 300,
+          "train_ce": 0.6076825993758711,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte"
+            ]
+          ],
+          "validation_ce": 0.9002894634475357,
+          "verified": 64
+        },
+        "3": {
+          "buckets": {
+            "1-5": 44,
+            "11-20": 14,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 31
+          },
+          "graded": 89,
+          "source": "study",
+          "steps": 5031,
+          "tasks": 300,
+          "train_ce": 0.46971048970117324,
+          "unverified_programs": [],
+          "validation_ce": 0.8763660360591203,
+          "verified": 89
+        },
+        "4": {
+          "buckets": {
+            "1-5": 60,
+            "11-20": 10,
+            "21-40": 6,
+            "41+": 0,
+            "6-10": 28
+          },
+          "graded": 105,
+          "source": "best",
+          "steps": 6708,
+          "tasks": 300,
+          "train_ce": 0.3979011391868145,
+          "unverified_programs": [
+            [
+              "bounds_cover_list_flag",
+              "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons swap drop"
+            ]
+          ],
+          "validation_ce": 0.8688935670984506,
+          "verified": 104
+        },
+        "5": {
+          "buckets": {
+            "1-5": 59,
+            "11-20": 14,
+            "21-40": 4,
+            "41+": 0,
+            "6-10": 32
+          },
+          "graded": 111,
+          "source": "study",
+          "steps": 8385,
+          "tasks": 300,
+          "train_ce": 0.35763041626464187,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "0 [ lt? ] swap cons filter null? [ ] [ drop 1 ] [ drop 0 ] ifte"
+            ],
+            [
+              "bounds_cover_list_flag",
+              "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons swap drop"
+            ]
+          ],
+          "validation_ce": 0.8793053159699096,
+          "verified": 109
+        },
+        "6": {
+          "buckets": {
+            "1-5": 46,
+            "11-20": 13,
+            "21-40": 2,
+            "41+": 0,
+            "6-10": 9
+          },
+          "graded": 70,
+          "source": "study",
+          "steps": 10062,
+          "tasks": 300,
+          "train_ce": 0.32797540598679026,
+          "unverified_programs": [],
+          "validation_ce": 0.9312384390061902,
+          "verified": 70
+        }
+      },
+      "2": {
+        "1": {
+          "buckets": {
+            "1-5": 31,
+            "11-20": 15,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 11
+          },
+          "graded": 59,
+          "source": "study",
+          "steps": 1677,
+          "tasks": 300,
+          "train_ce": 1.1809761278835083,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte"
+            ]
+          ],
+          "validation_ce": 0.9195009586082259,
+          "verified": 57
+        },
+        "2": {
+          "buckets": {
+            "1-5": 49,
+            "11-20": 13,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 20
+          },
+          "graded": 82,
+          "source": "study",
+          "steps": 3354,
+          "tasks": 300,
+          "train_ce": 0.6219598330606556,
+          "unverified_programs": [],
+          "validation_ce": 0.8801767076764788,
+          "verified": 82
+        },
+        "3": {
+          "buckets": {
+            "1-5": 51,
+            "11-20": 13,
+            "21-40": 5,
+            "41+": 0,
+            "6-10": 33
+          },
+          "graded": 103,
+          "source": "best",
+          "steps": 5031,
+          "tasks": 300,
+          "train_ce": 0.48145391106045987,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte"
+            ]
+          ],
+          "validation_ce": 0.8605653238369756,
+          "verified": 102
+        },
+        "4": {
+          "buckets": {
+            "1-5": 50,
+            "11-20": 20,
+            "21-40": 6,
+            "41+": 0,
+            "6-10": 18
+          },
+          "graded": 97,
+          "source": "study",
+          "steps": 6708,
+          "tasks": 300,
+          "train_ce": 0.41029679481353043,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte"
+            ],
+            [
+              "bounds_cover_list_flag",
+              "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons drop uncons swap drop"
+            ],
+            [
+              "bounds_cover_list_flag",
+              "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons swap drop"
+            ]
+          ],
+          "validation_ce": 0.872488046461536,
+          "verified": 94
+        },
+        "5": {
+          "buckets": {
+            "1-5": 54,
+            "11-20": 14,
+            "21-40": 6,
+            "41+": 1,
+            "6-10": 15
+          },
+          "graded": 91,
+          "source": "study",
+          "steps": 8385,
+          "tasks": 300,
+          "train_ce": 0.3661857517747356,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte"
+            ]
+          ],
+          "validation_ce": 0.9011413413075624,
+          "verified": 90
+        },
+        "6": {
+          "buckets": {
+            "1-5": 48,
+            "11-20": 15,
+            "21-40": 5,
+            "41+": 1,
+            "6-10": 11
+          },
+          "graded": 82,
+          "source": "study",
+          "steps": 10062,
+          "tasks": 300,
+          "train_ce": 0.3371370560830432,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte"
+            ],
+            [
+              "bounds_cover_list_flag",
+              "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons swap drop"
+            ]
+          ],
+          "validation_ce": 0.9360713853264734,
+          "verified": 80
+        }
+      }
+    },
+    "v4-only": {
+      "0": {
+        "1": {
+          "buckets": {
+            "1-5": 32,
+            "11-20": 16,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 0
+          },
+          "graded": 48,
+          "source": "best",
+          "steps": 1225,
+          "tasks": 300,
+          "train_ce": 1.0922709170493685,
+          "unverified_programs": [],
+          "validation_ce": 0.9519338886126212,
+          "verified": 48
+        },
+        "2": {
+          "buckets": {
+            "1-5": 43,
+            "11-20": 10,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 2
+          },
+          "graded": 55,
+          "source": "study",
+          "steps": 2450,
+          "tasks": 300,
+          "train_ce": 0.4210761098354382,
+          "unverified_programs": [],
+          "validation_ce": 0.9555625335412091,
+          "verified": 55
+        },
+        "3": {
+          "buckets": {
+            "1-5": 57,
+            "11-20": 11,
+            "21-40": 5,
+            "41+": 1,
+            "6-10": 10
+          },
+          "graded": 85,
+          "source": "study",
+          "steps": 3675,
+          "tasks": 300,
+          "train_ce": 0.2730162040359102,
+          "unverified_programs": [
+            [
+              "bounds_cover_list_flag",
+              "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons drop uncons swap drop"
+            ]
+          ],
+          "validation_ce": 1.093877434913647,
+          "verified": 84
+        },
+        "4": {
+          "buckets": {
+            "1-5": 58,
+            "11-20": 13,
+            "21-40": 10,
+            "41+": 0,
+            "6-10": 13
+          },
+          "graded": 94,
+          "source": "study",
+          "steps": 4900,
+          "tasks": 300,
+          "train_ce": 0.20554742064915807,
+          "unverified_programs": [],
+          "validation_ce": 1.210020035422892,
+          "verified": 94
+        },
+        "5": {
+          "buckets": {
+            "1-5": 60,
+            "11-20": 13,
+            "21-40": 9,
+            "41+": 0,
+            "6-10": 1
+          },
+          "graded": 84,
+          "source": "study",
+          "steps": 6125,
+          "tasks": 300,
+          "train_ce": 0.1697193619243526,
+          "unverified_programs": [
+            [
+              "bounds_cover_list_flag",
+              "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons drop uncons swap drop"
+            ]
+          ],
+          "validation_ce": 1.3617574756229711,
+          "verified": 83
+        },
+        "6": {
+          "buckets": {
+            "1-5": 60,
+            "11-20": 13,
+            "21-40": 6,
+            "41+": 1,
+            "6-10": 6
+          },
+          "graded": 91,
+          "source": "study",
+          "steps": 7350,
+          "tasks": 300,
+          "train_ce": 0.14948312822904708,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "[ 0 lt? ] filter null? [ ] [ drop 1 ] [ drop 0 ] ifte"
+            ],
+            [
+              "bounds_cover_list_flag",
+              "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons drop uncons swap drop"
+            ]
+          ],
+          "validation_ce": 1.5090484666018624,
+          "verified": 86
+        }
+      },
+      "1": {
+        "1": {
+          "buckets": {
+            "1-5": 42,
+            "11-20": 14,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 0
+          },
+          "graded": 56,
+          "source": "study",
+          "steps": 1225,
+          "tasks": 300,
+          "train_ce": 1.065810072234979,
+          "unverified_programs": [],
+          "validation_ce": 0.965106192968225,
+          "verified": 56
+        },
+        "2": {
+          "buckets": {
+            "1-5": 41,
+            "11-20": 16,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 6
+          },
+          "graded": 63,
+          "source": "best",
+          "steps": 2450,
+          "tasks": 300,
+          "train_ce": 0.417092821150657,
+          "unverified_programs": [],
+          "validation_ce": 0.9453802117554273,
+          "verified": 63
+        },
+        "3": {
+          "buckets": {
+            "1-5": 56,
+            "11-20": 13,
+            "21-40": 3,
+            "41+": 1,
+            "6-10": 4
+          },
+          "graded": 77,
+          "source": "study",
+          "steps": 3675,
+          "tasks": 300,
+          "train_ce": 0.2675938466720883,
+          "unverified_programs": [],
+          "validation_ce": 1.0606964316419376,
+          "verified": 77
+        },
+        "4": {
+          "buckets": {
+            "1-5": 51,
+            "11-20": 16,
+            "21-40": 3,
+            "41+": 0,
+            "6-10": 4
+          },
+          "graded": 74,
+          "source": "study",
+          "steps": 4900,
+          "tasks": 300,
+          "train_ce": 0.20232822765180508,
+          "unverified_programs": [],
+          "validation_ce": 1.1869982879099574,
+          "verified": 74
+        },
+        "5": {
+          "buckets": {
+            "1-5": 56,
+            "11-20": 14,
+            "21-40": 5,
+            "41+": 0,
+            "6-10": 2
+          },
+          "graded": 80,
+          "source": "study",
+          "steps": 6125,
+          "tasks": 300,
+          "train_ce": 0.16739589313050135,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "[ 0 lt? ] filter null? [ ] [ drop 1 ] [ drop 0 ] ifte"
+            ]
+          ],
+          "validation_ce": 1.2567862781694592,
+          "verified": 77
+        },
+        "6": {
+          "buckets": {
+            "1-5": 52,
+            "11-20": 13,
+            "21-40": 3,
+            "41+": 0,
+            "6-10": 4
+          },
+          "graded": 72,
+          "source": "study",
+          "steps": 7350,
+          "tasks": 300,
+          "train_ce": 0.14667674747257303,
+          "unverified_programs": [],
+          "validation_ce": 1.3576716852261357,
+          "verified": 72
+        }
+      },
+      "2": {
+        "1": {
+          "buckets": {
+            "1-5": 31,
+            "11-20": 15,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 0
+          },
+          "graded": 48,
+          "source": "best",
+          "steps": 1225,
+          "tasks": 300,
+          "train_ce": 1.0714010077816047,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte"
+            ]
+          ],
+          "validation_ce": 0.9649544986894786,
+          "verified": 46
+        },
+        "2": {
+          "buckets": {
+            "1-5": 40,
+            "11-20": 13,
+            "21-40": 0,
+            "41+": 0,
+            "6-10": 0
+          },
+          "graded": 54,
+          "source": "study",
+          "steps": 2450,
+          "tasks": 300,
+          "train_ce": 0.430081065027427,
+          "unverified_programs": [
+            [
+              "all_positive",
+              "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte"
+            ]
+          ],
+          "validation_ce": 0.9974176064064976,
+          "verified": 53
+        },
+        "3": {
+          "buckets": {
+            "1-5": 53,
+            "11-20": 12,
+            "21-40": 1,
+            "41+": 0,
+            "6-10": 14
+          },
+          "graded": 80,
+          "source": "study",
+          "steps": 3675,
+          "tasks": 300,
+          "train_ce": 0.2813519541714504,
+          "unverified_programs": [],
+          "validation_ce": 1.0990808525026852,
+          "verified": 80
+        },
+        "4": {
+          "buckets": {
+            "1-5": 55,
+            "11-20": 12,
+            "21-40": 6,
+            "41+": 0,
+            "6-10": 15
+          },
+          "graded": 89,
+          "source": "study",
+          "steps": 4900,
+          "tasks": 300,
+          "train_ce": 0.21379525648998596,
+          "unverified_programs": [
+            [
+              "bounds_cover_list_flag",
+              "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons swap drop"
+            ]
+          ],
+          "validation_ce": 1.2344564827539588,
+          "verified": 88
+        },
+        "5": {
+          "buckets": {
+            "1-5": 58,
+            "11-20": 12,
+            "21-40": 6,
+            "41+": 0,
+            "6-10": 14
+          },
+          "graded": 92,
+          "source": "study",
+          "steps": 6125,
+          "tasks": 300,
+          "train_ce": 0.17733131717215206,
+          "unverified_programs": [
+            [
+              "aligned_matches",
+              "nil cons [ swap uncons swap uncons swap [ [ swap ] dip [ eq? ] [ drop swap drop ] [ drop drop ] ifte ] dip swap cons ] fold"
+            ],
+            [
+              "bounds_cover_list_flag",
+              "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons drop uncons swap drop"
+            ]
+          ],
+          "validation_ce": 1.2856746708742484,
+          "verified": 90
+        },
+        "6": {
+          "buckets": {
+            "1-5": 49,
+            "11-20": 15,
+            "21-40": 5,
+            "41+": 0,
+            "6-10": 6
+          },
+          "graded": 76,
+          "source": "study",
+          "steps": 7350,
+          "tasks": 300,
+          "train_ce": 0.15588293259264574,
+          "unverified_programs": [
+            [
+              "bounds_cover_list_flag",
+              "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons swap drop"
+            ]
+          ],
+          "validation_ce": 1.4123323780417258,
+          "verified": 75
+        }
+      }
+    }
+  },
+  "matched_epoch": {
+    "1": {
+      "complete": true,
+      "deltas": [
+        5,
+        -13,
+        11
+      ]
+    },
+    "2": {
+      "complete": true,
+      "deltas": [
+        -3,
+        1,
+        29
+      ]
+    },
+    "3": {
+      "complete": true,
+      "deltas": [
+        5,
+        12,
+        22
+      ]
+    },
+    "4": {
+      "complete": true,
+      "deltas": [
+        -9,
+        30,
+        6
+      ]
+    },
+    "5": {
+      "complete": true,
+      "deltas": [
+        21,
+        32,
+        0
+      ]
+    },
+    "6": {
+      "complete": true,
+      "deltas": [
+        -11,
+        -2,
+        5
+      ]
+    }
+  },
+  "matched_step": [
+    {
+      "complete": true,
+      "deltas": [
+        5,
+        -13,
+        11
+      ],
+      "step_gap": -452,
+      "v4_only_epoch": 1,
+      "v4_world_epoch": 1
+    },
+    {
+      "complete": true,
+      "deltas": [
+        -32,
+        -13,
+        2
+      ],
+      "step_gap": 321,
+      "v4_only_epoch": 3,
+      "v4_world_epoch": 2
+    },
+    {
+      "complete": true,
+      "deltas": [
+        -5,
+        15,
+        14
+      ],
+      "step_gap": -131,
+      "v4_only_epoch": 4,
+      "v4_world_epoch": 3
+    },
+    {
+      "complete": true,
+      "deltas": [
+        2,
+        27,
+        4
+      ],
+      "step_gap": -583,
+      "v4_only_epoch": 5,
+      "v4_world_epoch": 4
+    }
+  ],
+  "per_seed": {
+    "difference": [
+      10,
+      32,
+      12
+    ],
+    "epoch_mean": {
+      "difference": [
+        1.3333333333333286,
+        10.0,
+        12.166666666666671
+      ],
+      "v4+world": [
+        76.33333333333333,
+        79.83333333333333,
+        84.16666666666667
+      ],
+      "v4-only": [
+        75,
+        69.83333333333333,
+        72
+      ]
+    },
+    "v4+world": {
+      "0": {
+        "epoch": 5,
+        "solves": 104
+      },
+      "1": {
+        "epoch": 5,
+        "solves": 109
+      },
+      "2": {
+        "epoch": 3,
+        "solves": 102
+      }
+    },
+    "v4-only": {
+      "0": {
+        "epoch": 4,
+        "solves": 94
+      },
+      "1": {
+        "epoch": 3,
+        "solves": 77
+      },
+      "2": {
+        "epoch": 5,
+        "solves": 90
+      }
+    }
+  }
+}

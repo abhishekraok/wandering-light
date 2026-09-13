@@ -1,0 +1,17 @@
+# World-v3 eval behaviours whose witness program or skeleton already appears in
+# a training set: stack_pbe_v4 (either split) or stack_pbe_world_v3 train.
+# Found by world-plus-v4-policy (#134); removed from the corpus with the owner's
+# approval. mbpp-62 and mbpp-924 are verbatim v4 train witnesses and mbpp-458
+# shares a v4 train skeleton; the other eight recur inside world train because
+# v3 split by behaviour-id hash rather than by skeleton.
+codearc-121
+codearc-173
+codearc-221
+mbpp-282
+mbpp-383
+mbpp-458
+mbpp-503
+mbpp-62
+mbpp-649
+mbpp-924
+mbpp-940

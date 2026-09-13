@@ -1,0 +1,480 @@
+{
+  "behaviours": {
+    "adjacent_sign_change_count": {
+      "v4_fit": 0,
+      "witness_ops": [
+        47
+      ],
+      "world_fit": 0
+    },
+    "aligned_matches": {
+      "v4_fit": 0,
+      "witness_ops": [
+        39
+      ],
+      "world_fit": 0
+    },
+    "aligned_maxima": {
+      "v4_fit": 0,
+      "witness_ops": [
+        69
+      ],
+      "world_fit": 0
+    },
+    "all_positive": {
+      "v4_fit": 0,
+      "witness_ops": [
+        18
+      ],
+      "world_fit": 0
+    },
+    "axis_point_count": {
+      "v4_fit": 0,
+      "witness_ops": [
+        86
+      ],
+      "world_fit": 0
+    },
+    "bounds_cover_list_flag": {
+      "v4_fit": 0,
+      "witness_ops": [
+        92
+      ],
+      "world_fit": 0
+    },
+    "capped_sum": {
+      "v4_fit": 0,
+      "witness_ops": [
+        20
+      ],
+      "world_fit": 0
+    },
+    "cartesian_pair_sums": {
+      "v4_fit": 0,
+      "witness_ops": [
+        15
+      ],
+      "world_fit": 0
+    },
+    "concatenate_shorter_first": {
+      "v4_fit": 0,
+      "witness_ops": [
+        26
+      ],
+      "world_fit": 0
+    },
+    "count_in_range": {
+      "v4_fit": 0,
+      "witness_ops": [
+        40
+      ],
+      "world_fit": 0
+    },
+    "drop_last": {
+      "v4_fit": 0,
+      "witness_ops": [
+        12
+      ],
+      "world_fit": 1
+    },
+    "farther_choice_from_target": {
+      "v4_fit": 0,
+      "witness_ops": [
+        54
+      ],
+      "world_fit": 0
+    },
+    "farthest_from_target_last_tie": {
+      "v4_fit": 0,
+      "witness_ops": [
+        59
+      ],
+      "world_fit": 0
+    },
+    "furthest_squared_radius": {
+      "v4_fit": 0,
+      "witness_ops": [
+        78
+      ],
+      "world_fit": 0
+    },
+    "increment_each": {
+      "v4_fit": 0,
+      "witness_ops": [
+        5
+      ],
+      "world_fit": 44
+    },
+    "keep_ascending_pairs": {
+      "v4_fit": 0,
+      "witness_ops": [
+        80
+      ],
+      "world_fit": 0
+    },
+    "keep_below": {
+      "v4_fit": 0,
+      "witness_ops": [
+        6
+      ],
+      "world_fit": 156
+    },
+    "keep_negative": {
+      "v4_fit": 1,
+      "witness_ops": [
+        5
+      ],
+      "world_fit": 3
+    },
+    "keep_zeros": {
+      "v4_fit": 1,
+      "witness_ops": [
+        5
+      ],
+      "world_fit": 2
+    },
+    "largest_inside_interval": {
+      "v4_fit": 0,
+      "witness_ops": [
+        40
+      ],
+      "world_fit": 0
+    },
+    "lexicographic_order": {
+      "v4_fit": 0,
+      "witness_ops": [
+        124
+      ],
+      "world_fit": 0
+    },
+    "manhattan_point_radii": {
+      "v4_fit": 0,
+      "witness_ops": [
+        94
+      ],
+      "world_fit": 0
+    },
+    "median_floor": {
+      "v4_fit": 0,
+      "witness_ops": [
+        253
+      ],
+      "world_fit": 0
+    },
+    "min_pair": {
+      "v4_fit": 11,
+      "witness_ops": [
+        12
+      ],
+      "world_fit": 61
+    },
+    "n_minus_each": {
+      "v4_fit": 0,
+      "witness_ops": [
+        7
+      ],
+      "world_fit": 2
+    },
+    "nearest_interval_endpoint_each": {
+      "v4_fit": 0,
+      "witness_ops": [
+        39
+      ],
+      "world_fit": 0
+    },
+    "negate_each": {
+      "v4_fit": 0,
+      "witness_ops": [
+        6
+      ],
+      "world_fit": 3
+    },
+    "nondecreasing_indicator": {
+      "v4_fit": 0,
+      "witness_ops": [
+        43
+      ],
+      "world_fit": 0
+    },
+    "pair_floor_averages": {
+      "v4_fit": 0,
+      "witness_ops": [
+        69
+      ],
+      "world_fit": 0
+    },
+    "polyline_manhattan_length": {
+      "v4_fit": 0,
+      "witness_ops": [
+        188
+      ],
+      "world_fit": 0
+    },
+    "positive_balance_prefix_count": {
+      "v4_fit": 0,
+      "witness_ops": [
+        49
+      ],
+      "world_fit": 0
+    },
+    "positive_majority_three": {
+      "v4_fit": 0,
+      "witness_ops": [
+        39
+      ],
+      "world_fit": 0
+    },
+    "prefix_sums": {
+      "v4_fit": 0,
+      "witness_ops": [
+        25
+      ],
+      "world_fit": 0
+    },
+    "push_back": {
+      "v4_fit": 0,
+      "witness_ops": [
+        4
+      ],
+      "world_fit": 0
+    },
+    "replace_value": {
+      "v4_fit": 0,
+      "witness_ops": [
+        22
+      ],
+      "world_fit": 0
+    },
+    "reverse": {
+      "v4_fit": 35,
+      "witness_ops": [
+        5
+      ],
+      "world_fit": 189
+    },
+    "rotate_left": {
+      "v4_fit": 0,
+      "witness_ops": [
+        5
+      ],
+      "world_fit": 0
+    },
+    "second_largest": {
+      "v4_fit": 0,
+      "witness_ops": [
+        83
+      ],
+      "world_fit": 0
+    },
+    "shared_value_occurrences": {
+      "v4_fit": 0,
+      "witness_ops": [
+        31
+      ],
+      "world_fit": 0
+    },
+    "span_inside_interval": {
+      "v4_fit": 0,
+      "witness_ops": [
+        76
+      ],
+      "world_fit": 0
+    },
+    "stable_distinct_shared_values": {
+      "v4_fit": 0,
+      "witness_ops": [
+        49
+      ],
+      "world_fit": 0
+    },
+    "sum_negative": {
+      "v4_fit": 0,
+      "witness_ops": [
+        16
+      ],
+      "world_fit": 0
+    },
+    "widest_pair": {
+      "v4_fit": 0,
+      "witness_ops": [
+        84
+      ],
+      "world_fit": 0
+    }
+  },
+  "contained": [
+    "drop_last",
+    "increment_each",
+    "keep_below",
+    "n_minus_each",
+    "negate_each"
+  ],
+  "definition": "witness inside >=1 world fit program and no v4 fit program",
+  "fit_programs": {
+    "v4": 159,
+    "world": 473
+  },
+  "solves": {
+    "1": {
+      "contained": [
+        26,
+        38
+      ],
+      "epochs": {
+        "v4+world s0": 1,
+        "v4+world s1": 1,
+        "v4+world s2": 1,
+        "v4-only s0": 1,
+        "v4-only s1": 1,
+        "v4-only s2": 1
+      },
+      "other": [
+        124,
+        115
+      ],
+      "other_per_seed": [
+        0,
+        -9,
+        0
+      ]
+    },
+    "2": {
+      "contained": [
+        26,
+        58
+      ],
+      "epochs": {
+        "v4+world s0": 2,
+        "v4+world s1": 2,
+        "v4+world s2": 2,
+        "v4-only s0": 2,
+        "v4-only s1": 2,
+        "v4-only s2": 2
+      },
+      "other": [
+        145,
+        140
+      ],
+      "other_per_seed": [
+        -10,
+        -4,
+        9
+      ]
+    },
+    "3": {
+      "contained": [
+        59,
+        113
+      ],
+      "epochs": {
+        "v4+world s0": 3,
+        "v4+world s1": 3,
+        "v4+world s2": 3,
+        "v4-only s0": 3,
+        "v4-only s1": 3,
+        "v4-only s2": 3
+      },
+      "other": [
+        182,
+        167
+      ],
+      "other_per_seed": [
+        -5,
+        -16,
+        6
+      ]
+    },
+    "4": {
+      "contained": [
+        65,
+        91
+      ],
+      "epochs": {
+        "v4+world s0": 4,
+        "v4+world s1": 4,
+        "v4+world s2": 4,
+        "v4-only s0": 4,
+        "v4-only s1": 4,
+        "v4-only s2": 4
+      },
+      "other": [
+        191,
+        192
+      ],
+      "other_per_seed": [
+        -8,
+        5,
+        4
+      ]
+    },
+    "5": {
+      "contained": [
+        60,
+        110
+      ],
+      "epochs": {
+        "v4+world s0": 5,
+        "v4+world s1": 5,
+        "v4+world s2": 5,
+        "v4-only s0": 5,
+        "v4-only s1": 5,
+        "v4-only s2": 5
+      },
+      "other": [
+        190,
+        193
+      ],
+      "other_per_seed": [
+        -2,
+        1,
+        4
+      ]
+    },
+    "6": {
+      "contained": [
+        51,
+        60
+      ],
+      "epochs": {
+        "v4+world s0": 6,
+        "v4+world s1": 6,
+        "v4+world s2": 6,
+        "v4-only s0": 6,
+        "v4-only s1": 6,
+        "v4-only s2": 6
+      },
+      "other": [
+        182,
+        165
+      ],
+      "other_per_seed": [
+        -11,
+        -7,
+        1
+      ]
+    },
+    "each seed's peak": {
+      "contained": [
+        67,
+        125
+      ],
+      "epochs": {
+        "v4+world s0": 5,
+        "v4+world s1": 5,
+        "v4+world s2": 3,
+        "v4-only s0": 4,
+        "v4-only s1": 3,
+        "v4-only s2": 5
+      },
+      "other": [
+        194,
+        190
+      ],
+      "other_per_seed": [
+        -5,
+        0,
+        1
+      ]
+    }
+  }
+}

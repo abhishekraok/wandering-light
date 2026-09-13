@@ -199,6 +199,95 @@ Corpus republished at Hub revision `fa60b4292b273b6c24072bf895a71b031f318127` (9
 
 LR per arm from a one-epoch probe (`lr_probe.json`), extended three halvings below the #80 grid; each arm's best is the bottom of its extended grid. 1m seed 0 over 12 epochs: train CE 1.09 → 0.10, validation 0.95 → 1.99. Two seeds where `metrics.md` asks three, as #80.
 
+## Stack PBE v4 + world v3 — world-authored data under the #101 recipe (#134), 300-task v4 cohort
+
+The #101 `1m` next-op policy (655,836 params, Adam 1.25e-4, batch 256, 6 epochs, CUDA, seeds 0 / 1 / 2) trained on `stack_pbe_v4` train alone (v4 only) and on v4 train plus `stack_pbe_world_v3` train less three behaviours whose witness equals a v4 eval witness (v4 + world). Both select on the same v4 holdout, 26,040 rows (`--validation-corpus stack_pbe_v4`); fit rows are 313,560 against 429,078, so 1,225 against 1,677 steps per epoch. Search is #101's 300-task cohort, beam 64 × depth 48, guard `both`. Weights were saved at every epoch (each seed's snapshot at its best epoch bitwise equal to its best-validation checkpoint) and every epoch was searched. A verified solve passes held-out grading and is a catalogue witness or agrees with the Python reference on 10,000 draws in each of three modes (the behaviour's sampler; random values in −20..20, lengths 0–10; random values in −2..2, lengths 0–10), counted where the catalogue witness computes the reference, at least 500 per mode. Contained: the eval witness occurs as whole ops inside a world fit program and inside no v4 fit program. [report](../reports/world-plus-v4-policy-20260912/README.md), `paired.json`, `epochs.json`, `containment.json`, `verified_solves_epochs.json`, `ce.json`.
+
+**Best validation CE on the v4 holdout (epoch):**
+
+| seed | v4 only | v4 + world | difference |
+|---|---:|---:|---:|
+| 0 | 0.9519 (1) | 0.8434 (2) | −0.1085 |
+| 1 | 0.9454 (2) | 0.8689 (4) | −0.0765 |
+| 2 | 0.9650 (1) | 0.8606 (3) | −0.1044 |
+| mean ± sd | 0.9541 ± 0.0100 | 0.8576 ± 0.0130 | −0.0965 ± 0.0174 |
+
+A stack-blind op 4-gram gains 0.088 nats on the same holdout when world fit programs join its training text (1.280 to 1.192).
+
+**Verified solves by epoch (verified / graded; validation CE; `*` the best-validation checkpoint):**
+
+| epoch | v4-only s0 | v4-only s1 | v4-only s2 | v4+world s0 | v4+world s1 | v4+world s2 |
+|---|---|---|---|---|---|---|
+| 1 | 48/48* (0.952) | 56/56 (0.965) | 46/48* (0.965) | 53/53 (0.898) | 43/43 (0.952) | 57/59 (0.920) |
+| 2 | 55/55 (0.956) | 63/63* (0.945) | 53/54 (0.997) | 52/53* (0.843) | 64/66 (0.900) | 82/82 (0.880) |
+| 3 | 84/85 (1.094) | 77/77 (1.061) | 80/80 (1.099) | 89/89 (1.001) | 89/89 (0.876) | 102/103* (0.861) |
+| 4 | 94/94 (1.210) | 74/74 (1.187) | 88/89 (1.234) | 85/86 (0.983) | 104/105* (0.869) | 94/97 (0.872) |
+| 5 | 83/84 (1.362) | 77/80 (1.257) | 90/92 (1.286) | 104/109 (0.935) | 109/111 (0.879) | 90/91 (0.901) |
+| 6 | 86/91 (1.509) | 72/72 (1.358) | 75/76 (1.412) | 75/77 (1.012) | 70/70 (0.931) | 80/82 (0.936) |
+
+**Matched epoch, matched steps and each seed's peak:**
+
+Matched epoch, v4 + world minus v4 only:
+
+| epoch | s0 | s1 | s2 | mean |
+|---|---|---|---|---|
+| 1 | +5 | -13 | +11 | +1.0 |
+| 2 | -3 | +1 | +29 | +9.0 |
+| 3 | +5 | +12 | +22 | +13.0 |
+| 4 | -9 | +30 | +6 | +9.0 |
+| 5 | +21 | +32 | +0 | +17.7 |
+| 6 | -11 | -2 | +5 | -2.7 |
+
+Matched steps (nearest v4-only epoch within half an epoch; gap is v4-only minus v4 + world steps):
+
+| v4+world epoch | v4-only epoch | step gap | s0 | s1 | s2 | mean |
+|---|---|---|---|---|---|---|
+| 1 | 1 | -452 | +5 | -13 | +11 | +1.0 |
+| 2 | 3 | +321 | -32 | -13 | +2 | -14.3 |
+| 3 | 4 | -131 | -5 | +15 | +14 | +8.0 |
+| 4 | 5 | -583 | +2 | +27 | +4 | +11.0 |
+
+Each seed's best searched epoch, chosen on this cohort (an upper bound for both arms), and the mean over epochs:
+
+| summary | s0 | s1 | s2 | mean |
+|---|---|---|---|---|
+| v4-only peak (epoch) | 94 (4) | 77 (3) | 90 (5) | 87.0 |
+| v4+world peak (epoch) | 104 (5) | 109 (5) | 102 (3) | 105.0 |
+| difference | +10 | +32 | +12 | +18.0 |
+| v4-only mean over epochs 1-6 | 75.0 | 69.8 | 72.0 | 72.3 |
+| v4+world mean over epochs 1-6 | 76.3 | 79.8 | 84.2 | 80.1 |
+| difference of means | +1.3 | +10.0 | +12.2 | +7.8 |
+
+**By containment (5 of 43 cohort behaviours contained):**
+
+| contained behaviour | witness ops | world fit programs containing it |
+|---|---|---|
+| `drop_last` | 12 | 1 |
+| `increment_each` | 5 | 44 |
+| `keep_below` | 6 | 156 |
+| `n_minus_each` | 7 | 2 |
+| `negate_each` | 6 | 3 |
+
+Summed over seeds; the last column is the other 38 behaviours' difference per seed:
+
+| epoch | contained v4-only | contained v4+world | difference | other v4-only | other v4+world | difference | other, per seed |
+|---|---|---|---|---|---|---|---|
+| 1 | 26 | 38 | +12 | 124 | 115 | -9 | +0, -9, +0 (mean -3.0) |
+| 2 | 26 | 58 | +32 | 145 | 140 | -5 | -10, -4, +9 (mean -1.7) |
+| 3 | 59 | 113 | +54 | 182 | 167 | -15 | -5, -16, +6 (mean -5.0) |
+| 4 | 65 | 91 | +26 | 191 | 192 | +1 | -8, +5, +4 (mean +0.3) |
+| 5 | 60 | 110 | +50 | 190 | 193 | +3 | -2, +1, +4 (mean +1.0) |
+| 6 | 51 | 60 | +9 | 182 | 165 | -17 | -11, -7, +1 (mean -5.7) |
+| each seed's peak | 67 | 125 | +58 | 194 | 190 | -4 | -5, +0, +1 (mean -1.3) |
+
+Over epochs 1–6 `keep_below` is +186 of the contained +183 and the cohort's +141, and every v4 + world `keep_below` solve is the exact witness `[ lt? ] swap cons filter`; the other four contained behaviours net −3 and the other 38 −42 (`keep_negative` −36). 29 of the 43 cohort behaviours are never solved by either arm and 4 always are; all three 6–10 bucket behaviours are contained.
+
+**Longest verified solves:** both arms verify `shared_value_occurrences`' 31-op catalogue witness (v4 only on every seed from epoch 3), `count_in_range`'s 40-op witness (v4 only: seed 0 epochs 4–5, seed 2 epoch 6) and a 32-op program for the 54-op `farther_choice_from_target` (v4 only: seed 0 epochs 3 and 6, seed 1 epoch 3). At the best-validation checkpoints only v4 + world reached the 21–40 bucket.
+
+**Shortcuts** (pass held-out grading, fail the reference in every mode, including the task's own sampler): `all_positive` 17 and 28 ops and `bounds_cover_list_flag` 44 and 46 ops in both arms; `all_positive` 19 ops (v4 + world seed 1 epoch 5), `aligned_matches` 32 ops (v4 only seed 2 epoch 5) and `keep_negative` 17 ops (v4 + world seed 0 epoch 5) too; 36 distinct solved programs, 29 verified, none undecided.
+
+**World v3 eval, 44 clean behaviours, best-validation checkpoints, same search:** 1 / 0 / 0 solved in both arms, on different tasks; 4 of the 44 witnesses fit within depth 48 (median 149.5 ops). v4-only seed 0 at depth 192: 1 / 44. Next-op CE there: 3.16 ± 0.61 v4 only, 1.02 ± 0.05 v4 + world, 0.91 for an op 4-gram fit on world fit programs.
+
 ## `deep-corpus-v1` — solvers on the held-out cohort (96 tasks, 12 per distance 1–8)
 
 `wl-core-v1`, 118 functions. [materialized-rollout report](../reports/materialized-rollout-20260829/README.md), [fine-tune-llm (#50)](../../issues/50), [solve-step-by-step (#55)](../../issues/55).

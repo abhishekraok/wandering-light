@@ -1,0 +1,2771 @@
+{
+  "arm": "1m",
+  "ce": {
+    "checkpoints": {
+      "checkpoints/step3-20260912/mixed/policies/1m-s0": {
+        "cross_entropy": {
+          "v4-fit": 0.38850921183645853,
+          "v4-holdout": 0.8434172570247621,
+          "world-eval-all": 1.0248722801900236,
+          "world-eval-clean": 1.0781811992986166,
+          "world-eval-dirty": 0.6516721473040517,
+          "world-holdout": 1.1741778820205107
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 2,
+        "recorded_best_validation_cross_entropy": 0.8434172570247621
+      },
+      "checkpoints/step3-20260912/mixed/policies/1m-s1": {
+        "cross_entropy": {
+          "v4-fit": 0.2296427746758289,
+          "v4-holdout": 0.8688935670984506,
+          "world-eval-all": 0.9141372100276686,
+          "world-eval-clean": 0.9785705609597323,
+          "world-eval-dirty": 0.46305819090932965,
+          "world-holdout": 1.1110517105253617
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 4,
+        "recorded_best_validation_cross_entropy": 0.8688935670984506
+      },
+      "checkpoints/step3-20260912/mixed/policies/1m-s2": {
+        "cross_entropy": {
+          "v4-fit": 0.29817825920318125,
+          "v4-holdout": 0.8605653238369756,
+          "world-eval-all": 0.9497897609152239,
+          "world-eval-clean": 1.006233878623509,
+          "world-eval-dirty": 0.5546410649023575,
+          "world-holdout": 1.1393932034979446
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 3,
+        "recorded_best_validation_cross_entropy": 0.8605653238369756
+      },
+      "checkpoints/step3-20260912/v4only/policies/1m-s0": {
+        "cross_entropy": {
+          "v4-fit": 0.5484079030783052,
+          "v4-holdout": 0.9519338886126212,
+          "world-eval-all": 2.7461919184756036,
+          "world-eval-clean": 2.7725914917732606,
+          "world-eval-dirty": 2.5613766162005707,
+          "world-holdout": 2.6723608282701634
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 1,
+        "recorded_best_validation_cross_entropy": 0.9519338886126212
+      },
+      "checkpoints/step3-20260912/v4only/policies/1m-s1": {
+        "cross_entropy": {
+          "v4-fit": 0.3365346663794145,
+          "v4-holdout": 0.9453802117554273,
+          "world-eval-all": 3.814455243413926,
+          "world-eval-clean": 3.863587428431158,
+          "world-eval-dirty": 3.470494836589924,
+          "world-holdout": 3.7003151072133886
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 2,
+        "recorded_best_validation_cross_entropy": 0.9453802117554273
+      },
+      "checkpoints/step3-20260912/v4only/policies/1m-s2": {
+        "cross_entropy": {
+          "v4-fit": 0.5554274405124069,
+          "v4-holdout": 0.9649544986894786,
+          "world-eval-all": 2.820150658305057,
+          "world-eval-clean": 2.8466654807220717,
+          "world-eval-dirty": 2.634528093277269,
+          "world-holdout": 2.68467572521118
+        },
+        "device": "cuda",
+        "recorded_best_epoch": 1,
+        "recorded_best_validation_cross_entropy": 0.9649544986894786
+      }
+    },
+    "leakage": {
+      "dropped_from_world_train": [
+        "codearc-128",
+        "mbpp-404",
+        "mbpp-970"
+      ],
+      "v4_eval": {
+        "behaviours": 45,
+        "world_train_shares_program": [],
+        "world_train_shares_skeleton": []
+      },
+      "v4_fit": {
+        "behaviours": 159,
+        "world_train_shares_program": [
+          "add_pair",
+          "append",
+          "count_equal",
+          "keep_positive",
+          "max_pair",
+          "maximum",
+          "minimum",
+          "product",
+          "scale_by",
+          "span",
+          "square_each",
+          "sum"
+        ],
+        "world_train_shares_skeleton": [
+          "add_pair",
+          "add_to_each",
+          "append",
+          "count_equal",
+          "double_each",
+          "keep_positive",
+          "max_pair",
+          "maximum",
+          "minimum",
+          "product",
+          "scale_by",
+          "span",
+          "square_each",
+          "sum"
+        ]
+      },
+      "v4_holdout": {
+        "behaviours": 16,
+        "world_train_shares_program": [],
+        "world_train_shares_skeleton": []
+      }
+    },
+    "row_sets": {
+      "v4-fit": {
+        "rows": 313560,
+        "tasks": 6360
+      },
+      "v4-holdout": {
+        "rows": 26040,
+        "tasks": 640
+      },
+      "world-eval-all": {
+        "rows": 11305,
+        "tasks": 55
+      },
+      "world-eval-clean": {
+        "rows": 9892,
+        "tasks": 44
+      },
+      "world-eval-dirty": {
+        "rows": 1413,
+        "tasks": 11
+      },
+      "world-holdout": {
+        "rows": 11312,
+        "tasks": 46
+      }
+    }
+  },
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "solve": {
+    "stack_pbe_v4": {
+      "v4+world": {
+        "0": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              32,
+              60
+            ],
+            "11-20": [
+              12,
+              60
+            ],
+            "21-40": [
+              1,
+              60
+            ],
+            "41+": [
+              0,
+              60
+            ],
+            "6-10": [
+              8,
+              60
+            ]
+          },
+          "cost_covered_seconds": 9.800008840000373,
+          "coverage": 0.17666666666666667,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 63,
+          "solved": 53,
+          "tasks": 300,
+          "total_seconds": 923.6411103429782
+        },
+        "1": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              60,
+              60
+            ],
+            "11-20": [
+              10,
+              60
+            ],
+            "21-40": [
+              6,
+              60
+            ],
+            "41+": [
+              1,
+              60
+            ],
+            "6-10": [
+              28,
+              60
+            ]
+          },
+          "cost_covered_seconds": 34.3991516910246,
+          "coverage": 0.35,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 120,
+          "solved": 105,
+          "tasks": 300,
+          "total_seconds": 739.6622303569457
+        },
+        "2": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              51,
+              60
+            ],
+            "11-20": [
+              14,
+              60
+            ],
+            "21-40": [
+              5,
+              60
+            ],
+            "41+": [
+              0,
+              60
+            ],
+            "6-10": [
+              33,
+              60
+            ]
+          },
+          "cost_covered_seconds": 30.522137743049825,
+          "coverage": 0.3433333333333333,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 118,
+          "solved": 103,
+          "tasks": 300,
+          "total_seconds": 716.5392950860551
+        }
+      },
+      "v4-only": {
+        "0": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              32,
+              60
+            ],
+            "11-20": [
+              16,
+              60
+            ],
+            "21-40": [
+              0,
+              60
+            ],
+            "41+": [
+              0,
+              60
+            ],
+            "6-10": [
+              0,
+              60
+            ]
+          },
+          "cost_covered_seconds": 7.606005262037797,
+          "coverage": 0.16,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 54,
+          "solved": 48,
+          "tasks": 300,
+          "total_seconds": 870.5144495661152
+        },
+        "1": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              41,
+              60
+            ],
+            "11-20": [
+              16,
+              60
+            ],
+            "21-40": [
+              0,
+              60
+            ],
+            "41+": [
+              0,
+              60
+            ],
+            "6-10": [
+              6,
+              60
+            ]
+          },
+          "cost_covered_seconds": 10.62891483502608,
+          "coverage": 0.21,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 75,
+          "solved": 63,
+          "tasks": 300,
+          "total_seconds": 894.687623477148
+        },
+        "2": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              31,
+              60
+            ],
+            "11-20": [
+              17,
+              60
+            ],
+            "21-40": [
+              0,
+              60
+            ],
+            "41+": [
+              0,
+              60
+            ],
+            "6-10": [
+              0,
+              60
+            ]
+          },
+          "cost_covered_seconds": 12.477593712996168,
+          "coverage": 0.16,
+          "excluded_behaviours": [],
+          "excluded_solved": 0,
+          "max_depth": 48,
+          "shown_fit": 53,
+          "solved": 48,
+          "tasks": 300,
+          "total_seconds": 918.9953742969446
+        }
+      }
+    },
+    "stack_pbe_world_v3": {
+      "v4+world": {
+        "0": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              0,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              1,
+              1
+            ]
+          },
+          "cost_covered_seconds": 0.747914892002882,
+          "coverage": 0.022727272727272728,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 2,
+          "max_depth": 48,
+          "shown_fit": 1,
+          "solved": 1,
+          "tasks": 44,
+          "total_seconds": 182.1714223530289
+        },
+        "1": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              0,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              0,
+              1
+            ]
+          },
+          "cost_covered_seconds": 0,
+          "coverage": 0.0,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 2,
+          "max_depth": 48,
+          "shown_fit": 0,
+          "solved": 0,
+          "tasks": 44,
+          "total_seconds": 167.0537004980215
+        },
+        "2": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              0,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              0,
+              1
+            ]
+          },
+          "cost_covered_seconds": 0,
+          "coverage": 0.0,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 3,
+          "max_depth": 48,
+          "shown_fit": 0,
+          "solved": 0,
+          "tasks": 44,
+          "total_seconds": 184.10901329302578
+        }
+      },
+      "v4-only": {
+        "0": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              1,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              0,
+              1
+            ]
+          },
+          "cost_covered_seconds": 1.4252415119990474,
+          "coverage": 0.022727272727272728,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 2,
+          "max_depth": 48,
+          "shown_fit": 1,
+          "solved": 1,
+          "tasks": 44,
+          "total_seconds": 176.57135545202618
+        },
+        "1": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              0,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              0,
+              1
+            ]
+          },
+          "cost_covered_seconds": 0,
+          "coverage": 0.0,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 2,
+          "max_depth": 48,
+          "shown_fit": 0,
+          "solved": 0,
+          "tasks": 44,
+          "total_seconds": 196.76996726002108
+        },
+        "2": {
+          "beam_width": 64,
+          "buckets": {
+            "1-5": [
+              0,
+              0
+            ],
+            "11-20": [
+              0,
+              0
+            ],
+            "21-40": [
+              0,
+              3
+            ],
+            "41+": [
+              0,
+              40
+            ],
+            "6-10": [
+              0,
+              1
+            ]
+          },
+          "cost_covered_seconds": 0,
+          "coverage": 0.0,
+          "excluded_behaviours": [
+            "codearc-121",
+            "codearc-173",
+            "codearc-221",
+            "mbpp-282",
+            "mbpp-383",
+            "mbpp-458",
+            "mbpp-503",
+            "mbpp-62",
+            "mbpp-649",
+            "mbpp-924",
+            "mbpp-940"
+          ],
+          "excluded_solved": 3,
+          "max_depth": 48,
+          "shown_fit": 0,
+          "solved": 0,
+          "tasks": 44,
+          "total_seconds": 192.0661734450041
+        }
+      }
+    }
+  },
+  "structural": {
+    "v4-only": {
+      "0": {
+        "cell_seconds": 1875.896690818001,
+        "solved_behaviours": [
+          "mbpp-672"
+        ],
+        "solved_depth_192": 1,
+        "tasks": 44,
+        "within_depth_192": 26
+      }
+    }
+  },
+  "validation_ce": {
+    "0": {
+      "best_epoch": {
+        "v4_only": 1,
+        "v4_world": 2
+      },
+      "delta": -0.10851663158785907,
+      "rows": {
+        "v4_only": [
+          313560,
+          26040
+        ],
+        "v4_world": [
+          429078,
+          26040
+        ]
+      },
+      "v4_only": 0.9519338886126212,
+      "v4_world": 0.8434172570247621
+    },
+    "1": {
+      "best_epoch": {
+        "v4_only": 2,
+        "v4_world": 4
+      },
+      "delta": -0.07648664465697674,
+      "rows": {
+        "v4_only": [
+          313560,
+          26040
+        ],
+        "v4_world": [
+          429078,
+          26040
+        ]
+      },
+      "v4_only": 0.9453802117554273,
+      "v4_world": 0.8688935670984506
+    },
+    "2": {
+      "best_epoch": {
+        "v4_only": 1,
+        "v4_world": 3
+      },
+      "delta": -0.10438917485250299,
+      "rows": {
+        "v4_only": [
+          313560,
+          26040
+        ],
+        "v4_world": [
+          429078,
+          26040
+        ]
+      },
+      "v4_only": 0.9649544986894786,
+      "v4_world": 0.8605653238369756
+    }
+  },
+  "validation_ce_summary": {
+    "delta_mean": -0.0964641503657796,
+    "delta_sd": 0.0174236771530724,
+    "v4_only": [
+      0.9519338886126212,
+      0.9453802117554273,
+      0.9649544986894786
+    ],
+    "v4_world": [
+      0.8434172570247621,
+      0.8688935670984506,
+      0.8605653238369756
+    ]
+  },
+  "verified_solves": {
+    "cells": [
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 32,
+          "11-20": 16,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "graded_total": 48,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": null,
+        "run_dir": "checkpoints/step3-20260912/v4only",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 32,
+          "11-20": 16,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "verified_total": 48
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 41,
+          "11-20": 16,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 6
+        },
+        "graded_total": 63,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": null,
+        "run_dir": "checkpoints/step3-20260912/v4only",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 41,
+          "11-20": 16,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 6
+        },
+        "verified_total": 63
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 31,
+          "11-20": 17,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "graded_total": 48,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": null,
+        "run_dir": "checkpoints/step3-20260912/v4only",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 31,
+          "11-20": 15,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "verified_total": 46
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 32,
+          "11-20": 12,
+          "21-40": 1,
+          "41+": 0,
+          "6-10": 8
+        },
+        "graded_total": 53,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": null,
+        "run_dir": "checkpoints/step3-20260912/mixed",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 32,
+          "11-20": 11,
+          "21-40": 1,
+          "41+": 0,
+          "6-10": 8
+        },
+        "verified_total": 52
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 60,
+          "11-20": 10,
+          "21-40": 6,
+          "41+": 1,
+          "6-10": 28
+        },
+        "graded_total": 105,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": null,
+        "run_dir": "checkpoints/step3-20260912/mixed",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 60,
+          "11-20": 10,
+          "21-40": 6,
+          "41+": 0,
+          "6-10": 28
+        },
+        "verified_total": 104
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 51,
+          "11-20": 14,
+          "21-40": 5,
+          "41+": 0,
+          "6-10": 33
+        },
+        "graded_total": 103,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": null,
+        "run_dir": "checkpoints/step3-20260912/mixed",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 51,
+          "11-20": 13,
+          "21-40": 5,
+          "41+": 0,
+          "6-10": 33
+        },
+        "verified_total": 102
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 43,
+          "11-20": 10,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 2
+        },
+        "graded_total": 55,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 2,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 43,
+          "11-20": 10,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 2
+        },
+        "verified_total": 55
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 57,
+          "11-20": 11,
+          "21-40": 5,
+          "41+": 2,
+          "6-10": 10
+        },
+        "graded_total": 85,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 3,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 57,
+          "11-20": 11,
+          "21-40": 5,
+          "41+": 1,
+          "6-10": 10
+        },
+        "verified_total": 84
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 58,
+          "11-20": 13,
+          "21-40": 10,
+          "41+": 0,
+          "6-10": 13
+        },
+        "graded_total": 94,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 4,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 58,
+          "11-20": 13,
+          "21-40": 10,
+          "41+": 0,
+          "6-10": 13
+        },
+        "verified_total": 94
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 60,
+          "11-20": 13,
+          "21-40": 9,
+          "41+": 1,
+          "6-10": 1
+        },
+        "graded_total": 84,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 5,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 60,
+          "11-20": 13,
+          "21-40": 9,
+          "41+": 0,
+          "6-10": 1
+        },
+        "verified_total": 83
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 60,
+          "11-20": 17,
+          "21-40": 6,
+          "41+": 2,
+          "6-10": 6
+        },
+        "graded_total": 91,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 6,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 60,
+          "11-20": 13,
+          "21-40": 6,
+          "41+": 1,
+          "6-10": 6
+        },
+        "verified_total": 86
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 42,
+          "11-20": 14,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "graded_total": 56,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 1,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 42,
+          "11-20": 14,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "verified_total": 56
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 56,
+          "11-20": 13,
+          "21-40": 3,
+          "41+": 1,
+          "6-10": 4
+        },
+        "graded_total": 77,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 3,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 56,
+          "11-20": 13,
+          "21-40": 3,
+          "41+": 1,
+          "6-10": 4
+        },
+        "verified_total": 77
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 51,
+          "11-20": 16,
+          "21-40": 3,
+          "41+": 0,
+          "6-10": 4
+        },
+        "graded_total": 74,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 4,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 51,
+          "11-20": 16,
+          "21-40": 3,
+          "41+": 0,
+          "6-10": 4
+        },
+        "verified_total": 74
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 56,
+          "11-20": 17,
+          "21-40": 5,
+          "41+": 0,
+          "6-10": 2
+        },
+        "graded_total": 80,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 5,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 56,
+          "11-20": 14,
+          "21-40": 5,
+          "41+": 0,
+          "6-10": 2
+        },
+        "verified_total": 77
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 52,
+          "11-20": 13,
+          "21-40": 3,
+          "41+": 0,
+          "6-10": 4
+        },
+        "graded_total": 72,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 6,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 52,
+          "11-20": 13,
+          "21-40": 3,
+          "41+": 0,
+          "6-10": 4
+        },
+        "verified_total": 72
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 40,
+          "11-20": 14,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "graded_total": 54,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 2,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 40,
+          "11-20": 13,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "verified_total": 53
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 53,
+          "11-20": 12,
+          "21-40": 1,
+          "41+": 0,
+          "6-10": 14
+        },
+        "graded_total": 80,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 3,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 53,
+          "11-20": 12,
+          "21-40": 1,
+          "41+": 0,
+          "6-10": 14
+        },
+        "verified_total": 80
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 55,
+          "11-20": 12,
+          "21-40": 6,
+          "41+": 1,
+          "6-10": 15
+        },
+        "graded_total": 89,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 4,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 55,
+          "11-20": 12,
+          "21-40": 6,
+          "41+": 0,
+          "6-10": 15
+        },
+        "verified_total": 88
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 58,
+          "11-20": 12,
+          "21-40": 7,
+          "41+": 1,
+          "6-10": 14
+        },
+        "graded_total": 92,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 5,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 58,
+          "11-20": 12,
+          "21-40": 6,
+          "41+": 0,
+          "6-10": 14
+        },
+        "verified_total": 90
+      },
+      {
+        "arm": "v4only",
+        "graded": {
+          "1-5": 49,
+          "11-20": 15,
+          "21-40": 5,
+          "41+": 1,
+          "6-10": 6
+        },
+        "graded_total": 76,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 6,
+        "run_dir": "checkpoints/step3-20260913-epochs/v4only",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 49,
+          "11-20": 15,
+          "21-40": 5,
+          "41+": 0,
+          "6-10": 6
+        },
+        "verified_total": 75
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 31,
+          "11-20": 15,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 7
+        },
+        "graded_total": 53,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 1,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 31,
+          "11-20": 15,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 7
+        },
+        "verified_total": 53
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 47,
+          "11-20": 15,
+          "21-40": 6,
+          "41+": 0,
+          "6-10": 21
+        },
+        "graded_total": 89,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 3,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 47,
+          "11-20": 15,
+          "21-40": 6,
+          "41+": 0,
+          "6-10": 21
+        },
+        "verified_total": 89
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 53,
+          "11-20": 16,
+          "21-40": 6,
+          "41+": 0,
+          "6-10": 11
+        },
+        "graded_total": 86,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 4,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 53,
+          "11-20": 15,
+          "21-40": 6,
+          "41+": 0,
+          "6-10": 11
+        },
+        "verified_total": 85
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 53,
+          "11-20": 18,
+          "21-40": 9,
+          "41+": 0,
+          "6-10": 29
+        },
+        "graded_total": 109,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 5,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 52,
+          "11-20": 14,
+          "21-40": 9,
+          "41+": 0,
+          "6-10": 29
+        },
+        "verified_total": 104
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 45,
+          "11-20": 13,
+          "21-40": 7,
+          "41+": 0,
+          "6-10": 12
+        },
+        "graded_total": 77,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 6,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 0,
+        "tasks": 300,
+        "verified": {
+          "1-5": 45,
+          "11-20": 11,
+          "21-40": 7,
+          "41+": 0,
+          "6-10": 12
+        },
+        "verified_total": 75
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 32,
+          "11-20": 11,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "graded_total": 43,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 1,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 32,
+          "11-20": 11,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "verified_total": 43
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 37,
+          "11-20": 13,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 16
+        },
+        "graded_total": 66,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 2,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 37,
+          "11-20": 11,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 16
+        },
+        "verified_total": 64
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 44,
+          "11-20": 14,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 31
+        },
+        "graded_total": 89,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 3,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 44,
+          "11-20": 14,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 31
+        },
+        "verified_total": 89
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 59,
+          "11-20": 15,
+          "21-40": 4,
+          "41+": 1,
+          "6-10": 32
+        },
+        "graded_total": 111,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 5,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 59,
+          "11-20": 14,
+          "21-40": 4,
+          "41+": 0,
+          "6-10": 32
+        },
+        "verified_total": 109
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 46,
+          "11-20": 13,
+          "21-40": 2,
+          "41+": 0,
+          "6-10": 9
+        },
+        "graded_total": 70,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 6,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 1,
+        "tasks": 300,
+        "verified": {
+          "1-5": 46,
+          "11-20": 13,
+          "21-40": 2,
+          "41+": 0,
+          "6-10": 9
+        },
+        "verified_total": 70
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 31,
+          "11-20": 17,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 11
+        },
+        "graded_total": 59,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 1,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 31,
+          "11-20": 15,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 11
+        },
+        "verified_total": 57
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 49,
+          "11-20": 13,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 20
+        },
+        "graded_total": 82,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 2,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 49,
+          "11-20": 13,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 20
+        },
+        "verified_total": 82
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 50,
+          "11-20": 21,
+          "21-40": 6,
+          "41+": 2,
+          "6-10": 18
+        },
+        "graded_total": 97,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 4,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 50,
+          "11-20": 20,
+          "21-40": 6,
+          "41+": 0,
+          "6-10": 18
+        },
+        "verified_total": 94
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 54,
+          "11-20": 15,
+          "21-40": 6,
+          "41+": 1,
+          "6-10": 15
+        },
+        "graded_total": 91,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 5,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 54,
+          "11-20": 14,
+          "21-40": 6,
+          "41+": 1,
+          "6-10": 15
+        },
+        "verified_total": 90
+      },
+      {
+        "arm": "mixed",
+        "graded": {
+          "1-5": 48,
+          "11-20": 16,
+          "21-40": 5,
+          "41+": 2,
+          "6-10": 11
+        },
+        "graded_total": 82,
+        "inconclusive": {
+          "1-5": 0,
+          "11-20": 0,
+          "21-40": 0,
+          "41+": 0,
+          "6-10": 0
+        },
+        "inconclusive_total": 0,
+        "policy_epoch": 6,
+        "run_dir": "checkpoints/step3-20260913-epochs/mixed",
+        "seed": 2,
+        "tasks": 300,
+        "verified": {
+          "1-5": 48,
+          "11-20": 15,
+          "21-40": 5,
+          "41+": 1,
+          "6-10": 11
+        },
+        "verified_total": 80
+      }
+    ],
+    "draws_per_mode": 10000,
+    "min_tested": 500,
+    "modes": [
+      "sampler",
+      "perturbed",
+      "dense"
+    ],
+    "programs": [
+      {
+        "behaviour": "aligned_matches",
+        "draws": {
+          "dense": {
+            "counterexample": {
+              "args": [
+                [
+                  0
+                ],
+                [
+                  2
+                ]
+              ],
+              "reference": []
+            },
+            "failed": 625,
+            "tested": 887
+          },
+          "perturbed": {
+            "counterexample": {
+              "args": [
+                [
+                  -9,
+                  0,
+                  -6,
+                  15,
+                  16,
+                  -14,
+                  -15
+                ],
+                [
+                  -5,
+                  -12,
+                  4,
+                  -12,
+                  19,
+                  -1,
+                  16
+                ]
+              ],
+              "reference": []
+            },
+            "failed": 806,
+            "tested": 906
+          },
+          "sampler": {
+            "counterexample": {
+              "args": [
+                [
+                  3,
+                  9,
+                  -6,
+                  7
+                ],
+                [
+                  3,
+                  -9,
+                  -4,
+                  7
+                ]
+              ],
+              "reference": [
+                3,
+                7
+              ]
+            },
+            "failed": 983,
+            "tested": 10000
+          }
+        },
+        "program": "nil cons [ swap uncons swap uncons swap [ [ swap ] dip [ eq? ] [ drop swap drop ] [ drop drop ] ifte ] dip swap cons ] fold",
+        "verdict": "shortcut"
+      },
+      {
+        "behaviour": "all_positive",
+        "draws": {
+          "dense": {
+            "counterexample": {
+              "args": [
+                [
+                  2,
+                  0,
+                  2
+                ]
+              ],
+              "reference": 0
+            },
+            "failed": 767,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": {
+              "args": [
+                [
+                  2,
+                  0
+                ]
+              ],
+              "reference": 0
+            },
+            "failed": 84,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": {
+              "args": [
+                [
+                  0,
+                  0,
+                  2,
+                  1,
+                  3
+                ]
+              ],
+              "reference": 0
+            },
+            "failed": 401,
+            "tested": 10000
+          }
+        },
+        "program": "0 [ lt? ] swap cons filter null? [ ] [ drop 1 ] [ drop 0 ] ifte",
+        "verdict": "shortcut"
+      },
+      {
+        "behaviour": "all_positive",
+        "draws": {
+          "dense": {
+            "counterexample": {
+              "args": [
+                [
+                  2,
+                  0,
+                  2
+                ]
+              ],
+              "reference": 0
+            },
+            "failed": 767,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": {
+              "args": [
+                [
+                  2,
+                  0
+                ]
+              ],
+              "reference": 0
+            },
+            "failed": 84,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": {
+              "args": [
+                [
+                  0,
+                  0,
+                  2,
+                  1,
+                  3
+                ]
+              ],
+              "reference": 0
+            },
+            "failed": 401,
+            "tested": 10000
+          }
+        },
+        "program": "[ 0 lt? ] filter null? [ ] [ drop 1 ] [ drop 0 ] ifte",
+        "verdict": "shortcut"
+      },
+      {
+        "behaviour": "all_positive",
+        "draws": {
+          "dense": {
+            "counterexample": {
+              "args": [
+                []
+              ],
+              "reference": 1
+            },
+            "failed": 1127,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": {
+              "args": [
+                []
+              ],
+              "reference": 1
+            },
+            "failed": 1685,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": {
+              "args": [
+                [
+                  6,
+                  4
+                ]
+              ],
+              "reference": 1
+            },
+            "failed": 464,
+            "tested": 10000
+          }
+        },
+        "program": "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte",
+        "verdict": "shortcut"
+      },
+      {
+        "behaviour": "bounds_cover_list_flag",
+        "draws": {
+          "dense": {
+            "counterexample": {
+              "args": [
+                [
+                  -2,
+                  1
+                ],
+                0,
+                1
+              ],
+              "reference": 0
+            },
+            "failed": 2493,
+            "tested": 9088
+          },
+          "perturbed": {
+            "counterexample": {
+              "args": [
+                [
+                  -8
+                ],
+                -5,
+                16
+              ],
+              "reference": 0
+            },
+            "failed": 2130,
+            "tested": 9083
+          },
+          "sampler": {
+            "counterexample": {
+              "args": [
+                [
+                  7,
+                  -1,
+                  0,
+                  -7
+                ],
+                -1,
+                6
+              ],
+              "reference": 0
+            },
+            "failed": 2586,
+            "tested": 10000
+          }
+        },
+        "program": "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons drop uncons swap drop",
+        "verdict": "shortcut"
+      },
+      {
+        "behaviour": "bounds_cover_list_flag",
+        "draws": {
+          "dense": {
+            "counterexample": {
+              "args": [
+                [
+                  -1,
+                  -2,
+                  0,
+                  -2,
+                  2,
+                  -1
+                ],
+                -1,
+                2
+              ],
+              "reference": 0
+            },
+            "failed": 1579,
+            "tested": 9088
+          },
+          "perturbed": {
+            "counterexample": {
+              "args": [
+                [
+                  4,
+                  7,
+                  7,
+                  19,
+                  11,
+                  -20
+                ],
+                -12,
+                7
+              ],
+              "reference": 0
+            },
+            "failed": 1199,
+            "tested": 9083
+          },
+          "sampler": {
+            "counterexample": {
+              "args": [
+                [
+                  7,
+                  -3,
+                  8,
+                  -5,
+                  -9
+                ],
+                6,
+                7
+              ],
+              "reference": 0
+            },
+            "failed": 2534,
+            "tested": 10000
+          }
+        },
+        "program": "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons swap drop",
+        "verdict": "shortcut"
+      },
+      {
+        "behaviour": "capped_sum",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "[ [ over lt? ] [ swap drop ] [ drop ] ifte ] swap cons map 0 [ add ] fold",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "count_in_range",
+        "program": "[ [ swap drop lt? ] [ [ drop swap lt? ] [ drop drop drop 1 add ] [ drop drop drop ] ifte ] [ drop drop drop ] ifte ] swap cons swap cons 0 swap fold",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "drop_last",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9116
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9096
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "nil [ cons ] fold uncons [ [ over eq? ] [ swap drop ] [ drop ] ifte ] swap cons map nil [ cons ] fold",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "drop_last",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9116
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9096
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "nil [ cons ] fold uncons [ nil [ cons ] fold ] dip drop",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "drop_last",
+        "program": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "drop_last",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9116
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9096
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "nil [ cons ] fold uncons nil swap cons cat nil [ cons ] fold uncons drop",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "drop_last",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9116
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9096
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "nil [ cons ] fold uncons quote cat nil [ cons ] fold uncons drop",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "drop_last",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9116
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9096
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "nil [ cons ] fold uncons swap nil [ cons ] fold swap drop",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "farther_choice_from_target",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "[ [ over swap sub dup mul ] dip swap [ over swap sub dup mul ] dip lt? ] [ drop swap drop ] [ swap drop swap drop ] ifte",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "increment_each",
+        "program": "[ 1 add ] map",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "increment_each",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "[ drop 1 add ] 0 cons map",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "keep_below",
+        "program": "[ lt? ] swap cons filter",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "keep_negative",
+        "program": "[ 0 lt? ] filter",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "keep_negative",
+        "draws": {
+          "dense": {
+            "counterexample": {
+              "args": [
+                [
+                  0,
+                  -2,
+                  1,
+                  -2,
+                  -1,
+                  2,
+                  -2
+                ]
+              ],
+              "reference": [
+                -2,
+                -2,
+                -1,
+                -2
+              ]
+            },
+            "failed": 5736,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": {
+              "args": [
+                [
+                  3,
+                  0,
+                  3,
+                  2,
+                  11,
+                  -5,
+                  -16,
+                  -2,
+                  -14,
+                  1
+                ]
+              ],
+              "reference": [
+                -5,
+                -16,
+                -2,
+                -14
+              ]
+            },
+            "failed": 1122,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": {
+              "args": [
+                [
+                  -6,
+                  5,
+                  0
+                ]
+              ],
+              "reference": [
+                -6
+              ]
+            },
+            "failed": 2665,
+            "tested": 10000
+          }
+        },
+        "program": "[ 0 swap lt? [ ] [ drop false ] [ drop true ] ifte ] filter",
+        "verdict": "shortcut"
+      },
+      {
+        "behaviour": "keep_zeros",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "0 [ drop 0 eq? ] swap cons filter",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "keep_zeros",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "0 [ eq? ] swap cons filter",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "keep_zeros",
+        "program": "[ 0 eq? ] filter",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "keep_zeros",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "[ dup 1 1 add mul sub 0 eq? ] filter",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "keep_zeros",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "nil [ cons ] fold [ 0 eq? ] filter",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "keep_zeros",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "nil [ cons ] fold [ dup 1 1 add mul sub 0 eq? ] filter",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "min_pair",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "[ over lt? ] [ swap ] [ ] ifte drop",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "negate_each",
+        "program": "[ 0 swap sub ] map",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "negate_each",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "[ dup 0 1 add div 1 1 add mul sub ] map",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "negate_each",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "[ dup 1 1 add mul sub ] map",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "negate_each",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "nil [ 0 swap sub cons ] fold nil [ cons ] fold",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "negate_each",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "nil [ cons ] fold [ dup 1 1 add mul sub ] map nil [ cons ] fold",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "push_back",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "quote cat",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "reverse",
+        "program": "nil [ cons ] fold",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      },
+      {
+        "behaviour": "rotate_left",
+        "draws": {
+          "dense": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9116
+          },
+          "perturbed": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 9096
+          },
+          "sampler": {
+            "counterexample": null,
+            "failed": 0,
+            "tested": 10000
+          }
+        },
+        "program": "uncons quote cat",
+        "verdict": "genuine"
+      },
+      {
+        "behaviour": "shared_value_occurrences",
+        "program": "[ swap [ eq? ] swap cons filter null? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter 0 [ drop 1 add ] fold",
+        "verdict": "genuine",
+        "why": "equals a catalogue witness"
+      }
+    ],
+    "seed": 134
+  }
+}

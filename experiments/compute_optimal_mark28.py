@@ -30,6 +30,7 @@ import sys
 import time
 from collections import defaultdict
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
 from statistics import mean, pstdev
 from typing import Any
@@ -56,6 +57,19 @@ from wandering_light.stack_policy import (
 
 REPO = Path(__file__).resolve().parents[1]
 CORPUS_MANIFEST = REPO / "wandering_light/evals/data/stack_pbe_v4/manifest.json"
+# world-plus-v4-policy (#134): the driver can load several corpora at once. The
+# first is the primary: its eval split is the default cohort and its name the
+# default validation corpus. Behaviour names are the corpus key (Task has no
+# corpus field), and `corpus()` refuses a name that two corpora share.
+CORPUS_MANIFESTS: list[Path] = [CORPUS_MANIFEST]
+CORPUS_OF: dict[str, str] = {}
+EVAL_CORPUS: str | None = None  # None -> the primary corpus
+VALIDATION_CORPUS: str | None = None  # None -> every loaded corpus
+DROP_BEHAVIOURS: frozenset[str] = frozenset()
+# Epoch-resolved runs (#134): save weights at these epochs, and search a chosen
+# epoch's weights instead of the best-validation checkpoint.
+SAVE_EPOCHS: frozenset[int] = frozenset()
+POLICY_EPOCH: int | None = None
 WANDB_ENTITY = "abhishekraok-na"
 WANDB_PROJECT = "wandering-light-rollout-policy"
 
@@ -88,6 +102,8 @@ TASKS_PER_BUCKET = 60
 COHORT_SEED = 17
 BEAM_WIDTH = 64
 MAX_DEPTH = 48
+# The #101 values, kept so a cell run at another budget gets its own filename.
+DEFAULT_BEAM_WIDTH, DEFAULT_MAX_DEPTH = BEAM_WIDTH, MAX_DEPTH
 GUARD = "both"
 # Wall-clock range fixed before any cell ran; it brackets a beam hit on either
 # device. The executions range was set with the counter fix (see `replay`): it
@@ -109,15 +125,25 @@ def provenance() -> dict[str, Any]:
             ["git", *args], cwd=REPO, capture_output=True, text=True, check=True
         ).stdout.strip()
 
-    manifest = json.loads(CORPUS_MANIFEST.read_text())
+    def block(path: Path) -> dict[str, Any]:
+        manifest = json.loads(path.read_text())
+        return {
+            "name": manifest["corpus"],
+            "hub": manifest.get("hub"),
+            "splits": {k: v["sha256"] for k, v in manifest["splits"].items()},
+        }
+
+    corpora = [block(path) for path in CORPUS_MANIFESTS]
     return {
         "commit": git("rev-parse", "HEAD"),
         "dirty": bool(git("status", "--porcelain", "--untracked-files=no")),
-        "corpus": {
-            "name": manifest["corpus"],
-            "hub": manifest["hub"],
-            "splits": {k: v["sha256"] for k, v in manifest["splits"].items()},
-        },
+        # `corpus` stays the primary one so older readers keep working; a mixed
+        # run is described by `corpora`, which lists every manifest loaded.
+        "corpus": corpora[0],
+        "corpora": corpora,
+        "eval_corpus": EVAL_CORPUS or corpora[0]["name"],
+        "validation_corpus": VALIDATION_CORPUS,
+        "dropped_behaviours": sorted(DROP_BEHAVIOURS),
         "recorded_at_utc": datetime.now(UTC).isoformat(),
     }
 
@@ -139,8 +165,29 @@ def write_json(path: Path, value: Any) -> None:
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
 
 
+def corpus_name(manifest: Path) -> str:
+    return json.loads(manifest.read_text())["corpus"]
+
+
+def primary_corpus() -> str:
+    return corpus_name(CORPUS_MANIFESTS[0])
+
+
 def corpus() -> list[Task]:
-    return load(fetch_corpus(CORPUS_MANIFEST))
+    """Every task of every manifest in ``CORPUS_MANIFESTS``, primary first."""
+    tasks: list[Task] = []
+    CORPUS_OF.clear()
+    for manifest in CORPUS_MANIFESTS:
+        name = corpus_name(manifest)
+        loaded = load(fetch_corpus(manifest))
+        shared = sorted({t.behaviour for t in loaded} & set(CORPUS_OF))
+        if shared:
+            raise ValueError(
+                f"{name}: behaviour names shared with an earlier corpus: {shared[:5]}"
+            )
+        CORPUS_OF.update({t.behaviour: name for t in loaded})
+        tasks += loaded
+    return tasks
 
 
 def bucket_of(length: int) -> str:
@@ -150,9 +197,18 @@ def bucket_of(length: int) -> str:
     raise ValueError(length)
 
 
-def cohort(tasks: list[Task]) -> list[tuple[int, Task]]:
-    """The same eval tasks for every cell: seed-17 shuffle, first N per bucket."""
-    eval_tasks = [(i, t) for i, t in enumerate(tasks) if t.split == "eval"]
+def cohort(tasks: list[Task], eval_corpus: str | None = None) -> list[tuple[int, Task]]:
+    """The same eval tasks for every cell: seed-17 shuffle, first N per bucket.
+
+    Only the eval corpus's own tasks are eligible, and the index is its
+    position in that corpus's task list, so adding a second corpus to
+    ``CORPUS_MANIFESTS`` leaves an existing cohort (and every recorded
+    ``task_index``) unchanged. Mixing the pools instead would silently reseed
+    the shuffle over a larger set and give a different 300 tasks.
+    """
+    name = eval_corpus or EVAL_CORPUS or (primary_corpus() if CORPUS_OF else None)
+    own = [t for t in tasks if name is None or CORPUS_OF.get(t.behaviour) == name]
+    eval_tasks = [(i, t) for i, t in enumerate(own) if t.split == "eval"]
     random.Random(COHORT_SEED).shuffle(eval_tasks)
     taken: dict[str, list] = defaultdict(list)
     for index, task in eval_tasks:
@@ -166,12 +222,24 @@ TRAIN_TASK_CAP = 0
 
 
 def training_rows(tasks: list[Task]):
-    train = [t for t in tasks if t.split == "train"]
+    """Fit and validation rows over the train splits of every loaded corpus.
+
+    ``DROP_BEHAVIOURS`` removes behaviours before either set is built (the
+    eval-overlap filter). ``VALIDATION_CORPUS`` restricts model selection to
+    one corpus's holdout, which is what makes two runs over different corpus
+    mixes report the same quantity as ``best_validation_cross_entropy``; the
+    other corpora's holdout tasks then enter neither set and stay a holdout.
+    """
+    train = [
+        t for t in tasks if t.split == "train" and t.behaviour not in DROP_BEHAVIOURS
+    ]
     if TRAIN_TASK_CAP:
         train = random.Random(COHORT_SEED).sample(train, TRAIN_TASK_CAP)
     fit = witness_rows([t for t in train if not validation_skeleton(t)])
-    validation = witness_rows([t for t in train if validation_skeleton(t)])
-    return fit, validation
+    held = [t for t in train if validation_skeleton(t)]
+    if VALIDATION_CORPUS is not None:
+        held = [t for t in held if CORPUS_OF.get(t.behaviour) == VALIDATION_CORPUS]
+    return fit, witness_rows(held)
 
 
 def architecture(arm: str) -> PolicyArchitecture:
@@ -198,7 +266,9 @@ def wandb_run(name: str, config: dict[str, Any], tags: list[str], enabled: bool)
     )
 
 
-def _fit(arm, seed, lr, epochs, rows, device, run_name, use_wandb, log):
+def _fit(arm, seed, lr, epochs, rows, device, run_name, use_wandb, log, snapshot=None):
+    """``snapshot`` maps the run's W&B URL to an ``epoch_end`` hook, so every
+    epoch checkpoint carries the same link as the best checkpoint (#135 review)."""
     run = wandb_run(
         run_name,
         {
@@ -213,6 +283,7 @@ def _fit(arm, seed, lr, epochs, rows, device, run_name, use_wandb, log):
         ["lr-probe" if epochs == 1 else "policy"],
         use_wandb,
     )
+    url = run.url if run else None
     try:
         model, state = train_policy(
             rows[0],
@@ -224,6 +295,7 @@ def _fit(arm, seed, lr, epochs, rows, device, run_name, use_wandb, log):
             validation_batch_size=ARMS[arm]["val_batch"],
             seed=seed,
             device=device,
+            epoch_end=snapshot(url) if snapshot else None,
             epoch_callback=lambda row: (
                 log(
                     f"  {arm} s{seed} lr={lr:g} epoch {row['epoch']} "
@@ -232,7 +304,7 @@ def _fit(arm, seed, lr, epochs, rows, device, run_name, use_wandb, log):
                 run.log(row, step=row["epoch"]) if run else None,
             ),
         )
-        return model, state, (run.url if run else None)
+        return model, state, url
     finally:
         if run:
             run.finish()
@@ -285,6 +357,56 @@ def probe_lr(run_dir: Path, tasks, device, arms, use_wandb, log) -> dict[str, fl
     return chosen
 
 
+def policy_dir(run_dir: Path, arm: str, seed: int, epoch: int | None = None) -> Path:
+    """The best-validation checkpoint, or the snapshot saved at ``epoch``."""
+    name = f"{arm}-s{seed}" if epoch is None else f"{arm}-s{seed}-e{epoch}"
+    return run_dir / "policies" / name
+
+
+def snapshotter(
+    run_dir: Path, arm: str, seed: int, lr: float, rows, wandb_url: str | None
+):
+    """Save the weights at every epoch in ``SAVE_EPOCHS``.
+
+    #101 and step 3 selected epoch 1 or 2 for every v4-only seed, and solve
+    counts track the selected epoch across runs, so the best checkpoint alone
+    cannot separate a data effect from training length. Training is
+    deterministic: the snapshot at the best epoch equals the best checkpoint.
+    """
+
+    def save(epoch: int, model, row: dict[str, Any]) -> None:
+        out = policy_dir(run_dir, arm, seed, epoch)
+        if epoch not in SAVE_EPOCHS or out.exists():
+            return
+        save_policy(
+            out,
+            model,
+            trainer_state={
+                **row,
+                "snapshot_epoch": epoch,
+                "seed": seed,
+                "learning_rate": lr,
+                "batch_size": ARMS[arm]["batch"],
+                "parameters": model.parameter_count,
+                "train_rows": len(rows[0]),
+                "validation_rows": len(rows[1]),
+            },
+            manifest={
+                "arm": arm,
+                "seed": seed,
+                "learning_rate": lr,
+                "epochs": EPOCHS,
+                "snapshot_epoch": epoch,
+                "validation_corpus": VALIDATION_CORPUS,
+                "dropped_behaviours": sorted(DROP_BEHAVIOURS),
+                "provenance": provenance(),
+            },
+            wandb_url=wandb_url,
+        )
+
+    return save
+
+
 def train(run_dir: Path, tasks, device, arms, seeds, chosen, use_wandb, log) -> None:
     rows = None
     for arm in arms:
@@ -304,6 +426,11 @@ def train(run_dir: Path, tasks, device, arms, seeds, chosen, use_wandb, log) -> 
                 f"mark28-{arm}-s{seed}-lr{lr:g}",
                 use_wandb,
                 log,
+                snapshot=(
+                    partial(snapshotter, run_dir, arm, seed, lr, rows)
+                    if SAVE_EPOCHS
+                    else None
+                ),
             )
             save_policy(
                 out,
@@ -316,6 +443,10 @@ def train(run_dir: Path, tasks, device, arms, seeds, chosen, use_wandb, log) -> 
                     "learning_rate": lr,
                     "epochs": EPOCHS,
                     "validation": "1 in 10 train skeletons by sha256",
+                    "validation_corpus": VALIDATION_CORPUS,
+                    "dropped_behaviours": sorted(DROP_BEHAVIOURS),
+                    "train_rows": len(rows[0]),
+                    "validation_rows": len(rows[1]),
                     "provenance": provenance(),
                 },
             )
@@ -325,14 +456,34 @@ def train(run_dir: Path, tasks, device, arms, seeds, chosen, use_wandb, log) -> 
             )
 
 
+def cell_path(run_dir: Path, arm: str, seed: int, device: str) -> Path:
+    """One file per (arm, seed, device, eval corpus).
+
+    The primary corpus keeps the #101 filename so a v4 cell stays comparable
+    with the recorded campaign; a second corpus's cells get a suffix instead of
+    overwriting them.
+    """
+    name = EVAL_CORPUS or primary_corpus()
+    suffix = "" if name == primary_corpus() else f"-{name}"
+    # A deeper structural cell must not overwrite the primary one it is compared
+    # against, so a non-default depth or beam width goes in the name too.
+    if MAX_DEPTH != DEFAULT_MAX_DEPTH:
+        suffix += f"-d{MAX_DEPTH}"
+    if BEAM_WIDTH != DEFAULT_BEAM_WIDTH:
+        suffix += f"-b{BEAM_WIDTH}"
+    if POLICY_EPOCH is not None:
+        suffix += f"-e{POLICY_EPOCH}"
+    return run_dir / "timing" / f"{arm}-s{seed}-{device}{suffix}.json"
+
+
 def time_cell(run_dir: Path, tasks, arm, seed, device, log) -> Path:
-    out = run_dir / "timing" / f"{arm}-s{seed}-{device}.json"
+    out = cell_path(run_dir, arm, seed, device)
     if out.exists():
         return out
     if device == "cpu":
         torch.set_num_threads(CPU_THREADS)
     scorer = PolicyScorer(
-        load_policy(run_dir / "policies" / f"{arm}-s{seed}", device=device), device
+        load_policy(policy_dir(run_dir, arm, seed, POLICY_EPOCH), device=device), device
     )
     rows = []
     started = time.perf_counter()
@@ -366,6 +517,8 @@ def time_cell(run_dir: Path, tasks, arm, seed, device, log) -> Path:
             "arm": arm,
             "seed": seed,
             "device": device,
+            "eval_corpus": EVAL_CORPUS or primary_corpus(),
+            "policy_epoch": POLICY_EPOCH,
             "beam_width": BEAM_WIDTH,
             "max_depth": MAX_DEPTH,
             "guard": GUARD,
@@ -377,7 +530,8 @@ def time_cell(run_dir: Path, tasks, arm, seed, device, log) -> Path:
         },
     )
     log(
-        f"RESULT time {arm} s{seed} {device}: {solved}/{len(rows)} solved, "
+        f"RESULT time {arm} s{seed} {device} {EVAL_CORPUS or primary_corpus()} "
+        f"beam {BEAM_WIDTH} depth {MAX_DEPTH}: {solved}/{len(rows)} solved, "
         f"{time.perf_counter() - started:.0f}s"
     )
     return out
@@ -401,16 +555,22 @@ def replay(run_dir: Path, tasks, log) -> None:
     identical; the row then gains ``executions``, ``fuel_replayed`` and
     ``seconds_replayed`` beside the values as first recorded.
     """
-    by_index = dict(cohort(tasks))
+    cohorts: dict[str, dict[int, Task]] = {}
     for path in sorted((run_dir / "timing").glob("*.json")):
         cell = json.loads(path.read_text())
         if cell.get("replay"):
             continue
+        # A cell recorded before #134 has no eval_corpus and is the primary's.
+        name = cell.get("eval_corpus") or primary_corpus()
+        if name not in cohorts:
+            cohorts[name] = dict(cohort(tasks, eval_corpus=name))
+        by_index = cohorts[name]
         device = cell["device"]
         if device == "cpu":
             torch.set_num_threads(CPU_THREADS)
         policy = load_policy(
-            run_dir / "policies" / f"{cell['arm']}-s{cell['seed']}", device=device
+            policy_dir(run_dir, cell["arm"], cell["seed"], cell.get("policy_epoch")),
+            device=device,
         )
         scorer = PolicyScorer(policy, device)
         started = time.perf_counter()
@@ -437,6 +597,8 @@ def replay(run_dir: Path, tasks, log) -> None:
             "hits": hits,
             "mismatches": mismatches,
             "seconds": time.perf_counter() - started,
+            # the cell's own cohort, not whatever EVAL_CORPUS this replay ran with
+            "eval_corpus": name,
             "provenance": provenance(),
             "note": (
                 "executions and fuel_replayed count per op executed on one example "
@@ -488,10 +650,37 @@ def archive(run_dir: Path, log) -> None:
         log(f"RESULT archive {path.name} -> {done[path.name]['artifact']}")
 
 
+def aggregate_cells(run_dir: Path) -> list[dict[str, Any]]:
+    """The timing cells one aggregate covers: the active eval corpus and budget.
+
+    A run directory can hold cells for several eval corpora and search budgets
+    (`cell_path` names them apart), but the aggregate tables are keyed by
+    device, arm and seed. Mixing them would silently let one corpus's cell
+    overwrite another's, so only the active corpus and budget are read, and two
+    cells for one key are refused (Codex review on #135).
+    """
+    corpus = EVAL_CORPUS or primary_corpus()
+    cells = []
+    seen: set[tuple[str, str, int]] = set()
+    for path in sorted((run_dir / "timing").glob("*.json")):
+        cell = json.loads(path.read_text())
+        # A cell recorded before #134 has no eval_corpus and is the primary's.
+        if (cell.get("eval_corpus") or primary_corpus()) != corpus:
+            continue
+        if (cell.get("beam_width"), cell.get("max_depth")) != (BEAM_WIDTH, MAX_DEPTH):
+            continue
+        if cell.get("policy_epoch") != POLICY_EPOCH:
+            continue
+        key = (cell["device"], cell["arm"], cell["seed"])
+        if key in seen:
+            raise ValueError(f"{path}: a second cell for {key} in {corpus}")
+        seen.add(key)
+        cells.append(cell)
+    return cells
+
+
 def aggregate(run_dir: Path, log) -> Path:
-    cells = [
-        json.loads(p.read_text()) for p in sorted((run_dir / "timing").glob("*.json"))
-    ]
+    cells = aggregate_cells(run_dir)
     arms = sorted({c["arm"] for c in cells}, key=lambda a: list(ARMS).index(a))
     buckets = [bucket_of(low) for low, _ in BUCKETS]
     table: dict[str, dict[str, dict[str, dict[str, Any]]]] = {}
@@ -633,6 +822,8 @@ def aggregate(run_dir: Path, log) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     global EPOCHS, TASKS_PER_BUCKET, TRAIN_TASK_CAP
+    global CORPUS_MANIFESTS, EVAL_CORPUS, VALIDATION_CORPUS, DROP_BEHAVIOURS
+    global BEAM_WIDTH, MAX_DEPTH, SAVE_EPOCHS, POLICY_EPOCH
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -657,12 +848,65 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--epochs", type=int, default=EPOCHS)
     parser.add_argument("--tasks-per-bucket", type=int, default=TASKS_PER_BUCKET)
     parser.add_argument("--train-tasks", type=int, default=0, help="cap, 0 = all")
+    parser.add_argument(
+        "--corpus",
+        nargs="+",
+        type=Path,
+        default=list(CORPUS_MANIFESTS),
+        help="corpus manifests to train on, primary first (default: stack_pbe_v4)",
+    )
+    parser.add_argument(
+        "--eval-corpus",
+        help="corpus whose eval split forms the cohort (default: the primary)",
+    )
+    parser.add_argument(
+        "--validation-corpus",
+        help="corpus whose train holdout selects the best epoch (default: all)",
+    )
+    parser.add_argument(
+        "--drop-behaviours",
+        type=Path,
+        help="file of behaviour ids, one per line, excluded from training",
+    )
+    parser.add_argument("--beam-width", type=int, default=BEAM_WIDTH)
+    parser.add_argument("--max-depth", type=int, default=MAX_DEPTH)
+    parser.add_argument(
+        "--save-epochs",
+        nargs="+",
+        type=int,
+        help="also save the weights at these epochs, as policies/<arm>-s<seed>-e<N>",
+    )
+    parser.add_argument(
+        "--policy-epoch",
+        type=int,
+        help="search the snapshot saved at this epoch instead of the best checkpoint",
+    )
     args = parser.parse_args(argv)
     EPOCHS, TASKS_PER_BUCKET, TRAIN_TASK_CAP = (
         args.epochs,
         args.tasks_per_bucket,
         args.train_tasks,
     )
+    dropped = frozenset(
+        line.strip()
+        for line in (
+            args.drop_behaviours.read_text().splitlines()
+            if args.drop_behaviours
+            else []
+        )
+        if line.strip() and not line.startswith("#")
+    )
+    CORPUS_MANIFESTS, DROP_BEHAVIOURS = list(args.corpus), dropped
+    EVAL_CORPUS, VALIDATION_CORPUS = args.eval_corpus, args.validation_corpus
+    BEAM_WIDTH, MAX_DEPTH = args.beam_width, args.max_depth
+    SAVE_EPOCHS, POLICY_EPOCH = frozenset(args.save_epochs or ()), args.policy_epoch
+    names = [corpus_name(path) for path in CORPUS_MANIFESTS]
+    for chosen, flag in (
+        (EVAL_CORPUS, "--eval-corpus"),
+        (VALIDATION_CORPUS, "--validation-corpus"),
+    ):
+        if chosen is not None and chosen not in names:
+            parser.error(f"{flag} {chosen!r} is not one of {names}")
     args.run_dir.mkdir(parents=True, exist_ok=True)
     log_file = (args.run_dir / "runner.log").open("a")
 

@@ -1,0 +1,54 @@
+{
+  "batch_size": 256,
+  "best_epoch": 1,
+  "best_validation_cross_entropy": 0.9649544986894786,
+  "device": "cuda",
+  "epochs_completed": 6,
+  "history": [
+    {
+      "epoch": 1,
+      "seconds": 80.02570178599854,
+      "train_cross_entropy": 1.0714010077816047,
+      "validation_cross_entropy": 0.9649544986894786
+    },
+    {
+      "epoch": 2,
+      "seconds": 158.4311527309983,
+      "train_cross_entropy": 0.430081065027427,
+      "validation_cross_entropy": 0.9974176064064976
+    },
+    {
+      "epoch": 3,
+      "seconds": 237.21871490699414,
+      "train_cross_entropy": 0.2813519541714504,
+      "validation_cross_entropy": 1.0990808525026852
+    },
+    {
+      "epoch": 4,
+      "seconds": 315.53965193399927,
+      "train_cross_entropy": 0.21379525648998596,
+      "validation_cross_entropy": 1.2344564827539588
+    },
+    {
+      "epoch": 5,
+      "seconds": 395.2426580809988,
+      "train_cross_entropy": 0.17733131717215206,
+      "validation_cross_entropy": 1.2856746708742484
+    },
+    {
+      "epoch": 6,
+      "seconds": 477.53077723099705,
+      "train_cross_entropy": 0.15588293259264574,
+      "validation_cross_entropy": 1.4123323780417258
+    }
+  ],
+  "optimizer": {
+    "class": "torch.optim.Adam",
+    "learning_rate": 0.000125
+  },
+  "parameters": 655836,
+  "seed": 2,
+  "train_rows": 313560,
+  "training_seconds": 477.53232979199674,
+  "validation_rows": 26040
+}

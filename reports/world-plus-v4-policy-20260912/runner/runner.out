@@ -1,0 +1,75 @@
+=== arm A train (v4 only)
+22:27:09   1m s0 lr=0.000125 epoch 1 val_ce=0.9519 77s
+22:28:26   1m s0 lr=0.000125 epoch 2 val_ce=0.9556 153s
+22:29:43   1m s0 lr=0.000125 epoch 3 val_ce=1.0939 230s
+22:31:00   1m s0 lr=0.000125 epoch 4 val_ce=1.2100 307s
+22:32:19   1m s0 lr=0.000125 epoch 5 val_ce=1.3618 386s
+22:33:36   1m s0 lr=0.000125 epoch 6 val_ce=1.5090 463s
+22:33:36 RESULT train 1m s0 best_val_ce=0.9519 epoch 1 params=655836 None
+22:34:55   1m s1 lr=0.000125 epoch 1 val_ce=0.9651 79s
+22:36:14   1m s1 lr=0.000125 epoch 2 val_ce=0.9454 158s
+22:37:33   1m s1 lr=0.000125 epoch 3 val_ce=1.0607 237s
+22:38:54   1m s1 lr=0.000125 epoch 4 val_ce=1.1870 318s
+22:40:13   1m s1 lr=0.000125 epoch 5 val_ce=1.2568 397s
+22:41:32   1m s1 lr=0.000125 epoch 6 val_ce=1.3577 476s
+22:41:32 RESULT train 1m s1 best_val_ce=0.9454 epoch 2 params=655836 None
+22:42:52   1m s2 lr=0.000125 epoch 1 val_ce=0.9650 80s
+22:44:11   1m s2 lr=0.000125 epoch 2 val_ce=0.9974 158s
+22:45:29   1m s2 lr=0.000125 epoch 3 val_ce=1.0991 237s
+22:46:48   1m s2 lr=0.000125 epoch 4 val_ce=1.2345 316s
+22:48:07   1m s2 lr=0.000125 epoch 5 val_ce=1.2857 395s
+22:49:30   1m s2 lr=0.000125 epoch 6 val_ce=1.4123 478s
+22:49:30 RESULT train 1m s2 best_val_ce=0.9650 epoch 1 params=655836 None
+=== arm B train (v4 + world_v3, overlap removed, validation pinned to v4)
+22:52:41   1m s0 lr=0.000125 epoch 1 val_ce=0.8983 120s
+22:54:52   1m s0 lr=0.000125 epoch 2 val_ce=0.8434 251s
+22:56:56   1m s0 lr=0.000125 epoch 3 val_ce=1.0010 375s
+22:59:01   1m s0 lr=0.000125 epoch 4 val_ce=0.9827 501s
+23:00:52   1m s0 lr=0.000125 epoch 5 val_ce=0.9354 612s
+23:02:38   1m s0 lr=0.000125 epoch 6 val_ce=1.0123 718s
+23:02:38 RESULT train 1m s0 best_val_ce=0.8434 epoch 2 params=655836 None
+23:04:25   1m s1 lr=0.000125 epoch 1 val_ce=0.9518 106s
+23:06:15   1m s1 lr=0.000125 epoch 2 val_ce=0.9003 217s
+23:08:05   1m s1 lr=0.000125 epoch 3 val_ce=0.8764 327s
+23:09:59   1m s1 lr=0.000125 epoch 4 val_ce=0.8689 440s
+23:11:56   1m s1 lr=0.000125 epoch 5 val_ce=0.8793 558s
+23:13:54   1m s1 lr=0.000125 epoch 6 val_ce=0.9312 675s
+23:13:54 RESULT train 1m s1 best_val_ce=0.8689 epoch 4 params=655836 None
+23:15:51   1m s2 lr=0.000125 epoch 1 val_ce=0.9195 117s
+23:17:48   1m s2 lr=0.000125 epoch 2 val_ce=0.8802 234s
+23:19:42   1m s2 lr=0.000125 epoch 3 val_ce=0.8606 348s
+23:21:33   1m s2 lr=0.000125 epoch 4 val_ce=0.8725 459s
+23:23:22   1m s2 lr=0.000125 epoch 5 val_ce=0.9011 568s
+23:25:14   1m s2 lr=0.000125 epoch 6 val_ce=0.9361 681s
+23:25:14 RESULT train 1m s2 best_val_ce=0.8606 epoch 3 params=655836 None
+=== v4only: v4 cohort (300 tasks, beam 64 x depth 48)
+23:39:56 RESULT time 1m s0 cuda stack_pbe_v4 beam 64 depth 48: 48/300 solved, 875s
+23:54:55 RESULT time 1m s1 cuda stack_pbe_v4 beam 64 depth 48: 63/300 solved, 899s
+00:10:18 RESULT time 1m s2 cuda stack_pbe_v4 beam 64 depth 48: 48/300 solved, 923s
+=== v4only: world eval (55 tasks, beam 64 x depth 48)
+00:14:03 RESULT time 1m s0 cuda stack_pbe_world_v3 beam 64 depth 48: 3/55 solved, 218s
+00:18:06 RESULT time 1m s1 cuda stack_pbe_world_v3 beam 64 depth 48: 2/55 solved, 243s
+00:22:01 RESULT time 1m s2 cuda stack_pbe_world_v3 beam 64 depth 48: 3/55 solved, 235s
+=== v4only: replay hits
+00:22:10 RESULT replay 1m-s0-cuda-stack_pbe_world_v3: 3 hits, 0 mismatches, 2s
+00:22:23 RESULT replay 1m-s0-cuda: 54 hits, 0 mismatches, 13s
+00:22:24 RESULT replay 1m-s1-cuda-stack_pbe_world_v3: 2 hits, 0 mismatches, 0s
+00:22:53 RESULT replay 1m-s1-cuda: 75 hits, 0 mismatches, 29s
+00:22:55 RESULT replay 1m-s2-cuda-stack_pbe_world_v3: 3 hits, 0 mismatches, 1s
+00:23:09 RESULT replay 1m-s2-cuda: 53 hits, 0 mismatches, 14s
+=== mixed: v4 cohort (300 tasks, beam 64 x depth 48)
+00:38:42 RESULT time 1m s0 cuda stack_pbe_v4 beam 64 depth 48: 53/300 solved, 928s
+00:51:06 RESULT time 1m s1 cuda stack_pbe_v4 beam 64 depth 48: 105/300 solved, 743s
+01:03:06 RESULT time 1m s2 cuda stack_pbe_v4 beam 64 depth 48: 103/300 solved, 720s
+=== mixed: world eval (55 tasks, beam 64 x depth 48)
+01:07:01 RESULT time 1m s0 cuda stack_pbe_world_v3 beam 64 depth 48: 3/55 solved, 228s
+01:10:32 RESULT time 1m s1 cuda stack_pbe_world_v3 beam 64 depth 48: 2/55 solved, 211s
+01:14:18 RESULT time 1m s2 cuda stack_pbe_world_v3 beam 64 depth 48: 3/55 solved, 226s
+=== mixed: replay hits
+01:14:26 RESULT replay 1m-s0-cuda-stack_pbe_world_v3: 3 hits, 0 mismatches, 1s
+01:14:53 RESULT replay 1m-s0-cuda: 63 hits, 0 mismatches, 27s
+01:14:53 RESULT replay 1m-s1-cuda-stack_pbe_world_v3: 2 hits, 0 mismatches, 0s
+01:15:48 RESULT replay 1m-s1-cuda: 120 hits, 0 mismatches, 55s
+01:15:50 RESULT replay 1m-s2-cuda-stack_pbe_world_v3: 3 hits, 0 mismatches, 1s
+01:16:41 RESULT replay 1m-s2-cuda: 118 hits, 0 mismatches, 51s
+=== done

@@ -1,0 +1,152 @@
+{
+  "chosen": {
+    "10m": 3.125e-05,
+    "1m": 0.000125,
+    "2m": 6.25e-05
+  },
+  "probes": [
+    {
+      "arm": "1m",
+      "learning_rate": 0.001,
+      "seconds": 82.7778154569969,
+      "validation_cross_entropy": 1.2377636102304297,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/heb4nylb"
+    },
+    {
+      "arm": "1m",
+      "learning_rate": 0.002,
+      "seconds": 76.89291562400467,
+      "validation_cross_entropy": 1.3958036683488368,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/2qudnhbk"
+    },
+    {
+      "arm": "1m",
+      "learning_rate": 0.004,
+      "seconds": 82.90730083399103,
+      "validation_cross_entropy": 1.4981887782224312,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/51i1csng"
+    },
+    {
+      "arm": "1m",
+      "learning_rate": 0.0005,
+      "seconds": 83.58174346800661,
+      "validation_cross_entropy": 1.0673124884680119,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/ovipy66q"
+    },
+    {
+      "arm": "1m",
+      "learning_rate": 0.00025,
+      "seconds": 78.87338289899344,
+      "validation_cross_entropy": 0.9628029420445409,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/78atglg5"
+    },
+    {
+      "arm": "1m",
+      "learning_rate": 0.000125,
+      "seconds": 74.17025879801076,
+      "validation_cross_entropy": 0.9519338886126212,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/35ubq0uz"
+    },
+    {
+      "arm": "2m",
+      "learning_rate": 0.0005,
+      "seconds": 92.57620839899755,
+      "validation_cross_entropy": 1.1808326082478653,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/0ns6miv8"
+    },
+    {
+      "arm": "2m",
+      "learning_rate": 0.001,
+      "seconds": 90.23267021500214,
+      "validation_cross_entropy": 1.3136168712844496,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/51cqes6z"
+    },
+    {
+      "arm": "2m",
+      "learning_rate": 0.002,
+      "seconds": 95.24349584900483,
+      "validation_cross_entropy": 1.405468758789625,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/dpin5try"
+    },
+    {
+      "arm": "2m",
+      "learning_rate": 0.00025,
+      "seconds": 92.43563778999669,
+      "validation_cross_entropy": 1.0562289095877135,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/9pluo1oy"
+    },
+    {
+      "arm": "2m",
+      "learning_rate": 0.000125,
+      "seconds": 91.84353265800746,
+      "validation_cross_entropy": 0.9481803132275466,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/elrnlu93"
+    },
+    {
+      "arm": "2m",
+      "learning_rate": 6.25e-05,
+      "seconds": 102.58117321599275,
+      "validation_cross_entropy": 0.9386444431662376,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/s1un0bem"
+    },
+    {
+      "arm": "10m",
+      "learning_rate": 0.00025,
+      "seconds": 126.48712585699104,
+      "validation_cross_entropy": 1.2551728827246507,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/3ihz23ub"
+    },
+    {
+      "arm": "10m",
+      "learning_rate": 0.0005,
+      "seconds": 123.39804515001015,
+      "validation_cross_entropy": 1.3331343823680497,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/tbfl9mr5"
+    },
+    {
+      "arm": "10m",
+      "learning_rate": 0.001,
+      "seconds": 121.36540250500548,
+      "validation_cross_entropy": 1.315477942980929,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/nyxtzjm6"
+    },
+    {
+      "arm": "10m",
+      "learning_rate": 0.000125,
+      "seconds": 120.22614112800511,
+      "validation_cross_entropy": 1.036760019047469,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/g49zvszs"
+    },
+    {
+      "arm": "10m",
+      "learning_rate": 6.25e-05,
+      "seconds": 119.37937919799879,
+      "validation_cross_entropy": 0.9462841502715549,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/w7n0wjai"
+    },
+    {
+      "arm": "10m",
+      "learning_rate": 3.125e-05,
+      "seconds": 120.37272646000201,
+      "validation_cross_entropy": 0.9332545328799481,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/6i3foaog"
+    }
+  ],
+  "provenance": {
+    "commit": "913c69df3052c582a7e726ee5ec0b66f46798a08",
+    "corpus": {
+      "hub": {
+        "repo_id": "abhishekraok/wandering-light-stack-pbe-v4",
+        "repo_type": "dataset",
+        "revision": "00c2a9996d32df8d1894b45f4246a66b6df46c25"
+      },
+      "name": "stack_pbe_v4",
+      "splits": {
+        "eval": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+        "train": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b"
+      }
+    },
+    "dirty": false,
+    "recorded_at_utc": "2026-09-03T16:17:04.768449+00:00"
+  }
+}

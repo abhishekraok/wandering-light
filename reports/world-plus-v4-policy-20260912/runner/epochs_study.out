@@ -1,0 +1,29 @@
+=== train both arms, snapshots at epochs 1-6
+=== determinism gate
+RESULT determinism v4only s0 e1: identical
+RESULT determinism v4only s1 e2: identical
+RESULT determinism v4only s2 e1: identical
+RESULT determinism mixed s0 e2: identical
+RESULT determinism mixed s1 e4: identical
+RESULT determinism mixed s2 e3: identical
+=== search 18 cells in 3 lanes
+=== replay
+04:31:00 RESULT replay 1m-s0-cuda-e2: 67 hits, 0 mismatches, 25s
+04:32:03 RESULT replay 1m-s0-cuda-e3: 103 hits, 0 mismatches, 64s
+04:33:28 RESULT replay 1m-s0-cuda-e4: 112 hits, 0 mismatches, 85s
+04:33:40 RESULT replay 1m-s1-cuda-e1: 60 hits, 0 mismatches, 12s
+04:34:33 RESULT replay 1m-s1-cuda-e3: 93 hits, 0 mismatches, 53s
+04:35:17 RESULT replay 1m-s1-cuda-e4: 88 hits, 0 mismatches, 44s
+04:35:46 RESULT replay 1m-s2-cuda-e2: 64 hits, 0 mismatches, 29s
+04:36:30 RESULT replay 1m-s2-cuda-e3: 92 hits, 0 mismatches, 44s
+04:37:33 RESULT replay 1m-s2-cuda-e4: 104 hits, 0 mismatches, 63s
+04:37:52 RESULT replay 1m-s0-cuda-e1: 58 hits, 0 mismatches, 12s
+04:38:40 RESULT replay 1m-s0-cuda-e3: 101 hits, 0 mismatches, 48s
+04:39:31 RESULT replay 1m-s0-cuda-e4: 101 hits, 0 mismatches, 51s
+04:39:37 RESULT replay 1m-s1-cuda-e1: 44 hits, 0 mismatches, 6s
+04:40:04 RESULT replay 1m-s1-cuda-e2: 74 hits, 0 mismatches, 27s
+04:40:40 RESULT replay 1m-s1-cuda-e3: 104 hits, 0 mismatches, 36s
+04:40:56 RESULT replay 1m-s2-cuda-e1: 63 hits, 0 mismatches, 15s
+04:41:36 RESULT replay 1m-s2-cuda-e2: 95 hits, 0 mismatches, 40s
+04:42:47 RESULT replay 1m-s2-cuda-e4: 114 hits, 0 mismatches, 72s
+=== epochs done
