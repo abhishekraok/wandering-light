@@ -56,18 +56,30 @@ def perturb(rng: random.Random, args: tuple) -> tuple:
     return tuple(out)
 
 
-def agrees(program: tuple[str, ...], behaviour, args: tuple) -> bool | None:
-    """True/False on a draw the reference accepts; None if it refuses the input."""
-    try:
-        expected = behaviour.reference(*args)
-        want = value_key(to_value(expected))
-    except Exception:
-        return None
+def _computes(program: tuple[str, ...], args: tuple, want: tuple) -> bool:
     outcome = run_program(program, to_stack(args))
     if isinstance(outcome, str):
         return False
     stack, _fuel = outcome
     return len(stack) == 1 and value_key(stack[0]) == want
+
+
+def agrees(program: tuple[str, ...], behaviour, args: tuple) -> bool | None:
+    """True/False on a draw inside the behaviour's operating domain, else None.
+
+    The domain is where the corpus's own verified witness computes the
+    reference. A perturbed draw can leave it (an empty list for `drop_last`,
+    where the catalogue witness's `uncons` refuses too), and a found program
+    that fails there is not a shortcut, just as partial as the label it was
+    trained on.
+    """
+    try:
+        want = value_key(to_value(behaviour.reference(*args)))
+    except Exception:
+        return None
+    if not _computes(behaviour.program, args, want):
+        return None
+    return _computes(program, args, want)
 
 
 def check(program: tuple[str, ...], behaviour, draws: int, seed: int) -> dict[str, Any]:
