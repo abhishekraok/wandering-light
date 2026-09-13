@@ -8,19 +8,30 @@ program reads only the list head; `all_positive`'s 28-op program returns the
 minimum). This checks every distinct solved program instead:
 
 - a program equal to one of the behaviour's catalogue witnesses is genuine by
-  construction, since `Behaviour` witnesses are verified against the reference;
-- any other program is run against the Python reference on fresh draws from the
-  behaviour's own sampler and on perturbed draws (wider values, lengths 0-10,
-  shuffled), and is genuine only if it agrees on every draw the reference
-  accepts. The first disagreement is kept as a counterexample.
+  construction, as far as the corpus's own verification goes: `Behaviour`
+  witnesses are checked against the reference on draws from the behaviour's
+  sampler only;
+- any other program is run against the Python reference in up to three modes:
+  fresh draws from the behaviour's own sampler, perturbed draws (wider values,
+  lengths 0-10) and, with ``--dense``, dense draws (integers and list values from
+  -2..2, lengths 0-10, booleans unchanged), which force the duplicate and tie
+  patterns that rare-case shortcuts get wrong and wide perturbations never
+  produce. A draw counts only where the canonical witness itself computes the
+  reference, so inputs outside the corpus's domain are skipped, not scored.
 
-Every timing cell is then rescored: graded solves against verified solves, per
+Verdict: ``shortcut`` if any mode finds a disagreement; ``genuine`` if every mode
+tested at least ``min(--min-tested, --draws)`` in-domain draws without one;
+otherwise ``inconclusive``. A pass is a finite test, not a proof: a program that
+fails on a fraction p of inputs passes n draws with probability (1 - p)^n.
+
+Every timing cell is then rescored: graded, verified and inconclusive solves per
 witness-length bucket.
 
 Usage:
     uv run python experiments/step3_verify_solves.py \
         --run-dir checkpoints/step3-20260912/v4only \
         --run-dir checkpoints/step3-20260912/mixed \
+        --draws 10000 --dense \
         --out reports/world-plus-v4-policy-20260912/verified_solves.json
 """
 
@@ -37,6 +48,8 @@ from wandering_light.stack_pbe import CATALOGUE, run_program, to_stack, to_value
 
 BUCKETS = ("1-5", "6-10", "11-20", "21-40", "41+")
 WIDE = tuple(range(-20, 21))
+DENSE = tuple(range(-2, 3))
+BUDGET = (64, 48)
 
 
 def perturb(rng: random.Random, args: tuple) -> tuple:
@@ -45,12 +58,29 @@ def perturb(rng: random.Random, args: tuple) -> tuple:
     for arg in args:
         if isinstance(arg, list):
             values = [rng.choice(WIDE) for _ in range(rng.randint(0, 10))]
+            # A no-op on iid values, kept so the perturbed stream (and every
+            # recorded perturbed tally) reproduces exactly.
             rng.shuffle(values)
             out.append(values)
         elif isinstance(arg, bool):
             out.append(rng.choice((True, False)))
         elif isinstance(arg, int):
             out.append(rng.choice(WIDE))
+        else:
+            out.append(arg)
+    return tuple(out)
+
+
+def densify(rng: random.Random, args: tuple) -> tuple:
+    """Same shapes, every integer and list value from -2..2: duplicates and ties."""
+    out = []
+    for arg in args:
+        if isinstance(arg, list):
+            out.append([rng.choice(DENSE) for _ in range(rng.randint(0, 10))])
+        elif isinstance(arg, bool):
+            out.append(arg)
+        elif isinstance(arg, int):
+            out.append(rng.choice(DENSE))
         else:
             out.append(arg)
     return tuple(out)
@@ -82,18 +112,40 @@ def agrees(program: tuple[str, ...], behaviour, args: tuple) -> bool | None:
     return _computes(program, args, want)
 
 
-def check(program: tuple[str, ...], behaviour, draws: int, seed: int) -> dict[str, Any]:
+def verdict_of(tallies: dict[str, dict[str, Any]], floor: int) -> str:
+    if any(t["failed"] for t in tallies.values()):
+        return "shortcut"
+    if all(t["tested"] >= floor for t in tallies.values()):
+        return "genuine"
+    return "inconclusive"
+
+
+def check(
+    program: tuple[str, ...],
+    behaviour,
+    draws: int,
+    seed: int,
+    dense: bool = False,
+    min_tested: int = 500,
+) -> dict[str, Any]:
     if program in behaviour.programs:
         return {"verdict": "genuine", "why": "equals a catalogue witness"}
-    rng = random.Random(seed)
-    tallies = {}
-    for mode in ("sampler", "perturbed"):
+    # sampler and perturbed share one stream, as when these verdicts were first
+    # recorded; dense has its own, so adding it moves neither.
+    shared = random.Random(seed)
+    streams = {"sampler": shared, "perturbed": shared}
+    if dense:
+        streams["dense"] = random.Random(f"{seed}:dense")
+    tallies: dict[str, dict[str, Any]] = {}
+    for mode, rng in streams.items():
         tested = failed = 0
         counterexample = None
         for _ in range(draws):
             args = behaviour.sample(rng)
             if mode == "perturbed":
                 args = perturb(rng, args)
+            elif mode == "dense":
+                args = densify(rng, args)
             verdict = agrees(program, behaviour, args)
             if verdict is None:
                 continue
@@ -110,8 +162,7 @@ def check(program: tuple[str, ...], behaviour, draws: int, seed: int) -> dict[st
             "failed": failed,
             "counterexample": counterexample,
         }
-    genuine = all(t["failed"] == 0 and t["tested"] > 0 for t in tallies.values())
-    return {"verdict": "genuine" if genuine else "shortcut", "draws": tallies}
+    return {"verdict": verdict_of(tallies, min(min_tested, draws)), "draws": tallies}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -119,6 +170,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--run-dir", type=Path, action="append", required=True)
     parser.add_argument("--draws", type=int, default=2000)
     parser.add_argument("--seed", type=int, default=134)
+    parser.add_argument("--dense", action="store_true")
+    parser.add_argument("--min-tested", type=int, default=500)
     parser.add_argument("--eval-corpus", default="stack_pbe_v4")
     parser.add_argument("--out", type=Path)
     args = parser.parse_args(argv)
@@ -130,9 +183,9 @@ def main(argv: list[str] | None = None) -> int:
             cell = json.loads(path.read_text())
             if cell.get("eval_corpus", args.eval_corpus) != args.eval_corpus:
                 continue
-            if cell.get("max_depth") != 48 or cell.get("beam_width") != 64:
+            if (cell.get("beam_width"), cell.get("max_depth")) != BUDGET:
                 continue
-            cells.append((run_dir.name, cell))
+            cells.append((run_dir, cell))
 
     distinct: dict[tuple[str, str], dict[str, Any]] = {}
     for _, cell in cells:
@@ -140,45 +193,72 @@ def main(argv: list[str] | None = None) -> int:
             if row["solved"]:
                 distinct.setdefault((row["behaviour"], " ".join(row["program"])), {})
     for (name, program), slot in sorted(distinct.items()):
-        slot.update(check(tuple(program.split()), by_name[name], args.draws, args.seed))
-        tag = slot["verdict"]
+        slot.update(
+            check(
+                tuple(program.split()),
+                by_name[name],
+                args.draws,
+                args.seed,
+                args.dense,
+                args.min_tested,
+            )
+        )
         extra = ""
         if "draws" in slot:
-            s, p = slot["draws"]["sampler"], slot["draws"]["perturbed"]
-            extra = f" sampler {s['failed']}/{s['tested']} failed, perturbed {p['failed']}/{p['tested']} failed"
-            if p["counterexample"] or s["counterexample"]:
-                extra += f" e.g. {(s['counterexample'] or p['counterexample'])}"
-        print(f"{tag:8s} {name:28s} {len(program.split()):3d} ops{extra}")
+            extra = " " + ", ".join(
+                f"{mode} {t['failed']}/{t['tested']} failed"
+                for mode, t in slot["draws"].items()
+            )
+            example = next(
+                (
+                    t["counterexample"]
+                    for t in slot["draws"].values()
+                    if t["counterexample"]
+                ),
+                None,
+            )
+            if example:
+                extra += f" e.g. {example}"
+        print(f"{slot['verdict']:12s} {name:28s} {len(program.split()):3d} ops{extra}")
 
     table = []
-    for arm, cell in cells:
-        graded = dict.fromkeys(BUCKETS, 0)
-        verified = dict.fromkeys(BUCKETS, 0)
+    for run_dir, cell in cells:
+        counts = {
+            k: dict.fromkeys(BUCKETS, 0) for k in ("graded", "verified", "inconclusive")
+        }
         for row in cell["rows"]:
             if not row["solved"]:
                 continue
-            graded[row["bucket"]] += 1
-            key = (row["behaviour"], " ".join(row["program"]))
-            if distinct[key]["verdict"] == "genuine":
-                verified[row["bucket"]] += 1
+            counts["graded"][row["bucket"]] += 1
+            verdict = distinct[(row["behaviour"], " ".join(row["program"]))]["verdict"]
+            if verdict == "genuine":
+                counts["verified"][row["bucket"]] += 1
+            elif verdict == "inconclusive":
+                counts["inconclusive"][row["bucket"]] += 1
+        epoch = cell.get("policy_epoch")
         table.append(
             {
-                "arm": arm,
+                "run_dir": str(run_dir),
+                "arm": run_dir.name,
                 "seed": cell["seed"],
-                "policy_epoch": cell.get("policy_epoch"),
-                "graded": graded,
-                "verified": verified,
-                "graded_total": sum(graded.values()),
-                "verified_total": sum(verified.values()),
+                "policy_epoch": epoch,
+                **counts,
+                "graded_total": sum(counts["graded"].values()),
+                "verified_total": sum(counts["verified"].values()),
+                "inconclusive_total": sum(counts["inconclusive"].values()),
                 "tasks": len(cell["rows"]),
             }
         )
+        label = f"{run_dir.name} s{cell['seed']}" + (
+            "" if epoch is None else f"-e{epoch}"
+        )
         print(
-            f"{arm:8s} s{cell['seed']}"
-            f"{'' if cell.get('policy_epoch') is None else '-e' + str(cell['policy_epoch'])}"
-            f": graded {sum(graded.values())}, verified "
-            f"{sum(verified.values())} of {len(cell['rows'])} | "
-            + " ".join(f"{b} {verified[b]}/{graded[b]}" for b in BUCKETS)
+            f"{label:14s}: graded {sum(counts['graded'].values())}, verified "
+            f"{sum(counts['verified'].values())}, inconclusive "
+            f"{sum(counts['inconclusive'].values())} of {len(cell['rows'])} | "
+            + " ".join(
+                f"{b} {counts['verified'][b]}/{counts['graded'][b]}" for b in BUCKETS
+            )
         )
 
     if args.out:
@@ -188,6 +268,12 @@ def main(argv: list[str] | None = None) -> int:
                 {
                     "draws_per_mode": args.draws,
                     "seed": args.seed,
+                    "modes": [
+                        "sampler",
+                        "perturbed",
+                        *(["dense"] if args.dense else []),
+                    ],
+                    "min_tested": min(args.min_tested, args.draws),
                     "programs": [
                         {"behaviour": b, "program": p, **v}
                         for (b, p), v in sorted(distinct.items())

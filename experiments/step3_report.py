@@ -170,10 +170,27 @@ def main(argv: list[str] | None = None) -> int:
         report["verified_solves"] = verified
         arm_name = {args.baseline.name: "v4-only", args.mixed.name: "v4+world"}
         by_arm: dict[str, dict[int, dict[str, Any]]] = {}
+        wanted = {
+            str(args.baseline.resolve()): "v4-only",
+            str(args.mixed.resolve()): "v4+world",
+        }
         for cell in verified["cells"]:
-            by_arm.setdefault(arm_name.get(cell["arm"], cell["arm"]), {})[
-                cell["seed"]
-            ] = cell
+            # One verification file can cover several run dirs and epoch
+            # snapshots; the paired table is the best checkpoints of these two.
+            if cell.get("policy_epoch") is not None:
+                continue
+            if "run_dir" in cell:
+                name = wanted.get(str(Path(cell["run_dir"]).resolve()))
+                if name is None:
+                    continue
+            else:
+                name = arm_name.get(cell["arm"], cell["arm"])
+            by_arm.setdefault(name, {})[cell["seed"]] = cell
+        dense_note = (
+            f" and {verified['draws_per_mode']:,} dense draws"
+            if "dense" in verified.get("modes", [])
+            else ""
+        )
         columns = [
             (name, seed) for name in arms for seed in sorted(by_arm.get(name, {}))
         ]
@@ -183,7 +200,7 @@ def main(argv: list[str] | None = None) -> int:
             "A graded solve passes the task's held-out examples. A verified solve also "
             "computes the behaviour: its program is a catalogue witness, or it agrees "
             f"with the Python reference on {verified['draws_per_mode']:,} sampler draws "
-            f"and {verified['draws_per_mode']:,} perturbed draws. Cells read verified / graded.",
+            f"and {verified['draws_per_mode']:,} perturbed draws{dense_note}, each counted only where the catalogue witness computes the reference. Cells read verified / graded.",
             "",
             "| bucket | " + " | ".join(f"{n} s{s}" for n, s in columns) + " |",
             "|---" * (1 + len(columns)) + "|",
@@ -199,7 +216,19 @@ def main(argv: list[str] | None = None) -> int:
             cell = by_arm[name][seed]
             total.append(f"{cell['verified_total']}/{cell['graded_total']}")
         lines += ["| " + " | ".join(total) + " |", ""]
-        shortcuts = [p for p in verified["programs"] if p["verdict"] != "genuine"]
+        shortcuts = [p for p in verified["programs"] if p["verdict"] == "shortcut"]
+        undecided = [p for p in verified["programs"] if p["verdict"] == "inconclusive"]
+        if undecided:
+            lines += [
+                "Programs the verification could not decide (too few in-domain draws "
+                "in a mode), counted as neither verified nor shortcut:",
+                "",
+                *(
+                    f"- `{p['behaviour']}`, {len(p['program'].split())} ops"
+                    for p in undecided
+                ),
+                "",
+            ]
         if shortcuts:
             lines += [
                 "Programs that pass held-out grading without computing the behaviour:",

@@ -106,6 +106,7 @@ def main(argv: list[str] | None = None) -> int:
 
     genuine = None
     checked: set[tuple[str, str]] = set()
+    inconclusive: list[tuple[str, str]] = []
     if args.verified and args.verified.exists():
         verified = json.loads(args.verified.read_text())
         genuine = {
@@ -114,6 +115,11 @@ def main(argv: list[str] | None = None) -> int:
             if p["verdict"] == "genuine"
         }
         checked = {(p["behaviour"], p["program"]) for p in verified["programs"]}
+        inconclusive = sorted(
+            (p["behaviour"], p["program"])
+            for p in verified["programs"]
+            if p["verdict"] == "inconclusive"
+        )
     arms = {
         "v4-only": (args.baseline, args.baseline_best),
         "v4+world": (args.mixed, args.mixed_best),
@@ -186,7 +192,8 @@ def main(argv: list[str] | None = None) -> int:
         lines.append("| " + " | ".join(row) + " |")
     lines += [
         "",
-        "## Matched-epoch paired difference in verified solves (v4+world minus v4-only)",
+        f"## Matched-epoch paired difference in "
+        f"{'verified' if genuine is not None else 'graded'} solves (v4+world minus v4-only)",
         "",
     ]
     lines += ["| epoch | s0 | s1 | s2 | mean |", "|---|---|---|---|---|"]
@@ -220,6 +227,14 @@ def main(argv: list[str] | None = None) -> int:
         + " (batch 256). Arm B's epoch e is about arm A's epoch 1.37e in steps.",
         "",
     ]
+    if inconclusive:
+        lines += [
+            "Programs the verification could not decide (too few in-domain draws in a "
+            "mode), counted as neither verified nor shortcut:",
+            "",
+            *(f"- `{b}`, {len(p.split())} ops" for b, p in inconclusive),
+            "",
+        ]
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "epochs.md").write_text("\n".join(lines) + "\n")
     (args.out / "epochs.json").write_text(
