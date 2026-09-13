@@ -68,8 +68,13 @@ findings describe best-checkpoint numbers, not a data effect.
   three seeds but 6 distinct tasks from two behaviours, and one program does 11 of
   them: the 31-op catalogue witness of `shared_value_occurrences`, on 5 of its 6
   tasks. The other is `count_in_range`'s 40-op witness on 1 of its 5 tasks, in seed
-  1 only. No training program computes either behaviour. The same epoch caveat
-  applies.
+  1 only. No training program computes either behaviour, but both witnesses are
+  covered by fragments of training programs. `shared_value_occurrences`'s ops 1–24
+  are v4 train's `disjoint_lists_flag` and its ops 10–31 occur in 13 world fit
+  programs, so world data supplies the join. `count_in_range`'s are covered by v4
+  alone, a 16-op prefix from `count_outside_interval` and a 23-op suffix from
+  `sum_inside_interval`, with no more than 10 of its ops in any world program. The
+  same epoch caveat applies.
 - **World eval: the CE gap measures familiarity with world op sequences, and
   neither arm can search it.** On the 44 clean world eval behaviours arm A scores
   3.16 ± 0.61, at or worse than uniform over 28 ops (3.33; seed 1 is 3.86), and arm
