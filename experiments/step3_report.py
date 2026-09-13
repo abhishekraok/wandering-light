@@ -79,6 +79,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--arm", default="1m")
     parser.add_argument("--ce", type=Path)
     parser.add_argument(
+        "--verified",
+        type=Path,
+        help="verified_solves.json from step3_verify_solves.py; leads the v4 solve table",
+    )
+    parser.add_argument(
         "--world-exclude",
         type=Path,
         help="world eval behaviours already seen in training; scored separately",
@@ -140,6 +145,61 @@ def main(argv: list[str] | None = None) -> int:
         "delta_mean": statistics.mean(deltas) if deltas else None,
         "delta_sd": statistics.stdev(deltas) if len(deltas) > 1 else None,
     }
+
+    if args.verified and args.verified.exists():
+        verified = json.loads(args.verified.read_text())
+        report["verified_solves"] = verified
+        arm_name = {args.baseline.name: "v4-only", args.mixed.name: "v4+world"}
+        by_arm: dict[str, dict[int, dict[str, Any]]] = {}
+        for cell in verified["cells"]:
+            by_arm.setdefault(arm_name.get(cell["arm"], cell["arm"]), {})[
+                cell["seed"]
+            ] = cell
+        columns = [
+            (name, seed) for name in arms for seed in sorted(by_arm.get(name, {}))
+        ]
+        lines += [
+            "## Verified solves, v4 eval cohort (300 tasks, beam 64 x depth 48)",
+            "",
+            "A graded solve passes the task's held-out examples. A verified solve also "
+            "computes the behaviour: its program is a catalogue witness, or it agrees "
+            f"with the Python reference on {verified['draws_per_mode']:,} sampler draws "
+            f"and {verified['draws_per_mode']:,} perturbed draws. Cells read verified / graded.",
+            "",
+            "| bucket | " + " | ".join(f"{n} s{s}" for n, s in columns) + " |",
+            "|---" * (1 + len(columns)) + "|",
+        ]
+        for bucket in BUCKETS:
+            row = [bucket]
+            for name, seed in columns:
+                cell = by_arm[name][seed]
+                row.append(f"{cell['verified'][bucket]}/{cell['graded'][bucket]}")
+            lines.append("| " + " | ".join(row) + " |")
+        total = ["**all**"]
+        for name, seed in columns:
+            cell = by_arm[name][seed]
+            total.append(f"{cell['verified_total']}/{cell['graded_total']}")
+        lines += ["| " + " | ".join(total) + " |", ""]
+        shortcuts = [p for p in verified["programs"] if p["verdict"] != "genuine"]
+        if shortcuts:
+            lines += [
+                "Programs that pass held-out grading without computing the behaviour:",
+                "",
+            ]
+            for item in shortcuts:
+                draws = item.get("draws", {})
+                example = (draws.get("sampler", {}) or {}).get("counterexample") or (
+                    draws.get("perturbed", {}) or {}
+                ).get("counterexample")
+                lines.append(
+                    f"- `{item['behaviour']}`, {len(item['program'].split())} ops: "
+                    f"fails {draws.get('sampler', {}).get('failed')}/"
+                    f"{draws.get('sampler', {}).get('tested')} sampler draws and "
+                    f"{draws.get('perturbed', {}).get('failed')}/"
+                    f"{draws.get('perturbed', {}).get('tested')} perturbed; "
+                    f"e.g. {example}"
+                )
+            lines.append("")
 
     for corpus, title in (
         ("stack_pbe_v4", "v4 eval cohort (300 tasks, beam 64 x depth 48)"),
