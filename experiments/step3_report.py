@@ -100,7 +100,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--verified",
         type=Path,
-        help="verified_solves.json from step3_verify_solves.py; leads the v4 solve table",
+        help="verification JSON from step3_verify_solves.py; leads the v4 solve table",
     )
     parser.add_argument(
         "--world-exclude",

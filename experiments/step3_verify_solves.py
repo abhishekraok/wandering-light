@@ -32,7 +32,7 @@ Usage:
         --run-dir checkpoints/step3-20260912/v4only \
         --run-dir checkpoints/step3-20260912/mixed \
         --draws 10000 --dense \
-        --out reports/world-plus-v4-policy-20260912/verified_solves.json
+        --out reports/world-plus-v4-policy-20260912/verified_solves_epochs.json
 """
 
 from __future__ import annotations

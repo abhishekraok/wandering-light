@@ -10,7 +10,9 @@ from experiments import step3_verify_solves as verify
 from wandering_light.stack_pbe import CATALOGUE
 
 ROOT = Path(__file__).resolve().parents[1]
-RECORDED = ROOT / "reports" / "world-plus-v4-policy-20260912" / "verified_solves.json"
+RECORDED = (
+    ROOT / "reports" / "world-plus-v4-policy-20260912" / "verified_solves_epochs.json"
+)
 BY_NAME = {b.name: b for b in CATALOGUE}
 
 
