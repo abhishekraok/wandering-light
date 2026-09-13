@@ -16,5 +16,5 @@ $PY experiments/step3_ce.py \
   --dropped codearc-128 --dropped mbpp-404 --dropped mbpp-970 \
   --device cuda --out $OUT/ce.json || exit 1
 echo "=== structural"
-bash $R/structural.sh || exit 1
+bash "$OUT/runner/structural.sh" || exit 1
 echo "=== post done"

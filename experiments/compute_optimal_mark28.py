@@ -30,6 +30,7 @@ import sys
 import time
 from collections import defaultdict
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
 from statistics import mean, pstdev
 from typing import Any
@@ -265,9 +266,9 @@ def wandb_run(name: str, config: dict[str, Any], tags: list[str], enabled: bool)
     )
 
 
-def _fit(
-    arm, seed, lr, epochs, rows, device, run_name, use_wandb, log, on_epoch_end=None
-):
+def _fit(arm, seed, lr, epochs, rows, device, run_name, use_wandb, log, snapshot=None):
+    """``snapshot`` maps the run's W&B URL to an ``epoch_end`` hook, so every
+    epoch checkpoint carries the same link as the best checkpoint (#135 review)."""
     run = wandb_run(
         run_name,
         {
@@ -282,6 +283,7 @@ def _fit(
         ["lr-probe" if epochs == 1 else "policy"],
         use_wandb,
     )
+    url = run.url if run else None
     try:
         model, state = train_policy(
             rows[0],
@@ -293,7 +295,7 @@ def _fit(
             validation_batch_size=ARMS[arm]["val_batch"],
             seed=seed,
             device=device,
-            epoch_end=on_epoch_end,
+            epoch_end=snapshot(url) if snapshot else None,
             epoch_callback=lambda row: (
                 log(
                     f"  {arm} s{seed} lr={lr:g} epoch {row['epoch']} "
@@ -302,7 +304,7 @@ def _fit(
                 run.log(row, step=row["epoch"]) if run else None,
             ),
         )
-        return model, state, (run.url if run else None)
+        return model, state, url
     finally:
         if run:
             run.finish()
@@ -361,7 +363,9 @@ def policy_dir(run_dir: Path, arm: str, seed: int, epoch: int | None = None) -> 
     return run_dir / "policies" / name
 
 
-def snapshotter(run_dir: Path, arm: str, seed: int, lr: float, rows):
+def snapshotter(
+    run_dir: Path, arm: str, seed: int, lr: float, rows, wandb_url: str | None
+):
     """Save the weights at every epoch in ``SAVE_EPOCHS``.
 
     #101 and step 3 selected epoch 1 or 2 for every v4-only seed, and solve
@@ -397,7 +401,7 @@ def snapshotter(run_dir: Path, arm: str, seed: int, lr: float, rows):
                 "dropped_behaviours": sorted(DROP_BEHAVIOURS),
                 "provenance": provenance(),
             },
-            wandb_url=None,
+            wandb_url=wandb_url,
         )
 
     return save
@@ -422,8 +426,10 @@ def train(run_dir: Path, tasks, device, arms, seeds, chosen, use_wandb, log) -> 
                 f"mark28-{arm}-s{seed}-lr{lr:g}",
                 use_wandb,
                 log,
-                on_epoch_end=(
-                    snapshotter(run_dir, arm, seed, lr, rows) if SAVE_EPOCHS else None
+                snapshot=(
+                    partial(snapshotter, run_dir, arm, seed, lr, rows)
+                    if SAVE_EPOCHS
+                    else None
                 ),
             )
             save_policy(
