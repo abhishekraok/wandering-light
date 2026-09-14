@@ -327,7 +327,7 @@ Summed over the 18 cells of each three-seed arm: `keep_below` 0 / 186 / 7 (v4 on
 
 **Behaviours:** 17 of the 43 are verified by some arm across #134 and this run, 26 by none; the ablated arm verifies 17 (v4 only 13, v4 + world 14, random 15), three of them by no #134 arm: `bounds_cover_list_flag`, `n_minus_each`, `sum_negative`.
 
-**Longest verified solve:** a 46-op `bounds_cover_list_flag` program, `[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons [ mul ] fold`, against a 92-op catalogue witness; 0 failures in 10,000 sampler, 9,083 perturbed and 9,088 dense draws. Ablated seed 0 epochs 5 and 6 (one task each), random seed 0 epoch 4 (4 of the behaviour's 8 tasks) and 6 (2). It shares its first 41 ops with the two `bounds_cover_list_flag` shortcuts #134 recorded (44 and 46 ops) and differs in the reduction. No #134 cell found it.
+**Longest verified solve:** a 46-op `bounds_cover_list_flag` program, `[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons [ mul ] fold`, against a 92-op catalogue witness; 0 failures in 10,000 sampler, 9,083 perturbed and 9,088 dense draws. Ablated seed 0 epochs 5 and 6 (one task each), random seed 0 epoch 4 (4 of the behaviour's 8 tasks) and 6 (2). It shares its first 42 ops (through `map uncons`) with the two `bounds_cover_list_flag` shortcuts #134 recorded (44 and 46 ops) and differs in the reduction. No #134 cell found it.
 
 **Shortcuts:** 45 distinct solved programs over the six run dirs, 35 genuine, 10 shortcuts, 0 inconclusive; new here `aligned_matches` 26 and 28 ops and `drop_last` 29 ops.
 
