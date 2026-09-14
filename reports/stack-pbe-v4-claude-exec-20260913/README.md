@@ -33,7 +33,11 @@ on the Claude subscription, via `ClaudeExecTokenGenerator`
   *"Follow the instructions in the message. You have no tools and cannot run
   commands or code; answer from the message alone."* `--bare` would strip
   more but disables OAuth, and the subscription is the point. No
-  `--fallback-model`: a fallback would answer as another model.
+  `--fallback-model`: a fallback would answer as another model. The child's
+  environment drops `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`,
+  `ANTHROPIC_BASE_URL` and the Bedrock / Vertex / Foundry switches, which
+  would re-route the call away from the subscription without a trace (found
+  in review after the runs; none was set when they ran).
 - `--output-format json` returns the answer with input, cache-creation,
   cache-read, output and thinking tokens, the canonical model that served the
   call, the turn count and permission denials. All of it is under

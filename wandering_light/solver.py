@@ -1440,6 +1440,18 @@ class CodexExecTokenGenerator(TokenGenerator):
         return message
 
 
+# Variables that would send `claude -p` somewhere other than the logged-in
+# subscription: an API key or token bills the API, the provider switches route
+# to Bedrock / Vertex / Foundry, a base URL to anything at all.
+CLAUDE_EXEC_DROPPED_ENV = (
+    "ANTHROPIC_API_KEY",
+    "ANTHROPIC_AUTH_TOKEN",
+    "ANTHROPIC_BASE_URL",
+    "CLAUDE_CODE_USE_BEDROCK",
+    "CLAUDE_CODE_USE_VERTEX",
+    "CLAUDE_CODE_USE_FOUNDRY",
+)
+
 CLAUDE_EXEC_SYSTEM_PROMPT = (
     "Follow the instructions in the message. You have no tools and cannot run "
     "commands or code; answer from the message alone.\n"
@@ -1487,6 +1499,17 @@ class ClaudeExecTokenGenerator(TokenGenerator):
             Path(workdir) if workdir else Path(tempfile.mkdtemp(prefix="claude-exec-"))
         )
         self.workdir.mkdir(parents=True, exist_ok=True)
+        self.env = self.environment()
+
+    def environment(self) -> dict:
+        """The caller's environment minus anything that re-routes auth.
+
+        `--setting-sources ""` drops settings files, not variables: an exported
+        `ANTHROPIC_API_KEY` would make `claude -p` bill the API instead of the
+        subscription, silently (Codex review on PR #139). OAuth lives in the
+        home directory, which stays.
+        """
+        return {k: v for k, v in os.environ.items() if k not in CLAUDE_EXEC_DROPPED_ENV}
 
     def command(self) -> list[str]:
         argv = [
@@ -1602,6 +1625,7 @@ class ClaudeExecTokenGenerator(TokenGenerator):
             stderr=subprocess.PIPE,
             text=True,
             cwd=self.workdir,
+            env=self.env,
             start_new_session=True,
         )
         try:

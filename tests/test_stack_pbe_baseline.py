@@ -380,6 +380,43 @@ def test_claude_command_turns_every_tool_off_and_replaces_the_system_prompt(tmp_
     assert generator.workdir == tmp_path and not any(tmp_path.iterdir())
 
 
+def test_claude_runs_on_the_subscription_not_an_exported_api_key(tmp_path, monkeypatch):
+    """An API key in the caller's shell would re-route billing without a trace.
+
+    `--setting-sources ""` drops settings files, not environment variables
+    (Codex review on PR #139). The subscription's OAuth is read from the home
+    directory, which the child keeps.
+    """
+    import subprocess
+
+    from wandering_light.solver import ClaudeExecTokenGenerator
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-not-this")
+    monkeypatch.setenv("CLAUDE_CODE_USE_BEDROCK", "1")
+    monkeypatch.setenv("HOME", str(tmp_path))
+    generator = ClaudeExecTokenGenerator("opus", workdir=tmp_path)
+    assert "ANTHROPIC_API_KEY" not in generator.env
+    assert "CLAUDE_CODE_USE_BEDROCK" not in generator.env
+    assert generator.env["HOME"] == str(tmp_path)
+
+    seen = {}
+
+    class Done:
+        pid = 1
+        returncode = 0
+
+        def communicate(self, *args, **kwargs):
+            return ('{"result": "nil", "usage": {}, "modelUsage": {}}', "")
+
+    def popen(*args, **kwargs):
+        seen.update(kwargs)
+        return Done()
+
+    monkeypatch.setattr(subprocess, "Popen", popen)
+    generator.generate("anything")
+    assert seen["env"] is generator.env
+
+
 def test_claude_timeout_reports_its_own_failure_not_the_previous_call(
     tmp_path, monkeypatch
 ):
