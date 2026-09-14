@@ -1,7 +1,8 @@
 """Summarise the Opus effort arms (opus-effort-curve, #137) against astra's.
 
 Per arm: solved / memorised / shown-only / illegal, the `aligned_matches`
-sampler shortcut (see ../stack-pbe-v4-baseline-20260901), tool calls written
+sampler shortcut (an `eq?`-less solve, see ../stack-pbe-v4-baseline-20260901),
+tool calls written
 as text, thinking tokens per task (median, max), wall clock, solves by
 witness-length bucket and by author (v3's 40 hand-written behaviours against
 the 180 `gpt-5.6-sol` wrote). Each Opus arm is paired task-by-task with astra
@@ -83,7 +84,16 @@ def main() -> None:
         tools = sum(g.get("tool_calls", 0) for g in gen)
         wall = sum(g.get("seconds", 0) for g in gen)
         models = sorted({m for g in gen for m in g.get("model", [])})
-        am = sum(1 for x in c if x["behaviour"] == "aligned_matches" and solved(x))
+        # The head-of-first-list shortcut the aligned_matches sampler admits
+        # (../stack-pbe-v4-baseline-20260901): a program that never compares
+        # elements. A solve that carries `eq?` computes the behaviour.
+        am = sum(
+            1
+            for x in c
+            if x["behaviour"] == "aligned_matches"
+            and solved(x)
+            and "eq?" not in x["candidate"].split()
+        )
         med = (
             f"{statistics.median(reasoning):,.0f} ({max(reasoning):,})"
             if reasoning
