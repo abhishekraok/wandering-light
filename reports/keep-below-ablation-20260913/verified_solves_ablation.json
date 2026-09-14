@@ -1,0 +1,3151 @@
+{
+  "cells": [
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 32,
+        "11-20": 16,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "graded_total": 48,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": null,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260912/v4only",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 32,
+        "11-20": 16,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 48
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 41,
+        "11-20": 16,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 6
+      },
+      "graded_total": 63,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": null,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260912/v4only",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 41,
+        "11-20": 16,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 6
+      },
+      "verified_total": 63
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 31,
+        "11-20": 17,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "graded_total": 48,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": null,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260912/v4only",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 31,
+        "11-20": 15,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 46
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 32,
+        "11-20": 12,
+        "21-40": 1,
+        "41+": 0,
+        "6-10": 8
+      },
+      "graded_total": 53,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": null,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260912/mixed",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 32,
+        "11-20": 11,
+        "21-40": 1,
+        "41+": 0,
+        "6-10": 8
+      },
+      "verified_total": 52
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 60,
+        "11-20": 10,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 28
+      },
+      "graded_total": 105,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": null,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260912/mixed",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 60,
+        "11-20": 10,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 28
+      },
+      "verified_total": 104
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 51,
+        "11-20": 14,
+        "21-40": 5,
+        "41+": 0,
+        "6-10": 33
+      },
+      "graded_total": 103,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": null,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260912/mixed",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 51,
+        "11-20": 13,
+        "21-40": 5,
+        "41+": 0,
+        "6-10": 33
+      },
+      "verified_total": 102
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 43,
+        "11-20": 10,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 2
+      },
+      "graded_total": 55,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 2,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 43,
+        "11-20": 10,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 2
+      },
+      "verified_total": 55
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 57,
+        "11-20": 11,
+        "21-40": 5,
+        "41+": 2,
+        "6-10": 10
+      },
+      "graded_total": 85,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 57,
+        "11-20": 11,
+        "21-40": 5,
+        "41+": 1,
+        "6-10": 10
+      },
+      "verified_total": 84
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 58,
+        "11-20": 13,
+        "21-40": 10,
+        "41+": 0,
+        "6-10": 13
+      },
+      "graded_total": 94,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 4,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 58,
+        "11-20": 13,
+        "21-40": 10,
+        "41+": 0,
+        "6-10": 13
+      },
+      "verified_total": 94
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 60,
+        "11-20": 13,
+        "21-40": 9,
+        "41+": 1,
+        "6-10": 1
+      },
+      "graded_total": 84,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 60,
+        "11-20": 13,
+        "21-40": 9,
+        "41+": 0,
+        "6-10": 1
+      },
+      "verified_total": 83
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 60,
+        "11-20": 17,
+        "21-40": 6,
+        "41+": 2,
+        "6-10": 6
+      },
+      "graded_total": 91,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 60,
+        "11-20": 13,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 6
+      },
+      "verified_total": 86
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 42,
+        "11-20": 14,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "graded_total": 56,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 1,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 42,
+        "11-20": 14,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 56
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 56,
+        "11-20": 13,
+        "21-40": 3,
+        "41+": 1,
+        "6-10": 4
+      },
+      "graded_total": 77,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 56,
+        "11-20": 13,
+        "21-40": 3,
+        "41+": 1,
+        "6-10": 4
+      },
+      "verified_total": 77
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 51,
+        "11-20": 16,
+        "21-40": 3,
+        "41+": 0,
+        "6-10": 4
+      },
+      "graded_total": 74,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 4,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 51,
+        "11-20": 16,
+        "21-40": 3,
+        "41+": 0,
+        "6-10": 4
+      },
+      "verified_total": 74
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 56,
+        "11-20": 17,
+        "21-40": 5,
+        "41+": 0,
+        "6-10": 2
+      },
+      "graded_total": 80,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 56,
+        "11-20": 14,
+        "21-40": 5,
+        "41+": 0,
+        "6-10": 2
+      },
+      "verified_total": 77
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 52,
+        "11-20": 13,
+        "21-40": 3,
+        "41+": 0,
+        "6-10": 4
+      },
+      "graded_total": 72,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 52,
+        "11-20": 13,
+        "21-40": 3,
+        "41+": 0,
+        "6-10": 4
+      },
+      "verified_total": 72
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 40,
+        "11-20": 14,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "graded_total": 54,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 2,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 40,
+        "11-20": 13,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 53
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 53,
+        "11-20": 12,
+        "21-40": 1,
+        "41+": 0,
+        "6-10": 14
+      },
+      "graded_total": 80,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 53,
+        "11-20": 12,
+        "21-40": 1,
+        "41+": 0,
+        "6-10": 14
+      },
+      "verified_total": 80
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 55,
+        "11-20": 12,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 15
+      },
+      "graded_total": 89,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 4,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 55,
+        "11-20": 12,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 15
+      },
+      "verified_total": 88
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 58,
+        "11-20": 12,
+        "21-40": 7,
+        "41+": 1,
+        "6-10": 14
+      },
+      "graded_total": 92,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 58,
+        "11-20": 12,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 14
+      },
+      "verified_total": 90
+    },
+    {
+      "arm": "v4only",
+      "graded": {
+        "1-5": 49,
+        "11-20": 15,
+        "21-40": 5,
+        "41+": 1,
+        "6-10": 6
+      },
+      "graded_total": 76,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/v4only",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 49,
+        "11-20": 15,
+        "21-40": 5,
+        "41+": 0,
+        "6-10": 6
+      },
+      "verified_total": 75
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 31,
+        "11-20": 15,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 7
+      },
+      "graded_total": 53,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 1,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 31,
+        "11-20": 15,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 7
+      },
+      "verified_total": 53
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 47,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 21
+      },
+      "graded_total": 89,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 47,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 21
+      },
+      "verified_total": 89
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 53,
+        "11-20": 16,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 11
+      },
+      "graded_total": 86,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 4,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 53,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 11
+      },
+      "verified_total": 85
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 53,
+        "11-20": 18,
+        "21-40": 9,
+        "41+": 0,
+        "6-10": 29
+      },
+      "graded_total": 109,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 52,
+        "11-20": 14,
+        "21-40": 9,
+        "41+": 0,
+        "6-10": 29
+      },
+      "verified_total": 104
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 45,
+        "11-20": 13,
+        "21-40": 7,
+        "41+": 0,
+        "6-10": 12
+      },
+      "graded_total": 77,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 45,
+        "11-20": 11,
+        "21-40": 7,
+        "41+": 0,
+        "6-10": 12
+      },
+      "verified_total": 75
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 32,
+        "11-20": 11,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "graded_total": 43,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 1,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 32,
+        "11-20": 11,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 43
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 37,
+        "11-20": 13,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 16
+      },
+      "graded_total": 66,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 2,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 37,
+        "11-20": 11,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 16
+      },
+      "verified_total": 64
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 44,
+        "11-20": 14,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 31
+      },
+      "graded_total": 89,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 44,
+        "11-20": 14,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 31
+      },
+      "verified_total": 89
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 59,
+        "11-20": 15,
+        "21-40": 4,
+        "41+": 1,
+        "6-10": 32
+      },
+      "graded_total": 111,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 59,
+        "11-20": 14,
+        "21-40": 4,
+        "41+": 0,
+        "6-10": 32
+      },
+      "verified_total": 109
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 46,
+        "11-20": 13,
+        "21-40": 2,
+        "41+": 0,
+        "6-10": 9
+      },
+      "graded_total": 70,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 46,
+        "11-20": 13,
+        "21-40": 2,
+        "41+": 0,
+        "6-10": 9
+      },
+      "verified_total": 70
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 31,
+        "11-20": 17,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 11
+      },
+      "graded_total": 59,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 1,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 31,
+        "11-20": 15,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 11
+      },
+      "verified_total": 57
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 49,
+        "11-20": 13,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 20
+      },
+      "graded_total": 82,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 2,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 49,
+        "11-20": 13,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 20
+      },
+      "verified_total": 82
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 50,
+        "11-20": 21,
+        "21-40": 6,
+        "41+": 2,
+        "6-10": 18
+      },
+      "graded_total": 97,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 4,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 50,
+        "11-20": 20,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 18
+      },
+      "verified_total": 94
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 54,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 15
+      },
+      "graded_total": 91,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 54,
+        "11-20": 14,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 15
+      },
+      "verified_total": 90
+    },
+    {
+      "arm": "mixed",
+      "graded": {
+        "1-5": 48,
+        "11-20": 16,
+        "21-40": 5,
+        "41+": 2,
+        "6-10": 11
+      },
+      "graded_total": 82,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/stack-machine-training-data-07b097/checkpoints/step3-20260913-epochs/mixed",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 48,
+        "11-20": 15,
+        "21-40": 5,
+        "41+": 1,
+        "6-10": 11
+      },
+      "verified_total": 80
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 31,
+        "11-20": 17,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "graded_total": 48,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 1,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 31,
+        "11-20": 17,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 48
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 45,
+        "11-20": 13,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "graded_total": 58,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 2,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 45,
+        "11-20": 12,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 57
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 45,
+        "11-20": 12,
+        "21-40": 1,
+        "41+": 0,
+        "6-10": 0
+      },
+      "graded_total": 58,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 45,
+        "11-20": 12,
+        "21-40": 1,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 58
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 45,
+        "11-20": 14,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 14
+      },
+      "graded_total": 80,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 4,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 45,
+        "11-20": 14,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 14
+      },
+      "verified_total": 80
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 52,
+        "11-20": 16,
+        "21-40": 8,
+        "41+": 1,
+        "6-10": 4
+      },
+      "graded_total": 81,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 52,
+        "11-20": 12,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 4
+      },
+      "verified_total": 75
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 39,
+        "11-20": 18,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 0
+      },
+      "graded_total": 64,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 39,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 0
+      },
+      "verified_total": 61
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 40,
+        "11-20": 15,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "graded_total": 55,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 1,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 40,
+        "11-20": 15,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 55
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 40,
+        "11-20": 17,
+        "21-40": 0,
+        "41+": 2,
+        "6-10": 5
+      },
+      "graded_total": 64,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 2,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 40,
+        "11-20": 17,
+        "21-40": 0,
+        "41+": 2,
+        "6-10": 5
+      },
+      "verified_total": 64
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 44,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 7
+      },
+      "graded_total": 73,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 44,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 7
+      },
+      "verified_total": 73
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 60,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 8
+      },
+      "graded_total": 90,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 4,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 60,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 1,
+        "6-10": 8
+      },
+      "verified_total": 90
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 60,
+        "11-20": 24,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 13
+      },
+      "graded_total": 103,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 60,
+        "11-20": 21,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 13
+      },
+      "verified_total": 100
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 44,
+        "11-20": 15,
+        "21-40": 9,
+        "41+": 1,
+        "6-10": 25
+      },
+      "graded_total": 94,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 44,
+        "11-20": 15,
+        "21-40": 9,
+        "41+": 1,
+        "6-10": 25
+      },
+      "verified_total": 94
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 31,
+        "11-20": 18,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "graded_total": 49,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 1,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 31,
+        "11-20": 16,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 47
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 50,
+        "11-20": 14,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 1
+      },
+      "graded_total": 65,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 2,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 50,
+        "11-20": 14,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 1
+      },
+      "verified_total": 65
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 51,
+        "11-20": 17,
+        "21-40": 4,
+        "41+": 0,
+        "6-10": 11
+      },
+      "graded_total": 83,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 51,
+        "11-20": 16,
+        "21-40": 4,
+        "41+": 0,
+        "6-10": 11
+      },
+      "verified_total": 82
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 57,
+        "11-20": 17,
+        "21-40": 3,
+        "41+": 0,
+        "6-10": 2
+      },
+      "graded_total": 79,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 4,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 57,
+        "11-20": 16,
+        "21-40": 3,
+        "41+": 0,
+        "6-10": 2
+      },
+      "verified_total": 78
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 59,
+        "11-20": 18,
+        "21-40": 4,
+        "41+": 0,
+        "6-10": 3
+      },
+      "graded_total": 84,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 59,
+        "11-20": 17,
+        "21-40": 4,
+        "41+": 0,
+        "6-10": 3
+      },
+      "verified_total": 83
+    },
+    {
+      "arm": "ablated",
+      "graded": {
+        "1-5": 51,
+        "11-20": 14,
+        "21-40": 9,
+        "41+": 1,
+        "6-10": 4
+      },
+      "graded_total": 79,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "checkpoints/step3-20260913-ablation/ablated",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 51,
+        "11-20": 14,
+        "21-40": 9,
+        "41+": 0,
+        "6-10": 4
+      },
+      "verified_total": 78
+    },
+    {
+      "arm": "random",
+      "graded": {
+        "1-5": 31,
+        "11-20": 16,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 3
+      },
+      "graded_total": 50,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 1,
+      "run_dir": "checkpoints/step3-20260913-ablation/random",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 31,
+        "11-20": 16,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 3
+      },
+      "verified_total": 50
+    },
+    {
+      "arm": "random",
+      "graded": {
+        "1-5": 36,
+        "11-20": 13,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 19
+      },
+      "graded_total": 68,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 2,
+      "run_dir": "checkpoints/step3-20260913-ablation/random",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 36,
+        "11-20": 12,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 19
+      },
+      "verified_total": 67
+    },
+    {
+      "arm": "random",
+      "graded": {
+        "1-5": 41,
+        "11-20": 14,
+        "21-40": 0,
+        "41+": 1,
+        "6-10": 22
+      },
+      "graded_total": 78,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/step3-20260913-ablation/random",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 41,
+        "11-20": 13,
+        "21-40": 0,
+        "41+": 1,
+        "6-10": 22
+      },
+      "verified_total": 77
+    },
+    {
+      "arm": "random",
+      "graded": {
+        "1-5": 44,
+        "11-20": 14,
+        "21-40": 4,
+        "41+": 6,
+        "6-10": 20
+      },
+      "graded_total": 88,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 4,
+      "run_dir": "checkpoints/step3-20260913-ablation/random",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 44,
+        "11-20": 13,
+        "21-40": 4,
+        "41+": 5,
+        "6-10": 20
+      },
+      "verified_total": 86
+    },
+    {
+      "arm": "random",
+      "graded": {
+        "1-5": 52,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 3,
+        "6-10": 27
+      },
+      "graded_total": 103,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 5,
+      "run_dir": "checkpoints/step3-20260913-ablation/random",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 52,
+        "11-20": 15,
+        "21-40": 6,
+        "41+": 2,
+        "6-10": 27
+      },
+      "verified_total": 102
+    },
+    {
+      "arm": "random",
+      "graded": {
+        "1-5": 54,
+        "11-20": 15,
+        "21-40": 10,
+        "41+": 4,
+        "6-10": 25
+      },
+      "graded_total": 108,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 6,
+      "run_dir": "checkpoints/step3-20260913-ablation/random",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 54,
+        "11-20": 15,
+        "21-40": 10,
+        "41+": 4,
+        "6-10": 25
+      },
+      "verified_total": 108
+    }
+  ],
+  "draws_per_mode": 10000,
+  "min_tested": 500,
+  "modes": [
+    "sampler",
+    "perturbed",
+    "dense"
+  ],
+  "programs": [
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                1,
+                -1,
+                2,
+                -2,
+                -2,
+                2,
+                0,
+                1,
+                -2
+              ],
+              [
+                -2,
+                0,
+                -2,
+                -1,
+                -2,
+                2,
+                1,
+                -1,
+                -1,
+                -1
+              ]
+            ],
+            "reference": [
+              -2
+            ]
+          },
+          "failed": 772,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 885,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "tested": 10000
+        }
+      },
+      "program": "[ 0 [ add ] fold swap 0 [ add ] fold lt? ] [ drop ] [ swap drop ] ifte uncons swap drop quote",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                2,
+                2,
+                0,
+                2,
+                0,
+                1,
+                -2,
+                0,
+                -2
+              ],
+              [
+                2,
+                1,
+                1,
+                -1,
+                0,
+                0,
+                -2,
+                2,
+                -2,
+                2
+              ]
+            ],
+            "reference": [
+              0
+            ]
+          },
+          "failed": 774,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 885,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "tested": 10000
+        }
+      },
+      "program": "[ 0 [ drop 1 add ] fold swap 0 [ add ] fold lt? ] [ drop ] [ swap drop ] ifte uncons swap drop quote",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                0
+              ],
+              [
+                2
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 625,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 806,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "tested": 10000
+        }
+      },
+      "program": "nil cons [ swap uncons swap uncons swap [ [ swap ] dip [ eq? ] [ drop swap drop ] [ drop drop ] ifte ] dip swap cons ] fold",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                2,
+                0,
+                2
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 767,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                2,
+                0
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 84,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                0,
+                2,
+                1,
+                3
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 401,
+          "tested": 10000
+        }
+      },
+      "program": "0 [ lt? ] swap cons filter null? [ ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                2,
+                0,
+                2
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 767,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                2,
+                0
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 84,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                0,
+                2,
+                1,
+                3
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 401,
+          "tested": 10000
+        }
+      },
+      "program": "[ 0 lt? ] filter null? [ ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              []
+            ],
+            "reference": 1
+          },
+          "failed": 1127,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              []
+            ],
+            "reference": 1
+          },
+          "failed": 1685,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                6,
+                4
+              ]
+            ],
+            "reference": 1
+          },
+          "failed": 464,
+          "tested": 10000
+        }
+      },
+      "program": "uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "bounds_cover_list_flag",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9088
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9083
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons [ mul ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "bounds_cover_list_flag",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -2,
+                1
+              ],
+              0,
+              1
+            ],
+            "reference": 0
+          },
+          "failed": 2493,
+          "tested": 9088
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -8
+              ],
+              -5,
+              16
+            ],
+            "reference": 0
+          },
+          "failed": 2130,
+          "tested": 9083
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                7,
+                -1,
+                0,
+                -7
+              ],
+              -1,
+              6
+            ],
+            "reference": 0
+          },
+          "failed": 2586,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons drop uncons swap drop",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "bounds_cover_list_flag",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                -2,
+                0,
+                -2,
+                2,
+                -1
+              ],
+              -1,
+              2
+            ],
+            "reference": 0
+          },
+          "failed": 1579,
+          "tested": 9088
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                4,
+                7,
+                7,
+                19,
+                11,
+                -20
+              ],
+              -12,
+              7
+            ],
+            "reference": 0
+          },
+          "failed": 1199,
+          "tested": 9083
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                7,
+                -3,
+                8,
+                -5,
+                -9
+              ],
+              6,
+              7
+            ],
+            "reference": 0
+          },
+          "failed": 2534,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons swap drop",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "capped_sum",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ over lt? ] [ swap drop ] [ drop ] ifte ] swap cons map 0 [ add ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "count_in_range",
+      "program": "[ [ swap drop lt? ] [ [ drop swap lt? ] [ drop drop drop 1 add ] [ drop drop drop ] ifte ] [ drop drop drop ] ifte ] swap cons swap cons 0 swap fold",
+      "verdict": "genuine",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "drop_last",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                2,
+                -1,
+                0,
+                2,
+                -1,
+                2,
+                2,
+                -1,
+                -2
+              ]
+            ],
+            "reference": [
+              2,
+              -1,
+              0,
+              2,
+              -1,
+              2,
+              2,
+              -1
+            ]
+          },
+          "failed": 3982,
+          "tested": 9116
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                7,
+                -18,
+                6,
+                -18
+              ]
+            ],
+            "reference": [
+              0,
+              7,
+              -18,
+              6
+            ]
+          },
+          "failed": 913,
+          "tested": 9096
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                7,
+                -1,
+                0,
+                -7,
+                9,
+                -1
+              ]
+            ],
+            "reference": [
+              7,
+              -1,
+              0,
+              -7,
+              9
+            ]
+          },
+          "failed": 1214,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold uncons [ [ over 0 eq? ] [ swap drop ] [ drop ] ifte ] swap cons map nil [ cons ] fold",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "drop_last",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9116
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9096
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold uncons [ [ over eq? ] [ swap drop ] [ drop ] ifte ] swap cons map nil [ cons ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "drop_last",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9116
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9096
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold uncons [ nil [ cons ] fold ] dip drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "drop_last",
+      "program": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "genuine",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "drop_last",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9116
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9096
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold uncons nil swap cons cat nil [ cons ] fold uncons drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "drop_last",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9116
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9096
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold uncons quote cat nil [ cons ] fold uncons drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "drop_last",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9116
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9096
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold uncons swap nil [ cons ] fold swap drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "farther_choice_from_target",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ over swap sub dup mul ] dip swap [ over swap sub dup mul ] dip lt? ] [ drop swap drop ] [ swap drop swap drop ] ifte",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "increment_each",
+      "program": "[ 1 add ] map",
+      "verdict": "genuine",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "increment_each",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ drop 1 add ] 0 cons map",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "increment_each",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold [ 1 add ] map nil [ cons ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "keep_below",
+      "program": "[ lt? ] swap cons filter",
+      "verdict": "genuine",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "keep_negative",
+      "program": "[ 0 lt? ] filter",
+      "verdict": "genuine",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "keep_negative",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                -2,
+                1,
+                -2,
+                -1,
+                2,
+                -2
+              ]
+            ],
+            "reference": [
+              -2,
+              -2,
+              -1,
+              -2
+            ]
+          },
+          "failed": 5736,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                0,
+                3,
+                2,
+                11,
+                -5,
+                -16,
+                -2,
+                -14,
+                1
+              ]
+            ],
+            "reference": [
+              -5,
+              -16,
+              -2,
+              -14
+            ]
+          },
+          "failed": 1122,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                -6,
+                5,
+                0
+              ]
+            ],
+            "reference": [
+              -6
+            ]
+          },
+          "failed": 2665,
+          "tested": 10000
+        }
+      },
+      "program": "[ 0 swap lt? [ ] [ drop false ] [ drop true ] ifte ] filter",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "keep_zeros",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "0 [ drop 0 eq? ] swap cons filter",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "keep_zeros",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "0 [ eq? ] swap cons filter",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "keep_zeros",
+      "program": "[ 0 eq? ] filter",
+      "verdict": "genuine",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "keep_zeros",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ 0 eq? ] filter ] i",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "keep_zeros",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ dup 1 1 add mul sub 0 eq? ] filter",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "keep_zeros",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold [ 0 eq? ] filter",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "keep_zeros",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold [ dup 1 1 add mul sub 0 eq? ] filter",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "min_pair",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ over lt? ] [ swap ] [ ] ifte drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "n_minus_each",
+      "program": "[ swap sub ] swap cons map",
+      "verdict": "genuine",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "n_minus_each",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "dup [ swap sub ] swap drop swap cons map",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "negate_each",
+      "program": "[ 0 swap sub ] map",
+      "verdict": "genuine",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "negate_each",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ dup 0 1 add div 1 1 add mul sub ] map",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "negate_each",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ dup 1 1 add mul sub ] map",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "negate_each",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ 0 swap sub cons ] fold nil [ cons ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "negate_each",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold [ dup 1 1 add mul sub ] map nil [ cons ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "push_back",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "quote cat",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "reverse",
+      "program": "nil [ cons ] fold",
+      "verdict": "genuine",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "rotate_left",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9116
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 9096
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "uncons quote cat",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "shared_value_occurrences",
+      "program": "[ swap [ eq? ] swap cons filter null? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter 0 [ drop 1 add ] fold",
+      "verdict": "genuine",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "sum_negative",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "genuine"
+    }
+  ],
+  "seed": 134
+}
