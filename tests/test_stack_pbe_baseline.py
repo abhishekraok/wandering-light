@@ -131,6 +131,7 @@ def test_every_provider_is_reachable_by_name():
         "GeminiTokenGenerator",
         "OllamaTokenGenerator",
         "CodexExecTokenGenerator",
+        "ClaudeExecTokenGenerator",
     ):
         assert hasattr(solver_module, name)
     generator = solver_module.AnthropicTokenGenerator("claude-opus-5", effort="low")
@@ -311,3 +312,193 @@ def test_codex_launches_in_its_own_process_group(tmp_path, monkeypatch):
     assert generator.generate("prompt") == "dup"
     assert seen["start_new_session"] is True
     assert seen["env"]["CODEX_HOME"] == str(tmp_path)
+
+
+def test_claude_result_yields_the_answer_and_flags_a_tool_call_written_as_text():
+    """`claude -p --output-format json` is one object; the answer is `result`.
+
+    Usage is renamed to the codex keys so one analysis reads both, and a tool
+    call the model wrote into its answer -- it has no tool to call -- is
+    flagged: the probe for opus-effort-curve (#137) saw exactly that.
+    """
+    import json
+
+    from wandering_light.solver import ClaudeExecTokenGenerator
+
+    def result(text, thinking=10819):
+        return json.dumps(
+            {
+                "type": "result",
+                "is_error": False,
+                "num_turns": 1,
+                "stop_reason": "end_turn",
+                "duration_api_ms": 135241,
+                "result": text,
+                "usage": {
+                    "input_tokens": 2,
+                    "cache_creation_input_tokens": 4187,
+                    "cache_read_input_tokens": 0,
+                    "output_tokens": 10881,
+                    "output_tokens_details": {"thinking_tokens": thinking},
+                },
+                "modelUsage": {"claude-opus-5": {"outputTokens": 10881}},
+                "permission_denials": [],
+            }
+        )
+
+    message, meta = ClaudeExecTokenGenerator.parse_result(result("0 [ add ] fold"))
+    assert message == "0 [ add ] fold"
+    assert meta["tool_calls"] == 0 and meta["text_tool_call"] is False
+    assert meta["errors"] == []
+    assert meta["usage"]["input_tokens"] == 4189
+    assert meta["usage"]["output_tokens"] == 10881
+    assert meta["usage"]["reasoning_output_tokens"] == 10819
+    assert meta["model"] == ["claude-opus-5"]
+
+    call = '{"name":"Bash","input":{"command":"ls; grep -rl uncons ."}}'
+    message, meta = ClaudeExecTokenGenerator.parse_result(result(call))
+    assert message == call
+    assert meta["text_tool_call"] is True
+
+    _, meta = ClaudeExecTokenGenerator.parse_result("Not logged in")
+    assert meta["errors"] and "unparseable" in meta["errors"][0]
+
+
+def test_claude_command_turns_every_tool_off_and_replaces_the_system_prompt(tmp_path):
+    from wandering_light.solver import ClaudeExecTokenGenerator
+
+    generator = ClaudeExecTokenGenerator("opus", effort="xhigh", workdir=tmp_path)
+    argv = generator.command()
+    assert argv[:2] == ["claude", "-p"]
+    assert argv[argv.index("--tools") + 1] == ""
+    assert "--strict-mcp-config" in argv and "--no-session-persistence" in argv
+    assert argv[argv.index("--setting-sources") + 1] == ""
+    assert "no tools" in argv[argv.index("--system-prompt") + 1]
+    assert argv[argv.index("--effort") + 1] == "xhigh"
+    assert "--fallback-model" not in argv, "a fallback would answer as another model"
+    assert "--bare" not in argv, "--bare disables the subscription's OAuth"
+    assert generator.workdir == tmp_path and not any(tmp_path.iterdir())
+
+
+def test_claude_runs_on_the_subscription_not_an_exported_api_key(tmp_path, monkeypatch):
+    """An API key in the caller's shell would re-route billing without a trace.
+
+    `--setting-sources ""` drops settings files, not environment variables
+    (Codex review on PR #139). The subscription's OAuth is read from the home
+    directory, which the child keeps.
+    """
+    import subprocess
+
+    from wandering_light.solver import ClaudeExecTokenGenerator
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-not-this")
+    monkeypatch.setenv("CLAUDE_CODE_USE_BEDROCK", "1")
+    monkeypatch.setenv("HOME", str(tmp_path))
+    generator = ClaudeExecTokenGenerator("opus", workdir=tmp_path)
+    assert "ANTHROPIC_API_KEY" not in generator.env
+    assert "CLAUDE_CODE_USE_BEDROCK" not in generator.env
+    assert generator.env["HOME"] == str(tmp_path)
+
+    seen = {}
+
+    class Done:
+        pid = 1
+        returncode = 0
+
+        def communicate(self, *args, **kwargs):
+            return ('{"result": "nil", "usage": {}, "modelUsage": {}}', "")
+
+    def popen(*args, **kwargs):
+        seen.update(kwargs)
+        return Done()
+
+    monkeypatch.setattr(subprocess, "Popen", popen)
+    generator.generate("anything")
+    assert seen["env"] is generator.env
+
+
+def test_claude_timeout_reports_its_own_failure_not_the_previous_call(
+    tmp_path, monkeypatch
+):
+    """Same contract as the codex generator: no stale telemetry on a failed call."""
+    import subprocess
+
+    from wandering_light.solver import ClaudeExecTokenGenerator, CodexExecTokenGenerator
+
+    generator = ClaudeExecTokenGenerator("opus", workdir=tmp_path, timeout=0.5)
+    generator.last_meta = {"usage": {"input_tokens": 4189}, "seconds": 99.0}
+    killed = []
+
+    class Hanging:
+        pid = 4242
+        returncode = None
+
+        def communicate(self, *args, **kwargs):
+            if "timeout" in kwargs or args[1:]:
+                raise subprocess.TimeoutExpired("claude", 0.5)
+            return ("", "")
+
+    seen = {}
+
+    def popen(*args, **kwargs):
+        seen.update(kwargs)
+        return Hanging()
+
+    monkeypatch.setattr(subprocess, "Popen", popen)
+    monkeypatch.setattr(
+        CodexExecTokenGenerator, "kill_group", staticmethod(killed.append)
+    )
+    with pytest.raises(subprocess.TimeoutExpired):
+        generator.generate("anything")
+    assert killed
+    assert seen["start_new_session"] is True and seen["cwd"] == tmp_path
+    assert generator.last_meta["timed_out"] is True
+    assert "usage" not in generator.last_meta
+
+
+@pytest.mark.parametrize("provider", ["codex", "claude"])
+def test_an_interrupted_call_kills_the_process_group(tmp_path, monkeypatch, provider):
+    """Ctrl-C must not leave the model working in its own session.
+
+    The baseline turns SIGTERM into KeyboardInterrupt and writes partial
+    results; a child started with `start_new_session` does not see the
+    signal and would keep spending tokens past the run (Codex review on
+    PR #139). Same contract as the timeout path.
+    """
+    import subprocess
+
+    from wandering_light.solver import ClaudeExecTokenGenerator, CodexExecTokenGenerator
+
+    if provider == "codex":
+        (tmp_path / "auth.json").write_text("{}")
+        generator = CodexExecTokenGenerator("gpt-6-astra", codex_home=tmp_path)
+    else:
+        generator = ClaudeExecTokenGenerator("opus", workdir=tmp_path)
+    generator.last_meta = {"usage": {"input_tokens": 1}, "seconds": 99.0}
+    killed = []
+
+    class Cancelled(BaseException):
+        """Stands in for KeyboardInterrupt, which pytest itself intercepts."""
+
+    class Interrupted:
+        pid = 4242
+        returncode = None
+        reaped = False
+
+        def communicate(self, *args, **kwargs):
+            if "timeout" in kwargs or args[1:]:
+                raise Cancelled
+            self.reaped = True
+            return ("", "")
+
+    child = Interrupted()
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: child)
+    monkeypatch.setattr(
+        CodexExecTokenGenerator, "kill_group", staticmethod(killed.append)
+    )
+    with pytest.raises(Cancelled):
+        generator.generate("anything")
+    assert killed == [child] and child.reaped
+    assert generator.last_meta["errors"] == ["interrupted"]
+    assert "usage" not in generator.last_meta
+    assert "timed_out" not in generator.last_meta

@@ -186,6 +186,11 @@ def list_models(provider: str) -> int:
         from ollama import Client
 
         names = sorted(m["model"] for m in Client().list()["models"])
+    elif provider == "claude":
+        # `claude -p` takes an alias or a full name and has no list endpoint on
+        # a subscription; the model that served each call is recorded under
+        # `generation[].model` in the output JSON instead.
+        names = ["opus, sonnet, fable (aliases), or a full name such as claude-opus-5"]
     else:
         import anthropic
 
@@ -278,7 +283,7 @@ def solve_with_llm(task: Task, generator, samples: int) -> list[str]:
 
 
 ERRORS: dict[int, list[str]] = {}
-# Per-call cost and tool attempts, for generators that report them (codex).
+# Per-call cost and tool attempts, for generators that report them (codex, claude).
 GENERATION: dict[int, list[dict]] = {}
 
 
@@ -306,7 +311,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--model", default="claude-opus-5")
     parser.add_argument(
         "--provider",
-        choices=("openai", "gemini", "ollama", "anthropic", "codex"),
+        choices=("openai", "gemini", "ollama", "anthropic", "codex", "claude"),
         default="anthropic",
     )
     parser.add_argument(
@@ -378,6 +383,12 @@ def main(argv: list[str] | None = None) -> int:
                 num_ctx=args.ollama_num_ctx,
             ),
             "anthropic": lambda: solver_module.AnthropicTokenGenerator(
+                args.model, effort=args.effort
+            ),
+            # An Anthropic model through `claude -p` on a subscription, trimmed
+            # the same way; records thinking tokens, the model that served the
+            # call, and tool calls written as text (opus-effort-curve, #137).
+            "claude": lambda: solver_module.ClaudeExecTokenGenerator(
                 args.model, effort=args.effort
             ),
         }
