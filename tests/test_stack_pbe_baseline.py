@@ -417,3 +417,51 @@ def test_claude_timeout_reports_its_own_failure_not_the_previous_call(
     assert seen["start_new_session"] is True and seen["cwd"] == tmp_path
     assert generator.last_meta["timed_out"] is True
     assert "usage" not in generator.last_meta
+
+
+@pytest.mark.parametrize("provider", ["codex", "claude"])
+def test_an_interrupted_call_kills_the_process_group(tmp_path, monkeypatch, provider):
+    """Ctrl-C must not leave the model working in its own session.
+
+    The baseline turns SIGTERM into KeyboardInterrupt and writes partial
+    results; a child started with `start_new_session` does not see the
+    signal and would keep spending tokens past the run (Codex review on
+    PR #139). Same contract as the timeout path.
+    """
+    import subprocess
+
+    from wandering_light.solver import ClaudeExecTokenGenerator, CodexExecTokenGenerator
+
+    if provider == "codex":
+        (tmp_path / "auth.json").write_text("{}")
+        generator = CodexExecTokenGenerator("gpt-6-astra", codex_home=tmp_path)
+    else:
+        generator = ClaudeExecTokenGenerator("opus", workdir=tmp_path)
+    generator.last_meta = {"usage": {"input_tokens": 1}, "seconds": 99.0}
+    killed = []
+
+    class Cancelled(BaseException):
+        """Stands in for KeyboardInterrupt, which pytest itself intercepts."""
+
+    class Interrupted:
+        pid = 4242
+        returncode = None
+        reaped = False
+
+        def communicate(self, *args, **kwargs):
+            if "timeout" in kwargs or args[1:]:
+                raise Cancelled
+            self.reaped = True
+            return ("", "")
+
+    child = Interrupted()
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: child)
+    monkeypatch.setattr(
+        CodexExecTokenGenerator, "kill_group", staticmethod(killed.append)
+    )
+    with pytest.raises(Cancelled):
+        generator.generate("anything")
+    assert killed == [child] and child.reaped
+    assert generator.last_meta["errors"] == ["interrupted"]
+    assert "usage" not in generator.last_meta
+    assert "timed_out" not in generator.last_meta

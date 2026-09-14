@@ -1386,6 +1386,16 @@ class CodexExecTokenGenerator(TokenGenerator):
         except (ProcessLookupError, PermissionError):
             process.kill()
 
+    def abandon(self, process, started: float, reason: str) -> None:
+        """Kill the child's process group, reap it, and record why."""
+        self.kill_group(process)
+        process.communicate()
+        self.last_meta = {
+            "tool_calls": 0,
+            "errors": [reason],
+            "seconds": round(time.time() - started, 1),
+        }
+
     def generate(self, prompt: str) -> str:
         import subprocess
 
@@ -1409,14 +1419,15 @@ class CodexExecTokenGenerator(TokenGenerator):
         try:
             stdout, stderr = process.communicate(prompt, timeout=self.timeout)
         except subprocess.TimeoutExpired:
-            self.kill_group(process)
-            process.communicate()
-            self.last_meta = {
-                "tool_calls": 0,
-                "errors": [f"timeout after {self.timeout:.0f}s"],
-                "seconds": round(time.time() - started, 1),
-                "timed_out": True,
-            }
+            self.abandon(process, started, f"timeout after {self.timeout:.0f}s")
+            self.last_meta["timed_out"] = True
+            raise
+        except BaseException:
+            # Ctrl-C or SIGTERM (the baseline turns it into KeyboardInterrupt
+            # and writes partial results). The child sits in its own session
+            # and would outlive the run, still spending tokens (Codex review
+            # on PR #139).
+            self.abandon(process, started, "interrupted")
             raise
         message, meta = self.parse_events(stdout.splitlines())
         meta["seconds"] = round(time.time() - started, 1)
@@ -1566,6 +1577,17 @@ class ClaudeExecTokenGenerator(TokenGenerator):
             meta["errors"].append(str(message)[:120])
         return message, meta
 
+    def abandon(self, process, started: float, reason: str) -> None:
+        """Kill the child's process group, reap it, and record why."""
+        CodexExecTokenGenerator.kill_group(process)
+        process.communicate()
+        self.last_meta = {
+            "tool_calls": 0,
+            "text_tool_call": False,
+            "errors": [reason],
+            "seconds": round(time.time() - started, 1),
+        }
+
     def generate(self, prompt: str) -> str:
         import subprocess
 
@@ -1585,15 +1607,13 @@ class ClaudeExecTokenGenerator(TokenGenerator):
         try:
             stdout, stderr = process.communicate(prompt, timeout=self.timeout)
         except subprocess.TimeoutExpired:
-            CodexExecTokenGenerator.kill_group(process)
-            process.communicate()
-            self.last_meta = {
-                "tool_calls": 0,
-                "text_tool_call": False,
-                "errors": [f"timeout after {self.timeout:.0f}s"],
-                "seconds": round(time.time() - started, 1),
-                "timed_out": True,
-            }
+            self.abandon(process, started, f"timeout after {self.timeout:.0f}s")
+            self.last_meta["timed_out"] = True
+            raise
+        except BaseException:
+            # Same as the codex generator: an interrupted run must not leave
+            # the model working in its own session (Codex review on PR #139).
+            self.abandon(process, started, "interrupted")
             raise
         message, meta = self.parse_result(stdout)
         meta["seconds"] = round(time.time() - started, 1)

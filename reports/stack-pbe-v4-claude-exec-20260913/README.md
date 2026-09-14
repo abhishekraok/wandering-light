@@ -107,17 +107,18 @@ All eight xhigh-over-low gains are `aligned_matches` (39 ops), `replace_value`
 ×3 (22), `positive_balance_prefix_count` (49), `concatenate_shorter_first`
 (26), `drop_last` (12) and `cartesian_pair_sums` (15): 21–40 ops goes 3 → 5 →
 8 of 12. Past 40 ops every arm solves 0 or 1 of 12, and the 1 is the same
-49-op two-accumulator fold astra medium and high solved. What effort does on
-the long tasks is convert answers that do not run into answers that fit the
-shown pairs: failed 17 → 8 → 2, do-not-run 13 → 5 → 1, memorised 6 → 12 → 13.
-The most expensive call of the study, `median_floor` (253-op witness) at
-**119,941 thinking tokens and 24 minutes**, produced a memorisation: a
-filter-and-count that reproduces the shown outputs and fails the held-out
-set. On the sample's twelve long tasks, xhigh Opus reaches astra's state (fits
-everything, computes one), not past it. Phase 2 of #123 showed those twelve
-came from behaviours astra rarely solves while it solves 214 of the split's
-840 long tasks, so whether Opus reaches astra's long solves is a full-split
-question, not answered here.
+49-op two-accumulator fold astra medium and high solved. On those twelve
+tasks what effort does is convert answers that fail into answers that fit the
+shown pairs: failed **8 → 3 → 1**, memorised **4 → 8 → 10**, solved 0 → 1 → 1
+(over the whole sample: failed 17 → 8 → 2, do-not-run 13 → 5 → 1, memorised
+6 → 12 → 13). The most expensive call of the study, `median_floor` (253-op
+witness) at **119,941 thinking tokens and 24 minutes**, produced a
+memorisation: a filter-and-count that reproduces the shown outputs and fails
+the held-out set. At xhigh Opus fits 11 of the twelve and computes one
+(`keep_ascending_pairs`, 80 ops, still fails); astra low fits all twelve and
+computes one. Phase 2 of #123 showed those twelve came from behaviours astra
+rarely solves while it solves 214 of the split's 840 long tasks, so whether
+Opus reaches astra's long solves is a full-split question, not answered here.
 
 **At the top of its range Opus solves the same tasks as astra.** xhigh against
 astra high: agree on **38 of 40**, both solve 23, Opus alone 2 (`drop_last`,
