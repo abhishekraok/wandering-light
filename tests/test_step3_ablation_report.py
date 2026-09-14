@@ -27,13 +27,16 @@ def test_cell_counts_split_out_the_named_behaviour() -> None:
             _row("min_pair", "min", False),
         ]
     }
-    genuine = {("keep_below", "[ lt? ] swap cons filter"), ("reverse", "reverse")}
-    assert report.cell_counts(cell, genuine, "keep_below") == {
+    witness = {("keep_below", "[ lt? ] swap cons filter")}
+    passing = witness | {("reverse", "reverse")}
+    assert report.cell_counts(cell, passing, "keep_below", witness) == {
         "verified": 3,
         "named": 2,
         "other": 1,
+        "witness": 2,
         "named_tasks": 2,
     }
+    assert report.cell_counts(cell, passing, "keep_below")["witness"] == 0
 
 
 def test_paired_differences_skip_unsearched_cells() -> None:
@@ -87,12 +90,13 @@ def test_end_to_end_tables(tmp_path: Path) -> None:
                     {
                         "behaviour": "keep_below",
                         "program": "[ lt? ] swap cons filter",
-                        "verdict": "genuine",
+                        "verdict": "equals_catalogue_witness",
                     },
                     {
                         "behaviour": "reverse",
                         "program": "reverse",
                         "verdict": "genuine",
+                        "draws": {},
                     },
                 ]
             }
@@ -122,6 +126,10 @@ def test_end_to_end_tables(tmp_path: Path) -> None:
     result = json.loads((out / "ablation.json").read_text())
     assert result["train_rows"] == {"mixed": 400, "ablated": 300}
     assert result["named_total"] == {"mixed": 6, "ablated": 0}
+    # The witness-equal solves stay verified and are counted apart (#142).
+    assert result["grid"]["mixed"]["0"]["1"]["verified"] == 4
+    assert result["grid"]["mixed"]["0"]["1"]["witness"] == 3
+    assert result["grid"]["ablated"]["0"]["1"]["witness"] == 0
     assert result["paired"]["ablated"]["verified"] == {"1": [-2], "2": [-2]}
     assert result["paired"]["ablated"]["other"] == {"1": [1], "2": [1]}
     assert result["best_ce"]["ablated"]["0"] == {"ce": 0.87, "epoch": 2}

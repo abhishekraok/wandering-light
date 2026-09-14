@@ -4212,7 +4212,12 @@ _TUPLE_FIELDS = (
 VERIFY_MODES = ("local", "hub", "off")
 
 
-def load(path: str | Path, *, verify: str = "local") -> list[Task]:
+def load(
+    path: str | Path,
+    *,
+    verify: str = "local",
+    catalogue: Sequence[Behaviour] = CATALOGUE,
+) -> list[Task]:
     """Read a corpus back, from a single payload or from a corpus directory.
 
     A directory is read through its manifest, so the split files it names are
@@ -4222,7 +4227,8 @@ def load(path: str | Path, *, verify: str = "local") -> list[Task]:
 
     - ``"local"`` (default): `verify_corpus` without the Hub -- every split's
       sha256 matches the manifest, and a manifest this module generated names
-      the live catalogue.
+      ``catalogue``, the live one unless the corpus was written from another
+      (`write_corpus` takes the same argument).
     - ``"hub"``: the same, then `corpus_hub.verify_published_corpus` against
       the manifest's pinned Hub revision, the one check that tells a locally
       regenerated corpus from the published one. Needs the network or a warm
@@ -4237,7 +4243,7 @@ def load(path: str | Path, *, verify: str = "local") -> list[Task]:
     if not target.is_dir():
         return _load_payload(target)
     if verify != "off":
-        verify_corpus(target, hub=verify == "hub")
+        verify_corpus(target, hub=verify == "hub", catalogue=catalogue)
     manifest = json.loads((target / "manifest.json").read_text())
     return [
         task
@@ -4246,11 +4252,16 @@ def load(path: str | Path, *, verify: str = "local") -> list[Task]:
     ]
 
 
-def verify_corpus(corpus_dir: str | Path, *, hub: bool = False) -> dict[str, str]:
+def verify_corpus(
+    corpus_dir: str | Path,
+    *,
+    hub: bool = False,
+    catalogue: Sequence[Behaviour] = CATALOGUE,
+) -> dict[str, str]:
     """Check a corpus directory against its manifest; return the digests checked.
 
     Every split payload must hash to what the manifest says. A manifest this
-    module wrote must also name the live catalogue: its witness digest, and
+    module wrote must also name ``catalogue``: its witness digest, and
     its source digest when it carries one (manifests written before #142 do
     not, so for those a sampler edit since generation is invisible here).
     With ``hub``, the manifest and payloads must also be the ones published at
@@ -4262,8 +4273,8 @@ def verify_corpus(corpus_dir: str | Path, *, hub: bool = False) -> dict[str, str
     if manifest.get("generator") == "wandering_light.stack_pbe":
         recorded = manifest.get("catalogue") or {}
         live = {
-            "digest": catalogue_digest(),
-            "source_digest": catalogue_source_digest(),
+            "digest": catalogue_digest(catalogue),
+            "source_digest": catalogue_source_digest(catalogue),
         }
         for key, value in live.items():
             if recorded.get(key) is None:
@@ -4271,7 +4282,7 @@ def verify_corpus(corpus_dir: str | Path, *, hub: bool = False) -> dict[str, str
             if recorded[key] != value:
                 raise ValueError(
                     f"{root}: manifest catalogue {key} is {recorded[key]}, "
-                    f"the live catalogue is {value}"
+                    f"the catalogue given is {value}"
                 )
             checked[f"catalogue:{key}"] = value
     if hub:

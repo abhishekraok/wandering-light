@@ -71,6 +71,30 @@ COLUMN_OF = {
     "equals_catalogue_witness": "witness",
 }
 
+Key = tuple[str, str]
+
+
+def partition(programs: list[dict[str, Any]]) -> tuple[set[Key], set[Key]]:
+    """Keys of the draw-tested ``genuine`` and the witness-equal programs in a file.
+
+    The reports define a verified solve as either (`RESULTS_DETAILED.md`), so
+    their readers take the union and count the witness share beside it; this
+    script's own table keeps the two apart. A file written before #142 graded
+    witness-equal programs ``genuine`` with a ``why`` and no ``draws``, and
+    reads the same way.
+    """
+    genuine: set[Key] = set()
+    witness: set[Key] = set()
+    for p in programs:
+        key = (p["behaviour"], p["program"])
+        if p["verdict"] == "equals_catalogue_witness" or (
+            p["verdict"] == "genuine" and "draws" not in p
+        ):
+            witness.add(key)
+        elif p["verdict"] == "genuine":
+            genuine.add(key)
+    return genuine, witness
+
 
 def perturb(rng: random.Random, args: tuple) -> tuple:
     """Same argument shapes, off the sampler's distribution."""

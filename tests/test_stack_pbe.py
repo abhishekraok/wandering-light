@@ -493,6 +493,20 @@ def test_written_manifest_records_the_source_digest_and_load_checks_it(tmp_path)
     assert len(load(tmp_path)) == len(made)
 
 
+def test_a_corpus_written_from_another_catalogue_round_trips_with_it(tmp_path):
+    """`write_corpus` takes a catalogue, so `load` must take the same one
+    (Codex review on #143)."""
+    only = [BY_NAME["keep_below"]]
+    made = [
+        t for t in generate(per_behaviour=1, seed=5)[0] if t.behaviour == "keep_below"
+    ]
+    write_corpus(made, tmp_path, config={}, catalogue=only)
+    with pytest.raises(ValueError, match="catalogue digest"):
+        load(tmp_path)
+    assert load(tmp_path, catalogue=only) == made
+    assert load(tmp_path, verify="off") == made
+
+
 def test_load_hub_mode_checks_the_pinned_revision_and_local_mode_never_does(
     tmp_path, monkeypatch
 ):

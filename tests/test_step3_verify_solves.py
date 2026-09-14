@@ -118,6 +118,40 @@ def test_adding_dense_moves_neither_recorded_stream() -> None:
         assert plain["draws"][mode] == with_dense["draws"][mode]
 
 
+def test_partition_reads_files_written_before_and_after_the_witness_verdict() -> None:
+    """Report readers take the union; old files graded witnesses `genuine` with no draws."""
+    old = [
+        {"behaviour": "keep_below", "program": "w", "verdict": "genuine", "why": "x"},
+        {
+            "behaviour": "add_pair",
+            "program": "swap add",
+            "verdict": "genuine",
+            "draws": {},
+        },
+        {
+            "behaviour": "all_positive",
+            "program": "s",
+            "verdict": "shortcut",
+            "draws": {},
+        },
+        {
+            "behaviour": "drop_last",
+            "program": "i",
+            "verdict": "inconclusive",
+            "draws": {},
+        },
+    ]
+    new = [{**old[0], "verdict": "equals_catalogue_witness"}, *old[1:]]
+    for programs in (old, new):
+        genuine, witness = verify.partition(programs)
+        assert genuine == {("add_pair", "swap add")}
+        assert witness == {("keep_below", "w")}
+    programs = json.loads(RECORDED.read_text())["programs"]
+    genuine, witness = verify.partition(programs)
+    assert len(witness) == sum(1 for p in programs if "why" in p) == 9
+    assert genuine.isdisjoint(witness)
+
+
 def test_cli_defaults_are_the_ones_the_reports_quote() -> None:
     args = verify.build_parser().parse_args(["--run-dir", "x"])
     assert (args.draws, args.min_tested, args.dense) == (10_000, 500, True)
