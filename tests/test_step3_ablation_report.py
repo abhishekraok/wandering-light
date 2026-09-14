@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
+import pytest
+
 from experiments import step3_ablation_report as report
 
 if TYPE_CHECKING:
@@ -125,3 +127,36 @@ def test_end_to_end_tables(tmp_path: Path) -> None:
     assert result["best_ce"]["ablated"]["0"] == {"ce": 0.87, "epoch": 2}
     text = (out / "ablation.md").read_text()
     assert "| 2 | 4/3 | 2/0 |" in text
+
+
+def test_an_unchecked_solved_program_is_refused_unless_allowed(tmp_path: Path) -> None:
+    mixed = tmp_path / "mixed"
+    _snapshot(mixed, 0, 1, 0.9, 400)
+    _cell(mixed, 0, 1, named=1, other=1)
+    verified = tmp_path / "verified.json"
+    verified.write_text(
+        json.dumps(
+            {
+                "programs": [
+                    {"behaviour": "reverse", "program": "reverse", "verdict": "genuine"}
+                ]
+            }
+        )
+    )
+    args = [
+        "--arm-dir",
+        f"mixed={mixed}",
+        "--verified",
+        str(verified),
+        "--seeds",
+        "0",
+        "--epochs",
+        "1",
+        "--out",
+        str(tmp_path / "out"),
+    ]
+    with pytest.raises(SystemExit):
+        report.main(args)
+    assert report.main([*args, "--allow-unchecked"]) == 0
+    result = json.loads((tmp_path / "out" / "ablation.json").read_text())
+    assert result["grid"]["mixed"]["0"]["1"]["verified"] == 1

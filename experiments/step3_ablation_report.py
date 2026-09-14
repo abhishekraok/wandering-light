@@ -89,6 +89,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--arm-dir", action="append", required=True, metavar="NAME=DIR")
     parser.add_argument("--best", action="append", default=[], metavar="NAME=DIR")
     parser.add_argument("--verified", type=Path, required=True)
+    parser.add_argument(
+        "--allow-unchecked",
+        action="store_true",
+        help="count solved programs the verification file never checked as unverified",
+    )
     parser.add_argument("--behaviour", default="keep_below")
     parser.add_argument("--reference", default="mixed")
     parser.add_argument("--arm", default="1m")
@@ -105,8 +110,10 @@ def main(argv: list[str] | None = None) -> int:
         for p in verified["programs"]
         if p["verdict"] == "genuine"
     }
+    checked = {(p["behaviour"], p["program"]) for p in verified["programs"]}
 
     grid: Grid = {}
+    unchecked: set[tuple[str, str]] = set()
     train_rows: dict[str, int] = {}
     for name, run_dir in arms.items():
         for seed in args.seeds:
@@ -120,8 +127,21 @@ def main(argv: list[str] | None = None) -> int:
                 if cell:
                     entry.update(cell_counts(cell, genuine, args.behaviour))
                     entry["source"] = source
+                    unchecked |= {
+                        (r["behaviour"], " ".join(r["program"]))
+                        for r in cell["rows"]
+                        if r["solved"]
+                    } - checked
                 if entry:
                     grid.setdefault(name, {}).setdefault(seed, {})[epoch] = entry
+    # A solved program the verification file never saw is unchecked, not
+    # unverified; counting it as unverified would undercount silently (Codex
+    # review on #140).
+    if unchecked and not args.allow_unchecked:
+        parser.error(
+            f"{len(unchecked)} solved programs are not in {args.verified}; run "
+            f"step3_verify_solves.py over these run dirs first: {sorted(unchecked)[:5]}"
+        )
 
     names = [n for n in arms if n in grid]
     seeds_of = {n: [s for s in args.seeds if s in grid[n]] for n in names}
