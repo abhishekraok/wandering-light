@@ -81,17 +81,21 @@ Verified solves of 300, mean of three seeds.
 [report](../reports/world-plus-v4-policy-20260912/README.md),
 [world-plus-v4-policy (#134)](../../issues/134)
 
-| | v4 only | v4 + world |
-|---|---:|---:|
-| holdout CE at the best-validation epoch | 0.954 | 0.858 |
-| verified solves at the best-validation epoch (v4 only 1–2, v4 + world 2–4) | 52.3 | 86.0 |
-| verified solves, mean over epochs 1–6 | 72.3 | 80.1 |
-| verified solves at each seed's best epoch (chosen on the cohort) | 87.0 | 105.0 |
+| | v4 only | v4 + world | v4 + world, 156 `keep_below` carriers dropped |
+|---|---:|---:|---:|
+| holdout CE at the best-validation epoch | 0.954 | 0.858 | 0.871 |
+| verified solves at the best-validation epoch (v4 only 1–2, v4 + world 2–4, dropped 2) | 52.3 | 86.0 | 62.0 |
+| verified solves, mean over epochs 1–6 | 72.3 | 80.1 | 71.6 |
+| verified solves at each seed's best epoch (chosen on the cohort) | 87.0 | 105.0 | 87.7 |
 
 The search difference is one behaviour, `keep_below`, whose 6-op witness occurs
 inside 156 world training programs and no v4 training program: summed over seeds and
 epochs 1–6 it gains 186 solves against the cohort's net 141. 29 of the 43 cohort
-behaviours are never solved by either arm.
+behaviours are never solved by either arm. Dropping the 156 carrier programs
+([keep-below-ablation (#136)](../../issues/136), third column) removes the search
+gain (`keep_below` 7 solves over 18 cells, the other 42 behaviours level with v4 only)
+and keeps 86% of the loss gain; dropping 156 world programs at random (one seed)
+keeps 35%.
 
 ## `deep-corpus-v1` — learned solver against search (96 held-out tasks, 12 per distance 1–8)
 

@@ -1,0 +1,11 @@
+=== train ablated (s0-2) and random (s0), snapshots at epochs 1-6
+=== search 24 cells in 3 lanes
+=== replay
+00:16:17 RESULT replay 1m-s0-cuda-e1: 54 hits, 0 mismatches, 15s
+00:16:47 RESULT replay 1m-s0-cuda-e2: 68 hits, 0 mismatches, 30s
+00:17:10 RESULT replay 1m-s0-cuda-e3: 68 hits, 0 mismatches, 23s
+00:18:13 RESULT replay 1m-s0-cuda-e4: 97 hits, 0 mismatches, 63s
+00:19:20 RESULT replay 1m-s0-cuda-e5: 98 hits, 0 mismatches, 67s
+00:20:16 RESULT replay 1m-s0-cuda-e6: 78 hits, 0 mismatches, 56s
+00:20:32 RESULT replay 1m-s1-cuda-e1: 60 hits, 0 mismatches, 16s
+00:20:59 RESULT replay 1m-s1-cuda-e2: 72 hits, 0 mismatches, 26s

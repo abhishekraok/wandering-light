@@ -288,6 +288,49 @@ Over epochs 1–6 `keep_below` is +186 of the contained +183 and the cohort's +1
 
 **World v3 eval, 44 clean behaviours, best-validation checkpoints, same search:** 1 / 0 / 0 solved in both arms, on different tasks; 4 of the 44 witnesses fit within depth 48 (median 149.5 ops). v4-only seed 0 at depth 192: 1 / 44. Next-op CE there: 3.16 ± 0.61 v4 only, 1.02 ± 0.05 v4 + world, 0.91 for an op 4-gram fit on world fit programs.
 
+## Stack PBE v4 + world v3 — dropping the 156 world programs that contain `keep_below`'s witness (#136), 300-task v4 cohort
+
+The #134 v4 + world arm retrained with the 156 world fit behaviours whose program contains `[ lt? ] swap cons filter` added to the drop list (`ablated`, seeds 0 / 1 / 2, 358,086 fit rows) and with 156 world train behaviours dropped at random instead (`random`, seed 0, 389,527 fit rows; the draw keeps 114 of the 156 carriers). Everything else as #134: 1m, 6 epochs, snapshots and search at every epoch, validation pinned to the v4 holdout, beam 64 × depth 48, verification at 10,000 draws per mode. #134's arms are its epoch study, re-verified in the same file. [report](../reports/keep-below-ablation-20260913/README.md), `ablation.json`, `verified_solves_ablation.json`.
+
+**Best validation CE on the v4 holdout (epoch), and the difference from v4 + world on the same seed:**
+
+| seed | v4 only | v4 + world | ablated | random |
+|---|---:|---:|---:|---:|
+| 0 | 0.9519 (1) | 0.8434 (2) | 0.8716 (2), +0.0282 | 0.9135 (2), +0.0701 |
+| 1 | 0.9454 (2) | 0.8689 (4) | 0.8657 (2), −0.0032 | |
+| 2 | 0.9650 (1) | 0.8606 (3) | 0.8756 (2), +0.0151 | |
+| mean ± sd | 0.9541 ± 0.0100 | 0.8576 ± 0.0130 | 0.8710 ± 0.0050 | |
+
+**Verified solves by epoch (all / `keep_below`, of 300 and 19 tasks):**
+
+| epoch | v4-only s0 | s1 | s2 | v4+world s0 | s1 | s2 | ablated s0 | s1 | s2 | random s0 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 48/0 | 56/0 | 46/0 | 53/7 | 43/0 | 57/11 | 48/0 | 55/0 | 47/0 | 50/3 |
+| 2 | 55/0 | 63/0 | 53/0 | 52/7 | 64/15 | 82/15 | 57/0 | 64/0 | 65/0 | 67/17 |
+| 3 | 84/0 | 77/0 | 80/0 | 89/11 | 89/19 | 102/16 | 58/0 | 73/1 | 82/0 | 77/16 |
+| 4 | 94/0 | 74/0 | 88/0 | 85/7 | 104/8 | 94/16 | 80/0 | 90/1 | 78/1 | 86/17 |
+| 5 | 83/0 | 77/0 | 90/0 | 104/8 | 109/19 | 90/8 | 75/0 | 100/2 | 83/1 | 102/19 |
+| 6 | 86/0 | 72/0 | 75/0 | 75/1 | 70/7 | 80/11 | 61/0 | 94/1 | 78/0 | 108/15 |
+
+Summed over the 18 cells of each three-seed arm: `keep_below` 0 / 186 / 7 (v4 only / v4 + world / ablated; all 7 the exact witness), the other 42 behaviours 1,301 / 1,256 / 1,281. Per-seed peaks 94 / 77 / 90 (87.0), 104 / 109 / 102 (105.0), 80 / 100 / 83 (87.7); means over epochs 72.3, 80.1, 71.6. Random seed 0: 87 `keep_below` solves over 6 cells, peak 108 at epoch 6, mean 81.7.
+
+**Matched epoch, ablated minus v4 + world (all verified solves; with `keep_below` removed):**
+
+| epoch | s0 | s1 | s2 | mean | other s0 | s1 | s2 | mean |
+|---|---|---|---|---|---|---|---|---|
+| 1 | −5 | +12 | −10 | −1.0 | +2 | +12 | +1 | +5.0 |
+| 2 | +5 | +0 | −17 | −4.0 | +12 | +15 | −2 | +8.3 |
+| 3 | −31 | −16 | −20 | −22.3 | −20 | +2 | −4 | −7.3 |
+| 4 | −5 | −14 | −16 | −11.7 | +2 | −7 | −1 | −2.0 |
+| 5 | −29 | −9 | −7 | −15.0 | −21 | +8 | +0 | −4.3 |
+| 6 | −14 | +24 | −2 | +2.7 | −13 | +30 | +9 | +8.7 |
+
+**Behaviours:** 17 of the 43 are verified by some arm across #134 and this run, 26 by none; the ablated arm verifies 17 (v4 only 13, v4 + world 14, random 15), three of them by no #134 arm: `bounds_cover_list_flag`, `n_minus_each`, `sum_negative`.
+
+**Longest verified solve:** a 46-op `bounds_cover_list_flag` program, `[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons [ mul ] fold`, against a 92-op catalogue witness; 0 failures in 10,000 sampler, 9,083 perturbed and 9,088 dense draws. Ablated seed 0 epochs 5 and 6 (one task each), random seed 0 epoch 4 (4 of the behaviour's 8 tasks) and 6 (2). It shares its first 42 ops (through `map uncons`) with the two `bounds_cover_list_flag` shortcuts #134 recorded (44 and 46 ops) and differs in the reduction. No #134 cell found it.
+
+**Shortcuts:** 45 distinct solved programs over the six run dirs, 35 genuine, 10 shortcuts, 0 inconclusive; new here `aligned_matches` 26 and 28 ops and `drop_last` 29 ops.
+
 ## `deep-corpus-v1` — solvers on the held-out cohort (96 tasks, 12 per distance 1–8)
 
 `wl-core-v1`, 118 functions. [materialized-rollout report](../reports/materialized-rollout-20260829/README.md), [fine-tune-llm (#50)](../../issues/50), [solve-step-by-step (#55)](../../issues/55).
