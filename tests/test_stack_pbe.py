@@ -37,6 +37,7 @@ from wandering_light.stack_pbe import (
     assign_split,
     build_task,
     catalogue_digest,
+    catalogue_source_digest,
     check,
     draw_task,
     encode_task,
@@ -407,6 +408,129 @@ def test_catalogue_digest_tracks_the_witnesses():
     changed = [*CATALOGUE[:-1], replace(CATALOGUE[-1], witnesses=("drop",))]
     assert catalogue_digest(changed) != before
     assert catalogue_digest() == before
+
+
+def test_load_refuses_a_payload_that_is_not_the_one_the_manifest_describes(tmp_path):
+    """`load` read whatever the manifest named; a regenerated payload loaded
+    exactly like the published one (#142)."""
+    made, _stats = generate(per_behaviour=1, seed=6)
+    write_corpus(made, tmp_path, config={})
+    manifest = json.loads((tmp_path / "manifest.json").read_text())
+    victim = next(iter(manifest["splits"].values()))["path"]
+    (tmp_path / victim).write_bytes(gzip.compress(b""))
+    with pytest.raises(ValueError, match="digest mismatch"):
+        load(tmp_path)
+    assert 0 < len(load(tmp_path, verify="off")) < len(made)
+
+
+def test_load_refuses_a_manifest_that_names_another_catalogue(tmp_path):
+    made, _stats = generate(per_behaviour=1, seed=6)
+    write_corpus(made, tmp_path, config={})
+    path = tmp_path / "manifest.json"
+    manifest = json.loads(path.read_text())
+    manifest["catalogue"]["digest"] = "sha256:" + "0" * 64
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="catalogue digest"):
+        load(tmp_path)
+    # Another generator's catalogue is not this module's, so it is not checked
+    # against it (the world corpora).
+    manifest["generator"] = "experiments/world_behaviours/build_corpus.py"
+    path.write_text(json.dumps(manifest))
+    assert len(load(tmp_path)) == len(made)
+
+
+def test_the_committed_v4_manifest_names_the_live_catalogue():
+    """What `load` now checks on every read of the published corpus."""
+    manifest = json.loads(MANIFEST_V4.read_text())
+    assert manifest["catalogue"]["digest"] == catalogue_digest()
+
+
+def test_the_source_digest_sees_what_the_witness_digest_cannot():
+    """A sampler edit changes every task of a behaviour and no witness (#141)."""
+    from dataclasses import replace
+
+    from wandering_light.stack_pbe import POSITIVE, SMALL, _list_of
+
+    before = catalogue_source_digest()
+    assert before == catalogue_source_digest()
+    variants = {
+        "pool_small": replace(CATALOGUE[0], sample=_list_of(SMALL)),
+        "pool_positive": replace(CATALOGUE[0], sample=_list_of(POSITIVE)),
+        "reference": replace(CATALOGUE[0], reference=lambda *args: 0),
+        "builtin_max": replace(CATALOGUE[0], reference=max),
+        "builtin_min": replace(CATALOGUE[0], reference=min),
+        "guard": replace(CATALOGUE[0], accept=lambda args, results: True),
+    }
+    digests = {
+        name: catalogue_source_digest([b, *CATALOGUE[1:]])
+        for name, b in variants.items()
+    }
+    # One source line, two closures: the pool must tell them apart.
+    assert digests["pool_small"] != digests["pool_positive"]
+    assert digests["builtin_max"] != digests["builtin_min"]
+    assert len(set(digests.values())) == len(digests)
+    for name in ("reference", "guard", "builtin_max", "pool_positive"):
+        assert digests[name] != before, name
+    # None of that moves the witness digest, which is the point of a second one.
+    for b in variants.values():
+        assert catalogue_digest([b, *CATALOGUE[1:]]) == catalogue_digest()
+
+
+def test_written_manifest_records_the_source_digest_and_load_checks_it(tmp_path):
+    made, _stats = generate(per_behaviour=1, seed=5)
+    write_corpus(made, tmp_path, config={})
+    path = tmp_path / "manifest.json"
+    manifest = json.loads(path.read_text())
+    assert manifest["catalogue"]["source_digest"] == catalogue_source_digest()
+    manifest["catalogue"]["source_digest"] = "sha256:" + "0" * 64
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="source_digest"):
+        load(tmp_path)
+    # A manifest written before #142 has no source digest and is not refused
+    # for it; the committed v4 manifest is one.
+    del manifest["catalogue"]["source_digest"]
+    path.write_text(json.dumps(manifest))
+    assert len(load(tmp_path)) == len(made)
+
+
+def test_load_hub_mode_checks_the_pinned_revision_and_local_mode_never_does(
+    tmp_path, monkeypatch
+):
+    from wandering_light import corpus_hub
+
+    made, _stats = generate(per_behaviour=1, seed=5)
+    write_corpus(made, tmp_path, config={})
+    with pytest.raises(ValueError, match="no hub revision"):
+        load(tmp_path, verify="hub")
+    with pytest.raises(ValueError, match="verify must be"):
+        load(tmp_path, verify="always")
+
+    corpus_hub.record_hub_location(tmp_path, repo_id="acct/corpus", revision="a" * 40)
+    calls = []
+
+    def fake_verify(corpus_dir, *, repo_id, revision, **kwargs):
+        calls.append((Path(corpus_dir), repo_id, revision))
+        return {}
+
+    monkeypatch.setattr(corpus_hub, "verify_published_corpus", fake_verify)
+    assert len(load(tmp_path, verify="hub")) == len(made)
+    assert calls == [(tmp_path, "acct/corpus", "a" * 40)]
+    calls.clear()
+    assert len(load(tmp_path)) == len(made)
+    assert calls == []
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="aligned-matches-sampler (#141): _partly_matching_lists pins index 0 to "
+    "match and index 1 to mismatch in every draw. The fix is a corpus version, "
+    "not an edit: every published v4 number was measured on the current payload.",
+)
+def test_aligned_matches_examples_are_not_all_aligned_the_same_way():
+    rng = random.Random(0)
+    draws = [BY_NAME["aligned_matches"].sample(rng) for _ in range(200)]
+    assert any(left[0] != right[0] for left, right in draws)
+    assert any(left[1] == right[1] for left, right in draws)
 
 
 def test_corpus_round_trips_through_load(tmp_path):
