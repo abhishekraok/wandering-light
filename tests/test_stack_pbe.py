@@ -14,6 +14,7 @@ import os
 import random
 import subprocess
 import sys
+import warnings
 from pathlib import Path
 
 import pytest
@@ -423,20 +424,23 @@ def test_load_refuses_a_payload_that_is_not_the_one_the_manifest_describes(tmp_p
     assert 0 < len(load(tmp_path, verify="off")) < len(made)
 
 
-def test_load_refuses_a_manifest_that_names_another_catalogue(tmp_path):
+def test_load_warns_when_a_manifest_names_another_catalogue(tmp_path):
+    """A warning, not an error: the catalogue grows past a published corpus."""
     made, _stats = generate(per_behaviour=1, seed=6)
     write_corpus(made, tmp_path, config={})
     path = tmp_path / "manifest.json"
     manifest = json.loads(path.read_text())
     manifest["catalogue"]["digest"] = "sha256:" + "0" * 64
     path.write_text(json.dumps(manifest))
-    with pytest.raises(ValueError, match="catalogue digest"):
-        load(tmp_path)
-    # Another generator's catalogue is not this module's, so it is not checked
-    # against it (the world corpora).
+    with pytest.warns(UserWarning, match="catalogue digest"):
+        assert len(load(tmp_path)) == len(made)
+    # Another generator's catalogue is not this module's, so it is not compared
+    # (the world corpora).
     manifest["generator"] = "experiments/world_behaviours/build_corpus.py"
     path.write_text(json.dumps(manifest))
-    assert len(load(tmp_path)) == len(made)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        assert len(load(tmp_path)) == len(made)
 
 
 def test_the_committed_v4_manifest_names_the_live_catalogue():
@@ -484,7 +488,7 @@ def test_written_manifest_records_the_source_digest_and_load_checks_it(tmp_path)
     assert manifest["catalogue"]["source_digest"] == catalogue_source_digest()
     manifest["catalogue"]["source_digest"] = "sha256:" + "0" * 64
     path.write_text(json.dumps(manifest))
-    with pytest.raises(ValueError, match="source_digest"):
+    with pytest.warns(UserWarning, match="source_digest"):
         load(tmp_path)
     # A manifest written before #142 has no source digest and is not refused
     # for it; the committed v4 manifest is one.
@@ -501,9 +505,15 @@ def test_a_corpus_written_from_another_catalogue_round_trips_with_it(tmp_path):
         t for t in generate(per_behaviour=1, seed=5)[0] if t.behaviour == "keep_below"
     ]
     write_corpus(made, tmp_path, config={}, catalogue=only)
-    with pytest.raises(ValueError, match="catalogue digest"):
+    with pytest.warns(UserWarning, match="manifest catalogue") as caught:
         load(tmp_path)
-    assert load(tmp_path, catalogue=only) == made
+    messages = sorted(str(w.message) for w in caught)
+    assert len(messages) == 2
+    assert "catalogue digest is" in messages[0]
+    assert "catalogue source_digest is" in messages[1]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        assert load(tmp_path, catalogue=only) == made
     assert load(tmp_path, verify="off") == made
 
 

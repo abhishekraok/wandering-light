@@ -46,6 +46,7 @@ import random
 import sys
 import textwrap
 import time
+import warnings
 from collections import Counter
 from dataclasses import asdict, dataclass, field
 from itertools import pairwise
@@ -4226,9 +4227,10 @@ def load(
     against its manifest before anything is read (#142):
 
     - ``"local"`` (default): `verify_corpus` without the Hub -- every split's
-      sha256 matches the manifest, and a manifest this module generated names
-      ``catalogue``, the live one unless the corpus was written from another
-      (`write_corpus` takes the same argument).
+      sha256 matches the manifest (an error otherwise), and a manifest this
+      module generated names ``catalogue``, the live one unless the corpus was
+      written from another (`write_corpus` takes the same argument); a
+      mismatch there warns.
     - ``"hub"``: the same, then `corpus_hub.verify_published_corpus` against
       the manifest's pinned Hub revision, the one check that tells a locally
       regenerated corpus from the published one. Needs the network or a warm
@@ -4260,12 +4262,14 @@ def verify_corpus(
 ) -> dict[str, str]:
     """Check a corpus directory against its manifest; return the digests checked.
 
-    Every split payload must hash to what the manifest says. A manifest this
-    module wrote must also name ``catalogue``: its witness digest, and
-    its source digest when it carries one (manifests written before #142 do
-    not, so for those a sampler edit since generation is invisible here).
-    With ``hub``, the manifest and payloads must also be the ones published at
-    the pinned revision.
+    Every split payload must hash to what the manifest says, or this raises.
+    A manifest this module wrote is also compared with ``catalogue``: its
+    witness digest, and its source digest when it carries one (manifests
+    written before #142 do not). A mismatch there is a warning, not an
+    error: the catalogue legitimately grows past a published corpus, and the
+    project records provenance rather than enforcing it. With ``hub``, the
+    manifest and payloads must also be the ones published at the pinned
+    revision.
     """
     root = Path(corpus_dir)
     manifest = json.loads((root / corpus_hub.MANIFEST_NAME).read_text())
@@ -4280,9 +4284,11 @@ def verify_corpus(
             if recorded.get(key) is None:
                 continue
             if recorded[key] != value:
-                raise ValueError(
+                warnings.warn(
                     f"{root}: manifest catalogue {key} is {recorded[key]}, "
-                    f"the catalogue given is {value}"
+                    f"the catalogue given is {value}; the corpus was not "
+                    "generated from this catalogue",
+                    stacklevel=3,
                 )
             checked[f"catalogue:{key}"] = value
     if hub:

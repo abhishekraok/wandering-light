@@ -211,8 +211,12 @@ def main(argv: list[str] | None = None) -> int:
         columns = [
             (name, seed) for name in arms for seed in sorted(by_arm.get(name, {}))
         ]
+        # Files written since #142 record the budget they rescored; older ones
+        # are the primary budget.
+        beam = verified.get("beam_width", PRIMARY_BUDGET[0])
+        depth = verified.get("max_depth", PRIMARY_BUDGET[1])
         lines += [
-            "## Verified solves, v4 eval cohort (300 tasks, beam 64 x depth 48)",
+            f"## Verified solves, v4 eval cohort (300 tasks, beam {beam} x depth {depth})",
             "",
             "A graded solve passes the task's held-out examples. A verified solve also "
             "computes the behaviour: its program is a catalogue witness, or it agrees "
@@ -250,7 +254,7 @@ def main(argv: list[str] | None = None) -> int:
         best_solved = {
             (row["behaviour"], " ".join(row["program"]))
             for path in arms.values()
-            for cell in cells(path, args.arm, "stack_pbe_v4").values()
+            for cell in cells(path, args.arm, "stack_pbe_v4", (beam, depth)).values()
             for row in cell["rows"]
             if row["solved"]
         }
