@@ -28,6 +28,23 @@ from typing import Any
 BUCKETS = ("1-5", "6-10", "11-20", "21-40", "41+")
 
 
+def verified_in(
+    cell: dict[str, Any], bucket: str | None = None, *, witness_only: bool = False
+) -> int:
+    """Verified solves in a verifier cell, per bucket or in total.
+
+    The report's definition, and every recorded one, is draw-tested or a
+    catalogue witness. Files written since #142 keep the two in separate
+    columns (``verified`` and ``witness``); older files have only the first,
+    which already held both.
+    """
+    if bucket is None:
+        witness = cell.get("witness_total", 0)
+        return witness if witness_only else cell["verified_total"] + witness
+    witness = cell.get("witness", {}).get(bucket, 0)
+    return witness if witness_only else cell["verified"][bucket] + witness
+
+
 def trainer_states(run_dir: Path, arm: str) -> dict[int, dict[str, Any]]:
     out = {}
     for path in sorted((run_dir / "policies").glob(f"{arm}-s*/trainer_state.json")):
@@ -194,8 +211,12 @@ def main(argv: list[str] | None = None) -> int:
         columns = [
             (name, seed) for name in arms for seed in sorted(by_arm.get(name, {}))
         ]
+        # Files written since #142 record the budget they rescored; older ones
+        # are the primary budget.
+        beam = verified.get("beam_width", PRIMARY_BUDGET[0])
+        depth = verified.get("max_depth", PRIMARY_BUDGET[1])
         lines += [
-            "## Verified solves, v4 eval cohort (300 tasks, beam 64 x depth 48)",
+            f"## Verified solves, v4 eval cohort (300 tasks, beam {beam} x depth {depth})",
             "",
             "A graded solve passes the task's held-out examples. A verified solve also "
             "computes the behaviour: its program is a catalogue witness, or it agrees "
@@ -209,19 +230,31 @@ def main(argv: list[str] | None = None) -> int:
             row = [bucket]
             for name, seed in columns:
                 cell = by_arm[name][seed]
-                row.append(f"{cell['verified'][bucket]}/{cell['graded'][bucket]}")
+                row.append(f"{verified_in(cell, bucket)}/{cell['graded'][bucket]}")
             lines.append("| " + " | ".join(row) + " |")
         total = ["**all**"]
         for name, seed in columns:
             cell = by_arm[name][seed]
-            total.append(f"{cell['verified_total']}/{cell['graded_total']}")
+            total.append(f"{verified_in(cell)}/{cell['graded_total']}")
         lines += ["| " + " | ".join(total) + " |", ""]
+        witness_totals = {
+            (name, seed): verified_in(by_arm[name][seed], witness_only=True)
+            for name, seed in columns
+        }
+        if any(witness_totals.values()):
+            lines += [
+                "Of the verified solves, these equal a catalogue witness (no draws; "
+                "trusted as the corpus's own verification): "
+                + ", ".join(f"{n} s{s} {w}" for (n, s), w in witness_totals.items())
+                + ".",
+                "",
+            ]
         # The file may also judge programs only an epoch snapshot solved; list
         # the ones these best-checkpoint cells solved.
         best_solved = {
             (row["behaviour"], " ".join(row["program"]))
             for path in arms.values()
-            for cell in cells(path, args.arm, "stack_pbe_v4").values()
+            for cell in cells(path, args.arm, "stack_pbe_v4", (beam, depth)).values()
             for row in cell["rows"]
             if row["solved"]
         }

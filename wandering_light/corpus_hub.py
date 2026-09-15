@@ -273,6 +273,18 @@ def publish_corpus(
     return revision
 
 
+def _hosting_free(manifest_bytes: bytes) -> str:
+    """A manifest's canonical text with its ``hub`` block set aside.
+
+    `record_hub_location` writes that block into the repository copy after
+    publishing, so the copy on the Hub never has it; the corpus both describe
+    is the same. Everything else must agree exactly.
+    """
+    manifest = json.loads(manifest_bytes.decode("utf-8"))
+    manifest.pop(_HUB_KEY, None)
+    return _canonical_json(manifest)
+
+
 def verify_published_corpus(
     corpus_dir: str | Path,
     *,
@@ -294,7 +306,9 @@ def verify_published_corpus(
             revision=revision,
         )
     )
-    if cached_manifest.read_bytes() != local_manifest.read_bytes():
+    if _hosting_free(cached_manifest.read_bytes()) != _hosting_free(
+        local_manifest.read_bytes()
+    ):
         raise ValueError("published manifest differs from the local manifest")
     with tempfile.TemporaryDirectory(prefix="wandering-light-corpus-") as directory:
         target = Path(directory)

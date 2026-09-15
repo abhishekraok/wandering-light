@@ -33,24 +33,29 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
 from experiments.step3_epochs_report import find_cell, snapshot_state  # noqa: E402
+from experiments.step3_verify_solves import partition  # noqa: E402
 
 Grid = dict[str, dict[int, dict[int, dict[str, Any]]]]
 
 
 def cell_counts(
-    cell: dict[str, Any], genuine: set[tuple[str, str]], behaviour: str
+    cell: dict[str, Any],
+    passing: set[tuple[str, str]],
+    behaviour: str,
+    witness: set[tuple[str, str]] = frozenset(),
 ) -> dict[str, int]:
-    """Verified solves in a cell, and how many of them are ``behaviour``."""
+    """Verified solves in a cell, how many are ``behaviour``, how many a witness."""
     ok = [
         r
         for r in cell["rows"]
-        if r["solved"] and (r["behaviour"], " ".join(r["program"])) in genuine
+        if r["solved"] and (r["behaviour"], " ".join(r["program"])) in passing
     ]
     named = sum(r["behaviour"] == behaviour for r in ok)
     return {
         "verified": len(ok),
         "named": named,
         "other": len(ok) - named,
+        "witness": sum((r["behaviour"], " ".join(r["program"])) in witness for r in ok),
         "named_tasks": sum(r["behaviour"] == behaviour for r in cell["rows"]),
     }
 
@@ -105,11 +110,10 @@ def main(argv: list[str] | None = None) -> int:
     arms = {k: Path(v) for k, v in (s.split("=", 1) for s in args.arm_dir)}
     best = {k: Path(v) for k, v in (s.split("=", 1) for s in args.best)}
     verified = json.loads(args.verified.read_text())
-    genuine = {
-        (p["behaviour"], p["program"])
-        for p in verified["programs"]
-        if p["verdict"] == "genuine"
-    }
+    # A verified solve is draw-tested or a catalogue witness, as the recorded
+    # reports define it; `witness` counts the latter apart (#142).
+    genuine, witness = partition(verified["programs"])
+    passing = genuine | witness
     checked = {(p["behaviour"], p["program"]) for p in verified["programs"]}
 
     grid: Grid = {}
@@ -125,7 +129,7 @@ def main(argv: list[str] | None = None) -> int:
                     train_rows.setdefault(name, state["train_rows"])
                 cell, source = find_cell(run_dir, best.get(name), args.arm, seed, epoch)
                 if cell:
-                    entry.update(cell_counts(cell, genuine, args.behaviour))
+                    entry.update(cell_counts(cell, passing, args.behaviour, witness))
                     entry["source"] = source
                     unchecked |= {
                         (r["behaviour"], " ".join(r["program"]))
