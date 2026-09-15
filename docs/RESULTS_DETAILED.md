@@ -334,6 +334,20 @@ Summed over the 18 cells of each three-seed arm: `keep_below` 0 / 186 / 7 (v4 on
 
 **Shortcuts:** 45 distinct solved programs over the six run dirs, 35 genuine, 10 shortcuts, 0 inconclusive; new here `aligned_matches` 26 and 28 ops and `drop_last` 29 ops.
 
+## Macro compression of v4 and world-v3 witnesses under the authoring library (#144)
+
+Static: the 133 macros of `experiments/world_behaviours/macros.txt` expanded to `mark-28` primitives; compression is the fewest tokens over ops ∪ macros expanding to each distinct witness (dynamic programming, exact); branching at 8 prefix states per witness, an action legal iff every shown example accepts it under plain `step_raw` (no #70 guard); cost estimate is highways (#96) step 3's `d · log2 b_eff`, mean over witnesses, in bits. Subset: the 35 macros that hit a v4 train witness, selected on train. [report](../reports/macro-compression-20260914/README.md), `tables.md`, `compression.json`.
+
+| corpus | witnesses | median ops | full library: median tokens, ops saved, witnesses hit, macros used, b_eff, bits raw → library | 35-macro subset: median tokens, ops saved, b_eff, bits raw → library |
+|---|---:|---:|---|---|
+| v4 train | 175 | 44 | 31, 0.314, 0.891, 35 / 133, 24.8 → 137.1, 224.9 → 236.2 | 31, 0.314, 24.7 → 54.0, 224.4 → 191.5 |
+| v4 eval | 45 | 40 | 30, 0.343, 0.778, 26 / 133, 24.4 → 133.2, 228.8 → 230.1 | 30, 0.343, 24.9 → 54.4, 230.1 → 188.1 |
+| v4 cohort (#101) | 43 | 39 | 30, 0.344, 0.767, 25 / 133, 24.7 → 135.7, 228.0 → 229.0 | 30, 0.344, 24.5 → 53.3, 227.3 → 185.4 |
+| world-v3 train | 482 | 145 | 21, 0.825, 0.977, 126 / 133, 24.7 → 137.5, 1181.1 → 317.4 | 83.5, 0.452, 24.6 → 53.8, 1180.1 → 805.0 |
+| world-v3 eval | 44 | 149.5 | 28, 0.813, 1.000, 80 / 133, 25.5 → 142.3, 1050.5 → 300.2 | 90, 0.411, 25.1 → 55.1, 1045.1 → 766.1 |
+
+Cohort by witness-length bucket, bits raw → full library → subset: 1–5 (6 witnesses) 22.4 → 28.3 → 22.9; 6–10 (3) 29.3 → 40.1 → 32.5; 11–20 (6) 71.7 → 85.0 → 68.8; 21–40 (9) 154.7 → 174.7 → 141.5; 41+ (19) 408.3 → 393.4 → 318.4. Macros hitting v4, by ops saved on train: `pack3` 300, `abs` 276, `max2` 253, `unpack3` 252, `pack2` 152, `reverse` 140, `second` 108, `unpack2` 104, `take` 98, `drop-n` 98; no semantic macro (`range`, `digits`, `gcd`, `sort`, `zip`) occurs in any v4 witness. On world-v3 train `range` alone saves 13,081 ops; the DP parse equals the authors' macro form at the median (21) and is never longer.
+
 ## `deep-corpus-v1` — solvers on the held-out cohort (96 tasks, 12 per distance 1–8)
 
 `wl-core-v1`, 118 functions. [materialized-rollout report](../reports/materialized-rollout-20260829/README.md), [fine-tune-llm (#50)](../../issues/50), [solve-step-by-step (#55)](../../issues/55).
