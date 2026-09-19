@@ -542,6 +542,12 @@ def _one_result(outcome, want_bool: bool = False):
     return stack[0], cost
 
 
+# `map`, `filter` and `fold` do not re-check the budget after spending on an
+# item: `run_body` is handed `budget - cost` and refuses once that reaches zero,
+# so the budget is enforced before the next item rather than after the last one,
+# and a run that ends on its final unit of fuel is not refused for finishing.
+
+
 def _run_map(stack: tuple, budget: int, depth: int):
     got = _quotations(stack, 1)
     if isinstance(got, str):
@@ -558,8 +564,6 @@ def _run_map(stack: tuple, budget: int, depth: int):
         value, spent = result
         out.append(value)
         cost += spent
-        if cost >= budget:
-            return "out of fuel"
     return (*stack[:-2], Lst(tuple(out))), cost
 
 
@@ -582,8 +586,6 @@ def _run_filter(stack: tuple, budget: int, depth: int):
         if keep.value:
             out.append(item)
         cost += spent
-        if cost >= budget:
-            return "out of fuel"
     return (*stack[:-2], Lst(tuple(out))), cost
 
 
@@ -604,8 +606,6 @@ def _run_fold(stack: tuple, budget: int, depth: int):
             return result
         acc, spent = result
         cost += spent
-        if cost >= budget:
-            return "out of fuel"
     return (*stack[:-3], acc), cost
 
 

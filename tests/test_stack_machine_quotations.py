@@ -332,6 +332,36 @@ def test_fuel_limit_refuses_a_long_but_finite_computation():
     assert OP_BY_NAME["map"].guard(tight) == "out of fuel"
 
 
+# Each program ends in its combinator and costs exactly the fuel given, so a
+# limit equal to the cost is the case `map`, `filter` and `fold` used to refuse
+# after spending on the last item (#145). The last is the issue's repro.
+FUEL_BOUNDARY = (
+    ("nil 1 cons 1 cons [ 1 add ] map", 14, MARK_OPS),
+    ("nil 0 cons 1 cons [ 0 eq? ] filter", 14, MARK_OPS),
+    ("nil 1 cons 1 cons 0 [ add ] fold", 12, MARK_OPS),
+    ("1 quote 0 'add quote fold", 7, OPS),
+)
+
+
+@pytest.mark.parametrize(("source", "cost", "ops"), FUEL_BOUNDARY)
+def test_a_combinator_finishes_on_its_last_unit_of_fuel(source, cost, ops):
+    """A computation needing N fuel runs under a limit of N, and reports N."""
+    assert execute(source, Config(fuel_limit=cost), ops=ops).fuel == cost
+    with pytest.raises(IllegalOpError, match="out of fuel"):
+        execute(source, Config(fuel_limit=cost - 1), ops=ops)
+
+
+@pytest.mark.parametrize(("source", "cost", "ops"), FUEL_BOUNDARY)
+def test_a_combinator_never_spends_more_than_its_limit(source, cost, ops):
+    """Every limit either refuses or finishes, and never overspends."""
+    for limit in range(1, cost + 2):
+        try:
+            final = execute(source, Config(fuel_limit=limit), ops=ops)
+        except IllegalOpError:
+            continue
+        assert final.fuel == cost <= limit
+
+
 def test_combinator_cost_is_one_plus_the_body():
     """Fuel stops equalling program length once an op can run code."""
     before = execute("nil 1 cons 0 cons 1 cons nil 'add cons '1 cons")
