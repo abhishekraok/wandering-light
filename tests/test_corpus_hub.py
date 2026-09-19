@@ -313,3 +313,38 @@ def test_verify_published_corpus_uses_the_pinned_revision(tmp_path, monkeypatch)
     assert set(checked) == {"discovery", "validation", "test"}
     assert calls
     assert {call[3] for call in calls} == {"immutable123"}
+
+
+def test_verify_published_corpus_sets_the_recorded_hub_block_aside(
+    tmp_path, monkeypatch
+):
+    """`record_hub_location` runs after publishing, so the Hub copy of a manifest
+    never has the hub block the repository copy carries. Comparing bytes made
+    the check fail on every published corpus (#142)."""
+    root = _corpus(tmp_path)
+    published = tmp_path / "published"
+    shutil.copytree(root, published)
+    corpus_hub.record_hub_location(root, repo_id="acct/corpus", revision="b" * 40)
+
+    def fake_download(*, repo_id, repo_type, filename, revision):
+        assert (repo_id, repo_type, revision) == ("acct/corpus", "dataset", "b" * 40)
+        return str(published / filename)
+
+    monkeypatch.setitem(
+        sys.modules,
+        "huggingface_hub",
+        type("Hub", (), {"hf_hub_download": staticmethod(fake_download)}),
+    )
+    checked = corpus_hub.verify_published_corpus(
+        root, repo_id="acct/corpus", revision="b" * 40
+    )
+    assert set(checked) == {"discovery", "validation", "test"}
+
+    # Everything but the hub block still has to agree exactly.
+    manifest = json.loads((root / "manifest.json").read_text())
+    manifest["basis_set_id"] = "wl-core-v2"
+    (root / "manifest.json").write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="differs"):
+        corpus_hub.verify_published_corpus(
+            root, repo_id="acct/corpus", revision="b" * 40
+        )

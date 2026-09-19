@@ -59,7 +59,7 @@ Guard `body` alone: 1.30x / 1.71x / 2.30x at depths 4/5/6. Authored witnesses pr
 
 ## Stack PBE v4 — 220 behaviours, eval split 1,800 tasks
 
-`stack_pbe_v4`, `mark-28`, witness median 43 ops. [report](../reports/stack-pbe-v4-baseline-20260901/README.md), [local-arm report](../reports/stack-pbe-v4-local-arm-20260902/README.md), [codex-exec report](../reports/stack-pbe-v4-codex-exec-20260910/README.md), [rerun-baselines-v4 (#85)](../../issues/85), [codex-exec-frontier-effort-curve (#123)](../../issues/123). **The `codex exec` rows were run with the invoking user's `~/.codex` in context** (a generator bug, fixed after the runs); a post-fix replicate of one arm agrees 37/40, see the report's correction section. A paired, per-example regrade of the luna API row against the astra high row, with per-op traces of every candidate, is in [run-comparison](../reports/stack-pbe-v4-run-comparison-20260913/README.md).
+`stack_pbe_v4`, `mark-28`, witness median 43 ops. [report](../reports/stack-pbe-v4-baseline-20260901/README.md), [local-arm report](../reports/stack-pbe-v4-local-arm-20260902/README.md), [codex-exec report](../reports/stack-pbe-v4-codex-exec-20260910/README.md), [claude-exec report](../reports/stack-pbe-v4-claude-exec-20260913/README.md), [rerun-baselines-v4 (#85)](../../issues/85), [codex-exec-frontier-effort-curve (#123)](../../issues/123), [opus-effort-curve (#137)](../../issues/137). **The `codex exec` rows were run with the invoking user's `~/.codex` in context** (a generator bug, fixed after the runs); a post-fix replicate of one arm agrees 37/40, see the report's correction section. A paired, per-example regrade of the luna API row against the astra high row, with per-op traces of every candidate, is in [run-comparison](../reports/stack-pbe-v4-run-comparison-20260913/README.md).
 
 | solver | config | tasks | solved | memorised | wall (s) | notes | artifact |
 |---|---|---:|---:|---:|---:|---|---|
@@ -80,6 +80,9 @@ Guard `body` alone: 1.30x / 1.71x / 2.30x at depths 4/5/6. Authored witnesses pr
 | `gpt-6-astra` | effort high, via `codex exec` | sample 40 | **23 (57.5%)** | 15 | 840 | shown-only 95%; 1 is the shortcut → 22 real; 396 reasoning tok/task, effort barely engaged | `…/astra_high_v4_sample40.json` |
 | `gpt-6-astra` | effort low, via `codex exec`, 6 shards | full 1,800 | **995 (55.3%)** | 714 | 33,487 | shown-only 94.9%; 20 are the shortcut → 975 real; 214/840 at 41+ ops, `median_floor` (253) 17/40; hand-written 318/320 vs sol-written 677/1,480, matched only at 1–10 ops (279/280 vs 79/80) | `…/astra_low_v4_full_shard{0..5}.json`, `…/astra_low_v4_full_analysis.md` |
 | `gpt-6-astra` | effort low, via `codex exec`, private home actually applied | sample 40 | 23 (57.5%) | 17 | 601 | replicate after the CODEX_HOME fix; paired agreement 37/40 with the row above, 480 fewer input tok/task | `…/astra_low_v4_sample40_fixedhome.json` |
+| `claude-opus-5` | effort low, via `claude -p` trimmed to the API protocol | sample 40 | 17 (42.5%) | 6 | 1,424 | shown-only 57.5%; 1 is the shortcut → 16 real; 13 do not run; median 526 thinking tok/task; 0 tool calls in 40 | `stack-pbe-v4-claude-exec-20260913/opus_low_v4_sample40.json` |
+| `claude-opus-5` | effort high, via `claude -p` | sample 40 | 20 (50.0%) | 12 | 2,220 | shown-only 80%; 1 is the shortcut → 19 real; 5 do not run; 1,400 thinking tok/task, above low on 38/40 paired tasks | `…/opus_high_v4_sample40.json` |
+| `claude-opus-5` | effort xhigh, via `claude -p` | sample 40 | **25 (62.5%)** | 13 | 3,568 | shown-only 95%; 1 is the shortcut → 24 real; 1 does not run; 1,962 thinking tok/task (max 119,941 on `median_floor`, memorised); agrees with astra high on 38/40, astra-only 0, at 12.5× its output tokens | `…/opus_xhigh_v4_sample40.json` |
 | beam 64 × depth 48, 1m policy, seed 0 | trained on v4 train, LR 1.25e-4, cpu (8 threads) | sample 40 | 7 (17.5%) | 0 | 131 |  | `compute-optimal-mark28-20260903/timing/1m-s0-cpu.json` |
 | beam 64 × depth 48, 1m policy, seed 0 | trained on v4 train, LR 1.25e-4, cuda | sample 40 | 7 (17.5%) | 0 | 120 | same program on both devices | `…/timing/1m-s0-cuda.json` |
 | beam 64 × depth 48, 1m policy, seed 1 | trained on v4 train, LR 1.25e-4, cpu (8 threads) | sample 40 | 10 (25.0%) | 1 | 126 |  | `…/timing/1m-s1-cpu.json` |
@@ -287,6 +290,63 @@ Over epochs 1–6 `keep_below` is +186 of the contained +183 and the cohort's +1
 **Shortcuts** (pass held-out grading, fail the reference in every mode, including the task's own sampler): `all_positive` 17 and 28 ops and `bounds_cover_list_flag` 44 and 46 ops in both arms; `all_positive` 19 ops (v4 + world seed 1 epoch 5), `aligned_matches` 32 ops (v4 only seed 2 epoch 5) and `keep_negative` 17 ops (v4 + world seed 0 epoch 5) too; 36 distinct solved programs, 29 verified, none undecided.
 
 **World v3 eval, 44 clean behaviours, best-validation checkpoints, same search:** 1 / 0 / 0 solved in both arms, on different tasks; 4 of the 44 witnesses fit within depth 48 (median 149.5 ops). v4-only seed 0 at depth 192: 1 / 44. Next-op CE there: 3.16 ± 0.61 v4 only, 1.02 ± 0.05 v4 + world, 0.91 for an op 4-gram fit on world fit programs.
+
+## Stack PBE v4 + world v3 — dropping the 156 world programs that contain `keep_below`'s witness (#136), 300-task v4 cohort
+
+The #134 v4 + world arm retrained with the 156 world fit behaviours whose program contains `[ lt? ] swap cons filter` added to the drop list (`ablated`, seeds 0 / 1 / 2, 358,086 fit rows) and with 156 world train behaviours dropped at random instead (`random`, seed 0, 389,527 fit rows; the draw keeps 114 of the 156 carriers). Everything else as #134: 1m, 6 epochs, snapshots and search at every epoch, validation pinned to the v4 holdout, beam 64 × depth 48, verification at 10,000 draws per mode. #134's arms are its epoch study, re-verified in the same file. [report](../reports/keep-below-ablation-20260913/README.md), `ablation.json`, `verified_solves_ablation.json`.
+
+**Best validation CE on the v4 holdout (epoch), and the difference from v4 + world on the same seed:**
+
+| seed | v4 only | v4 + world | ablated | random |
+|---|---:|---:|---:|---:|
+| 0 | 0.9519 (1) | 0.8434 (2) | 0.8716 (2), +0.0282 | 0.9135 (2), +0.0701 |
+| 1 | 0.9454 (2) | 0.8689 (4) | 0.8657 (2), −0.0032 | |
+| 2 | 0.9650 (1) | 0.8606 (3) | 0.8756 (2), +0.0151 | |
+| mean ± sd | 0.9541 ± 0.0100 | 0.8576 ± 0.0130 | 0.8710 ± 0.0050 | |
+
+**Verified solves by epoch (all / `keep_below`, of 300 and 19 tasks):**
+
+| epoch | v4-only s0 | s1 | s2 | v4+world s0 | s1 | s2 | ablated s0 | s1 | s2 | random s0 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 48/0 | 56/0 | 46/0 | 53/7 | 43/0 | 57/11 | 48/0 | 55/0 | 47/0 | 50/3 |
+| 2 | 55/0 | 63/0 | 53/0 | 52/7 | 64/15 | 82/15 | 57/0 | 64/0 | 65/0 | 67/17 |
+| 3 | 84/0 | 77/0 | 80/0 | 89/11 | 89/19 | 102/16 | 58/0 | 73/1 | 82/0 | 77/16 |
+| 4 | 94/0 | 74/0 | 88/0 | 85/7 | 104/8 | 94/16 | 80/0 | 90/1 | 78/1 | 86/17 |
+| 5 | 83/0 | 77/0 | 90/0 | 104/8 | 109/19 | 90/8 | 75/0 | 100/2 | 83/1 | 102/19 |
+| 6 | 86/0 | 72/0 | 75/0 | 75/1 | 70/7 | 80/11 | 61/0 | 94/1 | 78/0 | 108/15 |
+
+Summed over the 18 cells of each three-seed arm: `keep_below` 0 / 186 / 7 (v4 only / v4 + world / ablated; all 7 the exact witness), the other 42 behaviours 1,301 / 1,256 / 1,281. Per-seed peaks 94 / 77 / 90 (87.0), 104 / 109 / 102 (105.0), 80 / 100 / 83 (87.7); means over epochs 72.3, 80.1, 71.6. Random seed 0: 87 `keep_below` solves over 6 cells, peak 108 at epoch 6, mean 81.7.
+
+**Matched epoch, ablated minus v4 + world (all verified solves; with `keep_below` removed):**
+
+| epoch | s0 | s1 | s2 | mean | other s0 | s1 | s2 | mean |
+|---|---|---|---|---|---|---|---|---|
+| 1 | −5 | +12 | −10 | −1.0 | +2 | +12 | +1 | +5.0 |
+| 2 | +5 | +0 | −17 | −4.0 | +12 | +15 | −2 | +8.3 |
+| 3 | −31 | −16 | −20 | −22.3 | −20 | +2 | −4 | −7.3 |
+| 4 | −5 | −14 | −16 | −11.7 | +2 | −7 | −1 | −2.0 |
+| 5 | −29 | −9 | −7 | −15.0 | −21 | +8 | +0 | −4.3 |
+| 6 | −14 | +24 | −2 | +2.7 | −13 | +30 | +9 | +8.7 |
+
+**Behaviours:** 17 of the 43 are verified by some arm across #134 and this run, 26 by none; the ablated arm verifies 17 (v4 only 13, v4 + world 14, random 15), three of them by no #134 arm: `bounds_cover_list_flag`, `n_minus_each`, `sum_negative`.
+
+**Longest verified solve:** a 46-op `bounds_cover_list_flag` program, `[ [ drop lt? ] [ drop drop drop 0 ] [ [ [ drop ] dip swap lt? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte ] ifte ] swap cons swap cons map uncons [ mul ] fold`, against a 92-op catalogue witness; 0 failures in 10,000 sampler, 9,083 perturbed and 9,088 dense draws. Ablated seed 0 epochs 5 and 6 (one task each), random seed 0 epoch 4 (4 of the behaviour's 8 tasks) and 6 (2). It shares its first 42 ops (through `map uncons`) with the two `bounds_cover_list_flag` shortcuts #134 recorded (44 and 46 ops) and differs in the reduction. No #134 cell found it.
+
+**Shortcuts:** 45 distinct solved programs over the six run dirs, 35 genuine, 10 shortcuts, 0 inconclusive; new here `aligned_matches` 26 and 28 ops and `drop_last` 29 ops.
+
+## Macro compression of v4 and world-v3 witnesses under the authoring library (#144)
+
+Static: the 133 macros of `experiments/world_behaviours/macros.txt` expanded to `mark-28` primitives; compression is the fewest tokens over ops ∪ macros expanding to each distinct witness (dynamic programming, exact); branching at 8 prefix states per witness, an action legal iff every shown example accepts it under plain `step_raw` (no #70 guard); cost estimate is highways (#96) step 3's `d · log2 b_eff`, mean over witnesses, in bits. Subset: the 35 macros that hit a v4 train witness, selected on train. [report](../reports/macro-compression-20260914/README.md), `tables.md`, `compression.json`.
+
+| corpus | witnesses | median ops | full library: median tokens, ops saved, witnesses hit, macros used, b_eff, bits raw → library | 35-macro subset: median tokens, ops saved, b_eff, bits raw → library |
+|---|---:|---:|---|---|
+| v4 train | 175 | 44 | 31, 0.314, 0.891, 35 / 133, 24.8 → 137.1, 224.9 → 236.2 | 31, 0.314, 24.7 → 54.0, 224.4 → 191.5 |
+| v4 eval | 45 | 40 | 30, 0.343, 0.778, 26 / 133, 24.4 → 133.2, 228.8 → 230.1 | 30, 0.343, 24.9 → 54.4, 230.1 → 188.1 |
+| v4 cohort (#101) | 43 | 39 | 30, 0.344, 0.767, 25 / 133, 24.7 → 135.7, 228.0 → 229.0 | 30, 0.344, 24.5 → 53.3, 227.3 → 185.4 |
+| world-v3 train | 482 | 145 | 21, 0.825, 0.977, 126 / 133, 24.7 → 137.5, 1181.1 → 317.4 | 83.5, 0.452, 24.6 → 53.8, 1180.1 → 805.0 |
+| world-v3 eval | 44 | 149.5 | 28, 0.813, 1.000, 80 / 133, 25.5 → 142.3, 1050.5 → 300.2 | 90, 0.411, 25.1 → 55.1, 1045.1 → 766.1 |
+
+Cohort by witness-length bucket, bits raw → full library → subset: 1–5 (6 witnesses) 22.4 → 28.3 → 22.9; 6–10 (3) 29.3 → 40.1 → 32.5; 11–20 (6) 71.7 → 85.0 → 68.8; 21–40 (9) 154.7 → 174.7 → 141.5; 41+ (19) 408.3 → 393.4 → 318.4. Macros hitting v4, by ops saved on train: `pack3` 300, `abs` 276, `max2` 253, `unpack3` 252, `pack2` 152, `reverse` 140, `second` 108, `unpack2` 104, `take` 98, `drop-n` 98; no semantic macro (`range`, `digits`, `gcd`, `sort`, `zip`) occurs in any v4 witness. On world-v3 train `range` alone saves 13,081 ops; the DP parse equals the authors' macro form at the median (21) and is never longer.
 
 ## `deep-corpus-v1` — solvers on the held-out cohort (96 tasks, 12 per distance 1–8)
 

@@ -33,6 +33,7 @@ sys.path.insert(0, str(REPO))
 
 from experiments import compute_optimal_mark28 as driver  # noqa: E402
 from experiments.step3_epochs_report import find_cell  # noqa: E402
+from experiments.step3_verify_solves import partition  # noqa: E402
 from wandering_light.stack_policy import validation_skeleton  # noqa: E402
 
 V4 = REPO / "wandering_light/evals/data/stack_pbe_v4/manifest.json"
@@ -102,11 +103,10 @@ def main(argv: list[str] | None = None) -> int:
     v4_fit, world_fit = fit("stack_pbe_v4"), fit("stack_pbe_world_v3")
 
     verified = json.loads(args.verified.read_text())
-    genuine = {
-        (p["behaviour"], p["program"])
-        for p in verified["programs"]
-        if p["verdict"] == "genuine"
-    }
+    # Draw-tested or a catalogue witness, as the recorded reports define a
+    # verified solve. `keep_below`'s solves are all the latter (#142).
+    draw_tested, witness = partition(verified["programs"])
+    genuine = draw_tested | witness
     arms = {
         "v4-only": (args.baseline, args.baseline_best),
         "v4+world": (args.mixed, args.mixed_best),

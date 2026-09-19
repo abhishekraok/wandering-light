@@ -1386,6 +1386,16 @@ class CodexExecTokenGenerator(TokenGenerator):
         except (ProcessLookupError, PermissionError):
             process.kill()
 
+    def abandon(self, process, started: float, reason: str) -> None:
+        """Kill the child's process group, reap it, and record why."""
+        self.kill_group(process)
+        process.communicate()
+        self.last_meta = {
+            "tool_calls": 0,
+            "errors": [reason],
+            "seconds": round(time.time() - started, 1),
+        }
+
     def generate(self, prompt: str) -> str:
         import subprocess
 
@@ -1409,14 +1419,15 @@ class CodexExecTokenGenerator(TokenGenerator):
         try:
             stdout, stderr = process.communicate(prompt, timeout=self.timeout)
         except subprocess.TimeoutExpired:
-            self.kill_group(process)
-            process.communicate()
-            self.last_meta = {
-                "tool_calls": 0,
-                "errors": [f"timeout after {self.timeout:.0f}s"],
-                "seconds": round(time.time() - started, 1),
-                "timed_out": True,
-            }
+            self.abandon(process, started, f"timeout after {self.timeout:.0f}s")
+            self.last_meta["timed_out"] = True
+            raise
+        except BaseException:
+            # Ctrl-C or SIGTERM (the baseline turns it into KeyboardInterrupt
+            # and writes partial results). The child sits in its own session
+            # and would outlive the run, still spending tokens (Codex review
+            # on PR #139).
+            self.abandon(process, started, "interrupted")
             raise
         message, meta = self.parse_events(stdout.splitlines())
         meta["seconds"] = round(time.time() - started, 1)
@@ -1424,6 +1435,217 @@ class CodexExecTokenGenerator(TokenGenerator):
         if process.returncode != 0:
             raise RuntimeError(
                 f"codex exec exited {process.returncode}: {stderr.strip()[-200:]}"
+            )
+        self.llm_io_history.append((prompt, message))
+        return message
+
+
+# Variables that would send `claude -p` somewhere other than the logged-in
+# subscription: an API key or token bills the API, the provider switches route
+# to Bedrock / Vertex / Foundry, a base URL to anything at all.
+CLAUDE_EXEC_DROPPED_ENV = (
+    "ANTHROPIC_API_KEY",
+    "ANTHROPIC_AUTH_TOKEN",
+    "ANTHROPIC_BASE_URL",
+    "CLAUDE_CODE_USE_BEDROCK",
+    "CLAUDE_CODE_USE_VERTEX",
+    "CLAUDE_CODE_USE_FOUNDRY",
+)
+
+CLAUDE_EXEC_SYSTEM_PROMPT = (
+    "Follow the instructions in the message. You have no tools and cannot run "
+    "commands or code; answer from the message alone.\n"
+)
+
+
+class ClaudeExecTokenGenerator(TokenGenerator):
+    """An Anthropic model reached through `claude -p` on a Claude subscription.
+
+    Trimmed to the API protocol the way `CodexExecTokenGenerator` is
+    (opus-effort-curve, #137): every built-in tool off (`--tools ""`), no MCP
+    servers, no user / project / local settings, no session written, an empty
+    working directory so no `CLAUDE.md` is discovered, and Claude Code's system
+    prompt replaced by two lines. `--bare` would strip more but disables OAuth,
+    and the subscription is the point. `--output-format json` returns the
+    answer with per-call usage (input, cache, output and thinking tokens), the
+    canonical model that served the call, the turn count and permission
+    denials; all of it lands in `last_meta`.
+
+    With no tools the model can still *write* a tool call as text: the probe
+    for #137 saw Opus at effort high answer a task with a Bash call to look for
+    the interpreter. `parse_result` flags that as `text_tool_call`; the grader
+    scores the answer as illegal, and the count is what lets a row say whether
+    it stayed the API protocol.
+    """
+
+    def __init__(
+        self,
+        model: str,
+        effort: str | None = None,
+        timeout: float = 1800.0,
+        workdir: str | os.PathLike | None = None,
+        system_prompt: str = CLAUDE_EXEC_SYSTEM_PROMPT,
+    ):
+        import tempfile
+        from pathlib import Path
+
+        self.model = model
+        self.effort = effort
+        self.timeout = timeout
+        self.system_prompt = system_prompt
+        self.llm_io_history = []
+        self.last_meta: dict | None = None
+        self.workdir = (
+            Path(workdir) if workdir else Path(tempfile.mkdtemp(prefix="claude-exec-"))
+        )
+        self.workdir.mkdir(parents=True, exist_ok=True)
+        self.env = self.environment()
+
+    def environment(self) -> dict:
+        """The caller's environment minus anything that re-routes auth.
+
+        `--setting-sources ""` drops settings files, not variables: an exported
+        `ANTHROPIC_API_KEY` would make `claude -p` bill the API instead of the
+        subscription, silently (Codex review on PR #139). OAuth lives in the
+        home directory, which stays.
+        """
+        return {k: v for k, v in os.environ.items() if k not in CLAUDE_EXEC_DROPPED_ENV}
+
+    def command(self) -> list[str]:
+        argv = [
+            "claude",
+            "-p",
+            "--model",
+            self.model,
+            "--tools",
+            "",
+            "--strict-mcp-config",
+            "--setting-sources",
+            "",
+            "--no-session-persistence",
+            "--output-format",
+            "json",
+            "--system-prompt",
+            self.system_prompt,
+        ]
+        if self.effort:
+            argv += ["--effort", self.effort]
+        return argv
+
+    @staticmethod
+    def looks_like_tool_call(text: str) -> bool:
+        """A tool call the model wrote into its answer, having no tool to call.
+
+        Claude Code's JSON shape (`{"name": ..., "input": ...}`) on the last
+        line, or a function-call tag anywhere in the reply.
+        """
+        import json
+
+        if "<function_calls>" in text or "<invoke " in text:
+            return True
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        if not lines or not lines[-1].startswith("{"):
+            return False
+        try:
+            call = json.loads(lines[-1])
+        except ValueError:
+            return False
+        return isinstance(call, dict) and {"name", "input"} <= set(call)
+
+    @classmethod
+    def parse_result(cls, stdout: str) -> tuple[str, dict]:
+        """The answer and what the call cost, from `--output-format json`.
+
+        Usage is renamed to the keys the codex rows use (`input_tokens` is
+        every input token, cached or not; thinking tokens are
+        `reasoning_output_tokens`) so one analysis reads both. `model` lists
+        every model that served the call: more than one would mean a fallback
+        answered, and that row is not one model's.
+        """
+        import json
+
+        try:
+            data = json.loads(stdout)
+        except ValueError:
+            return "", {
+                "tool_calls": 0,
+                "text_tool_call": False,
+                "errors": [f"unparseable output: {stdout.strip()[:120]!r}"],
+            }
+        message = data.get("result") or ""
+        usage = data.get("usage") or {}
+        details = usage.get("output_tokens_details") or {}
+        cached = usage.get("cache_creation_input_tokens", 0) + usage.get(
+            "cache_read_input_tokens", 0
+        )
+        meta = {
+            "tool_calls": max(0, int(data.get("num_turns") or 1) - 1)
+            + len(data.get("permission_denials") or []),
+            "text_tool_call": cls.looks_like_tool_call(message),
+            "errors": [],
+            "usage": {
+                "input_tokens": usage.get("input_tokens", 0) + cached,
+                "cache_creation_input_tokens": usage.get(
+                    "cache_creation_input_tokens", 0
+                ),
+                "cache_read_input_tokens": usage.get("cache_read_input_tokens", 0),
+                "output_tokens": usage.get("output_tokens", 0),
+                "reasoning_output_tokens": details.get("thinking_tokens", 0),
+            },
+            "model": sorted(data.get("modelUsage") or {}),
+            "stop_reason": data.get("stop_reason"),
+            "api_ms": data.get("duration_api_ms"),
+        }
+        if data.get("is_error"):
+            meta["errors"].append(str(message)[:120])
+        return message, meta
+
+    def abandon(self, process, started: float, reason: str) -> None:
+        """Kill the child's process group, reap it, and record why."""
+        CodexExecTokenGenerator.kill_group(process)
+        process.communicate()
+        self.last_meta = {
+            "tool_calls": 0,
+            "text_tool_call": False,
+            "errors": [reason],
+            "seconds": round(time.time() - started, 1),
+        }
+
+    def generate(self, prompt: str) -> str:
+        import subprocess
+
+        started = time.time()
+        # Cleared before the call, as in `CodexExecTokenGenerator.generate`: a
+        # failed call must not be handed the previous task's token counts.
+        self.last_meta = None
+        process = subprocess.Popen(
+            self.command(),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            cwd=self.workdir,
+            env=self.env,
+            start_new_session=True,
+        )
+        try:
+            stdout, stderr = process.communicate(prompt, timeout=self.timeout)
+        except subprocess.TimeoutExpired:
+            self.abandon(process, started, f"timeout after {self.timeout:.0f}s")
+            self.last_meta["timed_out"] = True
+            raise
+        except BaseException:
+            # Same as the codex generator: an interrupted run must not leave
+            # the model working in its own session (Codex review on PR #139).
+            self.abandon(process, started, "interrupted")
+            raise
+        message, meta = self.parse_result(stdout)
+        meta["seconds"] = round(time.time() - started, 1)
+        self.last_meta = meta
+        if process.returncode != 0 or meta["errors"]:
+            raise RuntimeError(
+                f"claude -p exited {process.returncode}: "
+                f"{(meta['errors'] or [stderr.strip()[-200:]])[0]}"
             )
         self.llm_io_history.append((prompt, message))
         return message

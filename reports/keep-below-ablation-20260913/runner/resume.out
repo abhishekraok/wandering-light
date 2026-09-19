@@ -1,0 +1,21 @@
+=== replay (resumed)
+00:46:35 RESULT replay 1m-s1-cuda-e3: 94 hits, 0 mismatches, 59s
+00:47:27 RESULT replay 1m-s1-cuda-e4: 106 hits, 0 mismatches, 52s
+00:48:29 RESULT replay 1m-s1-cuda-e5: 121 hits, 0 mismatches, 62s
+00:49:43 RESULT replay 1m-s1-cuda-e6: 113 hits, 0 mismatches, 74s
+00:50:01 RESULT replay 1m-s2-cuda-e1: 56 hits, 0 mismatches, 19s
+00:50:36 RESULT replay 1m-s2-cuda-e2: 76 hits, 0 mismatches, 35s
+00:51:24 RESULT replay 1m-s2-cuda-e3: 97 hits, 0 mismatches, 48s
+00:52:17 RESULT replay 1m-s2-cuda-e4: 97 hits, 0 mismatches, 53s
+00:53:20 RESULT replay 1m-s2-cuda-e5: 103 hits, 0 mismatches, 63s
+00:54:34 RESULT replay 1m-s2-cuda-e6: 97 hits, 0 mismatches, 75s
+00:54:54 RESULT replay 1m-s0-cuda-e1: 58 hits, 0 mismatches, 12s
+00:55:22 RESULT replay 1m-s0-cuda-e2: 79 hits, 0 mismatches, 28s
+00:56:03 RESULT replay 1m-s0-cuda-e3: 92 hits, 0 mismatches, 41s
+00:57:06 RESULT replay 1m-s0-cuda-e4: 104 hits, 0 mismatches, 63s
+00:58:15 RESULT replay 1m-s0-cuda-e5: 122 hits, 0 mismatches, 69s
+00:59:43 RESULT replay 1m-s0-cuda-e6: 127 hits, 0 mismatches, 88s
+=== ablation study done
+=== verify (10k draws per mode, dense, floor 500)
+=== ablation tables
+=== post done

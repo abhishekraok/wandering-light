@@ -15,6 +15,7 @@ it is the easy end of the split (median witness 26 ops against 40).
 |---|---|---:|---:|---:|
 | `gpt-6-astra` (via `codex exec`) | effort low | full 1,800 | **995 (55.3%)** | 33,487 (6 shards) |
 | `gpt-6-astra` (via `codex exec`) | effort low / medium / high | sample 40 | **24 / 24 / 23 (60.0% / 60.0% / 57.5%)** | 606 / 661 / 840 |
+| `claude-opus-5` (via `claude -p`) | effort low / high / xhigh | sample 40 | **17 / 20 / 25 (42.5% / 50.0% / 62.5%)** | 1,424 / 2,220 / 3,568 |
 | `gpt-5.6-luna` | effort high | sample 40 | **15 (37.5%)** | 2,286 |
 | `gpt-5.6-terra` (via `codex exec`) | effort high | sample 40 | 16 (40.0%) | 1,344 |
 | BFS | 100,000 nodes | sample 40 | 6 (15.0%) | 3,917 |
@@ -23,7 +24,7 @@ it is the easy end of the split (median witness 26 ops against 40).
 | beam 64 × depth 48, 1m next-op policy trained on v4 train | seeds 0 / 1, CPU | sample 40 | 7 (17.5%) / **10 (25.0%)** | 131 / 126 |
 
 One solve per frontier arm and one BFS solve are the `aligned_matches`
-sampler shortcut, so 23 (astra), 15 (terra), 14 (luna) and 5 (BFS) compute
+sampler shortcut, so 24 (Opus xhigh), 23 (astra), 15 (terra), 14 (luna) and 5 (BFS) compute
 the behaviour. BFS solves nothing at 6+ ops; qwen3 nothing at 16+. On the sample every
 frontier arm solves 0 or 1 of 12 tasks past 40 ops, but on the full split
 astra solves 214 of 840 past 40 ops (`median_floor`, 253-op witness, 17/40):
@@ -35,6 +36,12 @@ reasoning only 256 → 396 tokens per task, which is why the curve is flat.
 Luna re-run through `codex exec` scores 12/40 against the API row's 15,
 agreeing on 33 of 40 tasks (one-sample noise).
 [codex-exec report](../reports/stack-pbe-v4-codex-exec-20260910/README.md)
+Claude Opus 5 does spend its effort knob (median thinking 526 → 1,400 →
+1,962 tokens per task, high above low on 38 of 40 paired tasks) and the curve
+rises 17 → 20 → 25; every gain is a 12–49-op behaviour, the twelve tasks past
+40 ops stay at 0–1 solved, and at xhigh Opus solves the same tasks as astra
+(agree 38/40 with astra high, none astra-only) at 12.5× the output tokens.
+[claude-exec report](../reports/stack-pbe-v4-claude-exec-20260913/README.md)
 
 **v3 anchor, same protocol on the 40-behaviour predecessor:** luna 30/40
 (75.0%) on its sample 40, `gpt-5.6-terra` 377/440 (85.7%) on the full split,
@@ -81,17 +88,21 @@ Verified solves of 300, mean of three seeds.
 [report](../reports/world-plus-v4-policy-20260912/README.md),
 [world-plus-v4-policy (#134)](../../issues/134)
 
-| | v4 only | v4 + world |
-|---|---:|---:|
-| holdout CE at the best-validation epoch | 0.954 | 0.858 |
-| verified solves at the best-validation epoch (v4 only 1–2, v4 + world 2–4) | 52.3 | 86.0 |
-| verified solves, mean over epochs 1–6 | 72.3 | 80.1 |
-| verified solves at each seed's best epoch (chosen on the cohort) | 87.0 | 105.0 |
+| | v4 only | v4 + world | v4 + world, 156 `keep_below` carriers dropped |
+|---|---:|---:|---:|
+| holdout CE at the best-validation epoch | 0.954 | 0.858 | 0.871 |
+| verified solves at the best-validation epoch (v4 only 1–2, v4 + world 2–4, dropped 2) | 52.3 | 86.0 | 62.0 |
+| verified solves, mean over epochs 1–6 | 72.3 | 80.1 | 71.6 |
+| verified solves at each seed's best epoch (chosen on the cohort) | 87.0 | 105.0 | 87.7 |
 
 The search difference is one behaviour, `keep_below`, whose 6-op witness occurs
 inside 156 world training programs and no v4 training program: summed over seeds and
 epochs 1–6 it gains 186 solves against the cohort's net 141. 29 of the 43 cohort
-behaviours are never solved by either arm.
+behaviours are never solved by either arm. Dropping the 156 carrier programs
+([keep-below-ablation (#136)](../../issues/136), third column) removes the search
+gain (`keep_below` 7 solves over 18 cells, the other 42 behaviours level with v4 only)
+and keeps 86% of the loss gain; dropping 156 world programs at random (one seed)
+keeps 35%.
 
 ## `deep-corpus-v1` — learned solver against search (96 held-out tasks, 12 per distance 1–8)
 

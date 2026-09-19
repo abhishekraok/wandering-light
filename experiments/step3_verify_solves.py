@@ -7,31 +7,35 @@ campaign were only found by hand on 2026-09-09 (`bounds_cover_list_flag`'s 44-op
 program reads only the list head; `all_positive`'s 28-op program returns the
 minimum). This checks every distinct solved program instead:
 
-- a program equal to one of the behaviour's catalogue witnesses is genuine by
-  construction, as far as the corpus's own verification goes: `Behaviour`
-  witnesses are checked against the reference on draws from the behaviour's
-  sampler only;
-- any other program is run against the Python reference in up to three modes:
-  fresh draws from the behaviour's own sampler, perturbed draws (wider values,
-  lengths 0-10) and, with ``--dense``, dense draws (integers and list values from
-  -2..2, lengths 0-10, booleans unchanged), which force the duplicate and tie
-  patterns that rare-case shortcuts get wrong and wide perturbations never
-  produce. A draw counts only where the canonical witness itself computes the
-  reference, so inputs outside the corpus's domain are skipped, not scored.
+- a program equal to one of the behaviour's catalogue witnesses gets the verdict
+  ``equals_catalogue_witness`` and no draws. It is exactly as trusted as the
+  corpus's own verification, which checks witnesses against the reference on
+  draws from the behaviour's sampler only, so it is counted apart from the
+  draw-tested solves rather than among them (#142);
+- any other program is run against the Python reference in three modes: fresh
+  draws from the behaviour's own sampler, perturbed draws (wider values, lengths
+  0-10) and dense draws (integers and list values from -2..2, lengths 0-10,
+  booleans unchanged), which force the duplicate and tie patterns that rare-case
+  shortcuts get wrong and wide perturbations never produce. ``--no-dense`` drops
+  the third. A draw counts only where the canonical witness itself computes the
+  reference, so inputs outside the corpus's domain are skipped, not scored, and
+  each mode records how many it skipped.
 
 Verdict: ``shortcut`` if any mode finds a disagreement; ``genuine`` if every mode
-tested at least ``min(--min-tested, --draws)`` in-domain draws without one;
-otherwise ``inconclusive``. A pass is a finite test, not a proof: a program that
-fails on a fraction p of inputs passes n draws with probability (1 - p)^n.
+tested at least ``--min-tested`` in-domain draws without one; otherwise
+``inconclusive``. Fewer draws than the floor can only make a verdict
+``inconclusive``, never ``genuine``. A pass is a finite test, not a proof: a
+program that fails on a fraction p of inputs passes n draws with probability
+(1 - p)^n.
 
-Every timing cell is then rescored: graded, verified and inconclusive solves per
-witness-length bucket.
+Every timing cell at the searched budget (``--beam-width``, ``--max-depth``) is
+then rescored: graded, verified, witness-equal and inconclusive solves per
+witness-length bucket. ``verified`` is the draw-tested ``genuine`` verdicts only.
 
 Usage:
-    uv run python experiments/step3_verify_solves.py \
-        --run-dir checkpoints/step3-20260912/v4only \
-        --run-dir checkpoints/step3-20260912/mixed \
-        --draws 10000 --dense \
+    uv run python experiments/step3_verify_solves.py \\
+        --run-dir checkpoints/step3-20260912/v4only \\
+        --run-dir checkpoints/step3-20260912/mixed \\
         --out reports/world-plus-v4-policy-20260912/verified_solves_epochs.json
 """
 
@@ -44,12 +48,52 @@ from pathlib import Path
 from typing import Any
 
 from wandering_light.stack_machine import value_key
-from wandering_light.stack_pbe import CATALOGUE, run_program, to_stack, to_value
+from wandering_light.stack_pbe import (
+    CATALOGUE,
+    catalogue_digest,
+    catalogue_source_digest,
+    run_program,
+    to_stack,
+    to_value,
+)
 
 BUCKETS = ("1-5", "6-10", "11-20", "21-40", "41+")
 WIDE = tuple(range(-20, 21))
 DENSE = tuple(range(-2, 3))
-BUDGET = (64, 48)
+BEAM_WIDTH = 64
+MAX_DEPTH = 48
+DRAWS = 10_000
+MIN_TESTED = 500
+# Which rescoring column a verdict lands in; `shortcut` lands in none.
+COLUMN_OF = {
+    "genuine": "verified",
+    "inconclusive": "inconclusive",
+    "equals_catalogue_witness": "witness",
+}
+
+Key = tuple[str, str]
+
+
+def partition(programs: list[dict[str, Any]]) -> tuple[set[Key], set[Key]]:
+    """Keys of the draw-tested ``genuine`` and the witness-equal programs in a file.
+
+    The reports define a verified solve as either (`RESULTS_DETAILED.md`), so
+    their readers take the union and count the witness share beside it; this
+    script's own table keeps the two apart. A file written before #142 graded
+    witness-equal programs ``genuine`` with a ``why`` and no ``draws``, and
+    reads the same way.
+    """
+    genuine: set[Key] = set()
+    witness: set[Key] = set()
+    for p in programs:
+        key = (p["behaviour"], p["program"])
+        if p["verdict"] == "equals_catalogue_witness" or (
+            p["verdict"] == "genuine" and "draws" not in p
+        ):
+            witness.add(key)
+        elif p["verdict"] == "genuine":
+            genuine.add(key)
+    return genuine, witness
 
 
 def perturb(rng: random.Random, args: tuple) -> tuple:
@@ -125,11 +169,14 @@ def check(
     behaviour,
     draws: int,
     seed: int,
-    dense: bool = False,
-    min_tested: int = 500,
+    dense: bool = True,
+    min_tested: int = MIN_TESTED,
 ) -> dict[str, Any]:
     if program in behaviour.programs:
-        return {"verdict": "genuine", "why": "equals a catalogue witness"}
+        return {
+            "verdict": "equals_catalogue_witness",
+            "why": "equals a catalogue witness",
+        }
     # sampler and perturbed share one stream, as when these verdicts were first
     # recorded; dense has its own, so adding it moves neither.
     shared = random.Random(seed)
@@ -160,32 +207,61 @@ def check(
         tallies[mode] = {
             "tested": tested,
             "failed": failed,
+            # Out of the corpus's domain: neither for nor against the program.
+            "skipped": draws - tested,
             "counterexample": counterexample,
         }
-    return {"verdict": verdict_of(tallies, min(min_tested, draws)), "draws": tallies}
+    # The floor is the floor. Fewer draws than it cannot reach `genuine`.
+    return {"verdict": verdict_of(tallies, min_tested), "draws": tallies}
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("--run-dir", type=Path, action="append", required=True)
+    parser.add_argument("--draws", type=int, default=DRAWS)
+    parser.add_argument("--seed", type=int, default=134)
+    parser.add_argument(
+        "--dense",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="dense draws (-2..2) catch the tie and duplicate shortcuts; on by default",
+    )
+    parser.add_argument("--min-tested", type=int, default=MIN_TESTED)
+    parser.add_argument("--eval-corpus", default="stack_pbe_v4")
+    parser.add_argument(
+        "--beam-width",
+        type=int,
+        default=BEAM_WIDTH,
+        help="rescore only timing cells searched at this beam width",
+    )
+    parser.add_argument(
+        "--max-depth",
+        type=int,
+        default=MAX_DEPTH,
+        help="rescore only timing cells searched to this depth",
+    )
+    parser.add_argument("--out", type=Path)
+    return parser
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--run-dir", type=Path, action="append", required=True)
-    parser.add_argument("--draws", type=int, default=2000)
-    parser.add_argument("--seed", type=int, default=134)
-    parser.add_argument("--dense", action="store_true")
-    parser.add_argument("--min-tested", type=int, default=500)
-    parser.add_argument("--eval-corpus", default="stack_pbe_v4")
-    parser.add_argument("--out", type=Path)
-    args = parser.parse_args(argv)
+    args = build_parser().parse_args(argv)
+    budget = (args.beam_width, args.max_depth)
 
     by_name = {b.name: b for b in CATALOGUE}
     cells = []
+    skipped_cells = []
     for run_dir in args.run_dir:
         for path in sorted((run_dir / "timing").glob("*.json")):
             cell = json.loads(path.read_text())
             if cell.get("eval_corpus", args.eval_corpus) != args.eval_corpus:
                 continue
-            if (cell.get("beam_width"), cell.get("max_depth")) != BUDGET:
+            if (cell.get("beam_width"), cell.get("max_depth")) != budget:
+                skipped_cells.append(str(path))
                 continue
             cells.append((run_dir, cell))
+    for path in skipped_cells:
+        print(f"skipping {path}: not searched at beam {budget[0]} x depth {budget[1]}")
 
     distinct: dict[tuple[str, str], dict[str, Any]] = {}
     for _, cell in cells:
@@ -206,7 +282,7 @@ def main(argv: list[str] | None = None) -> int:
         extra = ""
         if "draws" in slot:
             extra = " " + ", ".join(
-                f"{mode} {t['failed']}/{t['tested']} failed"
+                f"{mode} {t['failed']}/{t['tested']} failed, {t['skipped']} skipped"
                 for mode, t in slot["draws"].items()
             )
             example = next(
@@ -219,23 +295,24 @@ def main(argv: list[str] | None = None) -> int:
             )
             if example:
                 extra += f" e.g. {example}"
-        print(f"{slot['verdict']:12s} {name:28s} {len(program.split()):3d} ops{extra}")
+        print(f"{slot['verdict']:24s} {name:28s} {len(program.split()):3d} ops{extra}")
 
     table = []
     for run_dir, cell in cells:
         counts = {
-            k: dict.fromkeys(BUCKETS, 0) for k in ("graded", "verified", "inconclusive")
+            k: dict.fromkeys(BUCKETS, 0)
+            for k in ("graded", "verified", "witness", "inconclusive")
         }
         for row in cell["rows"]:
             if not row["solved"]:
                 continue
             counts["graded"][row["bucket"]] += 1
             verdict = distinct[(row["behaviour"], " ".join(row["program"]))]["verdict"]
-            if verdict == "genuine":
-                counts["verified"][row["bucket"]] += 1
-            elif verdict == "inconclusive":
-                counts["inconclusive"][row["bucket"]] += 1
+            column = COLUMN_OF.get(verdict)
+            if column:
+                counts[column][row["bucket"]] += 1
         epoch = cell.get("policy_epoch")
+        totals = {f"{k}_total": sum(v.values()) for k, v in counts.items()}
         table.append(
             {
                 "run_dir": str(run_dir),
@@ -243,9 +320,7 @@ def main(argv: list[str] | None = None) -> int:
                 "seed": cell["seed"],
                 "policy_epoch": epoch,
                 **counts,
-                "graded_total": sum(counts["graded"].values()),
-                "verified_total": sum(counts["verified"].values()),
-                "inconclusive_total": sum(counts["inconclusive"].values()),
+                **totals,
                 "tasks": len(cell["rows"]),
             }
         )
@@ -253,9 +328,9 @@ def main(argv: list[str] | None = None) -> int:
             "" if epoch is None else f"-e{epoch}"
         )
         print(
-            f"{label:14s}: graded {sum(counts['graded'].values())}, verified "
-            f"{sum(counts['verified'].values())}, inconclusive "
-            f"{sum(counts['inconclusive'].values())} of {len(cell['rows'])} | "
+            f"{label:14s}: graded {totals['graded_total']}, verified "
+            f"{totals['verified_total']}, witness {totals['witness_total']}, "
+            f"inconclusive {totals['inconclusive_total']} of {len(cell['rows'])} | "
             + " ".join(
                 f"{b} {counts['verified'][b]}/{counts['graded'][b]}" for b in BUCKETS
             )
@@ -273,7 +348,12 @@ def main(argv: list[str] | None = None) -> int:
                         "perturbed",
                         *(["dense"] if args.dense else []),
                     ],
-                    "min_tested": min(args.min_tested, args.draws),
+                    "min_tested": args.min_tested,
+                    "beam_width": args.beam_width,
+                    "max_depth": args.max_depth,
+                    "eval_corpus": args.eval_corpus,
+                    "catalogue_digest": catalogue_digest(),
+                    "catalogue_source_digest": catalogue_source_digest(),
                     "programs": [
                         {"behaviour": b, "program": p, **v}
                         for (b, p), v in sorted(distinct.items())
