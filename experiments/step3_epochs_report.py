@@ -24,8 +24,14 @@ from __future__ import annotations
 import argparse
 import json
 import statistics
+import sys
 from pathlib import Path
 from typing import Any
+
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO))
+
+from experiments.step3_verify_solves import partition  # noqa: E402
 
 BUCKETS = ("1-5", "6-10", "11-20", "21-40", "41+")
 BUDGET = (64, 48)
@@ -64,7 +70,9 @@ def find_cell(
 
 
 def counts(
-    cell: dict[str, Any], genuine: set[tuple[str, str]] | None
+    cell: dict[str, Any],
+    genuine: set[tuple[str, str]] | None,
+    witness: set[tuple[str, str]] = frozenset(),
 ) -> dict[str, Any]:
     solved = [r for r in cell["rows"] if r["solved"]]
     ok = (
@@ -75,6 +83,7 @@ def counts(
     return {
         "graded": len(solved),
         "verified": len(ok),
+        "witness": sum((r["behaviour"], " ".join(r["program"])) in witness for r in ok),
         "buckets": {b: sum(r["bucket"] == b for r in ok) for b in BUCKETS},
         "tasks": len(cell["rows"]),
         "unverified_programs": sorted(
@@ -124,15 +133,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     genuine = None
+    witness: set[tuple[str, str]] = set()
     checked: set[tuple[str, str]] = set()
     inconclusive: list[tuple[str, str]] = []
     if args.verified and args.verified.exists():
         verified = json.loads(args.verified.read_text())
-        genuine = {
-            (p["behaviour"], p["program"])
-            for p in verified["programs"]
-            if p["verdict"] == "genuine"
-        }
+        # A verified solve is draw-tested or a catalogue witness, as the
+        # recorded reports define it; `witness` counts the latter apart (#142).
+        draw_tested, witness = partition(verified["programs"])
+        genuine = draw_tested | witness
         checked = {(p["behaviour"], p["program"]) for p in verified["programs"]}
         inconclusive = sorted(
             (p["behaviour"], p["program"])
@@ -155,7 +164,7 @@ def main(argv: list[str] | None = None) -> int:
                     entry["train_ce"] = state["train_cross_entropy"]
                     entry["steps"] = epoch * -(-state["train_rows"] // BATCH)
                 if cell:
-                    entry.update(counts(cell, genuine))
+                    entry.update(counts(cell, genuine, witness))
                 grid.setdefault(name, {}).setdefault(seed, {})[epoch] = entry
 
     if genuine is not None:

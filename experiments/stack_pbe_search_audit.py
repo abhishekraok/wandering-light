@@ -24,14 +24,22 @@ per depth, ~40 s per task at depth 5 on one core.
 ``--guard`` reinstates at search level the check that capture bypasses inside an
 open quotation. It changes how much is walked, never what is found: see
 `wandering_light.quotation_guard` and `reports/mark-28-guard-20260901/`.
+
+``--out`` records, beside every row, what the sweep ran on: seed, corpus path
+and name, the manifest's Hub revision and catalogue digests, and the live
+catalogue's digests, so a row can be told apart from one on a regenerated
+corpus (#142). Each row names its task (index in the corpus, a content id,
+split) and lists every program that survived the held-out examples.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import random
 import time
+from pathlib import Path
 
 from wandering_light.quotation_guard import MODES, blocked
 from wandering_light.stack_machine import (
@@ -42,13 +50,29 @@ from wandering_light.stack_machine import (
     step_raw,
     value_key,
 )
-from wandering_light.stack_pbe import BASIS, Task, load
+from wandering_light.stack_pbe import (
+    BASIS,
+    Task,
+    catalogue_digest,
+    catalogue_source_digest,
+    load,
+)
 
 Behaviour = tuple[tuple[Value, ...], ...]
 
 
 def key_of(behaviour: Behaviour) -> tuple:
     return tuple(tuple(value_key(v) for v in stack) for stack in behaviour)
+
+
+def task_id(task: Task) -> str:
+    """Twelve hex digits over behaviour, shown inputs and outputs.
+
+    Stable across corpus order and shuffling, unlike an index; the shown
+    examples are what makes two tasks the same task.
+    """
+    payload = json.dumps([task.behaviour, list(task.inputs), list(task.outputs)])
+    return hashlib.sha256(payload.encode()).hexdigest()[:12]
 
 
 def step_all(behaviour: Behaviour, op) -> Behaviour | None:
@@ -103,7 +127,9 @@ def stacks(texts: tuple[str, ...]) -> Behaviour:
     return tuple(parse_stack(text, basis=BASIS) for text in texts)
 
 
-def audit_one(task: Task, depth: int, basis: str, guard: str = "off") -> dict:
+def audit_one(
+    task: Task, depth: int, basis: str, guard: str = "off", index: int | None = None
+) -> dict:
     """Search one task, then re-check every fit on the held-out examples."""
     shown_in, shown_out = stacks(task.inputs), stacks(task.outputs)
     hidden_in, hidden_out = stacks(task.held_out_inputs), stacks(task.held_out_outputs)
@@ -125,12 +151,16 @@ def audit_one(task: Task, depth: int, basis: str, guard: str = "off") -> dict:
         else:
             spurious.append(program)
     return {
+        "task_index": index,
+        "task_id": task_id(task),
+        "split": task.split,
         "behaviour": task.behaviour,
         "examples": task.examples,
         "witness_length": task.length,
         "states": states,
         "fits_shown": len(matches),
         "fits_held_out": len(generalises),
+        "fits_held_out_programs": [" ".join(p) for p in generalises],
         "spurious": len(spurious),
         "shortest_fit": min((len(p) for p in matches), default=None),
         "example_spurious": " ".join(spurious[0]) if spurious else None,
@@ -148,9 +178,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", default=None)
     args = parser.parse_args(argv)
 
-    tasks = load(args.corpus)
-    random.Random(args.seed).shuffle(tasks)
-    sample = tasks[: args.tasks]
+    corpus = Path(args.corpus)
+    manifest = (
+        json.loads((corpus / "manifest.json").read_text()) if corpus.is_dir() else {}
+    )
+    # Shuffling (index, task) pairs draws the same permutation as shuffling the
+    # tasks did, so a seed still names the sample it always named.
+    indexed = list(enumerate(load(args.corpus)))
+    random.Random(args.seed).shuffle(indexed)
+    sample = indexed[: args.tasks]
 
     started = time.time()
     print(
@@ -160,8 +196,8 @@ def main(argv: list[str] | None = None) -> int:
     header = f"{'behaviour':<18}{'k':>2}{'wit':>5}{'fits':>6}{'holds':>6}{'bogus':>6}{'states':>10}"
     print(header)
     rows = []
-    for task in sample:
-        row = audit_one(task, args.depth, args.basis, args.guard)
+    for index, task in sample:
+        row = audit_one(task, args.depth, args.basis, args.guard, index=index)
         rows.append(row)
         print(
             f"{row['behaviour']:<18}{row['examples']:>2}{row['witness_length']:>5}"
@@ -198,6 +234,14 @@ def main(argv: list[str] | None = None) -> int:
                     "depth": args.depth,
                     "basis": args.basis,
                     "guard": args.guard,
+                    "seed": args.seed,
+                    "tasks": args.tasks,
+                    "corpus": args.corpus,
+                    "corpus_name": manifest.get("corpus"),
+                    "hub": manifest.get("hub"),
+                    "manifest_catalogue": manifest.get("catalogue"),
+                    "catalogue_digest": catalogue_digest(),
+                    "catalogue_source_digest": catalogue_source_digest(),
                     "rows": rows,
                 },
                 handle,
