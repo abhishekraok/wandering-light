@@ -143,6 +143,11 @@ venv.bak/
 .cursor/
 .claude/
 
+# Agent worktrees checked out inside the repo. .claude/ and .codex/ (which
+# self-ignores) already cover the agent-managed ones; this covers the ones
+# created by hand, at whatever depth they land.
+.worktrees/
+
 # Rope project settings
 .ropeproject
 
