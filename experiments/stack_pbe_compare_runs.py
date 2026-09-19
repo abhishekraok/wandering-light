@@ -162,7 +162,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--split", default="eval")
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument(
-        "--tasks", type=int, default=None, help="default: the run's own count"
+        "--tasks",
+        type=int,
+        default=None,
+        help="0 keeps the whole split in corpus order; default: the run's own count",
     )
     parser.add_argument(
         "--out", default=None, help="paired JSON with per-example verdicts and traces"
@@ -176,7 +179,11 @@ def main(argv: list[str] | None = None) -> int:
     paths = {args.label_a: args.a, args.label_b: args.b}
     all_tasks = load(args.corpus)
     index_of = {id(t): i for i, t in enumerate(all_tasks)}
-    count = args.tasks or max(len(r["candidates"]) for r in runs.values())
+    count = (
+        args.tasks
+        if args.tasks is not None
+        else max(len(r["candidates"]) for r in runs.values())
+    )
     sample = draw_sample(all_tasks, args.split, args.seed, count)
 
     alignment = {label: align(run, sample, index_of) for label, run in runs.items()}
