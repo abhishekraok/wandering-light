@@ -86,13 +86,27 @@ SAMPLE_SEED = 991
 # from reports/world-plus-v4-policy-20260912/epochs.md. The checkpoints this
 # scores reproduce those runs bitwise (same seeds, same recipe, same LR), so
 # these are ground truth for the proxy with no search of any kind.
+# Verified solves AND behaviours covered on the 300-task cohort for the #101 1m
+# arm trained on v4 alone, as (tasks, behaviours of 43). Fifteen cells come from
+# reports/world-plus-v4-policy-20260912/epochs/v4only/timing/ and the three
+# CE-selected ones (s0 e1, s1 e2, s2 e1) from that report's best-checkpoint
+# study. The checkpoints scored here reproduce those runs bitwise, so this is
+# ground truth for a selection rule with no search of any kind.
+#
+# What it shows, and why this file exists: validation CE picks epochs 1/2/1,
+# which cover 6, 7 and 6 behaviours. The best epoch of the same run covers 13,
+# 11 and 12. Model selection alone is worth 1.89x behaviour coverage.
 TRUTH = {
     "v4only": {
-        (0, 1): 48, (0, 2): 55, (0, 3): 84, (0, 4): 94, (0, 5): 83, (0, 6): 86,
-        (1, 1): 56, (1, 2): 63, (1, 3): 77, (1, 4): 74, (1, 5): 77, (1, 6): 72,
-        (2, 1): 46, (2, 2): 53, (2, 3): 80, (2, 4): 88, (2, 5): 90, (2, 6): 75,
+        (0, 1): (48, 6),  (0, 2): (55, 8),  (0, 3): (85, 12),
+        (0, 4): (94, 12), (0, 5): (84, 12), (0, 6): (91, 13),
+        (1, 1): (56, 7),  (1, 2): (63, 7),  (1, 3): (77, 11),
+        (1, 4): (74, 10), (1, 5): (80, 11), (1, 6): (72, 10),
+        (2, 1): (48, 6),  (2, 2): (54, 7),  (2, 3): (80, 11),
+        (2, 4): (89, 11), (2, 5): (92, 12), (2, 6): (76, 12),
     }
 }
+CE_EPOCH = {0: 1, 1: 2, 2: 1}  # what validation CE selects, per seed
 
 
 def task_sets(tasks: list[Task]) -> dict[str, list[Task]]:
@@ -262,8 +276,10 @@ def main(argv: list[str] | None = None) -> int:
     if not points:
         raise SystemExit("no proxy files matched a (seed, epoch) with known solves")
 
-    solves = [truth[(s, e)] for s, e, _ in points]
+    solves = [truth[(s, e)][0] for s, e, _ in points]
+    behaviours = [truth[(s, e)][1] for s, e, _ in points]
     table: dict[str, float] = {}
+    table_b: dict[str, float] = {}
     for task_set in ("holdout", "fit"):
         for metric in (
             "mean_survival_depth",
@@ -279,18 +295,63 @@ def main(argv: list[str] | None = None) -> int:
             if any(v is None for v in vals):
                 continue
             table[f"{task_set}.{metric}"] = spearman(vals, solves)
+            table_b[f"{task_set}.{metric}"] = spearman(vals, behaviours)
 
-    print(f"{len(points)} checkpoints with known cohort solves ({min(solves)}-{max(solves)})")
-    print(f"\n{'signal':42s} {'spearman vs solves':>18s}")
+    print(
+        f"{len(points)} checkpoints with known outcomes: "
+        f"{min(solves)}-{max(solves)} tasks, {min(behaviours)}-{max(behaviours)} behaviours"
+    )
+    print(f"\n{'signal':42s} {'rho vs tasks':>13s} {'rho vs behaviours':>18s}")
     for key, rho in sorted(table.items(), key=lambda kv: -abs(kv[1])):
-        print(f"{key:42s} {rho:>18.3f}")
+        print(f"{key:42s} {rho:>13.3f} {table_b.get(key, float('nan')):>18.3f}")
+
+    # What a selection rule built on each signal would actually have picked.
+    by_seed: dict[int, list[tuple[int, dict[str, Any]]]] = defaultdict(list)
+    for seed, epoch, report in points:
+        by_seed[seed].append((epoch, report))
+    print(f"\n{'selection rule':42s} {'tasks':>8s} {'behaviours/43':>14s}")
+    ce = [truth[(s, CE_EPOCH[s])] for s in by_seed if (s, CE_EPOCH[s]) in truth]
+    if ce:
+        print(f"{'validation cross-entropy (the status quo)':42s} "
+              f"{sum(t for t, _ in ce) / len(ce):>8.1f} {sum(b for _, b in ce) / len(ce):>14.1f}")
+    selections: dict[str, tuple[float, float]] = {}
+    for key in table:
+        task_set, metric = key.split(".", 1)
+        lower_is_better = ("rank" in metric) or ("deficit" in metric)
+        picks = []
+        for seed, entries in by_seed.items():
+            scored = [
+                (e, r.get(task_set, {}).get(metric))
+                for e, r in entries
+                if r.get(task_set, {}).get(metric) is not None and (seed, e) in truth
+            ]
+            if not scored:
+                continue
+            pick = min(scored, key=lambda x: x[1])[0] if lower_is_better else max(scored, key=lambda x: x[1])[0]
+            picks.append(truth[(seed, pick)])
+        if picks:
+            selections[key] = (
+                sum(t for t, _ in picks) / len(picks),
+                sum(b for _, b in picks) / len(picks),
+            )
+    for key, (t, b) in sorted(selections.items(), key=lambda kv: -kv[1][1])[:8]:
+        print(f"{key:42s} {t:>8.1f} {b:>14.1f}")
+    oracle = [
+        max((truth[(s, e)] for e, _ in entries if (s, e) in truth), key=lambda v: v[1])
+        for s, entries in by_seed.items()
+    ]
+    print(f"{'ORACLE (peeks at the cohort; upper bound)':42s} "
+          f"{sum(t for t, _ in oracle) / len(oracle):>8.1f} "
+          f"{sum(b for _, b in oracle) / len(oracle):>14.1f}")
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(
             json.dumps(
                 {
-                    "checkpoints": [(s, e, truth[(s, e)]) for s, e, _ in points],
-                    "spearman": table,
+                    "checkpoints": [(s, e, *truth[(s, e)]) for s, e, _ in points],
+                    "spearman_tasks": table,
+                    "spearman_behaviours": table_b,
+                    "selection": selections,
                 },
                 indent=2,
                 sort_keys=True,
