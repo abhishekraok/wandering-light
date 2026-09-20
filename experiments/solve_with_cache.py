@@ -57,21 +57,23 @@ if TYPE_CHECKING:
 
 def replay_program(
     program: Sequence[str], inputs: tuple[tuple, ...], outputs: tuple[tuple, ...]
-) -> tuple[bool, int]:
+) -> tuple[bool, int, int]:
     """Does ``program`` take every shown input to its shown output, and at what cost?
 
     Charged like the beam: one execution per op run on one example stack, and an
-    op the machine refuses ends the attempt. Returns ``(fits, executions)``.
+    op the machine refuses ends the attempt. Returns ``(fits, executions, fuel)``.
     """
     executions = 0
+    fuel = 0
     product = inputs
     for name in program:
-        moved, _fuel, stepped = step_all_quiet(product, OP_BY_NAME[name])
+        moved, spent, stepped = step_all_quiet(product, OP_BY_NAME[name])
         executions += stepped
+        fuel += spent
         if moved is None:
-            return False, executions
+            return False, executions, fuel
         product = moved
-    return product == outputs, executions
+    return product == outputs, executions, fuel
 
 
 def run_cell(
@@ -79,6 +81,7 @@ def run_cell(
     scorer: PolicyScorer,
     *,
     use_cache: bool,
+    disjoint: bool,
     beam_width: int,
     max_depth: int,
     order_seed: int | None,
@@ -91,6 +94,7 @@ def run_cell(
         cohort = list(cohort)
         random.Random(order_seed).shuffle(cohort)
     cache: list[tuple[str, ...]] = []
+    provenance: dict[tuple[str, ...], str] = {}  # program -> behaviour it was found on
     rows = []
     # The corpus, the model and the cohort are alive for the whole cell and
     # never become garbage; freezing moves them out of the generations the
@@ -103,15 +107,18 @@ def run_cell(
         source = "search"
         executions = fuel = expansions = depth = 0
         termination = "cache_miss"
-        replay_executions = 0
+        replay_executions = replay_fuel = 0
         if use_cache:
             # Parsed here and not above so the cache-off arm is not charged for a
             # parse it never uses; ``beam_solve`` parses its own inputs either way.
             inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
             outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
             for candidate in cache:
-                fits, spent = replay_program(candidate, inputs, outputs)
+                if disjoint and provenance.get(candidate) == task.behaviour:
+                    continue
+                fits, spent, spent_fuel = replay_program(candidate, inputs, outputs)
                 replay_executions += spent
+                replay_fuel += spent_fuel
                 if fits:
                     program, source, termination = candidate, "cache", "fit"
                     break
@@ -123,35 +130,47 @@ def run_cell(
             termination = result.termination
             executions, fuel = result.executions, result.fuel
             expansions, depth = result.expansions, result.depth
-            if program is not None and program not in cache:
+            if use_cache and program is not None and program not in cache:
                 cache.append(program)
+                provenance[program] = task.behaviour
                 cache.sort(key=len)
         seconds = time.perf_counter() - task_started
-        score = grade(program, task) if program else None
         rows.append(
             {
+                "task": task,
                 "task_index": index,
                 "behaviour": task.behaviour,
                 "length": task.length,
                 "bucket": co.bucket_of(task.length),
                 "examples": task.examples,
-                "solved": bool(score and score.solved),
-                "shown_fit": bool(score and score.shown),
                 "program": list(program) if program else None,
+                "_program": program,
                 "source": source,
                 "termination": termination,
                 "seconds": seconds,
                 "executions": executions + replay_executions,
                 "replay_executions": replay_executions,
-                "fuel": fuel,
+                "fuel": fuel + replay_fuel,
+                "search_fuel": fuel,
                 "expansions": expansions,
                 "depth": depth,
                 "cache_size": len(cache),
             }
         )
+    cell_seconds = time.perf_counter() - started
+    # Grading is the harness's job and is sealed off from the clock: `grade`
+    # runs the program through the executor, which populates `run_body`'s
+    # process-global LRU, so grading inside the loop would warm state that later
+    # searches read. Held-out results never reach the cache in either case.
+    for row in rows:
+        found, task = row.pop("_program"), row.pop("task")
+        score = grade(found, task) if found else None
+        row["solved"] = bool(score and score.solved)
+        row["shown_fit"] = bool(score and score.shown)
     return {
-        "cell_seconds": time.perf_counter() - started,
-        "cache": "on" if use_cache else "off",
+        "cell_seconds": cell_seconds,
+        "timed_seconds": sum(r["seconds"] for r in rows),
+        "cache": ("disjoint" if disjoint else "on") if use_cache else "off",
         "order_seed": order_seed,
         "beam_width": beam_width,
         "max_depth": max_depth,
@@ -190,7 +209,17 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--policy", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--cache", choices=("on", "off"), default="on")
+    parser.add_argument(
+        "--cache",
+        choices=("on", "off", "disjoint"),
+        default="on",
+        help=(
+            "disjoint is a DIAGNOSTIC control, not a solver: it replays only programs "
+            "found on a different behaviour, which needs behaviour labels the solver "
+            "does not have. It separates cross-behaviour reuse from the within-"
+            "behaviour recurrence the cohort's 43-behaviour construction supplies."
+        ),
+    )
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--beam", type=int, default=co.BEAM_WIDTH)
     parser.add_argument("--depth", type=int, default=co.MAX_DEPTH)
@@ -211,7 +240,8 @@ def main(argv: list[str] | None = None) -> int:
     cell = run_cell(
         tasks,
         scorer,
-        use_cache=args.cache == "on",
+        use_cache=args.cache in ("on", "disjoint"),
+        disjoint=args.cache == "disjoint",
         beam_width=args.beam,
         max_depth=args.depth,
         order_seed=args.order_seed,

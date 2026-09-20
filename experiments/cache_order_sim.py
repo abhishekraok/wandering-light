@@ -62,7 +62,7 @@ def fits_matrix(
         outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
         row: dict[int, tuple[bool, bool, int]] = {}
         for p, program in enumerate(programs):
-            fits, spent = replay_program(program, inputs, outputs)
+            fits, spent, _fuel = replay_program(program, inputs, outputs)
             solved = bool(grade(program, task).solved) if fits else False
             row[p] = (fits, solved, spent)
         matrix[position] = row

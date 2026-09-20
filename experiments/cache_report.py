@@ -46,7 +46,8 @@ def stats(cell: dict[str, Any]) -> dict[str, Any]:
         "tasks": len(solved),
         "behaviours": len(behaviours),
         "behaviours_clean": len(behaviours - set(LEAKY)),
-        "seconds": cell["cell_seconds"],
+        "seconds": cell.get("timed_seconds", cell["cell_seconds"]),
+        "cell_seconds": cell["cell_seconds"],
         "executions": sum(r["executions"] for r in rows),
         "from_cache": sum(1 for r in rows if r.get("source") == "cache"),
         "shown_fit": sum(1 for r in rows if r["shown_fit"]),
@@ -74,7 +75,11 @@ def main(argv: list[str] | None = None) -> int:
     w("The #101 300-task `stack_pbe_v4` cohort, beam 64 x depth 48, guard `both`, one")
     w("host (`UltraDesk`, RTX 4090, 8 CPU threads), one commit. Every cell here was")
     w("timed with the faster `beam_solve`, so none of them compares with a recorded")
-    w("pre-speedup wall-clock; the arms compare with each other.")
+    w("pre-speedup wall-clock; the arms compare with each other. **timed** is the sum")
+    w("of the per-task timers, which is the quantity `docs/metrics.md` defines and the")
+    w("quantity the recorded cells aggregate; **elapsed** is the whole cell and is kept")
+    w("beside it. Grading runs after the timers are sealed, because it warms the")
+    w("executor's process-global `run_body` cache that later searches read.")
     w()
     w("The cohort is **43 distinct behaviours behind 300 tasks**, so tasks and")
     w("behaviours are reported side by side. `behaviours*` excludes")
@@ -84,8 +89,8 @@ def main(argv: list[str] | None = None) -> int:
     if "off-s0-e4" in s and "on-s0-e4" in s:
         w("## The cache")
         w()
-        w("| cell | tasks /300 | behaviours /43 | behaviours* | wall (s) | executions | served from cache |")
-        w("|---|---:|---:|---:|---:|---:|---:|")
+        w("| cell | tasks /300 | behaviours /43 | behaviours* | timed (s) | elapsed (s) | executions | served from cache |")
+        w("|---|---:|---:|---:|---:|---:|---:|---:|")
         for name in ("off-s0-e4", "on-s0-e4", "on-s0-e4-order1", "on-s0-e4-order2"):
             if name not in s:
                 continue
@@ -94,7 +99,8 @@ def main(argv: list[str] | None = None) -> int:
             label = f"`{name}`" + (f" (order {order})" if order is not None else "")
             w(
                 f"| {label} | {c['tasks']} | {c['behaviours']} | {c['behaviours_clean']} | "
-                f"{c['seconds']:.0f} | {c['executions']:,} | {c['from_cache']} |"
+                f"{c['seconds']:.0f} | {c['cell_seconds']:.0f} | {c['executions']:,} "
+                f"| {c['from_cache']} |"
             )
         w()
         w("Per witness-length bucket:")

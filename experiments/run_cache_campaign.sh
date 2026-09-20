@@ -35,6 +35,12 @@ cell off-s0-e4            "$RUN/policies/witness-s0-e4" --cache off
 cell on-s0-e4             "$RUN/policies/witness-s0-e4" --cache on
 cell on-s0-e4-order1      "$RUN/policies/witness-s0-e4" --cache on --order-seed 1
 
+# --- Control: replay only programs found on a DIFFERENT behaviour. Separates --
+# --- cross-behaviour reuse from the within-behaviour recurrence the cohort's --
+# --- 43-behaviours-behind-300-tasks construction supplies. Needs behaviour ----
+# --- labels, so it is a diagnostic and never a solver. -----------------------
+cell disjoint-s0-e4       "$RUN/policies/witness-s0-e4" --cache disjoint
+
 # --- the three training arms at a matched epoch, cache off (#152) -------------
 for arm in witness hindsight hindsight-all; do
   for seed in 0 1 2; do
@@ -47,5 +53,6 @@ done
 cell on-s0-e4-b256        "$RUN/policies/witness-s0-e4" --cache on --beam 256
 cell on-s0-e4-d20         "$RUN/policies/witness-s0-e4" --cache on --depth 20
 cell on-s0-e4-order2      "$RUN/policies/witness-s0-e4" --cache on --order-seed 2
+cell off-s0-e4-order1     "$RUN/policies/witness-s0-e4" --cache off --order-seed 1
 
 echo "$(date +%H:%M:%S) campaign done" | tee -a "$LOG"
