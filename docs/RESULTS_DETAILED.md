@@ -411,6 +411,21 @@ Three arms of the #101 1m recipe (LR 1.25e-4, batch 256, 6 epochs, seeds 0/1/2, 
 
 `hindsight` uses the loose "no open mark" rule, so its draw includes parked quotations; under #150's tightened rule (no open mark **and** no parked quotation) v4 has a median 5 closed states per witness, 14.0% of ops. Witness-shape covariates over the 43 cohort behaviours, from #150's `shape.json`: Spearman(length, longest uninterrupted write run) **+0.954**, (length, closed states) +0.712, (length, executions) +0.645, (length, largest body share) +0.397. Restricted to 11–40 ops (n=15, 5 solved at beam 64), every staging covariate is null against solves: longest write run rho −0.197 (permutation p=0.49), closed states −0.156 (p=0.62), largest body share −0.033 (p=0.95), executions +0.000 (p=1.00). That band holds most of the variation but not all of it — 1–5 ops is 6/6 solved, 6–10 is 1/3, 41+ is 0/19 — and n=15 with 5 positives cannot support a verdict either way.
 
+## Fused-policy transfer to staged witness text (#155, #99)
+
+`witness-s0-e4` (1m v4-only) scored along the 18 staged rewrites of the #155 pilot and along their fused twins, same v4 train task, same inputs and final target. **Out of distribution by construction**: the policy trained only on write-then-run text, so this bounds transfer and does not estimate the deficit a staged-trained policy would show. Tolerance `ln 64` = 4.159 nats over the whole witness. [report](../reports/staged-transfer-20260920/README.md), driver `experiments/staged_transfer.py`
+
+| arm | n | median length | median per-step deficit | median `L x d` | within `ln W` |
+|---|---:|---:|---:|---:|---:|
+| fused, train split (policy trained on these) | 40 | 44.0 | 0.075 | 3.2 | 23/40 |
+| the 18 pilot fused witnesses (also train) | 18 | 43.5 | 0.086 | 3.5 | 11/18 |
+| fused, eval split — unseen content, familiar style | 40 | 44.0 | 0.535 | 24.6 | 4/40 |
+| **the 18 staged rewrites** — unseen content and style | 18 | 39.5 | **3.392** | **162.1** | **0/18** |
+
+Staged is slightly *shorter* at the median, so the 39x deficit is not a length effect. Unseen content in the familiar style costs about 7x; unseen style about 45x.
+
+Per-step deficit by step kind, fused → staged: `body` (under an open mark) 0.107 → **5.302** (400 → 298 steps), `open` 0.091 → 0.966 (133 → 131), `close` 0.025 → 2.557 (133 → 131), `run` 0.106 → 2.617 (28 → 92), `direct` 0.356 → 2.764 (125 → 151). The registered diagnostic — cheap bodies plus expensive boundaries would be weak evidence that short bodies are cheaper steps — **returns a clean negative**: body tokens are the most expensive staged kind, and one alone exceeds the whole budget. `open` stays cheap, so the policy will start a quotation anywhere; what it cannot predict is a short body's contents.
+
 ## `deep-corpus-v1` — solvers on the held-out cohort (96 tasks, 12 per distance 1–8)
 
 `wl-core-v1`, 118 functions. [materialized-rollout report](../reports/materialized-rollout-20260829/README.md), [fine-tune-llm (#50)](../../issues/50), [solve-step-by-step (#55)](../../issues/55).
