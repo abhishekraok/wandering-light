@@ -28,11 +28,16 @@ LEAKY = ("all_positive", "bounds_cover_list_flag")
 
 
 def load(run_dir: Path) -> dict[str, dict[str, Any]]:
-    return {
-        p.stem: json.loads(p.read_text())
-        for p in sorted(run_dir.glob("*.json"))
-        if p.stem != "campaign"
-    }
+    """Every cell in the directory; anything that is not one is skipped."""
+    cells = {}
+    for path in sorted(run_dir.glob("*.json")):
+        try:
+            cell = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            continue
+        if isinstance(cell, dict) and "rows" in cell and "cell_seconds" in cell:
+            cells[path.stem] = cell
+    return cells
 
 
 def stats(cell: dict[str, Any]) -> dict[str, Any]:
@@ -91,12 +96,21 @@ def main(argv: list[str] | None = None) -> int:
         w()
         w("| cell | tasks /300 | behaviours /43 | behaviours* | timed (s) | elapsed (s) | executions | served from cache |")
         w("|---|---:|---:|---:|---:|---:|---:|---:|")
-        for name in ("off-s0-e4", "on-s0-e4", "on-s0-e4-order1", "on-s0-e4-order2"):
+        for name in (
+            "off-s0-e4",
+            "off-s0-e4-order1",
+            "on-s0-e4",
+            "on-s0-e4-order1",
+            "on-s0-e4-order2",
+            "disjoint-s0-e4",
+        ):
             if name not in s:
                 continue
             c = s[name]
             order = cells[name].get("order_seed")
             label = f"`{name}`" + (f" (order {order})" if order is not None else "")
+            if cells[name].get("cache") == "disjoint":
+                label += " — diagnostic, cross-behaviour reuse only"
             w(
                 f"| {label} | {c['tasks']} | {c['behaviours']} | {c['behaviours_clean']} | "
                 f"{c['seconds']:.0f} | {c['cell_seconds']:.0f} | {c['executions']:,} "
@@ -107,7 +121,7 @@ def main(argv: list[str] | None = None) -> int:
         w()
         w("| cell | " + " | ".join(BUCKETS) + " |")
         w("|---|" + "---:|" * len(BUCKETS))
-        for name in ("off-s0-e4", "on-s0-e4"):
+        for name in ("off-s0-e4", "on-s0-e4", "disjoint-s0-e4"):
             if name in s:
                 w(f"| `{name}` | " + " | ".join(f"{s[name]['buckets'][b]}/60" for b in BUCKETS) + " |")
         w()
