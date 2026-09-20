@@ -158,7 +158,9 @@ def main(argv: list[str] | None = None) -> int:
 
     baseline_solved = sum(r["solved"] for r in cell["rows"])
     baseline_behaviours = len({r["behaviour"] for r in cell["rows"] if r["solved"]})
-    baseline_per_task = {pos: bool(searched[pos]["solved"]) for pos in range(len(cohort))}
+    baseline_per_task = {
+        pos: bool(searched[pos]["solved"]) for pos in range(len(cohort))
+    }
 
     report: dict[str, Any] = {
         "cell": str(args.cell),
@@ -181,13 +183,18 @@ def main(argv: list[str] | None = None) -> int:
         ]
         bucket_major, random_runs = runs[0], runs[1:]
         regressions = [
-            sum(1 for pos, ok in r["per_task"].items() if baseline_per_task[pos] and not ok)
+            sum(
+                1
+                for pos, ok in r["per_task"].items()
+                if baseline_per_task[pos] and not ok
+            )
             for r in random_runs
         ]
         report["arms"][rule] = {
             "bucket_major": {k: v for k, v in bucket_major.items() if k != "per_task"},
             "bucket_major_regressions": sum(
-                1 for pos, ok in bucket_major["per_task"].items()
+                1
+                for pos, ok in bucket_major["per_task"].items()
                 if baseline_per_task[pos] and not ok
             ),
             "random_order": {
@@ -199,10 +206,16 @@ def main(argv: list[str] | None = None) -> int:
                 "behaviours_min": min(r["behaviours"] for r in random_runs),
                 "behaviours_max": max(r["behaviours"] for r in random_runs),
                 "cache_hits_mean": mean(r["cache_hits"] for r in random_runs),
-                "verified_cache_hits_mean": mean(r["verified_cache_hits"] for r in random_runs),
+                "verified_cache_hits_mean": mean(
+                    r["verified_cache_hits"] for r in random_runs
+                ),
                 "searches_mean": mean(r["searches"] for r in random_runs),
-                "replay_executions_mean": mean(r["replay_executions"] for r in random_runs),
-                "search_executions_mean": mean(r["search_executions"] for r in random_runs),
+                "replay_executions_mean": mean(
+                    r["replay_executions"] for r in random_runs
+                ),
+                "search_executions_mean": mean(
+                    r["search_executions"] for r in random_runs
+                ),
                 "regressions_mean": mean(regressions),
                 "regressions_max": max(regressions),
             },

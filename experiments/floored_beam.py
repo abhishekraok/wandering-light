@@ -153,10 +153,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--policy", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--tau", type=float, required=True, help="inf reproduces beam_solve")
+    parser.add_argument(
+        "--tau", type=float, required=True, help="inf reproduces beam_solve"
+    )
     parser.add_argument("--beam", type=int, default=co.BEAM_WIDTH)
     parser.add_argument("--depth", type=int, default=co.MAX_DEPTH)
-    parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    parser.add_argument(
+        "--device", default="cuda" if torch.cuda.is_available() else "cpu"
+    )
     args = parser.parse_args(argv)
     if args.out.exists():
         print(f"skip {args.out} (exists)")

@@ -143,7 +143,9 @@ def harvest(args: argparse.Namespace) -> int:
         }
         if result.program is not None:
             saving = task.length - len(result.program)
-            ok, checked = equivalent_on_behaviour(result.program, by_behaviour[task.behaviour])
+            ok, checked = equivalent_on_behaviour(
+                result.program, by_behaviour[task.behaviour]
+            )
             record |= {
                 "program": list(result.program),
                 "found_length": len(result.program),
@@ -152,7 +154,11 @@ def harvest(args: argparse.Namespace) -> int:
                 "inputs_checked": checked,
             }
             best = found.get(task.behaviour)
-            if ok and saving > 0 and (best is None or len(result.program) < best["found_length"]):
+            if (
+                ok
+                and saving > 0
+                and (best is None or len(result.program) < best["found_length"])
+            ):
                 found[task.behaviour] = {
                     "program": list(result.program),
                     "found_length": len(result.program),
@@ -193,7 +199,9 @@ def harvest(args: argparse.Namespace) -> int:
     return 0
 
 
-def relabelled_rows(tasks: list[Task], shortened: dict[str, dict[str, Any]]) -> list[Row]:
+def relabelled_rows(
+    tasks: list[Task], shortened: dict[str, dict[str, Any]]
+) -> list[Row]:
     """Witness rows, except a shortened behaviour replays its harvested program."""
     rows: list[Row] = []
     for index, task in enumerate(tasks):
@@ -290,7 +298,8 @@ def main(argv: list[str] | None = None) -> int:
             epoch_end=hs.snapshotter(args.run_dir, "shortened", seed, manifest),
         )
         curve = " ".join(
-            f"e{r['epoch']}:{r['validation_cross_entropy']:.3f}" for r in state["history"]
+            f"e{r['epoch']}:{r['validation_cross_entropy']:.3f}"
+            for r in state["history"]
         )
         log(f"RESULT train shortened s{seed}: best e{state['best_epoch']} [{curve}]")
     return 0

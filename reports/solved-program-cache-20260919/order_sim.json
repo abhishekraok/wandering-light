@@ -1,0 +1,97 @@
+{
+  "arms": {
+    "insertion-order": {
+      "bucket_major": {
+        "behaviours": 13,
+        "cache_hits": 109,
+        "replay_executions": 171720,
+        "search_executions": 58567099,
+        "searches": 191,
+        "solved": 117,
+        "verified_cache_hits": 105
+      },
+      "bucket_major_regressions": 0,
+      "random_order": {
+        "behaviours_max": 14,
+        "behaviours_mean": 13.71,
+        "behaviours_min": 12,
+        "cache_hits_mean": 107.89,
+        "regressions_max": 1,
+        "regressions_mean": 0.14,
+        "replay_executions_mean": 256663.29,
+        "search_executions_mean": 59544353.12,
+        "searches_mean": 192.11,
+        "solved_max": 122,
+        "solved_mean": 115.75,
+        "solved_min": 106,
+        "solved_sd": 3.0573681492420897,
+        "verified_cache_hits_mean": 103.75
+      }
+    },
+    "longest-first": {
+      "bucket_major": {
+        "behaviours": 13,
+        "cache_hits": 109,
+        "replay_executions": 160161,
+        "search_executions": 58567099,
+        "searches": 191,
+        "solved": 117,
+        "verified_cache_hits": 105
+      },
+      "bucket_major_regressions": 0,
+      "random_order": {
+        "behaviours_max": 14,
+        "behaviours_mean": 13.71,
+        "behaviours_min": 12,
+        "cache_hits_mean": 107.89,
+        "regressions_max": 1,
+        "regressions_mean": 0.14,
+        "replay_executions_mean": 322763.95,
+        "search_executions_mean": 59544353.12,
+        "searches_mean": 192.11,
+        "solved_max": 122,
+        "solved_mean": 115.75,
+        "solved_min": 106,
+        "solved_sd": 3.0573681492420897,
+        "verified_cache_hits_mean": 103.75
+      }
+    },
+    "shortest-first": {
+      "bucket_major": {
+        "behaviours": 13,
+        "cache_hits": 109,
+        "replay_executions": 169129,
+        "search_executions": 58567099,
+        "searches": 191,
+        "solved": 117,
+        "verified_cache_hits": 105
+      },
+      "bucket_major_regressions": 0,
+      "random_order": {
+        "behaviours_max": 14,
+        "behaviours_mean": 13.71,
+        "behaviours_min": 12,
+        "cache_hits_mean": 107.89,
+        "regressions_max": 1,
+        "regressions_mean": 0.04,
+        "replay_executions_mean": 228123.89,
+        "search_executions_mean": 59544353.12,
+        "searches_mean": 192.11,
+        "solved_max": 122,
+        "solved_mean": 115.85,
+        "solved_min": 107,
+        "solved_sd": 2.991237202229205,
+        "verified_cache_hits_mean": 103.85
+      }
+    }
+  },
+  "baseline": {
+    "behaviours": 12,
+    "solved": 94
+  },
+  "cell": "checkpoints/cache-20260919/off-s0-e4.json",
+  "cohort_behaviours": 43,
+  "cohort_tasks": 300,
+  "distinct_programs_returned": 30,
+  "orders": 100
+}

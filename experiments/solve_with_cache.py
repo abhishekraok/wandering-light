@@ -220,14 +220,22 @@ def main(argv: list[str] | None = None) -> int:
             "behaviour recurrence the cohort's 43-behaviour construction supplies."
         ),
     )
-    parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    parser.add_argument(
+        "--device", default="cuda" if torch.cuda.is_available() else "cpu"
+    )
     parser.add_argument("--beam", type=int, default=co.BEAM_WIDTH)
     parser.add_argument("--depth", type=int, default=co.MAX_DEPTH)
     parser.add_argument(
-        "--order-seed", type=int, default=None, help="shuffle the task order; omit for cohort order"
+        "--order-seed",
+        type=int,
+        default=None,
+        help="shuffle the task order; omit for cohort order",
     )
     parser.add_argument(
-        "--limit", type=int, default=0, help="tasks per bucket; smoke tests only, not a cost to clear"
+        "--limit",
+        type=int,
+        default=0,
+        help="tasks per bucket; smoke tests only, not a cost to clear",
     )
     args = parser.parse_args(argv)
     if args.out.exists():

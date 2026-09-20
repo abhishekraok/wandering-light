@@ -98,12 +98,24 @@ SAMPLE_SEED = 991
 # 11 and 12. Model selection alone is worth 1.89x behaviour coverage.
 TRUTH = {
     "v4only": {
-        (0, 1): (48, 6),  (0, 2): (55, 8),  (0, 3): (85, 12),
-        (0, 4): (94, 12), (0, 5): (84, 12), (0, 6): (91, 13),
-        (1, 1): (56, 7),  (1, 2): (63, 7),  (1, 3): (77, 11),
-        (1, 4): (74, 10), (1, 5): (80, 11), (1, 6): (72, 10),
-        (2, 1): (48, 6),  (2, 2): (54, 7),  (2, 3): (80, 11),
-        (2, 4): (89, 11), (2, 5): (92, 12), (2, 6): (76, 12),
+        (0, 1): (48, 6),
+        (0, 2): (55, 8),
+        (0, 3): (85, 12),
+        (0, 4): (94, 12),
+        (0, 5): (84, 12),
+        (0, 6): (91, 13),
+        (1, 1): (56, 7),
+        (1, 2): (63, 7),
+        (1, 3): (77, 11),
+        (1, 4): (74, 10),
+        (1, 5): (80, 11),
+        (1, 6): (72, 10),
+        (2, 1): (48, 6),
+        (2, 2): (54, 7),
+        (2, 3): (80, 11),
+        (2, 4): (89, 11),
+        (2, 5): (92, 12),
+        (2, 6): (76, 12),
     }
 }
 CE_EPOCH = {0: 1, 1: 2, 2: 1}  # what validation CE selects, per seed
@@ -214,12 +226,15 @@ def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "mean_deficit": sum(r["mean_deficit"] for r in rows) / len(rows),
         "mean_survival_depth": sum(r["survival_depth"] for r in rows) / len(rows),
         "frac_survives_5": sum(r["survives_5"] for r in rows) / len(rows),
-        "mean_first_step_deficit": sum(r["first_step_deficit"] for r in rows) / len(rows),
+        "mean_first_step_deficit": sum(r["first_step_deficit"] for r in rows)
+        / len(rows),
     }
     for bucket in BUCKETS:
         group = [r for r in rows if r["bucket"] == bucket]
         if group:
-            out[f"survival_{bucket}"] = sum(r["survival_depth"] for r in group) / len(group)
+            out[f"survival_{bucket}"] = sum(r["survival_depth"] for r in group) / len(
+                group
+            )
             out[f"top1_{bucket}"] = sum(r["top1"] for r in group) / len(group)
     return out
 
@@ -243,9 +258,7 @@ def spearman(xs: list[float], ys: list[float]) -> float:
     n = len(xs)
     mx, my = sum(rx) / n, sum(ry) / n
     num = sum((a - mx) * (b - my) for a, b in zip(rx, ry, strict=True))
-    den = math.sqrt(
-        sum((a - mx) ** 2 for a in rx) * sum((b - my) ** 2 for b in ry)
-    )
+    den = math.sqrt(sum((a - mx) ** 2 for a in rx) * sum((b - my) ** 2 for b in ry))
     return num / den if den else float("nan")
 
 
@@ -345,8 +358,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\n{'selection rule':42s} {'tasks':>8s} {'behaviours/43':>14s}")
     ce = [truth[(s, CE_EPOCH[s])] for s in by_seed if (s, CE_EPOCH[s]) in truth]
     if ce:
-        print(f"{'validation cross-entropy (the status quo)':42s} "
-              f"{sum(t for t, _ in ce) / len(ce):>8.1f} {sum(b for _, b in ce) / len(ce):>14.1f}")
+        print(
+            f"{'validation cross-entropy (the status quo)':42s} "
+            f"{sum(t for t, _ in ce) / len(ce):>8.1f} {sum(b for _, b in ce) / len(ce):>14.1f}"
+        )
     selections: dict[str, tuple[float, float]] = {}
     for key in table:
         task_set, metric = key.split(".", 1)
@@ -360,7 +375,11 @@ def main(argv: list[str] | None = None) -> int:
             ]
             if not scored:
                 continue
-            pick = min(scored, key=lambda x: x[1])[0] if lower_is_better else max(scored, key=lambda x: x[1])[0]
+            pick = (
+                min(scored, key=lambda x: x[1])[0]
+                if lower_is_better
+                else max(scored, key=lambda x: x[1])[0]
+            )
             picks.append(truth[(seed, pick)])
         if picks:
             selections[key] = (
@@ -373,9 +392,11 @@ def main(argv: list[str] | None = None) -> int:
         max((truth[(s, e)] for e, _ in entries if (s, e) in truth), key=lambda v: v[1])
         for s, entries in by_seed.items()
     ]
-    print(f"{'ORACLE (peeks at the cohort; upper bound)':42s} "
-          f"{sum(t for t, _ in oracle) / len(oracle):>8.1f} "
-          f"{sum(b for _, b in oracle) / len(oracle):>14.1f}")
+    print(
+        f"{'ORACLE (peeks at the cohort; upper bound)':42s} "
+        f"{sum(t for t, _ in oracle) / len(oracle):>8.1f} "
+        f"{sum(b for _, b in oracle) / len(oracle):>14.1f}"
+    )
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(

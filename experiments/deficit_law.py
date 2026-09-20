@@ -41,7 +41,9 @@ sys.path.insert(0, str(REPO))
 TOLERANCE = math.log(64)
 
 
-def confusion(behaviours: dict[str, dict[str, float]], solved: set[str]) -> dict[str, Any]:
+def confusion(
+    behaviours: dict[str, dict[str, float]], solved: set[str]
+) -> dict[str, Any]:
     """The 2x2 of (budget says solvable) against (a beam actually solved it)."""
     tp = fp = tn = fn = 0
     for name, stats in behaviours.items():
@@ -75,14 +77,18 @@ def main(argv: list[str] | None = None) -> int:
 
     proxy = json.loads(args.proxy.read_text())
     if "cohort_by_behaviour" not in proxy:
-        raise SystemExit(f"{args.proxy} has no cohort rows; score it with --sets cohort")
+        raise SystemExit(
+            f"{args.proxy} has no cohort rows; score it with --sets cohort"
+        )
     behaviours = proxy["cohort_by_behaviour"]
     cell = json.loads(args.cell.read_text())
     solved = {r["behaviour"] for r in cell["rows"] if r["solved"]}
 
     rows = sorted(behaviours.items(), key=lambda kv: kv[1]["accumulated"])
     print(f"tolerance ln(64) = {TOLERANCE:.3f} nats\n")
-    print(f"{'behaviour':34s} {'L':>5s} {'deficit':>8s} {'L*deficit':>10s} {'budget':>7s} {'solved':>7s}")
+    print(
+        f"{'behaviour':34s} {'L':>5s} {'deficit':>8s} {'L*deficit':>10s} {'budget':>7s} {'solved':>7s}"
+    )
     for name, stats in rows:
         print(
             f"{name:34s} {stats['length']:>5.0f} {stats['deficit']:>8.3f} "
@@ -102,7 +108,9 @@ def main(argv: list[str] | None = None) -> int:
     }
     if need:
         ordered = sorted(need.items(), key=lambda kv: kv[1])
-        print(f"\nshortening factor a library must deliver, {len(need)} unsolved behaviours:")
+        print(
+            f"\nshortening factor a library must deliver, {len(need)} unsolved behaviours:"
+        )
         print(f"  easiest  {ordered[0][0]}: {ordered[0][1]:.1f}x")
         print(f"  median   {ordered[len(ordered) // 2][1]:.1f}x")
         print(f"  hardest  {ordered[-1][0]}: {ordered[-1][1]:.1f}x")

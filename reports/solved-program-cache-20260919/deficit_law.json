@@ -1,0 +1,435 @@
+{
+  "by_behaviour": {
+    "adjacent_sign_change_count": {
+      "accumulated": 10.423617114623388,
+      "budget_ratio": 2.506350119898748,
+      "deficit": 0.22177908754517847,
+      "length": 47.0,
+      "solved": false,
+      "survival_depth": 6.0,
+      "tasks": 3
+    },
+    "aligned_matches": {
+      "accumulated": 17.138055800646544,
+      "budget_ratio": 4.120831352345184,
+      "deficit": 0.4394373282217062,
+      "length": 39.0,
+      "solved": false,
+      "survival_depth": 12.8,
+      "tasks": 10
+    },
+    "aligned_maxima": {
+      "accumulated": 43.394735687528744,
+      "budget_ratio": 10.434228329514175,
+      "deficit": 0.6289092128627354,
+      "length": 69.0,
+      "solved": false,
+      "survival_depth": 25.0,
+      "tasks": 5
+    },
+    "all_positive": {
+      "accumulated": 30.81867649095754,
+      "budget_ratio": 7.4103252900442875,
+      "deficit": 1.7121486939420856,
+      "length": 18.0,
+      "solved": false,
+      "survival_depth": 0.6666666666666666,
+      "tasks": 9
+    },
+    "axis_point_count": {
+      "accumulated": 57.96479016802429,
+      "budget_ratio": 13.937585886929664,
+      "deficit": 0.6740091880002824,
+      "length": 86.0,
+      "solved": false,
+      "survival_depth": 46.0,
+      "tasks": 3
+    },
+    "bounds_cover_list_flag": {
+      "accumulated": 331.3954937488278,
+      "budget_ratio": 79.68377256739723,
+      "deficit": 3.602124932052476,
+      "length": 92.0,
+      "solved": false,
+      "survival_depth": 2.125,
+      "tasks": 8
+    },
+    "capped_sum": {
+      "accumulated": 24.62517169630155,
+      "budget_ratio": 5.921102181215585,
+      "deficit": 1.2312585848150774,
+      "length": 20.0,
+      "solved": true,
+      "survival_depth": 2.0,
+      "tasks": 8
+    },
+    "cartesian_pair_sums": {
+      "accumulated": 55.75226355165553,
+      "budget_ratio": 13.405585690717992,
+      "deficit": 3.716817570110369,
+      "length": 15.0,
+      "solved": false,
+      "survival_depth": 4.666666666666667,
+      "tasks": 12
+    },
+    "concatenate_shorter_first": {
+      "accumulated": 39.776400449499484,
+      "budget_ratio": 9.564202612151075,
+      "deficit": 1.5298615557499802,
+      "length": 26.0,
+      "solved": false,
+      "survival_depth": 9.4,
+      "tasks": 5
+    },
+    "count_in_range": {
+      "accumulated": 3.2005289301276205,
+      "budget_ratio": 0.7695645359527964,
+      "deficit": 0.08001322325319052,
+      "length": 40.0,
+      "solved": true,
+      "survival_depth": 40.0,
+      "tasks": 5
+    },
+    "drop_last": {
+      "accumulated": 6.5241585649549965,
+      "budget_ratio": 1.5687285346056383,
+      "deficit": 0.5436798804129164,
+      "length": 12.0,
+      "solved": true,
+      "survival_depth": 7.2,
+      "tasks": 10
+    },
+    "farther_choice_from_target": {
+      "accumulated": 7.990905759623273,
+      "budget_ratio": 1.9214066852699254,
+      "deficit": 0.14797973628931987,
+      "length": 54.0,
+      "solved": false,
+      "survival_depth": 43.0,
+      "tasks": 2
+    },
+    "farthest_from_target_last_tie": {
+      "accumulated": 10.304976760642601,
+      "budget_ratio": 2.477823144842516,
+      "deficit": 0.17466062306173902,
+      "length": 59.0,
+      "solved": false,
+      "survival_depth": 16.25,
+      "tasks": 4
+    },
+    "furthest_squared_radius": {
+      "accumulated": 27.684956837445498,
+      "budget_ratio": 6.656824989434604,
+      "deficit": 0.3549353440698141,
+      "length": 78.0,
+      "solved": false,
+      "survival_depth": 43.0,
+      "tasks": 2
+    },
+    "increment_each": {
+      "accumulated": 5.725370713406139,
+      "budget_ratio": 1.3766606559136574,
+      "deficit": 1.1450741426812279,
+      "length": 5.0,
+      "solved": true,
+      "survival_depth": 1.0,
+      "tasks": 9
+    },
+    "keep_ascending_pairs": {
+      "accumulated": 15.764741339720786,
+      "budget_ratio": 3.790619025285402,
+      "deficit": 0.1970592667465098,
+      "length": 80.0,
+      "solved": false,
+      "survival_depth": 55.0,
+      "tasks": 4
+    },
+    "keep_below": {
+      "accumulated": 12.40605599521414,
+      "budget_ratio": 2.983025910214373,
+      "deficit": 2.067675999202357,
+      "length": 6.0,
+      "solved": false,
+      "survival_depth": 1.0,
+      "tasks": 19
+    },
+    "keep_negative": {
+      "accumulated": 4.291460447841221,
+      "budget_ratio": 1.0318781177119434,
+      "deficit": 0.8582920895682441,
+      "length": 5.0,
+      "solved": true,
+      "survival_depth": 3.0,
+      "tasks": 9
+    },
+    "keep_zeros": {
+      "accumulated": 5.757509384134955,
+      "budget_ratio": 1.384388372727195,
+      "deficit": 1.151501876826991,
+      "length": 5.0,
+      "solved": true,
+      "survival_depth": 2.0,
+      "tasks": 11
+    },
+    "largest_inside_interval": {
+      "accumulated": 46.63319752721144,
+      "budget_ratio": 11.212913802217237,
+      "deficit": 1.1658299381802861,
+      "length": 40.0,
+      "solved": false,
+      "survival_depth": 7.857142857142857,
+      "tasks": 7
+    },
+    "lexicographic_order": {
+      "accumulated": 428.4501169397576,
+      "budget_ratio": 103.02047649621413,
+      "deficit": 3.455242878546432,
+      "length": 124.0,
+      "solved": false,
+      "survival_depth": 0.0,
+      "tasks": 1
+    },
+    "manhattan_point_radii": {
+      "accumulated": 41.809013679623604,
+      "budget_ratio": 10.052942783341969,
+      "deficit": 0.44477674127259154,
+      "length": 94.0,
+      "solved": false,
+      "survival_depth": 43.0,
+      "tasks": 1
+    },
+    "median_floor": {
+      "accumulated": 222.7001127391122,
+      "budget_ratio": 53.548058042355045,
+      "deficit": 0.8802375997593368,
+      "length": 253.0,
+      "solved": false,
+      "survival_depth": 1.5,
+      "tasks": 2
+    },
+    "min_pair": {
+      "accumulated": 0.6825960682971137,
+      "budget_ratio": 0.16412966044375837,
+      "deficit": 0.05688300569142614,
+      "length": 12.0,
+      "solved": true,
+      "survival_depth": 12.0,
+      "tasks": 7
+    },
+    "n_minus_each": {
+      "accumulated": 17.4762365590781,
+      "budget_ratio": 4.202146636197396,
+      "deficit": 2.4966052227254427,
+      "length": 7.0,
+      "solved": false,
+      "survival_depth": 2.5,
+      "tasks": 20
+    },
+    "nearest_interval_endpoint_each": {
+      "accumulated": 9.94700082118756,
+      "budget_ratio": 2.39174812607429,
+      "deficit": 0.25505130310737334,
+      "length": 39.0,
+      "solved": false,
+      "survival_depth": 18.285714285714285,
+      "tasks": 7
+    },
+    "negate_each": {
+      "accumulated": 11.170516662477027,
+      "budget_ratio": 2.685941498853857,
+      "deficit": 1.8617527770795046,
+      "length": 6.0,
+      "solved": true,
+      "survival_depth": 3.0,
+      "tasks": 21
+    },
+    "nondecreasing_indicator": {
+      "accumulated": 25.76608463537559,
+      "budget_ratio": 6.19543375443028,
+      "deficit": 0.59921127059013,
+      "length": 43.0,
+      "solved": false,
+      "survival_depth": 1.5,
+      "tasks": 2
+    },
+    "pair_floor_averages": {
+      "accumulated": 43.88136329129338,
+      "budget_ratio": 10.551237534632662,
+      "deficit": 0.6359617868303389,
+      "length": 69.0,
+      "solved": false,
+      "survival_depth": 42.0,
+      "tasks": 2
+    },
+    "polyline_manhattan_length": {
+      "accumulated": 92.9369032708637,
+      "budget_ratio": 22.346601577408723,
+      "deficit": 0.4943452301641686,
+      "length": 188.0,
+      "solved": false,
+      "survival_depth": 32.75,
+      "tasks": 4
+    },
+    "positive_balance_prefix_count": {
+      "accumulated": 38.26302022486925,
+      "budget_ratio": 9.200311587975497,
+      "deficit": 0.7808779637728419,
+      "length": 49.0,
+      "solved": false,
+      "survival_depth": 10.5,
+      "tasks": 2
+    },
+    "positive_majority_three": {
+      "accumulated": 50.27457656627521,
+      "budget_ratio": 12.088480382492957,
+      "deficit": 1.2890917068275694,
+      "length": 39.0,
+      "solved": false,
+      "survival_depth": 0.8,
+      "tasks": 5
+    },
+    "prefix_sums": {
+      "accumulated": 12.23371796841578,
+      "budget_ratio": 2.9415873741112755,
+      "deficit": 0.4893487187366312,
+      "length": 25.0,
+      "solved": false,
+      "survival_depth": 14.0,
+      "tasks": 6
+    },
+    "push_back": {
+      "accumulated": 4.093503108248115,
+      "budget_ratio": 0.9842794390221855,
+      "deficit": 1.0233757770620286,
+      "length": 4.0,
+      "solved": true,
+      "survival_depth": 3.3333333333333335,
+      "tasks": 12
+    },
+    "replace_value": {
+      "accumulated": 21.047090810206203,
+      "budget_ratio": 5.060755589504028,
+      "deficit": 0.9566859459184638,
+      "length": 22.0,
+      "solved": false,
+      "survival_depth": 2.6666666666666665,
+      "tasks": 9
+    },
+    "reverse": {
+      "accumulated": 0.021287759145100914,
+      "budget_ratio": 0.005118624091712628,
+      "deficit": 0.004257551829020182,
+      "length": 5.0,
+      "solved": true,
+      "survival_depth": 5.0,
+      "tasks": 9
+    },
+    "rotate_left": {
+      "accumulated": 5.266363660991191,
+      "budget_ratio": 1.2662927895383063,
+      "deficit": 1.0532727321982382,
+      "length": 5.0,
+      "solved": true,
+      "survival_depth": 3.4,
+      "tasks": 10
+    },
+    "second_largest": {
+      "accumulated": 176.97632674118117,
+      "budget_ratio": 42.55381149070782,
+      "deficit": 2.1322449004961586,
+      "length": 83.0,
+      "solved": false,
+      "survival_depth": 4.0,
+      "tasks": 3
+    },
+    "shared_value_occurrences": {
+      "accumulated": 0.79949951171875,
+      "budget_ratio": 0.1922389967916314,
+      "deficit": 0.025790306829637098,
+      "length": 31.0,
+      "solved": true,
+      "survival_depth": 31.0,
+      "tasks": 6
+    },
+    "span_inside_interval": {
+      "accumulated": 16.456599096767604,
+      "budget_ratio": 3.9569756511340697,
+      "deficit": 0.216534198641679,
+      "length": 76.0,
+      "solved": false,
+      "survival_depth": 33.5,
+      "tasks": 4
+    },
+    "stable_distinct_shared_values": {
+      "accumulated": 13.206703726202251,
+      "budget_ratio": 3.1755409953802975,
+      "deficit": 0.26952456584086226,
+      "length": 49.0,
+      "solved": false,
+      "survival_depth": 12.0,
+      "tasks": 1
+    },
+    "sum_negative": {
+      "accumulated": 11.509725552584444,
+      "budget_ratio": 2.7675039961177603,
+      "deficit": 0.7193578470365277,
+      "length": 16.0,
+      "solved": false,
+      "survival_depth": 8.0,
+      "tasks": 14
+    },
+    "widest_pair": {
+      "accumulated": 24.427361788494245,
+      "budget_ratio": 5.873538952376869,
+      "deficit": 0.2908019260535029,
+      "length": 84.0,
+      "solved": false,
+      "survival_depth": 42.0,
+      "tasks": 7
+    }
+  },
+  "cell": "checkpoints/cache-20260919/off-s0-e4.json",
+  "confusion": {
+    "accuracy": 0.8372093023255814,
+    "behaviours": 43,
+    "predicted_solvable_and_solved": 5,
+    "predicted_solvable_not_solved": 0,
+    "predicted_unsolvable_and_not_solved": 31,
+    "predicted_unsolvable_but_solved": 7
+  },
+  "proxy": "checkpoints/cache-20260919/proxy/cohort-s0-e4.json",
+  "shortening_factor_needed": {
+    "adjacent_sign_change_count": 2.506350119898748,
+    "aligned_matches": 4.120831352345184,
+    "aligned_maxima": 10.434228329514175,
+    "all_positive": 7.4103252900442875,
+    "axis_point_count": 13.937585886929664,
+    "bounds_cover_list_flag": 79.68377256739723,
+    "cartesian_pair_sums": 13.405585690717992,
+    "concatenate_shorter_first": 9.564202612151075,
+    "farther_choice_from_target": 1.9214066852699254,
+    "farthest_from_target_last_tie": 2.477823144842516,
+    "furthest_squared_radius": 6.656824989434604,
+    "keep_ascending_pairs": 3.790619025285402,
+    "keep_below": 2.983025910214373,
+    "largest_inside_interval": 11.212913802217237,
+    "lexicographic_order": 103.02047649621413,
+    "manhattan_point_radii": 10.052942783341969,
+    "median_floor": 53.548058042355045,
+    "n_minus_each": 4.202146636197396,
+    "nearest_interval_endpoint_each": 2.39174812607429,
+    "nondecreasing_indicator": 6.19543375443028,
+    "pair_floor_averages": 10.551237534632662,
+    "polyline_manhattan_length": 22.346601577408723,
+    "positive_balance_prefix_count": 9.200311587975497,
+    "positive_majority_three": 12.088480382492957,
+    "prefix_sums": 2.9415873741112755,
+    "replace_value": 5.060755589504028,
+    "second_largest": 42.55381149070782,
+    "span_inside_interval": 3.9569756511340697,
+    "stable_distinct_shared_values": 3.1755409953802975,
+    "sum_negative": 2.7675039961177603,
+    "widest_pair": 5.873538952376869
+  },
+  "tolerance": 4.1588830833596715
+}

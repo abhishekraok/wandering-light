@@ -106,7 +106,9 @@ def replay_states(task: Task) -> list[tuple[tuple[Value, ...], ...]]:
         for stack in states[-1]:
             outcome = step_raw(OP_BY_NAME[name], stack, DEFAULT_FUEL_LIMIT, 0)
             if isinstance(outcome, str):
-                raise ValueError(f"{task.behaviour}: witness refused at {name}: {outcome}")
+                raise ValueError(
+                    f"{task.behaviour}: witness refused at {name}: {outcome}"
+                )
             moved.append(outcome[0])
         states.append(tuple(moved))
     return states
@@ -117,7 +119,11 @@ def _mark_free(product: tuple[tuple[Value, ...], ...]) -> bool:
 
 
 def subtarget_rows(
-    tasks: Sequence[Task], *, final_probability: float, seed: int, mark_free: bool = True
+    tasks: Sequence[Task],
+    *,
+    final_probability: float,
+    seed: int,
+    mark_free: bool = True,
 ) -> list[Row]:
     """One row per (task, witness step), its target drawn from the states ahead.
 
@@ -142,7 +148,9 @@ def subtarget_rows(
         ahead = [
             j for j in range(1, last + 1) if not mark_free or _mark_free(states[j])
         ]
-        if last not in ahead:  # every corpus output is mark-free; keep the invariant loud
+        if (
+            last not in ahead
+        ):  # every corpus output is mark-free; keep the invariant loud
             raise ValueError(f"{task.behaviour}: final state carries a mark")
         for step, name in enumerate(task.program):
             options = [j for j in ahead if j > step]
@@ -209,7 +217,11 @@ def snapshotter(run_dir: Path, arm: str, seed: int, manifest: dict[str, Any]):
         save_policy(
             path,
             model,
-            trainer_state={**row, "snapshot_epoch": epoch, "parameters": model.parameter_count},
+            trainer_state={
+                **row,
+                "snapshot_epoch": epoch,
+                "parameters": model.parameter_count,
+            },
             manifest=manifest,
             wandb_url=None,
         )
@@ -252,7 +264,8 @@ def train(run_dir: Path, tasks, device: str, arms: Sequence[str], seeds, log) ->
             )
             co.write_json(run_dir / "training" / f"{arm}-s{seed}.json", state)
             curve = " ".join(
-                f"e{r['epoch']}:{r['validation_cross_entropy']:.3f}" for r in state["history"]
+                f"e{r['epoch']}:{r['validation_cross_entropy']:.3f}"
+                for r in state["history"]
             )
             log(
                 f"RESULT train {arm} s{seed}: best e{state['best_epoch']} "
@@ -261,13 +274,25 @@ def train(run_dir: Path, tasks, device: str, arms: Sequence[str], seeds, log) ->
             )
 
 
-def cell_path(run_dir: Path, arm: str, seed: int, device: str, epoch: int, beam: int, depth: int) -> Path:
-    suffix = "" if (beam, depth) == (co.BEAM_WIDTH, co.MAX_DEPTH) else f"-b{beam}-d{depth}"
+def cell_path(
+    run_dir: Path, arm: str, seed: int, device: str, epoch: int, beam: int, depth: int
+) -> Path:
+    suffix = (
+        "" if (beam, depth) == (co.BEAM_WIDTH, co.MAX_DEPTH) else f"-b{beam}-d{depth}"
+    )
     return run_dir / "timing" / f"{arm}-s{seed}-{device}-e{epoch}{suffix}.json"
 
 
 def time_cell(
-    run_dir: Path, tasks, arm: str, seed: int, device: str, epoch: int, beam: int, depth: int, log
+    run_dir: Path,
+    tasks,
+    arm: str,
+    seed: int,
+    device: str,
+    epoch: int,
+    beam: int,
+    depth: int,
+    log,
 ) -> Path:
     out = cell_path(run_dir, arm, seed, device, epoch, beam, depth)
     if out.exists():
@@ -275,12 +300,16 @@ def time_cell(
         return out
     if device == "cpu":
         torch.set_num_threads(co.CPU_THREADS)
-    scorer = PolicyScorer(load_policy(policy_dir(run_dir, arm, seed, epoch), device=device), device)
+    scorer = PolicyScorer(
+        load_policy(policy_dir(run_dir, arm, seed, epoch), device=device), device
+    )
     rows = []
     gc.freeze()  # see solve_with_cache.run_cell
     started = time.perf_counter()
     for index, task in co.cohort(tasks):
-        result = beam_solve(task, scorer, beam_width=beam, max_depth=depth, guard=co.GUARD)
+        result = beam_solve(
+            task, scorer, beam_width=beam, max_depth=depth, guard=co.GUARD
+        )
         score = grade(result.program, task) if result.program else None
         rows.append(
             {
@@ -329,7 +358,9 @@ def time_cell(
 
 
 def report(run_dir: Path, out_dir: Path, log) -> Path:
-    cells = [json.loads(p.read_text()) for p in sorted((run_dir / "timing").glob("*.json"))]
+    cells = [
+        json.loads(p.read_text()) for p in sorted((run_dir / "timing").glob("*.json"))
+    ]
     by = defaultdict(dict)
     for cell in cells:
         by[cell["arm"]][cell["seed"], cell["policy_epoch"]] = cell
@@ -350,7 +381,13 @@ def report(run_dir: Path, out_dir: Path, log) -> Path:
             )
         row.append(f"| {mean(cells_of):.1f} |" if cells_of else "| — |")
         lines.append("".join(row))
-    lines += ["", "Per cell:", "", "| arm | seed | epoch | solved | shown-fit | wall (s) | executions |", "|---|---:|---:|---:|---:|---:|---:|"]
+    lines += [
+        "",
+        "Per cell:",
+        "",
+        "| arm | seed | epoch | solved | shown-fit | wall (s) | executions |",
+        "|---|---:|---:|---:|---:|---:|---:|",
+    ]
     for arm in sorted(by):
         for (seed, epoch), cell in sorted(by[arm].items()):
             rs = cell["rows"]
@@ -371,7 +408,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("stage", choices=("rows", "train", "time", "report"))
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--out", type=Path, default=None)
-    parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
+    parser.add_argument(
+        "--device", default="cuda" if torch.cuda.is_available() else "cpu"
+    )
     parser.add_argument("--arms", default=",".join(ARMS))
     parser.add_argument("--seeds", default=",".join(str(s) for s in SEEDS))
     parser.add_argument("--epochs", default="3,4,5")
@@ -399,7 +438,9 @@ def main(argv: list[str] | None = None) -> int:
             labels = defaultdict(int)
             for r in fit:
                 labels[r.label] += 1
-            log(f"RESULT rows {arm}: fit {len(fit)} validation {len(held)} labels {len(labels)}")
+            log(
+                f"RESULT rows {arm}: fit {len(fit)} validation {len(held)} labels {len(labels)}"
+            )
     elif args.stage == "train":
         train(args.run_dir, tasks, args.device, arms, seeds, log)
     elif args.stage == "time":
@@ -407,7 +448,15 @@ def main(argv: list[str] | None = None) -> int:
             for seed in seeds:
                 for epoch in epochs:
                     time_cell(
-                        args.run_dir, tasks, arm, seed, args.device, epoch, args.beam, args.depth, log
+                        args.run_dir,
+                        tasks,
+                        arm,
+                        seed,
+                        args.device,
+                        epoch,
+                        args.beam,
+                        args.depth,
+                        log,
                     )
     else:
         report(args.run_dir, args.out or args.run_dir, log)

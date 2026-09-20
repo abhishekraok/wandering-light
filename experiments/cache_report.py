@@ -82,19 +82,25 @@ def main(argv: list[str] | None = None) -> int:
     w("timed with the faster `beam_solve`, so none of them compares with a recorded")
     w("pre-speedup wall-clock; the arms compare with each other. **timed** is the sum")
     w("of the per-task timers, which is the quantity `docs/metrics.md` defines and the")
-    w("quantity the recorded cells aggregate; **elapsed** is the whole cell and is kept")
+    w(
+        "quantity the recorded cells aggregate; **elapsed** is the whole cell and is kept"
+    )
     w("beside it. Grading runs after the timers are sealed, because it warms the")
     w("executor's process-global `run_body` cache that later searches read.")
     w()
     w("The cohort is **43 distinct behaviours behind 300 tasks**, so tasks and")
     w("behaviours are reported side by side. `behaviours*` excludes")
-    w(f"{' and '.join(f'`{b}`' for b in LEAKY)}, whose samplers `docs/STATUS.md` records as leaking.")
+    w(
+        f"{' and '.join(f'`{b}`' for b in LEAKY)}, whose samplers `docs/STATUS.md` records as leaking."
+    )
     w()
 
     if "off-s0-e4" in s and "on-s0-e4" in s:
         w("## The cache")
         w()
-        w("| cell | tasks /300 | behaviours /43 | behaviours* | timed (s) | elapsed (s) | executions | served from cache |")
+        w(
+            "| cell | tasks /300 | behaviours /43 | behaviours* | timed (s) | elapsed (s) | executions | served from cache |"
+        )
         w("|---|---:|---:|---:|---:|---:|---:|---:|")
         for name in (
             "off-s0-e4",
@@ -123,7 +129,11 @@ def main(argv: list[str] | None = None) -> int:
         w("|---|" + "---:|" * len(BUCKETS))
         for name in ("off-s0-e4", "on-s0-e4", "disjoint-s0-e4"):
             if name in s:
-                w(f"| `{name}` | " + " | ".join(f"{s[name]['buckets'][b]}/60" for b in BUCKETS) + " |")
+                w(
+                    f"| `{name}` | "
+                    + " | ".join(f"{s[name]['buckets'][b]}/60" for b in BUCKETS)
+                    + " |"
+                )
         w()
 
     if args.sim and args.sim.exists():
@@ -132,9 +142,15 @@ def main(argv: list[str] | None = None) -> int:
         r = arm["random_order"]
         w("## Over 100 task orders, simulated exactly")
         w()
-        w("The cache never changes what a search returns, only whether a task is searched,")
-        w("so one cache-off cell plus a fits matrix determines every order. `cohort()` is")
-        w("bucket-major and witness-length bucket is not visible to a solver that sees only")
+        w(
+            "The cache never changes what a search returns, only whether a task is searched,"
+        )
+        w(
+            "so one cache-off cell plus a fits matrix determines every order. `cohort()` is"
+        )
+        w(
+            "bucket-major and witness-length bucket is not visible to a solver that sees only"
+        )
         w("shown examples, so bucket-major is not an order the system could choose.")
         w()
         w("| | tasks /300 | behaviours /43 | searches | regressions |")
@@ -179,14 +195,16 @@ def main(argv: list[str] | None = None) -> int:
         w()
         by_arm: dict[str, list[tuple[int, int]]] = defaultdict(list)
         for name, c in arms.items():
-            stem = name[len("off-"):-len("-e4")]
+            stem = name[len("off-") : -len("-e4")]
             arm = "witness" if stem == "s0" else stem.rsplit("-s", 1)[0]
             by_arm[arm].append((c["tasks"], c["behaviours"]))
         w("Behaviours are reported beside tasks and are the more stable of the two:")
         w("within one arm the seed spread on tasks is several times the spread on")
         w("behaviours, so a task difference of under ~15 says nothing.")
         w()
-        w("| arm | seeds | tasks /300, mean ± sd | behaviours /43, mean ± sd | task range |")
+        w(
+            "| arm | seeds | tasks /300, mean ± sd | behaviours /43, mean ± sd | task range |"
+        )
         w("|---|---:|---:|---:|---|")
         for arm in ("witness", "hindsight", "hindsight-all", "mixed"):
             vals = by_arm.get(arm)
@@ -205,7 +223,7 @@ def main(argv: list[str] | None = None) -> int:
     for name, c in s.items():
         if not name.startswith("off-") or "-order" in name or "-b" in name:
             continue
-        stem = name[len("off-"):]
+        stem = name[len("off-") :]
         if "-e" not in stem:
             continue
         head, _, etxt = stem.rpartition("-e")
@@ -216,12 +234,18 @@ def main(argv: list[str] | None = None) -> int:
             continue
         grid[arm, int(etxt)].append((c["tasks"], c["behaviours"]))
     epochs = sorted({e for _a, e in grid})
-    arms_seen = [a for a in ("witness", "hindsight", "hindsight-all", "shortened") if any(a == x for x, _ in grid)]
+    arms_seen = [
+        a
+        for a in ("witness", "hindsight", "hindsight-all", "shortened")
+        if any(a == x for x, _ in grid)
+    ]
     if len(epochs) > 1 and arms_seen:
         w("## Arm x epoch (#152), cache off — behaviours of 43, then tasks of 300")
         w()
         w("A single-epoch comparison inherits the confound #134 was burned by: solves")
-        w("track the epoch as much as the data. Each cell is the mean over the seeds run.")
+        w(
+            "track the epoch as much as the data. Each cell is the mean over the seeds run."
+        )
         w()
         w("| arm | " + " | ".join(f"e{e}" for e in epochs) + " |")
         w("|---|" + "---:|" * len(epochs))
@@ -231,7 +255,8 @@ def main(argv: list[str] | None = None) -> int:
                 vals = grid.get((arm, e))
                 cells_of.append(
                     f"| **{mean([v[1] for v in vals]):.1f}** / {mean([v[0] for v in vals]):.0f} "
-                    if vals else "| — "
+                    if vals
+                    else "| — "
                 )
             w(f"| `{arm}` " + "".join(cells_of) + "|")
         w()
