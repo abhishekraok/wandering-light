@@ -20,7 +20,9 @@ are shares of training rows.
   executions.
 - **The one execution is most of the program.** The quotations consumed by the largest execution (all three for
   `ifte`) are a median 60% of the witness's ops (65% past 40 ops), and a median 57% of machine fuel is spent inside combinators, where no
-  trajectory state exists. The input is first touched a median 71% of the way through; peak state size
+  trajectory state exists. The original input values sit unchanged at the bottom of the stack for a median 71% of the
+  program (an upper bound on delay: a witness that copies its input and works on the copy also counts);
+  peak state size
   is 5.1x the larger of input and output (7.7x past 40 ops), so the stack grows once and collapses once.
 - **It gets more so with length, not less.** 41+ ops: W share 0.85, one execution at the median, p90 3.
   `largest_absolute_prefix_sum` (57 ops) is `D5 W46 X1 D5`; `manhattan_point_radii` (94) `D7 W78 X1 D4 W3 X1`.
@@ -32,9 +34,11 @@ are shares of training rows.
 - **So most policy rows are next-token-of-program-text rows.** On ~84% of rows the state differs from
   its predecessor by one appended symbol and the input has not moved; the Markov framing buys nothing
   there that a sequence model over the program text would not have.
-- **Sub-goal relabelling has little to name.** A relabelled target is only meaningful at a state with no
-  open mark after an execution; v4 has 1.57 of those per witness (1 / 1 / 3), and for 127 witnesses the
-  only one is at or next to the final state.
+- **Sub-goal relabelling has few states to name, and they bracket the one execution.** A relabelled
+  target is only meaningful at a closed state (no open mark), which every top-level D or X step leaves.
+  v4 has 1 / 7 / 14 of those per witness (15.6% of ops; world-v3 1 / 15 / 74, 11.5%), but only 1.57 follow
+  an execution: the rest are direct ops setting up before the single run or unpacking after it
+  (`endpoints`: `D4 W8 X1 D4`). Pairs with either end under a mark, 84% of states, are program-text targets.
 
 **Two causes.** Teacher style: a fused `[dup mul 2 mul 4 add] map` where three `map`s would leave two
 visible intermediates. And the machine: iteration exists only inside combinators, so a loop body is
@@ -42,4 +46,4 @@ written before any of it runs and the loop is one opaque step; a fold with real 
 without changing the algorithm.
 
 **Not measured:** whether staged witnesses are easier to learn or search. This gives the metric a staged
-re-authoring would be accepted against (executions per witness, largest-body share, first touch).
+re-authoring would be accepted against (executions per witness, largest-body share, closed states).

@@ -352,11 +352,11 @@ Cohort by witness-length bucket, bits raw → full library → subset: 1–5 (6 
 
 Static: every distinct witness replayed on its first shown input, each step labelled W (under an open mark, or the `[` opening one), D (top-level op) or X (top-level combinator). Cells are p10 / p50 / p90 over witnesses. [report](../reports/witness-trajectory-shape-20260919/README.md), [witness-trajectory-shape (#150)](../../issues/150)
 
-| corpus | witnesses | W share of all ops | W share | executions X | exactly one X | largest body / length | fuel inside combinators | input first touched at | peak size / max(in, out) | X in last decile |
-|---|---:|---:|---|---|---:|---|---|---|---|---:|
-| v4 | 220 | 0.844 | 0.60 / 0.83 / 0.93 | 1 / 1 / 3 (mean 1.57) | 127 | 0.21 / 0.60 / 0.71 | 0.25 / 0.57 / 0.76 | 0.00 / 0.71 / 0.95 | 1.75 / 5.14 / 14.50 | 0.60 |
-| v4, 41+ ops | 120 | | 0.78 / 0.85 / 0.94 | 1 / 1 / 3 | 63 | 0.37 / 0.65 / 0.72 | 0.34 / 0.62 / 0.78 | 0.00 / 0.55 / 0.95 | 4.50 / 7.71 / 17.50 | |
-| world-v3 | 526 | 0.885 | 0.40 / 0.83 / 0.99 | 1 / 2 / 8 (mean 3.63) | 155 | 0.07 / 0.43 / 0.87 | 0.09 / 0.75 / 0.91 | 0.00 / 0.51 / 1.00 | 3.00 / 16.57 / 178.00 | 0.36 |
+| corpus | witnesses | W share of all ops | W share | executions X | exactly one X | largest body / length | fuel inside combinators | input prefix intact until | closed states | peak size / max(in, out) | X in last decile |
+|---|---:|---:|---|---|---:|---|---|---|---|---|---:|
+| v4 | 220 | 0.844 | 0.60 / 0.83 / 0.93 | 1 / 1 / 3 (mean 1.57) | 127 | 0.21 / 0.60 / 0.71 | 0.25 / 0.57 / 0.76 | 0.00 / 0.71 / 0.95 | 1 / 7 / 14 | 1.75 / 5.14 / 14.50 | 0.60 |
+| v4, 41+ ops | 120 | | 0.78 / 0.85 / 0.94 | 1 / 1 / 3 | 63 | 0.37 / 0.65 / 0.72 | 0.34 / 0.62 / 0.78 | 0.00 / 0.55 / 0.95 | 4 / 11 / 17 | 4.50 / 7.71 / 17.50 | |
+| world-v3 | 526 | 0.885 | 0.40 / 0.83 / 0.99 | 1 / 2 / 8 (mean 3.63) | 155 | 0.07 / 0.43 / 0.87 | 0.09 / 0.75 / 0.91 | 0.00 / 0.51 / 1.00 | 1 / 15 / 74 | 3.00 / 16.57 / 178.00 | 0.36 |
 
 ## `deep-corpus-v1` — solvers on the held-out cohort (96 tasks, 12 per distance 1–8)
 

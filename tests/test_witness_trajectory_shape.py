@@ -58,3 +58,15 @@ def test_peak_size_includes_the_initial_state():
         behaviour="add_pair", split="train", inputs=("[ 100 -100 ]",), program=("add",)
     )
     assert describe(task)["peak_size_ratio"] == 1.0
+
+
+def test_closed_states_count_direct_and_executed_steps_with_no_open_mark():
+    task = SimpleNamespace(
+        behaviour="sum_plus_one",
+        split="train",
+        inputs=("[ (1 2 3) ]",),
+        program=("0", "[", "add", "]", "fold", "1", "add"),
+    )
+    row = describe(task)
+    assert row["closed_states"] == 4
+    assert row["post_execution_states"] == 1

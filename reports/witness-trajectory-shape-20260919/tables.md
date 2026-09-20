@@ -2,7 +2,7 @@
 
 8800 tasks, 220 distinct witnesses. Cells are p10 / p50 / p90 over witnesses.
 
-| length | n | W share | D share | X | largest body / length | hidden fuel | first touch | peak size | one X | write-then-run |
+| length | n | W share | D share | X | largest body / length | hidden fuel | input prefix intact until | peak size | one X | write-then-run |
 |---|---|---|---|---|---|---|---|---|---|---|
 | all | 220 | 0.60 / 0.83 / 0.93 | 0.00 / 0.14 / 0.29 | 1.00 / 1.00 / 3.00 | 0.21 / 0.60 / 0.71 | 0.25 / 0.57 / 0.76 | 0.00 / 0.71 / 0.95 | 1.75 / 5.14 / 14.50 | 127 | 131 |
 | 1-5 | 15 | 0.00 / 0.60 / 0.80 | 0.00 / 0.20 / 1.00 | 0.00 / 1.00 / 1.00 | 0.00 / 0.20 / 0.40 | 0.00 / 0.29 / 0.55 | 0.00 / 0.80 / 0.80 | 1.00 / 1.50 / 2.00 | 8 | 5 |
@@ -33,7 +33,7 @@ Executions by decile of the program: `0.02 0.01 0.04 0.04 0.04 0.04 0.06 0.07 0.
 
 566 tasks, 526 distinct witnesses. Cells are p10 / p50 / p90 over witnesses.
 
-| length | n | W share | D share | X | largest body / length | hidden fuel | first touch | peak size | one X | write-then-run |
+| length | n | W share | D share | X | largest body / length | hidden fuel | input prefix intact until | peak size | one X | write-then-run |
 |---|---|---|---|---|---|---|---|---|---|---|
 | all | 526 | 0.40 / 0.83 / 0.99 | 0.00 / 0.14 / 0.57 | 1.00 / 2.00 / 8.00 | 0.07 / 0.43 / 0.87 | 0.09 / 0.75 / 0.91 | 0.00 / 0.51 / 1.00 | 3.00 / 16.57 / 178.00 | 155 | 176 |
 | 1-5 | 21 | 0.00 / 0.00 / 0.60 | 0.20 / 1.00 / 1.00 | 0.00 / 0.00 / 1.00 | 0.00 / 0.00 / 0.20 | 0.00 / 0.00 / 0.55 | 0.00 / 0.50 / 0.80 | 1.00 / 1.43 / 3.00 | 3 | 1 |

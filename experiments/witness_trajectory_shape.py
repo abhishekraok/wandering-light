@@ -117,6 +117,9 @@ def describe(task: Task) -> dict[str, Any]:
     executions = [index for index, kind in enumerate(kinds) if kind == "X"]
     total_fuel = sum(step["fuel"] for step in steps)
     hidden = sum(step["fuel"] - 1 for step in steps if step["kind"] == "X")
+    # How long the original input values sit unchanged at the bottom of the
+    # stack. An upper bound on delay, not first use: a witness that copies its
+    # input and computes on the copy keeps the prefix intact while it works.
     touched = next(
         (i for i, step in enumerate(steps) if step["stack"][: len(root)] != root), n
     )
@@ -133,15 +136,18 @@ def describe(task: Task) -> dict[str, Any]:
         "assembly_share": sum(step["assembly"] for step in steps) / n,
         "executions": len(executions),
         "execution_positions": [index / max(1, n - 1) for index in executions],
-        # States a relabelled sub-goal could name: a quotation has just run and
-        # no mark is open. The final state is one of them when the program ends
-        # on an execution.
+        # States a relabelled sub-goal could name have no open mark: every
+        # top-level D or X step leaves one. The post-execution ones are where a
+        # quotation has just run.
+        "closed_states": sum(
+            step["kind"] != "W" and not quotation_open(step["stack"]) for step in steps
+        ),
         "post_execution_states": sum(
             not quotation_open(steps[index]["stack"]) for index in executions
         ),
         "largest_body_share": body / n,
         "hidden_fuel_share": hidden / total_fuel,
-        "first_touch": touched / n,
+        "prefix_intact_until": touched / n,
         "peak_size_ratio": max(sizes) / ends,
     }
 
@@ -165,7 +171,8 @@ def summarize(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
         "post_execution_states",
         "largest_body_share",
         "hidden_fuel_share",
-        "first_touch",
+        "prefix_intact_until",
+        "closed_states",
         "peak_size_ratio",
     )
     deciles = Counter(
@@ -224,7 +231,7 @@ def tables(results: Sequence[dict[str, Any]]) -> str:
             "Cells are p10 / p50 / p90 over witnesses.",
             "",
             "| length | n | W share | D share | X | largest body / length "
-            "| hidden fuel | first touch | peak size | one X | write-then-run |",
+            "| hidden fuel | input prefix intact until | peak size | one X | write-then-run |",
             "|---|---|---|---|---|---|---|---|---|---|---|",
         ]
         for label, cell in result["cells"].items():
@@ -236,7 +243,7 @@ def tables(results: Sequence[dict[str, Any]]) -> str:
             lines.append(
                 f"| {label} | {cell['programs']} | {trio('write_share')} | {trio('direct_share')} "
                 f"| {trio('executions')} | {trio('largest_body_share')} "
-                f"| {trio('hidden_fuel_share')} | {trio('first_touch')} | {trio('peak_size_ratio')} "
+                f"| {trio('hidden_fuel_share')} | {trio('prefix_intact_until')} | {trio('peak_size_ratio')} "
                 f"| {cell['one_execution']} | {cell['write_then_run']} |"
             )
         deciles = " ".join(
