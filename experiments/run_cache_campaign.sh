@@ -35,10 +35,6 @@ cell off-s0-e4            "$RUN/policies/witness-s0-e4" --cache off
 cell on-s0-e4             "$RUN/policies/witness-s0-e4" --cache on
 cell on-s0-e4-order1      "$RUN/policies/witness-s0-e4" --cache on --order-seed 1
 
-# --- reinvest the freed budget: does a wider beam buy BEHAVIOURS, not just -----
-# --- the within-behaviour instances the cache already recovers for nothing? ----
-cell on-s0-e4-b128        "$RUN/policies/witness-s0-e4" --cache on --beam 128
-
 # --- the three training arms at a matched epoch, cache off (#152) -------------
 for arm in witness hindsight hindsight-all; do
   for seed in 0 1 2; do

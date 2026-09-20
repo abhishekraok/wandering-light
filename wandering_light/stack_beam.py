@@ -20,6 +20,7 @@ reads against the BFS rows' node budgets.
 
 from __future__ import annotations
 
+import gc
 import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -165,6 +166,47 @@ def step_all(product: Product, op) -> tuple[Product | None, int, int]:
 
 
 def beam_solve(
+    task: Task,
+    scorer: PolicyScorer,
+    *,
+    beam_width: int = 64,
+    max_depth: int = 48,
+    guard: str = "both",
+    budget: int | None = None,
+    observer: BeamObserver | None = None,
+) -> BeamResult:
+    """Search one task. The cyclic collector is off for the duration.
+
+    Every object the expansion loop makes -- a product tuple per op per example,
+    a program tuple per legal successor, the visited set's keys -- is acyclic,
+    so reference counting frees all of it and the cyclic collector only walks
+    it. It walks a lot of it: at depth 48 the collector is about half the
+    wall-clock, and it is also most of the run-to-run variance in the number
+    `docs/metrics.md` makes primary. The collector is restored on the way out,
+    including when the search raises, so a caller that had it off keeps it off
+    and cycles made during the search are collected between tasks rather than
+    never. Callers that solve many tasks should call ``gc.freeze()`` once first,
+    which moves the corpus and the model out of the generations being scanned.
+    """
+    collecting = gc.isenabled()
+    if collecting:
+        gc.disable()
+    try:
+        return _beam_solve(
+            task,
+            scorer,
+            beam_width=beam_width,
+            max_depth=max_depth,
+            guard=guard,
+            budget=budget,
+            observer=observer,
+        )
+    finally:
+        if collecting:
+            gc.enable()
+
+
+def _beam_solve(
     task: Task,
     scorer: PolicyScorer,
     *,

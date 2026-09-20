@@ -32,6 +32,7 @@ Stages, each skipped when its output exists so a run resumes::
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import random
 import sys
@@ -276,6 +277,7 @@ def time_cell(
         torch.set_num_threads(co.CPU_THREADS)
     scorer = PolicyScorer(load_policy(policy_dir(run_dir, arm, seed, epoch), device=device), device)
     rows = []
+    gc.freeze()  # see solve_with_cache.run_cell
     started = time.perf_counter()
     for index, task in co.cohort(tasks):
         result = beam_solve(task, scorer, beam_width=beam, max_depth=depth, guard=co.GUARD)

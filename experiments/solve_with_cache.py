@@ -28,6 +28,7 @@ script and one host.
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import random
 import sys
@@ -88,6 +89,10 @@ def run_cell(
         random.Random(order_seed).shuffle(cohort)
     cache: list[tuple[str, ...]] = []
     rows = []
+    # The corpus, the model and the cohort are alive for the whole cell and
+    # never become garbage; freezing moves them out of the generations the
+    # collector scans, so what `beam_solve` turns off is all it has to.
+    gc.freeze()
     started = time.perf_counter()
     for index, task in cohort:
         task_started = time.perf_counter()
