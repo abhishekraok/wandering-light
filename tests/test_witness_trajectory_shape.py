@@ -1,6 +1,12 @@
 from types import SimpleNamespace
 
-from experiments.witness_trajectory_shape import BASIS, describe, replay, run_lengths
+from experiments.witness_trajectory_shape import (
+    BASIS,
+    describe,
+    quantiles,
+    replay,
+    run_lengths,
+)
 from wandering_light.stack_machine import parse_stack
 
 
@@ -70,3 +76,18 @@ def test_closed_states_count_direct_and_executed_steps_with_no_open_mark():
     row = describe(task)
     assert row["closed_states"] == 4
     assert row["post_execution_states"] == 1
+
+
+def test_a_parked_quotation_is_not_a_closed_state():
+    # After `]` no mark is open, but the quotation has not run: still program text.
+    task = SimpleNamespace(
+        behaviour="sum",
+        split="train",
+        inputs=("[ (1 2 3) ]",),
+        program=("0", "[", "add", "]", "fold"),
+    )
+    assert describe(task)["closed_states"] == 2  # after `0`, and after `fold`
+
+
+def test_quantiles_interpolate_rather_than_round_up():
+    assert quantiles(list(range(10)))["p50"] == 4.5

@@ -67,6 +67,10 @@ def holds_code(value: Value) -> bool:
     return isinstance(value, Sym)
 
 
+def closed(stack: tuple[Value, ...]) -> bool:
+    return not quotation_open(stack) and not any(holds_code(value) for value in stack)
+
+
 def replay(program: Sequence[str], stack: tuple[Value, ...]) -> list[dict[str, Any]]:
     """One record per step: its kind, fuel, and the state it leaves."""
     steps = []
@@ -91,9 +95,6 @@ def replay(program: Sequence[str], stack: tuple[Value, ...]) -> list[dict[str, A
                 "fuel": fuel,
                 "body": body,
                 "stack": stack,
-                # A direct step that leaves code on top is quotation assembly
-                # (`]` then `cons` / `cat`), not progress on the data.
-                "assembly": kind == "D" and bool(stack) and holds_code(stack[-1]),
             }
         )
     return steps
@@ -133,15 +134,12 @@ def describe(task: Task) -> dict[str, Any]:
         "kinds": run_lengths(kinds),
         "write_share": kinds.count("W") / n,
         "direct_share": kinds.count("D") / n,
-        "assembly_share": sum(step["assembly"] for step in steps) / n,
         "executions": len(executions),
         "execution_positions": [index / max(1, n - 1) for index in executions],
-        # States a relabelled sub-goal could name have no open mark: every
-        # top-level D or X step leaves one. The post-execution ones are where a
-        # quotation has just run.
-        "closed_states": sum(
-            step["kind"] != "W" and not quotation_open(step["stack"]) for step in steps
-        ),
+        # States a relabelled sub-goal could name: no open mark, and no finished
+        # quotation parked on the stack waiting to run (that is still program
+        # text). The post-execution ones are where a quotation has just run.
+        "closed_states": sum(closed(step["stack"]) for step in steps),
         "post_execution_states": sum(
             not quotation_open(steps[index]["stack"]) for index in executions
         ),
@@ -153,20 +151,18 @@ def describe(task: Task) -> dict[str, Any]:
 
 
 def quantiles(values: Sequence[float]) -> dict[str, float]:
-    ordered = sorted(values)
-    if not ordered:
+    if not values:
         return {}
-    return {
-        f"p{q}": ordered[min(len(ordered) - 1, len(ordered) * q // 100)]
-        for q in QUANTILES
-    }
+    if len(values) == 1:
+        return {f"p{q}": values[0] for q in QUANTILES}
+    cuts = statistics.quantiles(values, n=100, method="inclusive")
+    return {f"p{q}": cuts[q - 1] for q in QUANTILES}
 
 
 def summarize(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
     fields = (
         "write_share",
         "direct_share",
-        "assembly_share",
         "executions",
         "post_execution_states",
         "largest_body_share",
