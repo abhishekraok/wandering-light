@@ -136,6 +136,24 @@ def step_all_explained(
     return tuple(moved), fuel, len(product), None
 
 
+def step_all_quiet(product: Product, op: Op) -> tuple[Product | None, int, int]:
+    """``step_all_explained`` without the reason string.
+
+    The reason is an f-string built on every refusal, and about half of the
+    28 x beam attempts in a layer refuse. Nothing reads it unless an observer
+    is watching, so the unobserved search skips building it.
+    """
+    moved = []
+    fuel = 0
+    for stepped, stack in enumerate(product):
+        outcome = step_raw(op, stack, DEFAULT_FUEL_LIMIT, 0)
+        if isinstance(outcome, str):
+            return None, fuel, stepped
+        moved.append(outcome[0])
+        fuel += outcome[1]
+    return tuple(moved), fuel, len(product)
+
+
 def step_all(product: Product, op) -> tuple[Product | None, int, int]:
     """Apply ``op`` to every example: ``(product or None, fuel, stacks stepped)``.
 
@@ -158,15 +176,22 @@ def beam_solve(
 ) -> BeamResult:
     started = time.perf_counter()
     watch = observer if observer is not None else BeamObserver()
+    watching = observer is not None
     inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
     outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
     if guard in ("close", "both") and any(
         isinstance(v, Mark) for stack in outputs for v in stack
     ):
         raise ValueError("the close guard needs mark-free targets")
-    target = key_of(outputs)
     targets = encode_targets(outputs)
-    seen = {key_of(inputs)}
+    # The visited set is keyed on the product itself. Membership is decided by
+    # ``Value.__eq__``, which is structural and induces exactly ``value_key``'s
+    # partition (the union is closed and each variant carries a distinct class);
+    # the hash only buckets, never leaves the process and never decides a tie,
+    # so the search this set drives is the same search ``key_of`` drove, about
+    # three times cheaper. ``key_of`` stays the name for keys that are written
+    # down or compared across processes.
+    seen = {inputs}
     beam: list[Node] = [(inputs, (), 0.0)]
     executions = fuel = expansions = 0
 
@@ -192,17 +217,24 @@ def beam_solve(
             for index, op in enumerate(OPS):
                 if budget is not None and executions >= budget:
                     return result(None, "budget", depth + 1)
-                moved, spent, stepped, reason = step_all_explained(product, op)
+                if watching:
+                    moved, spent, stepped, reason = step_all_explained(product, op)
+                    watch.expansion_attempted(
+                        depth, node, index, moved, reason, spent, stepped
+                    )
+                else:
+                    moved, spent, stepped = step_all_quiet(product, op)
                 executions += stepped
                 fuel += spent
-                watch.expansion_attempted(
-                    depth, node, index, moved, reason, spent, stepped
-                )
                 if moved is None:
                     continue
                 legal[node, index] = True
                 extended = (*program, op.name)
-                if key_of(moved) == target:
+                # Structural equality on the closed ``Value`` union is exactly
+                # ``value_key`` equality, and short-circuits at the first
+                # difference instead of building a key for the whole product.
+                # Almost every successor differs in its first stack's depth.
+                if moved == outputs:
                     return result(extended, "fit", depth + 1)
                 successors.append((node, index, moved, extended))
         if not successors:
@@ -229,11 +261,10 @@ def beam_solve(
                 if why is not None:
                     verdicts[node, index] = f"guard:{why}"
                     continue
-            key = key_of(product)
-            if key in seen:
+            if product in seen:
                 verdicts[node, index] = "duplicate"
                 continue
-            seen.add(key)
+            seen.add(product)
             verdicts[node, index] = "retained"
             parents.append((node, index))
             next_beam.append((product, program, beam[node][2] + log_probs[node, index]))
