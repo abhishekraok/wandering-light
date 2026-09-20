@@ -72,7 +72,7 @@ To use an outer value inside a body, cons it into the quotation first:
 last, so the body sees `item a b`. Ints inside a quotation push themselves.
 
 **Several accumulators in a fold**: pack them in a list.
-`nil swap cons swap cons` packs `a b` into `( b a )`; inside the body
+`nil swap cons swap cons` packs `a b` into `( a b )`, head `a`; inside the body
 `[ uncons swap uncons swap drop ] dip` unpacks the accumulator under the item;
 finish with `uncons drop uncons swap drop` (or similar) to pull the field you
 want. See v4 witnesses such as `maximum_subarray_sum` for the full pattern.

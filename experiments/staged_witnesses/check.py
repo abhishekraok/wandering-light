@@ -147,8 +147,12 @@ def assess(
         verdict = "staged"
     elif fused["length"] < MIN_FUSED:
         verdict = "already short"
-    else:
+    elif broken:
         verdict = "not staged"
+    else:
+        # Within the rules, under +2, and the fused witness was within the rules
+        # too: nothing honest to stage. Untreated, not a failure.
+        verdict = "fused already within rules"
     result.update(
         verified=True,
         verdict=verdict,
