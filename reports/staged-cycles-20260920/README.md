@@ -20,6 +20,10 @@ and 500 fused transitions per seed; none hit the 10 s wall-clock cap.
 | fused | 0.445 (0.51 / 0.39 / 0.44) | 0.867 | 0.756 | 0.308 | **0.152** (0.23 / 0.11 / 0.11) |
 | staged | **0.914** (0.92 / 0.90 / 0.92) | 0.997 | 0.856 | 1.000 | **0.795** (0.83 / 0.77 / 0.79) |
 
+The length buckets are thin and not behaviour-matched: a task's five instances repeat the same cycle text, so
+fused 2-5 is 3 distinct cycles from 2 behaviours, fused 6-12 is 3 distinct from 3, and staged 13+ is 4 distinct
+cycles. Read the 2+-op and whole-witness columns; the buckets say only that fused's failures sit in its long cycle.
+
 The overall shares (0.878 fused, 0.965 staged) are not the result: `beam_solve` tests for a hit while it
 expands, so every one-op transition is solved by exhaustive one-step search whatever the policy says, and both
 witness kinds are mostly one-op transitions.
@@ -35,10 +39,14 @@ witness kinds are mostly one-op transitions.
   | fused | 45 of 110 (41%) | 0.86 (0.96 / 0.76 / 0.87) | 65 | **0.16** (0.20 / 0.14 / 0.14) |
   | staged | 275 of 305 (90%) | 0.99 (0.99 / 0.98 / 1.00) | 30 | **0.20** (0.27 / 0.17 / 0.17) |
 
-  A cycle the policy has never seen is written about one time in five **in either style**. Staging does not
-  make the policy better at writing a new cycle. It makes a held-out program consist, nine parts in ten, of
+  These are rows, not independent cycles: the new-text rows are **6 distinct staged cycles** (4 behaviours) and
+  **13 distinct fused cycles** (12 behaviours), of which a seed solves 1-2 and 3-4. So: a cycle the policy has
+  never seen is rarely written in either style, and on this evidence staging does not make the policy better
+  at writing a new one; six cycles cannot say more than that. It makes a held-out program consist, nine parts in ten, of
   cycles the training text already contains, against four in ten for fused witnesses, whose one long
-  quotation is almost always new. 87% of solved staged cycles are solved with the witness's own ops.
+  quotation is almost always new. Of the solved multi-op staged cycles, 87% come back as exactly the witness's ops (95% over all solved
+  cycles, one-op ones included); that is equality of the returned program, a stricter thing than the
+  containment in the table.
 - **The same fact read from the search side** is the arms result (`reports/staged-arms-20260920`): the staged
   policy retrieves known cycles, and a token-level beam does not chain them.
 
@@ -53,6 +61,6 @@ direction holds, 0.795 against 0.152.
 ## Limits
 
 14 behaviours, 5 tasks each; per-behaviour figures in `cycles.md` rest on 5-105 transitions. The sub-goal is
-an oracle: nothing here says a learned ranker can pick it. The novel-cycle rate (0.16-0.20) rests on 30
-staged and 65 fused cycles per seed. `largest_adjacent_sum` is the one behaviour where staged is *worse* per
+an oracle: nothing here says a learned ranker can pick it. The novel-cycle rate (0.16-0.20) rests on 6
+distinct staged and 13 distinct fused cycle texts (30 and 65 rows per seed). `largest_adjacent_sum` is the one behaviour where staged is *worse* per
 transition (0.78 against 0.92 overall; 0.60 against 0.56 on 2+ ops).

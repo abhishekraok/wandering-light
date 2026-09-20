@@ -363,10 +363,10 @@ Verified behaviours by bucket (fused / re-fused / staged / both): 1-5 6.00 / 4.6
 
 Per-cycle diagnostic, oracle sub-goal (next closed state as the search target), validation-skeleton holdout, 14 behaviours x 5 tasks, beam 64, depth = cycle length + 4, mean of 3 seeds:
 
-| witness | transitions | 2+-op transitions solved | 13+ ops | whole witnesses walked | 2+-op cycles whose text is in the fit witnesses, solved | cycles whose text is new, solved |
+| witness | transitions | 2+-op transitions solved | 13+ ops (3-4 distinct cycles) | whole witnesses walked | 2+-op cycles whose text is in the fit witnesses, solved | cycles whose text is new, solved |
 |---|---:|---|---|---|---|---|
-| fused | 500 | 0.445 | 0.308 | 0.152 | 45 of 110, 0.86 | 65, 0.16 |
-| staged | 750 | 0.914 | 1.000 | 0.795 | 275 of 305, 0.99 | 30, 0.20 |
+| fused | 500 | 0.445 | 0.308 | 0.152 | 45 of 110, 0.86 | 65 rows / 13 distinct, 0.16 |
+| staged | 750 | 0.914 | 1.000 | 0.795 | 275 of 305, 0.99 | 30 rows / 6 distinct, 0.20 |
 
 ## Staged and re-fused witnesses for the v4 train behaviours (#155)
 
