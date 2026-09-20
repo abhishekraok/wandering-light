@@ -1,0 +1,5 @@
+max_pair
+sum_inside_closed_interval
+largest_adjacent_sum
+maximum_subarray_sum
+prefix_record_count

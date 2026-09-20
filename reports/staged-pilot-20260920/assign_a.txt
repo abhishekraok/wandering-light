@@ -1,0 +1,5 @@
+parity_each
+mean
+squared_deviation_total
+compare_each_to_mean
+truncated_dot_product
