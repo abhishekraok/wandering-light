@@ -200,6 +200,42 @@ def main(argv: list[str] | None = None) -> int:
             )
         w()
 
+    # arm x epoch grid, when the grid cells are present
+    grid: dict[tuple[str, int], list[tuple[int, int]]] = defaultdict(list)
+    for name, c in s.items():
+        if not name.startswith("off-") or "-order" in name or "-b" in name:
+            continue
+        stem = name[len("off-"):]
+        if "-e" not in stem:
+            continue
+        head, _, etxt = stem.rpartition("-e")
+        if not etxt.isdigit() or "-s" not in head:
+            continue
+        arm, _, seed = head.rpartition("-s")
+        if not arm or not seed.isdigit():
+            continue
+        grid[arm, int(etxt)].append((c["tasks"], c["behaviours"]))
+    epochs = sorted({e for _a, e in grid})
+    arms_seen = [a for a in ("witness", "hindsight", "hindsight-all", "shortened") if any(a == x for x, _ in grid)]
+    if len(epochs) > 1 and arms_seen:
+        w("## Arm x epoch (#152), cache off — behaviours of 43, then tasks of 300")
+        w()
+        w("A single-epoch comparison inherits the confound #134 was burned by: solves")
+        w("track the epoch as much as the data. Each cell is the mean over the seeds run.")
+        w()
+        w("| arm | " + " | ".join(f"e{e}" for e in epochs) + " |")
+        w("|---|" + "---:|" * len(epochs))
+        for arm in arms_seen:
+            cells_of = []
+            for e in epochs:
+                vals = grid.get((arm, e))
+                cells_of.append(
+                    f"| **{mean([v[1] for v in vals]):.1f}** / {mean([v[0] for v in vals]):.0f} "
+                    if vals else "| — "
+                )
+            w(f"| `{arm}` " + "".join(cells_of) + "|")
+        w()
+
     extras = [n for n in s if n.startswith("on-") and ("-b" in n or "-d" in n)]
     if extras:
         w("## Search shape, on top of the cache")
