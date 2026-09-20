@@ -64,5 +64,5 @@ def test_staged_polynomial_is_within_the_rules_with_three_closed_stages():
 
 def test_a_parked_quotation_is_counted_until_it_runs():
     # `[ add ]` waits through `swap` and `cons` before `map` consumes it.
-    m = measure(tuple(["1", "[", "add", "]", "swap", "cons", "map"]), ROOT)
+    m = measure(("1", "[", "add", "]", "swap", "cons", "map"), ROOT)
     assert m["longest_park"] == 2
