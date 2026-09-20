@@ -21,7 +21,10 @@ recipe's row-uniform epochs would re-weight behaviours by witness length and
 double the `both` arm. Every arm therefore trains on the same number of rows
 (the fused arm's count), drawn task-uniform, then witness-uniform, then
 row-uniform, once, with a fixed seed. Same rows per epoch, same batch, same
-epochs: same optimiser updates.
+epochs: same optimiser updates. The draw is shared by an arm's three training
+seeds, as the recipe's fixed row set is, so the seed spread is initialisation
+and shuffle noise, not resampling noise; arms get independent draws (per-task
+counts differ by about 2% between arms).
 
 Stages, each skipped when its output exists so a run resumes::
 
@@ -202,14 +205,19 @@ def report(run_dir: Path, out_dir: Path, log) -> Path:
     cells = defaultdict(list)
     for path in sorted((run_dir / "timing").glob("*.json")):
         cell = json.loads(path.read_text())
-        cells[
-            (cell["arm"], cell["policy_epoch"], cell["beam_width"], cell["max_depth"])
-        ].append(cell)
+        key = (
+            cell["arm"],
+            cell["device"],
+            cell["policy_epoch"],
+            cell["beam_width"],
+            cell["max_depth"],
+        )
+        cells[key].append(cell)
     lines = [
-        "| arm | epoch | beam | depth | seeds | graded tasks /300 | graded behaviours /43 | by bucket (tasks) | seconds |",
-        "|---|---|---|---|---|---|---|---|---|",
+        "| arm | device | epoch | beam | depth | seeds | graded tasks /300 | graded behaviours /43 | by bucket (tasks) | seconds |",
+        "|---|---|---|---|---|---|---|---|---|---|",
     ]
-    for (arm, epoch, beam, depth), group in sorted(cells.items()):
+    for (arm, device, epoch, beam, depth), group in sorted(cells.items()):
         tasks_solved = [sum(r["solved"] for r in c["rows"]) for c in group]
         behaviours = [
             len({r["behaviour"] for r in c["rows"] if r["solved"]}) for c in group
@@ -221,9 +229,14 @@ def report(run_dir: Path, out_dir: Path, log) -> Path:
                 per[r["bucket"]] += r["solved"]
             for bucket, n in per.items():
                 buckets[bucket].append(n)
-        by_bucket = " ".join(f"{b}:{mean(v):.1f}" for b, v in sorted(buckets.items()))
+        by_bucket = " ".join(
+            f"{b}:{mean(v):.1f}"
+            for b, v in sorted(
+                buckets.items(), key=lambda kv: int(kv[0].split("-")[0].rstrip("+"))
+            )
+        )
         lines.append(
-            f"| {arm} | {epoch} | {beam} | {depth} | {len(group)} | "
+            f"| {arm} | {device} | {epoch} | {beam} | {depth} | {len(group)} | "
             f"{mean(tasks_solved):.1f} ({' / '.join(map(str, tasks_solved))}) | "
             f"{mean(behaviours):.2f} ({' / '.join(map(str, behaviours))}) | {by_bucket} | "
             f"{mean(c['cell_seconds'] for c in group):.0f} |"
