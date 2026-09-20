@@ -27,4 +27,4 @@ for tau in inf 3.0 1.5 0.7; do
     --policy "$RUN/policies/witness-s0-e4" --tau "$tau" --out "$OUT/$name.json" 2>&1 | tee -a "$LOG"
 done
 echo "$(date +%H:%M:%S) floored beam done" | tee -a "$LOG"
-exec bash experiments/run_deficit_curve_after_width.sh
+exec bash experiments/run_self_shorten.sh

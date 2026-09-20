@@ -19,7 +19,7 @@ OUT=checkpoints/deficit-curve-20260919
 LOG=$OUT/train.log
 mkdir -p "$OUT"
 
-while ! grep -q "floored beam done" checkpoints/cache-20260919/floored.log 2>/dev/null; do sleep 60; done
+while ! grep -q "self-shorten done" checkpoints/self-shorten-20260920/run.log 2>/dev/null; do sleep 60; done
 echo "$(date +%H:%M:%S) width sweep done; starting the deficit curve" | tee -a "$LOG"
 
 for lr in 1.25e-4 6.25e-5; do
