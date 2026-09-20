@@ -72,8 +72,21 @@ try {
         Push-Location (Join-Path $workshopRoot 'web\stack-workshop')
         try {
             if (-not (Test-Path -LiteralPath 'node_modules\vite\bin\vite.js')) {
-                $npmCommand = Get-Command npm.cmd -ErrorAction Stop
-                & $npmCommand.Source ci
+                # Prefer the npm CLI shipped beside the Node we selected; a bundled
+                # runtime is not on PATH, and that is the case this fallback exists for.
+                $nodeHome = Split-Path -Parent $workshopNode
+                $npmCli = @(
+                    (Join-Path $nodeHome 'node_modules\npm\bin\npm-cli.js'),
+                    (Join-Path $nodeHome 'lib\node_modules\npm\bin\npm-cli.js'),
+                    (Join-Path (Split-Path -Parent $nodeHome) 'lib\node_modules\npm\bin\npm-cli.js')
+                ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+                if ($npmCli) {
+                    & $workshopNode $npmCli ci
+                } else {
+                    $npmCommand = Get-Command npm.cmd -ErrorAction SilentlyContinue
+                    if (-not $npmCommand) { throw 'Could not find npm beside Node or on PATH. Install Node.js 22.12 or newer with npm.' }
+                    & $npmCommand.Source ci
+                }
                 if ($LASTEXITCODE -ne 0) { throw 'Could not install the editor dependencies.' }
             }
             & $workshopNode node_modules/typescript/bin/tsc --noEmit

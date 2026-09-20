@@ -12,8 +12,7 @@ that app only. Starting the launcher again reuses an already running workshop.
 
 The first launch builds the frontend if necessary. Requirements:
 
-- Python **3.12+** (the machine-only teaching core also runs on 3.11, but the
-  repository's trained-policy imports require 3.12).
+- Python **3.12+**, matching the repository's minimum.
 - Node **22.12+** and npm to install/build the frontend. Node is unnecessary
   after the build, unless you change the frontend.
 - The launcher can locate the desktop app's bundled Python and Node runtimes
