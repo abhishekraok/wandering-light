@@ -100,8 +100,31 @@ def harvest(args: argparse.Namespace) -> int:
     for t in train:
         by_behaviour[t.behaviour].append(t)
 
+    # Stratify by witness length rather than sampling uniformly. Shortening is
+    # where the solve is: over 3,257 recorded solves, 44% of 1-5 solves and 51%
+    # of 11-20 solves beat the authored witness, while 6-10 never does and the
+    # long buckets' "savings" are the leaking samplers. A uniform draw over the
+    # train split would spend most of the budget on 41+ tasks the beam does not
+    # solve at all.
     rng = random.Random(HARVEST_SEED)
-    sample = rng.sample(train, min(args.tasks, len(train)))
+    pools: dict[str, list[Task]] = defaultdict(list)
+    for t in train:
+        pools[co.bucket_of(t.length)].append(t)
+    weights = {"1-5": 0.35, "6-10": 0.10, "11-20": 0.35, "21-40": 0.15, "41+": 0.05}
+    sample: list[Task] = []
+    for bucket, share in weights.items():
+        pool = pools.get(bucket, [])
+        want = min(int(args.tasks * share), len(pool))
+        sample += rng.sample(pool, want)
+    rng.shuffle(sample)
+    print(
+        "harvest sample by bucket: "
+        + ", ".join(
+            f"{b} {sum(1 for t in sample if co.bucket_of(t.length) == b)}"
+            for b in ("1-5", "6-10", "11-20", "21-40", "41+")
+        ),
+        flush=True,
+    )
     scorer = PolicyScorer(load_policy(args.policy, device=args.device), args.device)
     gc.freeze()
 
