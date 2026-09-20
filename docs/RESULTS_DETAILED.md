@@ -348,6 +348,26 @@ Static: the 133 macros of `experiments/world_behaviours/macros.txt` expanded to 
 
 Cohort by witness-length bucket, bits raw → full library → subset: 1–5 (6 witnesses) 22.4 → 28.3 → 22.9; 6–10 (3) 29.3 → 40.1 → 32.5; 11–20 (6) 71.7 → 85.0 → 68.8; 21–40 (9) 154.7 → 174.7 → 141.5; 41+ (19) 408.3 → 393.4 → 318.4. Macros hitting v4, by ops saved on train: `pack3` 300, `abs` 276, `max2` 253, `unpack3` 252, `pack2` 152, `reverse` 140, `second` 108, `unpack2` 104, `take` 98, `drop-n` 98; no semantic macro (`range`, `digits`, `gcd`, `sort`, `zip`) occurs in any v4 witness. On world-v3 train `range` alone saves 13,081 ops; the DP parse equals the authors' macro form at the median (21) and is never longer.
 
+## Training on staged witnesses: four arms and the per-cycle diagnostic (#155)
+
+The #101 1m policy, seeds 0 / 1 / 2, epoch 3 fixed in advance, 313,560 task-balanced rows per epoch in every arm, cohort 300 eval tasks / 43 behaviours, beam 64 x depth 48, guard `both`, CUDA. Arms differ only in the program each of 123 treated fit behaviours is replayed along. Verified = 10,000-draw `genuine` or equal to a catalogue witness. A task is abandoned after 10 s of wall clock (beam-state-size-unbounded (#157)): 0 / 15 / 2 tasks in the staged seeds, none elsewhere. [arms report](../reports/staged-arms-20260920/README.md), [cycles report](../reports/staged-cycles-20260920/README.md), [staged-witness-reauthoring (#155)](../../issues/155)
+
+| arm | graded tasks /300 | verified tasks | verified behaviours /43 | union over seeds | by a program found nowhere in the arm's train text | only by a contained program |
+|---|---|---|---|---:|---|---|
+| fused | 86.0 (88 / 81 / 89) | 83.7 | 12.33 (13 / 11 / 13) | 15 | 8.33 | 4.00 |
+| re-fused | 90.3 (86 / 90 / 95) | 87.0 | 12.67 (12 / 13 / 13) | 15 | 7.33 | 5.33 |
+| staged | 139.7 (143 / 128 / 148) | 137.7 | 15.67 (16 / 16 / 15) | 16 | 4.33 | 11.33 |
+| both | 130.3 (121 / 147 / 123) | 128.0 | 14.00 (14 / 15 / 13) | 15 | 1.00 | 13.00 |
+
+Verified behaviours by bucket (fused / re-fused / staged / both): 1-5 6.00 / 4.67 / 6.00 / 6.00; 6-10 1.00 / 1.33 / 3.00 / 3.00; 11-20 3.67 / 4.00 / 5.00 / 4.67; 21-40 1.33 / 2.33 / 1.67 / 0.33; 41+ 0.33 / 0.33 / 0.00 / 0.00. Staged against the fused union: gains `keep_below`, `n_minus_each`, `largest_inside_interval`; loses `shared_value_occurrences`, `farther_choice_from_target`.
+
+Per-cycle diagnostic, oracle sub-goal (next closed state as the search target), validation-skeleton holdout, 14 behaviours x 5 tasks, beam 64, depth = cycle length + 4, mean of 3 seeds:
+
+| witness | transitions | 2+-op transitions solved | 13+ ops | whole witnesses walked | 2+-op cycles whose text is in the fit witnesses, solved | cycles whose text is new, solved |
+|---|---:|---|---|---|---|---|
+| fused | 500 | 0.445 | 0.308 | 0.152 | 45 of 110, 0.86 | 65, 0.16 |
+| staged | 750 | 0.914 | 1.000 | 0.795 | 275 of 305, 0.99 | 30, 0.20 |
+
 ## Staged and re-fused witnesses for the v4 train behaviours (#155)
 
 153 train behaviours of 12+ fused ops rewritten by Claude Opus 5 authors under three rules (no quotation over 8 atoms, no write run over 12 steps, at most 4 top-level non-write steps between a quotation's `]` and the combinator that runs it); every program and its re-fused twin verified against the Python reference and all 40 tasks' pairs. Staged = within the rules and (2+ more post-execution closed states, or the fused witness broke a rule). Side file `experiments/staged_witnesses/v4.jsonl`. [report](../reports/staged-full-20260920/README.md), [pilot](../reports/staged-pilot-20260920/README.md), [staged-witness-reauthoring (#155)](../../issues/155)
