@@ -177,17 +177,26 @@ def main(argv: list[str] | None = None) -> int:
         w("Identical row counts, labels, optimiser and seeds; only the target each")
         w("training row carries differs.")
         w()
-        by_arm: dict[str, list[int]] = defaultdict(list)
+        by_arm: dict[str, list[tuple[int, int]]] = defaultdict(list)
         for name, c in arms.items():
             stem = name[len("off-"):-len("-e4")]
             arm = "witness" if stem == "s0" else stem.rsplit("-s", 1)[0]
-            by_arm[arm].append(c["tasks"])
-        w("| arm | seeds | tasks /300, mean ± sd | range |")
-        w("|---|---:|---:|---|")
-        for arm, vals in sorted(by_arm.items()):
+            by_arm[arm].append((c["tasks"], c["behaviours"]))
+        w("Behaviours are reported beside tasks and are the more stable of the two:")
+        w("within one arm the seed spread on tasks is several times the spread on")
+        w("behaviours, so a task difference of under ~15 says nothing.")
+        w()
+        w("| arm | seeds | tasks /300, mean ± sd | behaviours /43, mean ± sd | task range |")
+        w("|---|---:|---:|---:|---|")
+        for arm in ("witness", "hindsight", "hindsight-all", "mixed"):
+            vals = by_arm.get(arm)
+            if not vals:
+                continue
+            t = [v[0] for v in vals]
+            b = [v[1] for v in vals]
             w(
-                f"| `{arm}` | {len(vals)} | {mean(vals):.1f} ± {pstdev(vals):.1f} "
-                f"| {min(vals)}-{max(vals)} |"
+                f"| `{arm}` | {len(vals)} | {mean(t):.1f} ± {pstdev(t):.1f} "
+                f"| {mean(b):.1f} ± {pstdev(b):.1f} | {min(t)}-{max(t)} |"
             )
         w()
 
