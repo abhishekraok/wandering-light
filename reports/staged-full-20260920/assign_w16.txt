@@ -1,0 +1,5 @@
+endpoints
+running_minima
+median_three
+prefix_sum_signs
+strict_peak_count

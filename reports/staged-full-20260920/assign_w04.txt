@@ -1,0 +1,5 @@
+count_equal
+adjacent_differences
+positive_majority
+pair_product_total
+longest_positive_balance_streak

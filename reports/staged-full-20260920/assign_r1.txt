@@ -1,0 +1,10 @@
+parity_each
+sum_after_last_zero
+mean
+clamp_each
+squared_deviation_total
+squared_point_norms
+compare_each_to_mean
+keep_positive_sum_pairs
+truncated_dot_product
+kth_order_statistic

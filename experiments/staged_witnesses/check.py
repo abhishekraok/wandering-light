@@ -140,7 +140,10 @@ def assess(
     gained = staged["post_execution_states"] - fused["post_execution_states"]
     if skeleton(program) in eval_skeletons:
         verdict = "collides with an eval skeleton"
-    elif not broken and gained >= 2:
+    elif not broken and (gained >= 2 or within_rules(fused)):
+        # Within the rules, and either two more post-execution states or the
+        # fused witness it replaces was outside them (owner's call, 2026-09-20:
+        # a bare +2 bar pushed short witnesses into contrived rewrites).
         verdict = "staged"
     elif fused["length"] < MIN_FUSED:
         verdict = "already short"
@@ -156,6 +159,52 @@ def assess(
         fused=fused,
     )
     return result
+
+
+def assess_refused(name: str, text: str, tasks: dict[str, list]) -> dict[str, Any]:
+    """The re-fused control: same algorithm, cycles merged; only verified and measured."""
+    behaviour, program = BY_NAME[name], tuple(text.split())
+    rng = random.Random(_name_seed(name) + 2)
+    for _ in range(500):
+        bad = check(behaviour, behaviour.sample(rng), program)
+        if bad is not None:
+            return {
+                "verified": False,
+                "failure": f"args {bad.args} want {bad.expected} got {bad.got}",
+            }
+    first = tasks[name][0]
+    for task in tasks[name]:
+        for given, want in zip(
+            (*task.inputs, *task.held_out_inputs),
+            (*task.outputs, *task.held_out_outputs),
+            strict=True,
+        ):
+            outcome = run_program(program, parse_stack(given, basis=BASIS))
+            got = (
+                outcome
+                if isinstance(outcome, str)
+                else format_stack(Config(outcome[0]))
+            )
+            if got != format_stack(Config(parse_stack(want, basis=BASIS))):
+                return {
+                    "verified": False,
+                    "failure": f"task pair: {given} want {want} got {got}",
+                }
+    root = parse_stack(first.inputs[0], basis=BASIS)
+    return {"verified": True, **measure(program, root)}
+
+
+def remaining(tasks: dict[str, list]) -> list[str]:
+    """Train behaviours of 12+ fused ops outside the pilot, shortest first."""
+    done = set(pilot(tasks))
+    names = [
+        name
+        for name, group in tasks.items()
+        if group[0].split == "train"
+        and group[0].length >= MIN_FUSED
+        and name not in done
+    ]
+    return sorted(names, key=lambda name: (tasks[name][0].length, name))
 
 
 def pilot(tasks: dict[str, list]) -> list[str]:
@@ -189,6 +238,9 @@ def show(name: str, tasks: dict[str, list]) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--pilot", action="store_true", help="list the pilot sample")
+    parser.add_argument(
+        "--remaining", action="store_true", help="list the full-run behaviours"
+    )
     parser.add_argument("--show", metavar="BEHAVIOUR")
     parser.add_argument(
         "--try", dest="attempt", nargs=2, metavar=("BEHAVIOUR", "PROGRAM")
@@ -204,6 +256,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.pilot:
         for name in pilot(tasks):
             print(f"{name}\t{tasks[name][0].length}")
+    if args.remaining:
+        for name in remaining(tasks):
+            print(f"{name}\t{tasks[name][0].length}")
     if args.show:
         show(args.show, tasks)
     if args.attempt:
@@ -216,6 +271,10 @@ def main(argv: list[str] | None = None) -> int:
         ]
         for row in rows:
             out = assess(row["behaviour"], row["program"], tasks, eval_skeletons)
+            if row.get("refused_program"):
+                out["refused"] = assess_refused(
+                    row["behaviour"], row["refused_program"], tasks
+                )
             print(json.dumps({**row, **out}))
     return 0
 

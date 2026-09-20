@@ -1,0 +1,5 @@
+count_zeros
+stable_unique
+total_distance_outside_interval
+maximum_prefix_sum
+distance_to_nearer_choice

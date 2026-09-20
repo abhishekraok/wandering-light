@@ -1,0 +1,5 @@
+maximum
+span
+mean_absolute_deviation
+pair_sums
+longest_interval_run

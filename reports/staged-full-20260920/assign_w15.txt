@@ -1,0 +1,5 @@
+ordered_pair
+hamming_distance
+triangle_perimeter_or_zero
+best_single_trade_profit
+first_repeat_index

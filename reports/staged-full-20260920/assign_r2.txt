@@ -1,0 +1,10 @@
+nonnegative_running_balance
+max_pair
+disjoint_lists_flag
+sum_inside_closed_interval
+running_maxima
+largest_adjacent_sum
+aligned_match_count
+maximum_subarray_sum
+mode_first_tie
+prefix_record_count

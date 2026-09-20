@@ -1,0 +1,5 @@
+rotate_right
+collapse_runs
+run_length_encoding
+first_maximum_index
+record_extreme_count

@@ -1,0 +1,4 @@
+dot_product
+record_low_count
+largest_absolute_prefix_sum
+points_above_parabola

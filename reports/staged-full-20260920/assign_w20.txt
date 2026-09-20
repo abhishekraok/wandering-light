@@ -1,0 +1,5 @@
+sum_absolute_values
+aligned_absolute_gaps
+interleave_unequal
+sign_histogram
+point_centroid_floor

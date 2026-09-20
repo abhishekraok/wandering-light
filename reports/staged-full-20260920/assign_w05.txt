@@ -1,0 +1,5 @@
+evaluate_polynomial_horner
+sign
+positive_step_total
+paired_l1_distance
+choose_wider_range

@@ -1,0 +1,5 @@
+palindrome_indicator
+closed_interval_membership_flags
+total_variation
+longest_positive_run
+sort_ascending

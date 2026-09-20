@@ -1,0 +1,5 @@
+count_negative
+all_equal_flag
+interval_violation_count
+adjacent_repetition_count
+zero_straddling_pair_count

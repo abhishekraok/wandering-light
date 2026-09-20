@@ -1,0 +1,5 @@
+list_totals
+distinct_value_count
+zero_balance_prefix_count
+reverse_point_order
+positive_quadrant_count

@@ -1,0 +1,5 @@
+abs_each
+symmetric_value_difference
+drop_prefix_count
+maximum_drawdown
+rotate_left_count

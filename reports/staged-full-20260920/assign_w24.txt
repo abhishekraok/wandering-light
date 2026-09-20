@@ -1,0 +1,5 @@
+distance_from_target_total
+smallest_magnitude
+running_peak_shortfall
+longest_nondecreasing_run
+closest_pair_gap

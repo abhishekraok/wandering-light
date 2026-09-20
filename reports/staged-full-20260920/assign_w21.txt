@@ -1,0 +1,5 @@
+remove_value
+closer_to_lower_bound_count
+record_high_count
+maximum_running_mean
+running_ranges

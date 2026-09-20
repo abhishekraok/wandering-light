@@ -1,0 +1,5 @@
+minimum
+combined_value_span
+take_prefix_count
+triangle_feasibility_flag
+nearest_point_to_origin

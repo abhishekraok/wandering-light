@@ -1,0 +1,5 @@
+count_evens
+count_outside_interval
+inversion_count
+ascending_pair_count
+unimodal_indicator

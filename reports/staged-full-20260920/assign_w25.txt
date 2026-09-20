@@ -1,0 +1,5 @@
+magnitude_ordered_pair
+clamped_total
+gap_between_intervals
+running_mean_floor
+stable_sort_flat_pairs
