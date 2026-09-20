@@ -19,7 +19,7 @@ Python reference, and every shown and held-out pair of all 40 tasks).
 
 | verdict | behaviours |
 |---|---:|
-| staged | **143** (82% of train behaviours; 88% of fused train rows get a new witness) |
+| staged | **143** (82% of train behaviours; 88% of fused training rows, one row per witness op, get a new witness) |
 | not staged | 8 |
 | fused already within rules, nothing honest to add | 2 (`list_totals`, `positive_part`) |
 | already short, not attempted | 22 |
@@ -65,11 +65,12 @@ wrapped in one quotation and run with `i`, since top-level `ifte` cycles have no
   `merge_sorted_lists` (27), `kth_order_statistic` (26). The insert must see the whole accumulator and
   the item together, and the number of passes is data-driven. All four best attempts verify and are
   0.31x to 0.51x the fused length.
-- **A list of running extrema (4):** `running_maxima`, `running_minima`, `running_ranges`,
+- **The extremum of every prefix (4):** `running_maxima`, `running_minima`, `running_ranges`,
   `running_peak_shortfall`. A scalar extremum fits (the combine `[ lt? ] [ swap ] [ ] ifte drop` is 7
   atoms), and so does any *question* about records (`record_high_sum`, `record_low_count`,
-  `record_extreme_count` stage by asking, per element, which earlier values block it). Emitting the
-  extremum of every prefix does not: reducing a prefix inside a `map` is 10 atoms, a scan that carries
+  `record_extreme_count` stage by asking, per element, which earlier values block it). Computing the
+  extremum of every prefix does not, whether it is emitted as a list or reduced afterwards
+  (`running_peak_shortfall` returns a scalar): reducing a prefix inside a `map` is 10 atoms, a scan that carries
   the list is 12.
 
 ## Reviewer overrides and flags (in `v4.jsonl`, field `flags`)
@@ -77,14 +78,14 @@ wrapped in one quotation and run with `i`, since top-level `ifte` cycles have no
 - **Override, 1.** `running_minima`: the author's program was a prefix-minimum by doubling, correct
   only for lists of at most 8 elements (the sampler draws 2-6). An approximation is not a witness;
   replaced by the exact scan the author named, which breaks rule 2, so the behaviour is *not staged*.
-- **Contrived, 5.** Within the rules only through a trick a person would not give as the
-  decomposition: `mean` (shifted mean) and `compare_each_to_mean` (sign as `d // (d*d+1)`), both from
-  the pilot's stricter classifier; `sorted_within_pairs` (pair sort as `(s+g)/2`, 141 ops, 14
+- **Contrived, 6.** Within the rules only through a trick a person would not give as the
+  decomposition: `mean` (shifted mean), `compare_each_to_mean` (sign as `d // (d*d+1)`) and `max_pair`
+  (selection as the blend `a + s*(b-a)`), all three from the pilot's stricter classifier; `sorted_within_pairs` (pair sort as `(s+g)/2`, 141 ops, 14
   executions); `largest_zero_delimited_sum` (data turned into programs and run with `i`, so its
   intermediates hold code); `evaluate_polynomial_horner` (Horner, one honest fold, replaced by an
   explicit power sum). Authors from w17 on were asked to mark such rows and marked none.
-- **Precondition, 8.** Correct on the sampler's domain and not beyond, as the fused witness is:
-  `lo < hi` (4), even-length flat list, `count >= 0`, at least two elements, non-empty list.
+- **Precondition, 7.** Correct on the sampler's domain and not beyond, as the fused witness is:
+  `lo < hi` (4), `count >= 0`, at least two elements, non-empty list.
 
 ## What bound
 

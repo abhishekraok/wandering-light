@@ -350,18 +350,18 @@ Cohort by witness-length bucket, bits raw → full library → subset: 1–5 (6 
 
 ## Staged and re-fused witnesses for the v4 train behaviours (#155)
 
-153 train behaviours of 12+ fused ops rewritten by Claude Opus 5 authors under three rules (no quotation over 8 atoms, no write run over 12 steps, a quotation runs within 4 ops of its `]`); every program and its re-fused twin verified against the Python reference and all 40 tasks' pairs. Staged = within the rules and (2+ more post-execution closed states, or the fused witness broke a rule). Side file `experiments/staged_witnesses/v4.jsonl`. [report](../reports/staged-full-20260920/README.md), [pilot](../reports/staged-pilot-20260920/README.md), [staged-witness-reauthoring (#155)](../../issues/155)
+153 train behaviours of 12+ fused ops rewritten by Claude Opus 5 authors under three rules (no quotation over 8 atoms, no write run over 12 steps, at most 4 top-level non-write steps between a quotation's `]` and the combinator that runs it); every program and its re-fused twin verified against the Python reference and all 40 tasks' pairs. Staged = within the rules and (2+ more post-execution closed states, or the fused witness broke a rule). Side file `experiments/staged_witnesses/v4.jsonl`. [report](../reports/staged-full-20260920/README.md), [pilot](../reports/staged-pilot-20260920/README.md), [staged-witness-reauthoring (#155)](../../issues/155)
 
 | verdict | n | | over the 143 staged | fused | staged | re-fused |
 |---|---:|---|---|---:|---:|---:|
 | staged | 143 | | total ops | 7,470 | 6,425 | 6,790 |
-| not staged (4 sorting / selection, 4 lists of running extrema) | 8 | | ops written under a mark | 0.841 | 0.704 | 0.754 |
+| not staged (4 sorting / selection, 4 that need the extremum of every prefix) | 8 | | ops written under a mark | 0.841 | 0.704 | 0.754 |
 | fused already within rules | 2 | | closed states / ops | 0.144 | 0.275 | 0.225 |
 | already short (< 12 ops), not attempted | 22 | | executions, median | 1 | 4 | 2 |
 | | | | largest quotation, atoms, median | 29 | 7 | 16 |
 | | | | longest write run, median | 36 | 11 | 21 |
 
-Length ratio staged / fused, median: 12-20 ops 1.67 (24 of 26 staged), 21-40 1.05 (26 of 28), 41+ 0.74 (93 of 99); all staged 0.88, 86 of 143 shorter. 88% of fused train rows get a new witness; 14 of the validation-skeleton holdout's 16 behaviours staged. Twin executes fewer times than staged for 136 of 143, 6 identical, median 1.04x the staged length. Flags: 5 contrived, 8 sampler preconditions, 1 override.
+Length ratio staged / fused, median: 12-20 ops 1.67 (24 of 26 staged), 21-40 1.05 (26 of 28), 41+ 0.74 (93 of 99); all staged 0.88, 86 of 143 shorter. 88% of fused training rows (one per witness op) get a new witness; 14 of the validation-skeleton holdout's 16 behaviours staged. Twin executes fewer times than staged for 136 of 143, 6 identical, median 1.04x the staged length. Flags: 6 contrived, 7 sampler preconditions, 1 override.
 
 ## Witness trajectory shape of v4 and world-v3 (#150)
 

@@ -36,6 +36,7 @@ OVERRIDES = {
 # decomposition: kept and verified, flagged so an arm can drop them.
 CONTRIVED = {
     "mean": "shifted mean, to reach +2 under the pilot's classifier",
+    "max_pair": "selection as the blend a + s*(b-a) in place of a branch",
     "compare_each_to_mean": "sign as d // (d*d + 1)",
     "sorted_within_pairs": "pair sort as (s+g)/2 and s-max, 141 ops",
     "largest_zero_delimited_sum": "data turned into programs and run with `i`",
@@ -44,7 +45,6 @@ CONTRIVED = {
 # Correct on the sampler's domain and not beyond it, like the fused witness.
 PRECONDITION = {
     "interval_violation_count": "lo < hi",
-    "zero_straddling_pair_count": "even-length flat list",
     "longest_interval_run": "lo <= hi",
     "take_prefix_count": "count >= 0",
     "strict_turn_count": "at least two elements",

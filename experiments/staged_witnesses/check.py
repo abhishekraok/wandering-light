@@ -66,9 +66,7 @@ def measure(program: tuple[str, ...], stack) -> dict[str, Any]:
         waiting = step["kind"] != "W" and not closed(state)
         parked = parked + 1 if waiting else 0
         longest_park = max(longest_park, parked)
-    write_runs = [
-        len(run) for run in "".join(kinds).replace("D", " ").replace("X", " ").split()
-    ]
+    write_runs = [len(run) for run in kinds.replace("D", " ").replace("X", " ").split()]
     executions = [i for i, kind in enumerate(kinds) if kind == "X"]
     return {
         "length": len(program),
