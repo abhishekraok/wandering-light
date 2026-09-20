@@ -44,3 +44,5 @@ hs.train(run_dir, tasks, "cuda", ["witness"], [0], lambda line: print(line, flus
 PY
 done
 echo "$(date +%H:%M:%S) deficit curve training done" | tee -a "$LOG"
+
+exec bash experiments/run_analysis.sh
