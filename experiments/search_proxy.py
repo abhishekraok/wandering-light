@@ -125,7 +125,13 @@ def task_sets(tasks: list[Task]) -> dict[str, list[Task]]:
             out += rng.sample(group, min(TASKS_PER_BUCKET, len(group)))
         return out
 
-    return {"holdout": stratify(holdout), "fit": stratify(fit)}
+    # ANALYSIS ONLY. The cohort's behaviours are disjoint from train, so the
+    # deficit a checkpoint shows on them cannot be measured any other way -- but
+    # anything computed here has seen the eval set and must never choose a
+    # checkpoint, an epoch or a hyper-parameter. It exists to test whether
+    # L x deficit < ln W predicts which behaviours get solved.
+    cohort = [t for _i, t in co.cohort(tasks)]
+    return {"holdout": stratify(holdout), "fit": stratify(fit), "cohort": cohort}
 
 
 def score_task(task: Task, scorer: PolicyScorer) -> dict[str, Any] | None:
@@ -171,6 +177,31 @@ def score_task(task: Task, scorer: PolicyScorer) -> dict[str, Any] | None:
         "survival_depth": survival,
         "survives_5": survival >= 5,
     }
+
+
+def by_behaviour(rows: list[dict[str, Any]]) -> dict[str, dict[str, float]]:
+    """Mean witness length and mean per-step deficit for each behaviour.
+
+    The quantity the budget argument predicts on is ``L * deficit`` against
+    ``ln W``: a witness whose accumulated deficit exceeds the beam's tolerance
+    cannot survive to its own length, whatever else is true.
+    """
+    groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for r in rows:
+        groups[r["behaviour"]].append(r)
+    out = {}
+    for name, group in groups.items():
+        length = sum(r["length"] for r in group) / len(group)
+        deficit = sum(r["mean_deficit"] for r in group) / len(group)
+        out[name] = {
+            "length": length,
+            "deficit": deficit,
+            "accumulated": length * deficit,
+            "budget_ratio": (length * deficit) / TOLERANCE,
+            "survival_depth": sum(r["survival_depth"] for r in group) / len(group),
+            "tasks": len(group),
+        }
+    return out
 
 
 def aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -249,6 +280,8 @@ def main(argv: list[str] | None = None) -> int:
             rows = [r for t in sets[name] if (r := score_task(t, scorer)) is not None]
             report[name] = aggregate(rows)
             report[f"{name}_rows"] = rows
+            if name == "cohort":
+                report["cohort_by_behaviour"] = by_behaviour(rows)
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
         for name in args.sets.split(","):
