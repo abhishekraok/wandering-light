@@ -51,6 +51,7 @@ OP_BY_NAME = {op.name: op for op in ops_for_basis(BASIS)}
 # The witness-length buckets of compute-optimal-mark-28 (#101).
 BUCKETS = ((1, 5), (6, 10), (11, 20), (21, 40), (41, 10**9))
 QUANTILES = (10, 25, 50, 75, 90)
+QUOTATIONS = {"ifte": 3}
 
 
 def atoms(value: Value) -> int:
@@ -76,7 +77,8 @@ def replay(program: Sequence[str], stack: tuple[Value, ...]) -> list[dict[str, A
             kind = "W"
         elif op._run is not None:
             kind = "X"
-            body = atoms(stack[-1]) - 1 if stack and isinstance(stack[-1], Lst) else 0
+            # `ifte` consumes three quotations (condition, then, else); the rest one.
+            body = sum(atoms(q) - 1 for q in stack[-QUOTATIONS.get(name, 1) :])
         else:
             kind = "D"
         outcome = step_raw(op, stack, DEFAULT_FUEL_LIMIT, 0)
@@ -110,6 +112,7 @@ def describe(task: Task) -> dict[str, Any]:
     root = parse_stack(task.inputs[0], basis=BASIS)
     steps = replay(task.program, root)
     n = len(steps)
+    states = [step["stack"] for step in steps]
     kinds = "".join(step["kind"] for step in steps)
     executions = [index for index, kind in enumerate(kinds) if kind == "X"]
     total_fuel = sum(step["fuel"] for step in steps)
@@ -117,8 +120,8 @@ def describe(task: Task) -> dict[str, Any]:
     touched = next(
         (i for i, step in enumerate(steps) if step["stack"][: len(root)] != root), n
     )
-    sizes = [sum(atoms(value) for value in step["stack"]) for step in steps]
-    ends = max(1, sizes[-1], sum(atoms(value) for value in root))
+    sizes = [sum(atoms(value) for value in stack) for stack in (root, *states)]
+    ends = max(1, sizes[0], sizes[-1])
     body = max((step["body"] for step in steps), default=0)
     return {
         "behaviour": task.behaviour,

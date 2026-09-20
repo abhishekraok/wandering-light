@@ -18,8 +18,8 @@ are shares of training rows.
   **127 of 220 witnesses execute exactly once**, 7 never; mean 1.57 executions per witness. 60% of all
   executions fall in the last decile of the program. 131 of 220 are at least 80% W with at most two
   executions.
-- **The one execution is most of the program.** The largest quotation consumed is a median 57% of the
-  witness's ops (64% past 40 ops), and a median 57% of machine fuel is spent inside combinators, where no
+- **The one execution is most of the program.** The quotations consumed by the largest execution (all three for
+  `ifte`) are a median 60% of the witness's ops (65% past 40 ops), and a median 57% of machine fuel is spent inside combinators, where no
   trajectory state exists. The input is first touched a median 71% of the way through; peak state size
   is 5.1x the larger of input and output (7.7x past 40 ops), so the stack grows once and collapses once.
 - **It gets more so with length, not less.** 41+ ops: W share 0.85, one execution at the median, p90 3.

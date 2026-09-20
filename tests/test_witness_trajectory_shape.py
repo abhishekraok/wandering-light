@@ -1,4 +1,6 @@
-from experiments.witness_trajectory_shape import BASIS, replay, run_lengths
+from types import SimpleNamespace
+
+from experiments.witness_trajectory_shape import BASIS, describe, replay, run_lengths
 from wandering_light.stack_machine import parse_stack
 
 
@@ -28,3 +30,31 @@ def test_execution_records_body_size_and_hidden_fuel():
 
 def test_run_lengths():
     assert run_lengths("DWWWWX") == "D1 W4 X1"
+
+
+def test_ifte_body_counts_all_three_quotations():
+    program = [
+        "sub",
+        "[",
+        "dup",
+        "0",
+        "lt?",
+        "]",
+        "[",
+        "0",
+        "swap",
+        "sub",
+        "]",
+        "[",
+        "]",
+        "ifte",
+    ]
+    steps = replay(program, parse_stack("[ -3 5 ]", basis=BASIS))
+    assert steps[-1]["body"] == 6
+
+
+def test_peak_size_includes_the_initial_state():
+    task = SimpleNamespace(
+        behaviour="add_pair", split="train", inputs=("[ 100 -100 ]",), program=("add",)
+    )
+    assert describe(task)["peak_size_ratio"] == 1.0
