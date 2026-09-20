@@ -82,8 +82,11 @@ def run_cell(
     beam_width: int,
     max_depth: int,
     order_seed: int | None,
+    limit: int = 0,
 ) -> dict[str, Any]:
     cohort = co.cohort(tasks)
+    if limit:  # smoke tests only; a limited cell is not a cost to clear
+        cohort = [cohort[b * 60 + i] for b in range(5) for i in range(limit)]
     if order_seed is not None:
         cohort = list(cohort)
         random.Random(order_seed).shuffle(cohort)
@@ -194,6 +197,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--order-seed", type=int, default=None, help="shuffle the task order; omit for cohort order"
     )
+    parser.add_argument(
+        "--limit", type=int, default=0, help="tasks per bucket; smoke tests only, not a cost to clear"
+    )
     args = parser.parse_args(argv)
     if args.out.exists():
         print(f"skip {args.out} (exists)")
@@ -209,8 +215,10 @@ def main(argv: list[str] | None = None) -> int:
         beam_width=args.beam,
         max_depth=args.depth,
         order_seed=args.order_seed,
+        limit=args.limit,
     )
     cell |= {
+        "limit": args.limit,
         "policy": str(args.policy),
         "device": args.device,
         "cpu_threads": co.CPU_THREADS,
