@@ -348,6 +348,16 @@ Static: the 133 macros of `experiments/world_behaviours/macros.txt` expanded to 
 
 Cohort by witness-length bucket, bits raw → full library → subset: 1–5 (6 witnesses) 22.4 → 28.3 → 22.9; 6–10 (3) 29.3 → 40.1 → 32.5; 11–20 (6) 71.7 → 85.0 → 68.8; 21–40 (9) 154.7 → 174.7 → 141.5; 41+ (19) 408.3 → 393.4 → 318.4. Macros hitting v4, by ops saved on train: `pack3` 300, `abs` 276, `max2` 253, `unpack3` 252, `pack2` 152, `reverse` 140, `second` 108, `unpack2` 104, `take` 98, `drop-n` 98; no semantic macro (`range`, `digits`, `gcd`, `sort`, `zip`) occurs in any v4 witness. On world-v3 train `range` alone saves 13,081 ops; the DP parse equals the authors' macro form at the median (21) and is never longer.
 
+## Witness trajectory shape of v4 and world-v3 (#150)
+
+Static: every distinct witness replayed on its first shown input, each step labelled W (under an open mark, or the `[` opening one), D (top-level op) or X (top-level combinator). Cells are p10 / p50 / p90 over witnesses. [report](../reports/witness-trajectory-shape-20260919/README.md), [witness-trajectory-shape (#150)](../../issues/150)
+
+| corpus | witnesses | W share of all ops | W share | executions X | exactly one X | largest body / length | fuel inside combinators | input first touched at | peak size / max(in, out) | X in last decile |
+|---|---:|---:|---|---|---:|---|---|---|---|---:|
+| v4 | 220 | 0.844 | 0.60 / 0.83 / 0.93 | 1 / 1 / 3 (mean 1.57) | 127 | 0.08 / 0.57 / 0.71 | 0.25 / 0.57 / 0.76 | 0.00 / 0.71 / 0.95 | 1.75 / 5.14 / 14.50 | 0.60 |
+| v4, 41+ ops | 120 | | 0.78 / 0.85 / 0.94 | 1 / 1 / 3 | 63 | 0.24 / 0.64 / 0.71 | 0.34 / 0.62 / 0.78 | 0.00 / 0.55 / 0.95 | 4.50 / 7.71 / 17.50 | |
+| world-v3 | 526 | 0.885 | 0.40 / 0.83 / 0.99 | 1 / 2 / 8 (mean 3.63) | 155 | 0.04 / 0.40 / 0.82 | 0.09 / 0.75 / 0.91 | 0.00 / 0.51 / 1.00 | 3.00 / 16.57 / 178.00 | 0.36 |
+
 ## `deep-corpus-v1` — solvers on the held-out cohort (96 tasks, 12 per distance 1–8)
 
 `wl-core-v1`, 118 functions. [materialized-rollout report](../reports/materialized-rollout-20260829/README.md), [fine-tune-llm (#50)](../../issues/50), [solve-step-by-step (#55)](../../issues/55).
