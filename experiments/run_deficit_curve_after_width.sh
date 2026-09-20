@@ -45,4 +45,3 @@ PY
 done
 echo "$(date +%H:%M:%S) deficit curve training done" | tee -a "$LOG"
 
-exec bash experiments/run_analysis.sh

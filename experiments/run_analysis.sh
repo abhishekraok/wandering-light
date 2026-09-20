@@ -43,3 +43,7 @@ uv run python experiments/deficit_law.py \
 uv run python experiments/cache_report.py \
   --run-dir "$CELLS" --sim "$REP/order_sim.json" --out "$REP" 2>&1 | tee -a "$LOG"
 echo "$(date +%H:%M:%S) analysis done" | tee -a "$LOG"
+
+# The deficit curve is training, not timing, so it runs last: if the night is
+# cut short the report survives and only the curve is lost.
+exec bash experiments/run_deficit_curve_after_width.sh

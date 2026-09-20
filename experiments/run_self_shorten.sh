@@ -39,4 +39,4 @@ for seed in 0 1 2; do
   done
 done
 echo "$(date +%H:%M:%S) self-shorten done" | tee -a "$LOG"
-exec bash experiments/run_deficit_curve_after_width.sh
+exec bash experiments/run_analysis.sh --now
