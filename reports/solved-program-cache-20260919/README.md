@@ -58,7 +58,7 @@ behaviours, so a task difference of under ~15 says nothing.
 
 | arm | seeds | tasks /300, mean ± sd | behaviours /43, mean ± sd | task range |
 |---|---:|---:|---:|---|
-| `witness` | 4 | 87.8 ± 8.2 | 11.2 ± 0.8 | 74-94 |
+| `witness` | 3 | 85.7 ± 8.5 | 11.0 ± 0.8 | 74-94 |
 | `hindsight` | 3 | 77.7 ± 10.3 | 10.3 ± 0.5 | 68-92 |
 | `hindsight-all` | 3 | 72.0 ± 7.1 | 9.3 ± 0.5 | 62-78 |
 

@@ -193,11 +193,20 @@ def main(argv: list[str] | None = None) -> int:
         w("Identical row counts, labels, optimiser and seeds; only the target each")
         w("training row carries differs.")
         w()
-        by_arm: dict[str, list[tuple[int, int]]] = defaultdict(list)
+        # `off-s0-e4` and `off-witness-s0-e4` are the SAME cell run by two
+        # runners (run_cache_campaign.sh skips witness-0 because off-s0-e4 is
+        # it; run_epoch_grid.sh names it in full). Keying by (arm, seed) drops
+        # the duplicate -- counting it gave the witness arm four "seeds" and a
+        # mean that disagreed with the arm x epoch grid below.
+        by_seed: dict[tuple[str, str], tuple[int, int]] = {}
         for name, c in arms.items():
             stem = name[len("off-") : -len("-e4")]
             arm = "witness" if stem == "s0" else stem.rsplit("-s", 1)[0]
-            by_arm[arm].append((c["tasks"], c["behaviours"]))
+            seed = "0" if stem == "s0" else stem.rsplit("-s", 1)[1]
+            by_seed[arm, seed] = (c["tasks"], c["behaviours"])
+        by_arm: dict[str, list[tuple[int, int]]] = defaultdict(list)
+        for (arm, _seed), value in sorted(by_seed.items()):
+            by_arm[arm].append(value)
         w("Behaviours are reported beside tasks and are the more stable of the two:")
         w("within one arm the seed spread on tasks is several times the spread on")
         w("behaviours, so a task difference of under ~15 says nothing.")

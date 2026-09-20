@@ -16,8 +16,10 @@ host, one commit **and one load condition**. #101's cost-to-clear table and the
 941 s row predate all three. The arms here compare with each other.
 
 The noise floor was measured, not assumed: the same cell run twice under
-different task orders gave 195 s and 211 s, about 8%, with **identical**
-execution counts (71,700,695) because a search is independent per task.
+different task orders gave **195.0 s and 208.7 s timed**, about 7%, with
+**identical** execution counts (71,700,695) because a search is independent per
+task. Both figures are `timed_seconds`; the matching `cell_seconds` are 197.0
+and 210.7, and the two units must not be mixed in one comparison.
 
 ## The baseline is the published baseline
 
@@ -39,9 +41,16 @@ The cohort is **43 distinct behaviours behind 300 tasks**; `negate_each` alone i
 2. **A change can move tasks without moving anything real.** The solved-program
    cache is the clean case: +23 tasks and zero genuine behaviours.
 
-Tables carry a `behaviours*` column that drops `all_positive` and
-`bounds_cover_list_flag`, whose samplers `docs/STATUS.md` records as leaking. A
-behaviour credited only through one of those is a sampler defect, not coverage.
+Older tables here carry a `behaviours*` column that drops `all_positive` and
+`bounds_cover_list_flag` by name, whose samplers `docs/STATUS.md` records as
+leaking. **That column is superseded and should not be read as a quality
+measure.** Draw-testing contradicts it in both directions:
+`bounds_cover_list_flag` finds a genuine 46-op program at beam 512, and
+`aligned_matches` -- which the column let through -- is a shortcut. Use the
+verified counts in `verified_width.json` / `verified_epoch_grid.json` /
+`verified_all.json`, and note that "verified" is the union of draw-tested
+`genuine` verdicts and `equals_catalogue_witness` ones, the latter never drawn
+against at all.
 
 ## Grading has per-instance noise that a behaviour verdict does not
 

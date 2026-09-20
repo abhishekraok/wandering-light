@@ -18,8 +18,12 @@ reads a held-out example, a behaviour name or a reference implementation.
 Both the replay and the search are charged to the same clock, so the reported
 pair is a cost to clear in #95's sense rather than a sum over independent tasks.
 
-`--cache off` reproduces the #101 protocol in the same harness, so the A/B is one
-script and one host.
+`--cache off` reproduces the #101 protocol's *search* in the same harness, so the
+A/B is one script and one host. It does **not** reproduce its clock:
+`compute_optimal_mark28.time_cell` grades inside the timed loop, which both adds
+grading wall-clock and warms the executor's process-global `run_body` LRU for
+later searches, while this driver seals the timers before grading. Solve counts
+match; wall-clocks are comparable across the arms here and not against #101's.
 
     uv run python experiments/solve_with_cache.py --policy <checkpoint> \
         --out checkpoints/cache/cell.json --cache on

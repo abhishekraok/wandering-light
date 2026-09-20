@@ -68,6 +68,16 @@ if TYPE_CHECKING:
 HARVEST_SEED = 4242
 
 
+# `step3_verify_solves` refuses to say `genuine` below 500 in-domain draws. This
+# gate has no sampler to draw from, only the behaviour's other train tasks, so
+# it takes what those supply -- but it must not accept on a handful. A behaviour
+# with one train task would make the gate vacuous: the program would be
+# re-checked only on the examples it was fit to. The eight programs accepted in
+# the recorded run were checked on 167-186 inputs each, so this floor did not
+# bind there; it is here so a thinner behaviour cannot slip through later.
+MIN_INPUTS_CHECKED = 64
+
+
 def equivalent_on_behaviour(
     program: tuple[str, ...], tasks_of_behaviour: list[Task]
 ) -> tuple[bool, int]:
@@ -75,7 +85,9 @@ def equivalent_on_behaviour(
 
     The witness's own output for an input is the label, so this needs neither the
     behaviour's sampler nor its Python reference -- only other train tasks of the
-    same behaviour, whose shown pairs the program has never seen.
+    same behaviour, whose shown pairs the program has never seen. Returns
+    ``(accepted, inputs_checked)``; too little evidence is a rejection, not an
+    acceptance, so the count is load-bearing and is recorded per acceptance.
     """
     checked = 0
     for task in tasks_of_behaviour:
@@ -85,7 +97,7 @@ def equivalent_on_behaviour(
         checked += len(inputs)
         if not fits:
             return False, checked
-    return True, checked
+    return checked >= MIN_INPUTS_CHECKED, checked
 
 
 def harvest(args: argparse.Namespace) -> int:
