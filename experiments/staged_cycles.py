@@ -50,6 +50,7 @@ import argparse
 import dataclasses
 import gc
 import json
+import signal
 import sys
 import time
 from collections import defaultdict
@@ -66,6 +67,8 @@ import torch  # noqa: E402
 import experiments.compute_optimal_mark28 as co  # noqa: E402
 import experiments.hindsight_subtargets as hs  # noqa: E402
 from experiments.staged_arms import (  # noqa: E402
+    TaskTimeoutError,
+    _raise_timeout,
     balanced,
     by_task,
     treated,
@@ -76,7 +79,11 @@ from experiments.witness_trajectory_shape import (  # noqa: E402
     replay,
     run_lengths,
 )
-from wandering_light.stack_beam import beam_solve, step_all_quiet  # noqa: E402
+from wandering_light.stack_beam import (  # noqa: E402
+    BeamResult,
+    beam_solve,
+    step_all_quiet,
+)
 from wandering_light.stack_machine import (  # noqa: E402
     Config,
     format_stack,
@@ -114,6 +121,8 @@ TASKS_PER_BEHAVIOUR = 5
 #: question is whether the policy writes *this* cycle, not whether some longer
 #: detour reaches the same state.
 DEPTH_SLACK = 4
+# One transition's search normally ends well under a second; see `staged_arms`.
+CYCLE_SECONDS_CAP = 10
 #: Cycle lengths, in ops. `1` is a single direct op or one combinator.
 CYCLE_BUCKETS = ((1, 1), (2, 5), (6, 12), (13, 10**9))
 
@@ -411,6 +420,7 @@ def cycles_cell(
         load_policy(hs.policy_dir(run_dir, arm, seed, EPOCHS), device=device), device
     )
     rows = []
+    signal.signal(signal.SIGALRM, _raise_timeout)
     gc.freeze()  # see `solve_with_cache.run_cell`
     started = time.perf_counter()
     for index, task in chosen:
@@ -421,13 +431,23 @@ def cycles_cell(
         )
         for cycle in cycles(witness):
             depth = len(cycle.ops) + DEPTH_SLACK
-            result = beam_solve(
-                cycle_task(witness, cycle),
-                scorer,
-                beam_width=beam,
-                max_depth=depth,
-                guard=co.GUARD,
-            )
+            # The same cap as the arm driver: a beam with no state-size bound can
+            # wander into `dup cat` doubling and sit on one search for minutes.
+            signal.setitimer(signal.ITIMER_REAL, CYCLE_SECONDS_CAP)
+            try:
+                result = beam_solve(
+                    cycle_task(witness, cycle),
+                    scorer,
+                    beam_width=beam,
+                    max_depth=depth,
+                    guard=co.GUARD,
+                )
+            except TaskTimeoutError:
+                result = BeamResult(
+                    None, "wall_clock_cap", CYCLE_SECONDS_CAP, 0, 0, 0, depth
+                )
+            finally:
+                signal.setitimer(signal.ITIMER_REAL, 0)
             solved = bool(result.program) and replays_to(
                 result.program, cycle.start, cycle.target
             )

@@ -1,0 +1,2873 @@
+{
+  "beam_width": 64,
+  "catalogue_digest": "sha256:5645f2fb513d55550533f3c31f0ef144e9bda23d39b49524ba038317f7dff60e",
+  "catalogue_source_digest": "sha256:0ef22aa3d3aadab5da764d874dd5efbd8fb20078fc5b997b594edb8ec6d3a471",
+  "cells": [
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 58,
+        "11-20": 30,
+        "21-40": 1,
+        "41+": 0,
+        "6-10": 32
+      },
+      "graded_total": 121,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 22,
+        "11-20": 24,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 46,
+      "witness": {
+        "1-5": 36,
+        "11-20": 6,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 32
+      },
+      "witness_total": 74
+    },
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 57,
+        "11-20": 37,
+        "21-40": 2,
+        "41+": 1,
+        "6-10": 50
+      },
+      "graded_total": 147,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 22,
+        "11-20": 30,
+        "21-40": 1,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 53,
+      "witness": {
+        "1-5": 35,
+        "11-20": 7,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 50
+      },
+      "witness_total": 92
+    },
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 55,
+        "11-20": 30,
+        "21-40": 4,
+        "41+": 0,
+        "6-10": 34
+      },
+      "graded_total": 123,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 22,
+        "11-20": 21,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 43,
+      "witness": {
+        "1-5": 33,
+        "11-20": 9,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 34
+      },
+      "witness_total": 76
+    },
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 59,
+        "11-20": 23,
+        "21-40": 4,
+        "41+": 1,
+        "6-10": 1
+      },
+      "graded_total": 88,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 22,
+        "11-20": 15,
+        "21-40": 0,
+        "41+": 1,
+        "6-10": 0
+      },
+      "verified_total": 38,
+      "witness": {
+        "1-5": 37,
+        "11-20": 6,
+        "21-40": 4,
+        "41+": 0,
+        "6-10": 1
+      },
+      "witness_total": 48
+    },
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 54,
+        "11-20": 19,
+        "21-40": 6,
+        "41+": 0,
+        "6-10": 2
+      },
+      "graded_total": 81,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 22,
+        "11-20": 9,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 31,
+      "witness": {
+        "1-5": 32,
+        "11-20": 9,
+        "21-40": 5,
+        "41+": 0,
+        "6-10": 2
+      },
+      "witness_total": 48
+    },
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 57,
+        "11-20": 22,
+        "21-40": 8,
+        "41+": 0,
+        "6-10": 2
+      },
+      "graded_total": 89,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 22,
+        "11-20": 12,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 34,
+      "witness": {
+        "1-5": 35,
+        "11-20": 8,
+        "21-40": 7,
+        "41+": 0,
+        "6-10": 2
+      },
+      "witness_total": 52
+    },
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 49,
+        "11-20": 21,
+        "21-40": 9,
+        "41+": 0,
+        "6-10": 7
+      },
+      "graded_total": 86,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 22,
+        "11-20": 16,
+        "21-40": 8,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 46,
+      "witness": {
+        "1-5": 27,
+        "11-20": 3,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 7
+      },
+      "witness_total": 37
+    },
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 38,
+        "11-20": 30,
+        "21-40": 11,
+        "41+": 0,
+        "6-10": 11
+      },
+      "graded_total": 90,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 22,
+        "11-20": 23,
+        "21-40": 9,
+        "41+": 0,
+        "6-10": 0
+      },
+      "verified_total": 54,
+      "witness": {
+        "1-5": 16,
+        "11-20": 5,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 11
+      },
+      "witness_total": 32
+    },
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 50,
+        "11-20": 20,
+        "21-40": 9,
+        "41+": 1,
+        "6-10": 15
+      },
+      "graded_total": 95,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 22,
+        "11-20": 16,
+        "21-40": 7,
+        "41+": 1,
+        "6-10": 0
+      },
+      "verified_total": 46,
+      "witness": {
+        "1-5": 28,
+        "11-20": 3,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 15
+      },
+      "witness_total": 46
+    },
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 54,
+        "11-20": 31,
+        "21-40": 6,
+        "41+": 3,
+        "6-10": 49
+      },
+      "graded_total": 143,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 0,
+      "tasks": 300,
+      "verified": {
+        "1-5": 22,
+        "11-20": 25,
+        "21-40": 5,
+        "41+": 0,
+        "6-10": 6
+      },
+      "verified_total": 58,
+      "witness": {
+        "1-5": 32,
+        "11-20": 6,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 43
+      },
+      "witness_total": 81
+    },
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 49,
+        "11-20": 29,
+        "21-40": 7,
+        "41+": 0,
+        "6-10": 43
+      },
+      "graded_total": 128,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 1,
+      "tasks": 300,
+      "verified": {
+        "1-5": 23,
+        "11-20": 25,
+        "21-40": 7,
+        "41+": 0,
+        "6-10": 1
+      },
+      "verified_total": 56,
+      "witness": {
+        "1-5": 26,
+        "11-20": 3,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 42
+      },
+      "witness_total": 71
+    },
+    {
+      "arm": "staged-arms-20260920",
+      "graded": {
+        "1-5": 59,
+        "11-20": 31,
+        "21-40": 1,
+        "41+": 0,
+        "6-10": 57
+      },
+      "graded_total": 148,
+      "inconclusive": {
+        "1-5": 0,
+        "11-20": 0,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 0
+      },
+      "inconclusive_total": 0,
+      "policy_epoch": 3,
+      "run_dir": "checkpoints/staged-arms-20260920",
+      "seed": 2,
+      "tasks": 300,
+      "verified": {
+        "1-5": 22,
+        "11-20": 29,
+        "21-40": 1,
+        "41+": 0,
+        "6-10": 6
+      },
+      "verified_total": 58,
+      "witness": {
+        "1-5": 37,
+        "11-20": 1,
+        "21-40": 0,
+        "41+": 0,
+        "6-10": 51
+      },
+      "witness_total": 89
+    }
+  ],
+  "draws_per_mode": 10000,
+  "eval_corpus": "stack_pbe_v4",
+  "max_depth": 48,
+  "min_tested": 500,
+  "modes": [
+    "sampler",
+    "perturbed",
+    "dense"
+  ],
+  "programs": [
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                1,
+                -1,
+                2,
+                -2,
+                -2,
+                2,
+                0,
+                1,
+                -2
+              ],
+              [
+                -2,
+                0,
+                -2,
+                -1,
+                -2,
+                2,
+                1,
+                -1,
+                -1,
+                -1
+              ]
+            ],
+            "reference": [
+              -2
+            ]
+          },
+          "failed": 771,
+          "skipped": 9113,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 885,
+          "skipped": 9094,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "0 [ drop 1 add ] fold [ uncons swap drop ] dip over [ mul ] dip quote swap drop",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                2,
+                2,
+                0,
+                2,
+                0,
+                1,
+                -2,
+                0,
+                -2
+              ],
+              [
+                2,
+                1,
+                1,
+                -1,
+                0,
+                0,
+                -2,
+                2,
+                -2,
+                2
+              ]
+            ],
+            "reference": [
+              0
+            ]
+          },
+          "failed": 772,
+          "skipped": 9113,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 885,
+          "skipped": 9094,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ 0 [ drop 1 add ] fold swap 0 [ drop 1 add ] fold lt? ] [ drop ] [ swap drop ] ifte uncons swap drop quote",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                2,
+                2,
+                0,
+                2,
+                0,
+                1,
+                -2,
+                0,
+                -2
+              ],
+              [
+                2,
+                1,
+                1,
+                -1,
+                0,
+                0,
+                -2,
+                2,
+                -2,
+                2
+              ]
+            ],
+            "reference": [
+              0
+            ]
+          },
+          "failed": 698,
+          "skipped": 9113,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 805,
+          "skipped": 9094,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ uncons ] dip add 1 1 add div quote cat ] fold nil [ [ over null? ] [ cons ] [ over uncons swap drop [ over lt? ] [ drop ] [ swap drop ] ifte drop ] ifte ] fold",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                0
+              ],
+              [
+                2
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 625,
+          "skipped": 9113,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 806,
+          "skipped": 9094,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ uncons ] dip quote swap cons quote cat ] fold [ uncons swap uncons swap drop eq? ] filter uncons swap [ cons ] fold uncons drop",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                1,
+                -1,
+                2,
+                -2,
+                -2,
+                2,
+                0,
+                1,
+                -2
+              ],
+              [
+                -2,
+                0,
+                -2,
+                -1,
+                -2,
+                2,
+                1,
+                -1,
+                -1,
+                -1
+              ]
+            ],
+            "reference": [
+              -2
+            ]
+          },
+          "failed": 771,
+          "skipped": 9113,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 885,
+          "skipped": 9094,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ uncons ] dip quote swap cons quote cat ] fold uncons [ [ eq? false eq? ] swap cons filter ] fold uncons drop",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                1,
+                -1,
+                2,
+                -2,
+                -2,
+                2,
+                0,
+                1,
+                -2
+              ],
+              [
+                -2,
+                0,
+                -2,
+                -1,
+                -2,
+                2,
+                1,
+                -1,
+                -1,
+                -1
+              ]
+            ],
+            "reference": [
+              -2
+            ]
+          },
+          "failed": 771,
+          "skipped": 9113,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 885,
+          "skipped": 9094,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ uncons ] dip quote swap cons quote cat ] fold uncons swap [ uncons drop uncons swap drop ] map 0 [ add ] fold drop uncons drop",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                1,
+                -1,
+                2,
+                -2,
+                -2,
+                2,
+                0,
+                1,
+                -2
+              ],
+              [
+                -2,
+                0,
+                -2,
+                -1,
+                -2,
+                2,
+                1,
+                -1,
+                -1,
+                -1
+              ]
+            ],
+            "reference": [
+              -2
+            ]
+          },
+          "failed": 792,
+          "skipped": 9113,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 887,
+          "skipped": 9094,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ uncons ] dip quote swap cons quote cat ] fold uncons swap uncons swap drop [ [ uncons ] dip swap drop quote cat ] fold uncons drop",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                1,
+                -1,
+                2,
+                -2,
+                -2,
+                2,
+                0,
+                1,
+                -2
+              ],
+              [
+                -2,
+                0,
+                -2,
+                -1,
+                -2,
+                2,
+                1,
+                -1,
+                -1,
+                -1
+              ]
+            ],
+            "reference": [
+              -2
+            ]
+          },
+          "failed": 771,
+          "skipped": 9113,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 885,
+          "skipped": 9094,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ uncons swap drop ] dip drop quote",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "aligned_matches",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                2,
+                2,
+                0,
+                2,
+                0,
+                1,
+                -2,
+                0,
+                -2
+              ],
+              [
+                2,
+                1,
+                1,
+                -1,
+                0,
+                0,
+                -2,
+                2,
+                -2,
+                2
+              ]
+            ],
+            "reference": [
+              0
+            ]
+          },
+          "failed": 772,
+          "skipped": 9113,
+          "tested": 887
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -9,
+                0,
+                -6,
+                15,
+                16,
+                -14,
+                -15
+              ],
+              [
+                -5,
+                -12,
+                4,
+                -12,
+                19,
+                -1,
+                16
+              ]
+            ],
+            "reference": []
+          },
+          "failed": 885,
+          "skipped": 9094,
+          "tested": 906
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                3,
+                9,
+                -6,
+                7
+              ],
+              [
+                3,
+                -9,
+                -4,
+                7
+              ]
+            ],
+            "reference": [
+              3,
+              7
+            ]
+          },
+          "failed": 983,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "uncons [ swap [ eq? ] swap cons filter ] dip cons",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "1 [ [ lt? ] [ ] [ swap ] ifte drop ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "1 [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                1,
+                2,
+                2
+              ]
+            ],
+            "reference": 1
+          },
+          "failed": 386,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                4
+              ]
+            ],
+            "reference": 1
+          },
+          "failed": 844,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                6,
+                4
+              ]
+            ],
+            "reference": 1
+          },
+          "failed": 713,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "1 [ eq? ] swap cons map [ false eq? ] filter [ null? ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                2,
+                0,
+                2
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 767,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                2,
+                0
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 84,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                0,
+                2,
+                1,
+                3
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 401,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ 0 lt? ] filter null? [ ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ 0 swap lt? ] map [ false eq? ] filter [ null? ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ 0 swap lt? ] map [ false eq? ] filter null? [ ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                2,
+                0,
+                2
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 767,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                2,
+                0
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 84,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                0,
+                0,
+                2,
+                1,
+                3
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 401,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "dup 0 [ [ 0 lt? ] [ drop 1 add ] [ drop ] ifte ] fold [ [ lt? ] [ ] [ swap ] ifte drop ] fold 1 add [ dup 0 lt? ] [ drop 0 ] [ ] ifte",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "all_positive",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              []
+            ],
+            "reference": 1
+          },
+          "failed": 1127,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              []
+            ],
+            "reference": 1
+          },
+          "failed": 1685,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                6,
+                4
+              ]
+            ],
+            "reference": 1
+          },
+          "failed": 464,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "uncons [ [ lt? ] [ ] [ swap ] ifte drop ] fold [ dup 0 lt? ] [ drop 0 ] [ ] ifte",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "bounds_cover_list_flag",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                0
+              ],
+              -1,
+              0
+            ],
+            "reference": 1
+          },
+          "failed": 991,
+          "skipped": 912,
+          "tested": 9088
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -8,
+                -12,
+                -12,
+                -16,
+                -11,
+                -14,
+                1,
+                16,
+                19,
+                -4
+              ],
+              -17,
+              -10
+            ],
+            "reference": 0
+          },
+          "failed": 1055,
+          "skipped": 917,
+          "tested": 9083
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                -2,
+                6,
+                -2,
+                8,
+                5
+              ],
+              -9,
+              -5
+            ],
+            "reference": 0
+          },
+          "failed": 1658,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ swap ] dip [ [ lt? ] [ ] [ swap ] ifte drop ] fold lt? [ ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "bounds_cover_list_flag",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                0
+              ],
+              -1,
+              0
+            ],
+            "reference": 1
+          },
+          "failed": 1042,
+          "skipped": 912,
+          "tested": 9088
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -8,
+                -12,
+                -12,
+                -16,
+                -11,
+                -14,
+                1,
+                16,
+                19,
+                -4
+              ],
+              -17,
+              -10
+            ],
+            "reference": 0
+          },
+          "failed": 1249,
+          "skipped": 917,
+          "tested": 9083
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                -2,
+                -1,
+                1,
+                4
+              ],
+              -3,
+              2
+            ],
+            "reference": 0
+          },
+          "failed": 1164,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ swap ] dip [ lt? ] swap cons filter [ 0 lt? ] filter swap [ swap lt? ] swap cons filter 0 [ drop 1 add ] fold 1 sub [ dup 0 lt? ] [ drop 0 ] [ ] ifte",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "bounds_cover_list_flag",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                -1,
+                0,
+                2,
+                -2,
+                -1,
+                1,
+                1,
+                -2
+              ],
+              2,
+              2
+            ],
+            "reference": 0
+          },
+          "failed": 1666,
+          "skipped": 912,
+          "tested": 9088
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -18,
+                16
+              ],
+              -5,
+              16
+            ],
+            "reference": 0
+          },
+          "failed": 544,
+          "skipped": 917,
+          "tested": 9083
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                -2,
+                -5,
+                -6
+              ],
+              -4,
+              -2
+            ],
+            "reference": 0
+          },
+          "failed": 1436,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "swap [ swap ] dip [ [ lt? ] [ swap ] [ ] ifte drop ] fold eq? [ ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "capped_sum",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ lt? ] [ ] [ swap ] ifte drop ] swap cons map 0 [ add ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "capped_sum",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ over lt? ] [ swap drop ] [ drop ] ifte ] swap cons map 0 [ add ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "count_in_range",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ drop swap lt? ] [ swap drop lt? ] [ drop drop drop false ] ifte ] swap cons swap cons filter 0 [ drop 1 add ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "count_in_range",
+      "program": "[ [ swap drop lt? ] [ [ drop swap lt? ] [ drop drop drop 1 add ] [ drop drop drop ] ifte ] [ drop drop drop ] ifte ] swap cons swap cons 0 swap fold",
+      "verdict": "equals_catalogue_witness",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "count_in_range",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ swap drop lt? ] [ drop swap lt? ] [ drop drop drop false ] ifte ] swap cons swap cons filter 0 [ drop 1 add ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "count_in_range",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "swap [ [ lt? ] swap cons filter ] dip [ swap lt? ] swap cons filter 0 [ drop 1 add ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "count_in_range",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                0
+              ],
+              -1,
+              0
+            ],
+            "reference": 0
+          },
+          "failed": 2368,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                15,
+                12,
+                10,
+                5,
+                -6,
+                6,
+                4,
+                3,
+                -14
+              ],
+              4,
+              18
+            ],
+            "reference": 5
+          },
+          "failed": 586,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                7,
+                -1,
+                0,
+                -7
+              ],
+              -1,
+              6
+            ],
+            "reference": 1
+          },
+          "failed": 1930,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "swap [ lt? false eq? ] swap cons swap [ filter ] dip [ lt? ] swap cons filter 0 [ drop 1 add ] fold",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "drop_last",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 884,
+          "tested": 9116
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 904,
+          "tested": 9096
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold uncons [ nil [ cons ] fold ] dip drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "drop_last",
+      "program": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "equals_catalogue_witness",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "farther_choice_from_target",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ over swap sub dup mul ] dip swap [ over swap sub dup mul ] dip lt? ] [ drop swap drop ] [ swap drop swap drop ] ifte",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "increment_each",
+      "program": "[ 1 add ] map",
+      "verdict": "equals_catalogue_witness",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "keep_below",
+      "program": "[ lt? ] swap cons filter",
+      "verdict": "equals_catalogue_witness",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "keep_negative",
+      "program": "[ 0 lt? ] filter",
+      "verdict": "equals_catalogue_witness",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "keep_zeros",
+      "program": "[ 0 eq? ] filter",
+      "verdict": "equals_catalogue_witness",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "keep_zeros",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ dup 0 1 add div dup add eq? ] filter",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "largest_inside_interval",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                2,
+                -1,
+                1,
+                1,
+                0,
+                1,
+                -1
+              ],
+              -2,
+              1
+            ],
+            "reference": 0
+          },
+          "failed": 305,
+          "skipped": 8368,
+          "tested": 1632
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -8,
+                16,
+                -5,
+                -9,
+                -18
+              ],
+              -16,
+              -1
+            ],
+            "reference": -5
+          },
+          "failed": 1183,
+          "skipped": 7067,
+          "tested": 2933
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                5,
+                -1,
+                0,
+                -7
+              ],
+              -1,
+              7
+            ],
+            "reference": 5
+          },
+          "failed": 2501,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ drop swap lt? ] [ swap drop lt? ] [ drop drop drop false ] ifte ] swap cons swap cons filter 0 [ swap drop ] fold",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "largest_inside_interval",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 8368,
+          "tested": 1632
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 7067,
+          "tested": 2933
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ drop swap lt? ] [ swap drop lt? ] [ drop drop drop false ] ifte ] swap cons swap cons filter uncons [ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "largest_inside_interval",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                2,
+                -1,
+                1,
+                1,
+                0,
+                1,
+                -1
+              ],
+              -2,
+              1
+            ],
+            "reference": 0
+          },
+          "failed": 305,
+          "skipped": 8368,
+          "tested": 1632
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -8,
+                16,
+                -5,
+                -9,
+                -18
+              ],
+              -16,
+              -1
+            ],
+            "reference": -5
+          },
+          "failed": 1183,
+          "skipped": 7067,
+          "tested": 2933
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                5,
+                -1,
+                0,
+                -7
+              ],
+              -1,
+              7
+            ],
+            "reference": 5
+          },
+          "failed": 2501,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ swap drop lt? ] [ drop swap lt? ] [ drop drop drop false ] ifte ] swap cons swap cons filter 0 [ swap drop ] fold",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "largest_inside_interval",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 8368,
+          "tested": 1632
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 7067,
+          "tested": 2933
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ swap drop lt? ] [ drop swap lt? ] [ drop drop drop false ] ifte ] swap cons swap cons filter uncons [ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "largest_inside_interval",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 8368,
+          "tested": 1632
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 7067,
+          "tested": 2933
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ lt? ] swap cons swap [ [ lt? ] [ swap ] [ ] ifte drop ] swap cons [ swap ] dip map swap filter uncons [ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "largest_inside_interval",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 8368,
+          "tested": 1632
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 7067,
+          "tested": 2933
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ swap ] dip [ lt? ] swap cons filter swap [ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "largest_inside_interval",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 8368,
+          "tested": 1632
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 7067,
+          "tested": 2933
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "swap [ [ lt? ] swap cons filter ] dip [ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "min_pair",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ [ lt? ] [ ] [ swap ] ifte drop ] i",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "min_pair",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ lt? ] [ ] [ swap ] ifte drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "min_pair",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ lt? ] [ drop ] [ swap drop ] ifte",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "min_pair",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ lt? ] [ swap ] [ ] ifte swap drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "min_pair",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ over lt? ] [ swap ] [ ] ifte drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "n_minus_each",
+      "program": "[ swap sub ] swap cons map",
+      "verdict": "equals_catalogue_witness",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "negate_each",
+      "program": "[ 0 swap sub ] map",
+      "verdict": "equals_catalogue_witness",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "negate_each",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ dup 0 swap sub quote swap cons ] map [ uncons drop uncons swap drop ] map",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "negate_each",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ dup 0 swap sub quote swap cons ] map nil [ cat ] fold nil [ cons ] fold nil nil cons nil cons [ [ uncons ] dip cons quote cat ] fold uncons swap drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "negate_each",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold [ dup 0 swap sub quote swap cons ] map nil [ swap cat ] fold nil [ cons ] fold nil nil cons nil cons [ [ uncons ] dip cons quote cat ] fold uncons swap drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "nondecreasing_indicator",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              [
+                -1,
+                -1
+              ]
+            ],
+            "reference": 1
+          },
+          "failed": 837,
+          "skipped": 903,
+          "tested": 9097
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              [
+                -20,
+                10,
+                -2,
+                13,
+                8,
+                18,
+                15,
+                20
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 982,
+          "skipped": 859,
+          "tested": 9141
+        },
+        "sampler": {
+          "counterexample": {
+            "args": [
+              [
+                -7,
+                -6,
+                3,
+                -2,
+                -4,
+                -3
+              ]
+            ],
+            "reference": 0
+          },
+          "failed": 1230,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "uncons [ swap lt? ] swap cons map [ false eq? ] filter [ null? ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "pair_floor_averages",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 4522,
+          "tested": 5478
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 4576,
+          "tested": 5424
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "nil [ cons ] fold nil quote nil cons [ [ uncons ] dip cons quote cat ] fold uncons swap uncons swap drop [ [ uncons ] dip add 1 1 add div quote cat ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "prefix_sums",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "0 quote [ over uncons swap drop add cons ] fold nil [ cons ] fold uncons drop",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "prefix_sums",
+      "draws": {
+        "dense": {
+          "counterexample": {
+            "args": [
+              []
+            ],
+            "reference": []
+          },
+          "failed": 898,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": {
+            "args": [
+              []
+            ],
+            "reference": []
+          },
+          "failed": 857,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "uncons quote [ over uncons swap drop add cons ] fold nil [ cons ] fold",
+      "verdict": "shortcut"
+    },
+    {
+      "behaviour": "push_back",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "quote cat",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "reverse",
+      "program": "nil [ cons ] fold",
+      "verdict": "equals_catalogue_witness",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "rotate_left",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 884,
+          "tested": 9116
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 904,
+          "tested": 9096
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "uncons quote cat",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "shared_value_occurrences",
+      "program": "[ swap [ eq? ] swap cons filter null? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter 0 [ drop 1 add ] fold",
+      "verdict": "equals_catalogue_witness",
+      "why": "equals a catalogue witness"
+    },
+    {
+      "behaviour": "sum_negative",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "0 [ 1 add lt? ] swap cons filter 0 [ add ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "sum_negative",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "0 [ [ 0 lt? ] [ add ] [ drop ] ifte ] fold",
+      "verdict": "genuine"
+    },
+    {
+      "behaviour": "sum_negative",
+      "draws": {
+        "dense": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "perturbed": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        },
+        "sampler": {
+          "counterexample": null,
+          "failed": 0,
+          "skipped": 0,
+          "tested": 10000
+        }
+      },
+      "program": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "genuine"
+    }
+  ],
+  "seed": 134
+}

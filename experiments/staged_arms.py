@@ -37,8 +37,10 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import gc
 import json
 import random
+import signal
 import sys
 import time
 from collections import defaultdict
@@ -53,7 +55,11 @@ import torch  # noqa: E402
 
 import experiments.compute_optimal_mark28 as co  # noqa: E402
 import experiments.hindsight_subtargets as hs  # noqa: E402
+from wandering_light.stack_beam import beam_solve  # noqa: E402
+from wandering_light.stack_pbe_eval import grade  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
+    PolicyScorer,
+    load_policy,
     train_policy,
     validation_skeleton,
     witness_rows,
@@ -72,6 +78,23 @@ SEEDS = (0, 1, 2)
 # verified behaviours. Fixed in advance for every arm; validation CE is not used.
 EPOCHS = 3
 SAMPLE_SEED = 20260920
+# A search on one task normally ends in under 2 s (the slowest of 2,100 in the
+# first seven cells took 1.6 s). One staged-arm cell sat on a single task for
+# over 20 minutes at 100% CPU: that policy's beam wanders into `dup cat dup cat`,
+# which doubles a list for 2 fuel, so states reach millions of atoms and the time
+# goes into hashing and encoding them (the beam has no state-size bound). A task
+# is abandoned as unsolved after this long and recorded ``wall_clock_cap``. At
+# 60 s the cell capped eleven tasks in a row, so the cap is 10 s, still six times
+# the slowest normal search.
+TASK_SECONDS_CAP = 10
+
+
+class TaskTimeoutError(Exception):
+    pass
+
+
+def _raise_timeout(signum, frame):
+    raise TaskTimeoutError
 
 
 def treated(keep_contrived: bool) -> dict[str, dict[str, Any]]:
@@ -200,6 +223,104 @@ def train(
             )
 
 
+def time_cell(
+    run_dir: Path, tasks, arm: str, seed: int, device: str, beam: int, depth: int, log
+):
+    """`hindsight_subtargets.time_cell` with a per-task wall-clock cap; same cell format."""
+    out = hs.cell_path(run_dir, arm, seed, device, EPOCHS, beam, depth)
+    if out.exists():
+        log(f"skip time {out.name}")
+        return out
+    if device == "cpu":
+        torch.set_num_threads(co.CPU_THREADS)
+    scorer = PolicyScorer(
+        load_policy(hs.policy_dir(run_dir, arm, seed, EPOCHS), device=device), device
+    )
+    rows = []
+    gc.freeze()
+    signal.signal(signal.SIGALRM, _raise_timeout)
+    started = time.perf_counter()
+    for index, task in co.cohort(tasks):
+        base = {
+            "task_index": index,
+            "behaviour": task.behaviour,
+            "length": task.length,
+            "bucket": co.bucket_of(task.length),
+            "examples": task.examples,
+        }
+        task_started = time.perf_counter()
+        signal.setitimer(signal.ITIMER_REAL, TASK_SECONDS_CAP)
+        try:
+            result = beam_solve(
+                task, scorer, beam_width=beam, max_depth=depth, guard=co.GUARD
+            )
+        except TaskTimeoutError:
+            seconds = time.perf_counter() - task_started
+            log(
+                f"RESULT capped {arm} s{seed}: task {index} {task.behaviour} after {seconds:.0f}s"
+            )
+            rows.append(
+                {
+                    **base,
+                    "solved": False,
+                    "shown_fit": False,
+                    "program": None,
+                    "termination": "wall_clock_cap",
+                    "seconds": seconds,
+                    "executions": None,
+                    "fuel": None,
+                    "expansions": None,
+                    "depth": None,
+                }
+            )
+            continue
+        finally:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+        score = grade(result.program, task) if result.program else None
+        rows.append(
+            {
+                **base,
+                "solved": bool(score and score.solved),
+                "shown_fit": bool(score and score.shown),
+                "program": list(result.program) if result.program else None,
+                "termination": result.termination,
+                "seconds": result.seconds,
+                "executions": result.executions,
+                "fuel": result.fuel,
+                "expansions": result.expansions,
+                "depth": result.depth,
+            }
+        )
+    cell_seconds = time.perf_counter() - started
+    co.write_json(
+        out,
+        {
+            "arm": arm,
+            "policy_arm": hs.ARM,
+            "seed": seed,
+            "device": device,
+            "policy_epoch": EPOCHS,
+            "beam_width": beam,
+            "max_depth": depth,
+            "guard": co.GUARD,
+            "cpu_threads": co.CPU_THREADS,
+            "task_seconds_cap": TASK_SECONDS_CAP,
+            "eval_corpus": co.primary_corpus(),
+            "host": co.host(),
+            "provenance": co.provenance(),
+            "cell_seconds": cell_seconds,
+            "rows": rows,
+        },
+    )
+    solved = sum(r["solved"] for r in rows)
+    capped = sum(r["termination"] == "wall_clock_cap" for r in rows)
+    log(
+        f"RESULT time {arm} s{seed} e{EPOCHS} beam {beam} depth {depth}: "
+        f"{solved}/{len(rows)} solved, {capped} capped, {cell_seconds:.0f}s"
+    )
+    return out
+
+
 def report(run_dir: Path, out_dir: Path, log) -> Path:
     """Graded solves per arm, by task and by distinct behaviour. Verification is separate."""
     cells = defaultdict(list)
@@ -249,6 +370,88 @@ def report(run_dir: Path, out_dir: Path, log) -> Path:
     return out
 
 
+VERIFIED = {"genuine", "equals_catalogue_witness"}
+
+
+def verified_report(run_dir: Path, verdicts_path: Path, out_dir: Path, log) -> Path:
+    """Per arm: verified tasks and distinct verified behaviours, from `step3_verify_solves`.
+
+    A solve counts when its program's verdict is ``genuine`` (10,000 draws in
+    each mode, no disagreement) or it equals a catalogue witness; ``shortcut``
+    and ``inconclusive`` solves do not. Behaviours are the unit that bounds
+    coverage: the cohort's 300 tasks are 43 behaviours (#151).
+    """
+    verdicts = {
+        (row["behaviour"], row["program"]): row["verdict"]
+        for row in json.loads(verdicts_path.read_text())["programs"]
+    }
+    per_arm: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for path in sorted((run_dir / "timing").glob("*.json")):
+        cell = json.loads(path.read_text())
+        good = [
+            r
+            for r in cell["rows"]
+            if r["solved"]
+            and verdicts.get((r["behaviour"], " ".join(r["program"]))) in VERIFIED
+        ]
+        per_bucket: dict[str, set[str]] = defaultdict(set)
+        for r in good:
+            per_bucket[r["bucket"]].add(r["behaviour"])
+        per_arm[cell["arm"]].append(
+            {
+                "seed": cell["seed"],
+                "graded": sum(r["solved"] for r in cell["rows"]),
+                "tasks": len(good),
+                "behaviours": {r["behaviour"] for r in good},
+                "per_bucket": per_bucket,
+                "longest": max((len(r["program"]) for r in good), default=0),
+            }
+        )
+    order = [arm for arm in ARMS if arm in per_arm]
+    buckets = [co.bucket_of(low) for low, _ in co.BUCKETS]
+    lines = [
+        "| arm | graded tasks | verified tasks | verified behaviours /43 | union over seeds | "
+        + " | ".join(f"{b} (beh.)" for b in buckets)
+        + " | longest verified program |",
+        "|---|---|---|---|---|" + "---|" * (len(buckets) + 1),
+    ]
+    for arm in order:
+        cells = sorted(per_arm[arm], key=lambda c: c["seed"])
+        union = set().union(*(c["behaviours"] for c in cells))
+
+        def trio(key, cells=cells):
+            values = [len(c[key]) if isinstance(c[key], set) else c[key] for c in cells]
+            return f"{mean(values):.2f} ({' / '.join(map(str, values))})"
+
+        by_bucket = " | ".join(
+            f"{mean(len(c['per_bucket'][b]) for c in cells):.2f}" for b in buckets
+        )
+        lines.append(
+            f"| {arm} | {trio('graded')} | {trio('tasks')} | {trio('behaviours')} | "
+            f"{len(union)} | {by_bucket} | {max(c['longest'] for c in cells)} ops |"
+        )
+    if "fused" in per_arm:
+        base = set().union(*(c["behaviours"] for c in per_arm["fused"]))
+        lines += [
+            "",
+            "Behaviours verified by some seed of an arm and by no seed of `fused`, and the reverse:",
+            "",
+        ]
+        for arm in order:
+            if arm == "fused":
+                continue
+            union = set().union(*(c["behaviours"] for c in per_arm[arm]))
+            lines.append(
+                f"- `{arm}`: gains {sorted(union - base) or 'none'}; loses {sorted(base - union) or 'none'}"
+            )
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / "verified.md"
+    out.write_text("\n".join(lines) + "\n")
+    log(f"wrote {out}")
+    print("\n".join(lines))
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("stage", choices=("rows", "train", "time", "report"))
@@ -262,6 +465,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--beam", type=int, default=co.BEAM_WIDTH)
     parser.add_argument("--depth", type=int, default=co.MAX_DEPTH)
     parser.add_argument("--keep-contrived", action="store_true")
+    parser.add_argument(
+        "--verdicts",
+        type=Path,
+        help="step3_verify_solves output; report verified counts",
+    )
     args = parser.parse_args(argv)
 
     args.run_dir.mkdir(parents=True, exist_ok=True)
@@ -277,6 +485,8 @@ def main(argv: list[str] | None = None) -> int:
     seeds = [int(s) for s in args.seeds.split(",") if s]
     if args.stage == "report":
         report(args.run_dir, args.out or args.run_dir, log)
+        if args.verdicts:
+            verified_report(args.run_dir, args.verdicts, args.out or args.run_dir, log)
         return 0
     tasks = co.corpus()
     if args.stage == "rows":
@@ -293,13 +503,12 @@ def main(argv: list[str] | None = None) -> int:
     else:
         for arm in arms:
             for seed in seeds:
-                hs.time_cell(
+                time_cell(
                     args.run_dir,
                     tasks,
                     arm,
                     seed,
                     args.device,
-                    EPOCHS,
                     args.beam,
                     args.depth,
                     log,
