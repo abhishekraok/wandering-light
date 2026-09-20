@@ -172,7 +172,10 @@ def pilot(tasks: dict[str, list]) -> list[str]:
 def show(name: str, tasks: dict[str, list]) -> None:
     behaviour, first = BY_NAME[name], tasks[name][0]
     print(f"# {name}: {behaviour.summary}\n")
-    print(inspect.getsource(behaviour.reference).strip(), "\n")
+    try:
+        print(inspect.getsource(behaviour.reference).strip(), "\n")
+    except TypeError:  # a builtin such as `max` has no source
+        print(f"reference = {behaviour.reference!r}\n")
     rng = random.Random(0)
     for _ in range(6):
         args = behaviour.sample(rng)
