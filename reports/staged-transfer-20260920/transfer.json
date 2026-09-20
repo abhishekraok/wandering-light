@@ -1,0 +1,1211 @@
+{
+  "caveat": "OUT OF DISTRIBUTION: transfer of a fused-trained policy to staged text, not a difficulty estimate",
+  "rows": [
+    {
+      "behaviour": "aligned_match_count",
+      "fused": {
+        "accumulated": 0.0,
+        "budget_ratio": 0.0,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.0,
+            "n": 33
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 11
+          },
+          "direct": {
+            "mean": 0.0,
+            "n": 5
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 11
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 1
+          }
+        },
+        "length": 61,
+        "mean_deficit": 0.0,
+        "survival_depth": 61,
+        "top1": 1.0
+      },
+      "staged": {
+        "accumulated": 141.05603649932894,
+        "budget_ratio": 33.91680739083908,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 7.210762682903028,
+            "n": 14
+          },
+          "close": {
+            "mean": 3.390032969787717,
+            "n": 5
+          },
+          "direct": {
+            "mean": 3.2151514012366533,
+            "n": 3
+          },
+          "open": {
+            "mean": 0.09243249893188477,
+            "n": 5
+          },
+          "run": {
+            "mean": 3.2618943478446454,
+            "n": 4
+          }
+        },
+        "length": 31,
+        "mean_deficit": 4.550194725784804,
+        "survival_depth": 0,
+        "top1": 0.45161290322580644
+      }
+    },
+    {
+      "behaviour": "clamp_each",
+      "fused": {
+        "accumulated": 0.0,
+        "budget_ratio": 0.0,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.0,
+            "n": 14
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 8
+          },
+          "direct": {
+            "mean": 0.0,
+            "n": 4
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 8
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 1
+          }
+        },
+        "length": 35,
+        "mean_deficit": 0.0,
+        "survival_depth": 35,
+        "top1": 1.0
+      },
+      "staged": {
+        "accumulated": 146.2022112281993,
+        "budget_ratio": 35.154200850987316,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 4.283709031405548,
+            "n": 15
+          },
+          "close": {
+            "mean": 1.1359411188616202,
+            "n": 13
+          },
+          "direct": {
+            "mean": 2.564937739387939,
+            "n": 19
+          },
+          "open": {
+            "mean": 1.0114254223612638,
+            "n": 13
+          },
+          "run": {
+            "mean": 0.7567133818353925,
+            "n": 7
+          }
+        },
+        "length": 67,
+        "mean_deficit": 2.182122555644766,
+        "survival_depth": 2,
+        "top1": 0.47761194029850745
+      }
+    },
+    {
+      "behaviour": "compare_each_to_mean",
+      "fused": {
+        "accumulated": 9.154691234230995,
+        "budget_ratio": 2.2012379407491203,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.024397894740104675,
+            "n": 20
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 9
+          },
+          "direct": {
+            "mean": 1.0605533886700869,
+            "n": 8
+          },
+          "open": {
+            "mean": 0.02025624778535631,
+            "n": 9
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 3
+          }
+        },
+        "length": 49,
+        "mean_deficit": 0.18683043335165297,
+        "survival_depth": 1,
+        "top1": 0.8775510204081632
+      },
+      "staged": {
+        "accumulated": 194.84402099484862,
+        "budget_ratio": 46.8500838060222,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 5.125014240331479,
+            "n": 25
+          },
+          "close": {
+            "mean": 3.5421039591973464,
+            "n": 9
+          },
+          "direct": {
+            "mean": 1.678635162115097,
+            "n": 10
+          },
+          "open": {
+            "mean": 1.037991139623854,
+            "n": 9
+          },
+          "run": {
+            "mean": 1.0889321845024824,
+            "n": 8
+          }
+        },
+        "length": 61,
+        "mean_deficit": 3.1941642786040756,
+        "survival_depth": 1,
+        "top1": 0.36065573770491804
+      }
+    },
+    {
+      "behaviour": "disjoint_lists_flag",
+      "fused": {
+        "accumulated": 1.9891968965530396,
+        "budget_ratio": 0.47830074966813113,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.004653644561767578,
+            "n": 15
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 8
+          },
+          "direct": {
+            "mean": 0.5228305260340372,
+            "n": 3
+          },
+          "open": {
+            "mean": 0.04386258125305176,
+            "n": 8
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 2
+          }
+        },
+        "length": 36,
+        "mean_deficit": 0.055255469348695546,
+        "survival_depth": 36,
+        "top1": 0.9166666666666666
+      },
+      "staged": {
+        "accumulated": 50.18573547154665,
+        "budget_ratio": 12.067118614694284,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 1.5809965615763384,
+            "n": 17
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 7
+          },
+          "direct": {
+            "mean": 3.3844574257731437,
+            "n": 5
+          },
+          "open": {
+            "mean": 0.773338428565434,
+            "n": 7
+          },
+          "run": {
+            "mean": 0.2432844489812851,
+            "n": 4
+          }
+        },
+        "length": 40,
+        "mean_deficit": 1.2546433867886662,
+        "survival_depth": 0,
+        "top1": 0.75
+      }
+    },
+    {
+      "behaviour": "keep_positive_sum_pairs",
+      "fused": {
+        "accumulated": 7.303624741733074,
+        "budget_ratio": 1.7561505325687072,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.0,
+            "n": 54
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 14
+          },
+          "direct": {
+            "mean": 0.3038603237697056,
+            "n": 14
+          },
+          "open": {
+            "mean": 0.2178271577826568,
+            "n": 14
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 2
+          }
+        },
+        "length": 98,
+        "mean_deficit": 0.07452678307890892,
+        "survival_depth": 41,
+        "top1": 0.9591836734693877
+      },
+      "staged": {
+        "accumulated": 202.8521055773641,
+        "budget_ratio": 48.775621125057945,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 6.5249640712578465,
+            "n": 20
+          },
+          "close": {
+            "mean": 4.496393000539683,
+            "n": 7
+          },
+          "direct": {
+            "mean": 1.964767642996528,
+            "n": 11
+          },
+          "open": {
+            "mean": 0.2934201785496303,
+            "n": 7
+          },
+          "run": {
+            "mean": 4.302921956405044,
+            "n": 4
+          }
+        },
+        "length": 49,
+        "mean_deficit": 4.139838889333961,
+        "survival_depth": 2,
+        "top1": 0.3673469387755102
+      }
+    },
+    {
+      "behaviour": "largest_adjacent_sum",
+      "fused": {
+        "accumulated": 35.32945952564478,
+        "budget_ratio": 8.494939342489179,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.6836947980610764,
+            "n": 34
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 11
+          },
+          "direct": {
+            "mean": 0.5264217065913337,
+            "n": 14
+          },
+          "open": {
+            "mean": 0.33031961999156256,
+            "n": 11
+          },
+          "run": {
+            "mean": 0.3601388931274414,
+            "n": 3
+          }
+        },
+        "length": 73,
+        "mean_deficit": 0.4839651989814353,
+        "survival_depth": 6,
+        "top1": 0.7534246575342466
+      },
+      "staged": {
+        "accumulated": 185.8530026554672,
+        "budget_ratio": 44.68820087756099,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 4.65120464506139,
+            "n": 27
+          },
+          "close": {
+            "mean": 1.899743414380484,
+            "n": 9
+          },
+          "direct": {
+            "mean": 2.972880620509386,
+            "n": 4
+          },
+          "open": {
+            "mean": 1.2822133544832468,
+            "n": 9
+          },
+          "run": {
+            "mean": 3.948268767399713,
+            "n": 5
+          }
+        },
+        "length": 54,
+        "mean_deficit": 3.441722271397541,
+        "survival_depth": 2,
+        "top1": 0.42592592592592593
+      }
+    },
+    {
+      "behaviour": "max_pair",
+      "fused": {
+        "accumulated": 3.316530156880617,
+        "budget_ratio": 0.7974569350483938,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.6633060313761234,
+            "n": 5
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 3
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 3
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 1
+          }
+        },
+        "length": 12,
+        "mean_deficit": 0.27637751307338476,
+        "survival_depth": 12,
+        "top1": 0.9166666666666666
+      },
+      "staged": {
+        "accumulated": 65.2111685089767,
+        "budget_ratio": 15.679971569745872,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 2.181531465479306,
+            "n": 7
+          },
+          "close": {
+            "mean": 1.1163424253463745,
+            "n": 5
+          },
+          "direct": {
+            "mean": 4.9033110700547695,
+            "n": 4
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 5
+          },
+          "run": {
+            "mean": 8.248497281223536,
+            "n": 3
+          }
+        },
+        "length": 24,
+        "mean_deficit": 2.7171320212073624,
+        "survival_depth": 1,
+        "top1": 0.5833333333333334
+      }
+    },
+    {
+      "behaviour": "maximum_subarray_sum",
+      "fused": {
+        "accumulated": 5.737575471401215,
+        "budget_ratio": 1.3795952798861149,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.04051774647086859,
+            "n": 32
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 11
+          },
+          "direct": {
+            "mean": 0.3700839653611183,
+            "n": 12
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 11
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 1
+          }
+        },
+        "length": 67,
+        "mean_deficit": 0.08563545479703305,
+        "survival_depth": 1,
+        "top1": 0.9402985074626866
+      },
+      "staged": {
+        "accumulated": 230.11947466972924,
+        "budget_ratio": 55.33203748633197,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 6.061577525168541,
+            "n": 25
+          },
+          "close": {
+            "mean": 1.9248457519337534,
+            "n": 10
+          },
+          "direct": {
+            "mean": 3.298748260622637,
+            "n": 9
+          },
+          "open": {
+            "mean": 1.307862378563732,
+            "n": 10
+          },
+          "run": {
+            "mean": 2.7607034816561886,
+            "n": 6
+          }
+        },
+        "length": 60,
+        "mean_deficit": 3.8353245778288207,
+        "survival_depth": 3,
+        "top1": 0.38333333333333336
+      }
+    },
+    {
+      "behaviour": "mean",
+      "fused": {
+        "accumulated": 0.7818450331687927,
+        "budget_ratio": 0.1879939920160474,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.07769988477230072,
+            "n": 4
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 2
+          },
+          "direct": {
+            "mean": 0.09420909881591796,
+            "n": 5
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 2
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 2
+          }
+        },
+        "length": 15,
+        "mean_deficit": 0.05212300221125285,
+        "survival_depth": 15,
+        "top1": 0.8666666666666667
+      },
+      "staged": {
+        "accumulated": 59.44730963069014,
+        "budget_ratio": 14.2940564663979,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 2.582062765955925,
+            "n": 5
+          },
+          "close": {
+            "mean": 2.5133358246530406,
+            "n": 4
+          },
+          "direct": {
+            "mean": 2.08513170214636,
+            "n": 14
+          },
+          "open": {
+            "mean": 0.26682770997285843,
+            "n": 4
+          },
+          "run": {
+            "mean": 1.5561244580894709,
+            "n": 4
+          }
+        },
+        "length": 31,
+        "mean_deficit": 1.9176551493771015,
+        "survival_depth": 3,
+        "top1": 0.41935483870967744
+      }
+    },
+    {
+      "behaviour": "mode_first_tie",
+      "fused": {
+        "accumulated": 14.225711435079575,
+        "budget_ratio": 3.4205605567511204,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.04013451933860779,
+            "n": 38
+          },
+          "close": {
+            "mean": 0.09267891828830425,
+            "n": 13
+          },
+          "direct": {
+            "mean": 0.49410824264798847,
+            "n": 14
+          },
+          "open": {
+            "mean": 0.20654564408155587,
+            "n": 13
+          },
+          "run": {
+            "mean": 1.8931649923324585,
+            "n": 1
+          }
+        },
+        "length": 79,
+        "mean_deficit": 0.1800722966465769,
+        "survival_depth": 1,
+        "top1": 0.8481012658227848
+      },
+      "staged": {
+        "accumulated": 227.4054796206765,
+        "budget_ratio": 54.67945961995437,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 3.12521714457454,
+            "n": 26
+          },
+          "close": {
+            "mean": 4.406605415905897,
+            "n": 13
+          },
+          "direct": {
+            "mean": 3.7463116003821293,
+            "n": 15
+          },
+          "open": {
+            "mean": 1.031724336055609,
+            "n": 13
+          },
+          "run": {
+            "mean": 3.2094788467511535,
+            "n": 6
+          }
+        },
+        "length": 73,
+        "mean_deficit": 3.1151435564476233,
+        "survival_depth": 1,
+        "top1": 0.4383561643835616
+      }
+    },
+    {
+      "behaviour": "nonnegative_running_balance",
+      "fused": {
+        "accumulated": 1.7964768707752228,
+        "budget_ratio": 0.4319613787565229,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.0,
+            "n": 7
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 4
+          },
+          "direct": {
+            "mean": 0.6451129913330078,
+            "n": 1
+          },
+          "open": {
+            "mean": 0.28784096986055374,
+            "n": 4
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 1
+          }
+        },
+        "length": 17,
+        "mean_deficit": 0.10567511004560134,
+        "survival_depth": 17,
+        "top1": 0.8823529411764706
+      },
+      "staged": {
+        "accumulated": 103.60681469293922,
+        "budget_ratio": 24.91217295996754,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 5.807764106417546,
+            "n": 11
+          },
+          "close": {
+            "mean": 3.69745854071031,
+            "n": 6
+          },
+          "direct": {
+            "mean": 0.5399642705917358,
+            "n": 5
+          },
+          "open": {
+            "mean": 1.2361808316782117,
+            "n": 6
+          },
+          "run": {
+            "mean": 2.4732506450188034,
+            "n": 3
+          }
+        },
+        "length": 31,
+        "mean_deficit": 3.342155312675459,
+        "survival_depth": 5,
+        "top1": 0.45161290322580644
+      }
+    },
+    {
+      "behaviour": "parity_each",
+      "fused": {
+        "accumulated": 0.2078533172607422,
+        "budget_ratio": 0.049978158340732194,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.02078533172607422,
+            "n": 10
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 1
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 1
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 1
+          }
+        },
+        "length": 13,
+        "mean_deficit": 0.015988716712364785,
+        "survival_depth": 13,
+        "top1": 0.9230769230769231
+      },
+      "staged": {
+        "accumulated": 153.97860203369055,
+        "budget_ratio": 37.024027592836774,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 6.806215434364276,
+            "n": 20
+          },
+          "close": {
+            "mean": 1.6462539695203304,
+            "n": 4
+          },
+          "open": {
+            "mean": 1.7178036030381918,
+            "n": 4
+          },
+          "run": {
+            "mean": 1.099515764042735,
+            "n": 4
+          }
+        },
+        "length": 32,
+        "mean_deficit": 4.81183131355283,
+        "survival_depth": 1,
+        "top1": 0.4375
+      }
+    },
+    {
+      "behaviour": "prefix_record_count",
+      "fused": {
+        "accumulated": 5.770008325576782,
+        "budget_ratio": 1.387393732866276,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.06278580156239597,
+            "n": 33
+          },
+          "close": {
+            "mean": 0.22858660987445287,
+            "n": 7
+          },
+          "direct": {
+            "mean": 0.09140269458293915,
+            "n": 12
+          },
+          "open": {
+            "mean": 0.1430197528430394,
+            "n": 7
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 1
+          }
+        },
+        "length": 60,
+        "mean_deficit": 0.0961668054262797,
+        "survival_depth": 51,
+        "top1": 0.9333333333333333
+      },
+      "staged": {
+        "accumulated": 259.04989184995793,
+        "budget_ratio": 62.28833238579277,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 6.055351994286806,
+            "n": 30
+          },
+          "close": {
+            "mean": 0.8785423649982973,
+            "n": 11
+          },
+          "direct": {
+            "mean": 2.575855402246816,
+            "n": 8
+          },
+          "open": {
+            "mean": 1.805730552243238,
+            "n": 11
+          },
+          "run": {
+            "mean": 3.0283874126358166,
+            "n": 9
+          }
+        },
+        "length": 69,
+        "mean_deficit": 3.7543462586950427,
+        "survival_depth": 3,
+        "top1": 0.43478260869565216
+      }
+    },
+    {
+      "behaviour": "squared_deviation_total",
+      "fused": {
+        "accumulated": 7.883827701210976,
+        "budget_ratio": 1.8956598546266854,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.6971402186900377,
+            "n": 8
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 3
+          },
+          "direct": {
+            "mean": 0.23067059516906738,
+            "n": 10
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 3
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 3
+          }
+        },
+        "length": 27,
+        "mean_deficit": 0.2919936185633695,
+        "survival_depth": 17,
+        "top1": 0.7777777777777778
+      },
+      "staged": {
+        "accumulated": 50.82673842459917,
+        "budget_ratio": 12.22124724495496,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 1.5676264893263578,
+            "n": 8
+          },
+          "close": {
+            "mean": 1.4008325388034184,
+            "n": 6
+          },
+          "direct": {
+            "mean": 1.733337947891818,
+            "n": 9
+          },
+          "open": {
+            "mean": 0.7866675108671188,
+            "n": 6
+          },
+          "run": {
+            "mean": 1.5934474468231201,
+            "n": 6
+          }
+        },
+        "length": 35,
+        "mean_deficit": 1.4521925264171192,
+        "survival_depth": 2,
+        "top1": 0.45714285714285713
+      }
+    },
+    {
+      "behaviour": "squared_point_norms",
+      "fused": {
+        "accumulated": 3.7575181871652603,
+        "budget_ratio": 0.9034921424455682,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.06157685192518456,
+            "n": 43
+          },
+          "close": {
+            "mean": 0.012540459632873535,
+            "n": 8
+          },
+          "direct": {
+            "mean": 0.09176271611993964,
+            "n": 11
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 8
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 2
+          }
+        },
+        "length": 72,
+        "mean_deficit": 0.0521877525995175,
+        "survival_depth": 72,
+        "top1": 0.9583333333333334
+      },
+      "staged": {
+        "accumulated": 170.30504822835155,
+        "budget_ratio": 40.949708086233095,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 7.9974193762862065,
+            "n": 13
+          },
+          "close": {
+            "mean": 5.01856144394939,
+            "n": 6
+          },
+          "direct": {
+            "mean": 1.9845457971096039,
+            "n": 10
+          },
+          "open": {
+            "mean": 0.9580925007661184,
+            "n": 6
+          },
+          "run": {
+            "mean": 2.658303674310446,
+            "n": 4
+          }
+        },
+        "length": 39,
+        "mean_deficit": 4.366796108419271,
+        "survival_depth": 6,
+        "top1": 0.46153846153846156
+      }
+    },
+    {
+      "behaviour": "sum_after_last_zero",
+      "fused": {
+        "accumulated": 1.818085104227066,
+        "budget_ratio": 0.43715706063041376,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.0,
+            "n": 8
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 4
+          },
+          "direct": {
+            "mean": 1.818085104227066,
+            "n": 1
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 4
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 1
+          }
+        },
+        "length": 18,
+        "mean_deficit": 0.10100472801261479,
+        "survival_depth": 18,
+        "top1": 0.9444444444444444
+      },
+      "staged": {
+        "accumulated": 180.89597672921082,
+        "budget_ratio": 43.4962880906663,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 6.5152043927478696,
+            "n": 18
+          },
+          "close": {
+            "mean": 3.8092538610566407,
+            "n": 5
+          },
+          "direct": {
+            "mean": 3.185124211013317,
+            "n": 10
+          },
+          "open": {
+            "mean": 1.506594578921795,
+            "n": 5
+          },
+          "run": {
+            "mean": 1.0383626699447632,
+            "n": 5
+          }
+        },
+        "length": 43,
+        "mean_deficit": 4.206883179749089,
+        "survival_depth": 5,
+        "top1": 0.4418604651162791
+      }
+    },
+    {
+      "behaviour": "sum_inside_closed_interval",
+      "fused": {
+        "accumulated": 2.553605079650879,
+        "budget_ratio": 0.6140122308001983,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.12750333547592163,
+            "n": 17
+          },
+          "close": {
+            "mean": 0.0482560470700264,
+            "n": 8
+          },
+          "direct": {
+            "mean": 0.0,
+            "n": 6
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 8
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 1
+          }
+        },
+        "length": 40,
+        "mean_deficit": 0.06384012699127198,
+        "survival_depth": 40,
+        "top1": 0.925
+      },
+      "staged": {
+        "accumulated": 79.85257623548387,
+        "budget_ratio": 19.20048595619008,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 4.702059751190245,
+            "n": 5
+          },
+          "close": {
+            "mean": 1.5631472282111645,
+            "n": 4
+          },
+          "direct": {
+            "mean": 4.288510680495529,
+            "n": 10
+          },
+          "open": {
+            "mean": 0.9346638997085392,
+            "n": 4
+          },
+          "run": {
+            "mean": 0.8664815407246351,
+            "n": 4
+          }
+        },
+        "length": 27,
+        "mean_deficit": 2.9575028235364393,
+        "survival_depth": 1,
+        "top1": 0.37037037037037035
+      }
+    },
+    {
+      "behaviour": "truncated_dot_product",
+      "fused": {
+        "accumulated": 4.0698290430009365,
+        "budget_ratio": 0.9785870296005545,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 0.0,
+            "n": 25
+          },
+          "close": {
+            "mean": 0.0,
+            "n": 8
+          },
+          "direct": {
+            "mean": 0.8139658086001873,
+            "n": 5
+          },
+          "open": {
+            "mean": 0.0,
+            "n": 8
+          },
+          "run": {
+            "mean": 0.0,
+            "n": 1
+          }
+        },
+        "length": 47,
+        "mean_deficit": 0.08659210729789227,
+        "survival_depth": 47,
+        "top1": 0.9574468085106383
+      },
+      "staged": {
+        "accumulated": 197.86029552749108,
+        "budget_ratio": 47.57534452438936,
+        "deficit_by_kind": {
+          "body": {
+            "mean": 8.638150182319208,
+            "n": 12
+          },
+          "close": {
+            "mean": 4.050609410590758,
+            "n": 7
+          },
+          "direct": {
+            "mean": 4.733942139148712,
+            "n": 5
+          },
+          "open": {
+            "mean": 0.16429901123046875,
+            "n": 7
+          },
+          "run": {
+            "mean": 6.838070615194738,
+            "n": 6
+          }
+        },
+        "length": 37,
+        "mean_deficit": 5.347575554797056,
+        "survival_depth": 0,
+        "top1": 0.35135135135135137
+      }
+    }
+  ],
+  "summary": {
+    "deficit_by_kind": {
+      "fused": {
+        "body": {
+          "mean": 0.10731165717355907,
+          "steps": 400
+        },
+        "close": {
+          "mean": 0.024746648575130262,
+          "steps": 133
+        },
+        "direct": {
+          "mean": 0.35561912712454796,
+          "steps": 125
+        },
+        "open": {
+          "mean": 0.09063081527338888,
+          "steps": 133
+        },
+        "run": {
+          "mean": 0.10619934541838509,
+          "steps": 28
+        }
+      },
+      "staged": {
+        "body": {
+          "mean": 5.301631050036808,
+          "steps": 298
+        },
+        "close": {
+          "mean": 2.55680443692886,
+          "steps": 131
+        },
+        "direct": {
+          "mean": 2.7644940178979356,
+          "steps": 151
+        },
+        "open": {
+          "mean": 0.9661054335506135,
+          "steps": 131
+        },
+        "run": {
+          "mean": 2.616593977523735,
+          "steps": 92
+        }
+      }
+    },
+    "familiarity_control": {
+      "fused_eval": {
+        "median_accumulated": 24.628574185058824,
+        "median_deficit": 0.5345682303842993,
+        "median_length": 44.0,
+        "n": 40,
+        "within_budget": 4
+      },
+      "fused_train": {
+        "median_accumulated": 3.154827669262886,
+        "median_deficit": 0.07471530352737389,
+        "median_length": 44.0,
+        "n": 40,
+        "within_budget": 23
+      }
+    },
+    "median": {
+      "fused": {
+        "accumulated": 3.5370241720229387,
+        "length": 43.5,
+        "mean_deficit": 0.08611378104746266,
+        "top1": 0.9240384615384616
+      },
+      "staged": {
+        "accumulated": 162.14182513102105,
+        "length": 39.5,
+        "mean_deficit": 3.3919387920365,
+        "top1": 0.4379280821917808
+      }
+    },
+    "n": 18,
+    "tolerance": 4.1588830833596715,
+    "within_budget": {
+      "fused": 11,
+      "staged": 0
+    }
+  }
+}

@@ -357,6 +357,74 @@ Static: every distinct witness replayed on its first shown input, each step labe
 | v4 | 220 | 0.844 | 0.60 / 0.83 / 0.93 | 1 / 1 / 3 (mean 1.57) | 127 | 0.21 / 0.60 / 0.71 | 0.25 / 0.57 / 0.76 | 0.00 / 0.71 / 0.95 | 1 / 5 / 13 | 1.75 / 5.14 / 14.28 | 0.60 |
 | v4, 41+ ops | 120 | | 0.78 / 0.84 / 0.93 | 1 / 1 / 3 | 63 | 0.37 / 0.65 / 0.72 | 0.33 / 0.62 / 0.78 | 0.00 / 0.53 / 0.95 | 1 / 11 / 16 | 4.49 / 7.64 / 17.05 | |
 | world-v3 | 526 | 0.885 | 0.40 / 0.83 / 0.99 | 1 / 2 / 8 (mean 3.63) | 155 | 0.07 / 0.42 / 0.87 | 0.09 / 0.75 / 0.91 | 0.00 / 0.51 / 1.00 | 1 / 14 / 66 | 3.00 / 16.54 / 175.92 | 0.36 |
+## Solved-program cache, search width, and the `ln W` budget on the v4 cohort (#151, #99)
+
+The #101 300-task `stack_pbe_v4` cohort (43 distinct behaviours), depth 48, guard `both`, checkpoint `witness-s0-e4` of the 1m v4-only arm, one host (`UltraDesk`, 8 CPU threads). The cells span commits `dd2a3bbc`, `8cd3c165` and `e21c967b`; `wandering_light/` is byte-identical across all three, so the solver is one solver. **timed** is the sum of the per-task timers, the quantity `docs/metrics.md` defines; `cell_seconds` is never quoted here. Every cell ran with a faster `beam_solve` — structural `==` in place of `value_key` for the hit test and the visited set, a reason-free `step_all_quiet` (together **1.43x** on the cohort clock, `0635935`), and the cyclic collector disabled for the search (`910cfa6`, unquantified) — so none compares with a recorded pre-speedup wall-clock. Equivalence is pinned by `tests/test_stack_beam_equivalence.py`, which runs the pre-speedup loop against the shipped one.
+
+**Behaviours are verified**, meaning the union of draw-tested `genuine` verdicts and `equals_catalogue_witness` ones, which is the convention `step3_verify_solves.partition` documents. Of the 27 distinct solved programs, **18 were draw-tested** (10,000 draws in each of the sampler / perturbed / dense modes, 500-tested floor) and **9 equal a catalogue witness and were not drawn against at all** — those inherit the corpus's own witness verification, a weaker standard that #142 counts apart. The graded column is kept beside it.
+
+| cell | tasks /300 | graded behaviours /43 | verified /43 | timed (s) | executions | cache hits (of which solved) |
+|---|---:|---:|---:|---:|---:|---:|
+| cache off, beam 64 (published protocol) | 94 | 12 | 12 | 195 | 71,700,695 | — |
+| cache on, beam 64 | 117 | 13 | 12 | 162 | 58,736,228 | 109 (105) |
+| cache off, beam 128 | 106 | 13 | 12 | 376 | 134,396,899 | — |
+| cache on, beam 128 | 121 | 14 | 12 | 321 | 113,665,637 | 113 (108) |
+| cache off, beam 256 | 118 | 16 | 14 | 750 | 251,743,031 | — |
+| cache on, beam 256 | 134 | 16 | 14 | 662 | 209,416,601 | 123 (118) |
+| cache off, beam 512 | 126 | 17 | 16 | 1369 | 471,107,580 | — |
+| cache on, beam 512 | 160 | 18 | 16 | 965 | 334,439,543 | 150 (143) |
+
+By witness-length bucket (1-5 / 6-10 / 11-20 / 21-40 / 41+, each of 60), cache **on**: beam 64 gives 59, 21, 25, 11, 1 and beam 512 gives 60, 38, 43, 12, 7. Cache **off**: beam 64 gives 58, 13, 13, 10, 0 and beam 512 gives 60, 24, 28, 10, 4. No bucket loses tasks to a wider beam in either arm. **Width alone** is 13 -> 24 in the 6-10 bucket and 0 -> 4 in 41+; the larger 13 -> 38 and 0 -> 7 deltas are width *and* cache together, and must not be quoted as a width effect. Behaviours added by width over the beam-64 baseline: `bounds_cover_list_flag`, `farther_choice_from_target`, `keep_below`, `sum_negative`; none lost. Verification moved two in opposite directions: `aligned_matches` is a confirmed shortcut (5 ops, [#141](../../issues/141)), `bounds_cover_list_flag` a genuine 46-op program distinct from the 46-op shortcut it also finds.
+
+Cache over 100 task orders, simulated exactly (the cache never changes what a search returns, only whether a task is searched): 115.9 ± 3.0 tasks [min–max 107–122], 0.04 regressions per order, and shortest-first / longest-first / insertion-order agree within noise. The `disjoint` diagnostic (replay only programs found on a *different* behaviour; needs behaviour labels, so never a solver) adds 0 tasks over cache-off: cross-behaviour transfer is exactly zero.
+
+Floored path score (`max(log p, -tau)` in the ranking key only): tau inf / 3.0 / 1.5 / 0.7 → 94 / 47 / 39 / 28 tasks. `tau=inf` reproduces the baseline's 94 tasks and 71,700,695 executions exactly.
+
+`ln W` budget law, `L x deficit < ln W` over the 43 behaviours: 83.7% accuracy, 5 true positives, 0 false positives, 7 false negatives, 31 true negatives. Shortening the 31 unsolved behaviours need to fit beam 64: min 1.9x, median 6.7x, max 103x.
+
+Self-shortening: harvest over 1140 stratified train searches returned 936 programs, 80 shorter than the authored witness, **42 behaviour-equivalent** on every shown input of every train task of that behaviour; 8 of 159 train behaviours relabelled, 312,880 rows against the control's 313,560. Per-seed **verified** behaviour deltas against the matched `witness` control (all 18 cells draw-tested): epoch 3 (0, −1, −2), epoch 4 (−1, +2, +1), epoch 5 (0, 0, +1) — **summing to 0 over the nine cells**. On raw graded counts the same nine sum to +6, and on graded-minus-leaky-names to +2; the arm is a null only once shortcuts are excluded, which is why the verified column is the one quoted.
+
+## Epoch selection in verified behaviours, 1m v4-only arm (#154)
+
+18 (seed, epoch) cells re-running the #101 1m v4-only arm (reproduces #134 bitwise: seed 0 epoch 4 verifies 94/94 tasks), all 30 distinct solved programs draw-tested. Cells are graded/verified behaviours of 43.
+
+| epoch | s0 | s1 | s2 | mean verified |
+|---|---|---|---|---:|
+| 1 | 6/6 | 7/7 | 6/5 | 6.00 |
+| 2 | 8/8 | 7/7 | 7/6 | 7.00 |
+| 3 | 12/11 | 11/11 | 11/11 | 11.00 |
+| 4 | 12/12 | 10/10 | 11/10 | 10.67 |
+| 5 | 12/11 | 11/10 | 12/10 | 10.33 |
+| 6 | 13/11 | 10/10 | 12/11 | 10.67 |
+
+Selection rules, mean verified behaviours over three seeds: validation CE 6.00, fixed epoch 5 10.33, best fixed epoch (3) 11.00, oracle 11.33. Validation CE per epoch, seed 0: 0.952 / 0.956 / 1.094 / 1.210 / 1.362 / 1.509.
+
+## Hindsight sub-target relabelling on v4 (#152)
+
+Three arms of the #101 1m recipe (LR 1.25e-4, batch 256, 6 epochs, seeds 0/1/2, CUDA) with identical row counts (313,560 fit / 26,040 validation), identical labels, optimiser and seeds; only each row's target differs. Validation is the control arm's final-target rows in all three. Behaviours of 43 / tasks of 300, mean over seeds 0/1/2, cache off, **graded** (these cells were not draw-tested, so the absolute counts are upper bounds; the arms share a corpus and budget, so the comparison between them stands). The final-output shares are the realised draw at `ROW_SEED = 20260919` over the 6,360 fit tasks, not an expectation.
+
+| arm | rows whose target is the final output | e3 | e4 | best validation CE (s0) | train CE at e6 (s0) |
+|---|---:|---:|---:|---:|---:|
+| `witness` (control) | 100% | 11.3 / 80.7 | 11.0 / 85.7 | 0.952 | 0.149 |
+| `hindsight` (mark-free states ahead) | 20.6% | 9.3 / 60.3 | 10.3 / 77.7 | 0.984 | 0.187 |
+| `hindsight-all` (every state ahead) | 8.3% | 9.0 / 61.3 | 9.3 / 72.0 | 1.008 | 0.233 |
+
+`hindsight` uses the loose "no open mark" rule, so its draw includes parked quotations; under #150's tightened rule (no open mark **and** no parked quotation) v4 has a median 5 closed states per witness, 14.0% of ops. Witness-shape covariates over the 43 cohort behaviours, from #150's `shape.json`: Spearman(length, longest uninterrupted write run) **+0.954**, (length, closed states) +0.712, (length, executions) +0.645, (length, largest body share) +0.397. Restricted to 11–40 ops (n=15, 5 solved at beam 64), every staging covariate is null against solves: longest write run rho −0.197 (permutation p=0.49), closed states −0.156 (p=0.62), largest body share −0.033 (p=0.95), executions +0.000 (p=1.00). That band holds most of the variation but not all of it — 1–5 ops is 6/6 solved, 6–10 is 1/3, 41+ is 0/19 — and n=15 with 5 positives cannot support a verdict either way.
+
+## Fused-policy transfer to staged witness text (#155, #99)
+
+`witness-s0-e4` (1m v4-only) scored along the 18 staged rewrites of the #155 pilot and along their fused twins, same v4 train task, same inputs and final target. **Out of distribution by construction**: the policy trained only on write-then-run text, so this bounds transfer and does not estimate the deficit a staged-trained policy would show. Tolerance `ln 64` = 4.159 nats over the whole witness. [report](../reports/staged-transfer-20260920/README.md), driver `experiments/staged_transfer.py`
+
+| arm | n | median length | median per-step deficit | median `L x d` | within `ln W` |
+|---|---:|---:|---:|---:|---:|
+| fused, train split (policy trained on these) | 40 | 44.0 | 0.075 | 3.2 | 23/40 |
+| the 18 pilot fused witnesses (also train) | 18 | 43.5 | 0.086 | 3.5 | 11/18 |
+| fused, eval split — unseen content, familiar style | 40 | 44.0 | 0.535 | 24.6 | 4/40 |
+| **the 18 staged rewrites** — unseen content and style | 18 | 39.5 | **3.392** | **162.1** | **0/18** |
+
+Staged is slightly *shorter* at the median, so the 39x deficit is not a length effect. Unseen content in the familiar style costs about 7x; unseen style about 45x.
+
+Per-step deficit by step kind, fused → staged: `body` (under an open mark) 0.107 → **5.302** (400 → 298 steps), `open` 0.091 → 0.966 (133 → 131), `close` 0.025 → 2.557 (133 → 131), `run` 0.106 → 2.617 (28 → 92), `direct` 0.356 → 2.764 (125 → 151). The registered diagnostic — cheap bodies plus expensive boundaries would be weak evidence that short bodies are cheaper steps — **returns a clean negative**: body tokens are the most expensive staged kind, and one alone exceeds the whole budget. `open` stays cheap, so the policy will start a quotation anywhere; what it cannot predict is a short body's contents.
 
 ## `deep-corpus-v1` — solvers on the held-out cohort (96 tasks, 12 per distance 1–8)
 

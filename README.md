@@ -160,6 +160,7 @@ Run the linter through `uv run` so the pinned ruff is used rather than one on `P
 ├── reports/                         # one directory per measured run
 ├── docs/                            # STATUS, RESULTS, RESULTS_DETAILED, metrics, stack_machine_explorer.html
 ├── web/trajectory-graph/            # Vite/TypeScript client for the graph explorer
+├── web/stack-workshop/              # Vite/TypeScript client for Signal House (see its README)
 └── tests/
 ```
 

@@ -215,3 +215,6 @@ wandering_light/evals/data/stack_pbe_world_v*/*.jsonl.gz
 # non-regular file -- so leaving these unignored fails those runs outright.
 node_modules/
 *.tsbuildinfo
+.venv-workshop/
+.venv-workshop312/
+.workshop-cache/
