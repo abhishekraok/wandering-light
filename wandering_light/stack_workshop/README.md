@@ -1,6 +1,6 @@
 # Signal House
 
-A local Windows workbench for learning the repo's **mark-28** stack machine.
+A local workbench for learning the repo's **mark-28** stack machine.
 You repair a quiet coastal relay by writing programs, predicting their effects,
 and inspecting execution. The trained policy is an optional adviser.
 
@@ -29,6 +29,21 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-stack-workshop
 Core teaching and the HTTP service use only Python's standard library. The app
 binds to loopback, is not hosted publicly, and sends no example data to a model
 service. The frontend assets, policy, and downloaded corpus are local.
+
+## Start on Linux or WSL
+
+There is no launcher; build the frontend once, then run the server.
+
+```bash
+cd web/stack-workshop && npm ci && npm run build
+cd ../.. && python3 -m wandering_light.stack_workshop.server
+```
+
+Open <http://127.0.0.1:8018>; under WSL the Windows browser reaches the same
+address. `static/` is untracked, so a fresh clone or worktree needs the build
+step, and any frontend edit needs it again. The server itself needs no virtual
+environment; the optional adviser does. Pass `--port` if another workshop is
+already running.
 
 ## What is in the workshop
 
