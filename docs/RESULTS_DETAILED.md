@@ -348,6 +348,17 @@ Static: the 133 macros of `experiments/world_behaviours/macros.txt` expanded to 
 
 Cohort by witness-length bucket, bits raw → full library → subset: 1–5 (6 witnesses) 22.4 → 28.3 → 22.9; 6–10 (3) 29.3 → 40.1 → 32.5; 11–20 (6) 71.7 → 85.0 → 68.8; 21–40 (9) 154.7 → 174.7 → 141.5; 41+ (19) 408.3 → 393.4 → 318.4. Macros hitting v4, by ops saved on train: `pack3` 300, `abs` 276, `max2` 253, `unpack3` 252, `pack2` 152, `reverse` 140, `second` 108, `unpack2` 104, `take` 98, `drop-n` 98; no semantic macro (`range`, `digits`, `gcd`, `sort`, `zip`) occurs in any v4 witness. On world-v3 train `range` alone saves 13,081 ops; the DP parse equals the authors' macro form at the median (21) and is never longer.
 
+## Where a staged witness's deficit sits: recurring cycles against the glue between them (#148)
+
+Staged arm of #155, seeds 0 / 1 / 2, epoch 3, replayed along the staged witness on 137 treated train behaviours x 4 tasks, CPU, no search. Cycle = adjacent top-level quotations immediately followed by a combinator; library = top 35 cycles by ops saved, chosen on the 123 fit behaviours; glue = every other top-level step. Deficit = `log p(top legal op) - log p(authored op)`. `tail` = a cycle's summed deficit less its largest step, `upper` = the whole sum. [report](../reports/cycle-deficit-20260920/README.md), [mine-v4-library (#148)](../../issues/148)
+
+| | share of steps: library / other cycle / glue | share of deficit: library / other cycle / glue | nats per step: library / other cycle / glue | compression in steps | compression in deficit, tail / upper | behaviours inside ln 64: raw / minus tail / minus upper |
+|---|---|---|---|---:|---|---|
+| fit, 123 behaviours | 51.7% / 20.0% / 28.3% | 15.1% / 18.2% / 66.7% | 0.07 / 0.23 / 0.59 | 1.83x | 1.01x / 1.18x | 37 / 38 / 44 |
+| held out, 14 behaviours | 57.2% / 21.6% / 21.2% | 17.2% / 22.0% / 60.7% | 0.18 / 0.62 / 1.75 | 1.98x | 1.02x / 1.21x | 1 / 1 / 2 |
+
+Cycle recurrence behind the library (`experiments/cycle_recurrence.py`, the 143 staged witnesses): 595 cycles, 147 distinct, 65 in two or more behaviours covering 59.8% of staged ops; top-35 length compression 1.82x in sample, 1.72x held out 5-fold by behaviour (1.75x without the 6 contrived rows).
+
 ## Training on staged witnesses: four arms and the per-cycle diagnostic (#155)
 
 The #101 1m policy, seeds 0 / 1 / 2, epoch 3 fixed in advance, 313,560 task-balanced rows per epoch in every arm, cohort 300 eval tasks / 43 behaviours, beam 64 x depth 48, guard `both`, CUDA. Arms differ only in the program each of 123 treated fit behaviours is replayed along. Verified = 10,000-draw `genuine` or equal to a catalogue witness. A task is abandoned after 10 s of wall clock (beam-state-size-unbounded (#157)): 0 / 15 / 2 tasks in the staged seeds, none elsewhere. [arms report](../reports/staged-arms-20260920/README.md), [cycles report](../reports/staged-cycles-20260920/README.md), [staged-witness-reauthoring (#155)](../../issues/155)

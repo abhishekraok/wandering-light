@@ -1,0 +1,200 @@
+{
+ "all_staged": {
+  "witnesses": 143,
+  "ops": 6425,
+  "cycles": 595,
+  "distinct": 147,
+  "shared": 65,
+  "shared_share_of_ops": 0.598443579766537,
+  "top": [
+   {
+    "cycle": "[ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+    "uses": 30,
+    "behaviours": 29
+   },
+   {
+    "cycle": "[ drop 1 add ] fold",
+    "uses": 47,
+    "behaviours": 37
+   },
+   {
+    "cycle": "[ [ uncons ] dip quote swap cons quote cat ] fold",
+    "uses": 18,
+    "behaviours": 15
+   },
+   {
+    "cycle": "[ [ uncons ] dip cons quote cat ] fold",
+    "uses": 18,
+    "behaviours": 16
+   },
+   {
+    "cycle": "[ [ lt? ] [ ] [ swap ] ifte drop ] fold",
+    "uses": 12,
+    "behaviours": 11
+   },
+   {
+    "cycle": "[ add ] fold",
+    "uses": 42,
+    "behaviours": 29
+   },
+   {
+    "cycle": "[ over uncons swap drop swap cons cons ] fold",
+    "uses": 13,
+    "behaviours": 13
+   },
+   {
+    "cycle": "[ [ uncons ] dip mul quote cat ] fold",
+    "uses": 11,
+    "behaviours": 11
+   },
+   {
+    "cycle": "[ [ uncons ] dip sub quote cat ] fold",
+    "uses": 11,
+    "behaviours": 11
+   },
+   {
+    "cycle": "[ [ uncons ] dip add quote cat ] fold",
+    "uses": 10,
+    "behaviours": 10
+   },
+   {
+    "cycle": "[ 0 [ drop 1 add ] fold ] map",
+    "uses": 9,
+    "behaviours": 7
+   },
+   {
+    "cycle": "[ [ uncons ] dip swap sub quote cat ] fold",
+    "uses": 8,
+    "behaviours": 8
+   },
+   {
+    "cycle": "[ over uncons swap drop add cons ] fold",
+    "uses": 10,
+    "behaviours": 10
+   },
+   {
+    "cycle": "[ cons ] fold",
+    "uses": 25,
+    "behaviours": 21
+   },
+   {
+    "cycle": "[ ] [ drop 1 ] [ drop 0 ] ifte",
+    "uses": 7,
+    "behaviours": 6
+   }
+  ],
+  "compression": {
+   "20": {
+    "in_sample": 1.5693698094772839,
+    "held_out": 1.5250415380963684
+   },
+   "35": {
+    "in_sample": 1.8206290733918957,
+    "held_out": 1.722982032716546
+   },
+   "50": {
+    "in_sample": 1.9922480620155039,
+    "held_out": 1.8124118476727786
+   }
+  }
+ },
+ "without_contrived": {
+  "witnesses": 137,
+  "ops": 6078,
+  "cycles": 561,
+  "distinct": 137,
+  "shared": 62,
+  "shared_share_of_ops": 0.5987166831194471,
+  "top": [
+   {
+    "cycle": "[ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+    "uses": 29,
+    "behaviours": 28
+   },
+   {
+    "cycle": "[ drop 1 add ] fold",
+    "uses": 47,
+    "behaviours": 37
+   },
+   {
+    "cycle": "[ [ uncons ] dip quote swap cons quote cat ] fold",
+    "uses": 16,
+    "behaviours": 14
+   },
+   {
+    "cycle": "[ [ uncons ] dip cons quote cat ] fold",
+    "uses": 17,
+    "behaviours": 15
+   },
+   {
+    "cycle": "[ [ lt? ] [ ] [ swap ] ifte drop ] fold",
+    "uses": 12,
+    "behaviours": 11
+   },
+   {
+    "cycle": "[ over uncons swap drop swap cons cons ] fold",
+    "uses": 13,
+    "behaviours": 13
+   },
+   {
+    "cycle": "[ add ] fold",
+    "uses": 37,
+    "behaviours": 26
+   },
+   {
+    "cycle": "[ [ uncons ] dip mul quote cat ] fold",
+    "uses": 10,
+    "behaviours": 10
+   },
+   {
+    "cycle": "[ [ uncons ] dip sub quote cat ] fold",
+    "uses": 10,
+    "behaviours": 10
+   },
+   {
+    "cycle": "[ 0 [ drop 1 add ] fold ] map",
+    "uses": 9,
+    "behaviours": 7
+   },
+   {
+    "cycle": "[ [ uncons ] dip add quote cat ] fold",
+    "uses": 9,
+    "behaviours": 9
+   },
+   {
+    "cycle": "[ over uncons swap drop add cons ] fold",
+    "uses": 10,
+    "behaviours": 10
+   },
+   {
+    "cycle": "[ cons ] fold",
+    "uses": 25,
+    "behaviours": 21
+   },
+   {
+    "cycle": "[ [ uncons ] dip swap sub quote cat ] fold",
+    "uses": 7,
+    "behaviours": 7
+   },
+   {
+    "cycle": "[ swap ] dip",
+    "uses": 23,
+    "behaviours": 23
+   }
+  ],
+  "compression": {
+   "20": {
+    "in_sample": 1.5758361420793363,
+    "held_out": 1.526368658965344
+   },
+   "35": {
+    "in_sample": 1.8401453224341509,
+    "held_out": 1.7460499856363114
+   },
+   "50": {
+    "in_sample": 2.0192691029900334,
+    "held_out": 1.8268710550045086
+   }
+  }
+ }
+}

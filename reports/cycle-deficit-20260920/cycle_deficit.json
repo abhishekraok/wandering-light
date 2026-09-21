@@ -1,0 +1,1291 @@
+{
+ "library": [
+  "[ 0 [ drop 1 add ] fold ] map",
+  "[ 0 lt? ] filter",
+  "[ 0 swap lt? ] filter",
+  "[ 0 swap sub ] map",
+  "[ [ eq? false eq? ] swap cons filter ] fold",
+  "[ [ lt? ] [ ] [ swap ] ifte drop ] fold",
+  "[ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+  "[ [ uncons ] dip add quote cat ] fold",
+  "[ [ uncons ] dip cons quote cat ] fold",
+  "[ [ uncons ] dip eq? quote cat ] fold",
+  "[ [ uncons ] dip lt? quote cat ] fold",
+  "[ [ uncons ] dip mul quote cat ] fold",
+  "[ [ uncons ] dip quote swap cons quote cat ] fold",
+  "[ [ uncons ] dip sub quote cat ] fold",
+  "[ [ uncons ] dip swap sub quote cat ] fold",
+  "[ ] [ drop 1 ] [ drop 0 ] ifte",
+  "[ ] [ drop drop ] [ drop swap drop ] ifte",
+  "[ ] filter",
+  "[ add ] fold",
+  "[ cons ] fold",
+  "[ drop 1 add ] fold",
+  "[ drop dup uncons swap drop 1 add cons ] fold",
+  "[ dup 0 lt? ] [ 0 swap sub ] [ ] ifte",
+  "[ lt? ] [ ] [ swap ] ifte",
+  "[ nil [ drop 0 ] [ drop 1 ] ifte ] map",
+  "[ nil [ drop 1 ] [ drop 0 ] ifte ] map",
+  "[ null? false eq? ] filter",
+  "[ over uncons swap drop 1 add mul cons ] fold",
+  "[ over uncons swap drop add cons ] fold",
+  "[ over uncons swap drop swap cons cons ] fold",
+  "[ over uncons swap drop swap quote cat cons ] fold",
+  "[ swap ] dip",
+  "[ uncons [ swap sub ] swap cons map ] map",
+  "[ uncons drop uncons swap drop ] map",
+  "[ uncons swap drop ] map"
+ ],
+ "fit": {
+  "behaviours": 123,
+  "witness_scores": 1476,
+  "median_total_deficit": 7.748205095529556,
+  "share_of_steps": {
+   "library": 0.5167239197251853,
+   "other_cycle": 0.19996384017356716,
+   "glue": 0.2833122401012475
+  },
+  "share_of_deficit": {
+   "library": 0.1505737846152547,
+   "other_cycle": 0.18242161844219743,
+   "glue": 0.6670045969425479
+  },
+  "mean_deficit_per_step": {
+   "library": 0.07320145018449162,
+   "other_cycle": 0.22916786591598182,
+   "glue": 0.5914150521117965
+  },
+  "compression_in_steps": 1.827221671622068,
+  "compression_in_deficit_tail": 1.0148387183661864,
+  "compression_in_deficit_upper": 1.1772652902489626,
+  "behaviours_inside_budget": {
+   "raw": 37,
+   "minus_tail": 38,
+   "minus_sum": 44
+  }
+ },
+ "held": {
+  "behaviours": 14,
+  "witness_scores": 168,
+  "median_total_deficit": 17.616433799266815,
+  "share_of_steps": {
+   "library": 0.5722120658135283,
+   "other_cycle": 0.21572212065813529,
+   "glue": 0.21206581352833637
+  },
+  "share_of_deficit": {
+   "library": 0.1723381108344249,
+   "other_cycle": 0.22037908612539175,
+   "glue": 0.6072828030401833
+  },
+  "mean_deficit_per_step": {
+   "library": 0.18362463910739643,
+   "other_cycle": 0.6228483744849593,
+   "glue": 1.7459305274760586
+  },
+  "compression_in_steps": 1.9818840579710144,
+  "compression_in_deficit_tail": 1.020095602982944,
+  "compression_in_deficit_upper": 1.208222842069207,
+  "behaviours_inside_budget": {
+   "raw": 1,
+   "minus_tail": 1,
+   "minus_sum": 2
+  }
+ },
+ "profiles": [
+  {
+   "held": false,
+   "cycle": "[ drop 1 add ] fold",
+   "uses": 528,
+   "mean_by_position": [
+    0.018,
+    0.097,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ add ] fold",
+   "uses": 360,
+   "mean_by_position": [
+    0.035,
+    0.49,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+   "uses": 324,
+   "mean_by_position": [
+    0.119,
+    0.311,
+    0.0,
+    0.0,
+    0.0,
+    0.147,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ cons ] fold",
+   "uses": 264,
+   "mean_by_position": [
+    0.166,
+    0.031,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ swap ] dip",
+   "uses": 252,
+   "mean_by_position": [
+    0.118,
+    1.1,
+    0.133,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ [ uncons ] dip quote swap cons quote cat ] fold",
+   "uses": 192,
+   "mean_by_position": [
+    0.126,
+    0.06,
+    0.021,
+    0.005,
+    0.0,
+    0.459,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ [ uncons ] dip cons quote cat ] fold",
+   "uses": 192,
+   "mean_by_position": [
+    0.0,
+    0.029,
+    0.0,
+    0.0,
+    0.0,
+    0.004,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ ] filter",
+   "uses": 144,
+   "mean_by_position": [
+    0.024,
+    0.349,
+    0.004
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ 0 swap sub ] map",
+   "uses": 132,
+   "mean_by_position": [
+    0.119,
+    0.815,
+    0.0,
+    0.068,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ [ lt? ] [ ] [ swap ] ifte drop ] fold",
+   "uses": 132,
+   "mean_by_position": [
+    0.144,
+    0.311,
+    0.015,
+    0.0,
+    0.0,
+    0.892,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.004,
+    0.0,
+    0.085
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ 0 swap lt? ] filter",
+   "uses": 120,
+   "mean_by_position": [
+    0.291,
+    0.074,
+    0.243,
+    0.29,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ over uncons swap drop swap cons cons ] fold",
+   "uses": 120,
+   "mean_by_position": [
+    0.065,
+    0.055,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.005,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ [ uncons ] dip mul quote cat ] fold",
+   "uses": 120,
+   "mean_by_position": [
+    0.081,
+    0.077,
+    0.0,
+    0.0,
+    0.0,
+    0.716,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ [ uncons ] dip add quote cat ] fold",
+   "uses": 108,
+   "mean_by_position": [
+    0.148,
+    0.051,
+    0.04,
+    0.0,
+    0.0,
+    0.318,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ [ uncons ] dip sub quote cat ] fold",
+   "uses": 96,
+   "mean_by_position": [
+    0.083,
+    0.036,
+    0.04,
+    0.0,
+    0.0,
+    0.85,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ uncons drop uncons swap drop ] map",
+   "uses": 96,
+   "mean_by_position": [
+    0.104,
+    0.502,
+    0.237,
+    0.005,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ 0 lt? ] filter",
+   "uses": 96,
+   "mean_by_position": [
+    0.305,
+    0.084,
+    0.349,
+    0.025,
+    0.001
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ over uncons swap drop add cons ] fold",
+   "uses": 96,
+   "mean_by_position": [
+    0.014,
+    0.003,
+    0.0,
+    0.005,
+    0.0,
+    0.008,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ add ] fold",
+   "uses": 84,
+   "mean_by_position": [
+    0.066,
+    1.317,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ [ uncons ] dip swap sub quote cat ] fold",
+   "uses": 84,
+   "mean_by_position": [
+    0.043,
+    0.034,
+    0.0,
+    0.0,
+    0.0,
+    0.321,
+    0.002,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ [ uncons ] dip eq? quote cat ] fold",
+   "uses": 72,
+   "mean_by_position": [
+    0.099,
+    0.148,
+    0.013,
+    0.022,
+    0.0,
+    0.901,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ 0 [ drop 1 add ] fold ] map",
+   "uses": 72,
+   "mean_by_position": [
+    0.058,
+    0.936,
+    0.074,
+    0.005,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ over uncons swap drop 1 add mul cons ] fold",
+   "uses": 72,
+   "mean_by_position": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.007,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ null? false eq? ] filter",
+   "uses": 60,
+   "mean_by_position": [
+    0.07,
+    0.106,
+    0.073,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ uncons swap drop ] map",
+   "uses": 60,
+   "mean_by_position": [
+    0.044,
+    0.037,
+    0.878,
+    0.064,
+    0.0,
+    0.017
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ over uncons swap drop swap quote cat cons ] fold",
+   "uses": 60,
+   "mean_by_position": [
+    0.229,
+    0.024,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.468,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ ] [ drop 1 ] [ drop 0 ] ifte",
+   "uses": 60,
+   "mean_by_position": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ ] [ drop drop ] [ drop swap drop ] ifte",
+   "uses": 48,
+   "mean_by_position": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ lt? ] [ ] [ swap ] ifte",
+   "uses": 48,
+   "mean_by_position": [
+    0.077,
+    0.142,
+    0.0,
+    0.0,
+    0.387,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ drop dup uncons swap drop 1 add cons ] fold",
+   "uses": 48,
+   "mean_by_position": [
+    0.172,
+    0.336,
+    1.28,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ uncons [ swap sub ] swap cons map ] map",
+   "uses": 36,
+   "mean_by_position": [
+    0.0,
+    0.079,
+    0.032,
+    0.039,
+    0.018,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ nil [ drop 0 ] [ drop 1 ] ifte ] map",
+   "uses": 36,
+   "mean_by_position": [
+    0.0,
+    0.727,
+    0.0,
+    0.0,
+    0.392,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ [ uncons ] dip lt? quote cat ] fold",
+   "uses": 36,
+   "mean_by_position": [
+    0.052,
+    0.005,
+    0.0,
+    0.0,
+    0.0,
+    0.75,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ 0 [ drop 1 add ] fold ] map",
+   "uses": 36,
+   "mean_by_position": [
+    0.051,
+    3.914,
+    0.0,
+    0.023,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.331
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ over uncons swap drop swap cons cons ] fold",
+   "uses": 36,
+   "mean_by_position": [
+    0.243,
+    0.022,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.015,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ cons ] fold",
+   "uses": 36,
+   "mean_by_position": [
+    0.253,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ 0 swap lt? ] filter",
+   "uses": 36,
+   "mean_by_position": [
+    0.894,
+    0.484,
+    0.588,
+    0.055,
+    0.0,
+    0.002
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ drop 1 add ] fold",
+   "uses": 36,
+   "mean_by_position": [
+    0.0,
+    0.043,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ [ eq? false eq? ] swap cons filter ] fold",
+   "uses": 36,
+   "mean_by_position": [
+    0.14,
+    0.001,
+    0.858,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ dup 0 lt? ] [ 0 swap sub ] [ ] ifte",
+   "uses": 24,
+   "mean_by_position": [
+    0.08,
+    0.919,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.331,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ swap ] dip",
+   "uses": 24,
+   "mean_by_position": [
+    0.0,
+    1.843,
+    0.715,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ [ uncons ] dip sub quote cat ] fold",
+   "uses": 24,
+   "mean_by_position": [
+    0.064,
+    0.114,
+    0.0,
+    0.0,
+    0.0,
+    0.896,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ null? false eq? ] filter",
+   "uses": 24,
+   "mean_by_position": [
+    0.204,
+    0.268,
+    0.031,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+   "uses": 24,
+   "mean_by_position": [
+    0.171,
+    0.505,
+    0.0,
+    0.0,
+    0.0,
+    0.249,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": false,
+   "cycle": "[ nil [ drop 1 ] [ drop 0 ] ifte ] map",
+   "uses": 24,
+   "mean_by_position": [
+    0.0,
+    2.078,
+    0.0,
+    0.0,
+    0.022,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ 0 lt? ] filter",
+   "uses": 24,
+   "mean_by_position": [
+    0.336,
+    0.542,
+    4.416,
+    0.112,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ over uncons swap drop add cons ] fold",
+   "uses": 24,
+   "mean_by_position": [
+    0.002,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.239,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ ] [ drop drop ] [ drop swap drop ] ifte",
+   "uses": 12,
+   "mean_by_position": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ lt? ] [ ] [ swap ] ifte",
+   "uses": 12,
+   "mean_by_position": [
+    0.102,
+    0.022,
+    0.0,
+    0.0,
+    1.207,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ uncons [ swap sub ] swap cons map ] map",
+   "uses": 12,
+   "mean_by_position": [
+    0.0,
+    0.0,
+    0.176,
+    0.02,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ [ uncons ] dip cons quote cat ] fold",
+   "uses": 12,
+   "mean_by_position": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ ] [ drop 1 ] [ drop 0 ] ifte",
+   "uses": 12,
+   "mean_by_position": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ drop dup uncons swap drop 1 add cons ] fold",
+   "uses": 12,
+   "mean_by_position": [
+    0.012,
+    1.418,
+    0.2,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ 0 swap sub ] map",
+   "uses": 12,
+   "mean_by_position": [
+    0.907,
+    0.623,
+    0.0,
+    0.012,
+    0.0,
+    0.0
+   ]
+  },
+  {
+   "held": true,
+   "cycle": "[ [ lt? ] [ ] [ swap ] ifte drop ] fold",
+   "uses": 12,
+   "mean_by_position": [
+    0.0,
+    0.655,
+    0.0,
+    0.0,
+    0.0,
+    0.132,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.131
+   ]
+  }
+ ],
+ "glue_ops": [
+  {
+   "held": false,
+   "op": "nil",
+   "steps": 1260,
+   "sum": 1446.8273611664772,
+   "mean": 1.1482756834654582
+  },
+  {
+   "held": false,
+   "op": "dup",
+   "steps": 1092,
+   "sum": 1400.7950206398964,
+   "mean": 1.282779322930308
+  },
+  {
+   "held": false,
+   "op": "swap",
+   "steps": 3348,
+   "sum": 1391.6039435863495,
+   "mean": 0.4156523128991486
+  },
+  {
+   "held": false,
+   "op": "uncons",
+   "steps": 1608,
+   "sum": 1156.1479459404945,
+   "mean": 0.7189974788187156
+  },
+  {
+   "held": false,
+   "op": "quote",
+   "steps": 456,
+   "sum": 907.5218271613121,
+   "mean": 1.9901794455291932
+  },
+  {
+   "held": false,
+   "op": "0",
+   "steps": 1464,
+   "sum": 887.8847010731697,
+   "mean": 0.6064786209516186
+  },
+  {
+   "held": false,
+   "op": "over",
+   "steps": 420,
+   "sum": 884.9052757024765,
+   "mean": 2.1069173231011344
+  },
+  {
+   "held": false,
+   "op": "drop",
+   "steps": 1236,
+   "sum": 686.9865178465843,
+   "mean": 0.5558143348273336
+  },
+  {
+   "held": true,
+   "op": "quote",
+   "steps": 120,
+   "sum": 545.3226436376572,
+   "mean": 4.544355363647143
+  },
+  {
+   "held": false,
+   "op": "sub",
+   "steps": 528,
+   "sum": 404.99595415592194,
+   "mean": 0.7670377919619734
+  },
+  {
+   "held": false,
+   "op": "cat",
+   "steps": 372,
+   "sum": 401.885594189167,
+   "mean": 1.0803376187880833
+  },
+  {
+   "held": false,
+   "op": "1",
+   "steps": 264,
+   "sum": 365.7355061173439,
+   "mean": 1.3853617655959996
+  },
+  {
+   "held": true,
+   "op": "mul",
+   "steps": 24,
+   "sum": 261.0937452316284,
+   "mean": 10.87890605131785
+  },
+  {
+   "held": true,
+   "op": "0",
+   "steps": 180,
+   "sum": 245.81274271011353,
+   "mean": 1.3656263483895197
+  },
+  {
+   "held": false,
+   "op": "true",
+   "steps": 72,
+   "sum": 197.0949690937996,
+   "mean": 2.737430126302772
+  },
+  {
+   "held": false,
+   "op": "lt?",
+   "steps": 516,
+   "sum": 196.7460708618164,
+   "mean": 0.3812908350035202
+  },
+  {
+   "held": false,
+   "op": "[",
+   "steps": 1440,
+   "sum": 187.6240115761757,
+   "mean": 0.13029445248345534
+  },
+  {
+   "held": false,
+   "op": "cons",
+   "steps": 1668,
+   "sum": 187.52643197774887,
+   "mean": 0.11242591845188782
+  },
+  {
+   "held": true,
+   "op": "dup",
+   "steps": 108,
+   "sum": 187.31191456317902,
+   "mean": 1.7343695792886946
+  },
+  {
+   "held": true,
+   "op": "[",
+   "steps": 60,
+   "sum": 163.05787348747253,
+   "mean": 2.717631224791209
+  },
+  {
+   "held": true,
+   "op": "swap",
+   "steps": 228,
+   "sum": 151.07367593050003,
+   "mean": 0.6626038418004387
+  },
+  {
+   "held": true,
+   "op": "filter",
+   "steps": 24,
+   "sum": 147.98223209381104,
+   "mean": 6.1659263372421265
+  },
+  {
+   "held": true,
+   "op": "nil",
+   "steps": 108,
+   "sum": 144.29870223999023,
+   "mean": 1.3360990948147244
+  },
+  {
+   "held": false,
+   "op": "eq?",
+   "steps": 108,
+   "sum": 127.81912910938263,
+   "mean": 1.1835104547165058
+  },
+  {
+   "held": true,
+   "op": "drop",
+   "steps": 48,
+   "sum": 117.0912052989006,
+   "mean": 2.4394001103937626
+  },
+  {
+   "held": true,
+   "op": "over",
+   "steps": 72,
+   "sum": 111.7126002907753,
+   "mean": 1.5515638929274347
+  },
+  {
+   "held": false,
+   "op": "mul",
+   "steps": 216,
+   "sum": 106.58873754739761,
+   "mean": 0.4934663775342482
+  },
+  {
+   "held": true,
+   "op": "uncons",
+   "steps": 84,
+   "sum": 103.25724411010742,
+   "mean": 1.2292529060727073
+  },
+  {
+   "held": true,
+   "op": "lt?",
+   "steps": 60,
+   "sum": 80.3258187174797,
+   "mean": 1.3387636452913285
+  },
+  {
+   "held": true,
+   "op": "add",
+   "steps": 24,
+   "sum": 74.8431248664856,
+   "mean": 3.1184635361035666
+  },
+  {
+   "held": false,
+   "op": "add",
+   "steps": 192,
+   "sum": 67.21337163448334,
+   "mean": 0.3500696439296007
+  },
+  {
+   "held": false,
+   "op": "div",
+   "steps": 72,
+   "sum": 57.54140788316727,
+   "mean": 0.7991862205995454
+  },
+  {
+   "held": true,
+   "op": "]",
+   "steps": 60,
+   "sum": 48.611199378967285,
+   "mean": 0.8101866563161214
+  },
+  {
+   "held": true,
+   "op": "sub",
+   "steps": 48,
+   "sum": 39.284794330596924,
+   "mean": 0.8184332152207693
+  },
+  {
+   "held": false,
+   "op": "map",
+   "steps": 552,
+   "sum": 27.382820188999176,
+   "mean": 0.049606558313404304
+  },
+  {
+   "held": false,
+   "op": "]",
+   "steps": 1440,
+   "sum": 11.61879175901413,
+   "mean": 0.008068605388204256
+  },
+  {
+   "held": true,
+   "op": "cons",
+   "steps": 84,
+   "sum": 8.298528671264648,
+   "mean": 0.09879200799124581
+  },
+  {
+   "held": false,
+   "op": "false",
+   "steps": 12,
+   "sum": 6.734801292419434,
+   "mean": 0.5612334410349528
+  },
+  {
+   "held": false,
+   "op": "ifte",
+   "steps": 204,
+   "sum": 6.7075315117836,
+   "mean": 0.03288005643031176
+  },
+  {
+   "held": false,
+   "op": "null?",
+   "steps": 12,
+   "sum": 5.0809178948402405,
+   "mean": 0.42340982457002
+  },
+  {
+   "held": true,
+   "op": "cat",
+   "steps": 12,
+   "sum": 0.9572486877441406,
+   "mean": 0.07977072397867839
+  },
+  {
+   "held": false,
+   "op": "filter",
+   "steps": 240,
+   "sum": 0.0,
+   "mean": 0.0
+  },
+  {
+   "held": true,
+   "op": "map",
+   "steps": 36,
+   "sum": 0.0,
+   "mean": 0.0
+  },
+  {
+   "held": false,
+   "op": "fold",
+   "steps": 12,
+   "sum": 0.0,
+   "mean": 0.0
+  },
+  {
+   "held": true,
+   "op": "1",
+   "steps": 12,
+   "sum": 0.0,
+   "mean": 0.0
+  }
+ ]
+}
