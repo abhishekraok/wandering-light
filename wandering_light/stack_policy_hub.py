@@ -87,35 +87,42 @@ def fetch_stack_policy(
                     raise
                 continue
             shutil.copyfile(cached, staging_dir / name)
-        try:
-            staging_dir.replace(target)
-        except OSError:
-            # A concurrent fetch got there first, and its copy is as good as ours.
-            # Anything else in the way is an incomplete directory -- from a fetch
-            # that predates private assembly, or made by hand -- and a rename
-            # onto a non-empty directory fails, so without this every later
-            # fetch would download everything and fail the same way. Move it
-            # aside and try once more; a concurrent fetch landing in between
-            # still wins.
+        with _install_lock(target):
+            # Under the lock no other fetch installs or discards this target, so
+            # a checkpoint seen here is one a concurrent fetch finished and may
+            # already have returned, and it stays. Anything else in the way is an
+            # incomplete directory -- from a fetch that predates private
+            # assembly, or made by hand -- and a rename onto a non-empty
+            # directory fails, so without this every later fetch would download
+            # everything and fail the same way.
             if not is_checkpoint(target):
-                _discard(target)
-                try:
-                    staging_dir.replace(target)
-                except OSError:
-                    if not is_checkpoint(target):
-                        raise
+                if target.exists():
+                    _discard(target)
+                staging_dir.replace(target)
     finally:
         shutil.rmtree(staging_dir, ignore_errors=True)
     return target
 
 
+@contextlib.contextmanager
+def _install_lock(target: Path):
+    """Hold an exclusive lock, across processes, on installing ``target``.
+
+    The lock file stays behind: deleting it would let two processes each lock a
+    different file of the same name.
+    """
+    import fcntl
+
+    with open(target.parent / f".{target.name}.lock", "w") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        yield
+
+
 def _discard(path: Path) -> None:
-    """Move ``path`` out of the way and delete it, tolerating another process doing the same."""
+    """Move ``path`` aside and delete it; the caller holds its install lock."""
     aside = Path(tempfile.mkdtemp(dir=path.parent, prefix=f".{path.name}.stale."))
     try:
         path.replace(aside / path.name)
-    except FileNotFoundError:
-        pass
     finally:
         shutil.rmtree(aside, ignore_errors=True)
 

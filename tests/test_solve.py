@@ -155,8 +155,66 @@ def test_fetch_replaces_an_incomplete_cache_directory(tmp_path, monkeypatch):
     assert (
         got / stack_policy_hub.MODEL_FILE
     ).read_text() == stack_policy_hub.MODEL_FILE
-    # Nothing is left behind beside it: no staging directory, no stale copy.
-    assert [p.name for p in target.parent.iterdir()] == [revision]
+    # Nothing is left beside it but the install lock: no staging directory, no stale copy.
+    assert sorted(p.name for p in target.parent.iterdir()) == sorted(
+        [revision, f".{revision}.lock"]
+    )
+
+
+def test_a_repairing_fetch_never_discards_a_checkpoint_another_fetch_returned(
+    tmp_path, monkeypatch
+):
+    """Two fetches repairing the same incomplete directory must not undo each other.
+
+    Fetch A finds the directory incomplete and is about to discard it. If fetch
+    B can install a complete copy and return it in that window, A's discard
+    deletes the checkpoint B's caller is about to load.
+    """
+    import threading
+
+    import huggingface_hub
+
+    def fake_download(repo_id, filename, revision=None):
+        if filename == stack_policy_hub.WANDB_LINK_FILE:
+            raise huggingface_hub.errors.EntryNotFoundError("no run")
+        source = tmp_path / "hub" / filename
+        source.parent.mkdir(exist_ok=True)
+        source.write_text(filename)
+        return str(source)
+
+    monkeypatch.setattr(huggingface_hub, "hf_hub_download", fake_download)
+    revision = "ef" * 20
+    cache = tmp_path / "cache"
+    target = stack_policy_hub.checkpoint_dir("x/y", revision, cache_dir=cache)
+    target.mkdir(parents=True)
+    (target / stack_policy_hub.MODEL_FILE).write_text("half a download")
+
+    real_discard = stack_policy_hub._discard
+    b_returned = threading.Event()
+    discarded_after_b_returned = []
+
+    def fetch_b():
+        stack_policy_hub.fetch_stack_policy("x/y", revision, cache_dir=cache)
+        b_returned.set()
+
+    b = threading.Thread(target=fetch_b)
+
+    def discard(path):
+        if not b.is_alive() and not b_returned.is_set():
+            # A is about to discard: give B the chance to finish first. With the
+            # install serialised B cannot, and this wait simply times out.
+            b.start()
+            b_returned.wait(timeout=0.5)
+        if b_returned.is_set() and path == target:
+            discarded_after_b_returned.append(path)
+        real_discard(path)
+
+    monkeypatch.setattr(stack_policy_hub, "_discard", discard)
+    got = stack_policy_hub.fetch_stack_policy("x/y", revision, cache_dir=cache)
+    b.join(timeout=10)
+    assert b_returned.is_set()
+    assert not discarded_after_b_returned
+    assert got == target and stack_policy_hub.is_checkpoint(target)
 
 
 def test_fetch_pins_a_commit_and_downloads_once(tmp_path, monkeypatch):
