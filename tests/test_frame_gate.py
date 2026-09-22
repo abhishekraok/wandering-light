@@ -84,6 +84,21 @@ def test_the_thresholds_read_full_precision_ratios(tmp_path):
     assert out["verdict"] == "WEAK"
 
 
+def test_the_controls_divide_out_what_training_did_to_top_level_ops(tmp_path):
+    """A policy 20% cheaper everywhere shows 0.8 on defined bodies but 1.0 over top."""
+    for seed, epoch in THREE:
+        world, frames = cell(10.0, 12), cell(8.0, 12, top1=0.6)
+        frames["stack_pbe_v4"]["machine_mask"]["body"]["top"]["calibrated_total"] = 4.0
+        write(tmp_path, "world", seed, epoch, world)
+        write(tmp_path, "tags", seed, epoch, cell(10.0, 12))
+        write(tmp_path, "frames", seed, epoch, frames)
+    out = gate.report(tmp_path, lambda line: None, required=THREE)
+    v4 = out["controls"]["stack_pbe_v4"]
+    assert v4["classes"]["top"]["frames/world"] == pytest.approx(0.8)
+    assert v4["frames_defined_over_top"]["median"] == pytest.approx(1.0)
+    assert v4["clears"]["frames"] == {"median": 12, "range": [12, 12]}
+
+
 def test_a_pass_says_it_needs_a_consumer_ranker():
     assert "consumer ranker" in gate.READING["PASS"]
 

@@ -869,6 +869,7 @@ def report(
         },
         "verdict": verdict,
         "reading": READING.get(verdict),
+        "controls": controls(cells, pairs),
         "truncation": (
             json.loads((run_dir / "truncation.json").read_text())
             if (run_dir / "truncation.json").exists()
@@ -887,6 +888,82 @@ def report(
         f"primary clears {primary and primary['frames']['both']} vs world "
         f"{primary and primary['world']['both']}"
     )
+    return out
+
+
+def controls(
+    cells: dict[str, dict[tuple[int, int], dict]], pairs: Sequence[tuple[int, int]]
+) -> dict[str, Any]:
+    """Every op class's calibrated-total ratios, medians over the matched cells.
+
+    Top-level and untouched ops see the same input in every arm, so their
+    ratio is what training on the rewritten rows did to the policy as a whole;
+    ``defined_over_top`` divides it out of the defined-body ratio, cell by cell.
+    Not part of the verdict; reported beside it.
+    """
+    if not pairs:
+        return {}
+    arms = [a for a in ("frames", "tags") if all(k in cells[a] for k in pairs)]
+    out: dict[str, Any] = {}
+    for corpus in CORPORA:
+
+        def body(arm, key, cls, corpus=corpus):
+            return cells[arm][key][corpus]["machine_mask"]["body"].get(cls)
+
+        classes = sorted(cells["world"][pairs[0]][corpus]["machine_mask"]["body"])
+        per_class = {}
+        for cls in classes:
+            entry = {"ops": body("world", pairs[0], cls)["ops"]}
+            for num, den in (
+                ("frames", "world"),
+                ("tags", "world"),
+                ("frames", "tags"),
+            ):
+                if num not in arms or (den != "world" and den not in arms):
+                    continue
+                ratios = [
+                    body(num, k, cls)["calibrated_total"]
+                    / body(den, k, cls)["calibrated_total"]
+                    for k in pairs
+                    if body(den, k, cls)["calibrated_total"] > 0
+                ]
+                if ratios:
+                    entry[f"{num}/{den}"] = statistics.median(ratios)
+                    entry[f"{num}/{den} range"] = [min(ratios), max(ratios)]
+            per_class[cls] = entry
+        clears = {
+            arm: [
+                cells[arm][k][corpus]["machine_mask"]["composite_with_commitment"][
+                    "both"
+                ]
+                for k in pairs
+            ]
+            for arm in ("world", *arms)
+        }
+        corpus_out = {
+            "classes": per_class,
+            "clears": {
+                arm: {"median": statistics.median(v), "range": [min(v), max(v)]}
+                for arm, v in clears.items()
+            },
+        }
+        if "frames" in arms:
+            ratios = [
+                (
+                    body("frames", k, "defined")["calibrated_total"]
+                    / body("world", k, "defined")["calibrated_total"]
+                )
+                / (
+                    body("frames", k, "top")["calibrated_total"]
+                    / body("world", k, "top")["calibrated_total"]
+                )
+                for k in pairs
+            ]
+            corpus_out["frames_defined_over_top"] = {
+                "median": statistics.median(ratios),
+                "range": [min(ratios), max(ratios)],
+            }
+        out[corpus] = corpus_out
     return out
 
 

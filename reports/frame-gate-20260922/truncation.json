@@ -1,0 +1,16 @@
+{
+  "stack_pbe_v4": {
+    "frames_clipped": 41,
+    "under_mark": 8266
+  },
+  "stack_pbe_world_v3": {
+    "flat_clipped": 14013,
+    "frames_clipped": 19753,
+    "frames_innermost_label_cut": 3244,
+    "frames_outer_label_cut": 9371,
+    "tags_clipped": 14667,
+    "tags_innermost_label_cut": 1674,
+    "tags_outer_label_cut": 3581,
+    "under_mark": 48474
+  }
+}

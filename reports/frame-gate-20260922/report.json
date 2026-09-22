@@ -1,0 +1,1585 @@
+{
+  "calibration_at_boundary": [],
+  "controls": {
+    "stack_pbe_v4": {
+      "classes": {
+        "body": {
+          "frames/tags": 0.8275280570870949,
+          "frames/tags range": [
+            0.7705617342168968,
+            0.9186156125151501
+          ],
+          "frames/world": 0.8652841305457287,
+          "frames/world range": [
+            0.7632461878436814,
+            1.0410097066021393
+          ],
+          "ops": 1807,
+          "tags/world": 1.0301207672096364,
+          "tags/world range": [
+            0.9451393545171723,
+            1.245083805916649
+          ]
+        },
+        "defined": {
+          "frames/tags": 0.792232676183471,
+          "frames/tags range": [
+            0.743832340474281,
+            0.8832359054081731
+          ],
+          "frames/world": 0.8622195699300226,
+          "frames/world range": [
+            0.7418098001591239,
+            0.9331100682756491
+          ],
+          "ops": 1360,
+          "tags/world": 1.0671932195625797,
+          "tags/world range": [
+            0.9323167735292741,
+            1.186521313614615
+          ]
+        },
+        "defined:dip": {
+          "frames/tags": 0.8950005545526842,
+          "frames/tags range": [
+            0.6580375746327457,
+            1.0017655615187842
+          ],
+          "frames/world": 0.7898020792469392,
+          "frames/world range": [
+            0.6758188658406102,
+            0.9175533381112521
+          ],
+          "ops": 228,
+          "tags/world": 0.8951422963883662,
+          "tags/world range": [
+            0.8020318044653683,
+            1.1714150745328573
+          ]
+        },
+        "defined:filter": {
+          "frames/tags": 0.9332305833275609,
+          "frames/tags range": [
+            0.6905675353882789,
+            1.7534825870646769
+          ],
+          "frames/world": 0.4841914658665999,
+          "frames/world range": [
+            0.20690475246739862,
+            0.8950588671549086
+          ],
+          "ops": 44,
+          "tags/world": 0.5258686190690686,
+          "tags/world range": [
+            0.29961552182012763,
+            1.041446872645064
+          ]
+        },
+        "defined:fold": {
+          "frames/tags": 0.8180877022786124,
+          "frames/tags range": [
+            0.5436952660910037,
+            0.9503628256688232
+          ],
+          "frames/world": 2.4267014270626603,
+          "frames/world range": [
+            1.411970524306844,
+            4.335995325282431
+          ],
+          "ops": 206,
+          "tags/world": 2.649980766880257,
+          "tags/world range": [
+            1.605247540215524,
+            5.5192832099727305
+          ]
+        },
+        "defined:ifte": {
+          "frames/tags": 0.7875220097077775,
+          "frames/tags range": [
+            0.6908440308466289,
+            0.9123766890491586
+          ],
+          "frames/world": 0.8104580223702162,
+          "frames/world range": [
+            0.7065533649916313,
+            0.9400226458559059
+          ],
+          "ops": 852,
+          "tags/world": 1.0233424582038704,
+          "tags/world range": [
+            0.9200230929800628,
+            1.1395750317098632
+          ]
+        },
+        "defined:map": {
+          "frames/tags": 0.8398282382679993,
+          "frames/tags range": [
+            0.6106028426727658,
+            1.562769464874461
+          ],
+          "frames/world": 0.8105015132531945,
+          "frames/world range": [
+            0.45736845597505144,
+            1.1135809162374628
+          ],
+          "ops": 30,
+          "tags/world": 0.8835448399503605,
+          "tags/world range": [
+            0.6370975225016239,
+            1.2847098331409383
+          ]
+        },
+        "reencoded": {
+          "frames/tags": 0.9485835958673681,
+          "frames/tags range": [
+            0.8137870002796805,
+            1.2196802534147366
+          ],
+          "frames/world": 0.9644989967001341,
+          "frames/world range": [
+            0.6103522447834434,
+            1.6421773054415818
+          ],
+          "ops": 370,
+          "tags/world": 0.9414678048185272,
+          "tags/world range": [
+            0.6711764441042727,
+            1.66277383704981
+          ]
+        },
+        "top": {
+          "frames/tags": 0.9276042914754273,
+          "frames/tags range": [
+            0.7849703368629573,
+            0.9709036150666518
+          ],
+          "frames/world": 0.8764526616323755,
+          "frames/world range": [
+            0.7491984133945365,
+            1.0092347057455222
+          ],
+          "ops": 426,
+          "tags/world": 0.9821452871341546,
+          "tags/world range": [
+            0.8505178673400428,
+            1.0678762502907653
+          ]
+        },
+        "untouched": {
+          "frames/tags": 0.960701937046911,
+          "frames/tags range": [
+            0.8091152815013405,
+            1.1623205124313165
+          ],
+          "frames/world": 0.9147968244625415,
+          "frames/world range": [
+            0.7488109670801082,
+            1.4102334253648392
+          ],
+          "ops": 77,
+          "tags/world": 0.9627598437588629,
+          "tags/world range": [
+            0.742865802480649,
+            1.590878123991538
+          ]
+        }
+      },
+      "clears": {
+        "frames": {
+          "median": 12.5,
+          "range": [
+            5,
+            17
+          ]
+        },
+        "tags": {
+          "median": 10.5,
+          "range": [
+            7,
+            13
+          ]
+        },
+        "world": {
+          "median": 12.0,
+          "range": [
+            5,
+            14
+          ]
+        }
+      },
+      "frames_defined_over_top": {
+        "median": 0.9389400154716419,
+        "range": [
+          0.78630567995168,
+          1.1575529409235814
+        ]
+      }
+    },
+    "stack_pbe_world_v3": {
+      "classes": {
+        "body": {
+          "frames/tags": 0.7869517775026003,
+          "frames/tags range": [
+            0.7377081528244057,
+            0.8559727983761563
+          ],
+          "frames/world": 0.9179215424090709,
+          "frames/world range": [
+            0.8566804957548418,
+            1.0774887788550025
+          ],
+          "ops": 8079,
+          "tags/world": 1.1572337372209751,
+          "tags/world range": [
+            1.0888914406167036,
+            1.291777989608367
+          ]
+        },
+        "defined": {
+          "frames/tags": 0.7892608055560758,
+          "frames/tags range": [
+            0.7535346532573433,
+            0.8337952056173465
+          ],
+          "frames/world": 0.8673813131312003,
+          "frames/world range": [
+            0.7889577309002697,
+            0.9616456447501833
+          ],
+          "ops": 6325,
+          "tags/world": 1.1106328309663085,
+          "tags/world range": [
+            1.0105823494841446,
+            1.162307567185258
+          ]
+        },
+        "defined:dip": {
+          "frames/tags": 0.7979623445569779,
+          "frames/tags range": [
+            0.7177143861561938,
+            0.8691471187686851
+          ],
+          "frames/world": 0.8600749579014971,
+          "frames/world range": [
+            0.7671189982221353,
+            1.0325007398425037
+          ],
+          "ops": 1436,
+          "tags/world": 1.0692800242515634,
+          "tags/world range": [
+            0.983104067778984,
+            1.2826787348059077
+          ]
+        },
+        "defined:filter": {
+          "frames/tags": 0.8036956885564683,
+          "frames/tags range": [
+            0.6895944814273346,
+            0.9281462189563763
+          ],
+          "frames/world": 0.6536112146884658,
+          "frames/world range": [
+            0.4811501981030136,
+            0.88181730234358
+          ],
+          "ops": 142,
+          "tags/world": 0.786994611432439,
+          "tags/world range": [
+            0.5507543385366704,
+            1.1224031978998865
+          ]
+        },
+        "defined:fold": {
+          "frames/tags": 0.704431735556265,
+          "frames/tags range": [
+            0.5991288892563009,
+            0.8631337301780244
+          ],
+          "frames/world": 0.8769991981875861,
+          "frames/world range": [
+            0.7169172178004745,
+            1.0521108148835052
+          ],
+          "ops": 803,
+          "tags/world": 1.3045348249147617,
+          "tags/world range": [
+            1.0772899066251669,
+            1.5143360359539644
+          ]
+        },
+        "defined:ifte": {
+          "frames/tags": 0.7870211202845747,
+          "frames/tags range": [
+            0.7411003410217212,
+            0.8506316605763422
+          ],
+          "frames/world": 0.8831378294189172,
+          "frames/world range": [
+            0.7613503706181747,
+            1.0258595205549517
+          ],
+          "ops": 3492,
+          "tags/world": 1.1263387995032956,
+          "tags/world range": [
+            1.0150657416295104,
+            1.215838875790691
+          ]
+        },
+        "defined:map": {
+          "frames/tags": 0.8570352784402009,
+          "frames/tags range": [
+            0.6304363629510166,
+            0.9708822054725836
+          ],
+          "frames/world": 0.8867802287829664,
+          "frames/world range": [
+            0.7494340480206977,
+            0.9979965511228227
+          ],
+          "ops": 452,
+          "tags/world": 1.027347393662515,
+          "tags/world range": [
+            0.9224623936928039,
+            1.2324332037005084
+          ]
+        },
+        "reencoded": {
+          "frames/tags": 0.7727839148448711,
+          "frames/tags range": [
+            0.6726060129843364,
+            0.9165051211638006
+          ],
+          "frames/world": 1.0457229349892088,
+          "frames/world range": [
+            0.8352822953429107,
+            1.3912180715654585
+          ],
+          "ops": 1606,
+          "tags/world": 1.3317796568574223,
+          "tags/world range": [
+            1.1759500477953366,
+            1.6899130448979296
+          ]
+        },
+        "top": {
+          "frames/tags": 0.9093892200934541,
+          "frames/tags range": [
+            0.820226075818939,
+            1.0199074410716757
+          ],
+          "frames/world": 0.9216505979043998,
+          "frames/world range": [
+            0.8414934734593447,
+            1.0117309479831176
+          ],
+          "ops": 1813,
+          "tags/world": 1.0042631241775581,
+          "tags/world range": [
+            0.9314422921464184,
+            1.1001897135674297
+          ]
+        },
+        "untouched": {
+          "frames/tags": 0.9957375583231842,
+          "frames/tags range": [
+            0.8347833380708957,
+            1.1657612834441793
+          ],
+          "frames/world": 1.2013974846419633,
+          "frames/world range": [
+            0.8705895743227862,
+            1.396185857752098
+          ],
+          "ops": 148,
+          "tags/world": 1.1616314334725746,
+          "tags/world range": [
+            0.8591799260903972,
+            1.6204560900098164
+          ]
+        }
+      },
+      "clears": {
+        "frames": {
+          "median": 2.0,
+          "range": [
+            1,
+            2
+          ]
+        },
+        "tags": {
+          "median": 2.0,
+          "range": [
+            1,
+            2
+          ]
+        },
+        "world": {
+          "median": 1.5,
+          "range": [
+            1,
+            2
+          ]
+        }
+      },
+      "frames_defined_over_top": {
+        "median": 0.9444257592900388,
+        "range": [
+          0.8218309104123667,
+          1.061170677666141
+        ]
+      }
+    }
+  },
+  "median": {
+    "stack_pbe_v4": {
+      "defined_ratio": 0.8622195699300226,
+      "frame_over_tag_ratio": 0.792232676183471,
+      "matched_defined_ratio": null,
+      "raw_defined_ratio": 0.8724267113986593,
+      "top1_gain": 0.02980000000000005
+    },
+    "stack_pbe_world_v3": {
+      "defined_ratio": 0.8673813131312003,
+      "frame_over_tag_ratio": 0.7892608055560758,
+      "matched_defined_ratio": null,
+      "raw_defined_ratio": 0.8669885723478773,
+      "top1_gain": 0.018199999999999994
+    }
+  },
+  "missing": {
+    "frames": [],
+    "tags": [],
+    "world": []
+  },
+  "pairs": 18,
+  "primary": {
+    "corpus": "stack_pbe_v4",
+    "defined_ratio": 0.8956439727631702,
+    "epoch": 5,
+    "frame_over_tag_ratio": 0.8475884559743031,
+    "frames": {
+      "both": 13,
+      "flat": 5,
+      "quotations": 13,
+      "segmented": 5,
+      "witnesses": 45
+    },
+    "raw_defined_ratio": 0.9160152087223767,
+    "seed": 0,
+    "tags": {
+      "both": 12,
+      "flat": 5,
+      "quotations": 11,
+      "segmented": 5,
+      "witnesses": 45
+    },
+    "top1_gain": 0.01319999999999999,
+    "world": {
+      "both": 12,
+      "flat": 6,
+      "quotations": 10,
+      "segmented": 7,
+      "witnesses": 45
+    }
+  },
+  "reading": "Neither PASS nor FAIL: reported, and the owner's call.",
+  "rows": [
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.8017355545298142,
+      "epoch": 1,
+      "frame_over_tag_ratio": 0.8112605727096709,
+      "frames": {
+        "both": 5,
+        "flat": 3,
+        "quotations": 4,
+        "segmented": 4,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.8271062414784152,
+      "seed": 0,
+      "tags": {
+        "both": 7,
+        "flat": 4,
+        "quotations": 7,
+        "segmented": 4,
+        "witnesses": 45
+      },
+      "top1_gain": 0.038999999999999924,
+      "world": {
+        "both": 5,
+        "flat": 4,
+        "quotations": 5,
+        "segmented": 4,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.8423908773906433,
+      "epoch": 1,
+      "frame_over_tag_ratio": 0.8335697509665044,
+      "frames": {
+        "both": 1,
+        "flat": 1,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.8690482950947732,
+      "seed": 0,
+      "tags": {
+        "both": 1,
+        "flat": 1,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.0035000000000000586,
+      "world": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 0,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.7933992397011953,
+      "epoch": 2,
+      "frame_over_tag_ratio": 0.7921730650613537,
+      "frames": {
+        "both": 6,
+        "flat": 4,
+        "quotations": 6,
+        "segmented": 4,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.7800610816566784,
+      "seed": 0,
+      "tags": {
+        "both": 8,
+        "flat": 5,
+        "quotations": 8,
+        "segmented": 5,
+        "witnesses": 45
+      },
+      "top1_gain": 0.03969999999999996,
+      "world": {
+        "both": 6,
+        "flat": 4,
+        "quotations": 6,
+        "segmented": 4,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.8681451734991686,
+      "epoch": 2,
+      "frame_over_tag_ratio": 0.8014409009139843,
+      "frames": {
+        "both": 1,
+        "flat": 1,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.8535507310446826,
+      "seed": 0,
+      "tags": {
+        "both": 1,
+        "flat": 1,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.014599999999999946,
+      "world": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 0,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.8197328459698444,
+      "epoch": 3,
+      "frame_over_tag_ratio": 0.7606390407405929,
+      "frames": {
+        "both": 11,
+        "flat": 7,
+        "quotations": 11,
+        "segmented": 7,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.765247420301322,
+      "seed": 0,
+      "tags": {
+        "both": 11,
+        "flat": 6,
+        "quotations": 11,
+        "segmented": 6,
+        "witnesses": 45
+      },
+      "top1_gain": 0.036800000000000055,
+      "world": {
+        "both": 11,
+        "flat": 5,
+        "quotations": 10,
+        "segmented": 5,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.9068395850019336,
+      "epoch": 3,
+      "frame_over_tag_ratio": 0.8038931833921987,
+      "frames": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.8465643228858001,
+      "seed": 0,
+      "tags": {
+        "both": 1,
+        "flat": 1,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.02289999999999992,
+      "world": {
+        "both": 2,
+        "flat": 2,
+        "quotations": 2,
+        "segmented": 2,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.7934970896140645,
+      "epoch": 4,
+      "frame_over_tag_ratio": 0.7678612331591114,
+      "frames": {
+        "both": 12,
+        "flat": 7,
+        "quotations": 11,
+        "segmented": 7,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.7751039612615662,
+      "seed": 0,
+      "tags": {
+        "both": 12,
+        "flat": 7,
+        "quotations": 11,
+        "segmented": 8,
+        "witnesses": 45
+      },
+      "top1_gain": 0.032299999999999995,
+      "world": {
+        "both": 14,
+        "flat": 5,
+        "quotations": 13,
+        "segmented": 5,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.8799949471385117,
+      "epoch": 4,
+      "frame_over_tag_ratio": 0.7627818722939519,
+      "frames": {
+        "both": 2,
+        "flat": 2,
+        "quotations": 2,
+        "segmented": 2,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.8595986290726124,
+      "seed": 0,
+      "tags": {
+        "both": 2,
+        "flat": 2,
+        "quotations": 2,
+        "segmented": 2,
+        "witnesses": 44
+      },
+      "top1_gain": 0.022199999999999998,
+      "world": {
+        "both": 2,
+        "flat": 2,
+        "quotations": 2,
+        "segmented": 2,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.8956439727631702,
+      "epoch": 5,
+      "frame_over_tag_ratio": 0.8475884559743031,
+      "frames": {
+        "both": 13,
+        "flat": 5,
+        "quotations": 13,
+        "segmented": 5,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.9160152087223767,
+      "seed": 0,
+      "tags": {
+        "both": 12,
+        "flat": 5,
+        "quotations": 11,
+        "segmented": 5,
+        "witnesses": 45
+      },
+      "top1_gain": 0.01319999999999999,
+      "world": {
+        "both": 12,
+        "flat": 6,
+        "quotations": 10,
+        "segmented": 7,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.9253730216388625,
+      "epoch": 5,
+      "frame_over_tag_ratio": 0.8126541133861956,
+      "frames": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.9464222791327549,
+      "seed": 0,
+      "tags": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 2,
+        "witnesses": 44
+      },
+      "top1_gain": 0.0030000000000000027,
+      "world": {
+        "both": 2,
+        "flat": 1,
+        "quotations": 2,
+        "segmented": 2,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.8010227981195343,
+      "epoch": 6,
+      "frame_over_tag_ratio": 0.7846585028893434,
+      "frames": {
+        "both": 15,
+        "flat": 5,
+        "quotations": 14,
+        "segmented": 5,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.8125080628637775,
+      "seed": 0,
+      "tags": {
+        "both": 13,
+        "flat": 5,
+        "quotations": 12,
+        "segmented": 5,
+        "witnesses": 45
+      },
+      "top1_gain": 0.03170000000000006,
+      "world": {
+        "both": 13,
+        "flat": 4,
+        "quotations": 12,
+        "segmented": 4,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.9270679676202795,
+      "epoch": 6,
+      "frame_over_tag_ratio": 0.8287930665568802,
+      "frames": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.9403602570795828,
+      "seed": 0,
+      "tags": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.014200000000000101,
+      "world": {
+        "both": 2,
+        "flat": 1,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.7418098001591239,
+      "epoch": 1,
+      "frame_over_tag_ratio": 0.7956628275076632,
+      "frames": {
+        "both": 7,
+        "flat": 3,
+        "quotations": 7,
+        "segmented": 3,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.7255337381970036,
+      "seed": 1,
+      "tags": {
+        "both": 8,
+        "flat": 3,
+        "quotations": 8,
+        "segmented": 3,
+        "witnesses": 45
+      },
+      "top1_gain": 0.07500000000000007,
+      "world": {
+        "both": 6,
+        "flat": 2,
+        "quotations": 6,
+        "segmented": 2,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.7889577309002697,
+      "epoch": 1,
+      "frame_over_tag_ratio": 0.7535346532573433,
+      "frames": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.7716472970032996,
+      "seed": 1,
+      "tags": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.032200000000000006,
+      "world": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 0,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.9242005298180771,
+      "epoch": 2,
+      "frame_over_tag_ratio": 0.8832359054081731,
+      "frames": {
+        "both": 11,
+        "flat": 6,
+        "quotations": 11,
+        "segmented": 6,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.9034632885569099,
+      "seed": 1,
+      "tags": {
+        "both": 10,
+        "flat": 6,
+        "quotations": 10,
+        "segmented": 6,
+        "witnesses": 45
+      },
+      "top1_gain": 0.03160000000000007,
+      "world": {
+        "both": 10,
+        "flat": 4,
+        "quotations": 10,
+        "segmented": 4,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.827634199372573,
+      "epoch": 2,
+      "frame_over_tag_ratio": 0.7740175128511648,
+      "frames": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.809062063465017,
+      "seed": 1,
+      "tags": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.02100000000000002,
+      "world": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.8605834020902091,
+      "epoch": 3,
+      "frame_over_tag_ratio": 0.7918454562277288,
+      "frames": {
+        "both": 11,
+        "flat": 6,
+        "quotations": 11,
+        "segmented": 6,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.8722766161759951,
+      "seed": 1,
+      "tags": {
+        "both": 10,
+        "flat": 4,
+        "quotations": 9,
+        "segmented": 4,
+        "witnesses": 45
+      },
+      "top1_gain": 0.030100000000000016,
+      "world": {
+        "both": 12,
+        "flat": 5,
+        "quotations": 11,
+        "segmented": 5,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.8644701086956521,
+      "epoch": 3,
+      "frame_over_tag_ratio": 0.7874135804942327,
+      "frames": {
+        "both": 2,
+        "flat": 1,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.8762156509842565,
+      "seed": 1,
+      "tags": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.02190000000000003,
+      "world": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.8825729257285777,
+      "epoch": 4,
+      "frame_over_tag_ratio": 0.743832340474281,
+      "frames": {
+        "both": 13,
+        "flat": 5,
+        "quotations": 11,
+        "segmented": 5,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.8954115622176331,
+      "seed": 1,
+      "tags": {
+        "both": 12,
+        "flat": 5,
+        "quotations": 10,
+        "segmented": 5,
+        "witnesses": 45
+      },
+      "top1_gain": 0.02950000000000008,
+      "world": {
+        "both": 13,
+        "flat": 4,
+        "quotations": 12,
+        "segmented": 4,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.8509300076750224,
+      "epoch": 4,
+      "frame_over_tag_ratio": 0.7716857933599205,
+      "frames": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.8633079822864683,
+      "seed": 1,
+      "tags": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.02289999999999992,
+      "world": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.8961186250105614,
+      "epoch": 5,
+      "frame_over_tag_ratio": 0.796565420223291,
+      "frames": {
+        "both": 14,
+        "flat": 6,
+        "quotations": 12,
+        "segmented": 6,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.896798733453716,
+      "seed": 1,
+      "tags": {
+        "both": 13,
+        "flat": 6,
+        "quotations": 10,
+        "segmented": 7,
+        "witnesses": 45
+      },
+      "top1_gain": 0.01319999999999999,
+      "world": {
+        "both": 12,
+        "flat": 7,
+        "quotations": 11,
+        "segmented": 7,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.866617452763232,
+      "epoch": 5,
+      "frame_over_tag_ratio": 0.7911080306179189,
+      "frames": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.8672756611184785,
+      "seed": 1,
+      "tags": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.024700000000000055,
+      "world": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.8638557377698359,
+      "epoch": 6,
+      "frame_over_tag_ratio": 0.7763752811954571,
+      "frames": {
+        "both": 9,
+        "flat": 4,
+        "quotations": 8,
+        "segmented": 4,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.8725768066213236,
+      "seed": 1,
+      "tags": {
+        "both": 7,
+        "flat": 5,
+        "quotations": 6,
+        "segmented": 5,
+        "witnesses": 45
+      },
+      "top1_gain": 0.016100000000000003,
+      "world": {
+        "both": 12,
+        "flat": 5,
+        "quotations": 11,
+        "segmented": 5,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.8314717660733323,
+      "epoch": 6,
+      "frame_over_tag_ratio": 0.779141316146981,
+      "frames": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.8398661964554267,
+      "seed": 1,
+      "tags": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.019100000000000006,
+      "world": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.750734090517489,
+      "epoch": 1,
+      "frame_over_tag_ratio": 0.7475742037186309,
+      "frames": {
+        "both": 10,
+        "flat": 4,
+        "quotations": 9,
+        "segmented": 5,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.7702437853728776,
+      "seed": 2,
+      "tags": {
+        "both": 8,
+        "flat": 4,
+        "quotations": 8,
+        "segmented": 4,
+        "witnesses": 45
+      },
+      "top1_gain": 0.04420000000000002,
+      "world": {
+        "both": 6,
+        "flat": 4,
+        "quotations": 6,
+        "segmented": 4,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.8591150463527327,
+      "epoch": 1,
+      "frame_over_tag_ratio": 0.7642812611835307,
+      "frames": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.881443017202729,
+      "seed": 2,
+      "tags": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": -0.011399999999999966,
+      "world": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 0,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.7465066538675112,
+      "epoch": 2,
+      "frame_over_tag_ratio": 0.7898064028288984,
+      "frames": {
+        "both": 14,
+        "flat": 8,
+        "quotations": 13,
+        "segmented": 8,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.7468959555384662,
+      "seed": 2,
+      "tags": {
+        "both": 10,
+        "flat": 5,
+        "quotations": 9,
+        "segmented": 5,
+        "witnesses": 45
+      },
+      "top1_gain": 0.02939999999999998,
+      "world": {
+        "both": 11,
+        "flat": 4,
+        "quotations": 10,
+        "segmented": 5,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.8186346753479843,
+      "epoch": 2,
+      "frame_over_tag_ratio": 0.7576991917080589,
+      "frames": {
+        "both": 2,
+        "flat": 2,
+        "quotations": 2,
+        "segmented": 2,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.8190615576717308,
+      "seed": 2,
+      "tags": {
+        "both": 2,
+        "flat": 1,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.02200000000000002,
+      "world": {
+        "both": 2,
+        "flat": 1,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.9331100682756491,
+      "epoch": 3,
+      "frame_over_tag_ratio": 0.8298132371437386,
+      "frames": {
+        "both": 14,
+        "flat": 7,
+        "quotations": 13,
+        "segmented": 7,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.9043202920141389,
+      "seed": 2,
+      "tags": {
+        "both": 11,
+        "flat": 9,
+        "quotations": 10,
+        "segmented": 9,
+        "witnesses": 45
+      },
+      "top1_gain": 0.027200000000000002,
+      "world": {
+        "both": 11,
+        "flat": 6,
+        "quotations": 11,
+        "segmented": 6,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.894292733558846,
+      "epoch": 3,
+      "frame_over_tag_ratio": 0.7916350206996022,
+      "frames": {
+        "both": 2,
+        "flat": 1,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.866701483577276,
+      "seed": 2,
+      "tags": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.012199999999999989,
+      "world": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.9075510025774322,
+      "epoch": 4,
+      "frame_over_tag_ratio": 0.8328514229302492,
+      "frames": {
+        "both": 14,
+        "flat": 8,
+        "quotations": 14,
+        "segmented": 8,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.9131512329396706,
+      "seed": 2,
+      "tags": {
+        "both": 10,
+        "flat": 6,
+        "quotations": 8,
+        "segmented": 6,
+        "witnesses": 45
+      },
+      "top1_gain": 0.019200000000000106,
+      "world": {
+        "both": 14,
+        "flat": 5,
+        "quotations": 14,
+        "segmented": 5,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.9616456447501833,
+      "epoch": 4,
+      "frame_over_tag_ratio": 0.8337952056173465,
+      "frames": {
+        "both": 1,
+        "flat": 1,
+        "quotations": 1,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.9675791415561878,
+      "seed": 2,
+      "tags": {
+        "both": 2,
+        "flat": 2,
+        "quotations": 2,
+        "segmented": 2,
+        "witnesses": 44
+      },
+      "top1_gain": -0.005700000000000038,
+      "world": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.8732879533045727,
+      "epoch": 5,
+      "frame_over_tag_ratio": 0.7922922873055885,
+      "frames": {
+        "both": 14,
+        "flat": 5,
+        "quotations": 13,
+        "segmented": 5,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.8857302542393036,
+      "seed": 2,
+      "tags": {
+        "both": 12,
+        "flat": 7,
+        "quotations": 10,
+        "segmented": 7,
+        "witnesses": 45
+      },
+      "top1_gain": 0.016199999999999992,
+      "world": {
+        "both": 13,
+        "flat": 4,
+        "quotations": 11,
+        "segmented": 5,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.8813993033771066,
+      "epoch": 5,
+      "frame_over_tag_ratio": 0.7823430279716843,
+      "frames": {
+        "both": 2,
+        "flat": 1,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.893957027224412,
+      "seed": 2,
+      "tags": {
+        "both": 2,
+        "flat": 2,
+        "quotations": 2,
+        "segmented": 2,
+        "witnesses": 44
+      },
+      "top1_gain": 0.017299999999999982,
+      "world": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 0,
+        "witnesses": 44
+      }
+    },
+    {
+      "corpus": "stack_pbe_v4",
+      "defined_ratio": 0.9061459694071047,
+      "epoch": 6,
+      "frame_over_tag_ratio": 0.8124369329872159,
+      "frames": {
+        "both": 17,
+        "flat": 6,
+        "quotations": 15,
+        "segmented": 6,
+        "witnesses": 45
+      },
+      "raw_defined_ratio": 0.9118648388253542,
+      "seed": 2,
+      "tags": {
+        "both": 11,
+        "flat": 6,
+        "quotations": 9,
+        "segmented": 6,
+        "witnesses": 45
+      },
+      "top1_gain": 0.019100000000000006,
+      "world": {
+        "both": 14,
+        "flat": 5,
+        "quotations": 12,
+        "segmented": 5,
+        "witnesses": 45
+      }
+    },
+    {
+      "corpus": "stack_pbe_world_v3",
+      "defined_ratio": 0.9306247335266817,
+      "epoch": 6,
+      "frame_over_tag_ratio": 0.8006699429655794,
+      "frames": {
+        "both": 1,
+        "flat": 0,
+        "quotations": 1,
+        "segmented": 0,
+        "witnesses": 44
+      },
+      "raw_defined_ratio": 0.9364987030767712,
+      "seed": 2,
+      "tags": {
+        "both": 2,
+        "flat": 1,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      },
+      "top1_gain": 0.006800000000000028,
+      "world": {
+        "both": 2,
+        "flat": 0,
+        "quotations": 2,
+        "segmented": 1,
+        "witnesses": 44
+      }
+    }
+  ],
+  "truncation": {
+    "stack_pbe_v4": {
+      "frames_clipped": 41,
+      "under_mark": 8266
+    },
+    "stack_pbe_world_v3": {
+      "flat_clipped": 14013,
+      "frames_clipped": 19753,
+      "frames_innermost_label_cut": 3244,
+      "frames_outer_label_cut": 9371,
+      "tags_clipped": 14667,
+      "tags_innermost_label_cut": 1674,
+      "tags_outer_label_cut": 3581,
+      "under_mark": 48474
+    }
+  },
+  "verdict": "WEAK"
+}
