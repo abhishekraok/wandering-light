@@ -1,0 +1,470 @@
+{
+  "s0-e1": {
+    "accumulated_deficit": {
+      "median": 98.96
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 22.8,
+    "per_step_deficit": {
+      "max": 1.5309,
+      "median": 0.6353,
+      "min": 0.2872
+    },
+    "survival_depth": {
+      "max": 30,
+      "median": 3.0
+    },
+    "top1_share": 0.645,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  },
+  "s0-e2": {
+    "accumulated_deficit": {
+      "median": 104.91
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 24.5,
+    "per_step_deficit": {
+      "max": 1.8225,
+      "median": 0.6816,
+      "min": 0.2598
+    },
+    "survival_depth": {
+      "max": 30,
+      "median": 3.0
+    },
+    "top1_share": 0.708,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  },
+  "s0-e3": {
+    "accumulated_deficit": {
+      "median": 124.57
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 27.9,
+    "per_step_deficit": {
+      "max": 2.3685,
+      "median": 0.7762,
+      "min": 0.0
+    },
+    "survival_depth": {
+      "max": 28,
+      "median": 3.0
+    },
+    "top1_share": 0.71,
+    "within_budget": 2,
+    "within_budget_share": 0.045,
+    "witnesses": 44
+  },
+  "s0-e4": {
+    "accumulated_deficit": {
+      "median": 117.63
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 25.6,
+    "per_step_deficit": {
+      "max": 2.4202,
+      "median": 0.7134,
+      "min": 0.1026
+    },
+    "survival_depth": {
+      "max": 28,
+      "median": 3.0
+    },
+    "top1_share": 0.73,
+    "within_budget": 2,
+    "within_budget_share": 0.045,
+    "witnesses": 44
+  },
+  "s0-e5": {
+    "accumulated_deficit": {
+      "median": 110.24
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 23.8,
+    "per_step_deficit": {
+      "max": 2.2211,
+      "median": 0.6608,
+      "min": 0.1679
+    },
+    "survival_depth": {
+      "max": 28,
+      "median": 3.0
+    },
+    "top1_share": 0.75,
+    "within_budget": 2,
+    "within_budget_share": 0.045,
+    "witnesses": 44
+  },
+  "s0-e6": {
+    "accumulated_deficit": {
+      "median": 115.87
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 25.2,
+    "per_step_deficit": {
+      "max": 2.3677,
+      "median": 0.7007,
+      "min": 0.1933
+    },
+    "survival_depth": {
+      "max": 29,
+      "median": 3.0
+    },
+    "top1_share": 0.737,
+    "within_budget": 1,
+    "within_budget_share": 0.023,
+    "witnesses": 44
+  },
+  "s1-e1": {
+    "accumulated_deficit": {
+      "median": 106.74
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 25.5,
+    "per_step_deficit": {
+      "max": 1.5621,
+      "median": 0.7097,
+      "min": 0.2725
+    },
+    "survival_depth": {
+      "max": 57,
+      "median": 3.0
+    },
+    "top1_share": 0.625,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  },
+  "s1-e2": {
+    "accumulated_deficit": {
+      "median": 106.66
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 23.5,
+    "per_step_deficit": {
+      "max": 1.8976,
+      "median": 0.6527,
+      "min": 0.1975
+    },
+    "survival_depth": {
+      "max": 32,
+      "median": 3.0
+    },
+    "top1_share": 0.708,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  },
+  "s1-e3": {
+    "accumulated_deficit": {
+      "median": 118.28
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 26.4,
+    "per_step_deficit": {
+      "max": 2.1741,
+      "median": 0.7353,
+      "min": 0.2215
+    },
+    "survival_depth": {
+      "max": 28,
+      "median": 3.0
+    },
+    "top1_share": 0.705,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  },
+  "s1-e4": {
+    "accumulated_deficit": {
+      "median": 105.02
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 24.0,
+    "per_step_deficit": {
+      "max": 2.1095,
+      "median": 0.6689,
+      "min": 0.201
+    },
+    "survival_depth": {
+      "max": 51,
+      "median": 3.0
+    },
+    "top1_share": 0.731,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  },
+  "s1-e5": {
+    "accumulated_deficit": {
+      "median": 122.36
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 27.4,
+    "per_step_deficit": {
+      "max": 2.4487,
+      "median": 0.7635,
+      "min": 0.2528
+    },
+    "survival_depth": {
+      "max": 20,
+      "median": 2.5
+    },
+    "top1_share": 0.726,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  },
+  "s1-e6": {
+    "accumulated_deficit": {
+      "median": 104.99
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 26.4,
+    "per_step_deficit": {
+      "max": 2.3743,
+      "median": 0.7339,
+      "min": 0.1463
+    },
+    "survival_depth": {
+      "max": 72,
+      "median": 3.0
+    },
+    "top1_share": 0.74,
+    "within_budget": 1,
+    "within_budget_share": 0.023,
+    "witnesses": 44
+  },
+  "s2-e1": {
+    "accumulated_deficit": {
+      "median": 97.88
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 23.3,
+    "per_step_deficit": {
+      "max": 1.4251,
+      "median": 0.648,
+      "min": 0.2543
+    },
+    "survival_depth": {
+      "max": 30,
+      "median": 3.0
+    },
+    "top1_share": 0.664,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  },
+  "s2-e2": {
+    "accumulated_deficit": {
+      "median": 109.26
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 24.1,
+    "per_step_deficit": {
+      "max": 1.8968,
+      "median": 0.6708,
+      "min": 0.1057
+    },
+    "survival_depth": {
+      "max": 30,
+      "median": 3.0
+    },
+    "top1_share": 0.689,
+    "within_budget": 1,
+    "within_budget_share": 0.023,
+    "witnesses": 44
+  },
+  "s2-e3": {
+    "accumulated_deficit": {
+      "median": 106.56
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 23.6,
+    "per_step_deficit": {
+      "max": 1.8684,
+      "median": 0.6568,
+      "min": 0.2234
+    },
+    "survival_depth": {
+      "max": 28,
+      "median": 3.0
+    },
+    "top1_share": 0.713,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  },
+  "s2-e4": {
+    "accumulated_deficit": {
+      "median": 103.93
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 23.2,
+    "per_step_deficit": {
+      "max": 2.0089,
+      "median": 0.6455,
+      "min": 0.2204
+    },
+    "survival_depth": {
+      "max": 28,
+      "median": 2.5
+    },
+    "top1_share": 0.738,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  },
+  "s2-e5": {
+    "accumulated_deficit": {
+      "median": 102.49
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 22.7,
+    "per_step_deficit": {
+      "max": 2.013,
+      "median": 0.6308,
+      "min": 0.1986
+    },
+    "survival_depth": {
+      "max": 51,
+      "median": 2.0
+    },
+    "top1_share": 0.742,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  },
+  "s2-e6": {
+    "accumulated_deficit": {
+      "median": 101.16
+    },
+    "budget_nats": 4.159,
+    "budget_per_step_at_median_length": 0.0278,
+    "length": {
+      "max": 827,
+      "median": 149.5,
+      "min": 8
+    },
+    "over_budget_factor_at_median": 25.5,
+    "per_step_deficit": {
+      "max": 2.2373,
+      "median": 0.7102,
+      "min": 0.1562
+    },
+    "survival_depth": {
+      "max": 28,
+      "median": 2.0
+    },
+    "top1_share": 0.757,
+    "within_budget": 0,
+    "within_budget_share": 0.0,
+    "witnesses": 44
+  }
+}

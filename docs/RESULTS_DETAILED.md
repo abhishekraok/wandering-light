@@ -511,6 +511,28 @@ Registered predictions (before the run): 80-85% coverage on v4 and 55-60% on wor
 
 Caveat: one run, one host, one checkpoint, 44 tasks. Below full coverage the 71.1 s is what was spent without clearing the set, not a cost to clear.
 
+## A clean v4 + full world-v3 policy, measured on world data (#161)
+
+`experiments/world_arm.py`, run dir `checkpoints/world-arm-20260922`. #101's 1m recipe (LR 1.25e-4, batch 256, six epochs, three seeds, every epoch snapshotted) over **429,078 fit and 26,040 validation rows across 786 behaviours** -- v4 train plus the whole world-v3 train split, validation pinned to the v4 holdout as #134 pinned it, dropping the three behaviours #134 found sharing a witness with a v4 eval behaviour. Row counts reproduce #134's mixed arm exactly. Measured on the 44 world-v3 eval witnesses. [report](../reports/world-arm-20260922/README.md), `deficit.json`
+
+Median per-step deficit along those witnesses, every policy measured on them so far:
+
+| policy | trained on | deficit (nats) | over budget | top-1 share |
+|---|---|---:|---:|---:|
+| `staged-s0-e3` (BEST) | v4 staged | 4.19 | 150.7x | 0.333 |
+| `fused-s0-e3` | v4 fused | 3.79 | 136.4x | 0.405 |
+| `refused-s0-e3` | v4 re-fused | 3.29 | 118.3x | 0.361 |
+| #136 `ablated` | v4 + world - 159 | 1.10 | 39.6x | 0.582 |
+| #136 `random` | v4 + world - 159 | 0.76 | 27.2x | 0.696 |
+| **this arm** | v4 + **full** world-v3 | **0.66** | **23.9x** | 0.745 |
+
+- **Seeing world data is worth a factor of 5 to 6**, the largest single effect measured on this split.
+- **It is saturating.** The 159 behaviours the #136 arms were missing are worth 0.76 -> 0.66, **13% for a third more world data**. Deficit is flat in training length too: per-epoch means 0.664 / 0.668 / 0.723 / 0.676 / 0.685 / 0.715 over epochs 1-6, a spread of 0.06 against a within-epoch seed spread of up to 0.13. Top-1 share rises 0.645 -> 0.745 with training while the deficit does not fall, so the policy becomes more often exactly right without the wrong steps getting cheaper.
+- **Coverage does not move.** Acceptance test, seed 0, the same search `solve.BEST` runs: epoch 1 solves **0 of 44** (79.9 s), epoch 3 solves **1 of 44** (81.0 s), against BEST's 1 of 44. A **6.3x** reduction in per-step deficit produces no change in coverage. At this range the steering metric and the acceptance metric are decoupled, and a campaign judged on coverage alone would have called this arm indistinguishable from doing nothing.
+- **What is left is L.** The remaining gap is 23.9x: 0.66 nats against a 0.0278 budget at the median 150-op witness. At the authoring library's median macro form of 28.5 tokens the budget is 0.146, and composing that with 0.66 gives 18.8 nats against 4.159 -- **4.5x** over rather than 150x. Arithmetic on today's numbers, not a forecast: a policy over macro actions has its own unmeasured deficits.
+
+Caveats: three seeds, one corpus, one recipe, one 44-task split. The lowest-deficit epoch is chosen on the eval split, but the deficit is flat across epochs and both acceptance runs are reported rather than the better one. Deficit is measured along authored witnesses, which is not the difficulty of a behaviour (`docs/STATUS.md`, Superseded).
+
 ## Policy size at a fixed epoch, on the staged rows (#159)
 
 `experiments/size_at_fixed_epoch.py`. The staged arm of staged-witness-reauthoring (#155) (`arm_rows("staged")`, draw seed 20260920, 6 contrived rows excluded; 123 treated behaviours, 4,920 of 6,360 fit tasks, 313,560 rows per epoch) trained at 1m / 2m / 10m, seeds 0 / 1 / 2, 6 epochs, every epoch snapshotted, at #101's probe learning rates (1.25e-4 / 6.25e-5 / 3.125e-5), batch 256, validation on the fused holdout. Cohort search at beam 64 x depth 48, guard `both`, library off, with the #157 state cap, epochs 3-6. Verified = 10,000-draw `genuine` or catalogue-witness-equal. **Epoch 3 was pre-registered as the comparison** before the run, because picking each size's best epoch reads the eval cohort (#154). The gate was registered as CE equal to four decimals and passed **bitwise**: the retrained 1m seed-0 epoch-3 checkpoint is byte-identical to the published `staged-s0-e3` (max |dw| = 0.0), so this is #155's staged arm continued. [report](../reports/size-20260922/README.md), `cells.json`
