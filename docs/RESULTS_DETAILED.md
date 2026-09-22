@@ -494,6 +494,18 @@ Registered predictions (before the run): 80-85% coverage on v4 and 55-60% on wor
 | `stack_pbe_world_v3` | 44 | 150 | **4.19** | 0.028 | **150.7x** | 1 of 44 | 2 | 0.33 |
 
   Survival depth is the step at which accumulated deficit first exceeds `ln 64`, so the step a beam of 64 would drop the witness. **Shortening L does not close this**: at the macro form's median 28.5 tokens (#144) the budget is 0.146 against a measured 4.19, still 28.7x over; at the measured deficit a witness would have to be under one op on world-v3 to fit. No reachable width helps either -- carrying world-v3's median witness needs `ln W` >= 627.
+- **Training on world data cuts that deficit fivefold, where coverage sees nothing.** Five 1m checkpoints, seed 0 epoch 3, same recipe, on the same 44 world-v3 eval witnesses (`deficit_by_policy.json`):
+
+| policy | trained on | per-step deficit | over budget | top-1 share | median survival depth | solved /44 |
+|---|---|---:|---:|---:|---:|---:|
+| `staged-s0-e3` (BEST) | v4 staged | 4.19 | 150.7x | 0.333 | 2 | 1 |
+| `fused-s0-e3` (#155) | v4 fused | 3.79 | 136.4x | 0.405 | 1 | — |
+| `refused-s0-e3` (#155) | v4 re-fused | 3.29 | 118.3x | 0.361 | 1.5 | — |
+| #136 `ablated` | v4 + world - 159 | **1.10** | 39.6x | 0.582 | 3 | — |
+| #136 `random` | v4 + world - 159 | **0.76** | 27.2x | 0.696 | 3 | — |
+
+  The v4-only policies cluster at 3.3-4.2 nats and the world-trained ones at 0.76-1.10, against a spread of 0.9 among the v4-only variants themselves, so the staged-versus-fused confound accounts for at most a fifth of the gap. Both #136 arms dropped 159 world behaviours from training, so a clean v4-plus-full-world arm should sit below 0.76. **Coverage is blind to all of this**: the split is at 1 of 44 for every policy measured, which is why the depth ladder could be run and learn nothing, and why deficit is the metric that can steer a split at 2%.
+- **How far is left.** At 0.755 nats and a median 150-op witness the accumulated deficit is 113 nats against a 4.16 budget: 27x over, and a witness would have to be 5.5 ops to fit. World training plus the macro form's 28.5 tokens (#144) gives 21.5 nats, 5.2x over rather than 150x. That is arithmetic on current numbers, not a prediction -- a policy over macro actions would have its own deficits, unmeasured -- but it is the first combination within an order of magnitude, and the reason to measure the two levers together.
 - **But deficit along an authored witness is not difficulty of a behaviour.** The same system solves 180 of 300 v4 cohort tasks and grades 18 behaviours while only 5 of 45 v4 eval witnesses are within budget, so the search routinely finds other, easier programs. `docs/STATUS.md` records the `ln W` law as conservative (83.7% accurate, 0 false positives, 7 false negatives); these numbers are that conservatism at a larger scale. The measurement establishes that this policy is nowhere near the programs we know solve these behaviours, and three times further away on world data; it cannot decide whether a shorter vocabulary would help, because a macro library changes which programs exist.
 - 99.7% of the clock goes to tasks the system does not solve.
 
