@@ -152,15 +152,22 @@ def commitments(program: Sequence[str], first_input: str) -> dict[int, tuple]:
 
 
 class CommitmentModel:
-    """``-log p(choice | shape)`` from train-split counts, add-one smoothed."""
+    """``-log p(choice | shape)`` from train-split counts, add-one smoothed.
+
+    Smoothing is over a closed vocabulary, so the probabilities of every
+    possible choice under a shape sum to one: no consumer, each non-`ifte`
+    consumer with 0..K captures, and `ifte` at each of its three roles with
+    0..K captures, where K is one more than the most captures seen in train.
+    """
 
     def __init__(self, counts: Counter):
         self.joint = counts
         self.by_shape = Counter()
         for (shape, _choice), n in counts.items():
             self.by_shape[shape] += n
-        # Every choice seen anywhere in train, plus one slot for an unseen one.
-        self.vocabulary = len({choice for _shape, choice in counts}) + 1
+        most = max((choice[2] for _shape, choice in counts), default=0)
+        self.max_captures = most + 1
+        self.vocabulary = 1 + (len(COMBINATORS) - 1 + 3) * (self.max_captures + 1)
 
     @classmethod
     def fit(cls, corpus: str) -> CommitmentModel:
@@ -172,6 +179,8 @@ class CommitmentModel:
         return cls(counts)
 
     def cost(self, shape: str, choice: tuple) -> float:
+        if choice[2] > self.max_captures:
+            raise ValueError(f"{choice} is outside the commitment vocabulary")
         n = self.joint.get((shape, choice), 0)
         return -math.log((n + 1) / (self.by_shape.get(shape, 0) + self.vocabulary))
 
@@ -199,11 +208,11 @@ def step_classes(task: Task, walks) -> tuple[list[str], list[str | None]]:
             tags.append(None)
             continue
         inner = [v[-1] for v in per]
-        kinds = {t for t, _role, _virtual in inner}
+        kinds = {t for t, _role, _captures, _virtual in inner}
         if (
             len(kinds) == 1
             and next(iter(kinds)) in COMBINATORS
-            and all(virtual is not None for _t, _r, virtual in inner)
+            and all(virtual is not None for _t, _r, _c, virtual in inner)
         ):
             classes.append("defined")
         elif all(
@@ -249,7 +258,7 @@ def walk(
                 legal[0, index] = True
         want = OP_INDEX[name]
         if mask and classes[step] == "defined":
-            inner = [views[step][-1][2] for _states, views in walks]
+            inner = [views[step][-1][3] for _states, views in walks]
             for index, op in enumerate(OPS):
                 if legal[0, index] and op.name not in STRUCTURAL:
                     legal[0, index] = frame_legal(inner, op.name)
@@ -363,6 +372,10 @@ def exchange_rate(
 # ---------------------------------------------------------------------------
 
 _VALIDATION: dict[str | None, list] = {}
+_LEGAL: list[np.ndarray] = []
+# log T is searched over [1/64, 64]; an optimum at either edge is reported, and
+# the gate refuses a verdict on it, rather than being silently clipped.
+T_BOUNDS = (1 / 64, 64.0)
 
 
 def validation_rows(encoding: str | None) -> list:
@@ -377,8 +390,29 @@ def validation_rows(encoding: str | None) -> list:
     return _VALIDATION[encoding]
 
 
-def fit_temperature(scorer: PolicyScorer, rows: Sequence) -> dict[str, float]:
-    """The temperature minimising validation cross-entropy, by golden section on log T."""
+def validation_legal() -> np.ndarray:
+    """The machine's legal mask at every validation row, in `witness_rows` order.
+
+    A deficit is taken over the legal ops only, so the temperature is fitted
+    over them too: an illegal op's logit must not move it.
+    """
+    if not _LEGAL:
+        _fit, held = co.split_tasks(wa.configure())
+        for task in held:
+            states = replay_states(task)
+            for step in range(len(task.program)):
+                legal = np.zeros(len(OPS), dtype=bool)
+                for index, op in enumerate(OPS):
+                    if step_all_quiet(states[step], op)[0] is not None:
+                        legal[index] = True
+                _LEGAL.append(legal)
+    return np.stack(_LEGAL)
+
+
+def fit_temperature(
+    scorer: PolicyScorer, rows: Sequence, legal: np.ndarray | None = None
+) -> dict[str, float]:
+    """The temperature minimising masked validation cross-entropy, by golden section on log T."""
     logits = np.concatenate(
         [
             scorer.logits([row.items for row in rows[i : i + 512]])
@@ -386,6 +420,13 @@ def fit_temperature(scorer: PolicyScorer, rows: Sequence) -> dict[str, float]:
         ]
     ).astype(np.float64)
     labels = np.array([row.label for row in rows])
+    if legal is not None:
+        if (
+            legal.shape != logits.shape
+            or not legal[np.arange(len(labels)), labels].all()
+        ):
+            raise ValueError("the legal mask must cover every row and its label")
+        logits = np.where(legal, logits, -np.inf)
 
     def nll(log_t: float) -> float:
         z = logits / math.exp(log_t)
@@ -393,7 +434,7 @@ def fit_temperature(scorer: PolicyScorer, rows: Sequence) -> dict[str, float]:
         lse = np.log(np.exp(z).sum(axis=1))
         return float(np.mean(lse - z[np.arange(len(labels)), labels]))
 
-    lo, hi = math.log(0.25), math.log(4.0)
+    lo, hi = math.log(T_BOUNDS[0]), math.log(T_BOUNDS[1])
     ratio = (math.sqrt(5) - 1) / 2
     a, b = hi - ratio * (hi - lo), lo + ratio * (hi - lo)
     fa, fb = nll(a), nll(b)
@@ -407,10 +448,12 @@ def fit_temperature(scorer: PolicyScorer, rows: Sequence) -> dict[str, float]:
             b = lo + ratio * (hi - lo)
             fb = nll(b)
     best = (lo + hi) / 2
+    edge = min(best - math.log(T_BOUNDS[0]), math.log(T_BOUNDS[1]) - best)
     return {
         "temperature": round(math.exp(best), 5),
         "validation_ce": round(nll(0.0), 5),
         "calibrated_validation_ce": round(nll(best), 5),
+        "at_boundary": bool(edge < 1e-3),
     }
 
 
@@ -434,7 +477,7 @@ def commit_charges(corpus: str, tasks: Sequence[Task]) -> dict[str, list[float]]
 
 
 def measure_cells(scorer: PolicyScorer, *, encoding: str | None, log) -> dict[str, Any]:
-    calibration = fit_temperature(scorer, validation_rows(encoding))
+    calibration = fit_temperature(scorer, validation_rows(encoding), validation_legal())
     t = calibration["temperature"]
     log(f"calibration {calibration}")
     cells: dict[str, Any] = {"calibration": calibration}
@@ -656,9 +699,9 @@ def measure(
 # commitment charged, on calibrated deficits, at the primary cell; ratios are
 # of calibrated defined-body deficit totals, medians over matched cells. The
 # clear thresholds are the world arm's own exchange rate at `PRIMARY`: 12 at
-# its measured deficit, 19 with defined-body deficit halved.
+# its measured deficit, 18 with defined-body deficit halved.
 PRIMARY = (0, 5)
-PASS_CLEARS, FAIL_CLEARS = 19, 12
+PASS_CLEARS, FAIL_CLEARS = 18, 12
 PASS_RATIO, FAIL_RATIO = 0.6, 0.85
 # The frame must add this much over the tag alone for a PASS to be the frame's.
 FRAME_RATIO = 0.85
@@ -668,8 +711,18 @@ def _defined(cell, corpus):
     return cell[corpus]["machine_mask"]["body"]["defined"]
 
 
-def report(run_dir: Path, log) -> dict[str, Any]:
-    """Pair every measured cell of the three arms and read the registered gate off them."""
+REQUIRED = tuple((s, e) for s in wa.SEEDS for e in range(1, wa.EPOCHS + 1))
+
+
+def report(
+    run_dir: Path, log, required: Sequence[tuple[int, int]] = REQUIRED
+) -> dict[str, Any]:
+    """Pair every measured cell of the arms and read the registered gate off them.
+
+    No verdict is given until every ``required`` cell of frames, tags and world
+    is measured (and of the matched frames arm, for a FAIL), or while any of
+    them was calibrated at the edge of the temperature search.
+    """
     cells: dict[str, dict[tuple[int, int], dict]] = {
         "frames": {},
         MATCHED: {},
@@ -679,7 +732,17 @@ def report(run_dir: Path, log) -> dict[str, Any]:
     for path in sorted((run_dir / "measure").glob("*.json")):
         arm, s, e = path.stem.split("-")
         cells[arm][int(s[1:]), int(e[1:])] = json.loads(path.read_text())["cells"]
-    pairs = sorted(set(cells["frames"]) & set(cells["world"]))
+    required = set(required)
+    missing = {
+        arm: sorted(required - set(cells[arm])) for arm in ("frames", "tags", "world")
+    }
+    boundary = sorted(
+        f"{arm}-s{key[0]}-e{key[1]}"
+        for arm, measured in cells.items()
+        for key, cell in measured.items()
+        if key in required and cell["calibration"].get("at_boundary")
+    )
+    pairs = sorted(required & set(cells["frames"]) & set(cells["world"]))
     table = []
     for key in pairs:
         for corpus in CORPORA:
@@ -729,17 +792,18 @@ def report(run_dir: Path, log) -> dict[str, Any]:
     gain = median_of("top1_gain", "stack_pbe_v4")
     frame = median_of("frame_over_tag_ratio", "stack_pbe_v4")
     verdict = None
-    if primary is not None:
+    if any(missing.values()):
+        verdict = "INCOMPLETE"
+    elif boundary:
+        verdict = "CALIBRATION_AT_BOUNDARY"
+    elif primary is not None:
         clears = primary["frames"]["both"]
         if clears >= PASS_CLEARS and full < PASS_RATIO and gain > 0:
-            if frame is None:
-                verdict = "PASS_WITHOUT_TAG_CONTROL"
-            else:
-                verdict = "PASS" if frame < FRAME_RATIO else "TAG"
+            verdict = "PASS" if frame < FRAME_RATIO else "TAG"
         elif clears <= FAIL_CLEARS and full >= FAIL_RATIO:
             # FAIL must hold at both frames rates, or it is a failure of the rate.
             matched = median_of("matched_defined_ratio", "stack_pbe_v4")
-            if matched is None or "matched" not in primary:
+            if required - set(cells[MATCHED]) or "matched" not in primary:
                 verdict = "FAIL_AT_TUNED_RATE_ONLY"
             elif primary["matched"]["both"] <= FAIL_CLEARS and matched >= FAIL_RATIO:
                 verdict = "FAIL"
@@ -749,6 +813,8 @@ def report(run_dir: Path, log) -> dict[str, Any]:
             verdict = "WEAK"
     out = {
         "pairs": len(pairs),
+        "missing": missing,
+        "calibration_at_boundary": boundary,
         "primary": primary,
         "median": {
             corpus: {

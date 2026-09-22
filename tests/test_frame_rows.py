@@ -1,5 +1,6 @@
 """The frame-conditioned re-encoding of witness rows (inner-frames #160 E2)."""
 
+import random
 import sys
 from pathlib import Path
 
@@ -7,8 +8,6 @@ import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-import random
 
 from experiments.frame_rows import META, frame_product, frame_state, frame_witness_rows
 from wandering_light.stack_machine import Bool, Int, Lst, Mark, Sym
@@ -21,50 +20,50 @@ def task(name, seed=0):
     return build_task(BY_NAME[name], draw_task(BY_NAME[name], rng, 4, held_out=6))
 
 
+def label(tag, role=0, captures=0):
+    return (META, Sym(tag), Int(role), Int(captures))
+
+
 def test_a_top_level_state_is_untouched():
     state = (Lst((Int(1), Int(2))), Int(3))
     assert frame_state(state, ()) is state
 
 
-def test_a_defined_level_keeps_its_items_and_adds_its_tag_and_frame():
+def test_a_defined_level_keeps_its_items_and_adds_its_label_and_frame():
     state = (Lst((Int(-9),)), Mark(), Int(1), Sym("add"))
-    got = frame_state(state, (("map", 0, (Int(-8),)),))
-    assert got == (
-        Lst((Int(-9),)),
-        Mark(),
-        Int(1),
-        Sym("add"),
-        META,
-        Sym("map"),
-        Int(-8),
-    )
+    view = (("map", 0, 0, (Int(-8),)),)
+    assert frame_state(state, view) == (
+        Lst((Int(-9),)), Mark(), Int(1), Sym("add"), *label("map"), Int(-8)
+    )  # fmt: skip
     # The first design replaced the written body; it is kept only for its probe.
-    replaced = frame_state(state, (("map", 0, (Int(-8),)),), "replace")
-    assert replaced == (Lst((Int(-9),)), Mark(), Sym("map"), Int(-8))
+    assert frame_state(state, view, "replace") == (
+        Lst((Int(-9),)), Mark(), *label("map")[1:], Int(-8)
+    )  # fmt: skip
 
 
 def test_an_ifte_body_carries_its_role():
     state = (Int(4), Lst((Sym("dup"),)), Mark(), Sym("drop"))
-    got = frame_state(state, (("ifte", 1, (Int(4),)),))
+    got = frame_state(state, (("ifte", 1, 0, (Int(4),)),))
     assert got == (
-        Int(4), Lst((Sym("dup"),)), Mark(), Sym("drop"), META, Sym("ifte"), Int(1), Int(4)
+        Int(4), Lst((Sym("dup"),)), Mark(), Sym("drop"), *label("ifte", 1), Int(4)
+    )  # fmt: skip
+
+
+def test_the_label_carries_the_closure_capture_count():
+    """`x [ lt? ] swap cons filter`: the frame shows x, so the label says one capture."""
+    state = (Lst((Int(5),)), Int(4), Mark(), Sym("lt?"))
+    view = (("filter", 0, 1, (Bool(False),)),)
+    assert frame_state(state, view, "tags") == (
+        Lst((Int(5),)), Int(4), Mark(), Sym("lt?"), *label("filter", 0, 1)
     )  # fmt: skip
 
 
 def test_an_undefined_level_keeps_the_machines_items():
     state = (Int(1), Mark(), Sym("lt?"), Mark(), Int(0))
-    views = (("filter", 0, None), ("map", 0, (Bool(True),)))
-    got = frame_state(state, views)
-    assert got == (
-        Int(1),
-        Mark(),
-        Sym("lt?"),
-        Mark(),
-        Int(0),
-        META,
-        Sym("map"),
-        Bool(True),
-    )
+    views = (("filter", 0, 0, None), ("map", 0, 0, (Bool(True),)))
+    assert frame_state(state, views) == (
+        Int(1), Mark(), Sym("lt?"), Mark(), Int(0), *label("map"), Bool(True)
+    )  # fmt: skip
 
 
 def test_marks_and_levels_must_agree():
@@ -86,22 +85,18 @@ def test_a_witness_without_quotations_gives_the_flat_rows():
 def test_a_map_body_runs_on_the_first_item():
     t = task("increment_each")
     assert t.program == ("[", "1", "add", "]", "map")
-    # Before `add` each example shows the written `1`, then `META, map` and the
-    # frame (first item, 1); before `]` the frame has run `add`: first item + 1.
+    # Before `add` each example shows the written `1`, the label, and the frame
+    # (first item, 1); before `]` the frame has run `add`: the first item + 1.
+    product = frame_product(t)
     for before_add, before_close, text in zip(
-        frame_product(t)[2], frame_product(t)[3], t.inputs, strict=True
+        product[2], product[3], t.inputs, strict=True
     ):
         mark = next(i for i, v in enumerate(before_close) if isinstance(v, Mark))
-        assert before_add[mark + 1 : mark + 4] == (Int(1), META, Sym("map"))
-        first, one = before_add[mark + 4 :]
+        assert before_add[mark + 1 : mark + 6] == (Int(1), *label("map"))
+        first, one = before_add[mark + 6 :]
         assert one == Int(1)
-        assert before_close[mark + 1 : mark + 5] == (
-            Int(1),
-            Sym("add"),
-            META,
-            Sym("map"),
-        )
-        assert before_close[mark + 5 :] == (Int(first.value + 1),), text
+        assert before_close[mark + 1 : mark + 7] == (Int(1), Sym("add"), *label("map"))
+        assert before_close[mark + 7 :] == (Int(first.value + 1),), text
     # The rows differ from the flat ones exactly on the three body steps.
     flat, framed = witness_rows([t]), frame_witness_rows([t])
     differs = [
@@ -110,12 +105,12 @@ def test_a_map_body_runs_on_the_first_item():
     assert differs == [False, True, True, True, False]
 
 
-def test_the_tag_control_shows_the_tag_but_keeps_the_machines_items():
+def test_the_tag_control_shows_the_label_but_not_the_frame():
     state = (Lst((Int(-9),)), Mark(), Int(1), Sym("add"))
-    got = frame_state(state, (("map", 0, (Int(-8),)),), "tags")
-    assert got == (Lst((Int(-9),)), Mark(), Int(1), Sym("add"), META, Sym("map"))
-    # An undefined level shows no tag in either encoding.
-    undefined = (("map", 0, None),)
+    got = frame_state(state, (("map", 0, 0, (Int(-8),)),), "tags")
+    assert got == (Lst((Int(-9),)), Mark(), Int(1), Sym("add"), *label("map"))
+    # An undefined level shows no label in either encoding.
+    undefined = (("map", 0, 0, None),)
     assert frame_state(state, undefined, "tags") == frame_state(state, undefined)
 
 

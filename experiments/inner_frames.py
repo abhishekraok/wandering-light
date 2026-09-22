@@ -518,9 +518,10 @@ def walk_one_example(
     shape_at: dict[int, str] = {}
     fold_steps: dict[int, dict[str, Any]] = {}
     # What each open quotation looks like just before the step's op: its tag,
-    # role, and the frame its body has reached (None where undefined), outermost
-    # first. This is what a frame-conditioned policy is shown (#160 E2).
-    views: dict[int, tuple[tuple[str, int, tuple | None], ...]] = {}
+    # role, closure capture count, and the frame its body has reached (None where
+    # undefined), outermost first. This is what a frame-conditioned policy is
+    # shown (#160 E2).
+    views: dict[int, tuple[tuple[str, int, int, tuple | None], ...]] = {}
     open_levels: list[Level] = []
 
     for step, name in enumerate(program):
@@ -528,7 +529,9 @@ def walk_one_example(
         under_mark = name == "[" or quotation_open(before)
         if not under_mark:
             continue
-        views[step] = tuple((lv.tag, lv.role, lv.virtual) for lv in open_levels)
+        views[step] = tuple(
+            (lv.tag, lv.role, lv.captures, lv.virtual) for lv in open_levels
+        )
         if name == "[":
             kind, role, captures, _consumer = tags.get(
                 step, ("never_closed", None, 0, None)

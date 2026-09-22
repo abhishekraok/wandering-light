@@ -52,7 +52,7 @@ if TYPE_CHECKING:
     from wandering_light.stack_machine import Value
     from wandering_light.stack_pbe import Task
 
-View = tuple[str, int, "tuple | None"]
+View = tuple[str, int, int, "tuple | None"]
 
 
 ENCODINGS = ("frames", "tags", "replace")
@@ -69,10 +69,16 @@ def frame_state(
     A defined level keeps its `Mark` and the items the machine captured -- the
     body written so far, which a search always knows -- and then, after `META`:
 
-    - ``"frames"``: the tag, ``Int(role)`` for an `ifte` body, and the frame the
-      body has reached. The policy sees strictly more than the machine state.
-    - ``"tags"``: the tag and role only; the control, so the frame's
-      contribution is what ``"frames"`` adds over it.
+    - ``"frames"``: the label and the frame the body has reached. The policy
+      sees strictly more than the machine state.
+    - ``"tags"``: the label only; the control, so the frame's contribution is
+      what ``"frames"`` adds over it.
+
+    The label is everything a search commits to at the `[`, always three items
+    so it cannot run into the frame: ``Sym(tag)``, ``Int(role)`` (0 unless
+    `ifte`) and ``Int(captures)``, the number of values the closure idiom will
+    cons on. The capture count changes the frame, so a control without it
+    would not isolate what executing the body adds.
     - ``"replace"``: the first design, which put the tag and frame *in place of*
       the captured items, losing the text of the body. Kept because its
       learning-rate probe is on record; the gate does not use it.
@@ -89,14 +95,16 @@ def frame_state(
     if not marks:
         return state
     out: list[Value] = list(state[: marks[0]])
-    for k, (at, (tag, role, virtual)) in enumerate(zip(marks, views, strict=True)):
+    for k, (at, (tag, role, captures, virtual)) in enumerate(
+        zip(marks, views, strict=True)
+    ):
         end = marks[k + 1] if k + 1 < len(marks) else len(state)
         items = state[at + 1 : end]
         out.append(state[at])
         if virtual is None or tag not in COMBINATORS:
             out.extend(items)
             continue
-        label = [Sym(tag), Int(role)] if tag == "ifte" else [Sym(tag)]
+        label = [Sym(tag), Int(role), Int(captures)]
         if encoding == "replace":
             out.extend([*label, *virtual])
         elif encoding == "tags":
