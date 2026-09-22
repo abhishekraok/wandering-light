@@ -4307,8 +4307,11 @@ def verify_corpus(
 
 
 def _load_payload(path: Path) -> list[Task]:
-    """JSON has no tuples, so restore them on the way in."""
-    with gzip.open(path, "rt") as handle:
+    """JSON has no tuples, so restore them on the way in. Gzipped or plain text."""
+    with open(path, "rb") as raw:
+        gzipped = raw.read(2) == b"\x1f\x8b"
+    opener = gzip.open if gzipped else open
+    with opener(path, "rt") as handle:
         return [
             Task(
                 **{

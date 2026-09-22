@@ -35,7 +35,7 @@ from wandering_light.stack_machine import (
     step_raw,
     value_key,
 )
-from wandering_light.stack_pbe import BASIS, OPS
+from wandering_light.stack_pbe import BASIS, OP_BY_NAME, OPS
 from wandering_light.stack_policy import encode_item, encode_targets, item_array
 
 if TYPE_CHECKING:
@@ -111,6 +111,30 @@ class BeamResult:
     fuel: int
     expansions: int
     depth: int
+
+
+def replay_program(
+    program: Sequence[str], inputs: Product, outputs: Product
+) -> tuple[bool, int, int]:
+    """Does ``program`` take every shown input to its shown output, and at what cost?
+
+    Charged like the beam: one execution per op run on one example stack, and an
+    op the machine refuses ends the attempt. Returns ``(fits, executions, fuel)``.
+    A library of solved programs is replayed with this before a task is searched
+    (solved-program-cache, #151); a fit here says nothing about the held-out
+    examples, which `stack_pbe_eval.grade` checks afterwards.
+    """
+    executions = 0
+    fuel = 0
+    product = inputs
+    for name in program:
+        moved, spent, stepped = step_all_quiet(product, OP_BY_NAME[name])
+        executions += stepped
+        fuel += spent
+        if moved is None:
+            return False, executions, fuel
+        product = moved
+    return product == outputs, executions, fuel
 
 
 def key_of(product: Product) -> tuple:

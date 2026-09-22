@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-09-20
+Last updated: 2026-09-22
 
 ## What is true now
 
@@ -87,7 +87,7 @@ claim a number supports.
 
 ## In flight
 
-Nothing running. Open lines: what training-data-sources (#118) does after its step-3 checkpoint, world-plus-v4-policy (#134), and its ablation, keep-below-ablation (#136); the ~127 behaviours left in the sampler-passing pool; and the highways programme (#94, #96, #98, goal #99). Left open by the 2026-09-19 campaign: beam 512 had not saturated on solved-program-cache (#151), so where coverage stops buying is unmeasured; the `mixed` arm of hindsight-subtargets (#152) is implemented and unrun, and a staged corpus is what would make it readable (witness-trajectory-shape (#150)).
+**Pursuing `goals/g1.md`** (Claude, from 2026-09-22). Done first: best-system-command (#158), `uv run python -m wandering_light.solve TASKS`, the one command that runs the pinned best system on a task file and prints per-task verdicts and wall-clock; `BEST` in `wandering_light/solve.py` pins `staged-s0-e3` of staged-witness-reauthoring (#155) at beam 64 x depth 48, guard `both`, solved-program library on, Hub revision `e5a0b139`. Running now: that system's CPU number on the 300-task cohort. Next: width 64 to 512 for that checkpoint (#151 measured width on the v4-only checkpoint only), the state-size guard of beam-state-size-unbounded (#157), then a training campaign combining the measured gains (staged text, world-v3, fixed-epoch selection) under one recipe. Open lines: what training-data-sources (#118) does after its step-3 checkpoint, world-plus-v4-policy (#134), and its ablation, keep-below-ablation (#136); the ~127 behaviours left in the sampler-passing pool; and the highways programme (#94, #96, #98, goal #99). Left open by the 2026-09-19 campaign: beam 512 had not saturated on solved-program-cache (#151), so where coverage stops buying is unmeasured; the `mixed` arm of hindsight-subtargets (#152) is implemented and unrun, and a staged corpus is what would make it readable (witness-trajectory-shape (#150)).
 
 ## Superseded
 

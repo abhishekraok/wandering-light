@@ -166,6 +166,23 @@ Run the linter through `uv run` so the pinned ruff is used rather than one on `P
 
 ## Usage
 
+### Run the current best system on a task file
+```bash
+uv run python -m wandering_light.solve tasks.jsonl.gz
+```
+`tasks.jsonl.gz` holds one `stack_pbe` task per line (`.jsonl` or `.jsonl.gz`,
+the format `python -m wandering_light.stack_pbe` writes; a corpus directory
+also works). Every task is attempted in file order and graded on its held-out
+examples; the output is one line per task with the verdict and the wall-clock
+charged, then the pair `docs/metrics.md` defines: coverage and total wall-clock
+over every task attempted, solved or not. Programs solved earlier in the run
+are replayed before each search, inside the clock. What "the best system" is
+lives in one record, `BEST` in `wandering_light/solve.py`: a checkpoint pinned
+to a Hub revision (fetched once, into `~/.cache/wandering-light/`; the repo is
+private, so `hf auth login` first) and the search it runs under. It changes
+only with a cohort measurement on
+[best-system-command (#158)](https://github.com/abhishekraok/wandering-light/issues/158).
+
 ### Solve a typed-list task
 ```python
 from wandering_light.common_functions import basic_fns   # wl-core-v1, 118 functions
