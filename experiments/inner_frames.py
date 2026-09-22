@@ -79,6 +79,9 @@ STAGED = REPO / "experiments" / "staged_witnesses" / "v4.jsonl"
 # Arity in quotations, from the ops table: `ifte` consumes three, the rest one.
 COMBINATORS = {"i": 1, "dip": 1, "map": 1, "filter": 1, "fold": 1, "ifte": 3}
 TAGS = tuple(COMBINATORS)
+# The tag of a quotation with no attributable consumer. Deliberately not a
+# combinator name, so `by_tag` cannot confuse it with one.
+NO_TAG = "<no consumer>"
 # A body previewed under a combinator gets the combinator's own budget in the
 # machine; 2,000 is what the brainstorm's probe used and is far above any
 # witness body's cost, so a refusal here is a refusal of the body, not of fuel.
@@ -114,6 +117,8 @@ def frame_of(tag: str, below: tuple, role: int) -> tuple | str:
     frame is well formed but the list has no items, so there is nothing to run
     the body on -- the search would have no data even though the tag is legal.
     """
+    if tag == NO_TAG:
+        return "no consumer to commit to"
     if tag == "i":
         return below
     if tag == "dip":
@@ -542,8 +547,12 @@ def walk_one_example(
                 legal_at[step] = legal_tags(below)
                 shape_at[step] = shape_of(below)
             if kind not in COMBINATORS:
-                # No consumer to commit to: the tag itself does not exist.
-                level = Level("i", 0, (), "no_consumer")
+                # No consumer to commit to, so there is no tag. The placeholder
+                # must NOT be a real combinator name: ops written inside this
+                # quotation take their level's tag, and naming it `i` made every
+                # such op look like an `i` body that failed, which showed up as
+                # `i` having coverage exactly zero everywhere.
+                level = Level(NO_TAG, 0, (), "no_consumer")
                 level.refusal = kind
                 open_levels.append(level)
                 defined[step] = False

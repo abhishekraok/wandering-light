@@ -93,7 +93,7 @@ BEST = System(
     measured=(
         "best-system-command (#158), this exact configuration on the #101 300-task "
         "v4 cohort, UltraDesk CPU: 180 tasks graded, 18 of 43 behaviours graded, "
-        "16 verified, 153 s. Library off it is 143 tasks and the same 16, which is "
+        "16 verified, 154 s. Library off it is 143 tasks and the same 16, which is "
         "staged-witness-reauthoring (#155)'s own cell for this checkpoint"
     ),
     # 1 << 14: the largest state along any v4 witness on any of its inputs is

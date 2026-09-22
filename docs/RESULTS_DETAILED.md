@@ -430,6 +430,30 @@ Floored path score (`max(log p, -tau)` in the ranking key only): tau inf / 3.0 /
 
 Self-shortening: harvest over 1140 stratified train searches returned 936 programs, 80 shorter than the authored witness, **42 behaviour-equivalent** on every shown input of every train task of that behaviour; 8 of 159 train behaviours relabelled, 312,880 rows against the control's 313,560. Per-seed **verified** behaviour deltas against the matched `witness` control (all 18 cells draw-tested): epoch 3 (0, −1, −2), epoch 4 (−1, +2, +1), epoch 5 (0, 0, +1) — **summing to 0 over the nine cells**. On raw graded counts the same nine sum to +6, and on graded-minus-leaky-names to +2; the arm is a null only once shortcuts are excluded, which is why the verified column is the one quoted.
 
+## The pinned best system on the v4 cohort: width, the library and the state cap (#158, #157, #99)
+
+`solve.BEST` = `staged-s0-e3` (the staged arm of staged-witness-reauthoring (#155), seed 0, epoch 3; Hub `abhishekraok/wandering-light-stack-policy` revision `e5a0b1391c5268c3ae04a49e6862f19a30779bb2`), run by `uv run python -m wandering_light.solve` through `experiments/best_system_cells.py`. The #101 300-task / 43-behaviour cohort in cohort order, one host (`UltraDesk`, CPU, 8 threads), **one process per cell** with `run_body`'s memo cleared per cohort, guard `both`, depth 48, state cap 16,384 atoms. Each cell is `BEST` with **one** setting changed. `timed` is the sum of the per-task clocks, which charge library replay, search and policy inference; grading runs after the last clock stops. **Verified** is the union of 10,000-draw `genuine` verdicts and catalogue-witness-equal programs. **search-solved** is how many of the solved tasks were solved by a search rather than replayed from the library, and is the number of independent attempts the verified column actually rests on. [report](../reports/best-system-20260922/README.md), `cells.json`, `verified.json`
+
+| cell | beam | library | tasks /300 | search-solved | graded behaviours /43 | **verified /43** | timed (s) | executions |
+|---|---:|---|---:|---:|---:|---:|---:|---:|
+| b64 (BEST) | 64 | on | 180 | 19 | 18 | **16** | 154 | 34,785,672 |
+| b128 | 128 | on | 181 | 17 | 18 | **16** | 330 | 65,233,317 |
+| b256 | 256 | on | 183 | 19 | 20 | **16** | 706 | 120,034,579 |
+| b512 | 512 | on | 190 | 20 | 22 | **17** | 1,397 | 214,205,105 |
+| nocap-b64 | 64 | on | 180 | 19 | 18 | **16** | 153 | 34,785,672 |
+| nolib-b64 | 64 | off | 143 | 143 | 18 | **16** | 209 | 49,078,770 |
+| nolib-b128 | 128 | off | 158 | 158 | 17 | **16** | 399 | 82,869,294 |
+| nolib-b256 | 256 | off | 168 | 168 | 19 | **18** | 823 | 147,323,518 |
+| nolib-b512 | 512 | off | 177 | 177 | 21 | **17** | 1,661 | 268,820,179 |
+
+- **The library wins the objective and costs verified behaviours.** At beam 64 it is 180 tasks against 143 in 154 s against 209 s, with 29% fewer executions, so it improves the `docs/metrics.md` pair on both terms; `nolib-b64`'s 143 tasks reproduce #155's own cell for this checkpoint exactly. At beam 256 it takes verified behaviours **18 down to 16**. `all_positive` is the mechanism: of its 9 cohort tasks, library-off one search finds a 22-op shortcut and another finds the 23-op genuine program, so the behaviour verifies; library-on the shortcut is found once and replayed to five more tasks, the search that would have found the genuine program never happens, and the behaviour is graded but not verified. A library turns k independent attempts into one shared answer.
+- **Width is not monotone in verified behaviours, in either arm.** Library-off 16 / 16 / **18** / 17 across beam 64 / 128 / 256 / 512; library-on 16 / 16 / 16 / 17. Graded is not monotone either (`nondecreasing_indicator` is graded at beam 64 and lost at 128 in both arms). The beam takes the first fitting successor it meets while expanding a layer (`stack_beam.py:334`), before the layer is scored at all (`:345`), so the order is shallowest depth, then parent beam position, then op index; widening enlarges the fitting set at every depth and can add a shortcut that displaces a deeper genuine program: `all_positive`'s 22-op shortcut sits one level above its 23-op genuine program.
+- **Width buys graded behaviours, not verified ones.** Beam 64 to 512 is 8x the width and 9.1x the clock for +1 verified behaviour in each arm, while graded goes 18 to 22 and tasks 180 to 190. Width adds four graded behaviours library-on and loses none; **two of the four are shortcuts** (`aligned_matches`, `stable_distinct_shared_values`) and the other two (`pair_floor_averages`, `prefix_sums`) are the +1 net verified. Library-off it adds three, one a shortcut.
+- **The #157 state cap is free.** All 300 rows identical with and without it on program, executions, fuel, expansions, depth and source; the clock moves 153.4 s to 154.2 s (0.46%). The cap is 132x the largest state along any v4 witness (124 atoms) and 6x the largest along any world-v3 witness (2,642). It is not a speed fix: `cartesian_pair_sums` is the slowest task in every cell and still costs 33 s at beam 512.
+- **Cost to clear is a cost of failure.** 96% of the clock goes to tasks never solved (0.967 at b64, 0.961 at b512; 86.7-89.2% library-off), and the median library-on task costs 1 ms against 596 ms library-off at the same width.
+
+Caveats: one seed, one host, one run per cell, no interval on the clock. Verified counts are behaviours of the cohort's 43, not of v4's 220. Nothing here compares staged against fused under matched conditions.
+
 ## Epoch selection in verified behaviours, 1m v4-only arm (#154)
 
 18 (seed, epoch) cells re-running the #101 1m v4-only arm (reproduces #134 bitwise: seed 0 epoch 4 verifies 94/94 tasks), all 30 distinct solved programs draw-tested. Cells are graded/verified behaviours of 43.

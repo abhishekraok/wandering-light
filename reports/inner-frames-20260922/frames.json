@@ -60,11 +60,6 @@
           "frame_kind": "fresh",
           "under_mark_ops": 212
         },
-        "i": {
-          "coverage": 0.0,
-          "frame_kind": "inherited",
-          "under_mark_ops": 56
-        },
         "ifte": {
           "coverage": 0.6972,
           "frame_kind": "inherited",
@@ -176,11 +171,6 @@
           "coverage": 0.7488,
           "frame_kind": "fresh",
           "under_mark_ops": 215
-        },
-        "i": {
-          "coverage": 0.0,
-          "frame_kind": "inherited",
-          "under_mark_ops": 16
         },
         "ifte": {
           "coverage": 0.7766,
@@ -296,11 +286,6 @@
           "frame_kind": "fresh",
           "under_mark_ops": 943
         },
-        "i": {
-          "coverage": 0.0,
-          "frame_kind": "inherited",
-          "under_mark_ops": 125
-        },
         "ifte": {
           "coverage": 0.6824,
           "frame_kind": "inherited",
@@ -412,11 +397,6 @@
           "coverage": 0.8945,
           "frame_kind": "fresh",
           "under_mark_ops": 957
-        },
-        "i": {
-          "coverage": 0.0,
-          "frame_kind": "inherited",
-          "under_mark_ops": 31
         },
         "ifte": {
           "coverage": 0.7583,
@@ -532,11 +512,6 @@
           "frame_kind": "fresh",
           "under_mark_ops": 854
         },
-        "i": {
-          "coverage": 0.0,
-          "frame_kind": "inherited",
-          "under_mark_ops": 757
-        },
         "ifte": {
           "coverage": 0.6448,
           "frame_kind": "inherited",
@@ -649,11 +624,6 @@
           "coverage": 0.8191,
           "frame_kind": "fresh",
           "under_mark_ops": 923
-        },
-        "i": {
-          "coverage": 0.0,
-          "frame_kind": "inherited",
-          "under_mark_ops": 286
         },
         "ifte": {
           "coverage": 0.8426,
@@ -770,11 +740,6 @@
           "frame_kind": "fresh",
           "under_mark_ops": 14792
         },
-        "i": {
-          "coverage": 0.0,
-          "frame_kind": "inherited",
-          "under_mark_ops": 7920
-        },
         "ifte": {
           "coverage": 0.4785,
           "frame_kind": "inherited",
@@ -889,11 +854,6 @@
           "frame_kind": "fresh",
           "under_mark_ops": 16014
         },
-        "i": {
-          "coverage": 0.0,
-          "frame_kind": "inherited",
-          "under_mark_ops": 1501
-        },
         "ifte": {
           "coverage": 0.6749,
           "frame_kind": "inherited",
@@ -1004,11 +964,6 @@
           "frame_kind": "fresh",
           "under_mark_ops": 1669
         },
-        "i": {
-          "coverage": 0.0,
-          "frame_kind": "inherited",
-          "under_mark_ops": 269
-        },
         "ifte": {
           "coverage": 0.7779,
           "frame_kind": "inherited",
@@ -1114,11 +1069,6 @@
           "frame_kind": "fresh",
           "under_mark_ops": 1669
         },
-        "i": {
-          "coverage": 0.0,
-          "frame_kind": "inherited",
-          "under_mark_ops": 52
-        },
         "ifte": {
           "coverage": 0.8629,
           "frame_kind": "inherited",
@@ -1172,5 +1122,5 @@
       "under_mark_share_of_ops": 0.7045
     }
   },
-  "seconds": 54.3
+  "seconds": 58.8
 }
