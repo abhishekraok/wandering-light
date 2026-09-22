@@ -47,7 +47,7 @@ def write(run_dir, arm, seed, epoch, payload):
         (5.0, 19, 10.0, "PASS"),  # half the world arm, and half the tag control
         (5.0, 19, 5.5, "TAG"),  # cheap bodies, but the tag alone got most of it
         (5.0, 18, 10.0, "WEAK"),  # the ratio passes, the clears do not
-        (9.0, 12, 9.5, "FAIL"),  # ratio 0.9 and no gain
+        (9.0, 12, 9.5, "FAIL_AT_TUNED_RATE_ONLY"),  # no matched arm written
         (7.0, 12, 9.0, "WEAK"),  # no gain in clears, but the ratio moved
     ],
 )
@@ -133,3 +133,26 @@ def test_a_commitment_costs_its_smoothed_surprise_given_the_shape():
     assert model.cost("list", ("filter", 0, 2)) == pytest.approx(-math.log(1 / 14))
     # An unseen shape is uniform over the vocabulary.
     assert model.cost("bool", ("map", 0, 0)) == pytest.approx(math.log(4))
+
+
+def test_fail_must_hold_at_the_matched_rate_too(tmp_path):
+    for seed, epoch in ((0, 5), (1, 5), (2, 5)):
+        write(tmp_path, "world", seed, epoch, cell(10.0, 12))
+        write(tmp_path, "tags", seed, epoch, cell(9.5, 12))
+        write(tmp_path, "frames", seed, epoch, cell(9.0, 12))
+    # Without the matched arm a FAIL is only a failure at the tuned rate.
+    assert gate.report(tmp_path, lambda line: None)["verdict"] == (
+        "FAIL_AT_TUNED_RATE_ONLY"
+    )
+    for seed, epoch in ((0, 5), (1, 5), (2, 5)):
+        write(tmp_path, gate.MATCHED, seed, epoch, cell(9.2, 12))
+    assert gate.report(tmp_path, lambda line: None)["verdict"] == "FAIL"
+    # A matched arm that did better turns the FAIL into WEAK.
+    for seed, epoch in ((0, 5), (1, 5), (2, 5)):
+        write(tmp_path, gate.MATCHED, seed, epoch, cell(6.0, 12))
+    assert gate.report(tmp_path, lambda line: None)["verdict"] == "WEAK"
+
+
+def test_measure_refuses_an_unregistered_rate(tmp_path):
+    with pytest.raises(ValueError, match="no registered cell"):
+        gate.measure(tmp_path, "tags", [(0, 5)], lambda line: None, 5e-4)

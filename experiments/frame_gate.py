@@ -489,6 +489,12 @@ def predict(run_dir: Path, log) -> Path:
     return out
 
 
+# Each arm at its own best one-epoch rate (probe.json, registered on #160); the
+# frames arm is also trained at the world arm's rate as the matched robustness arm.
+ARM_LR = {"world": wa.LEARNING_RATE, "tags": wa.LEARNING_RATE, "frames": 5e-4}
+MATCHED = "framesmatched"
+
+
 def arm_dir(run_dir: Path, arm: str, learning_rate: float = wa.LEARNING_RATE) -> Path:
     """Where an arm's snapshots live; a non-default learning rate gets its own."""
     if arm == "world":
@@ -604,19 +610,34 @@ def probe(
 
 
 def measure(
-    run_dir: Path, arm: str, cells: Sequence[tuple[int, int]], log
+    run_dir: Path,
+    arm: str,
+    cells: Sequence[tuple[int, int]],
+    log,
+    learning_rate: float | None = None,
 ) -> list[Path]:
-    """Per-step deficits of one arm's snapshots, each shown what it was trained on."""
-    source = arm_dir(run_dir, arm)
+    """Per-step deficits of one arm's snapshots, each shown what it was trained on.
+
+    An arm is measured at its registered rate (`ARM_LR`); the frames arm at the
+    world arm's rate is labelled `MATCHED`.
+    """
+    rate = ARM_LR[arm] if learning_rate is None else learning_rate
+    if rate == ARM_LR[arm]:
+        label = arm
+    elif arm == "frames" and rate == wa.LEARNING_RATE:
+        label = MATCHED
+    else:
+        raise ValueError(f"no registered cell for {arm} at {rate:g}")
+    source = arm_dir(run_dir, arm, rate)
     paths = []
     for seed, epoch in cells:
-        out = run_dir / "measure" / f"{arm}-s{seed}-e{epoch}.json"
+        out = run_dir / "measure" / f"{label}-s{seed}-e{epoch}.json"
         if out.exists():
             log(f"skip {out.name}")
             paths.append(out)
             continue
         path = hs.policy_dir(source, wa.ARM, seed, epoch)
-        log(f"measure {arm} s{seed}-e{epoch}: {path}")
+        log(f"measure {label} s{seed}-e{epoch}: {path}")
         report_ = {
             "policy": str(path),
             "arm": arm,
@@ -651,6 +672,7 @@ def report(run_dir: Path, log) -> dict[str, Any]:
     """Pair every measured cell of the three arms and read the registered gate off them."""
     cells: dict[str, dict[tuple[int, int], dict]] = {
         "frames": {},
+        MATCHED: {},
         "tags": {},
         "world": {},
     }
@@ -679,6 +701,14 @@ def report(run_dir: Path, log) -> dict[str, Any]:
                     "composite_with_commitment"
                 ],
             }
+            if key in cells[MATCHED]:
+                m = _defined(cells[MATCHED][key], corpus)
+                row["matched_defined_ratio"] = round(
+                    m["calibrated_total"] / w["calibrated_total"], 4
+                )
+                row["matched"] = cells[MATCHED][key][corpus]["machine_mask"][
+                    "composite_with_commitment"
+                ]
             if key in cells["tags"]:
                 g = _defined(cells["tags"][key], corpus)
                 row["frame_over_tag_ratio"] = round(
@@ -707,7 +737,14 @@ def report(run_dir: Path, log) -> dict[str, Any]:
             else:
                 verdict = "PASS" if frame < FRAME_RATIO else "TAG"
         elif clears <= FAIL_CLEARS and full >= FAIL_RATIO:
-            verdict = "FAIL"
+            # FAIL must hold at both frames rates, or it is a failure of the rate.
+            matched = median_of("matched_defined_ratio", "stack_pbe_v4")
+            if matched is None or "matched" not in primary:
+                verdict = "FAIL_AT_TUNED_RATE_ONLY"
+            elif primary["matched"]["both"] <= FAIL_CLEARS and matched >= FAIL_RATIO:
+                verdict = "FAIL"
+            else:
+                verdict = "WEAK"
         else:
             verdict = "WEAK"
     out = {
@@ -718,6 +755,7 @@ def report(run_dir: Path, log) -> dict[str, Any]:
                 field: median_of(field, corpus)
                 for field in (
                     "defined_ratio",
+                    "matched_defined_ratio",
                     "raw_defined_ratio",
                     "top1_gain",
                     "frame_over_tag_ratio",
@@ -747,7 +785,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--seeds", default=",".join(str(s) for s in wa.SEEDS))
     parser.add_argument("--arm", choices=("frames", "tags", "world"), default="frames")
-    parser.add_argument("--lr", type=float, default=wa.LEARNING_RATE)
+    parser.add_argument(
+        "--lr", type=float, default=None, help="default: the arm's registered rate"
+    )
     parser.add_argument("--encodings", default="flat,frames,tags")
     parser.add_argument("--rates", default=",".join(f"{r:g}" for r in PROBE_RATES))
     parser.add_argument(
@@ -777,13 +817,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.arm == "world":
             parser.error("the world arm is the fixed baseline; train frames or tags")
         seeds = [int(s) for s in args.seeds.split(",")]
+        rate = ARM_LR[args.arm] if args.lr is None else args.lr
         train(
-            args.run_dir,
-            args.device,
-            seeds,
-            log,
-            encoding=args.arm,
-            learning_rate=args.lr,
+            args.run_dir, args.device, seeds, log, encoding=args.arm, learning_rate=rate
         )
     elif args.stage == "report":
         report(args.run_dir, log)
@@ -793,7 +829,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.cells == "all"
             else [tuple(int(x) for x in c.split(":")) for c in args.cells.split(",")]
         )
-        measure(args.run_dir, args.arm, cells, log)
+        measure(args.run_dir, args.arm, cells, log, args.lr)
     return 0
 
 
