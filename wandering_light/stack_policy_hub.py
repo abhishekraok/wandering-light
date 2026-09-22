@@ -76,7 +76,11 @@ def fetch_stack_policy(
             continue
         local = target / name
         if cached.resolve() != local.resolve():
-            shutil.copyfile(cached, local)
+            # Through a temporary name: an interrupted copy must not leave a
+            # short file that `is_checkpoint` then accepts on the next run.
+            staging = local.with_suffix(local.suffix + ".part")
+            shutil.copyfile(cached, staging)
+            staging.replace(local)
     return target
 
 

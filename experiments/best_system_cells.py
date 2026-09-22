@@ -53,6 +53,9 @@ CELLS: dict[str, Callable[[System], System]] = {
         best, beam_width=64, max_state_atoms=None
     ),
     "nolib-b64": lambda best: dataclasses.replace(best, beam_width=64, library=False),
+    "nolib-b128": lambda best: dataclasses.replace(best, beam_width=128, library=False),
+    "nolib-b256": lambda best: dataclasses.replace(best, beam_width=256, library=False),
+    "nolib-b512": lambda best: dataclasses.replace(best, beam_width=512, library=False),
 }
 DEFAULT_CELLS = ("b64", "b128", "b256", "b512")
 SEED = 0  # the checkpoint's training seed, which the verifier's cell label wants
@@ -161,6 +164,10 @@ def report(run_dir: Path, out_dir: Path, log) -> None:
                 "cell": cell["cell"],
                 "system": cell["system"],
                 "tasks": len(solved),
+                # Under a library most solved tasks are replays of one search's
+                # program, so a cell's verified count rests on this many
+                # independent searches, not on `tasks`.
+                "search_solved": sum(r["source"] == "search" for r in solved),
                 "graded_behaviours": len(graded),
                 "verified_behaviours": len(verified),
                 "verified": sorted(verified),
@@ -175,20 +182,25 @@ def report(run_dir: Path, out_dir: Path, log) -> None:
                 "commit": cell["commit"],
             }
         )
+    # Filename order puts b128 before b64; read the ladder in width order with
+    # the one-setting controls after it.
+    table.sort(key=lambda t: (not t["cell"].startswith("b"), t["system"]["beam_width"]))
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "cells.json").write_text(json.dumps(table, indent=2) + "\n")
     lines = [
-        "| cell | beam | state cap | library | tasks /300 | graded behaviours /43 | "
+        "| cell | beam | state cap | library | tasks /300 | search-solved | "
+        "graded behaviours /43 | "
         "**verified /43** | timed (s) | executions | from library | slowest task (s) | "
         + " / ".join(verify.BUCKETS)
         + " |",
-        "|---|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---|",
+        "|---|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for t in table:
         s = t["system"]
         lines.append(
             f"| {t['cell']} | {s['beam_width']} | {s['max_state_atoms']} | "
-            f"{'on' if s['library'] else 'off'} | {t['tasks']} | {t['graded_behaviours']} | "
+            f"{'on' if s['library'] else 'off'} | {t['tasks']} | {t['search_solved']} | "
+            f"{t['graded_behaviours']} | "
             f"**{t['verified_behaviours']}** | {t['seconds']:.0f} | {t['executions']:,} | "
             f"{t['from_library']} | {t['slowest_task_seconds']:.2f} | "
             + " / ".join(str(t["buckets"][b]) for b in verify.BUCKETS)

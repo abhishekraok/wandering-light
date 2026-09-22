@@ -91,8 +91,10 @@ BEST = System(
     guard="both",
     library=True,
     measured=(
-        "staged-witness-reauthoring (#155): 143 of the 300-task v4 cohort graded, "
-        "16 of 43 behaviours verified, beam 64 x depth 48, CUDA"
+        "best-system-command (#158), this exact configuration on the #101 300-task "
+        "v4 cohort, UltraDesk CPU: 180 tasks graded, 18 of 43 behaviours graded, "
+        "16 verified, 153 s. Library off it is 143 tasks and the same 16, which is "
+        "staged-witness-reauthoring (#155)'s own cell for this checkpoint"
     ),
     # 1 << 14: the largest state along any v4 witness on any of its inputs is
     # 124 atoms, along any world-v3 witness 2,642 (measured on #158); the #157
