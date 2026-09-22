@@ -38,7 +38,7 @@ Three things about the method matter for reading the numbers.
 
 **Every frame is checked against the machine.** Recording
 `stack_machine.run_body` observes the stack each combinator actually hands a
-body, and every computed frame is compared with it. **5,221 of 5,221 match**,
+body, and every computed frame is compared with it. **6,447 of 6,447 match**,
 across both readings and every capture count that occurs. That check found a
 real error while it was being built: the captured values were being reversed,
 which is a no-op at one capture and wrong at two, and the 27 two-capture frames
