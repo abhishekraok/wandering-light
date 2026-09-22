@@ -46,35 +46,59 @@ exhausts its frontier, it simply walks further without getting closer. Run dir
 `checkpoints/world-depth-20260922`, driver `experiments/best_system_cells.py`
 with `--tasks`.
 
-## Why, in the repository's own arithmetic
+## Why — measured on this split, after a first answer that was wrong
 
-`docs/STATUS.md` already carries the law this obeys. A beam of width `W` ranked
-on cumulative log-probability tolerates about `ln W` nats of accumulated
-deficit **over the whole witness**, so a witness of length `L` must hold its
-per-step deficit under `ln W / L`. At `W` = 64 that is 4.159 nats total:
+`docs/STATUS.md` carries a budget law: a beam of width `W` tolerates about
+`ln W` nats of accumulated deficit **over the whole witness**, so a witness of
+length `L` must hold its per-step deficit under `ln W / L`. At `W` = 64 that is
+4.159 nats, which is 0.028 per step at this split's median length of 150 ops.
 
-| witness length | per-step budget (nats) |
-|---:|---:|
-| 8 (the one solved task) | 0.520 |
-| 48 (the depth limit) | 0.087 |
-| 150 (this split's median) | **0.028** |
-| 827 (the longest) | 0.005 |
+My first reading of the ladder paired that budget with the **0.075** nats per
+step that staged-witness-reauthoring (#155) measured, and concluded the gap was
+a factor of three that shortening `L` would close. That was wrong: 0.075 is a
+number for witnesses the policy was **trained on**. `experiments/witness_deficit.py`
+measures it where the law is being applied — the pinned policy walked along each
+eval witness, recording at every step how many nats behind its top legal choice
+the witness's own op is:
 
-Against that, fused-policy transfer (staged-witness-reauthoring (#155)) measured
-a median per-step deficit of **0.075** nats on witnesses the policy was *trained
-on*, and **0.535** on unseen content in a familiar style. So at this split's
-median length the budget is 0.028 and the best deficit ever measured for this
-family of policies is 0.075 — nearly three times over, on training data, before
-any of the difficulty of unseen behaviours.
+| corpus, eval split | witnesses | median `L` | **median per-step deficit** | budget at median `L` | over by | within the whole budget |
+|---|---:|---:|---:|---:|---:|---:|
+| `stack_pbe_v4` | 45 | 40 | **1.84** | 0.104 | 17.7× | 5 of 45 |
+| `stack_pbe_world_v3` | 44 | 150 | **4.19** | 0.028 | **150.7×** | 1 of 44 |
 
-That is the whole result. Depth cannot help because depth is not what is
-spent; width cannot help because doubling `W` adds 0.69 nats *in total*, which
-at `L` = 150 is 0.005 nats per step. The only term on the left that can move is
-`L`. It also explains the pattern exactly: the one solve has an 8-op witness
-and a 0.520-nat budget, comfortably above the measured deficits, and three of
-the four tasks inside the depth limit still fail at budgets of 0.087 and below.
+The median **survival depth** — the step at which accumulated deficit first
+exceeds the budget, so the step a beam of 64 would drop the witness — is **2**
+on both corpora. The policy's own top legal choice is the witness's next op on
+33% of world-v3 steps and 50% of v4 eval steps.
 
-## The wall is the depth limit, not the beam and not the policy
+**So shortening `L` does not close this gap either.** At the macro form's median
+of 28.5 tokens (macro-compression-check, #144) the budget would be 0.146 nats
+per step against a measured 4.19 — still **28.7×** over. At the measured
+deficit, a witness would have to be **under one op** on world-v3, or 2.3 on v4
+eval, to fit inside `ln 64`. No reachable beam width helps either: carrying
+world-v3's median witness would need `ln W` ≥ 627.
+
+## What that argument can and cannot carry
+
+It cannot carry a conclusion about behaviours, in either direction, and that is
+the lesson rather than a caveat. The same system solves **180 of 300** v4
+cohort tasks and grades 18 behaviours while only **5 of 45** v4 eval witnesses
+are within budget. The search plainly does not follow the authored witness: it
+finds other, easier programs. `docs/STATUS.md` already records the law as
+conservative — 83.7% accurate with **0 false positives and 7 false negatives** —
+and these numbers are that same conservatism at a larger scale.
+
+What the deficit measurement does establish is narrow and worth having: along
+the programs we know solve these behaviours, this policy is nowhere close, on
+both corpora, and three times further away on world data. What it does **not**
+establish is that a shorter vocabulary would or would not help, because the
+quantity it measures is the deficit along *a particular program*, and a macro
+library changes which programs exist.
+
+The empirical result above — 8× the depth, 25.6× the clock, zero extra solves —
+stands on its own and does not depend on any of this.
+
+## The wall is the depth limit, not the beam and not the policy## The wall is the depth limit, not the beam and not the policy
 
 The 44 eval witnesses run 8 to 827 ops, median **150**. Only **4 of 44** are
 within the search's depth of 48, and the system solved 1 of those 4. Every
