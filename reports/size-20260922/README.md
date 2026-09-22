@@ -8,11 +8,23 @@ retracted the selection rule. So the one conclusion this repository holds about
 model size rested on a rule it has since abandoned. This campaign asks the
 question again with the checkpoint allowed to train.
 
-**The answer is the same: flat.** At the pre-registered epoch 3, going from
-655,836 to 6,288,412 parameters — **9.6×** — moves verified behaviours from
-**15.67 to 16.33 of 43**, and at each size's best epoch from 16.00 to 16.67.
-That is the prediction registered on the issue before the run ("all three sizes
-within one verified behaviour of each other at epoch 3"), which holds.
+**The answer is the same: flat, and on the objective it is worse.** At the
+pre-registered epoch 3, going from 655,836 to 6,288,412 parameters — **9.6×** —
+moves verified behaviours from **15.67 to 16.33 of 43**. That is the prediction
+registered on the issue before the run ("all three sizes within one verified
+behaviour of each other at epoch 3"), which holds, and it is weaker than it
+looks: pooled over all twelve cells per size the arms are **15.58 ± 0.64 /
+16.17 ± 0.69 / 16.17 ± 0.90**, so 2m and 10m are identical and the between-size
+gap is smaller than the seed spread it sits inside (median 1 behaviour, up to
+2, within a single size and epoch). The 10m arm also produced the campaign's
+single worst cell, 14.
+
+And it costs. The larger policy expands **fewer** nodes — 1,744 / 1,703 / 1,669
+per task, pooled — while costing **1.19 / 2.20 / 4.69 ms per expansion**, so it
+buys no reduction in search and pays about **3.9× the wall clock for the same
+search**. Under `docs/metrics.md`, which compares coverage first and then cost,
+a 10m policy is therefore not an improvement on a 1m one here: its coverage is
+indistinguishable and its cost is multiples higher.
 
 ## What ran
 
@@ -47,7 +59,10 @@ staged figure of 15.67 with the same per-seed triple.
 | 6 | 15.00 (15 / 15 / 15) | 15.67 (17 / 15 / 15) | 15.00 (14 / 16 / 15) |
 
 Graded tasks of 300, mean over seeds: 139.7 / 141.3 / 141.0 at epoch 3, and
-110.3 / 114.3 / 125.3 by epoch 6.
+110.3 / 114.3 / 125.3 by epoch 6. Epoch 4 is the best epoch for every size, but
+for 10m it only **ties** epoch 5 at 16.67. The arm names are nominal: they are
+0.66M, 2.0M and 6.3M parameters, a 9.6× span rather than the 10× the labels
+suggest.
 
 ## Cross-entropy moves and behaviours do not
 
@@ -67,16 +82,19 @@ By witness-length bucket at epoch 3 (1–5 / 6–10 / 11–20 / 21–40 / 41+), 
 over seeds: 1m 6.00 / 3.00 / 5.00 / 1.67 / 0.00, 2m 5.67 / 3.00 / 5.00 / 2.33 /
 0.00, 10m 6.00 / 3.00 / 5.00 / 2.00 / 0.33. Everything size buys sits in the
 21–40 bucket and one 41+ solve at 10m; the short buckets are identical. Over
-the union of three seeds at epoch 3 the 10m arm adds exactly one behaviour the
-1m arm never gets (`pair_floor_averages`) and loses none.
+the union of three seeds at epoch 3 each larger arm adds exactly one behaviour
+the 1m arm never gets and loses none — but **not the same one**: 2m adds
+`prefix_sums` and 10m adds `pair_floor_averages`. That is one more reason to
+read the difference as seed-level noise rather than a capacity ladder.
 
 ## Reading
 
 Size is closed as a lever at fixed epochs, as it was at CE-selected ones, and
-now for a reason the earlier campaign could not give: the checkpoints were
+now for reasons the earlier campaign could not give: the checkpoints were
 allowed to train, the epoch was pre-registered rather than chosen on the eval
-cohort, and the gain is still under one behaviour for an order of magnitude of
-parameters. Taken with staged-witness-reauthoring (#155), which found the
+cohort, the gain is under one behaviour for an order of magnitude of parameters
+and is not separated from initialisation noise, and the larger policy is
+**strictly worse on the objective** once its per-node cost is charged. Taken with staged-witness-reauthoring (#155), which found the
 staged arm's gain is **retrieval** of cycles occurring verbatim in its training
 text, and with best-system-command (#158), which finds the width axis nearly
 exhausted on this checkpoint (8× the beam for +1 verified behaviour), three
@@ -92,7 +110,12 @@ pre-registered epoch and at each size's best epoch; both give the same answer,
 but "best epoch" is read off the eval cohort and is an oracle over four values,
 so only the epoch-3 row is a deployable comparison. Learning rates are #101's
 probe choices for each size and were not re-probed for the staged rows, so a
-larger arm could in principle be under-tuned rather than saturated. Cells ran
-in three parallel lanes by seed, so the per-cell wall clock is not comparable
-across cells and no timing claim is made here. Verified counts are behaviours
+larger arm could in principle be under-tuned rather than saturated. Cells ran in three parallel
+lanes by seed on an 8-core host, so every absolute second here is inflated by
+about 3× oversubscription and no absolute timing figure is quoted. The lanes
+moved through the sizes in lockstep, so the contention is roughly uniform
+across sizes; that is what makes the *relative* per-expansion cost above
+comparable while absolute throughput is not. One 1m cell (seed 1, epoch 5) has
+a 133.9 s slowest task against a 6–10 s norm elsewhere, which is a scheduling
+artefact rather than search behaviour. Verified counts are behaviours
 of the cohort's 43, not of v4's 220.
