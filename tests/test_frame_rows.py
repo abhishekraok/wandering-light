@@ -80,3 +80,24 @@ def test_a_map_body_runs_on_the_first_item():
         not np.array_equal(x.items, y.items) for x, y in zip(flat, framed, strict=True)
     ]
     assert differs == [False, True, True, True, False]
+
+
+def test_the_tag_control_shows_the_tag_but_keeps_the_machines_items():
+    state = (Lst((Int(-9),)), Mark(), Int(1), Sym("add"))
+    got = frame_state(state, (("map", 0, (Int(-8),)),), "tags")
+    assert got == (Lst((Int(-9),)), Mark(), Sym("map"), Int(1), Sym("add"))
+    # An undefined level shows no tag in either encoding.
+    undefined = (("map", 0, None),)
+    assert frame_state(state, undefined, "tags") == frame_state(state, undefined)
+
+
+def test_the_two_encodings_rewrite_exactly_the_same_rows():
+    t = task("increment_each")
+    flat = witness_rows([t])
+    frames = frame_witness_rows([t], "frames")
+    tags = frame_witness_rows([t], "tags")
+    changed = [
+        [not np.array_equal(x.items, y.items) for x, y in zip(flat, arm, strict=True)]
+        for arm in (frames, tags)
+    ]
+    assert changed[0] == changed[1] == [False, True, True, True, False]

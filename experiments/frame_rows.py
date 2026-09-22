@@ -56,8 +56,18 @@ if TYPE_CHECKING:
 View = tuple[str, int, "tuple | None"]
 
 
-def frame_state(state: tuple[Value, ...], views: Sequence[View]) -> tuple[Value, ...]:
-    """``state`` with each open level's items replaced by its tag and frame, where defined."""
+ENCODINGS = ("frames", "tags")
+
+
+def frame_state(
+    state: tuple[Value, ...], views: Sequence[View], encoding: str = "frames"
+) -> tuple[Value, ...]:
+    """``state`` with each open level's items replaced by its tag and frame, where defined.
+
+    ``encoding="tags"`` is the control: the same levels show the same tag
+    tokens but keep the machine's items instead of the frame, so the frame's
+    contribution is what ``"frames"`` adds over it.
+    """
     marks = [i for i, value in enumerate(state) if isinstance(value, Mark)]
     if len(marks) != len(views):
         raise ValueError(
@@ -75,7 +85,7 @@ def frame_state(state: tuple[Value, ...], views: Sequence[View]) -> tuple[Value,
         out.append(Sym(tag))
         if tag == "ifte":
             out.append(Int(role))
-        out.extend(virtual)
+        out.extend(virtual if encoding == "frames" else state[at + 1 : end])
     return tuple(out)
 
 
@@ -92,23 +102,30 @@ def example_walks(task: Task) -> list[tuple[list[tuple], dict[int, tuple[View, .
     return walks
 
 
-def frame_product(task: Task) -> list[tuple[tuple[Value, ...], ...]]:
+def frame_product(
+    task: Task, encoding: str = "frames"
+) -> list[tuple[tuple[Value, ...], ...]]:
     """The product of frame states the policy is shown before each witness step."""
     walks = example_walks(task)
     return [
-        tuple(frame_state(states[step], views.get(step, ())) for states, views in walks)
+        tuple(
+            frame_state(states[step], views.get(step, ()), encoding)
+            for states, views in walks
+        )
         for step in range(len(task.program))
     ]
 
 
-def frame_witness_rows(tasks: Sequence[Task]) -> list[Row]:
+def frame_witness_rows(tasks: Sequence[Task], encoding: str = "frames") -> list[Row]:
     """`stack_policy.witness_rows` with every body step re-encoded on its frame."""
+    if encoding not in ENCODINGS:
+        raise ValueError(f"encoding must be one of {ENCODINGS}, not {encoding!r}")
     rows = []
     for index, task in enumerate(tasks):
         targets = encode_targets(
             [parse_stack(text, basis=BASIS) for text in task.outputs]
         )
-        for step, product in enumerate(frame_product(task)):
+        for step, product in enumerate(frame_product(task, encoding)):
             items = [
                 encode_item(state, target)
                 for state, target in zip(product, targets, strict=True)

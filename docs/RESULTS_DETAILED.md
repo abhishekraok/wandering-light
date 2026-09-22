@@ -551,6 +551,21 @@ Caveats: three seeds, one corpus, one recipe, one 44-task split. The lowest-defi
 
 Caveats: the quotation rows price a body at the flat policy's deficit, not at what a frame-conditioned sub-search would pay (that is #160 E2); every row assumes the right intermediate state survives in the top 64; `1m-s0-e5` was selected on the world-v3 eval split and is fixed here for pairing.
 
+## Inner frames E2: what quotation bodies cost, before the gate trains (#160)
+
+`experiments/frame_gate.py predict`, CPU, on the world arm `1m-s0-e5` (the arm the gate pairs against), one witness per eval behaviour. *Defined* means E1's capture-aware walk defines the innermost frame on every shown example. [prediction](../reports/frame-gate-20260922/prediction.json); registration on #160.
+
+| per-step deficit (nats) | v4 eval | world-v3 eval |
+|---|---:|---:|
+| body ops, frame defined | 0.666 (1,360 ops) | 0.590 (6,325) |
+| body ops, frame undefined | 0.750 (447) | 0.913 (1,754) |
+| top-level ops | 0.631 (426) | 0.798 (1,813) |
+| defined body ops under a **frame-legal mask** | 0.621 | 0.558 |
+
+- **Pruning ops that refuse on the frame is worth 5-7%** of defined-body deficit and clears no additional witness in any composite row. That is the search-side half of E2 without any training.
+- **Most defined-body deficit comes after the first op**: 68% on v4, 75% on world-v3. The first op after `[` is the most expensive per op (1.10), but carries 25-32%; the closing `]` costs 0.38-0.39 and carries 9-12%.
+- **`ifte` dominates** the defined body ops (852 of 1,360 on v4, 3,492 of 6,325 on world-v3), and its frame is the stack the flat policy already sees. `map` and `filter`, where the frame is new, are 74 and 594 ops.
+
 ## Policy size at a fixed epoch, on the staged rows (#159)
 
 `experiments/size_at_fixed_epoch.py`. The staged arm of staged-witness-reauthoring (#155) (`arm_rows("staged")`, draw seed 20260920, 6 contrived rows excluded; 123 treated behaviours, 4,920 of 6,360 fit tasks, 313,560 rows per epoch) trained at 1m / 2m / 10m, seeds 0 / 1 / 2, 6 epochs, every epoch snapshotted, at #101's probe learning rates (1.25e-4 / 6.25e-5 / 3.125e-5), batch 256, validation on the fused holdout. Cohort search at beam 64 x depth 48, guard `both`, library off, with the #157 state cap, epochs 3-6. Verified = 10,000-draw `genuine` or catalogue-witness-equal. **Epoch 3 was pre-registered as the comparison** before the run, because picking each size's best epoch reads the eval cohort (#154). The gate was registered as CE equal to four decimals and passed **bitwise**: the retrained 1m seed-0 epoch-3 checkpoint is byte-identical to the published `staged-s0-e3` (max |dw| = 0.0), so this is #155's staged arm continued. [report](../reports/size-20260922/README.md), `cells.json`

@@ -32,6 +32,7 @@ consumer costs is added as a separate term (E1's in-sample H(tag | shape)).
 from __future__ import annotations
 
 import argparse
+import json
 import statistics
 import sys
 import time
@@ -133,11 +134,12 @@ def frame_legal(frames: Sequence[tuple], name: str) -> bool:
 
 
 def walk(
-    task: Task, scorer: PolicyScorer, *, frames: bool, mask: bool
+    task: Task, scorer: PolicyScorer, *, encoding: str | None, mask: bool
 ) -> dict[str, Any]:
     """Per-step deficits along the witness.
 
-    ``frames`` shows the policy the frame-conditioned state at body steps;
+    ``encoding`` is what the policy is shown at body steps: ``None`` for the
+    machine state, or a `frame_rows` encoding (``"frames"``, ``"tags"``);
     ``mask`` removes, at defined body steps, every non-structural op that
     refuses on the frame. A witness op the frame refuses keeps the machine's
     mask for that step and is counted.
@@ -164,8 +166,8 @@ def walk(
             else:
                 fallback += 1
         shown = (
-            tuple(frame_state(s[step], v.get(step, ())) for s, v in walks)
-            if frames
+            tuple(frame_state(s[step], v.get(step, ()), encoding) for s, v in walks)
+            if encoding
             else product
         )
         block = item_array(
@@ -259,13 +261,13 @@ def scorer_for(path: Path) -> PolicyScorer:
     return PolicyScorer(load_policy(path, device="cpu"), "cpu")
 
 
-def measure_cells(scorer: PolicyScorer, *, frames: bool, log) -> dict[str, Any]:
+def measure_cells(scorer: PolicyScorer, *, encoding: str | None, log) -> dict[str, Any]:
     cells = {}
     for corpus in CORPORA:
         tasks = eval_witnesses(corpus)
         variants = {}
         for mask in (False, True):
-            rows = [walk(t, scorer, frames=frames, mask=mask) for t in tasks]
+            rows = [walk(t, scorer, encoding=encoding, mask=mask) for t in tasks]
             key = "frame_mask" if mask else "machine_mask"
             variants[key] = {
                 "body": body_summary(rows),
@@ -295,28 +297,49 @@ def predict(run_dir: Path, log) -> Path:
         "policy": str(BASELINE),
         "budget_nats": TOLERANCE,
         "commit_nats": COMMIT_NATS,
-        "cells": measure_cells(scorer_for(BASELINE), frames=False, log=log),
+        "cells": measure_cells(scorer_for(BASELINE), encoding=None, log=log),
     }
     co.write_json(out, report)
     log(f"wrote {out}")
     return out
 
 
-def train(run_dir: Path, device: str, seeds: Sequence[int], log) -> None:
-    """`world_arm.train` with the rows re-encoded on frames; nothing else changes."""
+def arm_dir(run_dir: Path, arm: str, learning_rate: float = wa.LEARNING_RATE) -> Path:
+    """Where an arm's snapshots live; a non-default learning rate gets its own."""
+    if arm == "world":
+        return BASELINE.parents[1]
+    suffix = "" if learning_rate == wa.LEARNING_RATE else f"-lr{learning_rate:g}"
+    return run_dir / f"{arm}{suffix}"
+
+
+def rows_for(encoding: str):
+    return lambda tasks: frame_witness_rows(tasks, encoding)
+
+
+def train(
+    run_dir: Path,
+    device: str,
+    seeds: Sequence[int],
+    log,
+    *,
+    encoding: str = "frames",
+    learning_rate: float = wa.LEARNING_RATE,
+) -> None:
+    """`world_arm.train` with the rows re-encoded; nothing else changes."""
     tasks = wa.configure()
-    fit, held = co.training_rows(tasks, rows=frame_witness_rows)
-    log(f"RESULT rows: fit {len(fit)} validation {len(held)}")
+    fit, held = co.training_rows(tasks, rows=rows_for(encoding))
+    log(f"RESULT rows ({encoding}): fit {len(fit)} validation {len(held)}")
+    out_dir = arm_dir(run_dir, encoding, learning_rate)
     for seed in seeds:
-        if hs.policy_dir(run_dir, wa.ARM, seed, wa.EPOCHS).exists():
-            log(f"skip train s{seed} (snapshots exist)")
+        if hs.policy_dir(out_dir, wa.ARM, seed, wa.EPOCHS).exists():
+            log(f"skip train {encoding} s{seed} (snapshots exist)")
             continue
         manifest = {
             "arm": wa.ARM,
-            "encoding": "frames (experiments/frame_rows.py)",
+            "encoding": f"{encoding} (experiments/frame_rows.py)",
             "corpora": list(CORPORA),
             "epochs": wa.EPOCHS,
-            "learning_rate": wa.LEARNING_RATE,
+            "learning_rate": learning_rate,
             "seed": seed,
             "dropped_behaviours": sorted(wa.CONTAMINATED),
             "provenance": co.provenance(),
@@ -327,31 +350,65 @@ def train(run_dir: Path, device: str, seeds: Sequence[int], log) -> None:
             held,
             co.architecture(wa.ARM),
             epochs=wa.EPOCHS,
-            learning_rate=wa.LEARNING_RATE,
+            learning_rate=learning_rate,
             batch_size=wa.BATCH,
             validation_batch_size=wa.VAL_BATCH,
             seed=seed,
             device=device,
-            epoch_end=hs.snapshotter(run_dir, wa.ARM, seed, manifest),
+            epoch_end=hs.snapshotter(out_dir, wa.ARM, seed, manifest),
         )
-        co.write_json(run_dir / "training" / f"s{seed}.json", state)
+        co.write_json(out_dir / "training" / f"s{seed}.json", state)
         curve = " ".join(
             f"e{r['epoch']}:{r['validation_cross_entropy']:.3f}"
             for r in state["history"]
         )
-        log(f"RESULT train s{seed}: [{curve}] {time.perf_counter() - started:.0f}s")
+        log(
+            f"RESULT train {encoding} s{seed}: [{curve}] "
+            f"{time.perf_counter() - started:.0f}s"
+        )
+
+
+PROBE_RATES = (6.25e-5, 1.25e-4, 2.5e-4, 5e-4)
+
+
+def probe(run_dir: Path, device: str, log) -> dict[str, float]:
+    """One epoch of the frame arm at each learning rate, seed 0: validation CE.
+
+    The frame rows change 77% of the inputs and add tag tokens, so the world
+    arm's rate is not known to suit them; a gate that fails at an untuned rate
+    has not failed frames.
+    """
+    tasks = wa.configure()
+    fit, held = co.training_rows(tasks, rows=rows_for("frames"))
+    out = {}
+    for rate in PROBE_RATES:
+        _model, state = train_policy(
+            fit,
+            held,
+            co.architecture(wa.ARM),
+            epochs=1,
+            learning_rate=rate,
+            batch_size=wa.BATCH,
+            validation_batch_size=wa.VAL_BATCH,
+            seed=0,
+            device=device,
+        )
+        out[f"{rate:g}"] = state["history"][-1]["validation_cross_entropy"]
+        log(f"RESULT probe lr {rate:g}: validation CE {out[f'{rate:g}']:.4f}")
+    co.write_json(run_dir / "probe.json", out)
+    return out
 
 
 def measure(
     run_dir: Path, arm: str, cells: Sequence[tuple[int, int]], log
 ) -> list[Path]:
-    """Per-step deficits of the frame arm, or of the world arm it pairs against.
+    """Per-step deficits of one arm's snapshots, each shown what it was trained on.
 
-    ``arm`` is ``frames`` (this run's snapshots, shown frames) or ``world``
-    (the world arm's snapshots, shown the machine state), so the 18-cell spread
-    of both is measured the same way.
+    ``arm`` is ``frames`` or ``tags`` (this run's snapshots) or ``world`` (the
+    world arm's, shown the machine state), so the 18-cell spread of every arm is
+    measured the same way.
     """
-    source = run_dir if arm == "frames" else BASELINE.parents[1]
+    source = arm_dir(run_dir, arm)
     paths = []
     for seed, epoch in cells:
         out = run_dir / "measure" / f"{arm}-s{seed}-e{epoch}.json"
@@ -367,20 +424,131 @@ def measure(
             "paired_against": str(BASELINE),
             "budget_nats": TOLERANCE,
             "commit_nats": COMMIT_NATS,
-            "cells": measure_cells(scorer_for(path), frames=arm == "frames", log=log),
+            "cells": measure_cells(
+                scorer_for(path), encoding=None if arm == "world" else arm, log=log
+            ),
         }
         co.write_json(out, report)
         paths.append(out)
     return paths
 
 
+PRIMARY = (0, 5)
+PASS_CLEARS, FAIL_CLEARS = 17, 13
+PASS_RATIO, FAIL_RATIO = 0.6, 0.85
+# The frame must add this much over the tag alone for a PASS to be the frame's.
+FRAME_RATIO = 0.85
+
+
+def _defined(cells, arm, key, corpus):
+    return cells[arm][key][corpus]["machine_mask"]["body"]["body_defined"]["total"]
+
+
+def report(run_dir: Path, log) -> dict[str, Any]:
+    """Pair every measured cell of the three arms and read the registered gate off them.
+
+    The full arm's ratio to the world arm and its clears decide whether bodies
+    got cheap enough; its ratio to the tag-only arm decides whether the frame,
+    rather than the hindsight tag, is what did it.
+    """
+    cells: dict[str, dict[tuple[int, int], dict]] = {
+        "frames": {},
+        "tags": {},
+        "world": {},
+    }
+    for path in sorted((run_dir / "measure").glob("*.json")):
+        arm, s, e = path.stem.split("-")
+        cells[arm][int(s[1:]), int(e[1:])] = json.loads(path.read_text())["cells"]
+    pairs = sorted(set(cells["frames"]) & set(cells["world"]))
+    table = []
+    for key in pairs:
+        for corpus in CORPORA:
+            f = cells["frames"][key][corpus]["machine_mask"]
+            w = cells["world"][key][corpus]["machine_mask"]
+
+            def ratio(part, f=f, w=w):
+                return round(f["body"][part]["total"] / w["body"][part]["total"], 4)
+
+            row = {
+                "seed": key[0],
+                "epoch": key[1],
+                "corpus": corpus,
+                "defined_ratio": ratio("body_defined"),
+                "undefined_ratio": ratio("body_undefined"),
+                "top_level_ratio": ratio("top_level"),
+                "frames": f["composite_with_commitment"],
+                "world": w["composite_with_commitment"],
+                "frames_free": f["composite"],
+                "world_free": w["composite"],
+            }
+            if key in cells["tags"]:
+                row["frame_over_tag_ratio"] = round(
+                    _defined(cells, "frames", key, corpus)
+                    / _defined(cells, "tags", key, corpus),
+                    4,
+                )
+                row["tags"] = cells["tags"][key][corpus]["machine_mask"][
+                    "composite_with_commitment"
+                ]
+            table.append(row)
+
+    def median_of(field, corpus):
+        values = [r[field] for r in table if r["corpus"] == corpus and field in r]
+        return statistics.median(values) if values else None
+
+    v4 = [r for r in table if r["corpus"] == "stack_pbe_v4"]
+    primary = next((r for r in v4 if (r["seed"], r["epoch"]) == PRIMARY), None)
+    full = median_of("defined_ratio", "stack_pbe_v4")
+    frame = median_of("frame_over_tag_ratio", "stack_pbe_v4")
+    verdict = None
+    if primary is not None:
+        clears = primary["frames"]["both"]
+        if clears >= PASS_CLEARS and full < PASS_RATIO:
+            if frame is None:
+                verdict = "PASS_WITHOUT_TAG_CONTROL"
+            else:
+                verdict = "PASS" if frame < FRAME_RATIO else "TAG"
+        elif clears <= FAIL_CLEARS and full >= FAIL_RATIO:
+            verdict = "FAIL"
+        else:
+            verdict = "WEAK"
+    out = {
+        "pairs": len(pairs),
+        "primary": primary,
+        "median": {
+            corpus: {
+                field: median_of(field, corpus)
+                for field in (
+                    "defined_ratio",
+                    "frame_over_tag_ratio",
+                    "undefined_ratio",
+                    "top_level_ratio",
+                )
+            }
+            for corpus in CORPORA
+        },
+        "verdict": verdict,
+        "rows": table,
+    }
+    co.write_json(run_dir / "report.json", out)
+    log(
+        f"RESULT gate {verdict}: {len(pairs)} pairs; v4 median ratio full/world {full}, "
+        f"frame/tag {frame}; primary clears {primary and primary['frames']['both']} "
+        f"vs world {primary and primary['world']['both']}"
+    )
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("stage", choices=("predict", "train", "measure"))
+    parser.add_argument(
+        "stage", choices=("predict", "probe", "train", "measure", "report")
+    )
     parser.add_argument("--run-dir", type=Path, default=RUN_DIR)
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--seeds", default=",".join(str(s) for s in wa.SEEDS))
-    parser.add_argument("--arm", choices=("frames", "world"), default="frames")
+    parser.add_argument("--arm", choices=("frames", "tags", "world"), default="frames")
+    parser.add_argument("--lr", type=float, default=wa.LEARNING_RATE)
     parser.add_argument(
         "--cells", default="0:5", help="seed:epoch pairs, comma-separated, or 'all'"
     )
@@ -396,8 +564,22 @@ def main(argv: list[str] | None = None) -> int:
     torch.set_num_threads(8)
     if args.stage == "predict":
         predict(args.run_dir, log)
+    elif args.stage == "probe":
+        probe(args.run_dir, args.device, log)
     elif args.stage == "train":
-        train(args.run_dir, args.device, [int(s) for s in args.seeds.split(",")], log)
+        if args.arm == "world":
+            parser.error("the world arm is the fixed baseline; train frames or tags")
+        seeds = [int(s) for s in args.seeds.split(",")]
+        train(
+            args.run_dir,
+            args.device,
+            seeds,
+            log,
+            encoding=args.arm,
+            learning_rate=args.lr,
+        )
+    elif args.stage == "report":
+        report(args.run_dir, log)
     else:
         cells = (
             [(s, e) for s in wa.SEEDS for e in range(1, wa.EPOCHS + 1)]
