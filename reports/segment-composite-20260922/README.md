@@ -41,8 +41,11 @@ inside segments, not between them:
 - **Bodies carry 79-82% of the world arm's deficit** (BEST: 90-92%), counting
   each op to its innermost quotation; by step kind, body ops are 59-77% and the
   `[` that opens a quotation another 14-20%.
-- The median v4 eval witness has **one** segment: 4.6x the budget whole and
-  4.4x after cutting. On world-v3 the median goes from 26.5x to 17.5x.
+- The costliest segment holds the **whole** deficit of the median v4 eval
+  witness (median share 1.00; 0.76 on world-v3), though the median witness has
+  two segments (three on world-v3): the others are glue the policy gets
+  nearly free. Cutting takes the median v4 witness from 4.6x the budget to
+  4.4x, and world-v3 from 26.5x to 17.5x.
 
 This was the proposed first stage of the build (a search-only experiment:
 segment-reset ranking on the world-arm checkpoint, cumulative log-probability

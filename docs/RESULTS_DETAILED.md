@@ -544,7 +544,7 @@ Caveats: three seeds, one corpus, one recipe, one 44-task split. The lowest-defi
 | BEST `staged-s0-e3` | v4 eval | 45 | 5 | 5 | 5 | 5 |
 | BEST `staged-s0-e3` | world-v3 eval | 44 | 1 | 1 | 1 | 1 |
 
-- **Segment-reset search is predicted null** (+1 of 45, +0 of 44) and was deliberately **not run**: bodies carry 79-82% of the world arm's deficit (BEST 90-92%), and the median v4 eval witness is a single segment.
+- **Segment-reset search is predicted null** (+1 of 45, +0 of 44) and was deliberately **not run**: bodies carry 79-82% of the world arm's deficit (BEST 90-92%), and the costliest segment holds the median v4 eval witness's whole deficit (median share 1.00; 0.76 on world-v3).
 - **Even a budget per body moves world-v3 by zero.** The costliest sub-search is a body in 31 of 44 world-v3 witnesses; the longest is a median 36.5 raw ops there, needing 0.114 nats/step against the arm's 0.661. Bodies are short in macro tokens and long in base ops.
 
 Caveats: the quotation rows price a body at the flat policy's deficit, not at what a frame-conditioned sub-search would pay (that is #160 E2); every row assumes the right intermediate state survives in the top 64; `1m-s0-e5` was selected on the world-v3 eval split and is fixed here for pairing.

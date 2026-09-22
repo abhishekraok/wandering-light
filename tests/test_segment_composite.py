@@ -38,3 +38,11 @@ def test_a_nested_quotation_is_charged_to_itself_not_to_its_parent():
     # Inner body: 1 add ]; outer body: its own [ , the inner map and its ].
     assert bodies == [3.0, 3.0]
     assert top == [2.0]
+
+
+def test_a_zero_deficit_tail_is_still_a_segment():
+    """The partition is structural: it must not depend on what the policy gets right."""
+    assert segments([1.0, 2.0, 0.0], ["open", "run", "direct"]) == [3.0, 0.0]
+    top, _bodies = levels(["[", "]", "i", "dup"], [1.0, 1.0, 1.0, 0.0],
+                          ["open", "close", "run", "direct"])  # fmt: skip
+    assert top == [2.0, 0.0]

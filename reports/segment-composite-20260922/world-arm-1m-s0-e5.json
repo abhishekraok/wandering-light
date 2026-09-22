@@ -452,12 +452,14 @@
           "segments": [
             12.3301,
             33.6733,
-            72.6197
+            72.6197,
+            0.0
           ],
           "top_level_segments": [
             4.149,
             0.0,
-            1.5182
+            1.5182,
+            0.0
           ]
         },
         {
@@ -828,10 +830,12 @@
           "quotations": false,
           "segmented": false,
           "segments": [
-            23.5866
+            23.5866,
+            0.0
           ],
           "top_level_segments": [
-            1.4713
+            1.4713,
+            0.0
           ]
         },
         {
@@ -912,9 +916,11 @@
           "quotations": false,
           "segmented": false,
           "segments": [
-            25.551
+            25.551,
+            0.0
           ],
           "top_level_segments": [
+            0.0,
             0.0
           ]
         },
@@ -1050,10 +1056,12 @@
           "quotations": false,
           "segmented": false,
           "segments": [
-            34.0382
+            34.0382,
+            0.0
           ],
           "top_level_segments": [
-            3.6976
+            3.6976,
+            0.0
           ]
         },
         {
@@ -1138,10 +1146,12 @@
           "quotations": true,
           "segmented": false,
           "segments": [
-            10.111
+            10.111,
+            0.0
           ],
           "top_level_segments": [
-            1.9342
+            1.9342,
+            0.0
           ]
         },
         {
@@ -1162,10 +1172,12 @@
           "quotations": false,
           "segmented": false,
           "segments": [
-            19.6443
+            19.6443,
+            0.0
           ],
           "top_level_segments": [
-            2.9088
+            2.9088,
+            0.0
           ]
         },
         {
@@ -1848,14 +1860,16 @@
             12.1743,
             1.2648,
             66.1126,
-            57.0534
+            57.0534,
+            0.0
           ],
           "top_level_segments": [
             1.0092,
             12.1743,
             1.2648,
             2.8276,
-            0.5661
+            0.5661,
+            0.0
           ]
         },
         {

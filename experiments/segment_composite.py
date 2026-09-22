@@ -102,13 +102,16 @@ def segments(deficits: Sequence[float], kinds: Sequence[str]) -> list[float]:
     state after it is closed. Body ops, the quotation's own brackets and any
     top-level glue before the combinator all fall in the segment it closes.
     """
-    sums, current = [], 0.0
+    # Whether ops are pending is tracked apart from their sum: a tail of ops the
+    # policy gets exactly right sums to zero and is still a segment.
+    sums, current, pending = [], 0.0, False
     for d, kind in zip(deficits, kinds, strict=True):
         current += d
+        pending = True
         if kind == "run":
             sums.append(current)
-            current = 0.0
-    if current or not sums:
+            current, pending = 0.0, False
+    if pending or not sums:
         sums.append(current)
     return sums
 
@@ -122,7 +125,7 @@ def levels(
     level keeps only its own ops and is cut after each ``run``, as `segments`.
     """
     top: list[float] = []
-    current = 0.0
+    current, pending = 0.0, False
     open_bodies: list[float] = []
     bodies: list[float] = []
     for name, d, kind in zip(program, deficits, kinds, strict=True):
@@ -131,6 +134,7 @@ def levels(
                 open_bodies[-1] += d
             else:
                 current += d
+                pending = True
             open_bodies.append(0.0)
         elif name == "]" and open_bodies:
             open_bodies[-1] += d
@@ -139,11 +143,12 @@ def levels(
             open_bodies[-1] += d
         else:
             current += d
+            pending = True
             if kind == "run":
                 top.append(current)
-                current = 0.0
+                current, pending = 0.0, False
     bodies.extend(open_bodies)
-    if current or not top:
+    if pending or not top:
         top.append(current)
     return top, bodies
 
