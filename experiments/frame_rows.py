@@ -9,13 +9,12 @@ ops; this module is the training-side half of E2, which asks whether a policy
 shown the frame pays less per step inside bodies.
 
 A body step's state is rebuilt from the machine's own stack, split at its
-marks. Each open quotation keeps its `Mark` and, where E1's walk defines its
-frame, has its captured items replaced by `Sym(tag)` -- plus `Int(role)` for an
-`ifte` body, whose three roles share one frame -- and the frame after the body
-prefix. Where the frame is undefined (no consumer, a refused prefix, an empty
-list) the level keeps the machine's items, so the row falls back to exactly the
-state the flat policy sees. Top-level steps are untouched, so a witness with no
-quotation yields the same rows as `stack_policy.witness_rows`.
+marks. Each open quotation whose frame E1's capture-aware walk defines keeps its
+`Mark` and its captured items, and gains, after a separator no machine state
+can contain, its tag (plus `Int(role)` for `ifte`) and the frame after the body
+prefix -- or only the tag, for the control. Undefined levels and top-level
+steps are untouched, so a witness with no quotation yields exactly the rows of
+`stack_policy.witness_rows`.
 
 Tags and frames are the witness's own, in hindsight, and capture-aware (looking
 through `[ body ] swap cons filter`): what a search that had committed to the
@@ -56,18 +55,32 @@ if TYPE_CHECKING:
 View = tuple[str, int, "tuple | None"]
 
 
-ENCODINGS = ("frames", "tags")
+ENCODINGS = ("frames", "tags", "replace")
+# `]` collapses a quotation the moment it is written, so `Sym("]")` never sits
+# on a machine stack: after it, everything in a level is metadata, unambiguously.
+META = Sym("]")
 
 
 def frame_state(
     state: tuple[Value, ...], views: Sequence[View], encoding: str = "frames"
 ) -> tuple[Value, ...]:
-    """``state`` with each open level's items replaced by its tag and frame, where defined.
+    """``state`` with each defined open level annotated with its tag and frame.
 
-    ``encoding="tags"`` is the control: the same levels show the same tag
-    tokens but keep the machine's items instead of the frame, so the frame's
-    contribution is what ``"frames"`` adds over it.
+    A defined level keeps its `Mark` and the items the machine captured -- the
+    body written so far, which a search always knows -- and then, after `META`:
+
+    - ``"frames"``: the tag, ``Int(role)`` for an `ifte` body, and the frame the
+      body has reached. The policy sees strictly more than the machine state.
+    - ``"tags"``: the tag and role only; the control, so the frame's
+      contribution is what ``"frames"`` adds over it.
+    - ``"replace"``: the first design, which put the tag and frame *in place of*
+      the captured items, losing the text of the body. Kept because its
+      learning-rate probe is on record; the gate does not use it.
+
+    An undefined level is left exactly as the machine has it.
     """
+    if encoding not in ENCODINGS:
+        raise ValueError(f"encoding must be one of {ENCODINGS}, not {encoding!r}")
     marks = [i for i, value in enumerate(state) if isinstance(value, Mark)]
     if len(marks) != len(views):
         raise ValueError(
@@ -78,14 +91,18 @@ def frame_state(
     out: list[Value] = list(state[: marks[0]])
     for k, (at, (tag, role, virtual)) in enumerate(zip(marks, views, strict=True)):
         end = marks[k + 1] if k + 1 < len(marks) else len(state)
+        items = state[at + 1 : end]
         out.append(state[at])
         if virtual is None or tag not in COMBINATORS:
-            out.extend(state[at + 1 : end])
+            out.extend(items)
             continue
-        out.append(Sym(tag))
-        if tag == "ifte":
-            out.append(Int(role))
-        out.extend(virtual if encoding == "frames" else state[at + 1 : end])
+        label = [Sym(tag), Int(role)] if tag == "ifte" else [Sym(tag)]
+        if encoding == "replace":
+            out.extend([*label, *virtual])
+        elif encoding == "tags":
+            out.extend([*items, META, *label])
+        else:
+            out.extend([*items, META, *label, *virtual])
     return tuple(out)
 
 
@@ -117,9 +134,7 @@ def frame_product(
 
 
 def frame_witness_rows(tasks: Sequence[Task], encoding: str = "frames") -> list[Row]:
-    """`stack_policy.witness_rows` with every body step re-encoded on its frame."""
-    if encoding not in ENCODINGS:
-        raise ValueError(f"encoding must be one of {ENCODINGS}, not {encoding!r}")
+    """`stack_policy.witness_rows` with every defined body step annotated."""
     rows = []
     for index, task in enumerate(tasks):
         targets = encode_targets(

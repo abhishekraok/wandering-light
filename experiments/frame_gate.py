@@ -3,40 +3,53 @@
 The segment composite (`reports/segment-composite-20260922`) found that quotation
 bodies carry 79-92% of the per-step deficit, and that even a budget per body
 leaves world-v3 at 2 of 44 on the world-arm checkpoint `1m-s0-e5`. A search that
-commits to a quotation's consumer can run the body on its frame, so two things
-could lower what a body costs. This driver measures both, paired op for op
-against `1m-s0-e5`, on one witness per eval behaviour of v4 and world-v3:
+commits to a quotation's consumer can run the body on its frame. This driver
+measures what that is worth, paired op for op against `1m-s0-e5`, on one
+witness per eval behaviour of v4 and world-v3:
 
 - **frame-legal mask** (the search side, no training): at a body step whose
-  frame E1 defines, an op the machine would capture but that refuses on the
-  frame is not a candidate. Measured on `1m-s0-e5` directly.
-- **frame-conditioned policy** (the training side): `1m-s0-e5`'s recipe
-  (clear-world-v3 #161, `experiments/world_arm.py`) on the same tasks, split
-  and seeds, with every body step re-encoded by `experiments/frame_rows.py`.
+  frame E1 defines, an op that refuses on the frame is not a candidate. A
+  witness op the frame refuses kills the witness, since a real search would
+  have pruned it too.
+- **frame-conditioned policies** (the training side): clear-world-v3 (#161)'s
+  recipe (`experiments/world_arm.py`) with body steps re-encoded by
+  `experiments/frame_rows.py`, as ``frames`` (tag and frame) and as the
+  ``tags`` control (tag, machine items).
+
+Three things keep a deficit comparison honest across differently trained
+policies, and every stage applies all three:
+
+- **Temperature.** A deficit is a logit gap, so a policy that is merely less
+  confident has smaller deficits without ranking any better. Each checkpoint
+  gets one temperature, fitted to minimise cross-entropy on its own validation
+  rows (the v4 holdout the trainer already scores, in its own encoding), and
+  deficits are divided by it. The witness op's rank among the legal ops is
+  reported beside it, and needs no temperature at all.
+- **Commitment.** Tags and frames are the witness's own, in hindsight. A search
+  must choose, at each `[`, the consumer, the `ifte` role and how many values
+  the closure idiom will capture; a `[` is charged ``-log p(that choice | the
+  shape of the stack under the mark)``, with ``p`` counted on the **train**
+  split and applied to eval witnesses, so it is out of sample.
+- **Which ops are controls.** A body op is *defined* when E1 defines its
+  innermost frame on every example, *re-encoded* when it is not but some level
+  or some example is still rewritten, and *untouched* when every example shows
+  the machine's state. Only top-level and untouched ops see identical inputs in
+  every arm.
 
 Stages, each writing under ``--run-dir`` (default `checkpoints/frame-arm-20260922`):
-
-- ``predict``: before any training. The world arm's per-step deficit on body
-  ops, split by whether the frame is defined, under the machine's mask and the
-  frame-legal one; and the exchange rate from a reduction in defined-body
-  deficit to composite clears, which is what the registration prices.
-- ``train``: the frame arm, three seeds, six epochs, every epoch snapshotted.
-- ``measure``: the frame arm's per-step deficit on the same ops, and the composite.
-
-Deficits are nats behind the best legal op, as `staged_transfer.score` walks
-them; the legal mask is always the machine's except where the frame-legal
-variant says otherwise. Tags and frames are hindsight, so what committing to a
-consumer costs is added as a separate term (E1's in-sample H(tag | shape)).
+``predict`` (the world arm alone), ``probe`` (one-epoch learning rates),
+``train``, ``measure`` and ``report`` (the registered verdict).
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import statistics
 import sys
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -59,14 +72,18 @@ from experiments.inner_frames import (  # noqa: E402
     BUDGET,
     COMBINATORS,
     PREVIEW_DEPTH,
+    attribute,
+    replay,
+    walk_one_example,
+    witnesses,
 )
 from experiments.search_proxy import TOLERANCE  # noqa: E402
 from experiments.segment_composite import levels, segments  # noqa: E402
 from experiments.staged_transfer import step_kinds  # noqa: E402
 from wandering_light.corpus_hub import fetch_corpus  # noqa: E402
 from wandering_light.stack_beam import step_all_quiet  # noqa: E402
-from wandering_light.stack_machine import Sym, run_body  # noqa: E402
-from wandering_light.stack_pbe import OPS, load  # noqa: E402
+from wandering_light.stack_machine import Sym, parse_stack, run_body  # noqa: E402
+from wandering_light.stack_pbe import BASIS, OPS, load  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
     OP_INDEX,
     PolicyScorer,
@@ -75,6 +92,7 @@ from wandering_light.stack_policy import (  # noqa: E402
     item_array,
     load_policy,
     train_policy,
+    witness_rows,
 )
 
 if TYPE_CHECKING:
@@ -89,10 +107,8 @@ RUN_DIR = REPO / "checkpoints" / "frame-arm-20260922"
 BASELINE = REPO / "checkpoints" / "world-arm-20260922" / "policies" / "1m-s0-e5"
 CORPORA = ("stack_pbe_v4", "stack_pbe_world_v3")
 STRUCTURAL = ("[", "]")
-# E1's capture-aware in-sample H(tag | shape) per eval split, in nats: what a
-# search pays to commit to a consumer at each `[` if it gets the shape free.
-COMMIT_NATS = {"stack_pbe_v4": 0.377, "stack_pbe_world_v3": 0.462}
 SCALES = (1.0, 0.75, 0.5, 0.25, 0.1, 0.0)
+NO_COMMITMENT = "none"
 
 
 def eval_witnesses(corpus: str) -> list[Task]:
@@ -105,24 +121,100 @@ def eval_witnesses(corpus: str) -> list[Task]:
     return out
 
 
-def body_steps(task: Task) -> tuple[list[bool], list[bool], list[str | None]]:
-    """Per step: is it under a mark, is the innermost frame defined on every example, its tag."""
-    walks = example_walks(task)
-    body, defined, tag = [], [], []
+# ---------------------------------------------------------------------------
+# Commitment
+# ---------------------------------------------------------------------------
+
+
+def commitments(program: Sequence[str], first_input: str) -> dict[int, tuple]:
+    """``{step of a [: (shape under the mark, (consumer, role, captures))}``.
+
+    Read on the first shown example, as E1 reads shapes. A quotation with no
+    attributable consumer commits to ``none``.
+    """
+    states = replay(program, parse_stack(first_input, basis=BASIS))
+    if states is None:
+        return {}
+    tags = attribute(program)
+    walk = walk_one_example(program, states, tags, capture_aware=True)
+    out = {}
+    for step, name in enumerate(program):
+        if name != "[":
+            continue
+        kind, role, captures, _consumer = tags.get(step, ("never_closed", 0, 0, None))
+        choice = (
+            (kind, role or 0, captures or 0)
+            if kind in COMBINATORS
+            else (NO_COMMITMENT, 0, 0)
+        )
+        out[step] = (walk["shape"].get(step, NO_COMMITMENT), choice)
+    return out
+
+
+class CommitmentModel:
+    """``-log p(choice | shape)`` from train-split counts, add-one smoothed."""
+
+    def __init__(self, counts: Counter):
+        self.joint = counts
+        self.by_shape = Counter()
+        for (shape, _choice), n in counts.items():
+            self.by_shape[shape] += n
+        # Every choice seen anywhere in train, plus one slot for an unseen one.
+        self.vocabulary = len({choice for _shape, choice in counts}) + 1
+
+    @classmethod
+    def fit(cls, corpus: str) -> CommitmentModel:
+        tasks = load(fetch_corpus(DATA / corpus / "manifest.json"))
+        counts = Counter()
+        for _behaviour, program, inputs in witnesses(tasks, "train"):
+            for shape, choice in commitments(program, inputs[0]).values():
+                counts[shape, choice] += 1
+        return cls(counts)
+
+    def cost(self, shape: str, choice: tuple) -> float:
+        n = self.joint.get((shape, choice), 0)
+        return -math.log((n + 1) / (self.by_shape.get(shape, 0) + self.vocabulary))
+
+    def per_step(self, task: Task) -> list[float]:
+        """The commitment charge at each witness step: nonzero only at a `[`."""
+        charged = commitments(task.program, task.inputs[0])
+        return [
+            self.cost(*charged[step]) if step in charged else 0.0
+            for step in range(len(task.program))
+        ]
+
+
+# ---------------------------------------------------------------------------
+# The walk
+# ---------------------------------------------------------------------------
+
+
+def step_classes(task: Task, walks) -> tuple[list[str], list[str | None]]:
+    """Per step: ``top``, ``defined``, ``reencoded`` or ``untouched``; and the tag."""
+    classes, tags = [], []
     for step in range(len(task.program)):
         per = [views.get(step, ()) for _states, views in walks]
-        inside = bool(per[0])
-        inner = [v[-1] for v in per] if inside else []
-        tags = {t for t, _role, _virtual in inner}
-        body.append(inside)
-        defined.append(
-            inside
-            and len(tags) == 1
-            and next(iter(tags)) in COMBINATORS
+        if not per[0]:
+            classes.append("top")
+            tags.append(None)
+            continue
+        inner = [v[-1] for v in per]
+        kinds = {t for t, _role, _virtual in inner}
+        if (
+            len(kinds) == 1
+            and next(iter(kinds)) in COMBINATORS
             and all(virtual is not None for _t, _r, virtual in inner)
-        )
-        tag.append(inner[0][0] if inside else None)
-    return body, defined, tag
+        ):
+            classes.append("defined")
+        elif all(
+            frame_state(states[step], views.get(step, ())) == states[step]
+            for states, views in walks
+        ):
+            classes.append("untouched")
+        else:
+            classes.append("reencoded")
+        tags.append(inner[0][0])
+    return classes, tags
 
 
 def frame_legal(frames: Sequence[tuple], name: str) -> bool:
@@ -136,35 +228,35 @@ def frame_legal(frames: Sequence[tuple], name: str) -> bool:
 def walk(
     task: Task, scorer: PolicyScorer, *, encoding: str | None, mask: bool
 ) -> dict[str, Any]:
-    """Per-step deficits along the witness.
+    """Per-step raw deficit and rank of the witness op.
 
     ``encoding`` is what the policy is shown at body steps: ``None`` for the
-    machine state, or a `frame_rows` encoding (``"frames"``, ``"tags"``);
-    ``mask`` removes, at defined body steps, every non-structural op that
-    refuses on the frame. A witness op the frame refuses keeps the machine's
-    mask for that step and is counted.
+    machine state, or a `frame_rows` encoding. ``mask`` removes, at defined body
+    steps, every non-structural op that refuses on the frame; a witness op it
+    removes is recorded as a kill (deficit ``None``), not restored.
     """
     states = replay_states(task)
     targets = encode_targets(states[-1])
     walks = example_walks(task)
-    body, defined, tag = body_steps(task)
-    deficits, fallback = [], 0
+    classes, tags = step_classes(task, walks)
+    deficits: list[float | None] = []
+    ranks: list[int | None] = []
     for step, name in enumerate(task.program):
         product = states[step]
         legal = np.zeros((1, len(OPS)), dtype=bool)
         for index, op in enumerate(OPS):
             if step_all_quiet(product, op)[0] is not None:
                 legal[0, index] = True
-        if mask and defined[step]:
+        want = OP_INDEX[name]
+        if mask and classes[step] == "defined":
             inner = [views[step][-1][2] for _states, views in walks]
-            masked = legal.copy()
             for index, op in enumerate(OPS):
-                if masked[0, index] and op.name not in STRUCTURAL:
-                    masked[0, index] = frame_legal(inner, op.name)
-            if masked[0, OP_INDEX[name]]:
-                legal = masked
-            else:
-                fallback += 1
+                if legal[0, index] and op.name not in STRUCTURAL:
+                    legal[0, index] = frame_legal(inner, op.name)
+            if not legal[0, want]:
+                deficits.append(None)
+                ranks.append(None)
+                continue
         shown = (
             tuple(frame_state(s[step], v.get(step, ()), encoding) for s, v in walks)
             if encoding
@@ -174,62 +266,71 @@ def walk(
             [encode_item(s, t) for s, t in zip(shown, targets, strict=True)]
         )
         row = scorer.log_probs([block], legal)[0]
-        deficits.append(float(np.max(row[legal[0]])) - float(row[OP_INDEX[name]]))
+        mine = float(row[want])
+        deficits.append(float(np.max(row[legal[0]])) - mine)
+        ranks.append(int((row[legal[0]] > mine).sum()) + 1)
     return {
         "behaviour": task.behaviour,
-        "deficits": [round(d, 5) for d in deficits],
-        "body": body,
-        "defined": defined,
-        "tag": tag,
+        "deficits": [None if d is None else round(d, 5) for d in deficits],
+        "ranks": ranks,
+        "classes": classes,
+        "tags": tags,
         "kinds": step_kinds(task),
         "program": list(task.program),
-        "mask_fallback": fallback,
+        "killed": sum(d is None for d in deficits),
     }
 
 
-def body_summary(rows: Sequence[dict]) -> dict[str, Any]:
-    """Per-op deficit on body steps, all and split by whether the frame is defined."""
-    groups: dict[str, list[float]] = defaultdict(list)
+def body_summary(rows: Sequence[dict], temperature: float) -> dict[str, Any]:
+    """Per class and per defined consumer: ops, deficit (raw and calibrated), ranks."""
+    groups: dict[str, list[tuple[float, int]]] = defaultdict(list)
     for r in rows:
-        for d, b, f, t in zip(
-            r["deficits"], r["body"], r["defined"], r["tag"], strict=True
+        for d, rank, cls, tag in zip(
+            r["deficits"], r["ranks"], r["classes"], r["tags"], strict=True
         ):
-            if not b:
-                groups["top_level"].append(d)
+            if d is None:
                 continue
-            groups["body"].append(d)
-            groups["body_defined" if f else "body_undefined"].append(d)
-            if f:
-                groups[f"defined:{t}"].append(d)
+            groups[cls].append((d, rank))
+            if cls != "top":
+                groups["body"].append((d, rank))
+            if cls == "defined":
+                groups[f"defined:{tag}"].append((d, rank))
     out = {}
     for key, values in sorted(groups.items()):
+        deficits = [d for d, _ in values]
         out[key] = {
             "ops": len(values),
-            "mean": round(statistics.fmean(values), 4),
-            "median": round(statistics.median(values), 4),
-            "total": round(sum(values), 2),
+            "mean": round(statistics.fmean(deficits), 4),
+            "calibrated_mean": round(statistics.fmean(deficits) / temperature, 4),
+            "total": round(sum(deficits), 3),
+            "calibrated_total": round(sum(deficits) / temperature, 3),
+            "top1": round(sum(rank == 1 for _, rank in values) / len(values), 4),
+            "mean_rank": round(statistics.fmean(rank for _, rank in values), 4),
         }
     return out
 
 
 def composite(
-    rows: Sequence[dict], *, scale: float = 1.0, commit: float = 0.0
+    rows: Sequence[dict],
+    *,
+    temperature: float,
+    commit: dict[str, list[float]] | None = None,
+    scale: float = 1.0,
 ) -> dict[str, int]:
-    """Clears under the four decompositions, with defined-body deficits scaled.
+    """Clears under the four decompositions, on calibrated deficits.
 
-    ``commit`` nats are added to every `[`: the price of choosing its consumer.
+    ``commit`` maps a behaviour to its per-step commitment charges; ``scale``
+    multiplies the deficit of defined body ops. A killed witness clears nothing.
     """
     out = defaultdict(int)
     for r in rows:
+        if r["killed"]:
+            continue
+        charges = commit[r["behaviour"]] if commit else [0.0] * len(r["deficits"])
         deficits = [
-            d * scale if f else d
-            for d, f in zip(r["deficits"], r["defined"], strict=True)
+            (d / temperature) * (scale if cls == "defined" else 1.0) + c
+            for d, cls, c in zip(r["deficits"], r["classes"], charges, strict=True)
         ]
-        if commit:
-            deficits = [
-                d + commit if name == "[" else d
-                for d, name in zip(deficits, r["program"], strict=True)
-            ]
         segs = segments(deficits, r["kinds"])
         top, bodies = levels(r["program"], deficits, r["kinds"])
         worst_body = max(bodies, default=0.0)
@@ -241,52 +342,137 @@ def composite(
     return dict(out)
 
 
-def exchange_rate(rows: Sequence[dict], corpus: str) -> list[dict[str, Any]]:
-    """Composite clears as defined-body deficit is scaled, with and without commitment."""
-    table = []
-    for scale in SCALES:
-        table.append(
-            {
-                "scale": scale,
-                "free_commitment": composite(rows, scale=scale),
-                "with_commitment": composite(
-                    rows, scale=scale, commit=COMMIT_NATS[corpus]
-                ),
-            }
+def exchange_rate(
+    rows: Sequence[dict], temperature: float, commit: dict[str, list[float]]
+) -> list[dict[str, Any]]:
+    """Composite clears as calibrated defined-body deficit is scaled."""
+    return [
+        {
+            "scale": scale,
+            "free_commitment": composite(rows, temperature=temperature, scale=scale),
+            "with_commitment": composite(
+                rows, temperature=temperature, commit=commit, scale=scale
+            ),
+        }
+        for scale in SCALES
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Calibration
+# ---------------------------------------------------------------------------
+
+_VALIDATION: dict[str | None, list] = {}
+
+
+def validation_rows(encoding: str | None) -> list:
+    """The world arm's validation rows (v4 holdout), in ``encoding``."""
+    if encoding not in _VALIDATION:
+        _fit, held = co.split_tasks(wa.configure())
+        _VALIDATION[encoding] = (
+            witness_rows(held)
+            if encoding is None
+            else frame_witness_rows(held, encoding)
         )
-    return table
+    return _VALIDATION[encoding]
+
+
+def fit_temperature(scorer: PolicyScorer, rows: Sequence) -> dict[str, float]:
+    """The temperature minimising validation cross-entropy, by golden section on log T."""
+    logits = np.concatenate(
+        [
+            scorer.logits([row.items for row in rows[i : i + 512]])
+            for i in range(0, len(rows), 512)
+        ]
+    ).astype(np.float64)
+    labels = np.array([row.label for row in rows])
+
+    def nll(log_t: float) -> float:
+        z = logits / math.exp(log_t)
+        z = z - z.max(axis=1, keepdims=True)
+        lse = np.log(np.exp(z).sum(axis=1))
+        return float(np.mean(lse - z[np.arange(len(labels)), labels]))
+
+    lo, hi = math.log(0.25), math.log(4.0)
+    ratio = (math.sqrt(5) - 1) / 2
+    a, b = hi - ratio * (hi - lo), lo + ratio * (hi - lo)
+    fa, fb = nll(a), nll(b)
+    for _ in range(60):
+        if fa < fb:
+            hi, b, fb = b, a, fa
+            a = hi - ratio * (hi - lo)
+            fa = nll(a)
+        else:
+            lo, a, fa = a, b, fb
+            b = lo + ratio * (hi - lo)
+            fb = nll(b)
+    best = (lo + hi) / 2
+    return {
+        "temperature": round(math.exp(best), 5),
+        "validation_ce": round(nll(0.0), 5),
+        "calibrated_validation_ce": round(nll(best), 5),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Stages
+# ---------------------------------------------------------------------------
 
 
 def scorer_for(path: Path) -> PolicyScorer:
     return PolicyScorer(load_policy(path, device="cpu"), "cpu")
 
 
+_COMMIT: dict[str, dict[str, list[float]]] = {}
+
+
+def commit_charges(corpus: str, tasks: Sequence[Task]) -> dict[str, list[float]]:
+    if corpus not in _COMMIT:
+        model = CommitmentModel.fit(corpus)
+        _COMMIT[corpus] = {t.behaviour: model.per_step(t) for t in tasks}
+    return _COMMIT[corpus]
+
+
 def measure_cells(scorer: PolicyScorer, *, encoding: str | None, log) -> dict[str, Any]:
-    cells = {}
+    calibration = fit_temperature(scorer, validation_rows(encoding))
+    t = calibration["temperature"]
+    log(f"calibration {calibration}")
+    cells: dict[str, Any] = {"calibration": calibration}
     for corpus in CORPORA:
         tasks = eval_witnesses(corpus)
+        commit = commit_charges(corpus, tasks)
         variants = {}
         for mask in (False, True):
-            rows = [walk(t, scorer, encoding=encoding, mask=mask) for t in tasks]
+            rows = [walk(task, scorer, encoding=encoding, mask=mask) for task in tasks]
             key = "frame_mask" if mask else "machine_mask"
             variants[key] = {
-                "body": body_summary(rows),
-                "composite": composite(rows),
+                "body": body_summary(rows, t),
+                "composite": composite(rows, temperature=t),
                 "composite_with_commitment": composite(
-                    rows, commit=COMMIT_NATS[corpus]
+                    rows, temperature=t, commit=commit
                 ),
-                "exchange_rate": exchange_rate(rows, corpus),
-                "mask_fallbacks": sum(r["mask_fallback"] for r in rows),
+                "exchange_rate": exchange_rate(rows, t, commit),
+                "killed_steps": sum(r["killed"] for r in rows),
+                "killed_witnesses": sum(bool(r["killed"]) for r in rows),
                 "rows": rows,
             }
-            b = variants[key]["body"]
+            b = variants[key]["body"]["defined"]
             log(
-                f"{corpus} {key}: body mean {b['body']['mean']} "
-                f"(defined {b['body_defined']['mean']} over {b['body_defined']['ops']} ops, "
-                f"undefined {b['body_undefined']['mean']} over {b['body_undefined']['ops']}) "
-                f"| composite {variants[key]['composite']}"
+                f"{corpus} {key}: defined body calibrated {b['calibrated_mean']} "
+                f"top1 {b['top1']} over {b['ops']} ops | killed "
+                f"{variants[key]['killed_witnesses']} | "
+                f"{variants[key]['composite_with_commitment']}"
             )
         cells[corpus] = variants
+    cells["commitment"] = {
+        corpus: {
+            "charged": sum(1 for c in _COMMIT[corpus].values() for x in c if x),
+            "mean": round(
+                statistics.fmean(x for c in _COMMIT[corpus].values() for x in c if x), 4
+            ),
+        }
+        for corpus in CORPORA
+    }
     return cells
 
 
@@ -296,7 +482,6 @@ def predict(run_dir: Path, log) -> Path:
     report = {
         "policy": str(BASELINE),
         "budget_nats": TOLERANCE,
-        "commit_nats": COMMIT_NATS,
         "cells": measure_cells(scorer_for(BASELINE), encoding=None, log=log),
     }
     co.write_json(out, report)
@@ -371,43 +556,57 @@ def train(
 PROBE_RATES = (6.25e-5, 1.25e-4, 2.5e-4, 5e-4)
 
 
-def probe(run_dir: Path, device: str, log) -> dict[str, float]:
-    """One epoch of the frame arm at each learning rate, seed 0: validation CE.
+def probe(
+    run_dir: Path,
+    device: str,
+    log,
+    *,
+    encodings: Sequence[str] = ("flat", "frames", "tags"),
+    rates: Sequence[float] = PROBE_RATES,
+) -> dict[str, dict[str, float]]:
+    """One epoch at each learning rate, seed 0, per encoding: validation CE.
 
     The frame rows change 77% of the inputs and add tag tokens, so the world
     arm's rate is not known to suit them; a gate that fails at an untuned rate
-    has not failed frames.
+    has not failed frames. ``flat`` is the world arm's own rows, so its cell at
+    the world arm's rate must reproduce that arm's first epoch exactly, and
+    every other rate is compared with flat at the same rate.
     """
+    path = run_dir / "probe.json"
+    out: dict[str, dict[str, float]] = (
+        json.loads(path.read_text()) if path.exists() else {}
+    )
     tasks = wa.configure()
-    fit, held = co.training_rows(tasks, rows=rows_for("frames"))
-    out = {}
-    for rate in PROBE_RATES:
-        _model, state = train_policy(
-            fit,
-            held,
-            co.architecture(wa.ARM),
-            epochs=1,
-            learning_rate=rate,
-            batch_size=wa.BATCH,
-            validation_batch_size=wa.VAL_BATCH,
-            seed=0,
-            device=device,
-        )
-        out[f"{rate:g}"] = state["history"][-1]["validation_cross_entropy"]
-        log(f"RESULT probe lr {rate:g}: validation CE {out[f'{rate:g}']:.4f}")
-    co.write_json(run_dir / "probe.json", out)
+    for encoding in encodings:
+        todo = [r for r in rates if f"{r:g}" not in out.get(encoding, {})]
+        if not todo:
+            continue
+        rows = witness_rows if encoding == "flat" else rows_for(encoding)
+        fit, held = co.training_rows(tasks, rows=rows)
+        for rate in todo:
+            _model, state = train_policy(
+                fit,
+                held,
+                co.architecture(wa.ARM),
+                epochs=1,
+                learning_rate=rate,
+                batch_size=wa.BATCH,
+                validation_batch_size=wa.VAL_BATCH,
+                seed=0,
+                device=device,
+            )
+            ce = state["history"][-1]["validation_cross_entropy"]
+            out.setdefault(encoding, {})[f"{rate:g}"] = ce
+            co.write_json(path, out)
+            log(f"RESULT probe {encoding} lr {rate:g}: validation CE {ce:.4f}")
+        del fit, held
     return out
 
 
 def measure(
     run_dir: Path, arm: str, cells: Sequence[tuple[int, int]], log
 ) -> list[Path]:
-    """Per-step deficits of one arm's snapshots, each shown what it was trained on.
-
-    ``arm`` is ``frames`` or ``tags`` (this run's snapshots) or ``world`` (the
-    world arm's, shown the machine state), so the 18-cell spread of every arm is
-    measured the same way.
-    """
+    """Per-step deficits of one arm's snapshots, each shown what it was trained on."""
     source = arm_dir(run_dir, arm)
     paths = []
     for seed, epoch in cells:
@@ -418,39 +617,38 @@ def measure(
             continue
         path = hs.policy_dir(source, wa.ARM, seed, epoch)
         log(f"measure {arm} s{seed}-e{epoch}: {path}")
-        report = {
+        report_ = {
             "policy": str(path),
             "arm": arm,
             "paired_against": str(BASELINE),
             "budget_nats": TOLERANCE,
-            "commit_nats": COMMIT_NATS,
             "cells": measure_cells(
                 scorer_for(path), encoding=None if arm == "world" else arm, log=log
             ),
         }
-        co.write_json(out, report)
+        co.write_json(out, report_)
         paths.append(out)
     return paths
 
 
+# The registered gate (#160). Clears are v4 eval, both decompositions with the
+# commitment charged, on calibrated deficits, at the primary cell; ratios are
+# of calibrated defined-body deficit totals, medians over matched cells. The
+# clear thresholds are the world arm's own exchange rate at `PRIMARY`: 12 at
+# its measured deficit, 19 with defined-body deficit halved.
 PRIMARY = (0, 5)
-PASS_CLEARS, FAIL_CLEARS = 17, 13
+PASS_CLEARS, FAIL_CLEARS = 19, 12
 PASS_RATIO, FAIL_RATIO = 0.6, 0.85
 # The frame must add this much over the tag alone for a PASS to be the frame's.
 FRAME_RATIO = 0.85
 
 
-def _defined(cells, arm, key, corpus):
-    return cells[arm][key][corpus]["machine_mask"]["body"]["body_defined"]["total"]
+def _defined(cell, corpus):
+    return cell[corpus]["machine_mask"]["body"]["defined"]
 
 
 def report(run_dir: Path, log) -> dict[str, Any]:
-    """Pair every measured cell of the three arms and read the registered gate off them.
-
-    The full arm's ratio to the world arm and its clears decide whether bodies
-    got cheap enough; its ratio to the tag-only arm decides whether the frame,
-    rather than the hindsight tag, is what did it.
-    """
+    """Pair every measured cell of the three arms and read the registered gate off them."""
     cells: dict[str, dict[tuple[int, int], dict]] = {
         "frames": {},
         "tags": {},
@@ -463,29 +661,28 @@ def report(run_dir: Path, log) -> dict[str, Any]:
     table = []
     for key in pairs:
         for corpus in CORPORA:
-            f = cells["frames"][key][corpus]["machine_mask"]
-            w = cells["world"][key][corpus]["machine_mask"]
-
-            def ratio(part, f=f, w=w):
-                return round(f["body"][part]["total"] / w["body"][part]["total"], 4)
-
+            f = _defined(cells["frames"][key], corpus)
+            w = _defined(cells["world"][key], corpus)
             row = {
                 "seed": key[0],
                 "epoch": key[1],
                 "corpus": corpus,
-                "defined_ratio": ratio("body_defined"),
-                "undefined_ratio": ratio("body_undefined"),
-                "top_level_ratio": ratio("top_level"),
-                "frames": f["composite_with_commitment"],
-                "world": w["composite_with_commitment"],
-                "frames_free": f["composite"],
-                "world_free": w["composite"],
+                "defined_ratio": round(
+                    f["calibrated_total"] / w["calibrated_total"], 4
+                ),
+                "raw_defined_ratio": round(f["total"] / w["total"], 4),
+                "top1_gain": round(f["top1"] - w["top1"], 4),
+                "frames": cells["frames"][key][corpus]["machine_mask"][
+                    "composite_with_commitment"
+                ],
+                "world": cells["world"][key][corpus]["machine_mask"][
+                    "composite_with_commitment"
+                ],
             }
             if key in cells["tags"]:
+                g = _defined(cells["tags"][key], corpus)
                 row["frame_over_tag_ratio"] = round(
-                    _defined(cells, "frames", key, corpus)
-                    / _defined(cells, "tags", key, corpus),
-                    4,
+                    f["calibrated_total"] / g["calibrated_total"], 4
                 )
                 row["tags"] = cells["tags"][key][corpus]["machine_mask"][
                     "composite_with_commitment"
@@ -499,11 +696,12 @@ def report(run_dir: Path, log) -> dict[str, Any]:
     v4 = [r for r in table if r["corpus"] == "stack_pbe_v4"]
     primary = next((r for r in v4 if (r["seed"], r["epoch"]) == PRIMARY), None)
     full = median_of("defined_ratio", "stack_pbe_v4")
+    gain = median_of("top1_gain", "stack_pbe_v4")
     frame = median_of("frame_over_tag_ratio", "stack_pbe_v4")
     verdict = None
     if primary is not None:
         clears = primary["frames"]["both"]
-        if clears >= PASS_CLEARS and full < PASS_RATIO:
+        if clears >= PASS_CLEARS and full < PASS_RATIO and gain > 0:
             if frame is None:
                 verdict = "PASS_WITHOUT_TAG_CONTROL"
             else:
@@ -520,9 +718,9 @@ def report(run_dir: Path, log) -> dict[str, Any]:
                 field: median_of(field, corpus)
                 for field in (
                     "defined_ratio",
+                    "raw_defined_ratio",
+                    "top1_gain",
                     "frame_over_tag_ratio",
-                    "undefined_ratio",
-                    "top_level_ratio",
                 )
             }
             for corpus in CORPORA
@@ -532,9 +730,10 @@ def report(run_dir: Path, log) -> dict[str, Any]:
     }
     co.write_json(run_dir / "report.json", out)
     log(
-        f"RESULT gate {verdict}: {len(pairs)} pairs; v4 median ratio full/world {full}, "
-        f"frame/tag {frame}; primary clears {primary and primary['frames']['both']} "
-        f"vs world {primary and primary['world']['both']}"
+        f"RESULT gate {verdict}: {len(pairs)} pairs; v4 median calibrated ratio "
+        f"{full}, top-1 gain {gain}, frame/tag {frame}; primary clears "
+        f"{primary and primary['frames']['both']} vs world "
+        f"{primary and primary['world']['both']}"
     )
     return out
 
@@ -549,6 +748,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seeds", default=",".join(str(s) for s in wa.SEEDS))
     parser.add_argument("--arm", choices=("frames", "tags", "world"), default="frames")
     parser.add_argument("--lr", type=float, default=wa.LEARNING_RATE)
+    parser.add_argument("--encodings", default="flat,frames,tags")
+    parser.add_argument("--rates", default=",".join(f"{r:g}" for r in PROBE_RATES))
     parser.add_argument(
         "--cells", default="0:5", help="seed:epoch pairs, comma-separated, or 'all'"
     )
@@ -565,7 +766,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.stage == "predict":
         predict(args.run_dir, log)
     elif args.stage == "probe":
-        probe(args.run_dir, args.device, log)
+        probe(
+            args.run_dir,
+            args.device,
+            log,
+            encodings=args.encodings.split(","),
+            rates=[float(r) for r in args.rates.split(",")],
+        )
     elif args.stage == "train":
         if args.arm == "world":
             parser.error("the world arm is the fixed baseline; train frames or tags")
