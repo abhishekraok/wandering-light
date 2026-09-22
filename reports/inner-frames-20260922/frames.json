@@ -1,0 +1,380 @@
+{
+  "cells": {
+    "stack_pbe_v4:eval": {
+      "all_ops": 2233,
+      "ambiguity_nats": {
+        "entropy_tag": 1.039,
+        "entropy_tag_given_shape": 0.287,
+        "issue_assumption_ln6": 1.792,
+        "ln_mean_legal_tags": 1.541
+      },
+      "attribution_crosscheck_depth1": {
+        "agree": 342,
+        "compared": 407,
+        "disagree": 65,
+        "other_op_first->mutated_or_folded": 65
+      },
+      "by_depth": {
+        "depth_1": {
+          "coverage": 0.7464,
+          "share": 0.2182,
+          "under_mark_ops": 414
+        },
+        "depth_2": {
+          "coverage": 0.7296,
+          "share": 0.466,
+          "under_mark_ops": 884
+        },
+        "depth_3+": {
+          "coverage": 0.5426,
+          "share": 0.3158,
+          "under_mark_ops": 599
+        }
+      },
+      "by_parent_kind_depth_2plus": {
+        "fresh": {
+          "coverage": 0.817,
+          "under_mark_ops": 716
+        },
+        "inherited": {
+          "coverage": 0.502,
+          "under_mark_ops": 767
+        }
+      },
+      "frame_coverage_per_example": 0.7576,
+      "frame_coverage_product": 0.6742,
+      "legal_tags_per_open": {
+        "histogram": {
+          "3": 76,
+          "4": 52,
+          "5": 65,
+          "6": 105
+        },
+        "mean": 4.668
+      },
+      "programs": 45,
+      "skipped_programs": 0,
+      "tag_distribution": {
+        "dip": 237,
+        "filter": 8,
+        "fold": 161,
+        "ifte": 852,
+        "map": 21
+      },
+      "unchained_fold": {
+        "accept_set_differs": 0,
+        "completed_bodies": 47,
+        "rate": 0.0,
+        "write_steps_with_a_frame": 111
+      },
+      "undefined_reasons": {
+        "body_refused": 11,
+        "empty_list": 51,
+        "other_op_first": 74,
+        "parent_refused": 482
+      },
+      "under_mark_ops": 1897,
+      "under_mark_share_of_ops": 0.8495
+    },
+    "stack_pbe_v4:train": {
+      "all_ops": 8490,
+      "ambiguity_nats": {
+        "entropy_tag": 1.062,
+        "entropy_tag_given_shape": 0.306,
+        "issue_assumption_ln6": 1.792,
+        "ln_mean_legal_tags": 1.514
+      },
+      "attribution_crosscheck_depth1": {
+        "agree": 1446,
+        "compared": 1596,
+        "disagree": 150,
+        "other_op_first->mutated_or_folded": 150
+      },
+      "by_depth": {
+        "depth_1": {
+          "coverage": 0.8744,
+          "share": 0.2303,
+          "under_mark_ops": 1648
+        },
+        "depth_2": {
+          "coverage": 0.7561,
+          "share": 0.4452,
+          "under_mark_ops": 3186
+        },
+        "depth_3+": {
+          "coverage": 0.4985,
+          "share": 0.3246,
+          "under_mark_ops": 2323
+        }
+      },
+      "by_parent_kind_depth_2plus": {
+        "fresh": {
+          "coverage": 0.8009,
+          "under_mark_ops": 2768
+        },
+        "inherited": {
+          "coverage": 0.4925,
+          "under_mark_ops": 2741
+        }
+      },
+      "frame_coverage_per_example": 0.7921,
+      "frame_coverage_product": 0.6997,
+      "legal_tags_per_open": {
+        "histogram": {
+          "3": 344,
+          "4": 194,
+          "5": 236,
+          "6": 363
+        },
+        "mean": 4.544
+      },
+      "programs": 175,
+      "skipped_programs": 0,
+      "tag_distribution": {
+        "dip": 1218,
+        "filter": 46,
+        "fold": 837,
+        "ifte": 2866,
+        "map": 41
+      },
+      "unchained_fold": {
+        "accept_set_differs": 0,
+        "completed_bodies": 180,
+        "rate": 0.0,
+        "write_steps_with_a_frame": 533
+      },
+      "undefined_reasons": {
+        "body_refused": 35,
+        "empty_list": 101,
+        "other_op_first": 169,
+        "parent_refused": 1844
+      },
+      "under_mark_ops": 7157,
+      "under_mark_share_of_ops": 0.843
+    },
+    "stack_pbe_world_v3:eval": {
+      "all_ops": 9892,
+      "ambiguity_nats": {
+        "entropy_tag": 1.102,
+        "entropy_tag_given_shape": 0.324,
+        "issue_assumption_ln6": 1.792,
+        "ln_mean_legal_tags": 1.524
+      },
+      "attribution_crosscheck_depth1": {
+        "agree": 1368,
+        "compared": 1644,
+        "disagree": 276,
+        "other_op_first->mutated_or_folded": 276
+      },
+      "by_depth": {
+        "depth_1": {
+          "coverage": 0.8465,
+          "share": 0.2745,
+          "under_mark_ops": 2293
+        },
+        "depth_2": {
+          "coverage": 0.596,
+          "share": 0.3141,
+          "under_mark_ops": 2624
+        },
+        "depth_3+": {
+          "coverage": 0.3507,
+          "share": 0.4113,
+          "under_mark_ops": 3436
+        }
+      },
+      "by_parent_kind_depth_2plus": {
+        "fresh": {
+          "coverage": 0.8306,
+          "under_mark_ops": 1240
+        },
+        "inherited": {
+          "coverage": 0.3608,
+          "under_mark_ops": 4820
+        }
+      },
+      "frame_coverage_per_example": 0.6057,
+      "frame_coverage_product": 0.5639,
+      "legal_tags_per_open": {
+        "histogram": {
+          "3": 153,
+          "4": 241,
+          "5": 174,
+          "6": 222
+        },
+        "mean": 4.589
+      },
+      "programs": 44,
+      "skipped_programs": 0,
+      "tag_distribution": {
+        "dip": 1071,
+        "filter": 18,
+        "fold": 690,
+        "ifte": 2736,
+        "map": 195
+      },
+      "unchained_fold": {
+        "accept_set_differs": 0,
+        "completed_bodies": 131,
+        "rate": 0.0,
+        "write_steps_with_a_frame": 480
+      },
+      "undefined_reasons": {
+        "body_refused": 184,
+        "empty_list": 100,
+        "other_op_first": 904,
+        "parent_refused": 2455
+      },
+      "under_mark_ops": 8353,
+      "under_mark_share_of_ops": 0.8444
+    },
+    "stack_pbe_world_v3:train": {
+      "all_ops": 123058,
+      "ambiguity_nats": {
+        "entropy_tag": 1.17,
+        "entropy_tag_given_shape": 0.347,
+        "issue_assumption_ln6": 1.792,
+        "ln_mean_legal_tags": 1.542
+      },
+      "attribution_crosscheck_depth1": {
+        "agree": 10854,
+        "compared": 13140,
+        "disagree": 2286,
+        "other_op_first->mutated_or_folded": 2286
+      },
+      "by_depth": {
+        "depth_1": {
+          "coverage": 0.7054,
+          "share": 0.2018,
+          "under_mark_ops": 22058
+        },
+        "depth_2": {
+          "coverage": 0.4556,
+          "share": 0.25,
+          "under_mark_ops": 27326
+        },
+        "depth_3+": {
+          "coverage": 0.3175,
+          "share": 0.5482,
+          "under_mark_ops": 59916
+        }
+      },
+      "by_parent_kind_depth_2plus": {
+        "fresh": {
+          "coverage": 0.5119,
+          "under_mark_ops": 24827
+        },
+        "inherited": {
+          "coverage": 0.3006,
+          "under_mark_ops": 62415
+        }
+      },
+      "frame_coverage_per_example": 0.5614,
+      "frame_coverage_product": 0.4303,
+      "legal_tags_per_open": {
+        "histogram": {
+          "3": 1677,
+          "4": 2836,
+          "5": 2152,
+          "6": 3038
+        },
+        "mean": 4.675
+      },
+      "programs": 482,
+      "skipped_programs": 0,
+      "tag_distribution": {
+        "dip": 11099,
+        "filter": 735,
+        "fold": 7985,
+        "ifte": 26335,
+        "map": 879
+      },
+      "unchained_fold": {
+        "accept_set_differs": 75,
+        "completed_bodies": 1828,
+        "rate": 0.0085,
+        "write_steps_with_a_frame": 8847
+      },
+      "undefined_reasons": {
+        "body_refused": 1351,
+        "empty_list": 4414,
+        "other_op_first": 9593,
+        "parent_refused": 46906,
+        "role_mismatch": 3
+      },
+      "under_mark_ops": 109300,
+      "under_mark_share_of_ops": 0.8882
+    },
+    "staged:train": {
+      "all_ops": 5869,
+      "ambiguity_nats": {
+        "entropy_tag": 1.478,
+        "entropy_tag_given_shape": 0.458,
+        "issue_assumption_ln6": 1.792,
+        "ln_mean_legal_tags": 1.574
+      },
+      "attribution_crosscheck_depth1": {
+        "agree": 2702,
+        "compared": 3032,
+        "disagree": 330,
+        "other_op_first->mutated_or_folded": 330
+      },
+      "by_depth": {
+        "depth_1": {
+          "coverage": 0.8247,
+          "share": 0.7589,
+          "under_mark_ops": 3138
+        },
+        "depth_2": {
+          "coverage": 0.681,
+          "share": 0.2411,
+          "under_mark_ops": 997
+        }
+      },
+      "by_parent_kind_depth_2plus": {
+        "fresh": {
+          "coverage": 0.7892,
+          "under_mark_ops": 797
+        },
+        "inherited": {
+          "coverage": 0.25,
+          "under_mark_ops": 200
+        }
+      },
+      "frame_coverage_per_example": 0.852,
+      "frame_coverage_product": 0.7901,
+      "legal_tags_per_open": {
+        "histogram": {
+          "3": 93,
+          "4": 313,
+          "5": 198,
+          "6": 336
+        },
+        "mean": 4.827
+      },
+      "programs": 128,
+      "skipped_programs": 0,
+      "tag_distribution": {
+        "dip": 411,
+        "filter": 313,
+        "fold": 1428,
+        "ifte": 641,
+        "map": 474
+      },
+      "unchained_fold": {
+        "accept_set_differs": 0,
+        "completed_bodies": 289,
+        "rate": 0.0,
+        "write_steps_with_a_frame": 1002
+      },
+      "undefined_reasons": {
+        "empty_list": 290,
+        "other_op_first": 365,
+        "parent_refused": 213
+      },
+      "under_mark_ops": 4135,
+      "under_mark_share_of_ops": 0.7045
+    }
+  },
+  "seconds": 25.0
+}

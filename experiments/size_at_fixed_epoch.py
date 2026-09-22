@@ -48,6 +48,7 @@ import experiments.staged_arms as sa  # noqa: E402
 import experiments.step3_verify_solves as verify  # noqa: E402
 from wandering_light.solve import BEST  # noqa: E402
 from wandering_light.stack_beam import beam_solve  # noqa: E402
+from wandering_light.stack_machine import run_body  # noqa: E402
 from wandering_light.stack_pbe import CATALOGUE  # noqa: E402
 from wandering_light.stack_pbe_eval import grade  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
@@ -131,6 +132,12 @@ def time_cell(run_dir: Path, tasks, size: str, seed: int, epoch: int, device, lo
         load_policy(hs.policy_dir(run_dir, size, seed, epoch), device=device), device
     )
     rows = []
+    found = []
+    # Grading runs held-out examples through `run_body`'s process-global memo,
+    # so grading inside the loop would hand later searches work they never paid
+    # for. Search the whole cohort first, grade after the clock stops, and start
+    # each cell cold -- the rule `wandering_light.solve.solve_tasks` follows.
+    run_body.cache_clear()
     gc.freeze()
     started = time.perf_counter()
     for index, task in co.cohort(tasks):
@@ -142,6 +149,9 @@ def time_cell(run_dir: Path, tasks, size: str, seed: int, epoch: int, device, lo
             guard=co.GUARD,
             max_state_atoms=BEST.max_state_atoms,
         )
+        found.append((index, task, result))
+    cell_seconds = time.perf_counter() - started
+    for index, task, result in found:
         score = grade(result.program, task) if result.program else None
         rows.append(
             {
@@ -161,7 +171,6 @@ def time_cell(run_dir: Path, tasks, size: str, seed: int, epoch: int, device, lo
                 "depth": result.depth,
             }
         )
-    cell_seconds = time.perf_counter() - started
     co.write_json(
         out,
         {

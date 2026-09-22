@@ -193,6 +193,19 @@ def entropy(counts: Counter) -> float:
     return -sum((n / total) * math.log(n / total) for n in counts.values() if n)
 
 
+def marginal_tags(joint: Counter) -> Counter:
+    """Tag counts summed over shapes.
+
+    A dict comprehension over ``joint`` would keep only the last shape's count
+    for each tag, making H(tag) both wrong and dependent on iteration order,
+    and the comparison with H(tag | shape) meaningless.
+    """
+    out: Counter = Counter()
+    for (_shape, tag), n in joint.items():
+        out[tag] += n
+    return out
+
+
 def conditional_entropy(joint: Counter) -> float:
     """H(tag | shape) in nats, from a counter over (shape, tag)."""
     by_shape: dict[str, Counter] = defaultdict(Counter)
@@ -458,8 +471,15 @@ def walk_one_example(
                 }
             if open_levels:
                 parent = open_levels[-1]
+                # The finished quotation is a value **in the parent's body**, not
+                # only on its virtual stack: leaving it out of `parent.body`
+                # rebuilds the grandparent's body without it, so a nested
+                # program like `[ [ [ 1 add ] map ] map ] map` is reported as
+                # refusing when it runs perfectly well.
+                quotation = Lst(tuple(closed.body))
+                parent.body.append(quotation)
                 if parent.virtual is not None:
-                    parent.virtual = (*parent.virtual, Lst(tuple(closed.body)))
+                    parent.virtual = (*parent.virtual, quotation)
             defined[step] = closed.virtual is not None
             if closed.refusal:
                 reason[step] = closed.refusal
@@ -700,9 +720,7 @@ def analyse(
             )
             if legal_counts
             else 0.0,
-            "entropy_tag": round(
-                entropy(Counter({t: n for (_s, t), n in shape_tag.items()})), 3
-            ),
+            "entropy_tag": round(entropy(marginal_tags(shape_tag)), 3),
             "entropy_tag_given_shape": round(conditional_entropy(shape_tag), 3),
         },
         "attribution_crosscheck_depth1": dict(checks.most_common()),
@@ -720,13 +738,31 @@ def analyse(
     }
 
 
-def staged_programs(keep_plus_two: bool = False) -> dict[str, str]:
-    """The #155 staged witnesses, by behaviour.
+# The staging rules of #155, as its own report states them: no quotation over 8
+# atoms, no write run over 12 steps, at most 4 top-level non-write steps between
+# a quotation's `]` and the combinator that runs it.
+STAGING_RULES = {"largest_quotation": 8, "longest_write_run": 12, "longest_park": 4}
 
-    That issue's own caveat: 12 rows were accepted only through the classifier's
-    `+2 executions` branch and are staged for the classifier's sake, so they are
-    treated as untreated here unless ``keep_plus_two``.
+
+def fused_within_rules(row: dict[str, Any]) -> bool:
+    """Was this behaviour's **fused** witness already within the staging rules?
+
+    #155's classifier accepts a rewrite when it is within the rules **and**
+    either it adds two post-execution states or the fused witness broke a rule.
+    So a row whose fused witness broke nothing was accepted only through the
+    `+2 executions` branch, and that issue's own caveat says to treat those as
+    untreated. The file has no field for it -- `broken_rules` is empty on all
+    143, because it records the staged program's rules, not the fused one's --
+    so it is derived from the recorded fused metrics, which reproduces the
+    caveat's count of 12 exactly, `abs_diff_pair` (its named type case) among
+    them.
     """
+    fused = row["fused"]
+    return all(fused[key] <= limit for key, limit in STAGING_RULES.items())
+
+
+def staged_programs(keep_plus_two: bool = False) -> dict[str, str]:
+    """The #155 staged witnesses, by behaviour, less contrived and +2-only rows."""
     out: dict[str, str] = {}
     for line in STAGED.read_text().splitlines():
         row = json.loads(line)
@@ -734,7 +770,7 @@ def staged_programs(keep_plus_two: bool = False) -> dict[str, str]:
             continue
         if any(flag.startswith("contrived") for flag in row["flags"]):
             continue
-        if not keep_plus_two and row.get("classifier") == "plus_two_executions":
+        if not keep_plus_two and fused_within_rules(row):
             continue
         out[row["behaviour"]] = row["program"]
     return out

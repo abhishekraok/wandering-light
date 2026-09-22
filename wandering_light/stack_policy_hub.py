@@ -15,8 +15,10 @@ so both directions need the token `hf auth login` writes.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import shutil
+import tempfile
 from pathlib import Path
 
 from wandering_light.stack_policy import (
@@ -78,7 +80,13 @@ def fetch_stack_policy(
         if cached.resolve() != local.resolve():
             # Through a temporary name: an interrupted copy must not leave a
             # short file that `is_checkpoint` then accepts on the next run.
-            staging = local.with_suffix(local.suffix + ".part")
+            # A unique staging name per caller: two processes fetching the
+            # same uncached revision would otherwise share one `.part`, and the
+            # second `replace` would fail on a file the first already moved.
+            with tempfile.NamedTemporaryFile(
+                dir=target, prefix=f".{name}.", delete=False
+            ) as handle:
+                staging = Path(handle.name)
             shutil.copyfile(cached, staging)
             staging.replace(local)
     return target
@@ -93,7 +101,7 @@ def publish_stack_policy(
     private: bool = True,
 ) -> str:
     """Upload one checkpoint and its model card in one commit; return the commit id."""
-    from huggingface_hub import CommitOperationAdd, HfApi
+    from huggingface_hub import CommitOperationAdd, CommitOperationDelete, HfApi
 
     source = Path(checkpoint)
     if not is_checkpoint(source):
@@ -108,6 +116,17 @@ def publish_stack_policy(
     operations.append(
         CommitOperationAdd(path_in_repo=CARD_FILE, path_or_fileobj=card.encode())
     )
+    # An optional file the new checkpoint lacks must be deleted, not left
+    # behind: a stale `wandb_run.url` would attribute these weights to the
+    # previous checkpoint's training run, and AGENTS.md asks that model lineage
+    # stay recoverable.
+    existing: set[str] = set()
+    # A repository that did not exist a moment ago has no files to clean up.
+    with contextlib.suppress(Exception):
+        existing = set(api.list_repo_files(repo_id=repo_id, repo_type="model"))
+    for name in OPTIONAL_FILES:
+        if name in existing and not (source / name).is_file():
+            operations.append(CommitOperationDelete(path_in_repo=name))
     info = api.create_commit(
         repo_id=repo_id,
         repo_type="model",

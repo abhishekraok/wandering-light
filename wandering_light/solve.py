@@ -42,7 +42,7 @@ from typing import TYPE_CHECKING, Any
 import torch
 
 from wandering_light.stack_beam import beam_solve, replay_program
-from wandering_light.stack_machine import parse_stack
+from wandering_light.stack_machine import parse_stack, run_body
 from wandering_light.stack_pbe import BASIS, load
 from wandering_light.stack_pbe_eval import grade
 from wandering_light.stack_policy import PolicyScorer, load_policy
@@ -188,6 +188,12 @@ def solve_tasks(
     """Attempt every task in order under ``system``; grade after the last clock stops."""
     library: list[tuple[str, ...]] = []
     rows: list[Row] = []
+    # `run_body` memoises quotation bodies process-globally and for the life of
+    # the process. Grading a task runs its held-out examples through that memo,
+    # so a second run in the same process would start with work it never paid
+    # for and its clock would depend on what ran before it. Clearing here makes
+    # every run cold, which is the only clock that means anything across cells.
+    run_body.cache_clear()
     # The corpus and the model live for the whole run; freezing them keeps the
     # collector `beam_solve` turns off from scanning them between tasks.
     gc.freeze()
