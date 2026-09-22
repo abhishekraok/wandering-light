@@ -109,16 +109,17 @@ correction lands in one place instead of being chased across comment threads.
   18 behaviours, so the search finds other, easier programs"** (the
   clear-world-v3 (#161) row above, its report and ledger section,
   2026-09-22). The count used raw logit gaps, and the pinned policy is not
-  calibrated on flat v4 witnesses. One temperature fitted on the v4 holdout
-  gives **T = 2.558** (validation CE 2.676 -> 1.819). Calibrated, **11 of 45**
-  are within budget, and the median per-step deficit is **0.72**, not 1.84.
-  On world-v3 it is 1.64, not 4.19, and 1 of 44 is within budget either way.
-  About half the gap put down to other programs was over-confidence. The
-  `ln W` law assumes calibrated probabilities, so every deficit quoted before
-  this entry is a raw gap at temperature 1. Both policies measured so far are
-  over-confident (the world arm `1m-s0-e5`: T = 1.547, so its 0.66 and 0.457
-  are 0.43 and 0.30), and those figures overstate the calibrated deficit.
-  Temperatures are from `experiments/frame_gate.py`'s `fit_temperature`.
+  calibrated on flat v4 witnesses. One temperature fitted on the v4 holdout,
+  under the machine's legal mask, gives **T = 2.597** (validation CE
+  2.644 -> 1.787). Calibrated, **11 of 45** are within budget, and the median
+  per-step deficit is **0.71**, not 1.84. On world-v3 it is 1.61, not 4.19,
+  and 1 of 44 is within budget either way. About half the gap put down to
+  other programs was over-confidence. The `ln W` law assumes calibrated
+  probabilities, so every deficit quoted before this entry is a raw gap at
+  temperature 1. Both policies measured so far are over-confident (the world
+  arm `1m-s0-e5`: T = 1.564, so its 0.66 and 0.457 are 0.42 and 0.29), and
+  those figures overstate the calibrated deficit. Temperatures are from
+  `experiments/frame_gate.py`'s `fit_temperature`.
 
 - **"Quotation bodies are short, so the top level binds, and the build's
   first stage should be segment-reset search"** (my own messages to the

@@ -506,7 +506,7 @@ Registered predictions (before the run): 80-85% coverage on v4 and 55-60% on wor
 
   The v4-only policies cluster at 3.3-4.2 nats and the world-trained ones at 0.76-1.10, against a spread of 0.9 among the v4-only variants themselves, so the staged-versus-fused confound accounts for at most a fifth of the gap. Both #136 arms dropped 159 world behaviours from training, so a clean v4-plus-full-world arm should sit below 0.76. **Coverage is blind to all of this**: the split is at 1 of 44 for every policy measured, which is why the depth ladder could be run and learn nothing, and why deficit is the metric that can steer a split at 2%.
 - **How far is left.** At 0.755 nats and a median 150-op witness the accumulated deficit is 113 nats against a 4.16 budget: 27x over, and a witness would have to be 5.5 ops to fit. World training plus the macro form's 28.5 tokens (#144) gives 21.5 nats, 5.2x over rather than 150x. That is arithmetic on current numbers, not a prediction -- a policy over macro actions would have its own deficits, unmeasured -- but it is the first combination within an order of magnitude, and the reason to measure the two levers together.
-- **Calibrated, these deficits shrink** (added 2026-09-22; `docs/STATUS.md`, Superseded). They are raw logit gaps. Fitting one temperature on the v4 holdout gives BEST T = 2.558, so v4 eval is 0.72 nats per step with **11 of 45** within budget, and world-v3 is 1.64 with 1 of 44. The world arm `1m-s0-e5` has T = 1.547.
+- **Calibrated, these deficits shrink** (added 2026-09-22; `docs/STATUS.md`, Superseded). They are raw logit gaps. Fitting one temperature on the v4 holdout under the legal mask gives BEST T = 2.597, so v4 eval is 0.71 nats per step with **11 of 45** within budget, and world-v3 is 1.61 with 1 of 44. The world arm `1m-s0-e5` has T = 1.564.
 - **But deficit along an authored witness is not difficulty of a behaviour.** The same system solves 180 of 300 v4 cohort tasks and grades 18 behaviours while only 5 of 45 v4 eval witnesses are within budget, so the search routinely finds other, easier programs. `docs/STATUS.md` records the `ln W` law as conservative (83.7% accurate, 0 false positives, 7 false negatives); these numbers are that conservatism at a larger scale. The measurement establishes that this policy is nowhere near the programs we know solve these behaviours, and three times further away on world data; it cannot decide whether a shorter vocabulary would help, because a macro library changes which programs exist.
 - 99.7% of the clock goes to tasks the system does not solve.
 
@@ -554,18 +554,20 @@ Caveats: the quotation rows price a body at the flat policy's deficit, not at wh
 
 ## Inner frames E2: what quotation bodies cost, before the gate trains (#160)
 
-`experiments/frame_gate.py predict`, CPU, on the world arm `1m-s0-e5` (the arm the gate pairs against), one witness per eval behaviour. *Defined* means E1's capture-aware walk defines the innermost frame on every shown example. [prediction](../reports/frame-gate-20260922/prediction.json); registration on #160.
+`experiments/frame_gate.py predict`, CPU, on the world arm `1m-s0-e5` (the arm the gate pairs against), one witness per eval behaviour. Deficits are **calibrated**: divided by the temperature that minimises this checkpoint's validation CE under the legal mask, T = 1.564. *Defined* means E1's capture-aware walk defines the innermost frame on every shown example. Registration on #160.
 
-| per-step deficit (nats) | v4 eval | world-v3 eval |
+| calibrated per-step deficit (nats) | v4 eval | world-v3 eval |
 |---|---:|---:|
-| body ops, frame defined | 0.666 (1,360 ops) | 0.590 (6,325) |
-| body ops, frame undefined | 0.750 (447) | 0.913 (1,754) |
-| top-level ops | 0.631 (426) | 0.798 (1,813) |
-| defined body ops under a **frame-legal mask** | 0.621 | 0.558 |
+| body ops, frame defined | 0.426 (1,360 ops; top-1 0.80) | 0.377 (6,325; 0.79) |
+| body ops, re-encoded but not defined | 0.480 (370) | 0.556 (1,606) |
+| body ops, untouched | 0.475 (77) | 0.879 (148) |
+| top-level ops | 0.404 (426; top-1 0.72) | 0.510 (1,813; 0.64) |
 
-- **Pruning ops that refuse on the frame is worth 5-7%** of defined-body deficit and clears no additional witness in any composite row. That is the search-side half of E2 without any training.
-- **Most defined-body deficit comes after the first op**: 68% on v4, 75% on world-v3. The first op after `[` is the most expensive per op (1.10), but carries 25-32%; the closing `]` costs 0.38-0.39 and carries 9-12%.
-- **`ifte` dominates** the defined body ops (852 of 1,360 on v4, 3,492 of 6,325 on world-v3), and its frame is the stack the flat policy already sees. `map` and `filter`, where the frame is new, are 74 and 594 ops.
+- **Pruning ops that refuse on the frame is not safe as it stands.** It trims 6-7% off defined-body deficit, but it prunes the witness's own op on 1 v4 witness and **10 of 44 world-v3 witnesses**, which a search pruning this way would lose.
+- **Most defined-body deficit comes after the first op**: 68% on v4, 75% on world-v3. The first op after `[` costs the most per op; the closing `]` carries 9-12%.
+- **`ifte` dominates** the defined body ops: 852 of 1,360 on v4, 3,492 of 6,325 on world-v3. Its frame is the stack the flat policy already sees. `map` and `filter`, where the frame is new, are 74 and 594 ops.
+- **Committing to a consumer is the tightest term.** Charging each `[` the out-of-sample surprisal of (consumer, role, captures) given the shape under it averages 1.24 nats on v4 eval and 1.00 on world-v3. With it charged, even free defined bodies clear 23 of 45 v4 witnesses under full decomposition, against 36 without.
+- **The state encoder clips world-v3.** It keeps the top 160 tokens, which cuts 28.9% of world-v3 eval states under a mark in the flat encoding, and 0 on the v4 holdout.
 
 ## Policy size at a fixed epoch, on the staged rows (#159)
 
