@@ -474,6 +474,21 @@ Caveats: one checkpoint, one policy seed, one host, one cohort and one cohort or
 
 Registered predictions (before the run): 80-85% coverage on v4 and 55-60% on world-v3 train, from the advising session, against measured 0.700 and 0.430; and below 80% on v4 from this session, which holds. Caveats: witness statistics on one task's examples per program, not cohort statistics; world-v3 train is dominated by a few very long programs (median witness 136 ops, longest 4,063), so its aggregate is not a per-behaviour average.
 
+## The pinned system on world data: the world half of the objective (#161, #158)
+
+`uv run python -m wandering_light.solve` with `solve.BEST` (`staged-s0-e3`, beam 64 x depth 48, guard `both`, library on, #157 state cap) on the 44 eval tasks of `stack_pbe_world_v3`, one per behaviour, `UltraDesk` CPU, one run. `goals/g1.md` names the objective as cost to clear on v4 **and world data**; this is the first measurement of the second half. [report](../reports/world-v3-cost-20260922/README.md), `rows.json`
+
+| split | solved | coverage | wall clock (s) | executions | memorised | termination |
+|---|---:|---:|---:|---:|---:|---|
+| `stack_pbe_world_v3` eval, 44 tasks | **1** | **0.023** | 71.1 | 16,312,648 | **0** | `max_depth` 43, `fit` 1 |
+| `stack_pbe_v4` #101 cohort, 300 tasks (for scale) | 180 | 0.600 | 154 | 34,785,672 | 12 | — |
+
+- **The wall is depth, not width and not the policy.** The 44 eval witnesses run 8 to 827 ops, median 150, and only **4 of 44** are within the search's depth of 48; the system solved 1 of those 4 (`mbpp-436`, 8 ops, returned exactly). Every unsolved task ended at `max_depth`. A wider beam explores more programs of the same length, so best-system-command (#158)'s width result does not transfer here, and model-size-at-fixed-epoch (#159)'s policy cannot emit a 150-op program in 48 steps. Witness length is an upper bound, not a certified distance, so this does not prove no short program exists for those behaviours -- only that the published protocol cannot clear the split and the search found nothing shorter within 48 steps.
+- **Zero memorised, so graded and verified coincide.** With 6 shown and a median 21 held-out examples per task and behaviours drawn from MBPP, CodeARC and LeetCode rather than a generator, no sampler regularity is cheap enough to fit. v4's sampler shortcuts (aligned-matches-sampler (#141)) have no analogue here, and no draw-testing caveat is needed on this coverage figure.
+- 99.7% of the clock goes to tasks the system does not solve.
+
+Caveat: one run, one host, one checkpoint, 44 tasks. Below full coverage the 71.1 s is what was spent without clearing the set, not a cost to clear.
+
 ## Policy size at a fixed epoch, on the staged rows (#159)
 
 `experiments/size_at_fixed_epoch.py`. The staged arm of staged-witness-reauthoring (#155) (`arm_rows("staged")`, draw seed 20260920, 6 contrived rows excluded; 123 treated behaviours, 4,920 of 6,360 fit tasks, 313,560 rows per epoch) trained at 1m / 2m / 10m, seeds 0 / 1 / 2, 6 epochs, every epoch snapshotted, at #101's probe learning rates (1.25e-4 / 6.25e-5 / 3.125e-5), batch 256, validation on the fused holdout. Cohort search at beam 64 x depth 48, guard `both`, library off, with the #157 state cap, epochs 3-6. Verified = 10,000-draw `genuine` or catalogue-witness-equal. **Epoch 3 was pre-registered as the comparison** before the run, because picking each size's best epoch reads the eval cohort (#154). The gate was registered as CE equal to four decimals and passed **bitwise**: the retrained 1m seed-0 epoch-3 checkpoint is byte-identical to the published `staged-s0-e3` (max |dw| = 0.0), so this is #155's staged arm continued. [report](../reports/size-20260922/README.md), `cells.json`
