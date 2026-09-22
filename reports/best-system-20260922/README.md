@@ -40,64 +40,96 @@ grading.
 | `nolib-b256` | 256 | off | 168 | 168 | 19 | **18** | 823 | 147,323,518 |
 | `nolib-b512` | 512 | off | 177 | 177 | 21 | **17** | 1,661 | 268,820,179 |
 
-## The library suppresses the retries that find genuine programs
+## Running fewer searches costs verified behaviours, and the library is how these cells run fewer
 
 At beam 64 the library is a clear win on the objective as `docs/metrics.md`
 states it: **180 tasks against 143, in 154 s against 209 s**, with 29% fewer
-executions. `nolib-b64`'s 143 tasks reproduce #155's own cell for this
-checkpoint exactly — an independent driver, on a different device, agreeing to
-the task.
+executions. `nolib-b64`'s 143 tasks match the task *count* of #155's own cell
+for this checkpoint (143 graded, from an independent driver on a different
+device); the two runs' task sets were not compared.
 
-But at beam 256 the library **costs two verified behaviours**, 18 → 16, and one
-behaviour shows the mechanism. `all_positive` has 9 tasks in the cohort:
+At beam 256 the library arm verifies **16** behaviours against 18. That gap is
+exactly the searches that did not happen. `b256` searched 131 of 300 tasks;
+scoring `nolib-b256` on **only those 131 tasks** gives 16 verified behaviours
+and the identical set, losing the same two. On every task both arms searched,
+they return the same program at the same depth. The library changes which tasks
+are searched and nothing about the search, so this is a result about search
+count, not about libraries: any cache, memo or deduplication that skipped the
+same 169 searches would cost the same two behaviours.
 
-| cell | solved | how |
-|---|---|---|
-| `nolib-b256` | 2 of 9 | one search finds a 22-op **shortcut**, another finds the 23-op **genuine** program → behaviour **verified** |
-| `b256` | 6 of 9 | one search finds the 22-op shortcut; the other five tasks replay it from the library → graded, **not verified** |
-| `nolib-b512` | 2 of 9 | both searches find the shortcut → not verified at this width either way |
+Both losses turn on cohort order:
 
-A library turns k independent attempts at a behaviour into one shared answer.
-When the first answer is a shortcut, the attempts that would have found a
-genuine program never happen. That is the sharp form of a caveat belonging on
-every library-on cell: `b64` solves 180 tasks but only **19** by search, so its
-verified count rests on 19 independent searches and 161 replays.
-solved-program-cache (#151) found that a cache "moves tasks, not behaviours";
-on this checkpoint at beam 256 it moves verified behaviours **down** by two, and
-#151's cells could not see it — they were run on a checkpoint that had no
-genuine program to lose at that width.
+| behaviour | shortcut found | the task it was replayed to | what that task's own search finds |
+|---|---|---|---|
+| `all_positive` | cohort position 134, 22 ops | 154 (and 156, 164, 172, 174) | the 23-op **genuine** program |
+| `prefix_sums` | cohort position 232, 16 ops | 233 (and 239) | the 18-op **genuine** program |
 
-## Width is not monotone in verified behaviours, with or without the library
+In each case the shortcut simply came first. Had 154 preceded 134, the library
+would have held the genuine program and replayed *that*. Cross-behaviour replay
+transfer is exactly zero (#151), so a behaviour's library entry is decided by
+whichever of its search-succeeding tasks comes first; under a random cohort
+order each of these is lost about half the time. #151 checked order-robustness
+over 100 task orders **on tasks**; nothing has checked it on verified
+behaviours, and this is n=1 in order.
 
-Library-off, verified goes **16 → 16 → 18 → 17** across beam 64 → 512.
-Library-on, **16 → 16 → 16 → 17**. Graded is not monotone either:
-`nondecreasing_indicator` is graded at beam 64 and lost at 128 in both arms.
+**The metric is one-sided here.** A replay can only duplicate a program some
+search already found, so it can never *add* a verified behaviour and can remove
+one. Counted in verified **tasks** the library wins at every width, this cell
+included: 176 / 178 / 171 / 178 against 139 / 155 / 165 / 168. The caveat that
+survives is therefore not "a library costs behaviours" but: **a verified count
+rests only on the searches that ran.** `b64` solves 180 tasks but only 19 by
+search, so its 16 verified behaviours rest on 19 independent attempts and 161
+replays.
 
-The beam takes the **first** fitting successor it meets while expanding a
-layer (`stack_beam.py:334`), which is before the layer is scored at all
-(`:345`), so the order is shallowest depth, then the parent's position in the
-beam, then op index — the current layer's ranking has no say. Widening
-therefore enlarges the fitting set at every depth and can only add candidates,
-shortcuts included. Monotonicity in *verified* behaviours
-was never a property of this search, and `all_positive` is the case that shows
-it: a 22-op shortcut sits one level shallower than the 23-op genuine program and
-displaces it once the beam is wide enough to reach it.
+(`prefix_sums`'s shortcut verdict is the weaker of the two: its 16-op program
+fails 0 of 10,000 draws from the behaviour's own sampler and errs only on the
+empty list, which that sampler never produces. It is a shortcut under the
+verified rule, which asks for transfer to tasks drawn differently, but not one
+the behaviour's own distribution can see.)
 
-Beam 64 → 512 is 8× the width and 9.1× the clock for **+1** verified behaviour
-in each arm, while graded behaviours go 18 → 22 and tasks 180 → 190. Width adds
-four graded behaviours library-on (`aligned_matches`, `pair_floor_averages`,
-`prefix_sums`, `stable_distinct_shared_values`) and loses none; **two of the
-four are shortcuts**, and the other two are exactly the +1 net verified, since
-`all_positive` goes the other way. Library-off it adds three, one of them a
+## Width replaces genuine programs with shortcuts
+
+The beam takes the **first** fitting successor it meets while expanding a layer
+(`stack_beam.py:334`), which is before the layer is scored at all (`:345`), so
+the order is shallowest depth, then the parent's position in the beam, then op
+index — the current layer's ranking has no say. A wider beam therefore reaches
+fitting programs a narrow one never sees, shortcuts included. It is not a
+superset operation: the visited set is shared across depths (`:364`), so a
+product a wide beam retains early becomes a duplicate later, which is how
+`nondecreasing_indicator` is *lost* at beam 128 in both arms.
+
+The direct evidence is per task, and monotone over four widths. Library-off,
+`all_positive`'s 9 cohort tasks are solved by the **genuine** program on 6, 3, 1
+and 0 of them as the beam goes 64 → 128 → 256 → 512, while the 22-op shortcut
+appears on 0, 0, 1 and 2. Memorised rows — a program that fits the shown
+examples and fails the held-out ones — rise over the same ladder, 17 → 30 → 39 →
+43 library-off and 12 → 20 → 28 → 33 library-on. Width buys fitting programs,
+and an increasing share of them are wrong.
+
+Verified behaviours therefore need not rise with width, and library-off they run
+**16 / 16 / 18 / 17**. Read that ladder as an existence proof, not a trend.
+Verified *tasks* over the same cells run 139 / 155 / 165 / 168 and **are**
+monotone, and beam 256's 18 rests on three behaviours verified by a single task
+each (`all_positive`, `prefix_sums`, `pair_floor_averages`). One checkpoint, one
+policy seed, one cohort, one cohort order; the cells are deterministic given a
+checkpoint and a task, so there is no run-to-run variation to appeal to in
+either direction, and equally no estimate of the variance that governs the
+claim.
+
+Beam 64 → 512 is 8× the width, and 9.1× the clock library-on (8.0× library-off),
+for **+1** verified behaviour in each arm while graded behaviours go 18 → 22 and
+tasks 180 → 190. Width adds four graded behaviours library-on and loses none;
+**two of the four are shortcuts**, and the other two (`pair_floor_averages`,
+`prefix_sums`) are exactly the +1 net verified. Library-off it adds three, one a
 shortcut.
 
-This is the opposite of what solved-program-cache (#151) measured on
-`witness-s0-e4`, the v4-only checkpoint, where the same ladder took verified
-behaviours 12 → 16 and lost none. What differs is where the two checkpoints
-start: the staged one already verifies 16 at beam 64, which is where the fused
-one *ends* at beam 512, and the behaviours it has not got are not ones a wider
-beam finds. Read #151's row as a result about a checkpoint with room, not as a
-property of width.
+solved-program-cache (#151) ran the same on/off comparison at all four widths on
+`witness-s0-e4`, the v4-only checkpoint, and its verified column did not move
+(12 / 12 / 14 / 16 in both arms) while rising with width. The two checkpoints
+differ; why is not measured. What can be said is where they start: the staged
+one already verifies 16 at beam 64, where the fused one ends at beam 512. Width
+still adds two verified behaviours here, and also costs `all_positive`, which
+the fused checkpoint never had.
 
 ## The state cap is free, and is not a speed fix
 
@@ -113,7 +145,7 @@ the cap bounds hashing and memory, not the search.
 
 ## Cost to clear is a cost of failure
 
-96% of the clock goes to tasks that are never solved (`b64` 0.967, `b512`
+96% of the clock goes to tasks the cell does not solve (`b64` 0.967, `b512`
 0.961); library-off it is 86.7–89.2%. The median library-on task costs **1 ms**
 because the library answers it, against 596 ms library-off at the same width.
 `docs/metrics.md` charges failures deliberately, and this is what that choice
@@ -122,10 +154,13 @@ solving the easy tasks better.
 
 ## What this does not say
 
-One seed, one host, one checkpoint, one run per cell, no interval on the clock.
+One checkpoint, one policy seed, one host, one cohort and one cohort order. The
+search is deterministic given a checkpoint and a task, so "one run per cell" is
+not a sampling caveat -- there is nothing to resample -- but it also means these
+cells carry no estimate of the variance that governs a 2-behaviour swing.
 Verified counts are behaviours of the cohort's 43, not of v4's 220. Nothing here
 compares the staged checkpoint with the fused one under matched conditions.
 Coverage in `docs/metrics.md` is held-out **graded**, so the pair reported for
 the objective is the graded one; the verified column sits beside it because
-graded measures the sampler's distribution and verified predicts transfer to
+graded measures the sampler's distribution and verified measures transfer to
 tasks drawn differently — and 180 → 190 tasks at 9× the cost is the former.
