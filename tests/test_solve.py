@@ -99,6 +99,7 @@ def test_solves_grades_on_held_out_and_replays_the_library(tmp_path, checkpoint)
     assert summary.seconds == pytest.approx(sum(r["seconds"] for r in rows))
     text = (tmp_path / "stdout.txt").read_text()
     assert text.startswith("system  tiny = nobody/nothing@000000000000; beam 4 x depth")
+    assert "library on, state cap none" in text.splitlines()[0]
     assert text.rstrip().splitlines()[-1] == summary.line()
     assert "median_floor  unsolved" in text
     assert (tmp_path / "log.txt").read_text().count("\n") == 3

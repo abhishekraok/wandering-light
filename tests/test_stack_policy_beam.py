@@ -7,7 +7,7 @@ import pytest
 import torch
 
 from wandering_light.rollout_policy import PolicyArchitecture
-from wandering_light.stack_beam import beam_solve, step_all
+from wandering_light.stack_beam import atoms_exceed, beam_solve, step_all
 from wandering_light.stack_machine import Int, Lst, Mark, Sym, parse_stack
 from wandering_light.stack_pbe import BASIS, BY_NAME, OPS, build_task, draw_task
 from wandering_light.stack_pbe_eval import grade
@@ -97,6 +97,32 @@ def test_budget_is_checked_before_every_attempt():
     one = beam_solve(task, scorer, beam_width=64, max_depth=4, budget=1)
     assert one.termination == "budget"
     assert one.executions == expected
+
+
+def test_state_size_guard_refuses_big_successors_and_leaves_small_searches_alone():
+    """beam-state-size-unbounded (#157): a cap far above the states a search visits changes nothing."""
+    assert not atoms_exceed(((Lst((Int(1), Lst((Int(2),)))),),), 4)
+    assert atoms_exceed(((Lst((Int(1), Lst((Int(2),)))),),), 3)  # list, 1, list, 2
+    assert atoms_exceed(((Int(1),), (Int(2),)), 1)  # counts every example's stack
+    task = task_for("sum")
+    scorer = PolicyScorer(StackPairPolicy(TINY), "cpu")
+    free = beam_solve(task, scorer, beam_width=8, max_depth=3)
+    capped = beam_solve(
+        task, scorer, beam_width=8, max_depth=3, max_state_atoms=1 << 12
+    )
+    assert (capped.program, capped.termination, capped.executions, capped.depth) == (
+        free.program,
+        free.termination,
+        free.executions,
+        free.depth,
+    )
+    # The inputs are lists, so at depth 1 only `drop` survives (every example's
+    # stack empty, 0 atoms); from there each op pushes one atom per example, so
+    # depth 2 refuses everything and the frontier is exhausted.
+    starved = beam_solve(task, scorer, beam_width=8, max_depth=3, max_state_atoms=1)
+    assert starved.program is None
+    assert starved.termination == "frontier_exhausted"
+    assert (starved.expansions, starved.depth) == (2, 2)
 
 
 def test_executions_and_fuel_charge_executed_work_not_the_retained_beam():
