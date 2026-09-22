@@ -532,9 +532,15 @@ def predict(run_dir: Path, log) -> Path:
     return out
 
 
-# Each arm at its own best one-epoch rate (probe.json, registered on #160); the
-# frames arm is also trained at the world arm's rate as the matched robustness arm.
-ARM_LR = {"world": wa.LEARNING_RATE, "tags": wa.LEARNING_RATE, "frames": 5e-4}
+# Each arm trains at the world arm's rate unless the one-epoch probe found a rate
+# more than 2% better in validation CE (the rule registered on #160). None did
+# for the three-item label, so every arm is at 1.25e-4; a frames arm at another
+# rate would be measured as `MATCHED`'s counterpart.
+ARM_LR = {
+    "world": wa.LEARNING_RATE,
+    "tags": wa.LEARNING_RATE,
+    "frames": wa.LEARNING_RATE,
+}
 MATCHED = "framesmatched"
 
 
@@ -801,9 +807,12 @@ def report(
         if clears >= PASS_CLEARS and full < PASS_RATIO and gain > 0:
             verdict = "PASS" if frame < FRAME_RATIO else "TAG"
         elif clears <= FAIL_CLEARS and full >= FAIL_RATIO:
-            # FAIL must hold at both frames rates, or it is a failure of the rate.
+            # FAIL must hold at both frames rates, or it is a failure of the rate;
+            # when frames already trains at the world arm's rate there is one.
             matched = median_of("matched_defined_ratio", "stack_pbe_v4")
-            if required - set(cells[MATCHED]) or "matched" not in primary:
+            if ARM_LR["frames"] == wa.LEARNING_RATE:
+                verdict = "FAIL"
+            elif required - set(cells[MATCHED]) or "matched" not in primary:
                 verdict = "FAIL_AT_TUNED_RATE_ONLY"
             elif primary["matched"]["both"] <= FAIL_CLEARS and matched >= FAIL_RATIO:
                 verdict = "FAIL"

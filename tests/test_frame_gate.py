@@ -52,7 +52,7 @@ def write(run_dir, arm, seed, epoch, payload):
         (5.0, 19, 10.0, "PASS"),  # half the world arm, and half the tag control
         (5.0, 19, 5.5, "TAG"),  # cheap bodies, but the tag alone got most of it
         (5.0, 17, 10.0, "WEAK"),  # the ratio passes, the clears do not
-        (9.0, 12, 9.5, "FAIL_AT_TUNED_RATE_ONLY"),  # no matched arm written
+        (9.0, 12, 9.5, "FAIL"),  # ratio 0.9 and no gain
         (7.0, 12, 9.0, "WEAK"),  # no gain in clears, but the ratio moved
     ],
 )
@@ -158,7 +158,9 @@ def test_a_commitment_costs_its_smoothed_surprise_given_the_shape():
         model.cost("list", ("map", 0, 3))
 
 
-def test_fail_must_hold_at_the_matched_rate_too(tmp_path):
+def test_fail_must_hold_at_the_matched_rate_too(tmp_path, monkeypatch):
+    """Only when frames trains at a tuned rate is a matched arm needed."""
+    monkeypatch.setitem(gate.ARM_LR, "frames", 5e-4)
     for seed, epoch in ((0, 5), (1, 5), (2, 5)):
         write(tmp_path, "world", seed, epoch, cell(10.0, 12))
         write(tmp_path, "tags", seed, epoch, cell(9.5, 12))
