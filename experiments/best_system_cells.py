@@ -56,6 +56,13 @@ CELLS: dict[str, Callable[[System], System]] = {
     "nolib-b128": lambda best: dataclasses.replace(best, beam_width=128, library=False),
     "nolib-b256": lambda best: dataclasses.replace(best, beam_width=256, library=False),
     "nolib-b512": lambda best: dataclasses.replace(best, beam_width=512, library=False),
+    # Depth, for a split whose witnesses are longer than the search
+    # (clear-world-v3, #161). The #157 state cap is what makes a deep search
+    # safe to run: without it a policy that likes `dup cat` has four times as
+    # many layers in which to park the beam on a million-atom state.
+    "d96": lambda best: dataclasses.replace(best, max_depth=96),
+    "d192": lambda best: dataclasses.replace(best, max_depth=192),
+    "d384": lambda best: dataclasses.replace(best, max_depth=384),
 }
 DEFAULT_CELLS = ("b64", "b128", "b256", "b512")
 SEED = 0  # the checkpoint's training seed, which the verifier's cell label wants
@@ -79,9 +86,26 @@ def cohort_file(run_dir: Path, log) -> Path:
     return path
 
 
-def run(run_dir: Path, cells: list[str], checkpoint: Path | None, log) -> None:
-    tasks = cohort_file(run_dir, log)
-    indices = json.loads((run_dir / "cohort_index.json").read_text())
+def run(
+    run_dir: Path,
+    cells: list[str],
+    checkpoint: Path | None,
+    log,
+    tasks_file: Path | None = None,
+) -> None:
+    """Run each named cell. ``tasks_file`` overrides the #101 cohort.
+
+    The cohort is the default because every published `mark-28` number is on
+    it, but the objective in `goals/g1.md` covers world data too, whose tasks
+    are not in it (clear-world-v3, #161).
+    """
+    tasks = tasks_file if tasks_file is not None else cohort_file(run_dir, log)
+    index_file = run_dir / "cohort_index.json"
+    indices = (
+        json.loads(index_file.read_text())
+        if tasks_file is None and index_file.exists()
+        else None
+    )
     for name in cells:
         out = run_dir / "timing" / f"{name}.json"
         if out.exists():
@@ -114,8 +138,8 @@ def run(run_dir: Path, cells: list[str], checkpoint: Path | None, log) -> None:
                 "provenance": co.provenance(),
             }
         )
-        for row, index in zip(record["rows"], indices, strict=True):
-            row["task_index"] = index
+        for position, row in enumerate(record["rows"]):
+            row["task_index"] = indices[position] if indices else position
             row["bucket"] = co.bucket_of(row["length"])
         out.write_text(json.dumps(record, indent=2, sort_keys=True) + "\n")
         log(f"RESULT {name}: {summary.line()}")
@@ -222,6 +246,12 @@ def main(argv: list[str] | None = None) -> int:
         help="a local checkpoint in place of BEST's, recorded as such",
     )
     parser.add_argument("--out", type=Path, default=None)
+    parser.add_argument(
+        "--tasks",
+        type=Path,
+        default=None,
+        help="a task file to run instead of the #101 cohort",
+    )
     args = parser.parse_args(argv)
 
     def log(line: str) -> None:
@@ -231,7 +261,7 @@ def main(argv: list[str] | None = None) -> int:
 
     args.run_dir.mkdir(parents=True, exist_ok=True)
     if args.stage == "run":
-        run(args.run_dir, args.cells.split(","), args.checkpoint, log)
+        run(args.run_dir, args.cells.split(","), args.checkpoint, log, args.tasks)
     else:
         report(args.run_dir, args.out or args.run_dir, log)
     return 0
