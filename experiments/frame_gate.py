@@ -38,7 +38,8 @@ policies, and every stage applies all three:
 
 Stages, each writing under ``--run-dir`` (default `checkpoints/frame-arm-20260922`):
 ``predict`` (the world arm alone), ``probe`` (one-epoch learning rates),
-``train``, ``measure`` and ``report`` (the registered verdict).
+``train``, ``measure``, ``truncation`` (which end the state cap cuts) and
+``report`` (the registered verdict).
 """
 
 from __future__ import annotations
@@ -63,6 +64,7 @@ import experiments.compute_optimal_mark28 as co  # noqa: E402
 import experiments.hindsight_subtargets as hs  # noqa: E402
 import experiments.world_arm as wa  # noqa: E402
 from experiments.frame_rows import (  # noqa: E402
+    META,
     example_walks,
     frame_state,
     frame_witness_rows,
@@ -82,11 +84,13 @@ from experiments.segment_composite import levels, segments  # noqa: E402
 from experiments.staged_transfer import step_kinds  # noqa: E402
 from wandering_light.corpus_hub import fetch_corpus  # noqa: E402
 from wandering_light.stack_beam import step_all_quiet  # noqa: E402
-from wandering_light.stack_machine import Sym, parse_stack, run_body  # noqa: E402
+from wandering_light.stack_machine import Mark, Sym, parse_stack, run_body  # noqa: E402
 from wandering_light.stack_pbe import BASIS, OPS, load  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
     OP_INDEX,
+    STATE_CAP,
     PolicyScorer,
+    _encode_value,
     encode_item,
     encode_targets,
     item_array,
@@ -711,6 +715,31 @@ PASS_CLEARS, FAIL_CLEARS = 18, 12
 PASS_RATIO, FAIL_RATIO = 0.6, 0.85
 # The frame must add this much over the tag alone for a PASS to be the frame's.
 FRAME_RATIO = 0.85
+# What each verdict licenses, as registered. With commitment charged, even free
+# bodies clear 23 of 45 v4 witnesses on the world arm, so cheap bodies alone
+# cannot carry a committing search.
+READING = {
+    "PASS": (
+        "Executing bodies made them cheap enough and ranked better. This licenses "
+        "the committing search (tagged opens, bodies executed on frames, a budget "
+        "per body) only with a consumer ranker in the same build: with commitment "
+        "charged, even free bodies clear 23 of 45 v4 witnesses, so frames alone "
+        "do not suffice."
+    ),
+    "TAG": "The hindsight label did the work, not executing the body.",
+    "FAIL": (
+        "Frames do not make bodies cheaper. The next lever is shortening them: "
+        "macros under a mark (#162, via #149)."
+    ),
+    "FAIL_AT_TUNED_RATE_ONLY": (
+        "FAIL at the tuned rate; the matched-rate frames arm is not measured."
+    ),
+    "WEAK": "Neither PASS nor FAIL: reported, and the owner's call.",
+    "INCOMPLETE": "Not every registered cell is measured: no verdict.",
+    "CALIBRATION_AT_BOUNDARY": (
+        "A temperature fit sits at the edge of its search: no verdict."
+    ),
+}
 
 
 def _defined(cell, corpus):
@@ -754,15 +783,15 @@ def report(
         for corpus in CORPORA:
             f = _defined(cells["frames"][key], corpus)
             w = _defined(cells["world"][key], corpus)
+            # Full precision: a ratio rounded to 0.8500 before the threshold
+            # would turn a true 0.84996 into a FAIL.
             row = {
                 "seed": key[0],
                 "epoch": key[1],
                 "corpus": corpus,
-                "defined_ratio": round(
-                    f["calibrated_total"] / w["calibrated_total"], 4
-                ),
-                "raw_defined_ratio": round(f["total"] / w["total"], 4),
-                "top1_gain": round(f["top1"] - w["top1"], 4),
+                "defined_ratio": f["calibrated_total"] / w["calibrated_total"],
+                "raw_defined_ratio": f["total"] / w["total"],
+                "top1_gain": f["top1"] - w["top1"],
                 "frames": cells["frames"][key][corpus]["machine_mask"][
                     "composite_with_commitment"
                 ],
@@ -772,16 +801,16 @@ def report(
             }
             if key in cells[MATCHED]:
                 m = _defined(cells[MATCHED][key], corpus)
-                row["matched_defined_ratio"] = round(
-                    m["calibrated_total"] / w["calibrated_total"], 4
+                row["matched_defined_ratio"] = (
+                    m["calibrated_total"] / w["calibrated_total"]
                 )
                 row["matched"] = cells[MATCHED][key][corpus]["machine_mask"][
                     "composite_with_commitment"
                 ]
             if key in cells["tags"]:
                 g = _defined(cells["tags"][key], corpus)
-                row["frame_over_tag_ratio"] = round(
-                    f["calibrated_total"] / g["calibrated_total"], 4
+                row["frame_over_tag_ratio"] = (
+                    f["calibrated_total"] / g["calibrated_total"]
                 )
                 row["tags"] = cells["tags"][key][corpus]["machine_mask"][
                     "composite_with_commitment"
@@ -839,22 +868,76 @@ def report(
             for corpus in CORPORA
         },
         "verdict": verdict,
+        "reading": READING.get(verdict),
+        "truncation": (
+            json.loads((run_dir / "truncation.json").read_text())
+            if (run_dir / "truncation.json").exists()
+            else None
+        ),
         "rows": table,
     }
     co.write_json(run_dir / "report.json", out)
+
+    def shown(x):
+        return None if x is None else f"{x:.4f}"
+
     log(
         f"RESULT gate {verdict}: {len(pairs)} pairs; v4 median calibrated ratio "
-        f"{full}, top-1 gain {gain}, frame/tag {frame}; primary clears "
-        f"{primary and primary['frames']['both']} vs world "
+        f"{shown(full)}, top-1 gain {shown(gain)}, frame/tag {shown(frame)}; "
+        f"primary clears {primary and primary['frames']['both']} vs world "
         f"{primary and primary['world']['both']}"
     )
     return out
 
 
+def _token_starts(state: Sequence) -> tuple[list[int], int]:
+    out: list[int] = []
+    starts = []
+    for value in state:
+        starts.append(len(out))
+        _encode_value(value, out)
+    return starts, len(out)
+
+
+def truncation(corpus: str) -> dict[str, int]:
+    """Which end the state cap cuts, per encoding, on eval states under a mark.
+
+    The encoder keeps a state's top ``STATE_CAP`` tokens and each frame sits
+    above its level's written items, so an overflow cuts the deep stack first.
+    A label is counted as cut when its separator falls below the cap.
+    """
+    counts: Counter[str] = Counter()
+    for task in eval_witnesses(corpus):
+        for states, views in example_walks(task):
+            for step in range(len(task.program)):
+                state = states[step]
+                if not any(isinstance(v, Mark) for v in state):
+                    continue
+                counts["under_mark"] += 1
+                for encoding in ("flat", "tags", "frames"):
+                    seen = (
+                        state
+                        if encoding == "flat"
+                        else frame_state(state, views.get(step, ()), encoding)
+                    )
+                    starts, width = _token_starts(seen)
+                    if width <= STATE_CAP:
+                        continue
+                    counts[f"{encoding}_clipped"] += 1
+                    cut = width - STATE_CAP
+                    labels = [i for i, v in enumerate(seen) if v == META]
+                    if labels and starts[labels[-1]] < cut:
+                        counts[f"{encoding}_innermost_label_cut"] += 1
+                    if any(starts[i] < cut for i in labels[:-1]):
+                        counts[f"{encoding}_outer_label_cut"] += 1
+    return dict(sorted(counts.items()))
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument(
-        "stage", choices=("predict", "probe", "train", "measure", "report")
+        "stage",
+        choices=("predict", "probe", "train", "measure", "truncation", "report"),
     )
     parser.add_argument("--run-dir", type=Path, default=RUN_DIR)
     parser.add_argument("--device", default="cpu")
@@ -896,6 +979,10 @@ def main(argv: list[str] | None = None) -> int:
         train(
             args.run_dir, args.device, seeds, log, encoding=args.arm, learning_rate=rate
         )
+    elif args.stage == "truncation":
+        out = {corpus: truncation(corpus) for corpus in CORPORA}
+        co.write_json(args.run_dir / "truncation.json", out)
+        log(f"RESULT truncation {out}")
     elif args.stage == "report":
         report(args.run_dir, log)
     else:

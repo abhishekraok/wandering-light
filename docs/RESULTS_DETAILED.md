@@ -563,11 +563,11 @@ Caveats: the quotation rows price a body at the flat policy's deficit, not at wh
 | body ops, untouched | 0.475 (77) | 0.879 (148) |
 | top-level ops | 0.404 (426; top-1 0.72) | 0.510 (1,813; 0.64) |
 
-- **Pruning ops that refuse on the frame is not safe as it stands.** It trims 6-7% off defined-body deficit, but it prunes the witness's own op on 1 v4 witness and **10 of 44 world-v3 witnesses**, which a search pruning this way would lose.
+- **Pruning ops that refuse on the frame is not safe as it stands.** On the ops it keeps, it trims defined-body deficit by 6.7% on v4 and 5.4% on world-v3, but it prunes the witness's own op on 1 v4 witness and **10 of 44 world-v3 witnesses**, which a search pruning this way would lose.
 - **Most defined-body deficit comes after the first op**: 68% on v4, 75% on world-v3. The first op after `[` costs the most per op; the closing `]` carries 9-12%.
 - **`ifte` dominates** the defined body ops: 852 of 1,360 on v4, 3,492 of 6,325 on world-v3. Its frame is the stack the flat policy already sees. `map` and `filter`, where the frame is new, are 74 and 594 ops.
 - **Committing to a consumer is the tightest term.** Charging each `[` the out-of-sample surprisal of (consumer, role, captures) given the shape under it averages 1.24 nats on v4 eval and 1.00 on world-v3. With it charged, even free defined bodies clear 23 of 45 v4 witnesses under full decomposition, against 36 without.
-- **The state encoder clips world-v3.** It keeps the top 160 tokens, which cuts 28.9% of world-v3 eval states under a mark in the flat encoding, and 0 on the v4 holdout.
+- **The state encoder clips world-v3.** It keeps the top 160 tokens, so an overflow cuts the deep stack first. Of 48,474 world-v3 eval states under a mark it clips 28.9% flat, 30.3% with tags and 40.7% with frames; the innermost label is cut in 1,674 tags and 3,244 frames states. On v4 eval it clips 41 of 8,266 frames states and no label, and it never clips the v4 holdout. `frame_gate.py truncation`.
 
 ## Policy size at a fixed epoch, on the staged rows (#159)
 

@@ -69,9 +69,23 @@ def test_the_gate_needs_the_clears_the_ratio_and_the_frame(
     assert out["pairs"] == 3
     assert out["verdict"] == verdict
     assert out["primary"]["defined_ratio"] == frames_defined / 10.0
-    assert out["primary"]["frame_over_tag_ratio"] == round(
-        frames_defined / tags_defined, 4
-    )
+    assert out["primary"]["frame_over_tag_ratio"] == frames_defined / tags_defined
+    assert out["reading"] == gate.READING[verdict]
+
+
+def test_the_thresholds_read_full_precision_ratios(tmp_path):
+    """0.84996 is under the FAIL ratio; rounded to 0.8500 it would be a FAIL."""
+    for seed, epoch in THREE:
+        write(tmp_path, "world", seed, epoch, cell(10.0, 12))
+        write(tmp_path, "tags", seed, epoch, cell(9.0, 12))
+        write(tmp_path, "frames", seed, epoch, cell(8.4996, 12, top1=0.6))
+    out = gate.report(tmp_path, lambda line: None, required=THREE)
+    assert out["median"]["stack_pbe_v4"]["defined_ratio"] < gate.FAIL_RATIO
+    assert out["verdict"] == "WEAK"
+
+
+def test_a_pass_says_it_needs_a_consumer_ranker():
+    assert "consumer ranker" in gate.READING["PASS"]
 
 
 def test_no_verdict_until_every_registered_cell_is_measured(tmp_path):
