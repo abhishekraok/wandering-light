@@ -44,12 +44,14 @@ import math
 import sys
 import time
 from collections import Counter, defaultdict
+from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 
+from wandering_light import stack_machine  # noqa: E402
 from wandering_light.corpus_hub import fetch_corpus  # noqa: E402
 from wandering_light.stack_machine import (  # noqa: E402
     DEFAULT_FUEL_LIMIT,
@@ -138,6 +140,29 @@ def frame_of(tag: str, below: tuple, role: int) -> tuple | str:
     raise ValueError(f"not a combinator tag: {tag}")
 
 
+def frame_with_captures(
+    tag: str, below: tuple, role: int, captures: int
+) -> tuple | str:
+    """The frame when the quotation is consed into a closure before it runs.
+
+    `x [ lt? ] swap cons filter` leaves `[ x lt? ]` for `filter`, so the body
+    the author wrote (`lt?`) runs on the combinator's frame **with the captured
+    values already pushed**: `(item, x)`. The captured values sit under the
+    mark when `[` opens, so the combinator's own operands are found below them.
+    Each `swap cons` prepends one value to the quotation, so the value consed
+    last is pushed first; reversing `below[-captures:]` puts them in the order
+    the body will see.
+    """
+    if captures <= 0:
+        return frame_of(tag, below, role)
+    if len(below) < captures:
+        return "capture deeper than the stack"
+    base = frame_of(tag, below[:-captures], role)
+    if isinstance(base, str):
+        return base
+    return (*base, *reversed(below[-captures:]))
+
+
 def legal_tags(below: tuple) -> tuple[str, ...]:
     """The tags whose precondition holds on ``below`` at `[` time.
 
@@ -224,6 +249,52 @@ def conditional_entropy(joint: Counter) -> float:
 # ---------------------------------------------------------------------------
 
 
+@contextmanager
+def recording_bodies():
+    """Record every ``run_body`` call the machine makes, with the stack it passes.
+
+    `_run_map` and its siblings call the module-global `run_body`, so replacing
+    that global observes the machine rather than re-deriving it. The wrapper is
+    outside the `lru_cache`, so a repeated body is still recorded. This module's
+    own preview calls bind `run_body` directly at import and are unaffected.
+    """
+    calls: list[tuple[int, tuple, tuple]] = []
+    original = stack_machine.run_body
+
+    def recorder(body, stack, budget, depth=0):
+        calls.append((depth, body, stack))
+        return original(body, stack, budget, depth)
+
+    stack_machine.run_body = recorder
+    try:
+        yield calls
+    finally:
+        stack_machine.run_body = original
+
+
+def observed_frames(program: Sequence[str], root: tuple) -> dict[int, tuple]:
+    """``{step of a combinator: the stack it first handed a body}``.
+
+    For `map`, `filter` and `fold` that is the fresh one- or two-value stack of
+    the first item; for `i` and `dip` the outer stack less the quotations; for
+    `ifte` the `rest` that all three of its quotations are run on. An empty list
+    makes no call at all and simply does not appear.
+    """
+    out: dict[int, tuple] = {}
+    stack = root
+    with recording_bodies() as calls:
+        for step, name in enumerate(program):
+            calls.clear()
+            outcome = step_raw(OP_BY_NAME[name], stack, DEFAULT_FUEL_LIMIT, 0)
+            if isinstance(outcome, str):
+                return out
+            stack = outcome[0]
+            first = next((c for c in calls if c[0] == 1), None)
+            if first is not None:
+                out[step] = (first[1], first[2])  # (body, stack)
+    return out
+
+
 def replay(program: Sequence[str], root: tuple) -> list[tuple] | None:
     """Every state along the witness, ``s_0`` to ``s_n``, or None if it refuses."""
     states, stack = [root], root
@@ -301,7 +372,7 @@ def attribute(program: Sequence[str]) -> dict[int, tuple]:
                 continue
             match[stack.pop()] = step
     for opened in stack:
-        out[opened] = ("never_closed", None)
+        out[opened] = ("never_closed", None, 0, None)
 
     for opened, closed in match.items():
         j, skipped = closed + 1, 0
@@ -310,18 +381,30 @@ def attribute(program: Sequence[str]) -> dict[int, tuple]:
                 break
             j = match[j] + 1
             skipped += 1
+        # The closure idiom: `x [ body ] swap cons filter` conses a captured
+        # value into the quotation before the combinator runs it, so the
+        # consumer is not the next token although the body is still executed
+        # promptly. Count the captures; the frame gains those values.
+        captures = 0
+        while (
+            j + 1 < len(program) and program[j] == "swap" and program[j + 1] == "cons"
+        ):
+            j += 2
+            captures += 1
         if j >= len(program):
-            out[opened] = ("unused", None)
+            out[opened] = ("unused", None, 0, None)
         elif program[j] == "]":
-            out[opened] = ("left_on_stack", None)
+            out[opened] = ("left_on_stack", None, 0, None)
         elif program[j] in COMBINATORS:
             arity = COMBINATORS[program[j]]
             role = arity - 1 - skipped
             out[opened] = (
-                (program[j], role) if 0 <= role < arity else ("role_mismatch", None)
+                (program[j], role, captures, j)
+                if 0 <= role < arity
+                else ("role_mismatch", None, 0, None)
             )
         else:
-            out[opened] = ("other_op_first", None)
+            out[opened] = ("other_op_first", None, 0, None)
     return out
 
 
@@ -361,12 +444,22 @@ def crosscheck(
 class Level:
     """One open quotation: its tag, the frame its body runs on, and its progress."""
 
-    __slots__ = ("below", "body", "frame", "refusal", "role", "tag", "virtual")
+    __slots__ = (
+        "below",
+        "body",
+        "captures",
+        "frame",
+        "refusal",
+        "role",
+        "tag",
+        "virtual",
+    )
 
     def __init__(self, tag: str, role: int, below: tuple, frame: tuple | str):
         self.tag = tag
         self.role = role
         self.below = below
+        self.captures = 0
         self.body: list[Value] = []
         if isinstance(frame, str):
             self.frame = ()
@@ -396,7 +489,11 @@ def item_of(value: Value) -> Value:
 
 
 def walk_one_example(
-    program: Sequence[str], states: Sequence[tuple], tags: dict[int, tuple]
+    program: Sequence[str],
+    states: Sequence[tuple],
+    tags: dict[int, tuple],
+    *,
+    capture_aware: bool = False,
 ) -> dict[str, Any]:
     """Per under-mark op: is a frame defined, at what depth, under what parent.
 
@@ -408,6 +505,8 @@ def walk_one_example(
     depth_at: dict[int, int] = {}
     parent_at: dict[int, str | None] = {}
     tag_at: dict[int, str] = {}
+    capture_at: dict[int, int] = {}
+    computed_at: dict[int, tuple] = {}
     legal_at: dict[int, tuple[str, ...]] = {}
     shape_at: dict[int, str] = {}
     fold_steps: dict[int, dict[str, Any]] = {}
@@ -419,7 +518,15 @@ def walk_one_example(
         if not under_mark:
             continue
         if name == "[":
-            kind, role = tags.get(step, ("never_closed", None))
+            kind, role, captures, _consumer = tags.get(
+                step, ("never_closed", None, 0, None)
+            )
+            # `attribute` always looks through the closure idiom, so strict mode
+            # -- the design exactly as #160 writes it, where the consumer is the
+            # next token -- has to put those quotations back in the undefined
+            # class rather than silently getting the capture-aware answer.
+            if captures and not capture_aware:
+                kind, role = "other_op_first", None
             parent = open_levels[-1] if open_levels else None
             below = before[:] if parent is None else parent.virtual
             depth = len(open_levels) + 1
@@ -447,8 +554,17 @@ def walk_one_example(
                 defined[step] = False
                 reason[step] = "parent_refused"
                 continue
-            level = Level(kind, role or 0, below, frame_of(kind, below, role or 0))
+            frame = (
+                frame_with_captures(kind, below, role or 0, captures)
+                if capture_aware
+                else frame_of(kind, below, role or 0)
+            )
+            level = Level(kind, role or 0, below, frame)
+            level.captures = captures
             open_levels.append(level)
+            capture_at[step] = captures
+            if not isinstance(frame, str):
+                computed_at[step] = (kind, role or 0, captures, _consumer, frame)
             defined[step] = level.virtual is not None
             if level.refusal:
                 reason[step] = level.refusal
@@ -507,7 +623,48 @@ def walk_one_example(
         "legal": legal_at,
         "shape": shape_at,
         "fold": fold_steps,
+        "captures": capture_at,
+        "computed": computed_at,
     }
+
+
+def check_against_machine(
+    computed: dict[int, tuple], observed: dict[int, tuple]
+) -> Counter:
+    """Does the frame this module computed equal the one the machine handed the body?
+
+    Non-circular: `observed` comes from recording the machine's own `run_body`
+    calls, not from re-applying the rules in `frame_of`. Under the closure idiom
+    the two are not literally equal and should not be -- the machine runs the
+    *consed* body `x lt?` on `(item,)` while this module runs the *written* body
+    `lt?` on `(item, x)` -- so the captured literals are run onto the machine's
+    stack first and the comparison is made after that. That turns the reading of
+    `swap cons`, and in particular the untested 2+ capture case, into something
+    the machine adjudicates.
+    """
+    out = Counter()
+    for tag, _role, captures, consumer, frame in computed.values():
+        if consumer is None or consumer not in observed:
+            out["no_observation"] += 1
+            continue
+        body, stack = observed[consumer]
+        if captures:
+            if len(body) < captures:
+                out["capture_longer_than_body"] += 1
+                continue
+            advanced = run_body(tuple(body[:captures]), stack, BUDGET, PREVIEW_DEPTH)
+            if isinstance(advanced, str):
+                out["capture_prefix_refused"] += 1
+                continue
+            stack = advanced[0]
+        out["compared"] += 1
+        out[f"captures_{min(captures, 2)}"] += 1
+        if frame == stack:
+            out["match"] += 1
+        else:
+            out["mismatch"] += 1
+            out[f"mismatch_{tag}_c{captures}"] += 1
+    return out
 
 
 def fold_disagreement(body: tuple, below: tuple) -> str | None:
@@ -586,18 +743,23 @@ def witnesses(
 
 
 def analyse(
-    rows: Sequence[tuple[str, tuple[str, ...], tuple[str, ...]]], log
+    rows: Sequence[tuple[str, tuple[str, ...], tuple[str, ...]]],
+    log,
+    *,
+    capture_aware: bool = False,
 ) -> dict[str, Any]:
     stats = Counter()
     reasons = Counter()
     by_depth: dict[int, Counter] = defaultdict(Counter)
     by_parent: dict[str, Counter] = defaultdict(Counter)
+    by_tag: dict[str, Counter] = defaultdict(Counter)
     tag_counts = Counter()
     legal_counts = Counter()
     shape_tag = Counter()
     fold_disagree = Counter()
     fold_shape = Counter()
     checks = Counter()
+    oracle = Counter()
     per_example_defined = 0
     per_example_total = 0
     skipped = Counter()
@@ -613,11 +775,16 @@ def analyse(
                 break
             tags = attribute(program)
             checks += crosscheck(states, program, tags)
-            walks.append(walk_one_example(program, states, tags))
+            if not walks:  # example 0 carries the machine comparison
+                seen_frames = observed_frames(program, root)
+            walks.append(
+                walk_one_example(program, states, tags, capture_aware=capture_aware)
+            )
         if not walks:
             continue
         stats["programs"] += 1
         stats["all_ops"] += len(program)
+        oracle += check_against_machine(walks[0]["computed"], seen_frames)
 
         steps = sorted({s for w in walks for s in w["defined"]})
         for step in steps:
@@ -637,6 +804,11 @@ def analyse(
                 kind = "fresh" if parent in ("map", "filter", "fold") else "inherited"
                 by_parent[kind]["total"] += 1
                 by_parent[kind]["defined"] += product
+            if len(tags) == 1:
+                tag = next(iter(tags))
+                if tag in COMBINATORS:
+                    by_tag[tag]["total"] += 1
+                    by_tag[tag]["defined"] += product
             if product:
                 stats["defined_product"] += 1
                 if len(tags) == 1:
@@ -690,6 +862,16 @@ def analyse(
             }
             for d, c in sorted(by_depth.items())
         },
+        "by_tag": {
+            tag: {
+                "under_mark_ops": c["total"],
+                "coverage": round(c["defined"] / c["total"], 4) if c["total"] else 0.0,
+                "frame_kind": "fresh"
+                if tag in ("map", "filter", "fold")
+                else "inherited",
+            }
+            for tag, c in sorted(by_tag.items(), key=lambda kv: -kv[1]["total"])
+        },
         "by_parent_kind_depth_2plus": {
             kind: {
                 "under_mark_ops": c["total"],
@@ -724,6 +906,7 @@ def analyse(
             "entropy_tag_given_shape": round(conditional_entropy(shape_tag), 3),
         },
         "attribution_crosscheck_depth1": dict(checks.most_common()),
+        "frames_checked_against_the_machine": dict(oracle.most_common()),
         "unchained_fold": {
             "write_steps_with_a_frame": fold_disagree["steps"],
             "accept_set_differs": fold_disagree["accept_set_differs"],
@@ -806,6 +989,7 @@ def main(argv: list[str] | None = None) -> int:
             cell = f"{name}:{split}"
             log(f"== {cell}: {len(rows)} distinct witnesses")
             report["cells"][cell] = analyse(rows, log)
+            report["cells"][f"{cell}+capture"] = analyse(rows, log, capture_aware=True)
             log(json.dumps(report["cells"][cell], indent=1))
         if name == "stack_pbe_v4":
             programs = staged_programs()
@@ -814,6 +998,9 @@ def main(argv: list[str] | None = None) -> int:
                 rows = rows[: args.limit]
             log(f"== staged:train: {len(rows)} distinct staged witnesses")
             report["cells"]["staged:train"] = analyse(rows, log)
+            report["cells"]["staged:train+capture"] = analyse(
+                rows, log, capture_aware=True
+            )
             log(json.dumps(report["cells"]["staged:train"], indent=1))
     report["seconds"] = round(time.perf_counter() - started, 1)
     if args.out:
