@@ -92,12 +92,30 @@ claim a number supports.
 
 ## In flight
 
-**Pursuing `goals/g1.md`** (Claude, from 2026-09-22). Done first: best-system-command (#158), `uv run python -m wandering_light.solve TASKS`, the one command that runs the pinned best system on a task file and prints per-task verdicts and wall-clock; `BEST` in `wandering_light/solve.py` pins `staged-s0-e3` of staged-witness-reauthoring (#155) at beam 64 x depth 48, guard `both`, solved-program library on, Hub revision `e5a0b139`. Measured and reported: the width ladder 64 to 512 with and without the solved-program library and the #157 state cap (best-system-command (#158)), and E1 of inner-frames (#160). model-size-at-fixed-epoch (#159) is measured: flat, as predicted. Nothing running. The branch `claude/goal-agent-handoff-review-ebb837` carries all of it, is reviewed by Codex twice and by Opus subagents, and is **not merged** -- that is the owner's call. The world half of the objective now has a target and a baseline, clear-world-v3 (#161): 1 of 44, with search depth as the wall. Raising the depth on #161 was run and is a clean negative, and the clean v4 + full world-v3 arm is measured (deficit 0.66, coverage unmoved). The next step is designed and **not started**: macro-action-space (#162), a policy whose actions are the 133 authoring macros, which is the only term of the budget law nobody has touched. **77.6% of authored macro tokens sit inside quotations**, so it depends on #149 (`run_body` taking an ops table) rather than only on a wider action head; without that it reaches 2.1x compression and 11.3x over budget instead of 5.2x and 4.5x. That makes it a two-issue machine change and it needs the owner's go-ahead. Also open, none started: giving the solver the authoring macro library as actions, which needs macro-compression-check (#144)'s negative v4 result reconciled with world-v3's very different length regime; staging world-v3 the way staged-witness-reauthoring (#155) staged v4, which is authoring work and the data lever #159's flat result points at; and E2 of inner-frames (#160), the gate that decides whether the frames help. Open lines: what training-data-sources (#118) does after its step-3 checkpoint, world-plus-v4-policy (#134), and its ablation, keep-below-ablation (#136); the ~127 behaviours left in the sampler-passing pool; and the highways programme (#94, #96, #98, goal #99). Left open by the 2026-09-19 campaign: beam 512 had not saturated on solved-program-cache (#151), so where coverage stops buying is unmeasured; the `mixed` arm of hindsight-subtargets (#152) is implemented and unrun, and a staged corpus is what would make it readable (witness-trajectory-shape (#150)).
+**Pursuing `goals/g1.md`** (Claude, from 2026-09-22). **Measurement on the current recipe is finished**, by the owner's decision of 2026-09-22: width (best-system-command (#158)), policy size (#159), search depth and data volume (clear-world-v3 (#161)) are all settled flat, and a new ladder on them needs new evidence first. That work is on `main`, with #157's state cap and inner-frames (#160) E1. The one command, `uv run python -m wandering_light.solve TASKS`, runs `BEST` (`wandering_light/solve.py`): `staged-s0-e3` of staged-witness-reauthoring (#155) at Hub revision `e5a0b139`, beam 64 x depth 48, guard `both`, solved-program library on. It solves 1 of 44 world-v3 eval tasks.
+
+**The build has started: a search that decomposes the witness.** The first registered prediction ([segment composite](../reports/segment-composite-20260922/README.md)) put the lever inside quotation bodies, not between them. On the lowest-deficit policy we have, the world arm `1m-s0-e5`, bodies carry 79-82% of the deficit. Resetting the beam's budget at closed states is predicted to add +1 of 45 v4 witnesses and +0 of 44 world-v3, so it was **not run**. So stage 1 is **inner-frames (#160) E2's first gate**, being designed and not yet started: a policy trained with each body step's state replaced by the frame its combinator will feed that body, measured by per-step deficit on body ops, paired against `1m-s0-e5`, with predictions registered on #160 before training. If bodies stay long after that, the next stage is macros under a mark (macro-action-space (#162), which needs `run_body` to take an ops table, #149). Nothing running.
+
+Also open, none started: world-v3 staged the way #155 staged v4; what training-data-sources (#118) does after step 3, with world-plus-v4-policy (#134) and keep-below-ablation (#136); the ~127 behaviours left in the sampler-passing pool; the highways programme (#94, #96, #98, goal #99); and the unrun `mixed` arm of hindsight-subtargets (#152).
+
+(Session note, 2026-09-22: `~/.claude/history.jsonl` logs only CLI prompts on this machine, so it cannot show that no owner input was lost in a Desktop session; the transcript's queue records can.)
 
 ## Superseded
 
 Claims that were stated confidently and are wrong. Recorded here so a
 correction lands in one place instead of being chased across comment threads.
+
+- **"Quotation bodies are short, so the top level binds, and the build's
+  first stage should be segment-reset search"** (my own messages to the
+  advising session, 2026-09-22). Bodies are short in *macro tokens* (median
+  3-4), and the composite built on that was priced at 0.66 nats per step. That
+  figure is the world arm's deficit on world-v3 eval over base ops, applied to
+  macro tokens and to v4. It moved the planned first stage to segment-reset
+  search. Charging each witness the actual per-step deficit of a base-op policy
+  ([segment composite](../reports/segment-composite-20260922/README.md))
+  reverses it. Bodies carry 79-92% of the deficit, and the costliest
+  sub-search is a body in about 70% of witnesses. Segment-reset is predicted
+  +1 of 45 and +0 of 44 and was not run. Stage 1 is inner-frames (#160) E2.
 
 - **"At world-v3's median length the per-step budget is 0.028 nats against a
   measured 0.075, so the only term that can move is `L`, and shortening to

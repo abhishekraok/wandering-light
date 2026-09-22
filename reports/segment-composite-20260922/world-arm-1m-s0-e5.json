@@ -1,0 +1,3621 @@
+{
+  "budget_nats": 4.1588830833596715,
+  "cells": {
+    "stack_pbe_v4:eval": {
+      "all": {
+        "both": 14,
+        "delta": 1,
+        "flat": 9,
+        "flat_only": [],
+        "names": {
+          "both": [
+            "adjacent_sign_change_count",
+            "count_in_range",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "shared_value_occurrences",
+            "span_inside_interval",
+            "stable_distinct_shared_values"
+          ],
+          "flat": [
+            "count_in_range",
+            "keep_below",
+            "keep_zeros",
+            "min_pair",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "shared_value_occurrences"
+          ],
+          "quotations": [
+            "adjacent_sign_change_count",
+            "count_in_range",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "shared_value_occurrences",
+            "stable_distinct_shared_values"
+          ],
+          "segmented": [
+            "count_in_range",
+            "keep_below",
+            "keep_zeros",
+            "min_pair",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "shared_value_occurrences",
+            "span_inside_interval"
+          ]
+        },
+        "quotations": 13,
+        "segmented": 10,
+        "segmented_only": [
+          "span_inside_interval"
+        ],
+        "witnesses": 45
+      },
+      "cohort_101": {
+        "both": 14,
+        "delta": 1,
+        "flat": 9,
+        "flat_only": [],
+        "names": {
+          "both": [
+            "adjacent_sign_change_count",
+            "count_in_range",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "shared_value_occurrences",
+            "span_inside_interval",
+            "stable_distinct_shared_values"
+          ],
+          "flat": [
+            "count_in_range",
+            "keep_below",
+            "keep_zeros",
+            "min_pair",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "shared_value_occurrences"
+          ],
+          "quotations": [
+            "adjacent_sign_change_count",
+            "count_in_range",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "shared_value_occurrences",
+            "stable_distinct_shared_values"
+          ],
+          "segmented": [
+            "count_in_range",
+            "keep_below",
+            "keep_zeros",
+            "min_pair",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "shared_value_occurrences",
+            "span_inside_interval"
+          ]
+        },
+        "quotations": 13,
+        "segmented": 10,
+        "segmented_only": [
+          "span_inside_interval"
+        ],
+        "witnesses": 43
+      },
+      "rows": [
+        {
+          "accumulated": 7.325217545032501,
+          "behaviour": "increment_each",
+          "bodies": [
+            4.5749
+          ],
+          "both": false,
+          "flat": false,
+          "length": 5,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            7.3252
+          ],
+          "top_level_segments": [
+            2.7503
+          ]
+        },
+        {
+          "accumulated": 2.5436368882656097,
+          "behaviour": "negate_each",
+          "bodies": [
+            1.2698
+          ],
+          "both": true,
+          "flat": true,
+          "length": 6,
+          "quotations": true,
+          "segmented": true,
+          "segments": [
+            2.5436
+          ],
+          "top_level_segments": [
+            1.2738
+          ]
+        },
+        {
+          "accumulated": 0.0,
+          "behaviour": "reverse",
+          "bodies": [
+            0.0
+          ],
+          "both": true,
+          "flat": true,
+          "length": 5,
+          "quotations": true,
+          "segmented": true,
+          "segments": [
+            0.0
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 9.843907907605171,
+          "behaviour": "prefix_sums",
+          "bodies": [
+            0.0,
+            0.0,
+            7.6467,
+            2.1972,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 25,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            9.8439,
+            0.0
+          ],
+          "top_level_segments": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 3.5665931701660156,
+          "behaviour": "keep_zeros",
+          "bodies": [
+            1.6796
+          ],
+          "both": true,
+          "flat": true,
+          "length": 5,
+          "quotations": true,
+          "segmented": true,
+          "segments": [
+            3.5666
+          ],
+          "top_level_segments": [
+            1.887
+          ]
+        },
+        {
+          "accumulated": 5.314153075218201,
+          "behaviour": "keep_negative",
+          "bodies": [
+            3.2975
+          ],
+          "both": true,
+          "flat": false,
+          "length": 5,
+          "quotations": true,
+          "segmented": false,
+          "segments": [
+            5.3142
+          ],
+          "top_level_segments": [
+            2.0167
+          ]
+        },
+        {
+          "accumulated": 6.380525708198547,
+          "behaviour": "n_minus_each",
+          "bodies": [
+            3.2962
+          ],
+          "both": true,
+          "flat": false,
+          "length": 7,
+          "quotations": true,
+          "segmented": false,
+          "segments": [
+            6.3805
+          ],
+          "top_level_segments": [
+            3.0843
+          ]
+        },
+        {
+          "accumulated": 3.234087347984314,
+          "behaviour": "keep_below",
+          "bodies": [
+            3.2341
+          ],
+          "both": true,
+          "flat": true,
+          "length": 6,
+          "quotations": true,
+          "segmented": true,
+          "segments": [
+            3.2341
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 0.6539677977561951,
+          "behaviour": "min_pair",
+          "bodies": [
+            0.0,
+            0.654,
+            0.0
+          ],
+          "both": true,
+          "flat": true,
+          "length": 12,
+          "quotations": true,
+          "segmented": true,
+          "segments": [
+            0.654
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 10.419955670833588,
+          "behaviour": "sum_negative",
+          "bodies": [
+            0.0,
+            7.3034,
+            2.4166,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 16,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            10.42
+          ],
+          "top_level_segments": [
+            0.7
+          ]
+        },
+        {
+          "accumulated": 3.4085382521152496,
+          "behaviour": "count_in_range",
+          "bodies": [
+            1.9549,
+            0.0,
+            1.4536,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "both": true,
+          "flat": true,
+          "length": 40,
+          "quotations": true,
+          "segmented": true,
+          "segments": [
+            3.4085
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 22.922456144355237,
+          "behaviour": "replace_value",
+          "bodies": [
+            9.5969,
+            6.1927,
+            4.933,
+            2.1999
+          ],
+          "both": false,
+          "flat": false,
+          "length": 22,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            22.9225
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 0.9096450805664062,
+          "behaviour": "push_back",
+          "bodies": [],
+          "both": true,
+          "flat": true,
+          "length": 4,
+          "quotations": true,
+          "segmented": true,
+          "segments": [
+            0.9096
+          ],
+          "top_level_segments": [
+            0.9096
+          ]
+        },
+        {
+          "accumulated": 1.9832295775413513,
+          "behaviour": "rotate_left",
+          "bodies": [],
+          "both": true,
+          "flat": true,
+          "length": 5,
+          "quotations": true,
+          "segmented": true,
+          "segments": [
+            1.9832
+          ],
+          "top_level_segments": [
+            1.9832
+          ]
+        },
+        {
+          "accumulated": 5.5029492527246475,
+          "behaviour": "drop_last",
+          "bodies": [
+            0.0,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 12,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            0.5027,
+            5.0003
+          ],
+          "top_level_segments": [
+            0.5027,
+            5.0003
+          ]
+        },
+        {
+          "accumulated": 118.62321427837014,
+          "behaviour": "second_largest",
+          "bodies": [
+            8.1812,
+            6.2305,
+            12.268,
+            15.1748,
+            7.4527,
+            21.0822,
+            15.2992,
+            27.2675,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 83,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            12.3301,
+            33.6733,
+            72.6197
+          ],
+          "top_level_segments": [
+            4.149,
+            0.0,
+            1.5182
+          ]
+        },
+        {
+          "accumulated": 18.12087047100067,
+          "behaviour": "all_positive",
+          "bodies": [
+            7.9144,
+            1.3319,
+            1.5306,
+            2.0456
+          ],
+          "both": false,
+          "flat": false,
+          "length": 18,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            18.1209
+          ],
+          "top_level_segments": [
+            5.2984
+          ]
+        },
+        {
+          "accumulated": 35.06785002723336,
+          "behaviour": "capped_sum",
+          "bodies": [
+            6.8139,
+            9.8096,
+            12.8451,
+            2.2699
+          ],
+          "both": false,
+          "flat": false,
+          "length": 20,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            35.0679
+          ],
+          "top_level_segments": [
+            3.3294
+          ]
+        },
+        {
+          "accumulated": 47.464717387221754,
+          "behaviour": "aligned_maxima",
+          "bodies": [
+            0.0,
+            0.9385,
+            0.0,
+            0.0,
+            3.2793,
+            3.1616,
+            3.0924,
+            14.847,
+            11.2088,
+            3.5282,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 69,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            43.1974,
+            4.2673
+          ],
+          "top_level_segments": [
+            3.1415,
+            4.2673
+          ]
+        },
+        {
+          "accumulated": 1.0393908619880676,
+          "behaviour": "shared_value_occurrences",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0394,
+            0.0
+          ],
+          "both": true,
+          "flat": true,
+          "length": 31,
+          "quotations": true,
+          "segmented": true,
+          "segments": [
+            1.0394,
+            0.0
+          ],
+          "top_level_segments": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 16.064936838811263,
+          "behaviour": "nearest_interval_endpoint_each",
+          "bodies": [
+            1.8786,
+            0.0,
+            3.6376,
+            1.9176,
+            7.0777,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 39,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            16.0649
+          ],
+          "top_level_segments": [
+            1.5535
+          ]
+        },
+        {
+          "accumulated": 5.100215911865234,
+          "behaviour": "span_inside_interval",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.4231,
+            0.0,
+            0.0
+          ],
+          "both": true,
+          "flat": false,
+          "length": 76,
+          "quotations": false,
+          "segmented": true,
+          "segments": [
+            0.0,
+            3.183,
+            1.5854,
+            0.3319
+          ],
+          "top_level_segments": [
+            0.0,
+            3.183,
+            1.1623,
+            0.3319
+          ]
+        },
+        {
+          "accumulated": 20.188812881708145,
+          "behaviour": "farther_choice_from_target",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            1.7836,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            11.8911,
+            6.514
+          ],
+          "both": false,
+          "flat": false,
+          "length": 54,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            20.1888
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 108.41541801393032,
+          "behaviour": "distinct_count_three",
+          "bodies": [
+            8.2662,
+            10.7572,
+            10.9302,
+            0.7516,
+            5.0941,
+            1.7693,
+            9.8165,
+            3.9754,
+            5.9818,
+            8.3199,
+            8.9379,
+            15.309,
+            14.4054
+          ],
+          "both": false,
+          "flat": false,
+          "length": 70,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            108.4154
+          ],
+          "top_level_segments": [
+            4.1009
+          ]
+        },
+        {
+          "accumulated": 47.44876305758953,
+          "behaviour": "positive_majority_three",
+          "bodies": [
+            7.6567,
+            0.0,
+            1.5864,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 39,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            30.0021,
+            17.4467
+          ],
+          "top_level_segments": [
+            20.759,
+            17.4467
+          ]
+        },
+        {
+          "accumulated": 28.96002108603716,
+          "behaviour": "concatenate_shorter_first",
+          "bodies": [
+            0.0107,
+            0.0,
+            1.1648,
+            14.5094,
+            12.5473
+          ],
+          "both": false,
+          "flat": false,
+          "length": 26,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            28.96
+          ],
+          "top_level_segments": [
+            0.7277
+          ]
+        },
+        {
+          "accumulated": 11.500473082065582,
+          "behaviour": "stable_distinct_shared_values",
+          "bodies": [
+            0.0,
+            0.0,
+            1.266,
+            0.0,
+            2.718,
+            0.2547,
+            2.4764,
+            0.0,
+            0.0,
+            3.9117,
+            0.0
+          ],
+          "both": true,
+          "flat": false,
+          "length": 49,
+          "quotations": true,
+          "segmented": false,
+          "segments": [
+            4.8577,
+            6.6428,
+            0.0
+          ],
+          "top_level_segments": [
+            0.8738,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 198.5445479840273,
+          "behaviour": "bounds_cover_list_flag",
+          "bodies": [
+            15.5974,
+            9.3394,
+            2.765,
+            1.2038,
+            0.348,
+            5.6022,
+            22.2768,
+            7.5965,
+            2.9669,
+            1.3515,
+            0.0,
+            8.1278,
+            17.1281,
+            3.6925,
+            9.3503,
+            5.9105,
+            27.0997,
+            10.9652,
+            2.1079,
+            18.6081,
+            22.3969,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 92,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            27.8094,
+            40.7789,
+            42.8681,
+            87.0881
+          ],
+          "top_level_segments": [
+            2.8726,
+            0.9867,
+            0.2509,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 23.586593456566334,
+          "behaviour": "widest_pair",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0643,
+            0.0,
+            0.0,
+            1.4443,
+            3.4131,
+            0.0,
+            17.1935,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 84,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            23.5866
+          ],
+          "top_level_segments": [
+            1.4713
+          ]
+        },
+        {
+          "accumulated": 25.83278466016054,
+          "behaviour": "pair_floor_averages",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            25.3966,
+            0.0,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 69,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            25.3966,
+            0.4362
+          ],
+          "top_level_segments": [
+            0.0,
+            0.4362
+          ]
+        },
+        {
+          "accumulated": 21.40314720571041,
+          "behaviour": "furthest_squared_radius",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.8997,
+            6.096,
+            0.0,
+            0.0,
+            9.253,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 78,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            20.0481,
+            1.355
+          ],
+          "top_level_segments": [
+            2.7994,
+            1.355
+          ]
+        },
+        {
+          "accumulated": 25.550955065060407,
+          "behaviour": "axis_point_count",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.5112,
+            6.0564,
+            7.7923,
+            7.7538,
+            0.0,
+            0.0,
+            1.4373,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 86,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            25.551
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 39.81674940139055,
+          "behaviour": "manhattan_point_radii",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3.5242,
+            2.7531,
+            0.0,
+            7.682,
+            1.7854,
+            7.2658,
+            3.5098,
+            13.2965,
+            0.0,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 94,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            39.8167,
+            0.0
+          ],
+          "top_level_segments": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 9.744256243109703,
+          "behaviour": "keep_ascending_pairs",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.1901,
+            0.0,
+            0.0,
+            8.4464,
+            0.5492,
+            0.0,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 80,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            9.1858,
+            0.5585
+          ],
+          "top_level_segments": [
+            0.0,
+            0.5585
+          ]
+        },
+        {
+          "accumulated": 56.004731574095786,
+          "behaviour": "polyline_manhattan_length",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3.3494,
+            0.0,
+            0.0,
+            3.9197,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.4396,
+            0.0,
+            0.6079,
+            2.8691,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.5487
+          ],
+          "both": false,
+          "flat": false,
+          "length": 188,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            6.5747,
+            5.3948,
+            9.6822,
+            3.8616,
+            18.4088,
+            3.0168,
+            9.0658
+          ],
+          "top_level_segments": [
+            3.2253,
+            5.3948,
+            5.7625,
+            2.8141,
+            15.5397,
+            1.4681,
+            9.0658
+          ]
+        },
+        {
+          "accumulated": 34.038170389831066,
+          "behaviour": "positive_balance_prefix_count",
+          "bodies": [
+            0.0,
+            1.5852,
+            15.9599,
+            4.7922,
+            4.3641,
+            3.6391
+          ],
+          "both": false,
+          "flat": false,
+          "length": 49,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            34.0382
+          ],
+          "top_level_segments": [
+            3.6976
+          ]
+        },
+        {
+          "accumulated": 73.34719049185514,
+          "behaviour": "median_floor",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            5.6814,
+            0.7555,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0951,
+            0.0,
+            25.0562
+          ],
+          "both": false,
+          "flat": false,
+          "length": 253,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            10.1976,
+            5.9325,
+            14.7994,
+            7.3668,
+            30.7501,
+            4.3008
+          ],
+          "top_level_segments": [
+            4.5162,
+            5.1771,
+            14.7994,
+            7.3668,
+            4.5989,
+            4.3008
+          ]
+        },
+        {
+          "accumulated": 10.111008048057556,
+          "behaviour": "adjacent_sign_change_count",
+          "bodies": [
+            0.0,
+            3.3476,
+            0.0,
+            1.8827,
+            1.0378,
+            0.5386,
+            1.3702,
+            0.0
+          ],
+          "both": true,
+          "flat": false,
+          "length": 47,
+          "quotations": true,
+          "segmented": false,
+          "segments": [
+            10.111
+          ],
+          "top_level_segments": [
+            1.9342
+          ]
+        },
+        {
+          "accumulated": 19.64432110785856,
+          "behaviour": "nondecreasing_indicator",
+          "bodies": [
+            0.0,
+            0.0,
+            5.4262,
+            10.3357,
+            0.0,
+            0.9736,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 43,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            19.6443
+          ],
+          "top_level_segments": [
+            2.9088
+          ]
+        },
+        {
+          "accumulated": 22.649733990430832,
+          "behaviour": "cartesian_pair_sums",
+          "bodies": [
+            2.4623,
+            6.5735
+          ],
+          "both": false,
+          "flat": false,
+          "length": 15,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            22.6497
+          ],
+          "top_level_segments": [
+            13.614
+          ]
+        },
+        {
+          "accumulated": 19.02536965161562,
+          "behaviour": "aligned_matches",
+          "bodies": [
+            0.0,
+            0.0,
+            5.8569,
+            2.995,
+            0.0,
+            5.703,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 39,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            16.7819,
+            2.2435
+          ],
+          "top_level_segments": [
+            2.227,
+            2.2435
+          ]
+        },
+        {
+          "accumulated": 29.48711471632123,
+          "behaviour": "minimum_cross_list_gap",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            5.7578,
+            7.3208,
+            0.5643,
+            1.6305,
+            0.0,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 44,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            26.4114,
+            3.0757
+          ],
+          "top_level_segments": [
+            13.3328,
+            0.8809
+          ]
+        },
+        {
+          "accumulated": 305.24864667445627,
+          "behaviour": "lexicographic_order",
+          "bodies": [
+            0.0,
+            4.7993,
+            14.5923,
+            5.695,
+            25.2742,
+            13.6255,
+            10.46,
+            25.1051,
+            6.5722,
+            13.891,
+            39.4135,
+            11.8069,
+            19.8454,
+            7.4124,
+            25.4376,
+            6.1067,
+            7.1252,
+            6.9963,
+            1.617,
+            12.5448,
+            4.6161,
+            7.7249,
+            8.4946,
+            5.1866
+          ],
+          "both": false,
+          "flat": false,
+          "length": 124,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            252.9126,
+            52.3361
+          ],
+          "top_level_segments": [
+            8.7539,
+            12.1523
+          ]
+        },
+        {
+          "accumulated": 43.877279974898556,
+          "behaviour": "largest_inside_interval",
+          "bodies": [
+            3.2249,
+            8.0374,
+            3.1777,
+            8.7877,
+            0.1307,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 40,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            43.009,
+            0.8683
+          ],
+          "top_level_segments": [
+            19.7813,
+            0.7376
+          ]
+        },
+        {
+          "accumulated": 9.787181064486504,
+          "behaviour": "farthest_from_target_last_tie",
+          "bodies": [
+            1.2043,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            4.8827,
+            2.9717,
+            0.7285,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 59,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            1.2043,
+            8.5829
+          ],
+          "top_level_segments": [
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    "stack_pbe_world_v3:eval": {
+      "all": {
+        "both": 2,
+        "delta": 0,
+        "flat": 2,
+        "flat_only": [],
+        "names": {
+          "both": [
+            "mbpp-436",
+            "mbpp-672"
+          ],
+          "flat": [
+            "mbpp-436",
+            "mbpp-672"
+          ],
+          "quotations": [
+            "mbpp-436",
+            "mbpp-672"
+          ],
+          "segmented": [
+            "mbpp-436",
+            "mbpp-672"
+          ]
+        },
+        "quotations": 2,
+        "segmented": 2,
+        "segmented_only": [],
+        "witnesses": 44
+      },
+      "rows": [
+        {
+          "accumulated": 724.092116397791,
+          "behaviour": "leetcode-count-numbers-with-unique-digits-ii",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0816,
+            4.0008,
+            3.6156,
+            0.0,
+            0.0,
+            23.2533,
+            0.0,
+            1.1142,
+            0.5179,
+            0.0,
+            2.6235,
+            6.8183,
+            0.4106,
+            0.0,
+            0.912,
+            0.0,
+            0.0,
+            0.5758,
+            0.0,
+            16.2059,
+            0.0,
+            1.0455,
+            0.0,
+            51.4796,
+            10.2373,
+            5.879,
+            7.5972,
+            12.8798,
+            16.713,
+            4.832,
+            11.3247,
+            4.797,
+            28.1372,
+            13.095,
+            11.9463,
+            0.0,
+            3.4147,
+            0.8611,
+            9.5449,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3.0279,
+            0.2882,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.4066,
+            0.9321,
+            0.0,
+            24.7343,
+            29.0379,
+            6.6698,
+            3.4631,
+            22.7014,
+            10.6059,
+            7.8996,
+            9.1305,
+            302.3185,
+            4.0646,
+            0.0676
+          ],
+          "both": false,
+          "flat": false,
+          "length": 536,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            34.7338,
+            1.0516,
+            6.2879,
+            679.5137,
+            2.4375,
+            0.0676
+          ],
+          "top_level_segments": [
+            34.7338,
+            0.9701,
+            2.2872,
+            2.4017,
+            2.4375,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 559.2963595795445,
+          "behaviour": "leetcode-count-square-sum-triples",
+          "bodies": [
+            4.9145,
+            37.4728,
+            19.3666,
+            0.0,
+            0.0,
+            0.0,
+            1.6163,
+            5.1181,
+            0.8087,
+            0.0,
+            0.5105,
+            0.0,
+            28.4405,
+            0.0,
+            1.1444,
+            0.0,
+            19.2845,
+            0.0,
+            0.1825,
+            0.0,
+            0.565,
+            1.0637,
+            0.0,
+            20.6556,
+            56.6844,
+            4.112,
+            1.2929,
+            0.0,
+            0.0,
+            0.0,
+            2.1523,
+            0.0,
+            0.4,
+            10.6625,
+            0.0,
+            0.768,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            11.8876,
+            5.8689,
+            34.3332,
+            0.0,
+            0.0,
+            0.7394,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            13.6802,
+            29.9481,
+            9.2356,
+            1.8358,
+            20.7961,
+            6.0749,
+            49.9397,
+            9.5644,
+            0.6854
+          ],
+          "both": false,
+          "flat": false,
+          "length": 529,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            253.6049,
+            28.2922,
+            5.4084,
+            45.3182,
+            0.0,
+            14.244,
+            134.4376,
+            72.4754,
+            0.6854,
+            4.8302
+          ],
+          "top_level_segments": [
+            47.8196,
+            17.6297,
+            5.4084,
+            44.5502,
+            0.0,
+            2.3564,
+            18.0003,
+            6.8964,
+            0.0,
+            4.8302
+          ]
+        },
+        {
+          "accumulated": 87.7437753751874,
+          "behaviour": "leetcode-distribute-money-to-maximum-children",
+          "bodies": [
+            5.3874,
+            3.0382,
+            16.7579,
+            10.5267,
+            20.4542,
+            16.347,
+            9.5945,
+            3.6286,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 73,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            87.7438
+          ],
+          "top_level_segments": [
+            2.0093
+          ]
+        },
+        {
+          "accumulated": 59.45483060949482,
+          "behaviour": "leetcode-find-the-distance-value-between-two-arrays",
+          "bodies": [
+            4.0064,
+            0.0,
+            0.0,
+            0.0,
+            11.5096,
+            0.0,
+            0.0,
+            0.0,
+            14.373,
+            0.0,
+            23.716,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 64,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            59.4548,
+            0.0
+          ],
+          "top_level_segments": [
+            5.8498,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 26.002673983573914,
+          "behaviour": "leetcode-minimum-element-after-replacement-with-digit-sum",
+          "bodies": [
+            0.0,
+            0.0,
+            0.4252,
+            0.2313,
+            0.0,
+            0.3197,
+            18.6663,
+            0.0,
+            1.3722,
+            0.0,
+            1.5313
+          ],
+          "both": false,
+          "flat": false,
+          "length": 108,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            21.9243,
+            4.0784
+          ],
+          "top_level_segments": [
+            2.2817,
+            1.175
+          ]
+        },
+        {
+          "accumulated": 311.0575605407357,
+          "behaviour": "leetcode-xor-operation-in-an-array",
+          "bodies": [
+            11.6645,
+            6.6838,
+            1.7613,
+            5.3399,
+            4.1932,
+            10.3684,
+            5.8723,
+            3.6385,
+            4.4457,
+            4.7384,
+            3.7164,
+            2.3141,
+            5.7558,
+            4.0642,
+            7.9293,
+            8.234,
+            3.003,
+            10.7608,
+            12.6985,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.4604,
+            2.4592,
+            2.8055,
+            2.7031,
+            0.0,
+            4.953,
+            131.7899
+          ],
+          "both": false,
+          "flat": false,
+          "length": 298,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            306.7801,
+            4.2775
+          ],
+          "top_level_segments": [
+            44.4269,
+            4.2775
+          ]
+        },
+        {
+          "accumulated": 78.21821400523186,
+          "behaviour": "mbpp-126",
+          "bodies": [
+            0.0,
+            0.9857,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            6.4271,
+            7.8443,
+            7.2109,
+            11.8362,
+            3.3915,
+            13.5322,
+            5.1924
+          ],
+          "both": false,
+          "flat": false,
+          "length": 168,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            4.2536,
+            11.2041,
+            0.0,
+            7.4391,
+            7.8443,
+            11.4315,
+            30.8533,
+            5.1924
+          ],
+          "top_level_segments": [
+            3.2679,
+            11.2041,
+            0.0,
+            1.0119,
+            0.0,
+            4.2206,
+            2.0935,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 139.93048203807484,
+          "behaviour": "mbpp-962",
+          "bodies": [
+            0.0,
+            26.6484,
+            19.4974,
+            32.914,
+            3.1655,
+            21.1199,
+            20.1709
+          ],
+          "both": false,
+          "flat": false,
+          "length": 63,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            82.7815,
+            47.0537,
+            10.0953
+          ],
+          "top_level_segments": [
+            3.7216,
+            2.5973,
+            10.0953
+          ]
+        },
+        {
+          "accumulated": 23.816456452012062,
+          "behaviour": "codearc-147",
+          "bodies": [
+            2.7078,
+            3.6947,
+            0.0,
+            0.4502,
+            0.295,
+            0.3871,
+            0.0,
+            16.2817
+          ],
+          "both": false,
+          "flat": false,
+          "length": 97,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            23.8165
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 140.0904811247019,
+          "behaviour": "codearc-196",
+          "bodies": [
+            2.4762,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.7107,
+            2.3577,
+            60.2166,
+            7.4508,
+            17.3498,
+            14.9578,
+            3.6335,
+            13.0955
+          ],
+          "both": false,
+          "flat": false,
+          "length": 167,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            3.4854,
+            12.1743,
+            1.2648,
+            66.1126,
+            57.0534
+          ],
+          "top_level_segments": [
+            1.0092,
+            12.1743,
+            1.2648,
+            2.8276,
+            0.5661
+          ]
+        },
+        {
+          "accumulated": 103.26628120616078,
+          "behaviour": "codearc-94",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.6715,
+            0.0,
+            0.0,
+            2.8176,
+            0.0,
+            0.0,
+            3.7057,
+            0.6715,
+            0.0,
+            0.0,
+            6.2872,
+            6.7933,
+            0.6306,
+            1.9288,
+            3.972,
+            1.3186,
+            2.1957,
+            6.8451,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0249,
+            5.9821,
+            1.4566
+          ],
+          "both": false,
+          "flat": false,
+          "length": 263,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            0.3774,
+            2.6846,
+            7.8808,
+            0.7643,
+            13.8039,
+            41.5323,
+            24.9997,
+            0.0,
+            1.0249,
+            8.7417,
+            1.4566
+          ],
+          "top_level_segments": [
+            0.3774,
+            2.0131,
+            1.3575,
+            0.0928,
+            0.0928,
+            25.2721,
+            24.9997,
+            0.0,
+            0.0,
+            2.7597,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 217.7815153002739,
+          "behaviour": "leetcode-2-keys-keyboard",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            5.0638,
+            3.2458,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.6804,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            14.4735,
+            0.0,
+            0.0,
+            0.0,
+            10.1498,
+            1.9903,
+            3.3644,
+            2.8608,
+            0.0,
+            16.5164,
+            19.7754,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            7.4539,
+            7.8837,
+            0.0779,
+            12.3825,
+            3.5771,
+            55.8962,
+            6.6723,
+            7.6384,
+            38.0788
+          ],
+          "both": false,
+          "flat": false,
+          "length": 538,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            217.7815
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 109.9105153977871,
+          "behaviour": "leetcode-apply-operations-to-make-sum-of-array-greater-than-or-equal-to-k",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            5.6847,
+            5.501,
+            0.0,
+            0.0,
+            0.0,
+            13.0423,
+            0.0,
+            0.0,
+            1.8459,
+            0.0,
+            10.302,
+            15.6875,
+            1.0783,
+            0.0,
+            1.9384,
+            0.0,
+            54.8306
+          ],
+          "both": false,
+          "flat": false,
+          "length": 150,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            109.9105
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 170.98567302478477,
+          "behaviour": "leetcode-water-bottles-ii",
+          "bodies": [
+            4.6871,
+            4.168,
+            7.5977,
+            3.6641,
+            0.0,
+            0.0,
+            5.3014,
+            6.4113,
+            0.0,
+            0.0,
+            8.8746,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            8.6458,
+            0.2056,
+            0.0,
+            0.0,
+            0.0,
+            4.8094,
+            16.3335,
+            5.2124,
+            8.5452
+          ],
+          "both": false,
+          "flat": false,
+          "length": 265,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            7.1652,
+            8.3649,
+            22.6794,
+            6.5383,
+            5.3014,
+            10.0034,
+            44.9582,
+            18.6125,
+            0.0,
+            46.6579,
+            0.7044
+          ],
+          "top_level_segments": [
+            2.4781,
+            4.1969,
+            15.0818,
+            2.8742,
+            0.0,
+            3.5921,
+            36.0836,
+            18.6125,
+            0.0,
+            2.9059,
+            0.7044
+          ]
+        },
+        {
+          "accumulated": 79.12656706944108,
+          "behaviour": "mbpp-5",
+          "bodies": [
+            12.9765,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            27.7608,
+            38.3893
+          ],
+          "both": false,
+          "flat": false,
+          "length": 165,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            79.1266
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 418.2924192457722,
+          "behaviour": "codearc-1053",
+          "bodies": [
+            4.0575,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            6.5782,
+            0.0,
+            0.0,
+            1.0172,
+            0.0,
+            9.8344,
+            3.8819,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.8835,
+            179.2814,
+            0.0,
+            8.1744,
+            8.323,
+            11.9476,
+            0.0,
+            3.6694,
+            1.9695,
+            0.0,
+            0.0,
+            0.0,
+            3.1576,
+            0.0,
+            1.6134,
+            0.0,
+            0.3071,
+            0.0,
+            0.0,
+            0.0,
+            48.5509,
+            11.7304,
+            5.7456,
+            8.164
+          ],
+          "both": false,
+          "flat": false,
+          "length": 501,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            6.9593,
+            34.9835,
+            15.0844,
+            2.7387,
+            192.6526,
+            46.2647,
+            19.035,
+            6.3921,
+            94.1821
+          ],
+          "top_level_segments": [
+            2.9019,
+            13.6718,
+            15.0844,
+            2.7387,
+            12.4876,
+            17.8197,
+            19.035,
+            2.7226,
+            12.9436
+          ]
+        },
+        {
+          "accumulated": 95.39517969638109,
+          "behaviour": "codearc-544",
+          "bodies": [
+            6.768,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.2615,
+            0.9214,
+            0.7937,
+            9.7727,
+            15.6816,
+            6.3969,
+            42.0948
+          ],
+          "both": false,
+          "flat": false,
+          "length": 145,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            87.0515,
+            8.3437
+          ],
+          "top_level_segments": [
+            4.361,
+            8.3437
+          ]
+        },
+        {
+          "accumulated": 210.16585844848305,
+          "behaviour": "codearc-810",
+          "bodies": [
+            1.3354,
+            0.0,
+            21.5298,
+            14.1256,
+            4.335,
+            0.0,
+            13.4725,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            4.6899,
+            5.1832,
+            0.6338,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.9154,
+            0.9648,
+            0.0,
+            0.0,
+            16.718,
+            0.0,
+            43.0907,
+            7.6014,
+            0.0,
+            0.0,
+            0.6828,
+            0.0,
+            8.1219,
+            7.4123,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.4759,
+            0.0,
+            7.183,
+            4.4428,
+            0.0,
+            0.0431,
+            0.0,
+            0.0,
+            0.0,
+            1.2668,
+            1.6819,
+            0.0,
+            0.0,
+            15.4841,
+            0.0,
+            20.8366,
+            4.1717
+          ],
+          "both": false,
+          "flat": false,
+          "length": 445,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            210.1659
+          ],
+          "top_level_segments": [
+            3.7676
+          ]
+        },
+        {
+          "accumulated": 29.99475795775652,
+          "behaviour": "mbpp-221",
+          "bodies": [
+            2.2845,
+            8.482,
+            0.5052,
+            9.9193
+          ],
+          "both": false,
+          "flat": false,
+          "length": 28,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            5.3864,
+            24.6084
+          ],
+          "top_level_segments": [
+            3.1018,
+            5.7019
+          ]
+        },
+        {
+          "accumulated": 114.83487087115645,
+          "behaviour": "mbpp-501",
+          "bodies": [
+            2.8119,
+            0.0,
+            0.0,
+            1.2112,
+            2.2648,
+            0.336,
+            0.0,
+            6.1654,
+            6.2503,
+            1.6845,
+            2.2369,
+            3.9092,
+            0.4728,
+            1.6881,
+            5.9409,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3.1868,
+            10.3971,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 238,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            4.0231,
+            2.6009,
+            14.1001,
+            54.3556,
+            18.7276,
+            1.6085,
+            5.5728,
+            13.2528,
+            0.5935
+          ],
+          "top_level_segments": [
+            0.0,
+            0.0,
+            0.0,
+            40.1077,
+            18.7276,
+            1.6085,
+            2.386,
+            2.8557,
+            0.5935
+          ]
+        },
+        {
+          "accumulated": 57.0717066116631,
+          "behaviour": "mbpp-801",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            2.1057,
+            0.0,
+            6.5095,
+            0.0,
+            0.0,
+            2.2278,
+            0.0,
+            0.0,
+            12.0571,
+            0.7002,
+            12.0883
+          ],
+          "both": false,
+          "flat": false,
+          "length": 86,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            28.8356,
+            1.7726,
+            1.6179,
+            24.8456
+          ],
+          "top_level_segments": [
+            17.9926,
+            1.7726,
+            1.6179,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 28.17531831562519,
+          "behaviour": "mbpp-968",
+          "bodies": [
+            0.6533,
+            0.5544,
+            0.0,
+            7.3778
+          ],
+          "both": false,
+          "flat": false,
+          "length": 23,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            9.3245,
+            7.3778,
+            11.473
+          ],
+          "top_level_segments": [
+            8.1168,
+            0.0,
+            11.473
+          ]
+        },
+        {
+          "accumulated": 196.5225568562746,
+          "behaviour": "codearc-1050",
+          "bodies": [
+            9.0109,
+            5.1905,
+            1.385,
+            6.7165,
+            5.1919,
+            5.0752,
+            0.0,
+            0.0,
+            0.973,
+            6.9113,
+            5.4842,
+            7.9694,
+            2.7863,
+            2.7931,
+            3.5805,
+            2.2535,
+            3.8999,
+            0.053,
+            0.0,
+            8.8715
+          ],
+          "both": false,
+          "flat": false,
+          "length": 129,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            9.3727,
+            45.587,
+            15.7593,
+            13.6579,
+            13.4691,
+            17.532,
+            16.2881,
+            22.0559,
+            32.2385,
+            10.562
+          ],
+          "top_level_segments": [
+            0.3618,
+            40.3965,
+            2.4659,
+            8.5827,
+            0.1005,
+            9.5626,
+            10.7088,
+            16.2219,
+            28.2856,
+            1.6905
+          ]
+        },
+        {
+          "accumulated": 256.9310808801092,
+          "behaviour": "codearc-451",
+          "bodies": [
+            0.0,
+            5.369,
+            3.7199,
+            0.0,
+            3.7628,
+            1.8133,
+            41.8946,
+            9.5307,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.6912,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0617,
+            0.0,
+            0.0,
+            5.5972,
+            2.2225,
+            3.4208,
+            0.9885,
+            8.7118,
+            0.0,
+            11.582,
+            14.5886,
+            0.0,
+            0.0,
+            0.0,
+            1.4109,
+            0.0,
+            0.0,
+            0.0,
+            0.7069,
+            0.9041,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.4109,
+            1.8804,
+            0.0,
+            21.5339,
+            20.4394,
+            14.6643,
+            0.2099,
+            33.7039,
+            37.1028
+          ],
+          "both": false,
+          "flat": false,
+          "length": 489,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            256.9311
+          ],
+          "top_level_segments": [
+            7.0093
+          ]
+        },
+        {
+          "accumulated": 59.29639953095466,
+          "behaviour": "codearc-459",
+          "bodies": [
+            10.0327,
+            10.2488,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            5.0078,
+            0.0,
+            22.4453,
+            2.5474
+          ],
+          "both": false,
+          "flat": false,
+          "length": 136,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            56.749,
+            2.5474
+          ],
+          "top_level_segments": [
+            9.0146,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 87.30778995156288,
+          "behaviour": "codearc-477",
+          "bodies": [
+            1.441,
+            0.0,
+            0.0,
+            25.0533,
+            0.919,
+            0.0,
+            0.0,
+            0.0,
+            8.4792,
+            48.9462
+          ],
+          "both": false,
+          "flat": false,
+          "length": 69,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            2.6756,
+            84.6322
+          ],
+          "top_level_segments": [
+            1.2346,
+            1.2346
+          ]
+        },
+        {
+          "accumulated": 110.56390888337046,
+          "behaviour": "codearc-538",
+          "bodies": [
+            3.0276,
+            0.0,
+            0.0,
+            2.5769,
+            3.0873,
+            0.0,
+            0.0,
+            7.6732,
+            5.5106,
+            0.9109,
+            3.678,
+            3.4071,
+            1.1853,
+            1.2647,
+            5.6011,
+            4.0553,
+            13.1795
+          ],
+          "both": false,
+          "flat": false,
+          "length": 124,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            7.6609,
+            4.5924,
+            16.5611,
+            38.7231,
+            43.0264,
+            0.0
+          ],
+          "top_level_segments": [
+            2.0564,
+            1.5051,
+            2.4665,
+            23.5869,
+            25.7915,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 312.3496187090641,
+          "behaviour": "codearc-871",
+          "bodies": [
+            0.9499,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            4.1555,
+            0.0,
+            0.6796,
+            0.7381,
+            0.5465,
+            0.0,
+            0.0,
+            28.653,
+            11.1562,
+            12.5054,
+            3.7339,
+            29.8131,
+            0.9223,
+            17.6377,
+            28.375,
+            22.2172,
+            9.8558,
+            11.7096,
+            8.4397,
+            48.9009,
+            19.6323,
+            3.5571,
+            5.4454,
+            1.7159,
+            19.7374
+          ],
+          "both": false,
+          "flat": false,
+          "length": 297,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            35.7225,
+            18.7501,
+            13.0354,
+            207.3585,
+            30.7219,
+            6.7613
+          ],
+          "top_level_segments": [
+            0.0,
+            7.5939,
+            0.5299,
+            6.1208,
+            0.266,
+            6.7613
+          ]
+        },
+        {
+          "accumulated": 198.06493923347443,
+          "behaviour": "mbpp-203",
+          "bodies": [
+            5.1631,
+            4.6248,
+            1.4302,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0569,
+            7.182,
+            0.1703,
+            0.0,
+            4.9371,
+            29.1232,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3.4546,
+            0.9063,
+            0.0,
+            4.9228,
+            9.5753,
+            7.3021,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3.9294,
+            0.0,
+            0.0,
+            4.9371,
+            11.8619,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3.4069,
+            0.5172,
+            0.0,
+            5.0175,
+            11.1925,
+            3.0972,
+            4.9079,
+            0.2235,
+            0.0,
+            0.0,
+            1.8016,
+            0.0,
+            0.4897,
+            0.0,
+            1.4419,
+            0.0,
+            0.0,
+            0.0973,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            7.1264,
+            4.8523
+          ],
+          "both": false,
+          "flat": false,
+          "length": 827,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            124.922,
+            10.47,
+            1.8016,
+            25.6715,
+            4.0112,
+            10.6565,
+            0.8926,
+            3.3327,
+            0.9341,
+            1.454,
+            0.0,
+            1.003,
+            0.0,
+            8.0635,
+            4.8523
+          ],
+          "top_level_segments": [
+            1.1137,
+            5.3386,
+            0.0,
+            25.1818,
+            4.0112,
+            9.2145,
+            0.8926,
+            3.3327,
+            0.8368,
+            1.454,
+            0.0,
+            1.003,
+            0.0,
+            0.937,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 129.16512155378587,
+          "behaviour": "mbpp-22",
+          "bodies": [
+            0.0,
+            8.4505,
+            4.7494,
+            3.3654,
+            0.0,
+            0.0,
+            0.7092,
+            0.0,
+            15.9576,
+            28.4379,
+            1.3904,
+            6.922,
+            5.5107,
+            3.3041,
+            1.3415,
+            8.3323,
+            4.9732,
+            9.328
+          ],
+          "both": false,
+          "flat": false,
+          "length": 114,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            96.8917,
+            32.2734
+          ],
+          "top_level_segments": [
+            16.7529,
+            9.6399
+          ]
+        },
+        {
+          "accumulated": 86.56498921802267,
+          "behaviour": "mbpp-498",
+          "bodies": [
+            9.6581,
+            0.4146,
+            1.4517,
+            11.0166,
+            5.2993,
+            0.0,
+            0.0,
+            0.2285,
+            4.3709,
+            0.0,
+            0.0,
+            10.1725,
+            2.6384,
+            0.0,
+            2.898,
+            4.7762,
+            1.9458,
+            3.7882,
+            0.0,
+            18.1617,
+            9.7444
+          ],
+          "both": false,
+          "flat": false,
+          "length": 138,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            86.565
+          ],
+          "top_level_segments": [
+            0.0
+          ]
+        },
+        {
+          "accumulated": 45.693818882107735,
+          "behaviour": "mbpp-558",
+          "bodies": [
+            0.7494,
+            0.3411,
+            0.0,
+            0.7835,
+            0.0,
+            0.7202,
+            1.7054,
+            2.7204,
+            1.3708
+          ],
+          "both": false,
+          "flat": false,
+          "length": 103,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            5.3124,
+            36.6711,
+            3.7103
+          ],
+          "top_level_segments": [
+            4.2219,
+            30.7416,
+            2.3395
+          ]
+        },
+        {
+          "accumulated": 130.05637904256582,
+          "behaviour": "codearc-26",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.1408,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            6.0125,
+            7.8195,
+            6.2919,
+            0.0,
+            0.0,
+            0.0,
+            9.5859,
+            0.0371,
+            0.0,
+            0.4517,
+            0.0,
+            9.3992,
+            8.8719,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.132,
+            7.6142,
+            23.4327,
+            6.6224,
+            0.0,
+            0.0164,
+            0.0,
+            1.4929
+          ],
+          "both": false,
+          "flat": false,
+          "length": 426,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            12.0527,
+            1.2817,
+            5.3733,
+            12.7248,
+            8.1964,
+            86.8757,
+            3.5518
+          ],
+          "top_level_segments": [
+            12.0527,
+            0.1409,
+            5.3733,
+            12.7248,
+            2.1839,
+            6.6172,
+            2.0425
+          ]
+        },
+        {
+          "accumulated": 59.42389330267906,
+          "behaviour": "codearc-532",
+          "bodies": [
+            0.979,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3.5227,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.3756,
+            0.0,
+            1.9187,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            9.113,
+            0.0,
+            0.0,
+            0.0,
+            2.4195
+          ],
+          "both": false,
+          "flat": false,
+          "length": 202,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            5.9448,
+            8.6565,
+            5.0478,
+            19.7911,
+            7.034,
+            10.0009,
+            2.9487
+          ],
+          "top_level_segments": [
+            1.4431,
+            8.6565,
+            5.0478,
+            15.4968,
+            7.034,
+            0.8879,
+            0.5292
+          ]
+        },
+        {
+          "accumulated": 113.83034804463387,
+          "behaviour": "codearc-67",
+          "bodies": [
+            0.0,
+            0.2171,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.2727,
+            0.0,
+            1.6665,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            3.5506,
+            0.0,
+            11.4035,
+            1.1023,
+            0.0,
+            1.1943,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.3901,
+            0.0,
+            3.6948,
+            0.3515,
+            0.3343,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            6.0154,
+            5.69,
+            2.149
+          ],
+          "both": false,
+          "flat": false,
+          "length": 354,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            7.9199,
+            2.0202,
+            16.515,
+            6.0923,
+            14.9541,
+            3.8774,
+            10.3708,
+            0.0,
+            2.3901,
+            19.0214,
+            6.0196,
+            6.0154,
+            8.6721,
+            9.9619
+          ],
+          "top_level_segments": [
+            7.7028,
+            2.0202,
+            12.5759,
+            6.0923,
+            0.0,
+            2.7752,
+            9.1765,
+            0.0,
+            0.0,
+            14.6408,
+            6.0196,
+            0.0,
+            2.9821,
+            7.8129
+          ]
+        },
+        {
+          "accumulated": 473.2643304094672,
+          "behaviour": "mbpp-638",
+          "bodies": [
+            1.7428,
+            3.0014,
+            5.3792,
+            0.0,
+            0.0,
+            0.0,
+            16.7736,
+            5.32,
+            3.2219,
+            3.0494,
+            0.7993,
+            21.8745,
+            87.8228,
+            106.3112,
+            1.0724,
+            3.8594,
+            4.9647,
+            6.5975,
+            7.5812,
+            6.4228,
+            21.4472,
+            1.242,
+            0.0,
+            16.3742,
+            4.2843,
+            0.5692
+          ],
+          "both": false,
+          "flat": false,
+          "length": 570,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            149.7284,
+            194.5442,
+            29.0438,
+            4.325,
+            20.2612,
+            75.3617
+          ],
+          "top_level_segments": [
+            0.7436,
+            88.233,
+            27.9714,
+            0.4656,
+            15.2965,
+            10.8434
+          ]
+        },
+        {
+          "accumulated": 4.028490334749222,
+          "behaviour": "mbpp-672",
+          "bodies": [
+            0.0,
+            2.5816,
+            0.0,
+            0.0,
+            0.8405,
+            0.0
+          ],
+          "both": true,
+          "flat": true,
+          "length": 24,
+          "quotations": true,
+          "segmented": true,
+          "segments": [
+            3.188,
+            0.8405
+          ],
+          "top_level_segments": [
+            0.6063,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 181.72405393701047,
+          "behaviour": "mbpp-943",
+          "bodies": [
+            1.0415,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            9.1363,
+            1.4141,
+            7.8258,
+            8.3107,
+            8.5026,
+            8.1589,
+            5.5778,
+            2.9155,
+            10.0324,
+            1.6125,
+            0.9407,
+            0.0,
+            0.5789,
+            0.7687,
+            29.9475,
+            7.7975,
+            3.8133,
+            9.1101,
+            5.6798,
+            7.0775,
+            4.3169,
+            4.2993,
+            6.1257,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 253,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            5.4363,
+            5.7021,
+            20.1042,
+            0.0,
+            12.3012,
+            136.831,
+            1.3493
+          ],
+          "top_level_segments": [
+            4.3947,
+            5.7021,
+            20.1042,
+            0.0,
+            3.1649,
+            2.025,
+            1.3493
+          ]
+        },
+        {
+          "accumulated": 251.86483509093523,
+          "behaviour": "codearc-219",
+          "bodies": [
+            3.9898,
+            3.238,
+            0.0,
+            0.0,
+            0.4326,
+            1.0171,
+            0.0,
+            2.0779,
+            4.8755,
+            4.4418,
+            18.5646,
+            4.2072,
+            0.0,
+            8.9312,
+            0.0,
+            0.0,
+            0.459,
+            0.1891,
+            7.7634,
+            46.44,
+            0.0,
+            0.0,
+            0.0,
+            2.6941,
+            0.578,
+            1.9162,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.4593,
+            2.4496,
+            0.0,
+            5.622,
+            42.1885,
+            50.1667,
+            7.9456,
+            5.4896,
+            5.9173,
+            3.7348,
+            9.1167,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 345,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            18.1079,
+            6.9243,
+            226.8327,
+            0.0
+          ],
+          "top_level_segments": [
+            2.4771,
+            2.4824,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 127.95490892299495,
+          "behaviour": "codearc-434",
+          "bodies": [
+            8.1066,
+            6.3413,
+            0.0,
+            7.0844,
+            14.2802,
+            8.5509,
+            6.1945,
+            16.8095,
+            0.0,
+            53.4286
+          ],
+          "both": false,
+          "flat": false,
+          "length": 59,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            127.9549
+          ],
+          "top_level_segments": [
+            7.159
+          ]
+        },
+        {
+          "accumulated": 60.96057002991438,
+          "behaviour": "codearc-922",
+          "bodies": [
+            0.0,
+            0.7666,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.3602,
+            0.0,
+            1.4562,
+            0.0,
+            0.0,
+            0.0,
+            0.0328,
+            2.3434,
+            2.5793,
+            0.0,
+            0.0,
+            2.7648,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 149,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            12.2237,
+            7.2372,
+            23.9459,
+            4.0289,
+            2.3434,
+            10.6542,
+            0.5273
+          ],
+          "top_level_segments": [
+            11.4571,
+            7.2372,
+            20.1295,
+            3.9961,
+            0.0,
+            5.3101,
+            0.5273
+          ]
+        },
+        {
+          "accumulated": 37.17971675097942,
+          "behaviour": "mbpp-288",
+          "bodies": [
+            0.0,
+            0.0,
+            0.0,
+            1.8924,
+            0.0,
+            0.0,
+            0.0,
+            6.7893,
+            24.5978,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 76,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            8.6817,
+            28.498,
+            0.0
+          ],
+          "top_level_segments": [
+            0.0,
+            3.9003,
+            0.0
+          ]
+        },
+        {
+          "accumulated": 1.9762588143348694,
+          "behaviour": "mbpp-436",
+          "bodies": [
+            0.7465
+          ],
+          "both": true,
+          "flat": true,
+          "length": 8,
+          "quotations": true,
+          "segmented": true,
+          "segments": [
+            1.9102,
+            0.066
+          ],
+          "top_level_segments": [
+            1.1638,
+            0.066
+          ]
+        },
+        {
+          "accumulated": 67.11413838341832,
+          "behaviour": "mbpp-510",
+          "bodies": [
+            2.1368,
+            2.8152,
+            18.3202,
+            0.0,
+            0.0,
+            0.0,
+            8.7878,
+            0.0
+          ],
+          "both": false,
+          "flat": false,
+          "length": 50,
+          "quotations": false,
+          "segmented": false,
+          "segments": [
+            4.7754,
+            34.6372,
+            27.7016,
+            0.0
+          ],
+          "top_level_segments": [
+            2.6386,
+            13.5017,
+            18.9137,
+            0.0
+          ]
+        }
+      ]
+    }
+  },
+  "policy": "checkpoints/world-arm-20260922/policies/1m-s0-e5",
+  "policy_is_best": false,
+  "split": "eval"
+}

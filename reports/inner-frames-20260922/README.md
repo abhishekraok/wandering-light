@@ -163,7 +163,7 @@ E1 is coverage, not learnability. A frame being computable says nothing about
 whether a ranker over inner states beats a goal-blind baseline, which is E2 and
 the gate that matters. The numbers are witness statistics on one task's examples
 per program, not cohort statistics; `world-v3` train is dominated by a few very
-long programs (median witness 136 ops, longest 4,063), so its aggregate is not a
+long programs (median distinct witness 145 ops, longest 4,136), so its aggregate is not a
 per-behaviour average. The machine check covers the frames this driver computed
 and no others: `no_observation` exceeds `compared` in most cells, because a
 quotation whose frame was never computed has nothing to compare.

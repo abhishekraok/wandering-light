@@ -472,7 +472,7 @@ Caveats: one checkpoint, one policy seed, one host, one cohort and one cohort or
 - **Commitment costs far less than the issue assumes, but not because the machine rules tags out.** A mean 4.54 of 6 tags are legal at a real `[` (ln 4.54 = 1.51 nats against the issue's ln 6 = 1.79); conditioned on a cheap shape descriptor the tag costs **0.29-0.46 nats** strict and 0.37-0.62 capture-aware. In-sample, on hindsight tags, with a hand-made descriptor, so it bounds a ranker only if the shape is free.
 - **The unchained-fold objection does not bite on witness bodies.** Running each partial fold body on `(acc, item_j)` for every item, the accept set differs on 0 of 533 v4 train write steps, 0 of 1,002 staged, and 75 of 8,847 (0.85%) on world-v3 train. Every step tested is a prefix of an authored witness; what a beam writes when it is wrong was not tested.
 
-Registered predictions (before the run): 80-85% coverage on v4 and 55-60% on world-v3 train, from the advising session, against measured 0.700 and 0.430; and below 80% on v4 from this session, which holds. Caveats: witness statistics on one task's examples per program, not cohort statistics; world-v3 train is dominated by a few very long programs (median witness 136 ops, longest 4,063), so its aggregate is not a per-behaviour average.
+Registered predictions (before the run): 80-85% coverage on v4 and 55-60% on world-v3 train, from the advising session, against measured 0.700 and 0.430; and below 80% on v4 from this session, which holds. Caveats: witness statistics on one task's examples per program, not cohort statistics; world-v3 train is dominated by a few very long programs (median distinct witness 145 ops, longest 4,136, `mbpp-2`; 136 is the median over all 566 tasks), so its aggregate is not a per-behaviour average.
 
 ## The pinned system on world data: the world half of the objective (#161, #158)
 
@@ -532,6 +532,22 @@ Median per-step deficit along those witnesses, every policy measured on them so 
 - **What is left is L.** The remaining gap is 23.9x: 0.66 nats against a 0.0278 budget at the median 150-op witness. At the authoring library's median macro form of 28.5 tokens the budget is 0.146, and composing that with 0.66 gives 18.8 nats against 4.159 -- **4.5x** over rather than 150x. Arithmetic on today's numbers, not a forecast: a policy over macro actions has its own unmeasured deficits.
 
 Caveats: three seeds, one corpus, one recipe, one 44-task split. The lowest-deficit epoch is chosen on the eval split, but the deficit is flat across epochs and both acceptance runs are reported rather than the better one. Deficit is measured along authored witnesses, which is not the difficulty of a behaviour (`docs/STATUS.md`, Superseded).
+
+## Where a search decomposition would pay: the budget law per segment and per body (#160, #156)
+
+`experiments/segment_composite.py`, CPU. Each witness walked under a policy as `staged_transfer.score` does, one per behaviour, eval splits; each sub-search is charged the **actual** summed per-step deficit of the ops in it against `ln 64`. *flat* is the whole witness (reproduces `witness_deficit.py`'s `within_budget` exactly); *segmented* cuts after every top-level combinator, bodies inside their segment; *quotations* gives every quotation body its own budget; *both* adds the segment cuts. [report](../reports/segment-composite-20260922/README.md)
+
+| policy | cell | n | flat | segmented | quotations | both |
+|---|---|---:|---:|---:|---:|---:|
+| world arm `1m-s0-e5` | v4 eval | 45 | 9 | **10** | 13 | 14 |
+| world arm `1m-s0-e5` | world-v3 eval | 44 | 2 | **2** | 2 | 2 |
+| BEST `staged-s0-e3` | v4 eval | 45 | 5 | 5 | 5 | 5 |
+| BEST `staged-s0-e3` | world-v3 eval | 44 | 1 | 1 | 1 | 1 |
+
+- **Segment-reset search is predicted null** (+1 of 45, +0 of 44) and was deliberately **not run**: bodies carry 79-82% of the world arm's deficit (BEST 90-92%), and the median v4 eval witness is a single segment.
+- **Even a budget per body moves world-v3 by zero.** The costliest sub-search is a body in 31 of 44 world-v3 witnesses; the longest is a median 36.5 raw ops there, needing 0.114 nats/step against the arm's 0.661. Bodies are short in macro tokens and long in base ops.
+
+Caveats: the quotation rows price a body at the flat policy's deficit, not at what a frame-conditioned sub-search would pay (that is #160 E2); every row assumes the right intermediate state survives in the top 64; `1m-s0-e5` was selected on the world-v3 eval split and is fixed here for pairing.
 
 ## Policy size at a fixed epoch, on the staged rows (#159)
 
