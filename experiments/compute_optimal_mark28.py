@@ -221,8 +221,11 @@ def cohort(tasks: list[Task], eval_corpus: str | None = None) -> list[tuple[int,
 TRAIN_TASK_CAP = 0
 
 
-def training_rows(tasks: list[Task]):
+def training_rows(tasks: list[Task], rows=witness_rows):
     """Fit and validation rows over the train splits of every loaded corpus.
+
+    ``rows`` builds the rows from a task list; an arm that re-encodes the same
+    witnesses (inner-frames #160 E2) passes its own and keeps this split.
 
     ``DROP_BEHAVIOURS`` removes behaviours before either set is built (the
     eval-overlap filter). ``VALIDATION_CORPUS`` restricts model selection to
@@ -235,11 +238,11 @@ def training_rows(tasks: list[Task]):
     ]
     if TRAIN_TASK_CAP:
         train = random.Random(COHORT_SEED).sample(train, TRAIN_TASK_CAP)
-    fit = witness_rows([t for t in train if not validation_skeleton(t)])
+    fit = rows([t for t in train if not validation_skeleton(t)])
     held = [t for t in train if validation_skeleton(t)]
     if VALIDATION_CORPUS is not None:
         held = [t for t in held if CORPUS_OF.get(t.behaviour) == VALIDATION_CORPUS]
-    return fit, witness_rows(held)
+    return fit, rows(held)
 
 
 def architecture(arm: str) -> PolicyArchitecture:
