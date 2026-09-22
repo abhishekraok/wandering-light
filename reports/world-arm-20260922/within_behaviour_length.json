@@ -1,0 +1,65 @@
+[
+ {
+  "behaviour": "all_positive",
+  "short_len": 18,
+  "long_len": 22,
+  "short_deficit": 0.9094399064779282,
+  "long_deficit": 0.6431191827763211
+ },
+ {
+  "behaviour": "double_each",
+  "short_len": 5,
+  "long_len": 7,
+  "short_deficit": 0.5778256058692932,
+  "long_deficit": 1.1372748528208052
+ },
+ {
+  "behaviour": "increment_each",
+  "short_len": 5,
+  "long_len": 6,
+  "short_deficit": 1.5074304729700088,
+  "long_deficit": 3.8807670325040817
+ },
+ {
+  "behaviour": "last",
+  "short_len": 6,
+  "long_len": 8,
+  "short_deficit": 0.9234871963659922,
+  "long_deficit": 0.3347318023443222
+ },
+ {
+  "behaviour": "length",
+  "short_len": 7,
+  "long_len": 10,
+  "short_deficit": 0.07160099063600812,
+  "long_deficit": 1.4170885644853115
+ },
+ {
+  "behaviour": "negate_each",
+  "short_len": 6,
+  "long_len": 7,
+  "short_deficit": 0.7668459465106329,
+  "long_deficit": 0.9224106797150203
+ },
+ {
+  "behaviour": "squared_deviation_total",
+  "short_len": 27,
+  "long_len": 29,
+  "short_deficit": 0.42478802524231096,
+  "long_deficit": 0.5846180109114483
+ },
+ {
+  "behaviour": "sum_both",
+  "short_len": 6,
+  "long_len": 12,
+  "short_deficit": 0.9328978955745697,
+  "long_deficit": 1.05180351746579
+ },
+ {
+  "behaviour": "sum_of_squares",
+  "short_len": 7,
+  "long_len": 10,
+  "short_deficit": 0.511658638715744,
+  "long_deficit": 0.9986328983679413
+ }
+]

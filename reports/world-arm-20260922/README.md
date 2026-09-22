@@ -102,15 +102,39 @@ arithmetic says. The data on disk answers it, under `BEST`:
 Deficit rises *with* length, so shortening helps **more** than linearly: both
 terms of `L × d` fall together. The arithmetic is, if anything, conservative.
 
-**The confound, which is not small.** This is a correlation across *different
+**The confound, which is not small.** That is a correlation across *different
 behaviours*, and a behaviour with a short witness is an easier behaviour. It
 does not show that shortening a **given** behaviour's program lowers its
-per-step deficit, which is what the macro claim actually needs. Settling it
-needs the same behaviour expressed at two lengths under one policy, and the
-comparison that exists — staged-witness-reauthoring (#155)'s fused-versus-staged
-twins — is confounded the other way, because the policy scoring them was trained
-on one style and not the other. So this check removes one way the macro
-arithmetic could have been wrong and leaves another open.
+per-step deficit, which is what the macro claim actually needs.
+
+`stack_pbe_v4` carries `alternative_programs` — the same behaviour written two
+ways, same corpus, same style — which is the within-behaviour version of the
+test. Nine behaviours have two programs of different lengths; scored under this
+arm's seed-0 epoch-3 checkpoint, for which that style is in distribution
+(`within_behaviour_length.json`):
+
+| | shorter | longer | |
+|---|---|---|---|
+| `length` | 7 op, 0.072 | 10 op, 1.417 | shorter cheaper |
+| `increment_each` | 5 op, 1.507 | 6 op, 3.881 | shorter cheaper |
+| `double_each` | 5 op, 0.578 | 7 op, 1.137 | shorter cheaper |
+| `sum_of_squares` | 7 op, 0.512 | 10 op, 0.999 | shorter cheaper |
+| `sum_both` | 6 op, 0.933 | 12 op, 1.052 | shorter cheaper |
+| `negate_each` | 6 op, 0.767 | 7 op, 0.922 | shorter cheaper |
+| `squared_deviation_total` | 27 op, 0.425 | 29 op, 0.585 | shorter cheaper |
+| `all_positive` | 18 op, 0.909 | 22 op, 0.643 | longer cheaper |
+| `last` | 6 op, 0.923 | 8 op, 0.335 | longer cheaper |
+
+**Shorter is cheaper per step in 7 of 9**, which is the same direction as the
+cross-behaviour correlation. A sign test gives p = 0.090 one-sided, so this is
+suggestive and not significant, and the honest reading is that the confound is
+narrowed rather than removed.
+
+**What it cannot do**, and this is the important limit: the length contrasts
+here are **1 to 6 ops on programs of 5 to 29**, while the macro claim is about
+going from 150 ops to 28. Nothing in this repository tests that regime, because
+no corpus contains the same behaviour written both long and short at that
+scale. Producing one is what a macro-space measurement would be for.
 
 ## Caveats
 
