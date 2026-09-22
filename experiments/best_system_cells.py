@@ -67,6 +67,9 @@ CELLS: dict[str, Callable[[System], System]] = {
 DEFAULT_CELLS = ("b64", "b128", "b256", "b512")
 SEED = 0  # the checkpoint's training seed, which the verifier's cell label wants
 VERIFIED = ("genuine", "equals_catalogue_witness")
+# The verdict for a behaviour outside the v4 catalogue: graded, never verified,
+# and not a shortcut either, since nothing was drawn to catch one.
+UNVERIFIABLE = "no_sampler"
 
 
 def cohort_file(run_dir: Path, log) -> Path:
@@ -157,9 +160,16 @@ def verified_programs(run_dir: Path, cells: list[dict[str, Any]], log) -> dict:
             key = f"{row['behaviour']} :: {' '.join(row['program'])}"
             if key in known:
                 continue
-            known[key] = verify.check(
-                tuple(row["program"]), by_name[row["behaviour"]], verify.DRAWS, 134
-            )
+            behaviour = by_name.get(row["behaviour"])
+            if behaviour is None:
+                # A world task (clear-world-v3, #161) has examples but no
+                # sampler, so there is nothing to draw fresh tasks from and the
+                # program can be graded but never verified.
+                known[key] = {"verdict": UNVERIFIABLE}
+            else:
+                known[key] = verify.check(
+                    tuple(row["program"]), behaviour, verify.DRAWS, 134
+                )
             log(f"{known[key]['verdict']:24s} {key}")
             path.write_text(json.dumps(known, indent=2, sort_keys=True) + "\n")
     return known
@@ -176,12 +186,12 @@ def report(run_dir: Path, out_dir: Path, log) -> None:
         rows = cell["rows"]
         solved = [r for r in rows if r["solved"]]
         graded = {r["behaviour"] for r in solved}
-        verified = {
-            r["behaviour"]
-            for r in solved
-            if verdicts[f"{r['behaviour']} :: {' '.join(r['program'])}"]["verdict"]
-            in VERIFIED
-        }
+
+        def verdict(r):
+            return verdicts[f"{r['behaviour']} :: {' '.join(r['program'])}"]["verdict"]
+
+        verified = {r["behaviour"] for r in solved if verdict(r) in VERIFIED}
+        unverifiable = {r["behaviour"] for r in solved if verdict(r) == UNVERIFIABLE}
         buckets = {b: sum(r["bucket"] == b for r in solved) for b in verify.BUCKETS}
         table.append(
             {
@@ -195,7 +205,10 @@ def report(run_dir: Path, out_dir: Path, log) -> None:
                 "graded_behaviours": len(graded),
                 "verified_behaviours": len(verified),
                 "verified": sorted(verified),
-                "shortcut_only": sorted(graded - verified),
+                "shortcut_only": sorted(graded - verified - unverifiable),
+                "unverifiable": sorted(unverifiable),
+                "cohort_tasks": len(rows),
+                "cohort_behaviours": len({r["behaviour"] for r in rows}),
                 "from_library": cell["summary"]["from_library"],
                 "memorised": cell["summary"]["memorised"],
                 "seconds": cell["summary"]["seconds"],
@@ -211,12 +224,15 @@ def report(run_dir: Path, out_dir: Path, log) -> None:
     table.sort(key=lambda t: (not t["cell"].startswith("b"), t["system"]["beam_width"]))
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "cells.json").write_text(json.dumps(table, indent=2) + "\n")
+    # Every cell in a run dir runs the same task file, so the first one's totals
+    # are the table's: /300 and /43 on the #101 cohort, /44 on world-v3 eval.
+    n_tasks = table[0]["cohort_tasks"] if table else 0
+    n_behaviours = table[0]["cohort_behaviours"] if table else 0
     lines = [
-        "| cell | beam | state cap | library | tasks /300 | search-solved | "
-        "graded behaviours /43 | "
-        "**verified /43** | timed (s) | executions | from library | slowest task (s) | "
-        + " / ".join(verify.BUCKETS)
-        + " |",
+        f"| cell | beam | state cap | library | tasks /{n_tasks} | search-solved | "
+        f"graded behaviours /{n_behaviours} | "
+        f"**verified /{n_behaviours}** | timed (s) | executions | from library | "
+        "slowest task (s) | " + " / ".join(verify.BUCKETS) + " |",
         "|---|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for t in table:

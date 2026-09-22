@@ -127,6 +127,38 @@ def test_main_runs_best_search_settings_on_a_local_checkpoint(
     )
 
 
+def test_fetch_replaces_an_incomplete_cache_directory(tmp_path, monkeypatch):
+    """A non-empty directory that is not a checkpoint must not wedge every later fetch."""
+    import huggingface_hub
+
+    def fake_download(repo_id, filename, revision=None):
+        if filename == stack_policy_hub.WANDB_LINK_FILE:
+            raise huggingface_hub.errors.EntryNotFoundError("no run")
+        source = tmp_path / "hub" / filename
+        source.parent.mkdir(exist_ok=True)
+        source.write_text(filename)
+        return str(source)
+
+    monkeypatch.setattr(huggingface_hub, "hf_hub_download", fake_download)
+    revision = "cd" * 20
+    target = stack_policy_hub.checkpoint_dir(
+        "x/y", revision, cache_dir=tmp_path / "cache"
+    )
+    target.mkdir(parents=True)
+    (target / stack_policy_hub.MODEL_FILE).write_text("half a download")
+    assert not stack_policy_hub.is_checkpoint(target)
+
+    got = stack_policy_hub.fetch_stack_policy(
+        "x/y", revision, cache_dir=tmp_path / "cache"
+    )
+    assert got == target and stack_policy_hub.is_checkpoint(got)
+    assert (
+        got / stack_policy_hub.MODEL_FILE
+    ).read_text() == stack_policy_hub.MODEL_FILE
+    # Nothing is left behind beside it: no staging directory, no stale copy.
+    assert [p.name for p in target.parent.iterdir()] == [revision]
+
+
 def test_fetch_pins_a_commit_and_downloads_once(tmp_path, monkeypatch):
     import huggingface_hub
 

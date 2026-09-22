@@ -90,12 +90,34 @@ def fetch_stack_policy(
         try:
             staging_dir.replace(target)
         except OSError:
-            # Another process got there first; its copy is as good as ours.
+            # A concurrent fetch got there first, and its copy is as good as ours.
+            # Anything else in the way is an incomplete directory -- from a fetch
+            # that predates private assembly, or made by hand -- and a rename
+            # onto a non-empty directory fails, so without this every later
+            # fetch would download everything and fail the same way. Move it
+            # aside and try once more; a concurrent fetch landing in between
+            # still wins.
             if not is_checkpoint(target):
-                raise
+                _discard(target)
+                try:
+                    staging_dir.replace(target)
+                except OSError:
+                    if not is_checkpoint(target):
+                        raise
     finally:
         shutil.rmtree(staging_dir, ignore_errors=True)
     return target
+
+
+def _discard(path: Path) -> None:
+    """Move ``path`` out of the way and delete it, tolerating another process doing the same."""
+    aside = Path(tempfile.mkdtemp(dir=path.parent, prefix=f".{path.name}.stale."))
+    try:
+        path.replace(aside / path.name)
+    except FileNotFoundError:
+        pass
+    finally:
+        shutil.rmtree(aside, ignore_errors=True)
 
 
 def publish_stack_policy(

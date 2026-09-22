@@ -96,6 +96,50 @@ def test_cells_report_counts_verified_behaviours_and_caches_verdicts(
     # tasks 3, of which 2 came from a search and 1 from the library.
     assert table[0]["search_solved"] == 2
     assert "| b128 | 128 | 16384 | on | 3 | 2 | 2 | **1** |" in text
+    # The totals come from the task file: 4 tasks over 3 behaviours here.
+    assert "| tasks /4 |" in text and "**verified /3**" in text
+    assert table[0]["unverifiable"] == []
+
+
+def test_cells_report_grades_world_tasks_without_calling_them_shortcuts(
+    tmp_path, fake_check
+):
+    """A world behaviour has no sampler: graded, unverifiable, never a shortcut."""
+    import dataclasses
+
+    run_dir = tmp_path / "run"
+    (run_dir / "timing").mkdir(parents=True)
+    rows = [
+        row("mbpp-436", 9, True, ["[", "0", "lt?", "]", "filter"]),
+        row("codearc-695", 40, False, None),
+        row("sum", 5, True, ["0", "[", "add", "]", "fold"]),
+    ]
+    (run_dir / "timing" / "b64.json").write_text(
+        json.dumps(
+            {
+                "cell": "b64",
+                "system": dataclasses.asdict(BEST),
+                "summary": {
+                    "from_library": 0,
+                    "memorised": 0,
+                    "seconds": 1.0,
+                    "executions": 10,
+                },
+                "host": {"hostname": "test"},
+                "commit": "abc",
+                "rows": rows,
+            }
+        )
+    )
+    cells.report(run_dir, tmp_path / "out", lambda line: None)
+    [cell] = json.loads((tmp_path / "out" / "cells.json").read_text())
+    assert cell["graded_behaviours"] == 2
+    assert cell["verified"] == ["sum"]
+    assert cell["unverifiable"] == ["mbpp-436"]
+    assert cell["shortcut_only"] == []
+    cached = json.loads((run_dir / "verified.json").read_text())
+    assert cached["mbpp-436 :: [ 0 lt? ] filter"] == {"verdict": cells.UNVERIFIABLE}
+    assert "| tasks /3 |" in (tmp_path / "out" / "tables.md").read_text()
 
 
 def test_size_report_grids_verified_behaviours_by_size_and_epoch(tmp_path, fake_check):
