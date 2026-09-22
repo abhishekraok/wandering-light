@@ -891,6 +891,9 @@ def report(
     return out
 
 
+EX_FOLD = "defined:ex-fold"
+
+
 def controls(
     cells: dict[str, dict[tuple[int, int], dict]], pairs: Sequence[tuple[int, int]]
 ) -> dict[str, Any]:
@@ -908,9 +911,19 @@ def controls(
     for corpus in CORPORA:
 
         def body(arm, key, cls, corpus=corpus):
-            return cells[arm][key][corpus]["machine_mask"]["body"].get(cls)
+            summary = cells[arm][key][corpus]["machine_mask"]["body"]
+            if cls != EX_FOLD:
+                return summary.get(cls)
+            # One v4 witness's fold body moves the label arms' defined total.
+            fold = summary.get("defined:fold", {"ops": 0, "calibrated_total": 0.0})
+            return {
+                "ops": summary["defined"]["ops"] - fold["ops"],
+                "calibrated_total": summary["defined"]["calibrated_total"]
+                - fold["calibrated_total"],
+            }
 
         classes = sorted(cells["world"][pairs[0]][corpus]["machine_mask"]["body"])
+        classes.append(EX_FOLD)
         per_class = {}
         for cls in classes:
             entry = {"ops": body("world", pairs[0], cls)["ops"]}

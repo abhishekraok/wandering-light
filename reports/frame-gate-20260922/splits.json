@@ -1,0 +1,982 @@
+{
+ "stack_pbe_v4": {
+  "subsets": {
+   "defined": {
+    "ops": 1360,
+    "frames/world": [
+     0.862,
+     0.74,
+     0.93
+    ],
+    "tags/world": [
+     1.067,
+     0.93,
+     1.19
+    ],
+    "frames/tags": [
+     0.792,
+     0.74,
+     0.88
+    ]
+   },
+   "defined, not fold": {
+    "ops": 1154,
+    "frames/world": [
+     0.812,
+     0.71,
+     0.88
+    ],
+    "tags/world": [
+     1.005,
+     0.89,
+     1.13
+    ],
+    "frames/tags": [
+     0.797,
+     0.73,
+     0.88
+    ]
+   },
+   "defined, without bounds_cover_list_flag": {
+    "ops": 1278,
+    "frames/world": [
+     0.818,
+     0.71,
+     0.93
+    ],
+    "tags/world": [
+     0.968,
+     0.83,
+     1.1
+    ],
+    "frames/tags": [
+     0.834,
+     0.74,
+     0.92
+    ]
+   },
+   "defined, 1 level": {
+    "ops": 384,
+    "frames/world": [
+     0.623,
+     0.54,
+     0.71
+    ],
+    "tags/world": [
+     0.8,
+     0.72,
+     1.02
+    ],
+    "frames/tags": [
+     0.781,
+     0.67,
+     0.86
+    ]
+   },
+   "defined, 2+ levels": {
+    "ops": 976,
+    "frames/world": [
+     0.929,
+     0.79,
+     1.08
+    ],
+    "tags/world": [
+     1.147,
+     1.0,
+     1.3
+    ],
+    "frames/tags": [
+     0.806,
+     0.75,
+     0.9
+    ]
+   },
+   "defined, 1 level, not fold": {
+    "ops": 207,
+    "frames/world": [
+     0.6,
+     0.52,
+     0.68
+    ],
+    "tags/world": [
+     0.778,
+     0.69,
+     1.04
+    ],
+    "frames/tags": [
+     0.753,
+     0.64,
+     0.88
+    ]
+   },
+   "defined, 2+ levels, not fold": {
+    "ops": 947,
+    "frames/world": [
+     0.862,
+     0.76,
+     1.0
+    ],
+    "tags/world": [
+     1.067,
+     0.94,
+     1.18
+    ],
+    "frames/tags": [
+     0.813,
+     0.74,
+     0.9
+    ]
+   },
+   "defined, 1 level, without bounds_cover_list_flag": {
+    "ops": 361,
+    "frames/world": [
+     0.684,
+     0.62,
+     0.83
+    ],
+    "tags/world": [
+     0.826,
+     0.74,
+     1.03
+    ],
+    "frames/tags": [
+     0.802,
+     0.75,
+     0.93
+    ]
+   },
+   "defined, 2+ levels, without bounds_cover_list_flag": {
+    "ops": 917,
+    "frames/world": [
+     0.866,
+     0.72,
+     1.03
+    ],
+    "tags/world": [
+     1.014,
+     0.81,
+     1.22
+    ],
+    "frames/tags": [
+     0.843,
+     0.73,
+     0.96
+    ]
+   },
+   "defined, tags clipped": {
+    "ops": 0,
+    "frames/world": null,
+    "tags/world": null,
+    "frames/tags": null
+   },
+   "defined, tags unclipped": {
+    "ops": 1360,
+    "frames/world": [
+     0.862,
+     0.74,
+     0.93
+    ],
+    "tags/world": [
+     1.067,
+     0.93,
+     1.19
+    ],
+    "frames/tags": [
+     0.792,
+     0.74,
+     0.88
+    ]
+   },
+   "defined, 1 level, tags unclipped": {
+    "ops": 384,
+    "frames/world": [
+     0.623,
+     0.54,
+     0.71
+    ],
+    "tags/world": [
+     0.8,
+     0.72,
+     1.02
+    ],
+    "frames/tags": [
+     0.781,
+     0.67,
+     0.86
+    ]
+   },
+   "defined, 2+ levels, tags unclipped": {
+    "ops": 976,
+    "frames/world": [
+     0.929,
+     0.79,
+     1.08
+    ],
+    "tags/world": [
+     1.147,
+     1.0,
+     1.3
+    ],
+    "frames/tags": [
+     0.806,
+     0.75,
+     0.9
+    ]
+   },
+   "reencoded": {
+    "ops": 370,
+    "frames/world": [
+     0.965,
+     0.61,
+     1.64
+    ],
+    "tags/world": [
+     0.941,
+     0.67,
+     1.66
+    ],
+    "frames/tags": [
+     0.949,
+     0.81,
+     1.22
+    ]
+   },
+   "reencoded, tags unclipped": {
+    "ops": 370,
+    "frames/world": [
+     0.965,
+     0.61,
+     1.64
+    ],
+    "tags/world": [
+     0.941,
+     0.67,
+     1.66
+    ],
+    "frames/tags": [
+     0.949,
+     0.81,
+     1.22
+    ]
+   },
+   "untouched": {
+    "ops": 77,
+    "frames/world": [
+     0.915,
+     0.75,
+     1.41
+    ],
+    "tags/world": [
+     0.963,
+     0.74,
+     1.59
+    ],
+    "frames/tags": [
+     0.961,
+     0.81,
+     1.16
+    ]
+   },
+   "top": {
+    "ops": 426,
+    "frames/world": [
+     0.876,
+     0.75,
+     1.01
+    ],
+    "tags/world": [
+     0.982,
+     0.85,
+     1.07
+    ],
+    "frames/tags": [
+     0.928,
+     0.78,
+     0.97
+    ]
+   },
+   "top, direct": {
+    "ops": 262,
+    "frames/world": [
+     0.919,
+     0.81,
+     1.06
+    ],
+    "tags/world": [
+     1.041,
+     0.94,
+     1.15
+    ],
+    "frames/tags": [
+     0.925,
+     0.78,
+     1.0
+    ]
+   },
+   "top, open and run": {
+    "ops": 164,
+    "frames/world": [
+     0.698,
+     0.45,
+     1.08
+    ],
+    "tags/world": [
+     0.82,
+     0.51,
+     1.03
+    ],
+    "frames/tags": [
+     0.892,
+     0.65,
+     1.17
+    ]
+   },
+   "all body": {
+    "ops": 1807,
+    "frames/world": [
+     0.865,
+     0.76,
+     1.04
+    ],
+    "tags/world": [
+     1.03,
+     0.95,
+     1.25
+    ],
+    "frames/tags": [
+     0.828,
+     0.77,
+     0.92
+    ]
+   },
+   "defined dip, without bounds_cover_list_flag": {
+    "ops": 203,
+    "frames/world": [
+     0.958,
+     0.78,
+     1.33
+    ],
+    "tags/world": [
+     0.963,
+     0.71,
+     1.49
+    ],
+    "frames/tags": [
+     1.023,
+     0.75,
+     1.14
+    ]
+   },
+   "defined filter, without bounds_cover_list_flag": {
+    "ops": 44,
+    "frames/world": [
+     0.484,
+     0.21,
+     0.9
+    ],
+    "tags/world": [
+     0.526,
+     0.3,
+     1.04
+    ],
+    "frames/tags": [
+     0.933,
+     0.69,
+     1.75
+    ]
+   },
+   "defined fold, without bounds_cover_list_flag": {
+    "ops": 196,
+    "frames/world": [
+     0.977,
+     0.61,
+     1.4
+    ],
+    "tags/world": [
+     0.96,
+     0.63,
+     1.54
+    ],
+    "frames/tags": [
+     1.022,
+     0.64,
+     1.48
+    ]
+   },
+   "defined ifte, without bounds_cover_list_flag": {
+    "ops": 805,
+    "frames/world": [
+     0.787,
+     0.69,
+     0.93
+    ],
+    "tags/world": [
+     0.977,
+     0.84,
+     1.15
+    ],
+    "frames/tags": [
+     0.809,
+     0.69,
+     0.93
+    ]
+   },
+   "defined map, without bounds_cover_list_flag": {
+    "ops": 30,
+    "frames/world": [
+     0.811,
+     0.46,
+     1.11
+    ],
+    "tags/world": [
+     0.884,
+     0.64,
+     1.28
+    ],
+    "frames/tags": [
+     0.84,
+     0.61,
+     1.56
+    ]
+   }
+  },
+  "quotients": {
+   "frames: defined / top": [
+    0.939,
+    0.79,
+    1.16
+   ],
+   "tags: defined / top": [
+    1.053,
+    0.95,
+    1.28
+   ],
+   "frames: defined / top direct": [
+    0.84,
+    0.75,
+    1.09
+   ],
+   "tags: defined / top direct": [
+    1.002,
+    0.87,
+    1.2
+   ],
+   "frames: defined / untouched": [
+    0.926,
+    0.57,
+    1.25
+   ],
+   "tags: defined / untouched": [
+    1.116,
+    0.62,
+    1.51
+   ],
+   "frames: defined / top, without bounds_cover_list_flag": [
+    0.936,
+    0.73,
+    1.13
+   ],
+   "tags: defined / top, without bounds_cover_list_flag": [
+    0.961,
+    0.78,
+    1.24
+   ]
+  }
+ },
+ "stack_pbe_world_v3": {
+  "subsets": {
+   "defined": {
+    "ops": 6325,
+    "frames/world": [
+     0.867,
+     0.79,
+     0.96
+    ],
+    "tags/world": [
+     1.111,
+     1.01,
+     1.16
+    ],
+    "frames/tags": [
+     0.789,
+     0.75,
+     0.83
+    ]
+   },
+   "defined, not fold": {
+    "ops": 5522,
+    "frames/world": [
+     0.867,
+     0.77,
+     0.97
+    ],
+    "tags/world": [
+     1.103,
+     1.0,
+     1.15
+    ],
+    "frames/tags": [
+     0.797,
+     0.75,
+     0.85
+    ]
+   },
+   "defined, without bounds_cover_list_flag": {
+    "ops": 6325,
+    "frames/world": [
+     0.867,
+     0.79,
+     0.96
+    ],
+    "tags/world": [
+     1.111,
+     1.01,
+     1.16
+    ],
+    "frames/tags": [
+     0.789,
+     0.75,
+     0.83
+    ]
+   },
+   "defined, 1 level": {
+    "ops": 2181,
+    "frames/world": [
+     0.842,
+     0.78,
+     0.91
+    ],
+    "tags/world": [
+     0.991,
+     0.92,
+     1.03
+    ],
+    "frames/tags": [
+     0.858,
+     0.79,
+     0.91
+    ]
+   },
+   "defined, 2+ levels": {
+    "ops": 4144,
+    "frames/world": [
+     0.893,
+     0.8,
+     1.04
+    ],
+    "tags/world": [
+     1.23,
+     1.08,
+     1.33
+    ],
+    "frames/tags": [
+     0.737,
+     0.69,
+     0.82
+    ]
+   },
+   "defined, 1 level, not fold": {
+    "ops": 1816,
+    "frames/world": [
+     0.845,
+     0.76,
+     0.92
+    ],
+    "tags/world": [
+     0.989,
+     0.92,
+     1.03
+    ],
+    "frames/tags": [
+     0.857,
+     0.78,
+     0.91
+    ]
+   },
+   "defined, 2+ levels, not fold": {
+    "ops": 3706,
+    "frames/world": [
+     0.891,
+     0.78,
+     1.05
+    ],
+    "tags/world": [
+     1.211,
+     1.06,
+     1.32
+    ],
+    "frames/tags": [
+     0.749,
+     0.71,
+     0.83
+    ]
+   },
+   "defined, 1 level, without bounds_cover_list_flag": {
+    "ops": 2181,
+    "frames/world": [
+     0.842,
+     0.78,
+     0.91
+    ],
+    "tags/world": [
+     0.991,
+     0.92,
+     1.03
+    ],
+    "frames/tags": [
+     0.858,
+     0.79,
+     0.91
+    ]
+   },
+   "defined, 2+ levels, without bounds_cover_list_flag": {
+    "ops": 4144,
+    "frames/world": [
+     0.893,
+     0.8,
+     1.04
+    ],
+    "tags/world": [
+     1.23,
+     1.08,
+     1.33
+    ],
+    "frames/tags": [
+     0.737,
+     0.69,
+     0.82
+    ]
+   },
+   "defined, tags clipped": {
+    "ops": 1723,
+    "frames/world": [
+     0.899,
+     0.73,
+     1.03
+    ],
+    "tags/world": [
+     1.241,
+     1.0,
+     1.49
+    ],
+    "frames/tags": [
+     0.706,
+     0.58,
+     0.84
+    ]
+   },
+   "defined, tags unclipped": {
+    "ops": 4602,
+    "frames/world": [
+     0.864,
+     0.81,
+     0.94
+    ],
+    "tags/world": [
+     1.063,
+     1.01,
+     1.12
+    ],
+    "frames/tags": [
+     0.819,
+     0.77,
+     0.88
+    ]
+   },
+   "defined, 1 level, tags unclipped": {
+    "ops": 1882,
+    "frames/world": [
+     0.847,
+     0.78,
+     0.92
+    ],
+    "tags/world": [
+     0.98,
+     0.94,
+     1.03
+    ],
+    "frames/tags": [
+     0.863,
+     0.8,
+     0.91
+    ]
+   },
+   "defined, 2+ levels, tags unclipped": {
+    "ops": 2720,
+    "frames/world": [
+     0.893,
+     0.82,
+     1.04
+    ],
+    "tags/world": [
+     1.165,
+     1.07,
+     1.28
+    ],
+    "frames/tags": [
+     0.768,
+     0.7,
+     0.85
+    ]
+   },
+   "reencoded": {
+    "ops": 1606,
+    "frames/world": [
+     1.046,
+     0.84,
+     1.39
+    ],
+    "tags/world": [
+     1.332,
+     1.18,
+     1.69
+    ],
+    "frames/tags": [
+     0.773,
+     0.67,
+     0.92
+    ]
+   },
+   "reencoded, tags unclipped": {
+    "ops": 589,
+    "frames/world": [
+     1.041,
+     0.76,
+     1.19
+    ],
+    "tags/world": [
+     1.361,
+     1.02,
+     1.79
+    ],
+    "frames/tags": [
+     0.683,
+     0.55,
+     1.05
+    ]
+   },
+   "untouched": {
+    "ops": 148,
+    "frames/world": [
+     1.201,
+     0.87,
+     1.4
+    ],
+    "tags/world": [
+     1.162,
+     0.86,
+     1.62
+    ],
+    "frames/tags": [
+     0.996,
+     0.83,
+     1.17
+    ]
+   },
+   "top": {
+    "ops": 1813,
+    "frames/world": [
+     0.922,
+     0.84,
+     1.01
+    ],
+    "tags/world": [
+     1.004,
+     0.93,
+     1.1
+    ],
+    "frames/tags": [
+     0.909,
+     0.82,
+     1.02
+    ]
+   },
+   "top, direct": {
+    "ops": 1340,
+    "frames/world": [
+     0.938,
+     0.86,
+     1.07
+    ],
+    "tags/world": [
+     1.014,
+     0.92,
+     1.12
+    ],
+    "frames/tags": [
+     0.929,
+     0.83,
+     1.02
+    ]
+   },
+   "top, open and run": {
+    "ops": 473,
+    "frames/world": [
+     0.834,
+     0.63,
+     1.08
+    ],
+    "tags/world": [
+     0.988,
+     0.8,
+     1.2
+    ],
+    "frames/tags": [
+     0.809,
+     0.7,
+     1.07
+    ]
+   },
+   "all body": {
+    "ops": 8079,
+    "frames/world": [
+     0.918,
+     0.86,
+     1.08
+    ],
+    "tags/world": [
+     1.157,
+     1.09,
+     1.29
+    ],
+    "frames/tags": [
+     0.787,
+     0.74,
+     0.86
+    ]
+   },
+   "defined dip, without bounds_cover_list_flag": {
+    "ops": 1436,
+    "frames/world": [
+     0.86,
+     0.77,
+     1.03
+    ],
+    "tags/world": [
+     1.069,
+     0.98,
+     1.28
+    ],
+    "frames/tags": [
+     0.798,
+     0.72,
+     0.87
+    ]
+   },
+   "defined filter, without bounds_cover_list_flag": {
+    "ops": 142,
+    "frames/world": [
+     0.654,
+     0.48,
+     0.88
+    ],
+    "tags/world": [
+     0.787,
+     0.55,
+     1.12
+    ],
+    "frames/tags": [
+     0.804,
+     0.69,
+     0.93
+    ]
+   },
+   "defined fold, without bounds_cover_list_flag": {
+    "ops": 803,
+    "frames/world": [
+     0.877,
+     0.72,
+     1.05
+    ],
+    "tags/world": [
+     1.305,
+     1.08,
+     1.51
+    ],
+    "frames/tags": [
+     0.704,
+     0.6,
+     0.86
+    ]
+   },
+   "defined ifte, without bounds_cover_list_flag": {
+    "ops": 3492,
+    "frames/world": [
+     0.883,
+     0.76,
+     1.03
+    ],
+    "tags/world": [
+     1.126,
+     1.02,
+     1.22
+    ],
+    "frames/tags": [
+     0.787,
+     0.74,
+     0.85
+    ]
+   },
+   "defined map, without bounds_cover_list_flag": {
+    "ops": 452,
+    "frames/world": [
+     0.887,
+     0.75,
+     1.0
+    ],
+    "tags/world": [
+     1.027,
+     0.92,
+     1.23
+    ],
+    "frames/tags": [
+     0.857,
+     0.63,
+     0.97
+    ]
+   }
+  },
+  "quotients": {
+   "frames: defined / top": [
+    0.944,
+    0.82,
+    1.06
+   ],
+   "tags: defined / top": [
+    1.086,
+    0.99,
+    1.23
+   ],
+   "frames: defined / top direct": [
+    0.939,
+    0.78,
+    1.06
+   ],
+   "tags: defined / top direct": [
+    1.09,
+    0.95,
+    1.24
+   ],
+   "frames: defined / untouched": [
+    0.717,
+    0.62,
+    1.06
+   ],
+   "tags: defined / untouched": [
+    0.942,
+    0.69,
+    1.33
+   ],
+   "frames: defined / top, without bounds_cover_list_flag": [
+    0.944,
+    0.82,
+    1.06
+   ],
+   "tags: defined / top, without bounds_cover_list_flag": [
+    1.086,
+    0.99,
+    1.23
+   ]
+  }
+ }
+}

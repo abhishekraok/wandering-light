@@ -97,6 +97,8 @@ def test_the_controls_divide_out_what_training_did_to_top_level_ops(tmp_path):
     assert v4["classes"]["top"]["frames/world"] == pytest.approx(0.8)
     assert v4["frames_defined_over_top"]["median"] == pytest.approx(1.0)
     assert v4["clears"]["frames"] == {"median": 12, "range": [12, 12]}
+    # With no fold body, the defined total is all there is to exclude from.
+    assert v4["classes"][gate.EX_FOLD]["frames/world"] == pytest.approx(0.8)
 
 
 def test_a_pass_says_it_needs_a_consumer_ranker():
