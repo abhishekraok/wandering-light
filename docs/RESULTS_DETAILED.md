@@ -474,6 +474,26 @@ Caveats: one checkpoint, one policy seed, one host, one cohort and one cohort or
 
 Registered predictions (before the run): 80-85% coverage on v4 and 55-60% on world-v3 train, from the advising session, against measured 0.700 and 0.430; and below 80% on v4 from this session, which holds. Caveats: witness statistics on one task's examples per program, not cohort statistics; world-v3 train is dominated by a few very long programs (median witness 136 ops, longest 4,063), so its aggregate is not a per-behaviour average.
 
+## Policy size at a fixed epoch, on the staged rows (#159)
+
+`experiments/size_at_fixed_epoch.py`. The staged arm of staged-witness-reauthoring (#155) (`arm_rows("staged")`, draw seed 20260920, 6 contrived rows excluded; 123 treated behaviours, 4,920 of 6,360 fit tasks, 313,560 rows per epoch) trained at 1m / 2m / 10m, seeds 0 / 1 / 2, 6 epochs, every epoch snapshotted, at #101's probe learning rates (1.25e-4 / 6.25e-5 / 3.125e-5), batch 256, validation on the fused holdout. Cohort search at beam 64 x depth 48, guard `both`, library off, with the #157 state cap, epochs 3-6. Verified = 10,000-draw `genuine` or catalogue-witness-equal. **Epoch 3 was pre-registered as the comparison** before the run, because picking each size's best epoch reads the eval cohort (#154). The gate was registered as CE equal to four decimals and passed **bitwise**: the retrained 1m seed-0 epoch-3 checkpoint is byte-identical to the published `staged-s0-e3` (max |dw| = 0.0), so this is #155's staged arm continued. [report](../reports/size-20260922/README.md), `cells.json`
+
+Verified behaviours of 43, mean over three seeds (per seed in parentheses):
+
+| epoch | 1m (655,836) | 2m (2,045,660) | 10m (6,288,412) |
+|---|---:|---:|---:|
+| **3** (pre-registered) | **15.67** (16 / 16 / 15) | **16.00** (16 / 16 / 16) | **16.33** (16 / 17 / 16) |
+| 4 | 16.00 (16 / 16 / 16) | 16.67 (17 / 17 / 16) | 16.67 (17 / 17 / 16) |
+| 5 | 15.67 (15 / 17 / 15) | 16.33 (17 / 16 / 16) | 16.67 (17 / 16 / 17) |
+| 6 | 15.00 (15 / 15 / 15) | 15.67 (17 / 15 / 15) | 15.00 (14 / 16 / 15) |
+
+- **Size is flat.** 9.6x the parameters moves verified behaviours 15.67 -> 16.33 at the pre-registered epoch and 16.00 -> 16.67 at each size's best epoch. The registered prediction (all three sizes within one verified behaviour at epoch 3) holds. Graded tasks of 300 are 139.7 / 141.3 / 141.0 at epoch 3.
+- **Cross-entropy moves and behaviours do not.** Validation CE at epoch 3 seed 0 falls 2.676 -> 2.384 -> 2.247 across the sizes, so **0.43 nats buys 0.67 behaviours**. #154 found CE does not pick the right epoch; this is the same failure on the size axis.
+- **What size buys sits past 20 ops.** By bucket (1-5 / 6-10 / 11-20 / 21-40 / 41+) at epoch 3: 1m 6.00 / 3.00 / 5.00 / 1.67 / 0.00, 2m 5.67 / 3.00 / 5.00 / 2.33 / 0.00, 10m 6.00 / 3.00 / 5.00 / 2.00 / 0.33. The short buckets are identical; the only 41+ solve in the campaign is a 10m one. Over the union of three seeds at epoch 3 the 10m arm adds exactly one behaviour the 1m arm never gets (`pair_floor_averages`) and loses none.
+- **1m epoch 3 reproduces #155.** 15.67 with the per-seed triple 16 / 16 / 15, from a different driver, library off, on CPU.
+
+Caveats: three seeds, one cohort, one corpus, one recipe. Learning rates are #101's probe choices per size and were not re-probed for the staged rows, so a larger arm could be under-tuned rather than saturated. Cells ran in three parallel lanes by seed, so per-cell wall clock is not comparable and no timing claim is made.
+
 ## Epoch selection in verified behaviours, 1m v4-only arm (#154)
 
 18 (seed, epoch) cells re-running the #101 1m v4-only arm (reproduces #134 bitwise: seed 0 epoch 4 verifies 94/94 tasks), all 30 distinct solved programs draw-tested. Cells are graded/verified behaviours of 43.
