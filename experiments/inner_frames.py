@@ -612,8 +612,19 @@ def walk_one_example(
                 reason[step] = closed.refusal
             continue
 
-        item = Sym(name) if name in OP_BY_NAME else None
-        if item is None:
+        # Take the captured item from the machine rather than rebuilding it from
+        # the op name. A literal is NOT captured as a symbol -- `_capture_under_mark`
+        # is false for it, so `1` under a mark pushes `Int(1)` and the quotation
+        # holds a value, not `Sym("1")`. Rebuilding it as a symbol runs the same
+        # way but stores the wrong thing, so a body that `uncons`es a nested
+        # quotation then sees a symbol where the real witness sees an integer and
+        # refuses. Under a mark an op appends exactly one item, which is it.
+        after = states[step + 1]
+        if len(after) == len(before) + 1:
+            item = after[-1]
+        elif name in OP_BY_NAME:
+            item = Sym(name)
+        else:
             raise ValueError(f"unknown op in witness: {name}")
         level.write(item)
         defined[step] = level.virtual is not None

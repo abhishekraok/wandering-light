@@ -68,27 +68,33 @@ def fetch_stack_policy(
     from huggingface_hub import hf_hub_download
     from huggingface_hub.errors import EntryNotFoundError
 
-    target.mkdir(parents=True, exist_ok=True)
-    for name in REQUIRED_FILES + OPTIONAL_FILES:
+    # Assemble in a private directory and move it into place once, so a fetch
+    # interrupted after the required files but before `wandb_run.url` cannot
+    # leave a directory that `is_checkpoint` accepts and that no later call
+    # retries. The whole checkpoint, optional metadata included, appears
+    # atomically or not at all; AGENTS.md wants model lineage recoverable, and a
+    # checkpoint permanently missing its run link is not. A private directory
+    # also settles the concurrent case: two processes fetching the same
+    # revision each build their own and one rename wins.
+    target.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = Path(tempfile.mkdtemp(dir=target.parent, prefix=f".{revision}."))
+    try:
+        for name in REQUIRED_FILES + OPTIONAL_FILES:
+            try:
+                cached = Path(hf_hub_download(repo_id, name, revision=revision))
+            except EntryNotFoundError:
+                if name in REQUIRED_FILES:
+                    raise
+                continue
+            shutil.copyfile(cached, staging_dir / name)
         try:
-            cached = Path(hf_hub_download(repo_id, name, revision=revision))
-        except EntryNotFoundError:
-            if name in REQUIRED_FILES:
+            staging_dir.replace(target)
+        except OSError:
+            # Another process got there first; its copy is as good as ours.
+            if not is_checkpoint(target):
                 raise
-            continue
-        local = target / name
-        if cached.resolve() != local.resolve():
-            # Through a temporary name: an interrupted copy must not leave a
-            # short file that `is_checkpoint` then accepts on the next run.
-            # A unique staging name per caller: two processes fetching the
-            # same uncached revision would otherwise share one `.part`, and the
-            # second `replace` would fail on a file the first already moved.
-            with tempfile.NamedTemporaryFile(
-                dir=target, prefix=f".{name}.", delete=False
-            ) as handle:
-                staging = Path(handle.name)
-            shutil.copyfile(cached, staging)
-            staging.replace(local)
+    finally:
+        shutil.rmtree(staging_dir, ignore_errors=True)
     return target
 
 
