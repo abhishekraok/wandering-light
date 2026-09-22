@@ -552,6 +552,23 @@ Caveats: three seeds, one corpus, one recipe, one 44-task split. The lowest-defi
 
 Caveats: the quotation rows price a body at the flat policy's deficit, not at what a frame-conditioned sub-search would pay (that is #160 E2); every row assumes the right intermediate state survives in the top 64; `1m-s0-e5` was selected on the world-v3 eval split and is fixed here for pairing.
 
+## Inner frames E2, first gate: WEAK (#160)
+
+`experiments/frame_gate.py`, the world arm's recipe (v4 + world-v3 train, `1m`, LR 1.25e-4, 3 seeds x 6 epochs, GPU). **tags** adds a label (consumer, `ifte` role, captures) at body steps with a defined frame. **frames** adds the label and the frame after the body prefix. Calibrated deficits; ratios are medians over the 18 matched cells. Predictions were registered on #160 before training. [report](../reports/frame-gate-20260922/README.md)
+
+| | v4 eval | world-v3 eval |
+|---|---:|---:|
+| frames/world, defined bodies (predicted 0.85 / 0.92) | **0.862** | 0.867 |
+| tags/world (predicted 1.00) | 1.067 (0.968 without one witness) | 1.111 |
+| frames/world at 1 open level / 2 or more | **0.62** / 0.93 | 0.84 / 0.89 |
+| frames/world, top-level ops (predicted within ±10%) | 0.876 | 0.922 |
+| clears at `s0-e5`, frames (world) | **13** (12) | 1 (2) |
+
+- **WEAK.** FAIL missed by one clear. Per cell, frames beats world by a median of one clear (10 cells up, 3 down, p = 0.09).
+- **The frame helps most where one level is open.** When a label and frame are stacked per open level, the label goes from helping to hurting: on world-v3, on unclipped states, 0.98 at one level and 1.17 deeper.
+- **v4's label cost and its `fold` anomaly are one witness.** `bounds_cover_list_flag` is 114 of 575 world-arm defined nats.
+- **The in-body share is not identified on v4.** The same-input controls give 0.84-0.94, and the frame also cheapens top-level ops (direct ops 0.92 against tags 1.04). On world-v3 it is about 0.94.
+
 ## Inner frames E2: what quotation bodies cost, before the gate trains (#160)
 
 `experiments/frame_gate.py predict`, CPU, on the world arm `1m-s0-e5` (the arm the gate pairs against), one witness per eval behaviour. Deficits are **calibrated**: divided by the temperature that minimises this checkpoint's validation CE under the legal mask, T = 1.564. *Defined* means E1's capture-aware walk defines the innermost frame on every shown example. Registration on #160.

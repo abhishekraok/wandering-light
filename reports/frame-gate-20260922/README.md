@@ -80,7 +80,7 @@ No temperature sat at the edge of its search. The frames arm's temperature, over
 - **This is not a gate reading.** 0.62 is on 384 of the 1,360 v4 defined ops.
 
 **One v4 witness carries the label's v4 cost.**
-- `bounds_cover_list_flag` is 114 of the world arm's 574 v4 defined-body nats. It nests a min/max idiom, `[ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold`, under two and three `dip`s. Those chains are rare in the training rows: 144 and 36 fit steps.
+- `bounds_cover_list_flag` is 114 of the world arm's 575 v4 defined-body nats. It nests a min/max idiom, `[ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold`, under two and three `dip`s. Those chains are rare in the training rows: 144 and 36 fit steps.
 - Its 10 fold-body ops cost a median 8.0 nats on the world arm, 47.8 on tags and 34.4 on frames. Across the other 22 v4 witnesses with fold bodies, no arm differs from the world arm by more than 0.63 nats (`fold_check.py`).
 - Without it, v4 reads frames/world 0.818, tags/world 0.968 and frames/tags 0.834.
 
@@ -123,7 +123,7 @@ No temperature sat at the edge of its search. The frames arm's temperature, over
 
 **After that: macros under a mark**, macro-action-space (#162), which needs `run_body` to take an ops table (#149). This is the lever the registration named on FAIL.
 - It shortens bodies instead of cheapening steps.
-- cycle-deficit (#148) is a prior against it: 1.72x length compression bought 1.02x deficit.
+- mine-v4-library (#148) is a prior against it: cycle macros bought 1.72x length compression but only 1.02x deficit.
 - It targets world-v3, which the owner is replacing with a smaller eval, so it is best decided on that eval.
 
 ## Caveats
