@@ -1,4 +1,4 @@
-# The pinned system on world data: 1 of 44, and the wall is depth (clear-world-v3)
+# The pinned system on world data: 1 of 44, and depth is not the lever (clear-world-v3)
 
 `goals/g1.md` asks for cost to clear on **v4 + world data**. Every number this
 repository holds is v4. This is the world half, measured with the same command
@@ -140,7 +140,7 @@ library changes which programs exist.
 The empirical result above — 8× the depth, 25.6× the clock, zero extra solves —
 stands on its own and does not depend on any of this.
 
-## The wall is the depth limit, not the beam and not the policy## The wall is the depth limit, not the beam and not the policy
+## Every unsolved task ends at the depth limit
 
 The 44 eval witnesses run 8 to 827 ops, median **150**. Only **4 of 44** are
 within the search's depth of 48, and the system solved 1 of those 4. Every
