@@ -160,10 +160,28 @@ def collate(
 
 
 class StackPairPolicy(AlignedPairPolicy):
-    """The aligned-pair encoder over stack tokens instead of bytes."""
+    """The aligned-pair encoder over stack tokens instead of bytes.
 
-    def __init__(self, architecture: PolicyArchitecture) -> None:
-        super().__init__(len(OP_NAMES), architecture)
+    ``actions`` is the action space the head scores. It defaults to the 28
+    `mark-28` ops, which is what every published checkpoint was trained with and
+    what `load_policy` reconstructs for them, so the default path is unchanged.
+    A wider space (macro-action-space, #162, adds the 133 authoring macros) must
+    keep the base ops as its prefix, so a `mark-28` head is a prefix of a macro
+    head and the two orderings cannot silently disagree. The **encoder** is
+    untouched either way: a macro is an action and never appears in a stack, so
+    the token vocabulary does not grow.
+    """
+
+    def __init__(
+        self,
+        architecture: PolicyArchitecture,
+        actions: Sequence[str] = OP_NAMES,
+    ) -> None:
+        actions = tuple(actions)
+        if actions[: len(OP_NAMES)] != OP_NAMES:
+            raise ValueError("an action space must begin with the mark-28 ops")
+        self.actions = actions
+        super().__init__(len(actions), architecture)
         self.embedding = nn.Embedding(
             VOCAB, architecture.byte_embedding, padding_idx=PAD
         )
@@ -403,7 +421,9 @@ def train_policy(
 # ---------------------------------------------------------------------------
 
 
-def policy_config(architecture: PolicyArchitecture) -> dict[str, Any]:
+def policy_config(
+    architecture: PolicyArchitecture, actions: Sequence[str] = OP_NAMES
+) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "architecture": {
@@ -419,7 +439,7 @@ def policy_config(architecture: PolicyArchitecture) -> dict[str, Any]:
             "target_cap": TARGET_CAP,
         },
         "basis": BASIS,
-        "ordered_actions": list(OP_NAMES),
+        "ordered_actions": list(actions),
     }
 
 
@@ -438,7 +458,12 @@ def save_policy(
     state = {k: v.detach().cpu().contiguous() for k, v in model.state_dict().items()}
     save_file(state, str(checkpoint / MODEL_FILE), metadata={"format": "pt"})
     (checkpoint / CONFIG_FILE).write_text(
-        json.dumps(policy_config(model.architecture), indent=2, sort_keys=True) + "\n"
+        json.dumps(
+            policy_config(model.architecture, getattr(model, "actions", OP_NAMES)),
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
     )
     (checkpoint / TRAINER_STATE_FILE).write_text(
         json.dumps(trainer_state, indent=2, sort_keys=True) + "\n"
@@ -461,12 +486,18 @@ def load_policy(
     config = json.loads((checkpoint / CONFIG_FILE).read_text())
     if config.get("schema_version") != SCHEMA_VERSION or config.get("basis") != BASIS:
         raise ValueError(f"unsupported stack policy checkpoint: {checkpoint}")
-    if tuple(config.get("ordered_actions", ())) != OP_NAMES:
+    actions = tuple(config.get("ordered_actions", ()))
+    # The check that mattered was that a checkpoint's head is not read under a
+    # different ordering than it was trained with. That is still the check; it
+    # is made against the checkpoint's own declared space rather than a module
+    # constant, so a `mark-28` checkpoint reconstructs exactly as before and a
+    # wider space (#162) is loadable instead of refused.
+    if actions[: len(OP_NAMES)] != OP_NAMES:
         raise ValueError("checkpoint action order differs from mark-28")
     dims = config["architecture"]
     architecture = PolicyArchitecture(
         dims["byte_embedding"], dims["conv_channels"], dims["hidden"]
     )
-    model = StackPairPolicy(architecture)
+    model = StackPairPolicy(architecture, actions)
     model.load_state_dict(load_file(str(checkpoint / MODEL_FILE), device="cpu"))
     return model.to(device).eval()
