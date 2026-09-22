@@ -87,6 +87,31 @@ forecast: a policy over macro actions has its own deficits and nobody has
 measured them. It is the only remaining combination inside an order of
 magnitude, and measuring it is the next thing worth a campaign.
 
+## A check on the macro arithmetic, which it survives — with one confound
+
+The composition above assumes per-step deficit is independent of `L`, so that
+shortening a program divides its accumulated deficit proportionally. If short
+programs were denser and cost more per step, shortening would buy less than the
+arithmetic says. The data on disk answers it, under `BEST`:
+
+| | witnesses ≤ 40 ops | witnesses > 40 ops | Spearman(`L`, deficit) |
+|---|---:|---:|---:|
+| `stack_pbe_world_v3` eval | **1.03** nats (n=4) | **4.90** nats (n=40) | **+0.455** |
+| `stack_pbe_v4` eval | 1.61 (n=24) | 2.61 (n=21) | +0.320 |
+
+Deficit rises *with* length, so shortening helps **more** than linearly: both
+terms of `L × d` fall together. The arithmetic is, if anything, conservative.
+
+**The confound, which is not small.** This is a correlation across *different
+behaviours*, and a behaviour with a short witness is an easier behaviour. It
+does not show that shortening a **given** behaviour's program lowers its
+per-step deficit, which is what the macro claim actually needs. Settling it
+needs the same behaviour expressed at two lengths under one policy, and the
+comparison that exists — staged-witness-reauthoring (#155)'s fused-versus-staged
+twins — is confounded the other way, because the policy scoring them was trained
+on one style and not the other. So this check removes one way the macro
+arithmetic could have been wrong and leaves another open.
+
 ## Caveats
 
 Three seeds, one corpus, one recipe, one 44-task split. The epoch with the
