@@ -12,7 +12,10 @@
         "agree": 342,
         "compared": 407,
         "disagree": 65,
-        "other_op_first->mutated_or_folded": 65
+        "filter->mutated_or_folded": 26,
+        "fold->mutated_or_folded": 5,
+        "map->mutated_or_folded": 16,
+        "other_op_first->mutated_or_folded": 18
       },
       "by_depth": {
         "depth_1": {
@@ -41,8 +44,46 @@
           "under_mark_ops": 767
         }
       },
+      "by_tag": {
+        "dip": {
+          "coverage": 0.6583,
+          "frame_kind": "inherited",
+          "under_mark_ops": 360
+        },
+        "filter": {
+          "coverage": 1.0,
+          "frame_kind": "fresh",
+          "under_mark_ops": 8
+        },
+        "fold": {
+          "coverage": 0.7594,
+          "frame_kind": "fresh",
+          "under_mark_ops": 212
+        },
+        "i": {
+          "coverage": 0.0,
+          "frame_kind": "inherited",
+          "under_mark_ops": 56
+        },
+        "ifte": {
+          "coverage": 0.6972,
+          "frame_kind": "inherited",
+          "under_mark_ops": 1222
+        },
+        "map": {
+          "coverage": 1.0,
+          "frame_kind": "fresh",
+          "under_mark_ops": 21
+        }
+      },
       "frame_coverage_per_example": 0.7576,
       "frame_coverage_product": 0.6742,
+      "frames_checked_against_the_machine": {
+        "captures_0": 76,
+        "compared": 76,
+        "match": 76,
+        "no_observation": 206
+      },
       "legal_tags_per_open": {
         "histogram": {
           "3": 76,
@@ -76,6 +117,125 @@
       "under_mark_ops": 1897,
       "under_mark_share_of_ops": 0.8495
     },
+    "stack_pbe_v4:eval+capture": {
+      "all_ops": 2233,
+      "ambiguity_nats": {
+        "entropy_tag": 1.102,
+        "entropy_tag_given_shape": 0.377,
+        "issue_assumption_ln6": 1.792,
+        "ln_mean_legal_tags": 1.534
+      },
+      "attribution_crosscheck_depth1": {
+        "agree": 342,
+        "compared": 407,
+        "disagree": 65,
+        "filter->mutated_or_folded": 26,
+        "fold->mutated_or_folded": 5,
+        "map->mutated_or_folded": 16,
+        "other_op_first->mutated_or_folded": 18
+      },
+      "by_depth": {
+        "depth_1": {
+          "coverage": 0.8309,
+          "share": 0.2182,
+          "under_mark_ops": 414
+        },
+        "depth_2": {
+          "coverage": 0.8269,
+          "share": 0.466,
+          "under_mark_ops": 884
+        },
+        "depth_3+": {
+          "coverage": 0.5993,
+          "share": 0.3158,
+          "under_mark_ops": 599
+        }
+      },
+      "by_parent_kind_depth_2plus": {
+        "fresh": {
+          "coverage": 0.8075,
+          "under_mark_ops": 831
+        },
+        "inherited": {
+          "coverage": 0.6426,
+          "under_mark_ops": 652
+        }
+      },
+      "by_tag": {
+        "dip": {
+          "coverage": 0.7056,
+          "frame_kind": "inherited",
+          "under_mark_ops": 360
+        },
+        "filter": {
+          "coverage": 0.9286,
+          "frame_kind": "fresh",
+          "under_mark_ops": 42
+        },
+        "fold": {
+          "coverage": 0.7488,
+          "frame_kind": "fresh",
+          "under_mark_ops": 215
+        },
+        "i": {
+          "coverage": 0.0,
+          "frame_kind": "inherited",
+          "under_mark_ops": 16
+        },
+        "ifte": {
+          "coverage": 0.7766,
+          "frame_kind": "inherited",
+          "under_mark_ops": 1222
+        },
+        "map": {
+          "coverage": 0.8158,
+          "frame_kind": "fresh",
+          "under_mark_ops": 38
+        }
+      },
+      "frame_coverage_per_example": 0.8773,
+      "frame_coverage_product": 0.7559,
+      "frames_checked_against_the_machine": {
+        "captures_0": 76,
+        "captures_1": 5,
+        "captures_2": 4,
+        "compared": 85,
+        "match": 85,
+        "no_observation": 243
+      },
+      "legal_tags_per_open": {
+        "histogram": {
+          "3": 91,
+          "4": 54,
+          "5": 75,
+          "6": 115
+        },
+        "mean": 4.639
+      },
+      "programs": 45,
+      "skipped_programs": 0,
+      "tag_distribution": {
+        "dip": 254,
+        "filter": 39,
+        "fold": 161,
+        "ifte": 949,
+        "map": 31
+      },
+      "unchained_fold": {
+        "accept_set_differs": 0,
+        "completed_bodies": 48,
+        "rate": 0.0,
+        "write_steps_with_a_frame": 112
+      },
+      "undefined_reasons": {
+        "body_refused": 11,
+        "empty_list": 57,
+        "other_op_first": 20,
+        "parent_refused": 375
+      },
+      "under_mark_ops": 1897,
+      "under_mark_share_of_ops": 0.8495
+    },
     "stack_pbe_v4:train": {
       "all_ops": 8490,
       "ambiguity_nats": {
@@ -88,7 +248,10 @@
         "agree": 1446,
         "compared": 1596,
         "disagree": 150,
-        "other_op_first->mutated_or_folded": 150
+        "filter->mutated_or_folded": 42,
+        "fold->mutated_or_folded": 8,
+        "map->mutated_or_folded": 50,
+        "other_op_first->mutated_or_folded": 50
       },
       "by_depth": {
         "depth_1": {
@@ -117,8 +280,46 @@
           "under_mark_ops": 2741
         }
       },
+      "by_tag": {
+        "dip": {
+          "coverage": 0.6928,
+          "frame_kind": "inherited",
+          "under_mark_ops": 1758
+        },
+        "filter": {
+          "coverage": 1.0,
+          "frame_kind": "fresh",
+          "under_mark_ops": 46
+        },
+        "fold": {
+          "coverage": 0.8876,
+          "frame_kind": "fresh",
+          "under_mark_ops": 943
+        },
+        "i": {
+          "coverage": 0.0,
+          "frame_kind": "inherited",
+          "under_mark_ops": 125
+        },
+        "ifte": {
+          "coverage": 0.6824,
+          "frame_kind": "inherited",
+          "under_mark_ops": 4200
+        },
+        "map": {
+          "coverage": 1.0,
+          "frame_kind": "fresh",
+          "under_mark_ops": 41
+        }
+      },
       "frame_coverage_per_example": 0.7921,
       "frame_coverage_product": 0.6997,
+      "frames_checked_against_the_machine": {
+        "captures_0": 317,
+        "compared": 317,
+        "match": 317,
+        "no_observation": 770
+      },
       "legal_tags_per_open": {
         "histogram": {
           "3": 344,
@@ -152,6 +353,125 @@
       "under_mark_ops": 7157,
       "under_mark_share_of_ops": 0.843
     },
+    "stack_pbe_v4:train+capture": {
+      "all_ops": 8490,
+      "ambiguity_nats": {
+        "entropy_tag": 1.126,
+        "entropy_tag_given_shape": 0.369,
+        "issue_assumption_ln6": 1.792,
+        "ln_mean_legal_tags": 1.511
+      },
+      "attribution_crosscheck_depth1": {
+        "agree": 1446,
+        "compared": 1596,
+        "disagree": 150,
+        "filter->mutated_or_folded": 42,
+        "fold->mutated_or_folded": 8,
+        "map->mutated_or_folded": 50,
+        "other_op_first->mutated_or_folded": 50
+      },
+      "by_depth": {
+        "depth_1": {
+          "coverage": 0.9296,
+          "share": 0.2303,
+          "under_mark_ops": 1648
+        },
+        "depth_2": {
+          "coverage": 0.8242,
+          "share": 0.4452,
+          "under_mark_ops": 3186
+        },
+        "depth_3+": {
+          "coverage": 0.5764,
+          "share": 0.3246,
+          "under_mark_ops": 2323
+        }
+      },
+      "by_parent_kind_depth_2plus": {
+        "fresh": {
+          "coverage": 0.8152,
+          "under_mark_ops": 2981
+        },
+        "inherited": {
+          "coverage": 0.6072,
+          "under_mark_ops": 2528
+        }
+      },
+      "by_tag": {
+        "dip": {
+          "coverage": 0.7224,
+          "frame_kind": "inherited",
+          "under_mark_ops": 1758
+        },
+        "filter": {
+          "coverage": 0.8934,
+          "frame_kind": "fresh",
+          "under_mark_ops": 122
+        },
+        "fold": {
+          "coverage": 0.8945,
+          "frame_kind": "fresh",
+          "under_mark_ops": 957
+        },
+        "i": {
+          "coverage": 0.0,
+          "frame_kind": "inherited",
+          "under_mark_ops": 31
+        },
+        "ifte": {
+          "coverage": 0.7583,
+          "frame_kind": "inherited",
+          "under_mark_ops": 4200
+        },
+        "map": {
+          "coverage": 1.0,
+          "frame_kind": "fresh",
+          "under_mark_ops": 77
+        }
+      },
+      "frame_coverage_per_example": 0.8558,
+      "frame_coverage_product": 0.7681,
+      "frames_checked_against_the_machine": {
+        "captures_0": 317,
+        "captures_1": 16,
+        "captures_2": 6,
+        "compared": 339,
+        "match": 339,
+        "no_observation": 861
+      },
+      "legal_tags_per_open": {
+        "histogram": {
+          "3": 379,
+          "4": 201,
+          "5": 261,
+          "6": 386
+        },
+        "mean": 4.533
+      },
+      "programs": 175,
+      "skipped_programs": 0,
+      "tag_distribution": {
+        "dip": 1270,
+        "filter": 109,
+        "fold": 856,
+        "ifte": 3185,
+        "map": 77
+      },
+      "unchained_fold": {
+        "accept_set_differs": 0,
+        "completed_bodies": 183,
+        "rate": 0.0,
+        "write_steps_with_a_frame": 546
+      },
+      "undefined_reasons": {
+        "body_refused": 35,
+        "empty_list": 114,
+        "other_op_first": 43,
+        "parent_refused": 1468
+      },
+      "under_mark_ops": 7157,
+      "under_mark_share_of_ops": 0.843
+    },
     "stack_pbe_world_v3:eval": {
       "all_ops": 9892,
       "ambiguity_nats": {
@@ -164,7 +484,10 @@
         "agree": 1368,
         "compared": 1644,
         "disagree": 276,
-        "other_op_first->mutated_or_folded": 276
+        "filter->mutated_or_folded": 120,
+        "fold->mutated_or_folded": 78,
+        "map->mutated_or_folded": 66,
+        "other_op_first->mutated_or_folded": 12
       },
       "by_depth": {
         "depth_1": {
@@ -193,8 +516,46 @@
           "under_mark_ops": 4820
         }
       },
+      "by_tag": {
+        "dip": {
+          "coverage": 0.5081,
+          "frame_kind": "inherited",
+          "under_mark_ops": 2108
+        },
+        "filter": {
+          "coverage": 0.45,
+          "frame_kind": "fresh",
+          "under_mark_ops": 40
+        },
+        "fold": {
+          "coverage": 0.808,
+          "frame_kind": "fresh",
+          "under_mark_ops": 854
+        },
+        "i": {
+          "coverage": 0.0,
+          "frame_kind": "inherited",
+          "under_mark_ops": 757
+        },
+        "ifte": {
+          "coverage": 0.6448,
+          "frame_kind": "inherited",
+          "under_mark_ops": 4243
+        },
+        "map": {
+          "coverage": 0.9559,
+          "frame_kind": "fresh",
+          "under_mark_ops": 204
+        }
+      },
       "frame_coverage_per_example": 0.6057,
       "frame_coverage_product": 0.5639,
+      "frames_checked_against_the_machine": {
+        "captures_0": 228,
+        "compared": 228,
+        "match": 228,
+        "no_observation": 443
+      },
       "legal_tags_per_open": {
         "histogram": {
           "3": 153,
@@ -222,8 +583,129 @@
       "undefined_reasons": {
         "body_refused": 184,
         "empty_list": 100,
-        "other_op_first": 904,
+        "left_on_stack": 269,
+        "other_op_first": 635,
         "parent_refused": 2455
+      },
+      "under_mark_ops": 8353,
+      "under_mark_share_of_ops": 0.8444
+    },
+    "stack_pbe_world_v3:eval+capture": {
+      "all_ops": 9892,
+      "ambiguity_nats": {
+        "entropy_tag": 1.338,
+        "entropy_tag_given_shape": 0.462,
+        "issue_assumption_ln6": 1.792,
+        "ln_mean_legal_tags": 1.511
+      },
+      "attribution_crosscheck_depth1": {
+        "agree": 1368,
+        "compared": 1644,
+        "disagree": 276,
+        "filter->mutated_or_folded": 120,
+        "fold->mutated_or_folded": 78,
+        "map->mutated_or_folded": 66,
+        "other_op_first->mutated_or_folded": 12
+      },
+      "by_depth": {
+        "depth_1": {
+          "coverage": 0.9346,
+          "share": 0.2745,
+          "under_mark_ops": 2293
+        },
+        "depth_2": {
+          "coverage": 0.8803,
+          "share": 0.3141,
+          "under_mark_ops": 2624
+        },
+        "depth_3+": {
+          "coverage": 0.6051,
+          "share": 0.4113,
+          "under_mark_ops": 3436
+        }
+      },
+      "by_parent_kind_depth_2plus": {
+        "fresh": {
+          "coverage": 0.8303,
+          "under_mark_ops": 2369
+        },
+        "inherited": {
+          "coverage": 0.6562,
+          "under_mark_ops": 3691
+        }
+      },
+      "by_tag": {
+        "dip": {
+          "coverage": 0.7343,
+          "frame_kind": "inherited",
+          "under_mark_ops": 2108
+        },
+        "filter": {
+          "coverage": 0.6163,
+          "frame_kind": "fresh",
+          "under_mark_ops": 245
+        },
+        "fold": {
+          "coverage": 0.8191,
+          "frame_kind": "fresh",
+          "under_mark_ops": 923
+        },
+        "i": {
+          "coverage": 0.0,
+          "frame_kind": "inherited",
+          "under_mark_ops": 286
+        },
+        "ifte": {
+          "coverage": 0.8426,
+          "frame_kind": "inherited",
+          "under_mark_ops": 4243
+        },
+        "map": {
+          "coverage": 0.9383,
+          "frame_kind": "fresh",
+          "under_mark_ops": 535
+        }
+      },
+      "frame_coverage_per_example": 0.8579,
+      "frame_coverage_product": 0.782,
+      "frames_checked_against_the_machine": {
+        "captures_0": 228,
+        "captures_1": 41,
+        "captures_2": 3,
+        "compared": 272,
+        "match": 272,
+        "no_observation": 739
+      },
+      "legal_tags_per_open": {
+        "histogram": {
+          "3": 223,
+          "4": 308,
+          "5": 236,
+          "6": 268
+        },
+        "mean": 4.53
+      },
+      "programs": 44,
+      "skipped_programs": 0,
+      "tag_distribution": {
+        "dip": 1548,
+        "filter": 151,
+        "fold": 756,
+        "ifte": 3575,
+        "map": 502
+      },
+      "unchained_fold": {
+        "accept_set_differs": 0,
+        "completed_bodies": 162,
+        "rate": 0.0,
+        "write_steps_with_a_frame": 517
+      },
+      "undefined_reasons": {
+        "body_refused": 184,
+        "empty_list": 199,
+        "left_on_stack": 269,
+        "other_op_first": 30,
+        "parent_refused": 1139
       },
       "under_mark_ops": 8353,
       "under_mark_share_of_ops": 0.8444
@@ -240,7 +722,10 @@
         "agree": 10854,
         "compared": 13140,
         "disagree": 2286,
-        "other_op_first->mutated_or_folded": 2286
+        "filter->mutated_or_folded": 942,
+        "fold->mutated_or_folded": 666,
+        "map->mutated_or_folded": 486,
+        "other_op_first->mutated_or_folded": 192
       },
       "by_depth": {
         "depth_1": {
@@ -269,8 +754,46 @@
           "under_mark_ops": 62415
         }
       },
+      "by_tag": {
+        "dip": {
+          "coverage": 0.4102,
+          "frame_kind": "inherited",
+          "under_mark_ops": 27057
+        },
+        "filter": {
+          "coverage": 0.7199,
+          "frame_kind": "fresh",
+          "under_mark_ops": 1021
+        },
+        "fold": {
+          "coverage": 0.5398,
+          "frame_kind": "fresh",
+          "under_mark_ops": 14792
+        },
+        "i": {
+          "coverage": 0.0,
+          "frame_kind": "inherited",
+          "under_mark_ops": 7920
+        },
+        "ifte": {
+          "coverage": 0.4785,
+          "frame_kind": "inherited",
+          "under_mark_ops": 55033
+        },
+        "map": {
+          "coverage": 0.4881,
+          "frame_kind": "fresh",
+          "under_mark_ops": 1801
+        }
+      },
       "frame_coverage_per_example": 0.5614,
       "frame_coverage_product": 0.4303,
+      "frames_checked_against_the_machine": {
+        "captures_0": 1797,
+        "compared": 1797,
+        "match": 1797,
+        "no_observation": 6634
+      },
       "legal_tags_per_open": {
         "histogram": {
           "3": 1677,
@@ -298,8 +821,130 @@
       "undefined_reasons": {
         "body_refused": 1351,
         "empty_list": 4414,
-        "other_op_first": 9593,
+        "left_on_stack": 711,
+        "other_op_first": 8882,
         "parent_refused": 46906,
+        "role_mismatch": 3
+      },
+      "under_mark_ops": 109300,
+      "under_mark_share_of_ops": 0.8882
+    },
+    "stack_pbe_world_v3:train+capture": {
+      "all_ops": 123058,
+      "ambiguity_nats": {
+        "entropy_tag": 1.348,
+        "entropy_tag_given_shape": 0.475,
+        "issue_assumption_ln6": 1.792,
+        "ln_mean_legal_tags": 1.527
+      },
+      "attribution_crosscheck_depth1": {
+        "agree": 10854,
+        "compared": 13140,
+        "disagree": 2286,
+        "filter->mutated_or_folded": 942,
+        "fold->mutated_or_folded": 666,
+        "map->mutated_or_folded": 486,
+        "other_op_first->mutated_or_folded": 192
+      },
+      "by_depth": {
+        "depth_1": {
+          "coverage": 0.818,
+          "share": 0.2018,
+          "under_mark_ops": 22058
+        },
+        "depth_2": {
+          "coverage": 0.7045,
+          "share": 0.25,
+          "under_mark_ops": 27326
+        },
+        "depth_3+": {
+          "coverage": 0.5382,
+          "share": 0.5482,
+          "under_mark_ops": 59916
+        }
+      },
+      "by_parent_kind_depth_2plus": {
+        "fresh": {
+          "coverage": 0.628,
+          "under_mark_ops": 39815
+        },
+        "inherited": {
+          "coverage": 0.5586,
+          "under_mark_ops": 47427
+        }
+      },
+      "by_tag": {
+        "dip": {
+          "coverage": 0.625,
+          "frame_kind": "inherited",
+          "under_mark_ops": 27057
+        },
+        "filter": {
+          "coverage": 0.6023,
+          "frame_kind": "fresh",
+          "under_mark_ops": 3339
+        },
+        "fold": {
+          "coverage": 0.5965,
+          "frame_kind": "fresh",
+          "under_mark_ops": 16014
+        },
+        "i": {
+          "coverage": 0.0,
+          "frame_kind": "inherited",
+          "under_mark_ops": 1501
+        },
+        "ifte": {
+          "coverage": 0.6749,
+          "frame_kind": "inherited",
+          "under_mark_ops": 55033
+        },
+        "map": {
+          "coverage": 0.6319,
+          "frame_kind": "fresh",
+          "under_mark_ops": 6211
+        }
+      },
+      "frame_coverage_per_example": 0.8035,
+      "frame_coverage_product": 0.6362,
+      "frames_checked_against_the_machine": {
+        "captures_0": 1797,
+        "captures_1": 334,
+        "captures_2": 14,
+        "compared": 2145,
+        "match": 2145,
+        "no_observation": 10483
+      },
+      "legal_tags_per_open": {
+        "histogram": {
+          "3": 2567,
+          "4": 3712,
+          "5": 3003,
+          "6": 3710
+        },
+        "mean": 4.605
+      },
+      "programs": 482,
+      "skipped_programs": 0,
+      "tag_distribution": {
+        "dip": 16910,
+        "filter": 2011,
+        "fold": 9552,
+        "ifte": 37142,
+        "map": 3925
+      },
+      "unchained_fold": {
+        "accept_set_differs": 75,
+        "completed_bodies": 2234,
+        "rate": 0.0075,
+        "write_steps_with_a_frame": 9958
+      },
+      "undefined_reasons": {
+        "body_refused": 1951,
+        "empty_list": 5689,
+        "left_on_stack": 711,
+        "other_op_first": 932,
+        "parent_refused": 30474,
         "role_mismatch": 3
       },
       "under_mark_ops": 109300,
@@ -317,7 +962,9 @@
         "agree": 2702,
         "compared": 3032,
         "disagree": 330,
-        "other_op_first->mutated_or_folded": 330
+        "filter->mutated_or_folded": 74,
+        "map->mutated_or_folded": 151,
+        "other_op_first->mutated_or_folded": 105
       },
       "by_depth": {
         "depth_1": {
@@ -341,8 +988,46 @@
           "under_mark_ops": 200
         }
       },
+      "by_tag": {
+        "dip": {
+          "coverage": 0.9514,
+          "frame_kind": "inherited",
+          "under_mark_ops": 432
+        },
+        "filter": {
+          "coverage": 0.9206,
+          "frame_kind": "fresh",
+          "under_mark_ops": 340
+        },
+        "fold": {
+          "coverage": 0.8556,
+          "frame_kind": "fresh",
+          "under_mark_ops": 1669
+        },
+        "i": {
+          "coverage": 0.0,
+          "frame_kind": "inherited",
+          "under_mark_ops": 269
+        },
+        "ifte": {
+          "coverage": 0.7779,
+          "frame_kind": "inherited",
+          "under_mark_ops": 824
+        },
+        "map": {
+          "coverage": 0.9386,
+          "frame_kind": "fresh",
+          "under_mark_ops": 505
+        }
+      },
       "frame_coverage_per_example": 0.852,
       "frame_coverage_product": 0.7901,
+      "frames_checked_against_the_machine": {
+        "captures_0": 568,
+        "compared": 568,
+        "match": 568,
+        "no_observation": 257
+      },
       "legal_tags_per_open": {
         "histogram": {
           "3": 93,
@@ -374,7 +1059,118 @@
       },
       "under_mark_ops": 4135,
       "under_mark_share_of_ops": 0.7045
+    },
+    "staged:train+capture": {
+      "all_ops": 5869,
+      "ambiguity_nats": {
+        "entropy_tag": 1.527,
+        "entropy_tag_given_shape": 0.624,
+        "issue_assumption_ln6": 1.792,
+        "ln_mean_legal_tags": 1.573
+      },
+      "attribution_crosscheck_depth1": {
+        "agree": 2702,
+        "compared": 3032,
+        "disagree": 330,
+        "filter->mutated_or_folded": 74,
+        "map->mutated_or_folded": 151,
+        "other_op_first->mutated_or_folded": 105
+      },
+      "by_depth": {
+        "depth_1": {
+          "coverage": 0.8923,
+          "share": 0.7589,
+          "under_mark_ops": 3138
+        },
+        "depth_2": {
+          "coverage": 0.8185,
+          "share": 0.2411,
+          "under_mark_ops": 997
+        }
+      },
+      "by_parent_kind_depth_2plus": {
+        "fresh": {
+          "coverage": 0.8726,
+          "under_mark_ops": 871
+        },
+        "inherited": {
+          "coverage": 0.4444,
+          "under_mark_ops": 126
+        }
+      },
+      "by_tag": {
+        "dip": {
+          "coverage": 0.9514,
+          "frame_kind": "inherited",
+          "under_mark_ops": 432
+        },
+        "filter": {
+          "coverage": 0.9263,
+          "frame_kind": "fresh",
+          "under_mark_ops": 475
+        },
+        "fold": {
+          "coverage": 0.8556,
+          "frame_kind": "fresh",
+          "under_mark_ops": 1669
+        },
+        "i": {
+          "coverage": 0.0,
+          "frame_kind": "inherited",
+          "under_mark_ops": 52
+        },
+        "ifte": {
+          "coverage": 0.8629,
+          "frame_kind": "inherited",
+          "under_mark_ops": 824
+        },
+        "map": {
+          "coverage": 0.9485,
+          "frame_kind": "fresh",
+          "under_mark_ops": 660
+        }
+      },
+      "frame_coverage_per_example": 0.9368,
+      "frame_coverage_product": 0.8745,
+      "frames_checked_against_the_machine": {
+        "captures_0": 568,
+        "captures_1": 52,
+        "compared": 620,
+        "match": 620,
+        "no_observation": 302
+      },
+      "legal_tags_per_open": {
+        "histogram": {
+          "3": 101,
+          "4": 313,
+          "5": 208,
+          "6": 344
+        },
+        "mean": 4.823
+      },
+      "programs": 128,
+      "skipped_programs": 0,
+      "tag_distribution": {
+        "dip": 411,
+        "filter": 440,
+        "fold": 1428,
+        "ifte": 711,
+        "map": 626
+      },
+      "unchained_fold": {
+        "accept_set_differs": 0,
+        "completed_bodies": 289,
+        "rate": 0.0,
+        "write_steps_with_a_frame": 1002
+      },
+      "undefined_reasons": {
+        "empty_list": 305,
+        "other_op_first": 75,
+        "parent_refused": 139
+      },
+      "under_mark_ops": 4135,
+      "under_mark_share_of_ops": 0.7045
     }
   },
-  "seconds": 25.0
+  "seconds": 54.3
 }

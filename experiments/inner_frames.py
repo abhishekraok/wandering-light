@@ -149,9 +149,11 @@ def frame_with_captures(
     the author wrote (`lt?`) runs on the combinator's frame **with the captured
     values already pushed**: `(item, x)`. The captured values sit under the
     mark when `[` opens, so the combinator's own operands are found below them.
-    Each `swap cons` prepends one value to the quotation, so the value consed
-    last is pushed first; reversing `below[-captures:]` puts them in the order
-    the body will see.
+    Each `swap cons` prepends one value, and the pair runs innermost-first, so
+    two captures over `(lst, x, y)` build `[ x y body ]`: the body sees `x` then
+    `y`, which is `below[-captures:]` in stack order and **not** reversed. The
+    machine check below settles this -- a reversed slice matches at one capture,
+    where reversing is a no-op, and mismatches at every capture of two or more.
     """
     if captures <= 0:
         return frame_of(tag, below, role)
@@ -160,7 +162,7 @@ def frame_with_captures(
     base = frame_of(tag, below[:-captures], role)
     if isinstance(base, str):
         return base
-    return (*base, *reversed(below[-captures:]))
+    return (*base, *below[-captures:])
 
 
 def legal_tags(below: tuple) -> tuple[str, ...]:
