@@ -78,6 +78,48 @@ deficit, a witness would have to be **under one op** on world-v3, or 2.3 on v4
 eval, to fit inside `ln 64`. No reachable beam width helps either: carrying
 world-v3's median witness would need `ln W` ≥ 627.
 
+## Training on world data cuts the deficit by a factor of five
+
+`BEST` has never seen world data: it is trained on `stack_pbe_v4` alone. The
+obvious question is how much of the 4.19 nats is that. Five 1m checkpoints,
+all seed 0 epoch 3, same recipe, measured on the same 44 world-v3 eval
+witnesses (`deficit_by_policy.json`):
+
+| policy | trained on | **per-step deficit** | over budget | top-1 share | median survival depth |
+|---|---|---:|---:|---:|---:|
+| `staged-s0-e3` (**BEST**) | v4 staged | 4.19 | 150.7× | 0.333 | 2 |
+| `fused-s0-e3` (#155) | v4 fused | 3.79 | 136.4× | 0.405 | 1 |
+| `refused-s0-e3` (#155) | v4 re-fused | 3.29 | 118.3× | 0.361 | 1.5 |
+| #136 `ablated` | v4 **+ world** − 159 | **1.10** | 39.6× | 0.582 | 3 |
+| #136 `random` | v4 **+ world** − 159 | **0.76** | 27.2× | 0.696 | 3 |
+
+The v4-only policies cluster at **3.3–4.2** nats and the world-trained ones at
+**0.76–1.10**: a factor of 3 to 5, against a spread of 0.9 among the v4-only
+variants themselves. So the staged-versus-fused confound — `BEST` is staged and
+the #136 arms are fused — accounts for at most a fifth of the gap, and having
+seen world data accounts for the rest. The policy's own top choice becomes the
+witness's next op on **70%** of steps instead of 33%.
+
+**And every one of these five still solves 1 of 44.** Coverage cannot see a
+5× change in how close the policy is; on a split at 2% it is a dead metric, and
+the deficit is the one that can steer. That is the methodological result here,
+and it is why the ladder above could be run and learn nothing.
+
+The two #136 arms each dropped 159 world behaviours from training, so a clean
+v4-plus-full-world arm should sit below 0.76.
+
+## How far is left
+
+At 0.755 nats and this split's median length the accumulated deficit is 113
+nats against a budget of 4.16 — still **27×** over. To fit at that deficit a
+witness would have to be **5.5 ops**. Composing the two levers at today's
+numbers: world training plus the macro form's 28.5 tokens gives 21.5 nats,
+**5.2×** over rather than 150×. That is arithmetic on current numbers and not a
+prediction — a policy over macro actions would have its own deficits, which
+nobody has measured — but it is the first combination that is within an order
+of magnitude, and it is the reason to measure the two together rather than
+separately.
+
 ## What that argument can and cannot carry
 
 It cannot carry a conclusion about behaviours, in either direction, and that is

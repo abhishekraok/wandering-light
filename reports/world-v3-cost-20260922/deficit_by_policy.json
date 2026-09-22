@@ -1,0 +1,42 @@
+{
+ "staged-s0-e3 (BEST)": {
+  "trained_on": "v4 staged",
+  "deficit": 4.1928,
+  "over": 150.7,
+  "top1": 0.333,
+  "survival": 2.0,
+  "within": 1
+ },
+ "fused-s0-e3": {
+  "trained_on": "v4 fused",
+  "deficit": 3.7944,
+  "over": 136.4,
+  "top1": 0.405,
+  "survival": 1.0,
+  "within": 1
+ },
+ "refused-s0-e3": {
+  "trained_on": "v4 re-fused",
+  "deficit": 3.2902,
+  "over": 118.3,
+  "top1": 0.361,
+  "survival": 1.5,
+  "within": 0
+ },
+ "#136 ablated": {
+  "trained_on": "v4 + world-159",
+  "deficit": 1.1011,
+  "over": 39.6,
+  "top1": 0.582,
+  "survival": 3.0,
+  "within": 1
+ },
+ "#136 random": {
+  "trained_on": "v4 + world-159",
+  "deficit": 0.7553,
+  "over": 27.2,
+  "top1": 0.696,
+  "survival": 3.0,
+  "within": 1
+ }
+}
