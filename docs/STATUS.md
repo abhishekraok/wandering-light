@@ -97,12 +97,16 @@ claim a number supports.
 **The build has started: a search that decomposes the witness.** The first registered prediction ([segment composite](../reports/segment-composite-20260922/README.md)) put the lever inside quotation bodies, not between them. On the lowest-deficit policy we have, the world arm `1m-s0-e5`, bodies carry 79-82% of the deficit. Resetting the beam's budget at closed states is predicted to add +1 of 45 v4 witnesses and +0 of 44 world-v3, so it was **not run**. So stage 1 was **inner-frames (#160) E2's first gate**, and it came back **WEAK, as registered** ([report](../reports/frame-gate-20260922/README.md)).
 - Showing a policy the frame its combinator feeds a body cuts calibrated defined-body deficit 14% on v4 (0.862) but moves clears only from 12 to 13.
 - The frame helps most at one open level (0.62 on v4). Stacked labels cost more as nesting deepens.
-- Commitment still binds: free defined bodies clear only 23 of 45.
-- **Next, approved by the owner 2026-09-22:** one GPU campaign with an innermost-only encoding (tags and frames), an exit-frame oracle and a learned commitment ranker. Predictions are [registered on #160](https://github.com/abhishekraok/wandering-light/issues/160#issuecomment-5787411470). The design it bears on is skeleton-first-search (#163). Macros under a mark (macro-action-space (#162), via #149) are the alternative if the oracle says specification is not the lever, decided on the owner's new world eval.
-- **Running:** campaign 2, rerun from 21:12 PDT 2026-09-22 in three GPU lanes, then CPU measurement.
-  - **Why a rerun:** the first run's worktree was deleted at 20:36 when a ghost Desktop copy of its session was closed, and every checkpoint went with it.
-  - **Where things are now:** run dirs are in the main checkout under `checkpoints/`, and the code is on branch `claude/frame-campaign-2`.
-  - **E2 per-op rows lost:** the first E2 gate's per-op rows went too. Its report and cells are on `main`; the stacked frames arm is retrained for the pairing.
+- Under the prior's commitment charge, free defined bodies clear only 23 of 45. Campaign 2's learned ranker lifts that to 33, against 36 with commitment free.
+- **Campaign 2, approved by the owner 2026-09-22, read as registered** ([report](../reports/frame-campaign-2-20260923/README.md), [results on #160](https://github.com/abhishekraok/wandering-light/issues/160#issuecomment-5792390649)): the oracle reads BETWEEN, the ranker meets its target, and stacking is UNCLEAR.
+  - **A learned ranker makes each `[`'s label cheap.** It charges a mean 0.37 nats against the prior's 1.24, and 1.3-1.5 per v4 witness. It does not price hole searches or sub-spec inference.
+  - **A supplied exit frame helps the body policy little where the deficit is.** On 7+ op bodies it adds nothing at matched LR. The policy misses a last op that frame and exit determine uniquely: 0.53 of the world arm's deficit.
+  - **Body cost is exposure, not per-op difficulty.**
+  - **Clears compare arms and do not forecast coverage:** the solver verifies the same 12 of 43 cohort behaviours ranking raw or calibrated.
+- **Next, the owner's call.** The advisor session's Codex [design review on #163](https://github.com/abhishekraok/wandering-light/issues/163#issuecomment-5792202085) finds sub-spec derivation is the central algorithm. Proposed before any solver is built:
+  - a perfect-decomposition search pilot on v4 eval, with a stop rule set in advance;
+  - rescoring the solver's own programs against the authored witnesses;
+  - an inverse-dynamics probe of the encoder.
 
 Also open, none started: world-v3 staged the way #155 staged v4; what training-data-sources (#118) does after step 3, with world-plus-v4-policy (#134) and keep-below-ablation (#136); the ~127 behaviours left in the sampler-passing pool; the highways programme (#94, #96, #98, goal #99); and the unrun `mixed` arm of hindsight-subtargets (#152).
 

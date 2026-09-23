@@ -552,6 +552,35 @@ Caveats: three seeds, one corpus, one recipe, one 44-task split. The lowest-defi
 
 Caveats: the quotation rows price a body at the flat policy's deficit, not at what a frame-conditioned sub-search would pay (that is #160 E2); every row assumes the right intermediate state survives in the top 64; `1m-s0-e5` was selected on the world-v3 eval split and is fixed here for pairing.
 
+## Inner frames campaign 2: oracle BETWEEN, ranker target met, stacking UNCLEAR (#160)
+
+The world arm's recipe, trained on GPU.
+- **Innermost-only arms:** `tags_inner` and `frames_inner` show a label, or a label and frame, at the innermost defined level only.
+- **The oracle:** `exit_inner` also shows the frame the body must end on, from the authored witness. It trains at 2.5e-4, and its matched arm at 1.25e-4.
+- **The ranker** is trained on every `[` for 41 commitment choices.
+- **Stacked frames** is the first gate's arm, retrained.
+
+Deficits are calibrated. Ratios are medians over 18 paired cells, v4 eval unless marked. Predictions were [registered on #160](https://github.com/abhishekraok/wandering-light/issues/160#issuecomment-5787411470) before training. [report](../reports/frame-campaign-2-20260923/README.md)
+
+| | predicted | measured |
+|---|---:|---:|
+| exit_inner/world, interior body ops (the oracle reading) | 0.70 | **0.679** (BETWEEN); 0.733 at matched LR |
+| exit_inner/world, last op before `]` / `]` | 0.20 / 0.10 | 0.515 / 0.111 |
+| exit over frame, interior, 7+ op bodies, matched LR: v4 / world-v3 | | 1.07 / 1.08 |
+| ranker surprisal per `[`: median / mean (prior 1.02 / 1.24) | 0.30 / | **0.025** / 0.37 |
+| ranker per witness, median (prior 6.9; budget 4.16) | | 1.3-1.5 |
+| world arm clears at `s0-e5`, learned charge (prior 12, free 18) | 15 | **18** |
+| frames_inner/world, defined bodies: v4 / world-v3 (stacked 0.862 / 0.867) | 0.80 / 0.84 | 0.753 / 0.798 |
+| frames_inner/frames, 2+ levels / 1 level (control) | 0.88 / 0.92-1.08 | 0.840 / 1.092 (UNCLEAR) |
+| same without `bounds_cover_list_flag`, v4 | | 1.000 / 1.059 |
+| same, world-v3 | 0.92 / | 0.881 / 0.979 |
+| tags_inner/world, 2+ levels, world-v3 unclipped (stacked 1.165) | 1.03 | **0.892** |
+| solver coverage, world arm, raw against calibrated ranking | within 1 | 12 = 12 of 43 verified |
+
+- **The oracle.** With frame and exit shown, the witness's last op is the only op mapping one to the other in 236 of 265 v4 states. The policy still pays 0.53 of the world arm's deficit there.
+- **Body cost is exposure.** The world arm pays 0.43 nats per defined-body op against 0.40 per top-level op on v4. Bodies hold 76-78% of ops.
+- **World-v3's floor is top-level ops.** With defined-body deficit removed and commitment free, 29 of 44 world-v3 witnesses fail in a top-level segment.
+
 ## Inner frames E2, first gate: WEAK (#160)
 
 `experiments/frame_gate.py`, the world arm's recipe (v4 + world-v3 train, `1m`, LR 1.25e-4, 3 seeds x 6 epochs, GPU). **tags** adds a label (consumer, `ifte` role, captures) at body steps with a defined frame. **frames** adds the label and the frame after the body prefix. Calibrated deficits; ratios are medians over the 18 matched cells. Predictions were registered on #160 before training. [report](../reports/frame-gate-20260922/README.md)
