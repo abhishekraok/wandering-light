@@ -38,6 +38,7 @@ row per task), ``summary.json`` and ``summary.md``.
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
 import sys
 import time
@@ -325,7 +326,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         else fetch_stack_policy(solve.BEST.repo_id, solve.BEST.revision)
     )
     scorer = PolicyScorer(load_policy(policy_dir, device="cpu"), "cpu")
-    system = solve.BEST
+    system = dataclasses.replace(solve.BEST, library=False)
     label = args.label or f"{policy_dir.name} on {args.tasks}" + (
         f" [{args.split}]" if args.split else ""
     )
@@ -335,7 +336,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         sys.stderr.flush()
 
     args.out.mkdir(parents=True, exist_ok=True)
-    log(f"policy {policy_dir}; {system.describe()}; library off; {len(tasks)} tasks")
+    log(f"policy {policy_dir}; {system.describe()}; {len(tasks)} tasks")
     rows = run_tasks(tasks, scorer, system, log)
     with open(args.out / "tasks.jsonl", "w") as handle:
         for row in rows:
