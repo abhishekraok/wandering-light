@@ -94,10 +94,15 @@ def test_a_cycle_is_a_duplicate_of_the_node_s_own_path():
         assert sample["first"] != sample["second"]
 
 
-def test_closed_reads_the_first_example():
-    open_product = (parse_stack("1 [ dup", basis=BASIS),)
-    assert not closed(open_product)
-    assert closed((parse_stack("1 2", basis=BASIS),))
+def test_closed_needs_every_example_closed():
+    assert not closed((parse_stack("1 [ dup", basis=BASIS),))
+    assert closed((parse_stack("1 2", basis=BASIS), parse_stack("3", basis=BASIS)))
+    # the same program can park code in a list on one example and not another
+    quiet = parse_stack("( )", basis=BASIS)
+    parked = parse_stack("( dup )", basis=BASIS)
+    assert closed((quiet,))
+    assert not closed((quiet, parked))
+    assert not closed((parked, quiet))
 
 
 def test_summary_and_markdown_hold_together():
@@ -127,6 +132,7 @@ def test_summary_and_markdown_hold_together():
     assert summary["effective_width"] == 7 / 8
     assert summary["tasks_with_closed_cross_path"] == 1
     assert summary["closed_states_met_per_closed_retained"] == 1 / 5
+    assert summary["ranked_duplicate_share_of_allowed"] == 3 / 10
     assert summary["met_by_length"] == {"3": 2}
     text = markdown(summary, "unit")
     assert "**40.0%**" in text and "| same-layer | 0 | 2 |" in text

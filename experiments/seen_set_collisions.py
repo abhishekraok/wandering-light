@@ -81,13 +81,17 @@ def holds_code(value: Value) -> bool:
 
 
 def closed(product: Product) -> bool:
-    """No open quotation and no code on the stack, on the first example.
+    """No open quotation and no code on the stack, on every example.
 
     The mark structure is the same on every example, since every example ran
-    the same program; the first stack decides.
+    the same program, but code parked inside a list is not: ``[ drop [ dup ] ]
+    map`` leaves a symbol in the list on a non-empty input and none on an empty
+    one. Every stack is checked, as `staged_cycles.closed_product` does.
     """
-    stack = product[0]
-    return not quotation_open(stack) and not any(holds_code(v) for v in stack)
+    return all(
+        not quotation_open(stack) and not any(holds_code(v) for v in stack)
+        for stack in product
+    )
 
 
 @dataclass
@@ -306,13 +310,20 @@ def summarise(rows: Sequence[dict[str, Any]], beam_width: int) -> dict[str, Any]
         "closed_states_met_per_closed_retained": _ratio(
             total["met:states"], total["retained:closed"]
         ),
-        # uncensored: every legal successor the guards allow, ranked or not
-        "duplicate_share_uncensored": _ratio(
-            total["duplicate"] + total["unranked:duplicate"],
-            ranked + total["unranked"] - total["unranked:guard"],
+        # over the successors the guards allow, so ranked and unranked compare
+        "ranked_duplicate_share_of_allowed": _ratio(
+            total["duplicate"], total["retained"] + total["duplicate"]
         ),
         "unranked_duplicate_share": _ratio(
             total["unranked:duplicate"], total["unranked"] - total["unranked:guard"]
+        ),
+        # uncensored: every allowed successor, ranked or not
+        "duplicate_share_uncensored": _ratio(
+            total["duplicate"] + total["unranked:duplicate"],
+            total["retained"]
+            + total["duplicate"]
+            + total["unranked"]
+            - total["unranked:guard"],
         ),
         "met_by_length": _histogram(total, "met:length:"),
         "met_by_longer_by": _histogram(total, "met:longer-by:"),
@@ -374,8 +385,9 @@ def markdown(summary: dict[str, Any], label: str) -> str:
         f"{c.get('unranked:guard', 0):,} a guard would refuse, "
         f"{c.get('unranked:duplicate', 0):,} already seen "
         f"({_pct(summary['unranked_duplicate_share'])}; "
-        f"{c.get('unranked:duplicate:closed', 0):,} closed); duplicate share of all "
-        f"allowed successors {_pct(summary['duplicate_share_uncensored'])}",
+        f"{c.get('unranked:duplicate:closed', 0):,} closed); among the ranked the "
+        f"guards allowed, {_pct(summary['ranked_duplicate_share_of_allowed'])}; over "
+        f"all allowed successors {_pct(summary['duplicate_share_uncensored'])}",
         "",
         "Where the second route meets the first (closed cross-path duplicates):",
         "",
