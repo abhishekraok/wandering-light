@@ -22,19 +22,30 @@ library off, CPU. Policies: the world arm `1m-s0-e5` (the checkpoint the
 segment composite and the #160 gates read; `checkpoints/world-arm-20260922/policies/1m-s0-e5`)
 and `BEST` = `staged-s0-e3` (Hub `e5a0b139`). Task sets: the #101 cohort (300
 tasks, 43 behaviours; `checkpoints/best-system-20260922/cohort.jsonl.gz`) and
-the `stack_pbe_world_v3` eval split (44 tasks). Code at `bc7db29`. Two runs
-gave identical counts; timings were not read (the first run overlapped
-campaign 2's CPU cells, 01:25-01:55 PDT 2026-09-23). Per-cell tables and JSON
+the `stack_pbe_world_v3` eval split (44 tasks). Code at `c13f679`. Three runs
+gave identical counts (the third added the uncensored column); timings were
+not read (the first run overlapped campaign 2's CPU cells, 01:25-01:55 PDT
+2026-09-23). Per-cell tables and JSON
 in `cells/`.
 
 ## Results
 
-| cell | closed cross-path duplicates per closed retained state | distinct closed states met | tasks with one | meetings at length >= 6 | >= 10 | second route same length | duplicates, share of ranked | closed share of retained | beam filled |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| world arm, #101 cohort | **7.2%** (5,127 / 71,061) | 5.8% (4,128) | 288 / 300 | 53.0% | 47.3% | 22.9% | 2.7% | 11.8% | 97.6% |
-| world arm, world-v3 eval | **8.7%** (1,537 / 17,578) | 6.3% (1,101) | 44 / 44 | 65.1% | 56.4% | 27.8% | 4.0% | 13.5% | 98.3% |
-| BEST, #101 cohort | **7.6%** (9,606 / 126,365) | 5.4% (6,838) | 288 / 300 | 76.0% | 68.7% | 18.7% | 5.6% | 24.6% | 97.2% |
-| BEST, world-v3 eval | **18.9%** (2,558 / 13,509) | 9.0% (1,222) | 44 / 44 | 78.1% | 70.6% | 11.5% | 7.2% | 10.4% | 98.3% |
+| cell | closed cross-path duplicates per closed retained state | distinct closed states met | tasks with one | meetings at length >= 6 | >= 10 | second route same length | duplicates, share of ranked | duplicates, share of all allowed successors | closed share of retained | beam filled |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| world arm, #101 cohort | **7.2%** (5,127 / 71,061) | 5.8% (4,128) | 288 / 300 | 53.0% | 47.3% | 22.9% | 2.7% | 2.8% | 11.8% | 97.6% |
+| world arm, world-v3 eval | **8.7%** (1,537 / 17,578) | 6.3% (1,101) | 44 / 44 | 65.1% | 56.4% | 27.8% | 4.0% | 4.5% | 13.5% | 98.3% |
+| BEST, #101 cohort | **7.6%** (9,606 / 126,365) | 5.4% (6,838) | 288 / 300 | 76.0% | 68.7% | 18.7% | 5.6% | 6.3% | 24.6% | 97.2% |
+| BEST, world-v3 eval | **18.9%** (2,558 / 13,509) | 9.0% (1,222) | 44 / 44 | 78.1% | 70.6% | 11.5% | 7.2% | 7.8% | 10.4% | 98.3% |
+
+**Censoring.** The search checks the visited set only for the successors the
+ranking reaches before the beam fills, about 68 of ~1,300 allowed successors
+per layer (5.1-5.6%). Run 3 judged every successor below the cut as the search
+would have, guards first, against the set as it stands at the end of the
+layer: the duplicate share below the cut is 2.8 / 4.5 / 6.3 / 7.8%, against
+2.7 / 4.0 / 5.6 / 7.2% among the ranked. The censoring is real and changes
+nothing: a top-ranked successor and an unranked one are already-seen at the
+same rate. (Below-cut duplicates are not split by class; they include the
+node's own loops.)
 
 Duplicates by class, cross-path share: 31.5 / 31.7 / 38.3 / 45.0%; the rest
 are cycles. On the world arm's cohort cell, tasks that fit re-converge at 9.8%
@@ -70,8 +81,9 @@ Shallow ones: `dup dup` / `dup over`, `null?` / `nil eq?`, `nil` / `[ ]`,
   bodies that differ but agree on the shown examples (`over lt?` against
   `swap lt?`). The last is aliasing on k examples, the held-out concern.
 - **The visited set costs the beam nothing.** Duplicates are 2.7-7.2% of ranked
-  successors, cycles are 55-69% of those, and 97-98% of beam slots fill every
-  layer. It discarded evidence, not width.
+  successors and 2.8-7.8% of all allowed ones, cycles are 55-69% of the ranked
+  ones, and 97-98% of beam slots fill every layer. It discarded evidence, not
+  width.
 - The staged checkpoint meets more and deeper than the world arm: its text
   has more cycles to permute.
 
