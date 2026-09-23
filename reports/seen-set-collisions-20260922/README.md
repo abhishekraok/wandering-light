@@ -22,9 +22,11 @@ library off, CPU. Policies: the world arm `1m-s0-e5` (the checkpoint the
 segment composite and the #160 gates read; `checkpoints/world-arm-20260922/policies/1m-s0-e5`)
 and `BEST` = `staged-s0-e3` (Hub `e5a0b139`). Task sets: the #101 cohort (300
 tasks, 43 behaviours; `checkpoints/best-system-20260922/cohort.jsonl.gz`) and
-the `stack_pbe_world_v3` eval split (44 tasks). Code at `c13f679`. Three runs
-gave identical counts (the third added the uncensored column); timings were
-not read (the first run overlapped campaign 2's CPU cells, 01:25-01:55 PDT
+the `stack_pbe_world_v3` eval split (44 tasks). Code at `410e166`. Four runs;
+the third added the uncensored column, the fourth applied a Codex review of
+the branch (closed must hold on every example, not the first; allowed-successor
+denominators on both sides of the cut) and moved two counts by one. Timings
+were not read (the first run overlapped campaign 2's CPU cells, 01:25-01:55 PDT
 2026-09-23). Per-cell tables and JSON
 in `cells/`.
 
@@ -34,15 +36,15 @@ in `cells/`.
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | world arm, #101 cohort | **7.2%** (5,127 / 71,061) | 5.8% (4,128) | 288 / 300 | 53.0% | 47.3% | 22.9% | 2.7% | 2.8% | 11.8% | 97.6% |
 | world arm, world-v3 eval | **8.7%** (1,537 / 17,578) | 6.3% (1,101) | 44 / 44 | 65.1% | 56.4% | 27.8% | 4.0% | 4.5% | 13.5% | 98.3% |
-| BEST, #101 cohort | **7.6%** (9,606 / 126,365) | 5.4% (6,838) | 288 / 300 | 76.0% | 68.7% | 18.7% | 5.6% | 6.3% | 24.6% | 97.2% |
-| BEST, world-v3 eval | **18.9%** (2,558 / 13,509) | 9.0% (1,222) | 44 / 44 | 78.1% | 70.6% | 11.5% | 7.2% | 7.8% | 10.4% | 98.3% |
+| BEST, #101 cohort | **7.6%** (9,605 / 126,344) | 5.4% (6,838) | 288 / 300 | 76.0% | 68.7% | 18.7% | 5.6% | 6.3% | 24.6% | 97.2% |
+| BEST, world-v3 eval | **18.9%** (2,557 / 13,500) | 9.0% (1,222) | 44 / 44 | 78.1% | 70.6% | 11.5% | 7.2% | 7.8% | 10.4% | 98.3% |
 
 **Censoring.** The search checks the visited set only for the successors the
 ranking reaches before the beam fills, about 68 of ~1,300 allowed successors
 per layer (5.1-5.6%). Run 3 judged every successor below the cut as the search
 would have, guards first, against the set as it stands at the end of the
 layer: the duplicate share below the cut is 2.8 / 4.5 / 6.3 / 7.8%, against
-2.7 / 4.0 / 5.6 / 7.2% among the ranked. The censoring is real and changes
+2.9 / 4.2 / 5.7 / 7.3% among the ranked successors the guards allowed. The censoring is real and changes
 nothing: a top-ranked successor and an unranked one are already-seen at the
 same rate. (Below-cut duplicates are not split by class; they include the
 node's own loops.)

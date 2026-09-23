@@ -129,8 +129,9 @@
   "effective_width": 0.9756063142323264,
   "closed_share_of_retained": 0.11814495413759221,
   "closed_states_met_per_closed_retained": 0.0580909359564318,
-  "duplicate_share_uncensored": 0.027901863195767897,
+  "ranked_duplicate_share_of_allowed": 0.028987987323809507,
   "unranked_duplicate_share": 0.027926243037228245,
+  "duplicate_share_uncensored": 0.027977916294181435,
   "met_by_length": {
     "1": 1,
     "2": 1502,
@@ -234,5 +235,5 @@
   "label": "world arm 1m-s0-e5, #101 cohort (300 tasks, 43 behaviours)",
   "policy": "/home/abhishekrao/repos/wandering-light/checkpoints/world-arm-20260922/policies/1m-s0-e5",
   "system": "staged-s0-e3 = abhishekraok/wandering-light-stack-policy@e5a0b1391c52; beam 64 x depth 48, guard both, library off, state cap 16384",
-  "commit": "c13f679"
+  "commit": "410e166"
 }

@@ -12,16 +12,16 @@
 
 | duplicate class | open | closed |
 |---|---:|---:|
-| cycle | 5,207 | 14,142 |
+| cycle | 5,208 | 14,141 |
 | same-layer | 739 | 1,793 |
-| earlier-layer | 1,644 | 7,813 |
+| earlier-layer | 1,645 | 7,812 |
 
-- closed cross-path duplicates per closed retained state: **7.6%** (9,606 / 126,365), in 288 of 300 tasks
+- closed cross-path duplicates per closed retained state: **7.6%** (9,605 / 126,344), in 288 of 300 tasks
 - cross-path share of duplicates: 38.3%; the rest are cycles
-- distinct closed states a second route reached, per closed retained state: 5.4% (6,838)
+- distinct closed states a second route reached, per closed retained state: 5.4% (6,837)
 - closed share of retained states: 24.6%
 - effective width: 97.2% of the beam filled per layer
-- below the cut (never checked by the search): 10,522,835 successors, 997,079 a guard would refuse, 600,092 already seen (6.3%; 483,427 closed); duplicate share of all allowed successors 6.3%
+- below the cut (never checked by the search): 10,522,835 successors, 997,079 a guard would refuse, 600,092 already seen (6.3%; 483,394 closed); among the ranked the guards allowed, 5.7%; over all allowed successors 6.3%
 
 Where the second route meets the first (closed cross-path duplicates):
 
@@ -29,7 +29,7 @@ Where the second route meets the first (closed cross-path duplicates):
 |---:|---:|---|---:|---:|
 | 1 | 1 | | 0 | 1,793 |
 | 2 | 1,122 | | 1 | 1,931 |
-| 3 | 679 | | 2 | 871 |
+| 3 | 679 | | 2 | 870 |
 | 4 | 277 | | 3 | 488 |
 | 5 | 231 | | 4 | 166 |
 | 6 | 164 | | 5 | 636 |
@@ -52,7 +52,7 @@ Where the second route meets the first (closed cross-path duplicates):
 | 23 | 178 | | 22 | 34 |
 | 24 | 125 | | 23 | 41 |
 | 25 | 161 | | 24 | 53 |
-| 26 | 179 | | 25 | 44 |
+| 26 | 178 | | 25 | 44 |
 | 27 | 181 | | 26 | 68 |
 | 28 | 188 | | 27 | 39 |
 | 29 | 153 | | 28 | 25 |
