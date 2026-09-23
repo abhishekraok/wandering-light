@@ -98,8 +98,8 @@ claim a number supports.
 - Showing a policy the frame its combinator feeds a body cuts calibrated defined-body deficit 14% on v4 (0.862) but moves clears only from 12 to 13.
 - The frame helps most at one open level (0.62 on v4). Stacked labels cost more as nesting deepens.
 - Commitment still binds: free defined bodies clear only 23 of 45.
-- **Next, approved by the owner 2026-09-22:** one GPU campaign with an innermost-only encoding (tags and frames), an exit-frame oracle and a learned commitment ranker. It is being built on branch `claude/frame-campaign-2`, and predictions are registered on #160 before training. After that comes macros under a mark (macro-action-space (#162), via #149), on the owner's new world eval.
-- **Nothing running yet.**
+- **Next, approved by the owner 2026-09-22:** one GPU campaign with an innermost-only encoding (tags and frames), an exit-frame oracle and a learned commitment ranker. Predictions are [registered on #160](https://github.com/abhishekraok/wandering-light/issues/160#issuecomment-5787411470). The design it bears on is skeleton-first-search (#163). Macros under a mark (macro-action-space (#162), via #149) are the alternative if the oracle says specification is not the lever, decided on the owner's new world eval.
+- **Running:** campaign 2, four GPU lanes from 18:31 PDT 2026-09-22, then CPU measurement; branch `claude/frame-campaign-2`.
 
 Also open, none started: world-v3 staged the way #155 staged v4; what training-data-sources (#118) does after step 3, with world-plus-v4-policy (#134) and keep-below-ablation (#136); the ~127 behaviours left in the sampler-passing pool; the highways programme (#94, #96, #98, goal #99); and the unrun `mixed` arm of hindsight-subtargets (#152).
 
