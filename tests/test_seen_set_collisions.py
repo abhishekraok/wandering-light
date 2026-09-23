@@ -70,6 +70,14 @@ def test_every_duplicate_is_classified_once():
     )
     assert c["met:longer-by:0"] == c["duplicate:same-layer:closed"]
     assert c["met:states"] <= closed_cross
+    assert (
+        c["unranked"]
+        == c["unranked:guard"] + c["unranked:duplicate"] + c["unranked:new"]
+    )
+    assert (
+        c["unranked:duplicate"]
+        == c["unranked:duplicate:open"] + c["unranked:duplicate:closed"]
+    )
 
 
 def test_a_cycle_is_a_duplicate_of_the_node_s_own_path():

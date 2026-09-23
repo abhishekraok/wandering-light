@@ -52,7 +52,12 @@ sys.path.insert(0, str(REPO))
 
 from wandering_light import solve  # noqa: E402
 from wandering_light.corpus_hub import fetch_corpus  # noqa: E402
-from wandering_light.stack_beam import BeamObserver, beam_solve  # noqa: E402
+from wandering_light.quotation_guard import blocked  # noqa: E402
+from wandering_light.stack_beam import (  # noqa: E402
+    BeamObserver,
+    atoms_exceed,
+    beam_solve,
+)
 from wandering_light.stack_machine import Lst, Sym, quotation_open  # noqa: E402
 from wandering_light.stack_pbe import OPS, load  # noqa: E402
 from wandering_light.stack_policy import PolicyScorer, load_policy  # noqa: E402
@@ -89,6 +94,10 @@ def closed(product: Product) -> bool:
 class CollisionRecorder(BeamObserver):
     """Reads the search's ``duplicate`` verdicts and says what each one was."""
 
+    # the search's own settings, to judge successors the ranking never reached
+    max_depth: int = 48
+    guard: str = "both"
+    max_state_atoms: int | None = 16_384
     counts: Counter = field(default_factory=Counter)
     layers: int = 0
     retained_per_layer: list[int] = field(default_factory=list)
@@ -169,6 +178,36 @@ class CollisionRecorder(BeamObserver):
                         "second": " ".join(program),
                     }
                 )
+        # The ranking stops when the beam is full, so successors below the cut
+        # were never checked against the visited set: the counts above are
+        # censored. Judge the rest as the search would have, guards first,
+        # against the set as it stands at the end of the layer.
+        remaining = self.max_depth - depth - 1
+        for (node, index), product in self._successors.items():
+            if (node, index) in verdicts:
+                continue
+            self.counts["unranked"] += 1
+            if self.guard != "off" and blocked(product[0], remaining, self.guard):
+                self.counts["unranked:guard"] += 1
+                continue
+            if self.max_state_atoms is not None and atoms_exceed(
+                product, self.max_state_atoms
+            ):
+                self.counts["unranked:guard"] += 1
+                continue
+            if (
+                product in self._first
+                or product in self._ancestors[node]
+                or product == self._beam[node][0]
+            ):
+                self.counts["unranked:duplicate"] += 1
+                self.counts[
+                    "unranked:duplicate:closed"
+                    if closed(product)
+                    else "unranked:duplicate:open"
+                ] += 1
+            else:
+                self.counts["unranked:new"] += 1
         self._ancestors = [
             self._ancestors[node] | {self._beam[node][0]} for node, _ in parents
         ]
@@ -189,7 +228,11 @@ def run_tasks(
 ) -> list[dict[str, Any]]:
     rows = []
     for index, task in enumerate(tasks):
-        recorder = CollisionRecorder()
+        recorder = CollisionRecorder(
+            max_depth=system.max_depth,
+            guard=system.guard,
+            max_state_atoms=system.max_state_atoms,
+        )
         started = time.perf_counter()
         result = beam_solve(
             task,
@@ -263,6 +306,14 @@ def summarise(rows: Sequence[dict[str, Any]], beam_width: int) -> dict[str, Any]
         "closed_states_met_per_closed_retained": _ratio(
             total["met:states"], total["retained:closed"]
         ),
+        # uncensored: every legal successor the guards allow, ranked or not
+        "duplicate_share_uncensored": _ratio(
+            total["duplicate"] + total["unranked:duplicate"],
+            ranked + total["unranked"] - total["unranked:guard"],
+        ),
+        "unranked_duplicate_share": _ratio(
+            total["unranked:duplicate"], total["unranked"] - total["unranked:guard"]
+        ),
         "met_by_length": _histogram(total, "met:length:"),
         "met_by_longer_by": _histogram(total, "met:longer-by:"),
     }
@@ -319,6 +370,12 @@ def markdown(summary: dict[str, Any], label: str) -> str:
         f"({c.get('met:states', 0):,})",
         f"- closed share of retained states: {_pct(summary['closed_share_of_retained'])}",
         f"- effective width: {_pct(summary['effective_width'])} of the beam filled per layer",
+        f"- below the cut (never checked by the search): {c.get('unranked', 0):,} successors, "
+        f"{c.get('unranked:guard', 0):,} a guard would refuse, "
+        f"{c.get('unranked:duplicate', 0):,} already seen "
+        f"({_pct(summary['unranked_duplicate_share'])}; "
+        f"{c.get('unranked:duplicate:closed', 0):,} closed); duplicate share of all "
+        f"allowed successors {_pct(summary['duplicate_share_uncensored'])}",
         "",
         "Where the second route meets the first (closed cross-path duplicates):",
         "",
