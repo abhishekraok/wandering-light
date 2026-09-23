@@ -17,7 +17,13 @@
     "duplicate:earlier-layer": 9457,
     "duplicate:earlier-layer:closed": 7813,
     "met:longer-by:1": 1931,
+    "unranked": 10522835,
+    "unranked:new": 8925664,
+    "unranked:duplicate": 600092,
+    "unranked:duplicate:closed": 483427,
     "met:length:3": 679,
+    "unranked:guard": 997079,
+    "unranked:duplicate:open": 116665,
     "duplicate:earlier-layer:open": 1644,
     "met:length:6": 164,
     "met:longer-by:2": 871,
@@ -124,6 +130,8 @@
   "effective_width": 0.9715893634385201,
   "closed_share_of_retained": 0.24570050845315522,
   "closed_states_met_per_closed_retained": 0.05411308511059233,
+  "duplicate_share_uncensored": 0.06263614828805307,
+  "unranked_duplicate_share": 0.06299678471713951,
   "met_by_length": {
     "1": 1,
     "2": 1122,
@@ -227,5 +235,5 @@
   "label": "BEST staged-s0-e3, #101 cohort (300 tasks, 43 behaviours)",
   "policy": "/home/abhishekrao/.cache/wandering-light/stack-policy/abhishekraok__wandering-light-stack-policy/e5a0b1391c5268c3ae04a49e6862f19a30779bb2",
   "system": "staged-s0-e3 = abhishekraok/wandering-light-stack-policy@e5a0b1391c52; beam 64 x depth 48, guard both, library off, state cap 16384",
-  "commit": "bc7db29"
+  "commit": "c13f679"
 }

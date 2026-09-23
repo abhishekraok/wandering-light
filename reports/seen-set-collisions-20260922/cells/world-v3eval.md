@@ -20,6 +20,7 @@
 - distinct closed states a second route reached, per closed retained state: 6.3% (1,101)
 - closed share of retained states: 13.5%
 - effective width: 98.3% of the beam filled per layer
+- below the cut (never checked by the search): 2,894,626 successors, 356,193 a guard would refuse, 114,939 already seen (4.5%; 59,213 closed); duplicate share of all allowed successors 4.5%
 
 Where the second route meets the first (closed cross-path duplicates):
 
