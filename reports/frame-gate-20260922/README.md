@@ -107,7 +107,7 @@ No temperature sat at the edge of its search. The frames arm's temperature, over
 
 ## What this licenses
 
-**WEAK is the owner's call.** The registered PASS reading, a committing search with a consumer ranker, is not licensed.
+**WEAK is the owner's call.** The registered PASS reading, a committing search with a consumer ranker, is not licensed. The design the next campaign bears on is filed as skeleton-first-search (#163).
 
 **Proposed next campaign**, one GPU campaign, with its own registration. This is the advisor session's design and mine. It has four arms:
 - **Innermost-only encoding, tags and frames.** Show only the innermost defined level's label and frame, and leave ancestors as the machine shows them.
