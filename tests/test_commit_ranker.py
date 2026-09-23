@@ -86,3 +86,35 @@ def test_a_ranker_temperature_at_the_edge_blocks_the_readings(tmp_path, monkeypa
         "calibration_at_boundary": ["ranker-s1"],
     }
     assert fc.readings(out) == {"status": "CALIBRATION_AT_BOUNDARY"}
+
+
+def test_a_ranker_row_never_shows_the_level_it_is_opening():
+    """At a `[` the ranker sees the pre-bracket state: its own answer is not there."""
+    import random
+
+    from experiments.frame_rows import META, frame_product
+    from wandering_light.stack_machine import Sym
+    from wandering_light.stack_pbe import BY_NAME, build_task, draw_task
+
+    behaviour = BY_NAME["abs_each"]
+    task = build_task(behaviour, draw_task(behaviour, random.Random(0), 4, held_out=6))
+    assert task.program[:2] == ("[", "[")
+    product = frame_product(task, cr.ENCODING)
+    # The outer `[` opens at the top level: nothing is labelled yet.
+    assert all(META not in state for state in product[0])
+    # The inner `[` shows the enclosing `map` level's label, never its own `ifte`.
+    for state in product[1]:
+        assert state[state.index(META) + 1] == Sym("map")
+        assert Sym("ifte") not in state
+    rows = cr.ranker_rows([task], cr.vocabulary(2))
+    labels = [cr.vocabulary(2)[r.label] for r in rows]
+    assert labels[:2] == [("map", 0, 0), ("ifte", 0, 0)]
+
+
+def test_the_holdout_halves_share_no_task():
+    from wandering_light.stack_policy import Row
+
+    held = [Row(None, 0, task, 0, 1) for task in (0, 0, 1, 2, 3, 3)]
+    select, calibrate = cr.halves(held)
+    assert {r.task for r in select} == {0, 2}
+    assert {r.task for r in calibrate} == {1, 3}

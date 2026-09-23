@@ -91,15 +91,34 @@ def load_cells(run_dir: Path, gate_dir: Path) -> dict[str, dict[tuple, dict]]:
 
 
 def op_flags(corpus: str) -> dict[str, list[dict[str, Any]]]:
-    """Per witness step: open levels, body position, and tags-encoded clipping."""
+    """Per witness step: open levels, body position and length, tags clipping."""
     out = {}
     for task in eval_witnesses(corpus):
         walks = example_walks(task)
+        match, stack = {}, []
+        for step, name in enumerate(task.program):
+            if name == "[":
+                stack.append(step)
+            elif name == "]" and stack:
+                match[stack.pop()] = step
         opened: list[int] = []
         flags = []
         for step, name in enumerate(task.program):
+            # Ops strictly between the innermost open level's brackets.
+            length = (
+                match.get(opened[-1], len(task.program)) - opened[-1] - 1
+                if opened
+                else 0
+            )
             per = {
                 "levels": len(walks[0][1].get(step, ())),
+                "body": "top"
+                if not opened
+                else "1-2"
+                if length <= 2
+                else "3-6"
+                if length <= 6
+                else "7+",
                 "position": (
                     "top"
                     if not opened
@@ -157,6 +176,21 @@ SUBSETS = {
     "top": lambda op: op["cls"] == "top",
     "all body": lambda op: op["cls"] != "top",
 }
+# The oracle by body length: on v4 the median body is 7 ops, so first and last
+# ops dominate short bodies and the interior number is mostly a long-body one.
+for _bucket in ("1-2", "3-6", "7+"):
+    SUBSETS[f"defined, interior, body {_bucket}"] = lambda op, b=_bucket: (
+        op["cls"] == "defined"
+        and op["position"] in ("first", "later")
+        and op["body"] == b
+    )
+    SUBSETS[f"defined, body {_bucket}"] = lambda op, b=_bucket: (
+        op["cls"] == "defined" and op["body"] == b
+    )
+# Rank of the witness op at each state: once bodies are executed sub-problems
+# the search is Markov over sub-states, and this is the statistic that matters.
+RANKED = ("defined", "defined, interior", "defined, later ops", "top")
+TOP_K = (1, 3, 8)
 
 
 def subset_totals(cell: dict, corpus: str, flags) -> dict[str, float]:
@@ -173,6 +207,29 @@ def subset_totals(cell: dict, corpus: str, flags) -> dict[str, float]:
                 if keep(op):
                     totals[name] += d / t
     return totals
+
+
+def rank_shares(cell: dict, corpus: str, flags) -> dict[str, dict[str, float]]:
+    """Per `RANKED` subset, the share of states where the witness op is in the top k."""
+    hits = {name: dict.fromkeys(TOP_K, 0) for name in RANKED}
+    seen = dict.fromkeys(RANKED, 0)
+    for row in cell[corpus]["machine_mask"]["rows"]:
+        for step, (rank, cls) in enumerate(
+            zip(row["ranks"], row["classes"], strict=True)
+        ):
+            if rank is None:
+                continue
+            op = {**flags[row["behaviour"]][step], "cls": cls, "name": row["behaviour"]}
+            for name in RANKED:
+                if SUBSETS[name](op):
+                    seen[name] += 1
+                    for k in TOP_K:
+                        hits[name][k] += rank <= k
+    return {
+        name: {f"top{k}": hits[name][k] / seen[name] for k in TOP_K}
+        for name in RANKED
+        if seen[name]
+    }
 
 
 def _summary(values: list[float]) -> list[float] | None:
@@ -221,7 +278,22 @@ def report(run_dir: Path, gate_dir: Path, log) -> dict[str, Any]:
             arm: {k: subset_totals(c, corpus, flags) for k, c in cells[arm].items()}
             for arm in cells
         }
-        corpus_out: dict[str, Any] = {"ratios": {}, "clears": {}, "top1_gain": {}}
+        corpus_out: dict[str, Any] = {
+            "ratios": {},
+            "clears": {},
+            "top1_gain": {},
+            "ranks": {},
+        }
+        for arm in cells:
+            shares = [rank_shares(c, corpus, flags) for c in cells[arm].values()]
+            if shares:
+                corpus_out["ranks"][arm] = {
+                    name: {
+                        key: statistics.median(s[name][key] for s in shares)
+                        for key in shares[0][name]
+                    }
+                    for name in shares[0]
+                }
         for num, den in (
             *((a, "world") for a in (*ARMS, *STACKED)),
             ("frames_inner", "frames"),
@@ -281,9 +353,9 @@ def report(run_dir: Path, gate_dir: Path, log) -> dict[str, Any]:
                 ]
                 corpus_out["top1_gain"][arm] = _summary(gains)
         corpus_out["commitment"] = {
-            "prior": cr.summarise(cr.at_opens(prior, corpus)),
+            "prior": cr.commitment_summary(prior, corpus),
             "learned": {
-                seed: cr.summarise(cr.at_opens(v[corpus], corpus))
+                seed: cr.commitment_summary(v[corpus], corpus)
                 for seed, v in learned.items()
             },
         }

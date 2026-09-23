@@ -129,6 +129,15 @@ def ranker_rows(tasks: Sequence[Task], choices: Sequence[Choice]) -> list[Row]:
     return rows
 
 
+def halves(held: Sequence[Row]) -> tuple[list[Row], list[Row]]:
+    """The holdout split by task: one half picks the epoch, the other fits T.
+
+    Picking the epoch and fitting the temperature on the same rows would make
+    the charge mildly optimistic.
+    """
+    return [r for r in held if r.task % 2 == 0], [r for r in held if r.task % 2 == 1]
+
+
 def split_rows() -> tuple[list[Row], list[Row], list[Choice]]:
     """Fit and validation rows on the world arm's own task split."""
     fit_tasks, held_tasks = co.split_tasks(wa.configure())
@@ -168,8 +177,10 @@ def validation_ce(model, rows, device, batch_size: int = wa.VAL_BATCH) -> float:
 def train(run_dir: Path, device: str, seeds: Sequence[int], log) -> None:
     """The world arm's Adam, LR and batch, `EPOCHS` epochs, every epoch snapshotted."""
     fit, held, choices = split_rows()
+    select, _calibrate = halves(held)
     log(
-        f"RESULT ranker rows: fit {len(fit)} validation {len(held)}, {len(choices)} choices"
+        f"RESULT ranker rows: fit {len(fit)} validation {len(held)} "
+        f"(epoch choice {len(select)}), {len(choices)} choices"
     )
     target = torch.device(device)
     for seed in seeds:
@@ -216,7 +227,7 @@ def train(run_dir: Path, device: str, seeds: Sequence[int], log) -> None:
             row = {
                 "epoch": epoch,
                 "train_cross_entropy": total / len(fit),
-                "validation_cross_entropy": validation_ce(model, held, target),
+                "validation_cross_entropy": validation_ce(model, select, target),
                 "seconds": time.perf_counter() - started,
             }
             history.append(row)
@@ -305,12 +316,37 @@ def at_opens(charged: dict[str, list[float]], corpus: str) -> list[float]:
     ]
 
 
+def at_group_opens(charged: dict[str, list[float]], corpus: str) -> list[float]:
+    """As `at_opens`, less the `ifte` role-1 and role-2 opens.
+
+    Those follow almost for free from the role-0 commitment, so they pull the
+    median down without saying anything about the commitments that are hard.
+    """
+    return [
+        charged[task.behaviour][step]
+        for task in eval_witnesses(corpus)
+        for step, (_shape, choice) in sorted(
+            commitments(task.program, task.inputs[0]).items()
+        )
+        if not (choice[0] == "ifte" and choice[1] in (1, 2))
+    ]
+
+
 def summarise(costs: Sequence[float]) -> dict[str, float | int]:
     """Full precision: a reading compares these with its thresholds."""
     return {
         "charged": len(costs),
         "mean": statistics.fmean(costs),
         "median": statistics.median(costs),
+    }
+
+
+def commitment_summary(charged: dict[str, list[float]], corpus: str) -> dict:
+    """Every `[`, the first `[` of each group, and the charge each witness pays."""
+    return {
+        **summarise(at_opens(charged, corpus)),
+        "first_of_group": summarise(at_group_opens(charged, corpus)),
+        "per_witness": summarise([sum(c) for c in charged.values()]),
     }
 
 
@@ -322,7 +358,8 @@ def best_epoch(run_dir: Path, seed: int) -> int:
 def measure(run_dir: Path, seeds: Sequence[int], log) -> list[Path]:
     """Calibrate each seed's best-validation snapshot on the v4 holdout; charge eval."""
     _fit, held, _choices = split_rows()
-    labels = np.array([row.label for row in held])
+    _select, calibrate = halves(held)
+    labels = np.array([row.label for row in calibrate])
     paths = []
     for seed in seeds:
         epoch = best_epoch(run_dir, seed)
@@ -332,12 +369,12 @@ def measure(run_dir: Path, seeds: Sequence[int], log) -> list[Path]:
             continue
         path = hs.policy_dir(run_dir / ARM, wa.ARM, seed, epoch)
         model = load_policy(path).eval()
-        calibration = fit_temperature(_all_logits(model, held, "cpu"), labels)
+        calibration = fit_temperature(_all_logits(model, calibrate, "cpu"), labels)
         per = {
             corpus: charges(model, corpus, calibration["temperature"], "cpu")
             for corpus in CORPORA
         }
-        summary = {corpus: summarise(at_opens(v, corpus)) for corpus, v in per.items()}
+        summary = {corpus: commitment_summary(v, corpus) for corpus, v in per.items()}
         log(f"RESULT ranker s{seed} e{epoch}: {calibration} {summary}")
         co.write_json(
             out,
