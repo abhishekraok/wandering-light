@@ -61,6 +61,15 @@ def test_every_duplicate_is_classified_once():
     assert c["duplicate"] == by_kind == by_state
     assert c["retained"] == c["retained:open"] + c["retained:closed"]
     assert c["retained"] == sum(recorder.retained_per_layer)
+    closed_cross = (
+        c["duplicate:same-layer:closed"] + c["duplicate:earlier-layer:closed"]
+    )
+    assert sum(v for k, v in c.items() if k.startswith("met:length:")) == closed_cross
+    assert (
+        sum(v for k, v in c.items() if k.startswith("met:longer-by:")) == closed_cross
+    )
+    assert c["met:longer-by:0"] == c["duplicate:same-layer:closed"]
+    assert c["met:states"] <= closed_cross
 
 
 def test_a_cycle_is_a_duplicate_of_the_node_s_own_path():
@@ -97,6 +106,9 @@ def test_summary_and_markdown_hold_together():
                 "duplicate:cycle:open": 1,
                 "duplicate:same-layer": 2,
                 "duplicate:same-layer:closed": 2,
+                "met:length:3": 2,
+                "met:longer-by:0": 2,
+                "met:states": 1,
                 "guard:close": 1,
             },
         }
@@ -106,5 +118,8 @@ def test_summary_and_markdown_hold_together():
     assert summary["closed_cross_path_per_closed_retained"] == 2 / 5
     assert summary["effective_width"] == 7 / 8
     assert summary["tasks_with_closed_cross_path"] == 1
+    assert summary["closed_states_met_per_closed_retained"] == 1 / 5
+    assert summary["met_by_length"] == {"3": 2}
     text = markdown(summary, "unit")
     assert "**40.0%**" in text and "| same-layer | 0 | 2 |" in text
+    assert "| 3 | 2 | | 0 | 2 |" in text

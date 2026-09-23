@@ -99,6 +99,8 @@ class CollisionRecorder(BeamObserver):
     _first: dict[Product, tuple[int, tuple[str, ...]]] = field(default_factory=dict)
     # per beam rank, every product on the path above it, root included
     _ancestors: list[frozenset] = field(default_factory=list)
+    # closed states that a second route reached, so a state hit five times is one
+    _met: set = field(default_factory=set)
 
     def layer_started(self, depth: int, beam: Sequence[Node]) -> None:
         self._beam = beam
@@ -147,6 +149,14 @@ class CollisionRecorder(BeamObserver):
             self.counts["duplicate"] += 1
             self.counts[f"duplicate:{kind}"] += 1
             self.counts[f"duplicate:{kind}:{state}"] += 1
+            if kind != "cycle" and state == "closed":
+                # where along the program the two routes meet, and how much
+                # longer the second one is (0 for a same-layer twin)
+                self.counts[f"met:length:{length}"] += 1
+                self.counts[f"met:longer-by:{length - self._first[product][0]}"] += 1
+                if product not in self._met:
+                    self._met.add(product)
+                    self.counts["met:states"] += 1
             if (
                 kind != "cycle"
                 and state == "closed"
@@ -249,7 +259,18 @@ def summarise(rows: Sequence[dict[str, Any]], beam_width: int) -> dict[str, Any]
         "tasks_with_closed_cross_path": tasks_with_cross_closed,
         "effective_width": _ratio(retained_slots, layers * beam_width),
         "closed_share_of_retained": _ratio(total["retained:closed"], total["retained"]),
+        # one closed state per second route, however many routes reached it
+        "closed_states_met_per_closed_retained": _ratio(
+            total["met:states"], total["retained:closed"]
+        ),
+        "met_by_length": _histogram(total, "met:length:"),
+        "met_by_longer_by": _histogram(total, "met:longer-by:"),
     }
+
+
+def _histogram(counts: Counter, prefix: str) -> dict[str, int]:
+    keys = sorted(int(k[len(prefix) :]) for k in counts if k.startswith(prefix))
+    return {str(k): counts[f"{prefix}{k}"] for k in keys}
 
 
 def _ratio(a: float, b: float) -> float | None:
@@ -293,10 +314,28 @@ def markdown(summary: dict[str, Any], label: str) -> str:
         f"{summary['tasks_with_closed_cross_path']} of {summary['tasks']} tasks",
         f"- cross-path share of duplicates: "
         f"{_pct(summary['cross_path_share_of_duplicates'])}; the rest are cycles",
+        f"- distinct closed states a second route reached, per closed retained state: "
+        f"{_pct(summary['closed_states_met_per_closed_retained'])} "
+        f"({c.get('met:states', 0):,})",
         f"- closed share of retained states: {_pct(summary['closed_share_of_retained'])}",
         f"- effective width: {_pct(summary['effective_width'])} of the beam filled per layer",
         "",
+        "Where the second route meets the first (closed cross-path duplicates):",
+        "",
+        "| program length at meeting | count | | second route longer by | count |",
+        "|---:|---:|---|---:|---:|",
     ]
+    by_length = list(summary["met_by_length"].items())
+    by_gap = list(summary["met_by_longer_by"].items())
+    for i in range(max(len(by_length), len(by_gap))):
+        left = (
+            f"| {by_length[i][0]} | {by_length[i][1]:,} |"
+            if i < len(by_length)
+            else "| | |"
+        )
+        right = f" {by_gap[i][0]} | {by_gap[i][1]:,} |" if i < len(by_gap) else " | |"
+        lines.append(left + " |" + right)
+    lines.append("")
     return "\n".join(lines)
 
 
