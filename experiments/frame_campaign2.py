@@ -49,7 +49,7 @@ from wandering_light.stack_policy import STATE_CAP  # noqa: E402
 
 RUN_DIR = REPO / "checkpoints" / "frame-campaign-2"
 GATE_DIR = REPO / "checkpoints" / "frame-arm-20260922"
-ARMS = ("tags_inner", "frames_inner", "exit_inner")
+ARMS = ("tags_inner", "frames_inner", "exit_inner", "exit_inner_matched")
 STACKED = ("tags", "frames")
 CELLS = [(s, e) for s in wa.SEEDS for e in range(1, wa.EPOCHS + 1)]
 # One v4 witness is a fifth of the world arm's v4 defined-body deficit; the
@@ -299,6 +299,7 @@ def report(run_dir: Path, gate_dir: Path, log) -> dict[str, Any]:
             ("frames_inner", "frames"),
             ("tags_inner", "tags"),
             ("exit_inner", "frames_inner"),
+            ("exit_inner_matched", "frames_inner"),
         ):
             pairs = sorted(set(totals[num]) & set(totals[den]))
             corpus_out["ratios"][f"{num}/{den}"] = {
@@ -397,6 +398,10 @@ def readings(out: dict[str, Any]) -> dict[str, Any]:
         "oracle": spec,
         "oracle_ratio": oracle,
         "oracle_clears_learned": oracle_clears,
+        # The oracle trains at its probed rate; at the world arm's rate:
+        "oracle_ratio_matched": v4["ratios"]["exit_inner_matched/world"][
+            "defined, interior"
+        ][0],
         "ranker_median_surprisal": surprisal,
         "ranker_target_met": surprisal <= RANKER_TARGET,
         "stacking": stacking,

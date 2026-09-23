@@ -556,9 +556,16 @@ ARM_LR = {
     # exit-frame oracle, at the rate every stacked arm trained at.
     "tags_inner": wa.LEARNING_RATE,
     "frames_inner": wa.LEARNING_RATE,
-    "exit_inner": wa.LEARNING_RATE,
+    # Its one-epoch probe beat 1.25e-4 by 4.5% at 2.5e-4, past the 2% rule; the
+    # arm at the world arm's rate is measured beside it as `matched("exit_inner")`.
+    "exit_inner": 2.5e-4,
 }
 MATCHED = "framesmatched"
+
+
+def matched(arm: str) -> str:
+    """The label of an arm trained at the world arm's rate instead of its own."""
+    return MATCHED if arm == "frames" else f"{arm}_matched"
 
 
 def arm_dir(run_dir: Path, arm: str, learning_rate: float = wa.LEARNING_RATE) -> Path:
@@ -690,8 +697,8 @@ def measure(
     rate = ARM_LR[arm] if learning_rate is None else learning_rate
     if rate == ARM_LR[arm]:
         label = arm
-    elif arm == "frames" and rate == wa.LEARNING_RATE:
-        label = MATCHED
+    elif rate == wa.LEARNING_RATE:
+        label = matched(arm)
     else:
         raise ValueError(f"no registered cell for {arm} at {rate:g}")
     source = arm_dir(run_dir, arm, rate)
