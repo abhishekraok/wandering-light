@@ -1,0 +1,51 @@
+"""The learned commitment ranker's vocabulary, head and calibration (#160)."""
+
+import math
+import sys
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+import experiments.commit_ranker as cr
+from experiments.frame_gate import CommitmentModel
+from experiments.inner_frames import COMBINATORS
+from wandering_light.stack_policy import OP_NAMES
+
+
+def test_the_vocabulary_is_the_one_the_prior_smooths_over():
+    model = CommitmentModel({(("s",), ("dip", 0, 2)): 1})
+    choices = cr.vocabulary(model.max_captures)
+    assert len(choices) == model.vocabulary == 1 + (len(COMBINATORS) + 2) * 4
+    assert len(set(choices)) == len(choices)
+
+
+def test_the_head_keeps_the_ops_first_and_round_trips_the_choices():
+    choices = cr.vocabulary(2)
+    names = cr.actions(choices)
+    assert names[: len(OP_NAMES)] == OP_NAMES
+
+    class Stub:
+        actions = names
+
+    assert cr.choices_of(Stub()) == choices
+
+
+def test_surprisal_is_the_negative_log_softmax_at_the_temperature():
+    logits = np.array([[2.0, 0.0, -1.0]])
+    t = 2.0
+    z = np.exp(logits[0] / t)
+    assert cr._nll(logits, np.array([1]), t)[0] == pytest.approx(
+        -math.log(z[1] / z.sum())
+    )
+
+
+def test_the_temperature_fit_undoes_a_sharpened_ranker():
+    rng = np.random.default_rng(0)
+    true = rng.normal(size=(4000, 5))
+    labels = np.array([rng.choice(5, p=np.exp(r) / np.exp(r).sum()) for r in true])
+    fit = cr.fit_temperature(true * 3.0, labels)
+    assert fit["temperature"] == pytest.approx(3.0, rel=0.1)
+    assert not fit["at_boundary"]

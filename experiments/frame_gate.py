@@ -68,6 +68,7 @@ from experiments.frame_rows import (  # noqa: E402
     example_walks,
     frame_state,
     frame_witness_rows,
+    level_exits,
 )
 from experiments.hindsight_subtargets import replay_states  # noqa: E402
 from experiments.inner_frames import (  # noqa: E402
@@ -252,6 +253,10 @@ def walk(
     targets = encode_targets(states[-1])
     walks = example_walks(task)
     classes, tags = step_classes(task, walks)
+    exits = [
+        level_exits(task.program, views) if encoding == "exit_inner" else {}
+        for _states, views in walks
+    ]
     deficits: list[float | None] = []
     ranks: list[int | None] = []
     for step, name in enumerate(task.program):
@@ -271,7 +276,10 @@ def walk(
                 ranks.append(None)
                 continue
         shown = (
-            tuple(frame_state(s[step], v.get(step, ()), encoding) for s, v in walks)
+            tuple(
+                frame_state(s[step], v.get(step, ()), encoding, ex.get(step, ()))
+                for (s, v), ex in zip(walks, exits, strict=True)
+            )
             if encoding
             else product
         )
@@ -544,6 +552,11 @@ ARM_LR = {
     "world": wa.LEARNING_RATE,
     "tags": wa.LEARNING_RATE,
     "frames": wa.LEARNING_RATE,
+    # The second campaign (#160): innermost-only labels and frames, and the
+    # exit-frame oracle, at the rate every stacked arm trained at.
+    "tags_inner": wa.LEARNING_RATE,
+    "frames_inner": wa.LEARNING_RATE,
+    "exit_inner": wa.LEARNING_RATE,
 }
 MATCHED = "framesmatched"
 
@@ -989,7 +1002,9 @@ def _token_starts(state: Sequence) -> tuple[list[int], int]:
     return starts, len(out)
 
 
-def truncation(corpus: str) -> dict[str, int]:
+def truncation(
+    corpus: str, encodings: Sequence[str] = ("flat", "tags", "frames")
+) -> dict[str, int]:
     """Which end the state cap cuts, per encoding, on eval states under a mark.
 
     The encoder keeps a state's top ``STATE_CAP`` tokens and each frame sits
@@ -999,16 +1014,19 @@ def truncation(corpus: str) -> dict[str, int]:
     counts: Counter[str] = Counter()
     for task in eval_witnesses(corpus):
         for states, views in example_walks(task):
+            exits = level_exits(task.program, views)
             for step in range(len(task.program)):
                 state = states[step]
                 if not any(isinstance(v, Mark) for v in state):
                     continue
                 counts["under_mark"] += 1
-                for encoding in ("flat", "tags", "frames"):
+                for encoding in encodings:
                     seen = (
                         state
                         if encoding == "flat"
-                        else frame_state(state, views.get(step, ()), encoding)
+                        else frame_state(
+                            state, views.get(step, ()), encoding, exits.get(step, ())
+                        )
                     )
                     starts, width = _token_starts(seen)
                     if width <= STATE_CAP:
@@ -1032,7 +1050,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--run-dir", type=Path, default=RUN_DIR)
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--seeds", default=",".join(str(s) for s in wa.SEEDS))
-    parser.add_argument("--arm", choices=("frames", "tags", "world"), default="frames")
+    parser.add_argument("--arm", choices=tuple(ARM_LR), default="frames")
     parser.add_argument(
         "--lr", type=float, default=None, help="default: the arm's registered rate"
     )
@@ -1070,7 +1088,8 @@ def main(argv: list[str] | None = None) -> int:
             args.run_dir, args.device, seeds, log, encoding=args.arm, learning_rate=rate
         )
     elif args.stage == "truncation":
-        out = {corpus: truncation(corpus) for corpus in CORPORA}
+        encodings = tuple(dict.fromkeys(("flat", *args.encodings.split(","))))
+        out = {corpus: truncation(corpus, encodings) for corpus in CORPORA}
         co.write_json(args.run_dir / "truncation.json", out)
         log(f"RESULT truncation {out}")
     elif args.stage == "report":

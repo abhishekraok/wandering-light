@@ -9,7 +9,15 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from experiments.frame_rows import META, frame_product, frame_state, frame_witness_rows
+from experiments.frame_rows import (
+    EXIT,
+    META,
+    example_walks,
+    frame_product,
+    frame_state,
+    frame_witness_rows,
+    level_exits,
+)
 from wandering_light.stack_machine import Bool, Int, Lst, Mark, Sym
 from wandering_light.stack_pbe import BY_NAME, build_task, draw_task
 from wandering_light.stack_policy import witness_rows
@@ -136,3 +144,71 @@ def test_the_separator_never_occurs_in_a_machine_state():
         stack = step_raw(OP_BY_NAME[name], stack, DEFAULT_FUEL_LIMIT, 0)[0]
         assert META not in stack
         assert all(META not in v.items for v in stack if isinstance(v, Lst))
+
+
+def test_the_inner_encodings_annotate_only_the_innermost_defined_level():
+    state = (Int(1), Mark(), Sym("dup"), Mark(), Int(0))
+    views = (("dip", 0, 0, (Int(7),)), ("map", 0, 0, (Int(2),)))
+    assert frame_state(state, views, "frames_inner") == (
+        Int(1), Mark(), Sym("dup"), Mark(), Int(0), *label("map"), Int(2)
+    )  # fmt: skip
+    assert frame_state(state, views, "tags_inner") == (
+        Int(1), Mark(), Sym("dup"), Mark(), Int(0), *label("map")
+    )  # fmt: skip
+    # The stacked encoding labels both levels.
+    assert frame_state(state, views, "tags").count(META) == 2
+
+
+def test_an_undefined_innermost_level_passes_the_label_to_its_defined_ancestor():
+    state = (Int(1), Mark(), Sym("dup"), Mark(), Int(0))
+    views = (("dip", 0, 0, (Int(7),)), ("map", 0, 0, None))
+    assert frame_state(state, views, "frames_inner") == (
+        Int(1), Mark(), Sym("dup"), *label("dip"), Int(7), Mark(), Int(0)
+    )  # fmt: skip
+
+
+def test_the_oracle_adds_the_exit_frame_after_its_own_separator():
+    state = (Lst((Int(-9),)), Mark(), Int(1))
+    view = (("map", 0, 0, (Int(-9), Int(1))),)
+    assert frame_state(state, view, "exit_inner", ((Int(-8),),)) == (
+        Lst((Int(-9),)), Mark(), Int(1), *label("map"), Int(-9), Int(1), EXIT, Int(-8)
+    )  # fmt: skip
+    # Without an exit frame the oracle shows what frames_inner shows.
+    assert frame_state(state, view, "exit_inner", (None,)) == frame_state(
+        state, view, "frames_inner"
+    )
+
+
+def test_a_levels_exit_is_its_frame_when_its_bracket_closes():
+    t = task("increment_each")
+    assert t.program == ("[", "1", "add", "]", "map")
+    for states, views in example_walks(t):
+        exits = level_exits(t.program, views)
+        first = states[1][0].items[0]
+        # Every body step of the one level sees the same exit: first item + 1.
+        assert exits[1] == exits[2] == exits[3] == ((Int(first.value + 1),),)
+        assert exits[0] == ()
+
+
+def test_one_level_inner_encodings_match_the_stacked_ones():
+    t = task("increment_each")
+    for inner, stacked in (("frames_inner", "frames"), ("tags_inner", "tags")):
+        assert frame_product(t, inner) == frame_product(t, stacked)
+    rows = frame_witness_rows([t], "exit_inner")
+    flat = frame_witness_rows([t], "frames_inner")
+    changed = [
+        not np.array_equal(x.items, y.items) for x, y in zip(flat, rows, strict=True)
+    ]
+    assert changed == [False, True, True, True, False]
+
+
+def test_the_exit_separator_never_occurs_in_a_machine_state():
+    """`[` pushes a Mark, so the oracle's separator cannot be a captured item."""
+    from wandering_light.stack_machine import DEFAULT_FUEL_LIMIT, parse_stack, step_raw
+    from wandering_light.stack_pbe import BASIS, OP_BY_NAME
+
+    stack = parse_stack("1", basis=BASIS)
+    for name in ("[", "[", "]", "1", "]", "[", "dup", "]"):
+        stack = step_raw(OP_BY_NAME[name], stack, DEFAULT_FUEL_LIMIT, 0)[0]
+        assert EXIT not in stack
+        assert all(EXIT not in v.items for v in stack if isinstance(v, Lst))

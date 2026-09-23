@@ -55,14 +55,23 @@ if TYPE_CHECKING:
 View = tuple[str, int, int, "tuple | None"]
 
 
-ENCODINGS = ("frames", "tags", "replace")
+ENCODINGS = ("frames", "tags", "replace", "tags_inner", "frames_inner", "exit_inner")
+# Encodings that annotate only the innermost defined level (#160, second
+# campaign): the stacked ones gave the label a cost that grew with nesting.
+INNER = ("tags_inner", "frames_inner", "exit_inner")
 # `]` collapses a quotation the moment it is written, so `Sym("]")` never sits
 # on a machine stack: after it, everything in a level is metadata, unambiguously.
 META = Sym("]")
+# `[` pushes a `Mark`, never a symbol, so `Sym("[")` cannot be on a stack
+# either; it separates the frame from the exit frame in the oracle encoding.
+EXIT = Sym("[")
 
 
 def frame_state(
-    state: tuple[Value, ...], views: Sequence[View], encoding: str = "frames"
+    state: tuple[Value, ...],
+    views: Sequence[View],
+    encoding: str = "frames",
+    exits: Sequence[tuple | None] = (),
 ) -> tuple[Value, ...]:
     """``state`` with each defined open level annotated with its tag and frame.
 
@@ -82,6 +91,13 @@ def frame_state(
     - ``"replace"``: the first design, which put the tag and frame *in place of*
       the captured items, losing the text of the body. Kept because its
       learning-rate probe is on record; the gate does not use it.
+    - ``"tags_inner"`` / ``"frames_inner"``: as ``"tags"`` / ``"frames"``, but
+      only on the innermost defined level; its ancestors keep the machine's
+      items. The encoder pools local features over the token sequence, so
+      stacked labels are not told apart by level.
+    - ``"exit_inner"``: ``"frames_inner"`` plus, after `EXIT`, the frame the
+      body must produce, from the authored witness (``exits``, one per level).
+      An oracle: it prices a body that knows its specification.
 
     An undefined level is left exactly as the machine has it.
     """
@@ -94,6 +110,16 @@ def frame_state(
         )
     if not marks:
         return state
+    if encoding == "exit_inner" and len(exits) != len(views):
+        raise ValueError("the oracle needs one exit frame per open level")
+    annotated = set(range(len(views)))
+    if encoding in INNER:
+        defined = [
+            k
+            for k, (tag, _r, _c, virtual) in enumerate(views)
+            if virtual is not None and tag in COMBINATORS
+        ]
+        annotated = set(defined[-1:])
     out: list[Value] = list(state[: marks[0]])
     for k, (at, (tag, role, captures, virtual)) in enumerate(
         zip(marks, views, strict=True)
@@ -101,17 +127,50 @@ def frame_state(
         end = marks[k + 1] if k + 1 < len(marks) else len(state)
         items = state[at + 1 : end]
         out.append(state[at])
-        if virtual is None or tag not in COMBINATORS:
+        if virtual is None or tag not in COMBINATORS or k not in annotated:
             out.extend(items)
             continue
         label = [Sym(tag), Int(role), Int(captures)]
         if encoding == "replace":
             out.extend([*label, *virtual])
-        elif encoding == "tags":
+        elif encoding in ("tags", "tags_inner"):
             out.extend([*items, META, *label])
+        elif encoding == "exit_inner" and exits[k] is not None:
+            out.extend([*items, META, *label, *virtual, EXIT, *exits[k]])
         else:
             out.extend([*items, META, *label, *virtual])
     return tuple(out)
+
+
+def level_exits(
+    program: Sequence[str], views: dict[int, tuple[View, ...]]
+) -> dict[int, tuple[tuple | None, ...]]:
+    """Per under-mark step, each open level's frame once its body has run.
+
+    That is the level's frame at the step that writes its `]`, where the whole
+    body has been executed on it; ``None`` where that frame is undefined or the
+    quotation never closes.
+    """
+    match, stack = {}, []
+    for step, name in enumerate(program):
+        if name == "[":
+            stack.append(step)
+        elif name == "]":
+            match[stack.pop()] = step
+    out, stack = {}, []
+    for step, name in enumerate(program):
+        if step in views:
+            if len(views[step]) != len(stack):
+                raise ValueError(f"step {step}: levels and open brackets disagree")
+            out[step] = tuple(
+                views[match[opened]][k][3] if opened in match else None
+                for k, opened in enumerate(stack)
+            )
+        if name == "[":
+            stack.append(step)
+        elif name == "]":
+            stack.pop()
+    return out
 
 
 def example_walks(task: Task) -> list[tuple[list[tuple], dict[int, tuple[View, ...]]]]:
@@ -132,10 +191,19 @@ def frame_product(
 ) -> list[tuple[tuple[Value, ...], ...]]:
     """The product of frame states the policy is shown before each witness step."""
     walks = example_walks(task)
+    if encoding != "exit_inner":
+        return [
+            tuple(
+                frame_state(states[step], views.get(step, ()), encoding)
+                for states, views in walks
+            )
+            for step in range(len(task.program))
+        ]
+    exits = [level_exits(task.program, views) for _states, views in walks]
     return [
         tuple(
-            frame_state(states[step], views.get(step, ()), encoding)
-            for states, views in walks
+            frame_state(states[step], views.get(step, ()), encoding, ex.get(step, ()))
+            for (states, views), ex in zip(walks, exits, strict=True)
         )
         for step in range(len(task.program))
     ]
