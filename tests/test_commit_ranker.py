@@ -49,3 +49,18 @@ def test_the_temperature_fit_undoes_a_sharpened_ranker():
     fit = cr.fit_temperature(true * 3.0, labels)
     assert fit["temperature"] == pytest.approx(3.0, rel=0.1)
     assert not fit["at_boundary"]
+
+
+def test_a_free_correct_commitment_still_counts(monkeypatch):
+    """A zero charge at a `[` is a data point, not a missing one."""
+
+    class Task:
+        def __init__(self, behaviour, program):
+            self.behaviour, self.program = behaviour, program
+
+    witnesses = [Task("a", ("[", "1", "]", "map", "[", "]", "i", "[", "]", "i"))]
+    monkeypatch.setattr(cr, "eval_witnesses", lambda corpus: witnesses)
+    charged = {"a": [0.0, 0, 0, 0, 0.0, 0, 0, 0.693, 0, 0]}
+    costs = cr.at_opens(charged, "any")
+    assert costs == [0.0, 0.0, 0.693]
+    assert cr.summarise(costs)["median"] == 0.0

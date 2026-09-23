@@ -268,9 +268,9 @@ def fit_temperature(logits: np.ndarray, labels: np.ndarray) -> dict[str, Any]:
             lo = a
     t = math.exp((lo + hi) / 2)
     return {
-        "temperature": round(t, 5),
-        "validation_ce": round(float(_nll(logits, labels, 1.0).mean()), 5),
-        "calibrated_validation_ce": round(float(_nll(logits, labels, t).mean()), 5),
+        "temperature": t,
+        "validation_ce": float(_nll(logits, labels, 1.0).mean()),
+        "calibrated_validation_ce": float(_nll(logits, labels, t).mean()),
         "at_boundary": min(abs(math.log(t) - math.log(b)) for b in T_BOUNDS) < 1e-6,
     }
 
@@ -289,6 +289,29 @@ def charges(model, corpus: str, temperature: float, device) -> dict[str, list[fl
                 step_charge[row.step] = float(cost)
         out[task.behaviour] = step_charge
     return out
+
+
+def at_opens(charged: dict[str, list[float]], corpus: str) -> list[float]:
+    """Every `[`'s charge over one witness per eval behaviour, zeros included.
+
+    A confident, correct ranker can pay exactly zero, so a charge is found by
+    its step, never by being nonzero.
+    """
+    return [
+        charged[task.behaviour][step]
+        for task in eval_witnesses(corpus)
+        for step, name in enumerate(task.program)
+        if name == "["
+    ]
+
+
+def summarise(costs: Sequence[float]) -> dict[str, float | int]:
+    """Full precision: a reading compares these with its thresholds."""
+    return {
+        "charged": len(costs),
+        "mean": statistics.fmean(costs),
+        "median": statistics.median(costs),
+    }
 
 
 def best_epoch(run_dir: Path, seed: int) -> int:
@@ -314,18 +337,7 @@ def measure(run_dir: Path, seeds: Sequence[int], log) -> list[Path]:
             corpus: charges(model, corpus, calibration["temperature"], "cpu")
             for corpus in CORPORA
         }
-        summary = {
-            corpus: {
-                "charged": sum(1 for c in v.values() for x in c if x),
-                "mean": round(
-                    statistics.fmean(x for c in v.values() for x in c if x), 4
-                ),
-                "median": round(
-                    statistics.median(x for c in v.values() for x in c if x), 4
-                ),
-            }
-            for corpus, v in per.items()
-        }
+        summary = {corpus: summarise(at_opens(v, corpus)) for corpus, v in per.items()}
         log(f"RESULT ranker s{seed} e{epoch}: {calibration} {summary}")
         co.write_json(
             out,

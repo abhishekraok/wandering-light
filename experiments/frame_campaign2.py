@@ -63,6 +63,10 @@ OUTLIER = "bounds_cover_list_flag"
 # `[` on v4 eval at or under RANKER_TARGET nats.
 SKELETON, SKELETON_CLEARS, SPEC_NOT_LEVER = 0.5, 18, 0.8
 RANKER_TARGET = 0.4
+# Innermost-only against stacked frames, paired cell by cell, v4 defined: the
+# stacking was a cost if the 2+ level ratio is at or under STACKING while one
+# level stays within ONE_LEVEL; depth is intrinsic at or above INTRINSIC.
+STACKING, ONE_LEVEL, INTRINSIC = 0.90, (0.92, 1.08), 0.97
 
 
 def _cell(run_dir: Path, arm: str, seed: int, epoch: int) -> dict | None:
@@ -163,11 +167,8 @@ def subset_totals(cell: dict, corpus: str, flags) -> dict[str, float]:
 def _summary(values: list[float]) -> list[float] | None:
     if not values:
         return None
-    return [
-        round(statistics.median(values), 4),
-        round(min(values), 3),
-        round(max(values), 3),
-    ]
+    # Full precision: `readings` compares these with its thresholds.
+    return [statistics.median(values), min(values), max(values)]
 
 
 def ranker_charges(run_dir: Path) -> dict[int, dict[str, dict[str, list[float]]]]:
@@ -263,25 +264,10 @@ def report(run_dir: Path, gate_dir: Path, log) -> dict[str, Any]:
                     for k in sorted(set(cells[arm]) & set(cells["world"]))
                 ]
                 corpus_out["top1_gain"][arm] = _summary(gains)
-        prior_nonzero = [x for c in prior.values() for x in c if x]
         corpus_out["commitment"] = {
-            "prior": {
-                "mean": round(statistics.fmean(prior_nonzero), 4),
-                "median": round(statistics.median(prior_nonzero), 4),
-            },
+            "prior": cr.summarise(cr.at_opens(prior, corpus)),
             "learned": {
-                seed: {
-                    "mean": round(
-                        statistics.fmean(x for c in v[corpus].values() for x in c if x),
-                        4,
-                    ),
-                    "median": round(
-                        statistics.median(
-                            x for c in v[corpus].values() for x in c if x
-                        ),
-                        4,
-                    ),
-                }
+                seed: cr.summarise(cr.at_opens(v[corpus], corpus))
                 for seed, v in learned.items()
             },
         }
@@ -310,6 +296,14 @@ def readings(out: dict[str, Any]) -> dict[str, Any]:
     surprisal = statistics.median(
         s["median"] for s in v4["commitment"]["learned"].values()
     )
+    inner = v4["ratios"]["frames_inner/frames"]
+    deep, shallow = inner["defined, 2+ levels"][0], inner["defined, 1 level"][0]
+    if deep <= STACKING and ONE_LEVEL[0] <= shallow <= ONE_LEVEL[1]:
+        stacking = "STACKING_WAS_A_COST"
+    elif deep >= INTRINSIC:
+        stacking = "DEPTH_IS_INTRINSIC"
+    else:
+        stacking = "UNCLEAR"
     return {
         "status": "READ",
         "oracle": spec,
@@ -317,9 +311,8 @@ def readings(out: dict[str, Any]) -> dict[str, Any]:
         "oracle_clears_learned": oracle_clears,
         "ranker_median_surprisal": surprisal,
         "ranker_target_met": surprisal <= RANKER_TARGET,
-        "inner_over_stacked_2plus": v4["ratios"]["frames_inner/frames"][
-            "defined, 2+ levels"
-        ],
+        "stacking": stacking,
+        "inner_over_stacked": {"2+ levels": deep, "1 level": shallow},
     }
 
 
