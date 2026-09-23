@@ -57,9 +57,10 @@ CELLS = [(s, e) for s in wa.SEEDS for e in range(1, wa.EPOCHS + 1)]
 OUTLIER = "bounds_cover_list_flag"
 
 # Registered readings (#160, before training). Oracle: exit/world on v4 defined
-# bodies under SKELETON with clears at PRIMARY, learned charge, at or above
-# SKELETON_CLEARS points to skeleton-first search; above SPEC_NOT_LEVER says a
-# specification is not what bodies lack. Ranker: median learned surprisal per
+# bodies' interior ops (not the last op or `]`, which the exit settles by
+# construction) under SKELETON with clears at PRIMARY, learned charge, at or
+# above SKELETON_CLEARS points to skeleton-first search; above SPEC_NOT_LEVER
+# says a specification is not what bodies lack. Ranker: median learned surprisal per
 # `[` on v4 eval at or under RANKER_TARGET nats.
 SKELETON, SKELETON_CLEARS, SPEC_NOT_LEVER = 0.5, 18, 0.8
 RANKER_TARGET = 0.4
@@ -100,13 +101,17 @@ def op_flags(corpus: str) -> dict[str, list[dict[str, Any]]]:
             per = {
                 "levels": len(walks[0][1].get(step, ())),
                 "position": (
-                    "close"
-                    if name == "]" and opened
+                    "top"
+                    if not opened
+                    else "close"
+                    if name == "]"
+                    else "last"
+                    if name != "["
+                    and step + 1 < len(task.program)
+                    and task.program[step + 1] == "]"
                     else "first"
-                    if opened and step == opened[-1] + 1
+                    if step == opened[-1] + 1
                     else "later"
-                    if opened
-                    else "top"
                 ),
                 "tags_clip": any(
                     _token_starts(frame_state(s[step], v.get(step, ()), "tags"))[1]
@@ -143,6 +148,12 @@ SUBSETS = {
         op["cls"] == "defined" and op["position"] == "later"
     ),
     "defined, close": lambda op: op["cls"] == "defined" and op["position"] == "close",
+    "defined, last op": lambda op: op["cls"] == "defined" and op["position"] == "last",
+    # What the exit frame does not settle by construction: the op before `]`
+    # turns the frame into the exit, and `]` follows once they match.
+    "defined, interior": lambda op: (
+        op["cls"] == "defined" and op["position"] in ("first", "later")
+    ),
     "top": lambda op: op["cls"] == "top",
     "all body": lambda op: op["cls"] != "top",
 }
@@ -171,12 +182,12 @@ def _summary(values: list[float]) -> list[float] | None:
     return [statistics.median(values), min(values), max(values)]
 
 
-def ranker_charges(run_dir: Path) -> dict[int, dict[str, dict[str, list[float]]]]:
+def ranker_measures(run_dir: Path) -> dict[int, dict[str, Any]]:
     out = {}
     for seed in wa.SEEDS:
         path = run_dir / "measure" / f"{cr.ARM}-s{seed}.json"
         if path.exists():
-            out[seed] = json.loads(path.read_text())["charges"]
+            out[seed] = json.loads(path.read_text())
     return out
 
 
@@ -188,7 +199,8 @@ def clears(cell: dict, corpus: str, commit) -> int:
 
 def report(run_dir: Path, gate_dir: Path, log) -> dict[str, Any]:
     cells = load_cells(run_dir, gate_dir)
-    learned = ranker_charges(run_dir)
+    ranker = ranker_measures(run_dir)
+    learned = {seed: m["charges"] for seed, m in ranker.items()}
     missing = {arm: sorted(set(CELLS) - set(cells[arm])) for arm in ("world", *ARMS)}
     out: dict[str, Any] = {"missing": missing, "ranker_seeds": sorted(learned)}
     boundary = sorted(
@@ -196,6 +208,10 @@ def report(run_dir: Path, gate_dir: Path, log) -> dict[str, Any]:
         for arm in ARMS
         for k, cell in cells[arm].items()
         if cell["calibration"].get("at_boundary")
+    ) + sorted(
+        f"{cr.ARM}-s{seed}"
+        for seed, m in ranker.items()
+        if m["calibration"].get("at_boundary")
     )
     out["calibration_at_boundary"] = boundary
     for corpus in CORPORA:
@@ -285,7 +301,7 @@ def readings(out: dict[str, Any]) -> dict[str, Any]:
     if out["calibration_at_boundary"]:
         return {"status": "CALIBRATION_AT_BOUNDARY"}
     v4 = out["stack_pbe_v4"]
-    oracle = v4["ratios"]["exit_inner/world"]["defined"][0]
+    oracle = v4["ratios"]["exit_inner/world"]["defined, interior"][0]
     oracle_clears = v4["clears"]["exit_inner"]["primary"]["learned"]
     if oracle < SKELETON and oracle_clears >= SKELETON_CLEARS:
         spec = "SKELETON_FIRST"

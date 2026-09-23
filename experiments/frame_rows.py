@@ -36,7 +36,7 @@ from experiments.inner_frames import (  # noqa: E402
     replay,
     walk_one_example,
 )
-from wandering_light.stack_machine import Int, Mark, Sym, parse_stack  # noqa: E402
+from wandering_light.stack_machine import Int, Lst, Mark, Sym, parse_stack  # noqa: E402
 from wandering_light.stack_pbe import BASIS  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
     OP_INDEX,
@@ -97,7 +97,9 @@ def frame_state(
       stacked labels are not told apart by level.
     - ``"exit_inner"``: ``"frames_inner"`` plus, after `EXIT`, the frame the
       body must produce, from the authored witness (``exits``, one per level).
-      An oracle: it prices a body that knows its specification.
+      An oracle: it prices a body that knows its specification. A quotation in
+      the exit that holds ops and is not yet on the stack or in the frame is
+      code the body has still to write, so it shows as `EXIT`, not its text.
 
     An undefined level is left exactly as the machine has it.
     """
@@ -136,10 +138,21 @@ def frame_state(
         elif encoding in ("tags", "tags_inner"):
             out.extend([*items, META, *label])
         elif encoding == "exit_inner" and exits[k] is not None:
-            out.extend([*items, META, *label, *virtual, EXIT, *exits[k]])
+            known = {*state, *virtual}
+            shown = tuple(
+                EXIT if _is_code(v) and v not in known else v for v in exits[k]
+            )
+            out.extend([*items, META, *label, *virtual, EXIT, *shown])
         else:
             out.extend([*items, META, *label, *virtual])
     return tuple(out)
+
+
+def _is_code(value: Value) -> bool:
+    """A quotation that holds ops: the exit may show it only once it is written."""
+    return isinstance(value, Lst) and any(
+        isinstance(v, Sym) or _is_code(v) for v in value.items
+    )
 
 
 def level_exits(

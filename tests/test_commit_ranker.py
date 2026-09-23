@@ -64,3 +64,25 @@ def test_a_free_correct_commitment_still_counts(monkeypatch):
     costs = cr.at_opens(charged, "any")
     assert costs == [0.0, 0.0, 0.693]
     assert cr.summarise(costs)["median"] == 0.0
+
+
+def test_a_ranker_temperature_at_the_edge_blocks_the_readings(tmp_path, monkeypatch):
+    import json
+
+    import experiments.frame_campaign2 as fc
+
+    (tmp_path / "measure").mkdir()
+    for seed in (0, 1, 2):
+        (tmp_path / "measure" / f"ranker-s{seed}.json").write_text(
+            json.dumps({"calibration": {"at_boundary": seed == 1}, "charges": {}})
+        )
+    ranker = fc.ranker_measures(tmp_path)
+    assert sorted(ranker) == [0, 1, 2]
+    flagged = [s for s, m in ranker.items() if m["calibration"]["at_boundary"]]
+    assert flagged == [1]
+    out = {
+        "missing": {},
+        "ranker_seeds": [0, 1, 2],
+        "calibration_at_boundary": ["ranker-s1"],
+    }
+    assert fc.readings(out) == {"status": "CALIBRATION_AT_BOUNDARY"}

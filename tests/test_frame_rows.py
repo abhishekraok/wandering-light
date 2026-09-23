@@ -212,3 +212,18 @@ def test_the_exit_separator_never_occurs_in_a_machine_state():
         stack = step_raw(OP_BY_NAME[name], stack, DEFAULT_FUEL_LIMIT, 0)[0]
         assert EXIT not in stack
         assert all(EXIT not in v.items for v in stack if isinstance(v, Lst))
+
+
+def test_the_oracle_never_shows_code_the_body_has_not_written():
+    """A closure built later in the body is still to be written, so it is masked."""
+    state = (Lst((Int(5),)), Mark(), Int(4))
+    view = (("map", 0, 0, (Int(5), Int(4))),)
+    later = Lst((Int(4), Sym("lt?")))
+    exits = ((Int(5), later, Lst((Int(1), Int(2)))),)
+    shown = frame_state(state, view, "exit_inner", exits)
+    tail = shown[shown.index(EXIT) + 1 :]
+    assert tail == (Int(5), EXIT, Lst((Int(1), Int(2))))
+    # A quotation already on the stack is known, so the exit may show it.
+    known = (later, Mark(), Int(4))
+    shown = frame_state(known, view, "exit_inner", exits)
+    assert later in shown[shown.index(EXIT) + 1 :]
