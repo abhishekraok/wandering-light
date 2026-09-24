@@ -35,7 +35,7 @@ SEEDS = (0, 1, 2)
 # (run dir under the main checkout's checkpoints/, arms). BEST, staged s0 of the
 # first, goes first so the equivalence check is the first number in.
 PLAN: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("staged-arms-20260920", ("staged", "fused", "refused", "both")),
+    ("staged-arms-20260920", ("staged", "fused")),
     ("short-segment-difference-20260923", ("fused", "staged", "capped")),
     ("short-segment-machine-20260923", ("capped",)),
 )
@@ -48,7 +48,9 @@ class Cell:
     seed: int
     search: str
 
-    def output(self, out_dir: Path, roots: int, width: int) -> Path:
+    def output(
+        self, out_dir: Path, roots: int, width: int, segment_depth: int | None = None
+    ) -> Path:
         return search.cell_path(
             out_dir,
             self.run_dir,
@@ -57,6 +59,7 @@ class Cell:
             self.search,
             roots=roots,
             width=width,
+            segment_depth=segment_depth,
         )
 
     def trained(self) -> bool:
@@ -112,12 +115,19 @@ def command(cell: Cell, args) -> list[str]:
         str(args.seconds_cap),
         "--threads",
         str(args.threads),
-    ]
+    ] + (
+        ["--segment-depth", str(args.segment_depth)]
+        if args.segment_depth is not None
+        else []
+    )
 
 
 def run_queue(cells: list[Cell], args, log=print) -> int:
     """Start cells as lanes free up; return how many failed."""
-    out = {cell: cell.output(args.out_dir, args.roots, args.width) for cell in cells}
+    out = {
+        cell: cell.output(args.out_dir, args.roots, args.width, args.segment_depth)
+        for cell in cells
+    }
     pending = []
     for cell in cells:
         if out[cell].exists():
@@ -150,7 +160,9 @@ def run_queue(cells: list[Cell], args, log=print) -> int:
                 segment = Cell(cell.run_dir, cell.arm, cell.seed, "segment")
                 if segment in running or segment in pending:
                     continue  # its budgets are not written yet
-                if not segment.output(args.out_dir, args.roots, args.width).exists():
+                if not segment.output(
+                    args.out_dir, args.roots, args.width, args.segment_depth
+                ).exists():
                     pending.remove(cell)
                     failed.add(cell)
                     log(f"FAILED {cell.label()}: its segment cell has no output")
@@ -190,6 +202,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--roots", type=int, default=search.ROOTS)
     parser.add_argument("--width", type=int, default=search.MATCHED_WIDTH)
+    parser.add_argument(
+        "--segment-depth",
+        type=int,
+        default=None,
+        help="override every arm's registered segment depth",
+    )
     parser.add_argument("--seconds-cap", type=float, default=search.TASK_SECONDS_CAP)
     parser.add_argument("--threads", type=int, default=4, help="torch threads per job")
     parser.add_argument(

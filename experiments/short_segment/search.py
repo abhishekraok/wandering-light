@@ -8,7 +8,10 @@ search):
 
     flat          `solve.BEST`'s search, width 64 x depth 48, on a local checkpoint
     segment       the segment-reset beam: width 64 per root, ``--roots`` K roots,
-                  12 segments of at most 12 ops
+                  12 segments of at most the arm's segment depth in ops
+                  (``SEGMENT_DEPTHS``: capped 8, staged 16, fused 48, the 95th
+                  percentile of each arm's own train segment lengths, in both
+                  encodings; ``--segment-depth`` overrides it)
     flat-matched  the flat beam widened to ``--width`` (1024), each task capped at
                   the primitive executions the same checkpoint's ``segment`` cell
                   (same K) spent on it, library replay included, so a gain of
@@ -20,7 +23,7 @@ search):
 
 Every task also has a wall-clock cap (``--seconds-cap``, 120 s); a search it
 stops ends ``wall_clock_cap`` and the row keeps what it spent. One JSON per
-(run dir, arm, seed, search, K or width) under ``--out-dir``, skipped when it
+(run dir, arm, seed, search, K, segment depth or width) under ``--out-dir``, skipped when it
 exists, so a queue resumes::
 
     uv run python experiments/short_segment/search.py run \\
@@ -73,7 +76,9 @@ SEARCHES = ("flat", "segment", "flat-matched")
 EPOCH = 3  # staged_arms.EPOCHS: the snapshot every arm is scored at (#154)
 ROOTS = 16
 MATCHED_WIDTH = 1024
-SEGMENT_DEPTH = 12
+# The advisor's choice (#168): the 95th percentile of each arm's own train
+# segment lengths, for both encodings. An arm not listed needs --segment-depth.
+SEGMENT_DEPTHS = {"capped": 8, "staged": 16, "fused": 48}
 MAX_SEGMENTS = 12
 TASK_SECONDS_CAP = 120.0
 # `BEST`'s checkpoint is this run's staged s0 epoch 3 (same safetensors sha256,
@@ -100,7 +105,25 @@ def main_checkout() -> Path:
 DEFAULT_OUT = main_checkout() / "checkpoints" / "short-segment-search"
 
 
-def system_for(search: str, *, roots: int = ROOTS, width: int = MATCHED_WIDTH):
+def segment_depth_for(arm: str, override: int | None = None) -> int:
+    """``override`` when given, else the arm's registered segment depth."""
+    if override is not None:
+        return override
+    if arm not in SEGMENT_DEPTHS:
+        raise ValueError(
+            f"no registered segment depth for arm {arm!r} ({SEGMENT_DEPTHS}); "
+            "pass --segment-depth"
+        )
+    return SEGMENT_DEPTHS[arm]
+
+
+def system_for(
+    search: str,
+    *,
+    roots: int = ROOTS,
+    width: int = MATCHED_WIDTH,
+    segment_depth: int = 12,
+):
     """The `solve.System` of a search: `BEST` with the one or two settings changed."""
     common = {
         "name": f"short-segment {search}",
@@ -116,7 +139,7 @@ def system_for(search: str, *, roots: int = ROOTS, width: int = MATCHED_WIDTH):
             **common,
             search="segment",
             roots=roots,
-            segment_depth=SEGMENT_DEPTH,
+            segment_depth=segment_depth,
             max_segments=MAX_SEGMENTS,
         )
     if search == "flat-matched":
@@ -124,13 +147,20 @@ def system_for(search: str, *, roots: int = ROOTS, width: int = MATCHED_WIDTH):
     raise ValueError(f"unknown search {search!r}; choose one of {SEARCHES}")
 
 
-def search_tag(search: str, *, roots: int = ROOTS, width: int = MATCHED_WIDTH) -> str:
+def search_tag(
+    search: str,
+    *,
+    roots: int = ROOTS,
+    width: int = MATCHED_WIDTH,
+    segment_depth: int = 12,
+) -> str:
+    """The cell's name for its search; a matched cell names the segment cell it matches."""
     if search == "flat":
         return f"flat-w{solve.BEST.beam_width}"
     if search == "segment":
-        return f"segment-k{roots}"
+        return f"segment-k{roots}-d{segment_depth}"
     if search == "flat-matched":
-        return f"flat-matched-w{width}-k{roots}"
+        return f"flat-matched-w{width}-k{roots}-d{segment_depth}"
     raise ValueError(f"unknown search {search!r}; choose one of {SEARCHES}")
 
 
@@ -143,9 +173,16 @@ def cell_path(
     *,
     roots: int = ROOTS,
     width: int = MATCHED_WIDTH,
+    segment_depth: int | None = None,
     positions: Sequence[int] | None = None,
 ) -> Path:
-    tag = search_tag(search, roots=roots, width=width)
+    """``segment_depth`` None is the arm's registered depth."""
+    tag = search_tag(
+        search,
+        roots=roots,
+        width=width,
+        segment_depth=segment_depth_for(arm, segment_depth),
+    )
     subset = f"-subset{len(positions)}" if positions is not None else ""
     return out_dir / run_dir.name / f"{arm}-s{seed}-e{EPOCH}-{tag}{subset}.json"
 
@@ -204,6 +241,7 @@ def run_cell(
     *,
     roots: int = ROOTS,
     width: int = MATCHED_WIDTH,
+    segment_depth: int | None = None,
     device: str = "cpu",
     seconds_cap: float | None = TASK_SECONDS_CAP,
     threads: int = co.CPU_THREADS,
@@ -218,19 +256,28 @@ def run_cell(
         search,
         roots=roots,
         width=width,
+        segment_depth=segment_depth,
         positions=positions,
     )
     if out.exists():
         log(f"skip {out}: exists")
         return out
-    system = system_for(search, roots=roots, width=width)
+    depth = segment_depth_for(arm, segment_depth)
+    system = system_for(search, roots=roots, width=width, segment_depth=depth)
     policy = hs.policy_dir(run_dir, arm, seed, EPOCH)
     cohort = cohort_tasks(positions)
     indices = [index for index, _ in cohort]
     budgets = budget_source = None
     if search == "flat-matched":
         budget_source = cell_path(
-            out_dir, run_dir, arm, seed, "segment", roots=roots, positions=positions
+            out_dir,
+            run_dir,
+            arm,
+            seed,
+            "segment",
+            roots=roots,
+            segment_depth=depth,
+            positions=positions,
         )
         budgets = matched_budgets(budget_source, indices)
     torch.set_num_threads(threads)
@@ -276,8 +323,11 @@ def run_cell(
         "encoding": checkpoint_encoding(policy),
         "scorer_encoding": scorer.encoding,
         "search": search,
-        "search_tag": search_tag(search, roots=roots, width=width),
+        "search_tag": search_tag(search, roots=roots, width=width, segment_depth=depth),
         "roots": roots if search != "flat" else None,
+        # The segment beam's, or for a matched cell the one of the segment cell
+        # its budgets come from; None for flat.
+        "segment_depth": depth if search != "flat" else None,
         "beam_width": system.beam_width,
         "max_depth": system.max_depth,
         "guard": system.guard,
@@ -456,6 +506,12 @@ def main(argv: list[str] | None = None) -> int:
         "--width", type=int, default=MATCHED_WIDTH, help="flat-matched beam width"
     )
     parser.add_argument(
+        "--segment-depth",
+        type=int,
+        default=None,
+        help=f"ops per segment; default the arm's, {SEGMENT_DEPTHS}",
+    )
+    parser.add_argument(
         "--device", default="cuda" if torch.cuda.is_available() else "cpu"
     )
     parser.add_argument("--seconds-cap", type=float, default=TASK_SECONDS_CAP)
@@ -482,6 +538,7 @@ def main(argv: list[str] | None = None) -> int:
         args.search,
         roots=args.roots,
         width=args.width,
+        segment_depth=args.segment_depth,
         device=args.device,
         seconds_cap=args.seconds_cap,
         threads=args.threads,

@@ -209,13 +209,24 @@ def test_an_existing_cell_is_skipped_without_loading_anything(tmp_path, monkeypa
 def test_cell_names_keep_searches_k_and_width_apart(tmp_path):
     run = tmp_path / "staged-arms-20260920"
     names = {
-        driver.cell_path(tmp_path, run, "staged", 0, s, roots=k, width=w).name
+        driver.cell_path(
+            tmp_path, run, "staged", 0, s, roots=k, width=w, segment_depth=d
+        ).name
         for s in driver.SEARCHES
         for k in (8, 16)
         for w in (512, 1024)
+        for d in (None, 12)
     }
-    # flat depends on neither, segment on K, flat-matched on both.
-    assert len(names) == 1 + 2 + 4
+    # flat depends on none, segment on K and depth, flat-matched on all three.
+    assert len(names) == 1 + 2 * 2 + 4 * 2
+    assert driver.cell_path(tmp_path, run, "capped", 0, "segment").name == (
+        "capped-s0-e3-segment-k16-d8.json"
+    )
+    assert driver.cell_path(tmp_path, run, "fused", 0, "segment").name == (
+        "fused-s0-e3-segment-k16-d48.json"
+    )
+    with pytest.raises(ValueError, match="segment depth"):
+        driver.cell_path(tmp_path, run, "refused", 0, "segment")
     assert driver.cell_path(tmp_path, run, "staged", 0, "flat").name == (
         "staged-s0-e3-flat-w64.json"
     )
@@ -297,6 +308,11 @@ def test_three_cells_run_and_the_matched_cell_spends_the_segment_budgets(
             assert row["termination"] and row["behaviour"]
     segment, matched = cells["segment"], cells["flat-matched"]
     assert segment["roots"] == 2 and matched["beam_width"] == 16
+    # staged's registered depth, in the cell and its name, and the matched cell's.
+    assert segment["segment_depth"] == matched["segment_depth"] == 16
+    assert segment["system"]["segment_depth"] == 16
+    assert segment["search_tag"] == "segment-k2-d16"
+    assert cells["flat"]["segment_depth"] is None
     want = [r["executions"] for r in segment["rows"]]
     assert [r["budget"] for r in matched["rows"]] == want
     for row in matched["rows"]:
@@ -382,13 +398,13 @@ def test_the_report_counts_verified_behaviours_and_shortcuts(tmp_path, monkeypat
 
 def test_the_queue_puts_every_segment_cell_before_any_matched_one(tmp_path):
     cells = run_cells.plan(tmp_path, list(driver.SEARCHES), None)
-    assert len(cells) == 3 * 3 * (4 + 3 + 1)
+    assert len(cells) == 3 * 3 * (2 + 3 + 1)
     first_matched = next(i for i, c in enumerate(cells) if c.search == "flat-matched")
     assert all(c.search == "flat-matched" for c in cells[first_matched:])
     assert cells[0].run_dir.name == driver.BEST_CELL[0]
     assert (cells[0].arm, cells[0].seed, cells[0].search) == ("staged", 0, "flat")
-    only = run_cells.plan(tmp_path, ["flat-matched"], {"staged-arms-20260920:both:1"})
-    assert [(c.arm, c.seed, c.search) for c in only] == [("both", 1, "flat-matched")]
+    only = run_cells.plan(tmp_path, ["flat-matched"], {"staged-arms-20260920:fused:1"})
+    assert [(c.arm, c.seed, c.search) for c in only] == [("fused", 1, "flat-matched")]
 
 
 def test_a_matched_cell_starts_only_after_its_segment_cell_is_written(
@@ -397,7 +413,13 @@ def test_a_matched_cell_starts_only_after_its_segment_cell_is_written(
     import argparse
 
     args = argparse.Namespace(
-        out_dir=tmp_path / "out", roots=16, width=1024, jobs=3, poll=0.05, dry_run=False
+        out_dir=tmp_path / "out",
+        roots=16,
+        width=1024,
+        segment_depth=None,
+        jobs=3,
+        poll=0.05,
+        dry_run=False,
     )
 
     def fake(cell, args):
