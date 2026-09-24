@@ -273,8 +273,21 @@ def fresh_tasks(
     return {FRESH_INPUTS: f1, FRESH_PROGRAMS: f2}
 
 
-def draw(pairs: Sequence[Pair], count: int | None, seed: int) -> list[Pair]:
-    """A seeded sample of ``count`` pairs (all of them when ``count`` is None or larger)."""
-    if count is None or count >= len(pairs):
-        return list(pairs)
-    return random.Random(seed).sample(list(pairs), count)
+def draw(pairs: Sequence[Pair], quota: int | None, seed: int) -> list[Pair]:
+    """Up to ``quota`` pairs per behaviour, uniform within it, reproducibly.
+
+    Behaviours with fewer pairs give all they have. Pairs are put in a
+    canonical order first, because their build order follows set iteration,
+    which string hashing randomises per process.
+    """
+    by_behaviour: dict[str, list[Pair]] = {}
+    for pair in pairs:
+        by_behaviour.setdefault(pair.behaviour, []).append(pair)
+    out = []
+    for behaviour, group in sorted(by_behaviour.items()):
+        group.sort(key=lambda p: (p.example_set, p.s_program, p.t_program))
+        if quota is None or quota >= len(group):
+            out.extend(group)
+        else:
+            out.extend(random.Random(f"{seed}:{behaviour}").sample(group, quota))
+    return out

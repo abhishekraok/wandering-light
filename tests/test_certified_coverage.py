@@ -215,3 +215,22 @@ def test_baselines_score_every_source():
         for source in baseline["scores"].values():
             assert set(source) == {"gated", "always_open"}
     json.dumps(out)  # the report must serialise
+
+
+def test_draw_is_per_behaviour_capped_and_order_free():
+    def fake(behaviour, i):
+        return sampler.Pair(
+            "F1", behaviour, i, (), (), (str(i),), 1, 1, ((i,),), ((i + 1,),)
+        )
+
+    pairs = [fake("a", i) for i in range(50)] + [fake("b", i) for i in range(3)]
+    drawn_pairs = sampler.draw(pairs, 10, seed=7)
+    assert sum(p.behaviour == "a" for p in drawn_pairs) == 10
+    assert sum(p.behaviour == "b" for p in drawn_pairs) == 3  # capped at what it has
+    shuffled = list(pairs)
+    random.Random(1).shuffle(shuffled)
+    again = sampler.draw(shuffled, 10, seed=7)
+    assert [p.key for p in again] == [p.key for p in drawn_pairs]
+    assert [p.key for p in sampler.draw(pairs, 10, seed=8)] != [
+        p.key for p in drawn_pairs
+    ]

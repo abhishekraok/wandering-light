@@ -9,9 +9,10 @@ written), then run a seed on the snapshot::
         --archive checkpoints/certified-coverage/archive-<stamp>.jsonl.gz --seed 0
 
 ``run`` builds deduplicated pairs from the archive (memory) and from the F1
-and F2 witness lineages (generalisation), draws ``--pairs`` per source with
-the seed, rolls each out ``n`` times with BEST, fits both baselines on the
-archive pairs and scores them on every source. ``--pairs-only`` stops after
+and F2 witness lineages (generalisation), draws up to ``--per-behaviour``
+pairs from each behaviour of each source with the seed, rolls each out ``n``
+times with BEST, fits both baselines on the archive pairs and scores them on
+every source. ``--pairs-only`` stops after
 the pair counts. Outputs, in ``--out-dir``: ``pairs-s<seed>.jsonl.gz`` (one row
 per judged pair with its hits and the rollout procedure) and
 ``report-s<seed>.json``.
@@ -186,7 +187,9 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument(
         "--max-cuts", type=int, default=1, help="stratum: d_cuts at most this"
     )
-    run.add_argument("--pairs", type=int, default=1000, help="pairs drawn per source")
+    run.add_argument(
+        "--per-behaviour", type=int, default=20, help="pairs drawn per behaviour"
+    )
     run.add_argument("--checkpoint", default="best")
     run.add_argument("--n", type=int, default=8)
     run.add_argument("--budget", type=int, default=16)
@@ -210,11 +213,11 @@ def main(argv: list[str] | None = None) -> int:
         "archive_tasks": count_tasks(args.archive),
         "seed": args.seed,
         "max_cuts": args.max_cuts,
-        "pairs_per_source": args.pairs,
+        "draw": {"per_behaviour": args.per_behaviour, "seed": args.seed},
         "sources": {source: summary(pairs) for source, pairs in everything.items()},
     }
     judged = {
-        source: sampler.draw(pairs, args.pairs, args.seed)
+        source: sampler.draw(pairs, args.per_behaviour, args.seed)
         for source, pairs in everything.items()
     }
     report["judged"] = {source: summary(pairs) for source, pairs in judged.items()}
