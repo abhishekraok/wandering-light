@@ -581,6 +581,22 @@ Deficits are calibrated. Ratios are medians over 18 paired cells, v4 eval unless
 - **Body cost is exposure.** The world arm pays 0.43 nats per defined-body op against 0.40 per top-level op on v4. Bodies hold 76-78% of ops.
 - **World-v3's floor is top-level ops.** With defined-body deficit removed and commitment free, 29 of 44 world-v3 witnesses fail in a top-level segment.
 
+## Seen-set collisions: how often the beam re-converges on a state (#164)
+
+`experiments/seen_set_collisions.py`, a `BeamObserver` over `BEST`'s search (beam 64 x depth 48, guard both, state cap 16,384), library off, CPU. Closed = no open quotation and no code on the stack; cross-path = a duplicate that is not the node's own path folding back. [report](../reports/seen-set-collisions-20260922/README.md)
+
+| cell | closed cross-path duplicates per closed retained state | distinct closed states met | tasks with one | meetings at length >= 6 / >= 10 | second route same length | duplicates, share of ranked / of all allowed successors | closed share of retained | beam filled |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| world arm `1m-s0-e5`, #101 cohort (300) | **7.2%** (5,127 / 71,061) | 5.8% | 288 / 300 | 53.0% / 47.3% | 22.9% | 2.7% / 2.8% | 11.8% | 97.6% |
+| world arm, world-v3 eval (44) | **8.7%** (1,537 / 17,578) | 6.3% | 44 / 44 | 65.1% / 56.4% | 27.8% | 4.0% / 4.5% | 13.5% | 98.3% |
+| BEST `staged-s0-e3`, #101 cohort | **7.6%** (9,605 / 126,344) | 5.4% | 288 / 300 | 76.0% / 68.7% | 18.7% | 5.6% / 6.3% | 24.6% | 97.2% |
+| BEST, world-v3 eval | **18.9%** (2,557 / 13,500) | 9.0% | 44 / 44 | 78.1% / 70.6% | 11.5% | 7.2% / 7.8% | 10.4% | 98.3% |
+
+- Against 1 of 320 authored witness pairs re-converging (closed-state-value-search (#156), the same question on authored alternatives).
+- The meetings are inserted no-op cycles, commuted independent cycles, long detours to small states, and bodies that differ but agree on the shown examples.
+- The search checks the visited set only for the ~5% of allowed successors the ranking reaches before the beam fills; judged the same way, the successors below the cut are duplicates at the same rate (2.8 / 4.5 / 6.3 / 7.8%, against 2.9 / 4.2 / 5.7 / 7.3% among the ranked ones the guards allowed), so the censoring changes nothing.
+- Under a depth-synchronous beam the second route is never shorter; the visited set discarded evidence, not path length or width.
+
 ## Inner frames E2, first gate: WEAK (#160)
 
 `experiments/frame_gate.py`, the world arm's recipe (v4 + world-v3 train, `1m`, LR 1.25e-4, 3 seeds x 6 epochs, GPU). **tags** adds a label (consumer, `ifte` role, captures) at body steps with a defined frame. **frames** adds the label and the frame after the body prefix. Calibrated deficits; ratios are medians over the 18 matched cells. Predictions were registered on #160 before training. [report](../reports/frame-gate-20260922/README.md)
