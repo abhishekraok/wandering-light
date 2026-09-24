@@ -8,6 +8,8 @@ What they are:
 
 So the finding that bodies carry the deficit is partly the authoring style. On the behaviours it solves, the solver routes around long bodies.
 
+**One confound limits this.** `BEST` was trained on staged-witness-reauthoring (#155)'s staged witnesses. Their longest body has a median of 8 ops, against 29 in the v4 training witnesses. So `BEST` writes the style it was trained on. What the data show is that short-body programs exist for these behaviours, and that a policy trained on them finds them. They do not show that the authored style is what makes bodies expensive for every policy.
+
 The [registration](https://github.com/abhishekraok/wandering-light/issues/165) was posted before anything was scored. Driver: `experiments/solver_rescoring.py`; data: `rescoring.json`.
 
 ## What was scored
@@ -52,7 +54,8 @@ The [registration](https://github.com/abhishekraok/wandering-light/issues/165) w
 
 - **Selection.** Every program here was found by a flat beam, so it is within that beam's reach by construction. A low total deficit is therefore expected. A low body share is not: the found programs could have spent their small budget in bodies, and they did not.
 - **Only solved behaviours.** Nothing here says whether cheap-bodied programs exist for the unsolved ones.
+- **Training style.** `BEST`'s training witnesses (#155, staged) have short bodies: the median longest body is 8 ops, against 29 in the v4 training witnesses. The world arm, trained in the authors' style, found only two of these programs, too few to test whether it also routes around long bodies.
 - **What it changes.** The campaigns' "the lever is inside bodies" was measured on the authors' programs, whose bodies are long. On the behaviours the solver solves, it finds programs whose bodies are short.
   - That agrees with campaign 2's "body cost is exposure": bodies are long in authored witnesses, not harder per op.
-  - It suggests two remedies: training data in a short-body pipeline style, and a search that prefers composing short bodies. Both are cheaper than deriving sub-specs for long ones.
+  - It suggests two remedies: training data in a short-body pipeline style, which #155 already is and which `BEST` shows works on these behaviours, and a search that prefers composing short bodies. Both are cheaper than deriving sub-specs for long ones.
   - The perfect-decomposition pilot proposed on #163 would decompose the *authored* witnesses. It should also report whether a short-body program exists for the tasks it solves.
