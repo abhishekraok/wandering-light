@@ -1,7 +1,9 @@
 """novelty-reduction (#171): generator, loop archive, selector, heads, RND, runner."""
 
 import dataclasses
+import gzip
 import json
+import pickle
 import random
 import sys
 from itertools import pairwise
@@ -12,7 +14,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from experiments.certified_coverage import pairs as sampler
-from experiments.novelty_reduction import canon, evaluate, heads, programs
+from experiments.novelty_reduction import canon, evaluate, heads, m2b, programs
 from experiments.novelty_reduction import cycle as runner
 from experiments.novelty_reduction import select as selector
 from experiments.novelty_reduction.archive import PROPOSAL, ROLLOUT, LoopArchive
@@ -433,3 +435,63 @@ def test_singleton_partition_head_is_finite():
         np.ones((1, 3), dtype=np.float32), np.array([1.0]), heads.HEAD_FIT, 0
     )
     assert np.isfinite(head.predict(np.zeros((2, 3), dtype=np.float32))).all()
+
+
+def test_m2b_split_follows_target_shares_and_keeps_groups_whole():
+    groups = [i // 2 for i in range(400)]
+    parts = m2b.split(groups, 0, (1000, 500, 500))
+    counts = np.bincount(parts, minlength=3)
+    assert abs(counts[0] - 200) <= 2 and abs(counts[1] - 100) <= 2
+    for g in set(groups):
+        assert len({p for p, h in zip(parts, groups, strict=True) if h == g}) == 1
+
+
+def test_m2b_accepted_breaks_ties_at_random_not_by_order():
+    confidence = np.zeros(100)
+    take = m2b.accepted(confidence, 0.2, seed=1)
+    assert take.sum() == 20
+    assert not take[:20].all()  # a stable sort would take the first 20
+    bound = m2b.clustered(np.ones(50), list(range(50)), 100, 0, 0.1)
+    assert bound["one_sided_lower"] == 1.0
+
+
+def test_m2b_on_a_tiny_frozen_run(tmp_path):
+    source = tmp_path / "source"
+    runner.run(tiny_config(cycles=1), source, log=lambda line: None)
+    rnd = heads.RND(TINY, 0)
+    archive = LoopArchive.load(source / "cycle-1" / "archive.pkl.gz")
+    rnd.train(archive.states[:20], 1)
+    rnd.normalise(archive.states[:20])
+    dump = tmp_path / "dump.pkl.gz"
+    with gzip.open(dump, "wb") as handle:
+        pickle.dump({"rnd": rnd}, handle)
+    config = m2b.Config(
+        source=str(source),
+        cycle=1,
+        rnd_dump=str(dump),
+        population=40,
+        split=(20, 10, 10),
+        test=20,
+        folds=2,
+        reps=50,
+        budget=4,
+        n=2,
+        behaviours=SMALL,
+    )
+    report = m2b.run(config, tmp_path / "m2b", log=lambda line: None)
+    assert "stop" not in report
+    for name in ("archive", "fresh"):
+        population = report["populations"][name]
+        assert sum(population["fit"]["pairs_by_part"]) == 40
+        test = population["test"]
+        assert set(test["falsifier"]) == {
+            "log_loss_below_every_control",
+            "matched_coverage_below_distance",
+            "met",
+        }
+        assert test["arms"]["ridge_full"]["matched_coverage"]["accepted"] == 4
+        assert {"E", "count", "RND", "E+RND"} == set(
+            population["risk_coverage_ridge_misses"]
+        )
+    assert report["test_draws"]["kept"] == 20
+    assert (tmp_path / "m2b" / "test_rows.jsonl.gz").exists()
