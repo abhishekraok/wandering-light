@@ -1043,7 +1043,9 @@ def _segment_witness_ranks(
                 "best": float(every[0][2]) if every else None,
                 "executions": tally.executions,
                 "complete": stop is None,
-                **_rank_variants(every, frontier, produced | expanded, target),
+                **_rank_variants(
+                    every, frontier, produced | expanded, target, local_scoring=local
+                ),
             }
         )
         produced.update(closed)
@@ -1086,13 +1088,21 @@ def _edit_distance(left: Sequence[str], right: Sequence[str], cap: int = 200) ->
 
 
 def _rank_variants(
-    every: Sequence[Node], roots: Sequence[Node], stale: set[Product], target: Product
+    every: Sequence[Node],
+    roots: Sequence[Node],
+    stale: set[Product],
+    target: Product,
+    *,
+    local_scoring: bool = False,
 ) -> dict:
     """The K diagnostic's analysis columns beside the registered cumulative rank.
 
     ``local_rank`` ranks by the score gained in this segment (cumulative less
     the root's), the ranking a score reset at each cut would use; ``per_op_rank``
-    by mean log-probability per op of the whole program; ``fresh_rank`` by
+    by mean log-probability per op of the whole program under cumulative
+    scoring, and under local scoring (``local_scoring``), where scores are
+    segment gains, by the gain per op of the segment, so numerator and
+    denominator cover the same span; ``fresh_rank`` by
     cumulative score among closed states never closed or expanded before (no
     revisits, no no-op segments). ``winner`` and ``local_winner`` describe the
     top state under the cumulative and local rankings: its segment length and
@@ -1126,9 +1136,14 @@ def _rank_variants(
         }
 
     locals_ = sorted(every, key=local, reverse=True)
-    per_op = sorted(
-        every, key=lambda node: node[2] / max(1, len(node[1])), reverse=True
-    )
+
+    def per_op_score(node: Node) -> float:
+        if local_scoring:
+            ops = len(node[1]) - len(root_of(node[1]))
+            return float(node[2]) / max(1, ops)
+        return node[2] / max(1, len(node[1]))
+
+    per_op = sorted(every, key=per_op_score, reverse=True)
     fresh = [node for node in every if node[0] not in stale]
     mine = next((node for node in every if node[0] == target), None)
     return {

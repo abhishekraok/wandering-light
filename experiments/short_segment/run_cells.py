@@ -90,6 +90,7 @@ class Cell:
             scoring=self.scoring,
             seconds_cap=None if source else args.seconds_cap,
             device=args.device,
+            threads=args.threads,
         )
 
     def trained(self) -> bool:

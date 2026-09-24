@@ -240,6 +240,7 @@ def search_tag(
     width: int = WIDTH,
     seconds_cap: float | None = None,
     device: str = "cpu",
+    threads: int | None = None,
 ) -> str:
     """The cell's name: every setting that changes its results.
 
@@ -250,8 +251,10 @@ def search_tag(
     budget unit), then only the settings off their default: the scoring
     (``local``; cumulative is left out), ``w`` the segment beam's per-root or
     widening's first width (64), ``cap`` the per-task clock (120 s; 300 s for
-    widening) and the device (cpu). So ``flat-w64`` is flat-48 at width 64,
-    120 s, cpu, and ``segment-local-k64-d8-cap300-cuda`` spells out each change.
+    widening), the device (cpu) and ``t`` the torch threads (8), which move the
+    clock and so, under a clock cap, the coverage. So ``flat-w64`` is flat-48 at
+    width 64, 120 s, cpu, 8 threads, and ``segment-local-k64-d8-cap300-cuda-t4``
+    spells out each change.
     """
     if scoring not in SCORINGS:
         raise ValueError(f"unknown scoring {scoring!r}; choose one of {SCORINGS}")
@@ -270,10 +273,18 @@ def search_tag(
     if search != "flat" and width != WIDTH:
         tag += f"-w{width}"
     if seconds_cap is not None and seconds_cap != default_seconds_cap(search):
-        tag += f"-cap{seconds_cap:g}"
+        tag += f"-cap{number_text(seconds_cap)}"
     if device != "cpu":
         tag += f"-{device.replace(':', '')}"
+    if threads is not None and threads != co.CPU_THREADS:
+        tag += f"-t{threads}"
     return tag
+
+
+def number_text(value: float) -> str:
+    """A number for a file name without losing digits: 120, 1000001, 0.25."""
+    value = float(value)
+    return str(int(value)) if value.is_integer() else repr(value)
 
 
 def subset_tag(positions: Sequence[int] | None) -> str:
@@ -298,6 +309,7 @@ def cell_path(
     width: int = WIDTH,
     seconds_cap: float | None = None,
     device: str = "cpu",
+    threads: int | None = None,
     positions: Sequence[int] | None = None,
 ) -> Path:
     """``segment_depth`` None is the arm's registered depth, ``seconds_cap`` the search's."""
@@ -310,6 +322,7 @@ def cell_path(
         width=width,
         seconds_cap=seconds_cap,
         device=device,
+        threads=threads,
     )
     return (
         out_dir
@@ -461,6 +474,7 @@ def run_cell(
         width=width,
         seconds_cap=seconds_cap,
         device=device,
+        threads=threads,
         positions=positions,
     )
     if out.exists():
@@ -488,12 +502,20 @@ def run_cell(
             segment_depth=depth,
             scoring=scoring,
             device=device,
+            threads=threads,
             positions=positions,
         )
         # Both sources at their own defaults (width 64, their clock), on this
-        # cell's device and tasks.
+        # cell's device, threads and tasks.
         flat_source = cell_path(
-            out_dir, run_dir, arm, seed, "flat", device=device, positions=positions
+            out_dir,
+            run_dir,
+            arm,
+            seed,
+            "flat",
+            device=device,
+            threads=threads,
+            positions=positions,
         )
         budgets, terms = matched_budgets(
             budget_source, flat_source, indices, budget_unit
@@ -549,6 +571,7 @@ def run_cell(
             width=width,
             seconds_cap=seconds_cap,
             device=device,
+            threads=threads,
         ),
         # The segment beam's root ranking, or for a widening cell that of the
         # segment cell its budgets come from; local is exploratory (#168).
@@ -606,7 +629,7 @@ NOTES = f"""\
 - **Fuel:** the same applications' machine cost, 1 per op plus every quotation-body step, so fuel - executions is body steps.
 - **Widening budget unit:** each cell's `budget_unit`, `{BUDGET_UNIT}` by default.
 - **Widening budget:** per task, max(the segment row's spend, flat-48's own spend on that task) in that unit; `budget_term` names the larger, and `set by flat` counts the tasks flat-48 set.
-- **Widening stop:** widths 64, 128, 256, ... from scratch on one shared counter, until the first shown fit, the budget, the clock, or a restart that repeats the one before (`saturated`).
+- **Widening stop:** widths 64, 128, 256, ... from scratch on one shared counter, until the first shown fit, the budget, the clock, or a restart whose width never turned a successor away (`saturated`: every wider beam would run the same search).
 - **Overshoot:** a restart that passes its budget mid-attempt is charged in full and reported as `overshoot`.
 - **Clock:** {TASK_SECONDS_CAP:.0f} s per task for flat-48 and segment, {WIDENING_SECONDS_CAP:.0f} s for flat-widening, recorded per cell; `capped` counts `wall_clock_cap` rows per column.
 - **Fit check:** every executable successor is tested with `moved == outputs` as it is made, before ranking or pruning (in `_run_segment` also before the open/closed split); held-out examples are read only at grading.
@@ -743,7 +766,9 @@ def report(
     verdicts = bsc.verified_programs(out_dir, cells, log)
     groups: dict[tuple, list[dict[str, Any]]] = defaultdict(list)
     for cell in cells:
-        subset = cell["cohort_positions"] is not None
+        # Different subsets never average as seeds: the ordered positions' hash
+        # is part of the key and the label.
+        subset = subset_tag(cell["cohort_positions"])[1:]
         key = (
             subset,
             cell["encoding"],
@@ -801,7 +826,7 @@ def report(
         exploratory = " (exploratory)" if "-local-" in t["search"] else ""
         lines.append(
             f"| {label} | {t['encoding']} | {t['search']}{exploratory}"
-            f"{' (subset)' if t['subset'] else ''} "
+            f"{f' (subset {subset})' if (subset := t['subset']) else ''} "
             f"| {t['run']} | {facts[0]['tasks']} | {per_seed} | {t['verified_mean']:.2f} | "
             f"{mean_of(facts, 'executions'):,.0f} | {mean_of(facts, 'fuel'):,.0f} | "
             f"{mean_of(facts, 'median_executions'):,.0f} | "
@@ -832,7 +857,16 @@ def report(
         lines.append(
             f"Equivalence check: `BEST` (staged s0 e3) under flat verifies {got}; "
             f"best-system-command (#158) measured {BEST_VERIFIED}. "
-            + ("Reproduced." if got == BEST_VERIFIED else "**Not reproduced.**")
+            + (
+                "Count reproduced"
+                if got == BEST_VERIFIED
+                else "**Count not reproduced**"
+            )
+            + (
+                f"; {check['identical']} of {check['tasks']} tasks identical."
+                if check and not check.get("missing")
+                else "; per-task reference missing."
+            )
         )
     else:
         lines.append("Equivalence check: `BEST`'s flat cell has not run yet.")

@@ -417,6 +417,14 @@ def test_cell_names_carry_k_depth_horizon_and_unit(tmp_path):
     )
     assert name("capped", "flat-widening", seconds_cap=300).endswith("-fuel.json")
     assert name("staged", "flat", device="cuda") == "staged-s0-e3-flat-w64-cuda.json"
+    assert name("staged", "flat", threads=8) == "staged-s0-e3-flat-w64.json"
+    assert name("staged", "flat", threads=1) == "staged-s0-e3-flat-w64-t1.json"
+    # Clock caps keep every digit.
+    assert name("staged", "flat", seconds_cap=1_000_000) != name(
+        "staged", "flat", seconds_cap=1_000_001
+    )
+    assert name("staged", "flat", seconds_cap=1_000_001).endswith("-cap1000001.json")
+    assert name("staged", "flat", seconds_cap=0.25).endswith("-cap0.25.json")
     # Subsets are named by their positions, not only their count.
     first = name("staged", "flat", positions=[0, 1])
     assert first != name("staged", "flat", positions=[2, 3])
@@ -507,7 +515,7 @@ def test_three_cells_run_and_the_widening_cell_reads_the_segment_budgets(
     assert segment["roots"] == 2 and segment["merge_rule"] == driver.MERGE_RULE
     assert segment["segment_depth"] == widening["segment_depth"] == 3
     assert segment["system"]["segment_depth"] == 3
-    assert segment["search_tag"] == "segment-k2-d3"
+    assert segment["search_tag"] == "segment-k2-d3-t1"  # one thread, named
     assert widening["max_depth"] == 36 and widening["budget_unit"] == "fuel"
     assert cells["flat"]["segment_depth"] is None
     pairs = list(zip(segment["rows"], cells["flat"]["rows"], strict=True))
@@ -640,7 +648,7 @@ def test_the_report_counts_verified_behaviours_shortcuts_and_pairs(
     assert segment["curve"]["16"]["tasks"] == 2
     text = (tmp_path / "report" / "report.md").read_text()
     assert "verifies 1; best-system-command (#158) measured 16" in text
-    assert "Not reproduced" in text
+    assert "Count not reproduced" in text
     assert "0.95 of executions+fuel spent" in text
     assert "task 6 second_largest" in text
     for note in (
@@ -692,6 +700,7 @@ def test_a_widening_cell_starts_only_after_its_segment_cell_is_written(
         budget_unit="fuel",
         seconds_cap=None,
         device="cpu",
+        threads=8,
         jobs=2,
         poll=0.05,
         dry_run=False,
@@ -961,3 +970,67 @@ def test_best_is_checked_task_by_task_against_158(tmp_path):
     check = driver.best_check(cell, reference)
     assert check["identical"] == 1 and check["capped"] == 1
     assert [d["task_index"] for d in check["differ"]] == [2]
+
+
+def test_different_subsets_are_never_averaged_as_seeds(tmp_path, monkeypatch):
+    monkeypatch.setattr(verify, "check", lambda *a: {"verdict": "genuine"})
+    for positions, fuel in (([0, 1], 10), ([2, 3], 100)):
+        path = driver.cell_path(
+            tmp_path, tmp_path / "run", "staged", 0, "flat", positions=positions
+        )
+        path.parent.mkdir(parents=True, exist_ok=True)
+        rows = [
+            {
+                "task_index": p,
+                "behaviour": "last",
+                "solved": False,
+                "shown_fit": False,
+                "program": None,
+                "executions": fuel,
+                "fuel": fuel,
+                "seconds": 1.0,
+                "termination": "max_depth",
+            }
+            for p in positions
+        ]
+        path.write_text(
+            json.dumps(
+                {
+                    "run": "run",
+                    "arm": "staged",
+                    "seed": 0,
+                    "encoding": "machine",
+                    "search": "flat",
+                    "search_tag": "flat-w64",
+                    "cohort_positions": positions,
+                    "rows": rows,
+                }
+            )
+        )
+    driver.report(tmp_path, tmp_path / "report", log=lambda _: None)
+    table = json.loads((tmp_path / "report" / "report.json").read_text())["table"]
+    assert len(table) == 2
+    assert sorted(t["cells"][0]["fuel"] for t in table) == [20, 200]
+    assert all(t["subset"].startswith("p2-") for t in table)
+
+
+def test_local_per_op_rank_divides_the_gain_by_the_segment_ops():
+    from wandering_light.stack_beam import _rank_variants
+    from wandering_light.stack_machine import Int
+
+    def product(value):
+        return ((Int(value),),)
+
+    long_root = (product(9), tuple("abcdefghi"), 0.0)
+    short_root = (product(1), ("a",), 0.0)
+    # One-op gains -2 after a 9-op prefix and -1 after a 1-op prefix.
+    worse = (product(20), (*long_root[1], "x"), -2.0)
+    better = (product(30), (*short_root[1], "y"), -1.0)
+    every = [better, worse]
+    local = _rank_variants(
+        every, [long_root, short_root], set(), product(30), local_scoring=True
+    )
+    assert local["per_op_rank"] == 1
+    # Cumulative keeps the whole-program mean: -2 / 10 beats -1 / 2.
+    cumulative = _rank_variants(every, [long_root, short_root], set(), product(30))
+    assert cumulative["per_op_rank"] == 2
