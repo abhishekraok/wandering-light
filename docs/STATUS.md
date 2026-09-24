@@ -109,7 +109,7 @@ claim a number supports.
   - **Short-body programs exist for all 25 unsolved cohort behaviours,** 22 of them genuine, median 67 ops, segments up to 13 ops. `BEST` clears none of them under any decomposition (short-body-authoring #167).
   - **Each policy is fluent in its own training style, even on behaviours it never saw:** about 0.4 raw nats per op, against 4-5 times that in the other style. `BEST`'s cost on these programs is mostly style mismatch.
   - **The perfect-decomposition pilot is dropped:** under a 4-atom cap a body is brute-forceable, and the cost is top-level glue.
-  - **The inverse-dynamics probe (#166) is running.** At 100k triples, an encoder that aligns state and target item by item reaches 0.99 set-accuracy against the current encoder's 0.93.
+  - **The encoder can name the op between two states, given enough one-step data** (inverse-dynamics-probe #166, INCONCLUSIVE at 0.962 for 1M triples). An explicit comparison feature makes it data-efficient and reaches 0.994. Campaign 2's last-op miss was mostly training data.
 - **Next, approved by the owner 2026-09-23: one registered campaign.**
   - **Data:** re-author train behaviours with bodies of at most 4 atoms and a closed state at least every 8 ops, plus a segment-capped version of the 25 yardstick programs, analysis only.
   - **Training:** complete data (fused, staged, capped) by encoder (current, aligned).
