@@ -59,3 +59,17 @@ The [registration](https://github.com/abhishekraok/wandering-light/issues/165) w
   - That agrees with campaign 2's "body cost is exposure": bodies are long in authored witnesses, not harder per op.
   - It suggests two remedies: training data in a short-body pipeline style, which #155 already is and which `BEST` shows works on these behaviours, and a search that prefers composing short bodies. Both are cheaper than deriving sub-specs for long ones.
   - The perfect-decomposition pilot proposed on #163 would decompose the *authored* witnesses. It should also report whether a short-body program exists for the tasks it solves.
+
+## Does body length separate what `BEST` solves? (`separation.py`)
+
+Registered on #165 before it was computed. It covers `BEST`'s `b64` cell on the 43 cohort behaviours, measured on their authored v4 eval witnesses. No staged or solver-found witness exists for the unsolved behaviours: #155 staged train behaviours only.
+
+| median | verified (16) | graded only (2) | unsolved (25) |
+|---|---:|---:|---:|
+| longest body, ops | **2** | 28.5 | **40** |
+| quotations | 1 | 14.5 | 11 |
+| witness length, ops | 6.5 | 67.5 | 59 |
+
+- **SEPARATES, as registered:** a gap of 38 ops against a bar of 8.
+- **Confounded with program length.** The verified behaviours are short programs, and every unsolved behaviour but one has a witness of 22 ops or more. Body length and program length cannot be told apart here.
+- **The four verified behaviours with long authored bodies** (13-31 ops) are the ones where `BEST` found short-body alternatives.
