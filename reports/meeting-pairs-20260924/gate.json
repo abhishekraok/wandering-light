@@ -1,0 +1,2416 @@
+{
+  "draws": 10,
+  "all": {
+    "pairs": 5127,
+    "pass": 4440,
+    "fail": 686,
+    "inconclusive": 1,
+    "no_sampler": 0,
+    "pass_rate_of_judged": 0.8661724541552868
+  },
+  "by_kind": {
+    "same-layer": {
+      "pairs": 1172,
+      "pass": 1086,
+      "fail": 86,
+      "inconclusive": 0,
+      "no_sampler": 0,
+      "pass_rate_of_judged": 0.9266211604095563
+    },
+    "earlier-layer": {
+      "pairs": 3955,
+      "pass": 3354,
+      "fail": 600,
+      "inconclusive": 1,
+      "no_sampler": 0,
+      "pass_rate_of_judged": 0.8482549317147192
+    }
+  },
+  "by_shape": {
+    "commutation": {
+      "pairs": 159,
+      "pass": 148,
+      "fail": 11,
+      "inconclusive": 0,
+      "no_sampler": 0,
+      "pass_rate_of_judged": 0.9308176100628931
+    },
+    "insertion": {
+      "pairs": 1317,
+      "pass": 987,
+      "fail": 329,
+      "inconclusive": 1,
+      "no_sampler": 0,
+      "pass_rate_of_judged": 0.75
+    },
+    "other": {
+      "pairs": 3651,
+      "pass": 3305,
+      "fail": 346,
+      "inconclusive": 0,
+      "no_sampler": 0,
+      "pass_rate_of_judged": 0.9052314434401534
+    }
+  },
+  "by_kind_shape": {
+    "same-layer/commutation": {
+      "pairs": 159,
+      "pass": 148,
+      "fail": 11,
+      "inconclusive": 0,
+      "no_sampler": 0,
+      "pass_rate_of_judged": 0.9308176100628931
+    },
+    "same-layer/other": {
+      "pairs": 1013,
+      "pass": 938,
+      "fail": 75,
+      "inconclusive": 0,
+      "no_sampler": 0,
+      "pass_rate_of_judged": 0.9259624876604146
+    },
+    "earlier-layer/insertion": {
+      "pairs": 1317,
+      "pass": 987,
+      "fail": 329,
+      "inconclusive": 1,
+      "no_sampler": 0,
+      "pass_rate_of_judged": 0.75
+    },
+    "earlier-layer/other": {
+      "pairs": 2638,
+      "pass": 2367,
+      "fail": 271,
+      "inconclusive": 0,
+      "no_sampler": 0,
+      "pass_rate_of_judged": 0.8972706595905989
+    }
+  },
+  "ops_saved_median": 2.0,
+  "ops_saved_histogram": {
+    "1": 1564,
+    "2": 462,
+    "3": 124,
+    "4": 20,
+    "5": 295,
+    "6": 35,
+    "7": 48,
+    "8": 27,
+    "9": 6,
+    "10": 55,
+    "11": 39,
+    "12": 28,
+    "13": 52,
+    "14": 10,
+    "15": 25,
+    "16": 25,
+    "17": 47,
+    "18": 44,
+    "19": 21,
+    "20": 19,
+    "21": 13,
+    "22": 6,
+    "23": 16,
+    "24": 31,
+    "25": 5,
+    "26": 19,
+    "27": 22,
+    "28": 2,
+    "29": 33,
+    "30": 9,
+    "31": 16,
+    "32": 3,
+    "33": 8,
+    "34": 7,
+    "35": 2,
+    "36": 24,
+    "37": 5,
+    "38": 11,
+    "39": 2,
+    "40": 1,
+    "41": 12,
+    "42": 9,
+    "43": 3,
+    "44": 21,
+    "45": 5,
+    "46": 86,
+    "47": 37
+  },
+  "passing_earlier_layer_labels": 2767,
+  "passing_earlier_layer_tasks": 288,
+  "tasks_with_pairs": 288,
+  "fail_by_behaviour": {
+    "sum_negative": 102,
+    "capped_sum": 57,
+    "n_minus_each": 55,
+    "widest_pair": 50,
+    "keep_below": 43,
+    "positive_majority_three": 38,
+    "all_positive": 30,
+    "replace_value": 24,
+    "cartesian_pair_sums": 22,
+    "aligned_matches": 22,
+    "drop_last": 21,
+    "polyline_manhattan_length": 21,
+    "largest_inside_interval": 19,
+    "aligned_maxima": 18,
+    "adjacent_sign_change_count": 17,
+    "nondecreasing_indicator": 17,
+    "shared_value_occurrences": 16,
+    "median_floor": 12,
+    "second_largest": 12,
+    "increment_each": 10,
+    "nearest_interval_endpoint_each": 10,
+    "positive_balance_prefix_count": 10,
+    "concatenate_shorter_first": 9,
+    "prefix_sums": 9,
+    "farther_choice_from_target": 8,
+    "bounds_cover_list_flag": 5,
+    "axis_point_count": 4,
+    "keep_ascending_pairs": 4,
+    "lexicographic_order": 4,
+    "farthest_from_target_last_tie": 4,
+    "negate_each": 3,
+    "furthest_squared_radius": 3,
+    "min_pair": 2,
+    "manhattan_point_radii": 2,
+    "keep_negative": 1,
+    "span_inside_interval": 1,
+    "pair_floor_averages": 1
+  },
+  "fail_samples": [
+    {
+      "behaviour": "increment_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "uncons",
+        "drop"
+      ],
+      "second": [
+        "uncons",
+        "[",
+        "[",
+        "over",
+        "0",
+        "eq?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=8), Int(value=0), Int(value=6), Int(value=7), Int(value=2), Int(value=-2)))"
+        ],
+        "first": [
+          "Lst(items=(Int(value=0), Int(value=6), Int(value=7), Int(value=2), Int(value=-2)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=8), Int(value=6), Int(value=7), Int(value=2), Int(value=-2)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "increment_each",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "nil",
+        "[",
+        "cons",
+        "]",
+        "fold",
+        "uncons",
+        "drop"
+      ],
+      "second": [
+        "uncons",
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=6), Int(value=7), Int(value=5), Int(value=-6)))"
+        ],
+        "first": [
+          "Lst(items=(Int(value=5), Int(value=7), Int(value=6)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=7), Int(value=6), Int(value=6)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "increment_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "nil",
+        "[",
+        "cons",
+        "]",
+        "fold",
+        "uncons",
+        "drop"
+      ],
+      "second": [
+        "nil",
+        "[",
+        "cons",
+        "]",
+        "fold",
+        "uncons",
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=3), Int(value=-7), Int(value=-4), Int(value=1), Int(value=6)))"
+        ],
+        "first": [
+          "Lst(items=(Int(value=1), Int(value=-4), Int(value=-7), Int(value=3)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=6), Int(value=6), Int(value=6), Int(value=6)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "increment_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "uncons",
+        "[",
+        "0",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "fold",
+        "]",
+        "dip"
+      ],
+      "second": [
+        "nil",
+        "[",
+        "cons",
+        "]",
+        "fold",
+        "uncons",
+        "[",
+        "0",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "fold",
+        "]",
+        "dip",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "swap",
+        "]",
+        "[",
+        "]",
+        "ifte"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-9), Int(value=-2), Int(value=-1), Int(value=7), Int(value=-8), Int(value=7)))"
+        ],
+        "first": [
+          "Int(value=7)",
+          "Int(value=-9)"
+        ],
+        "second": [
+          "Int(value=-9)",
+          "Int(value=7)"
+        ]
+      }
+    },
+    {
+      "behaviour": "increment_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "uncons",
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "second": [
+        "uncons",
+        "[",
+        "[",
+        "dup",
+        "0",
+        "lt?",
+        "]",
+        "[",
+        "0",
+        "swap",
+        "sub",
+        "]",
+        "[",
+        "]",
+        "ifte",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-3), Int(value=-4)))"
+        ],
+        "first": [
+          "Int(value=-3)"
+        ],
+        "second": [
+          "Int(value=4)"
+        ]
+      }
+    },
+    {
+      "behaviour": "increment_each",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "uncons",
+        "drop",
+        "0",
+        "[",
+        "add",
+        "]",
+        "fold"
+      ],
+      "second": [
+        "0",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "fold",
+        "[",
+        "dup",
+        "0",
+        "lt?",
+        "]",
+        "[",
+        "0",
+        "swap",
+        "sub",
+        "1",
+        "sub",
+        "]",
+        "[",
+        "]",
+        "ifte"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-5), Int(value=-4), Int(value=0), Int(value=-6), Int(value=3), Int(value=-8)))"
+        ],
+        "first": [
+          "Int(value=-15)"
+        ],
+        "second": [
+          "Int(value=7)"
+        ]
+      }
+    },
+    {
+      "behaviour": "increment_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "uncons",
+        "drop"
+      ],
+      "second": [
+        "uncons",
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-1), Int(value=-8), Int(value=-9)))"
+        ],
+        "first": [
+          "Lst(items=(Int(value=-8), Int(value=-9)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=-1), Int(value=-1)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "increment_each",
+      "kind": "same-layer",
+      "shape": "commutation",
+      "first": [
+        "nil",
+        "[",
+        "[",
+        "[",
+        "eq?",
+        "]",
+        "swap",
+        "cons",
+        "filter",
+        "null?",
+        "]",
+        "[",
+        "cons",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold",
+        "nil",
+        "[",
+        "cons",
+        "]",
+        "fold"
+      ],
+      "second": [
+        "nil",
+        "[",
+        "cons",
+        "]",
+        "fold",
+        "nil",
+        "[",
+        "[",
+        "[",
+        "eq?",
+        "]",
+        "swap",
+        "cons",
+        "filter",
+        "null?",
+        "]",
+        "[",
+        "cons",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=9), Int(value=0), Int(value=3), Int(value=4), Int(value=9), Int(value=9)))"
+        ],
+        "first": [
+          "Lst(items=(Int(value=9), Int(value=0), Int(value=3), Int(value=4)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=0), Int(value=3), Int(value=4), Int(value=9)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "increment_each",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "nil",
+        "[",
+        "[",
+        "[",
+        "eq?",
+        "]",
+        "swap",
+        "cons",
+        "filter",
+        "null?",
+        "]",
+        "[",
+        "cons",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "second": [
+        "nil",
+        "[",
+        "[",
+        "over",
+        "null?",
+        "]",
+        "[",
+        "cons",
+        "]",
+        "[",
+        "[",
+        "over",
+        "uncons",
+        "swap",
+        "drop",
+        "eq?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "cons",
+        "]",
+        "ifte",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=0), Int(value=-3), Int(value=7), Int(value=1), Int(value=7), Int(value=9)))"
+        ],
+        "first": [
+          "Lst(items=(Int(value=9), Int(value=1), Int(value=7), Int(value=-3), Int(value=0)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=9), Int(value=7), Int(value=1), Int(value=7), Int(value=-3), Int(value=0)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "increment_each",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "nil",
+        "[",
+        "[",
+        "[",
+        "eq?",
+        "]",
+        "swap",
+        "cons",
+        "filter",
+        "null?",
+        "]",
+        "[",
+        "cons",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold",
+        "nil",
+        "[",
+        "cons",
+        "]",
+        "fold"
+      ],
+      "second": [
+        "nil",
+        "[",
+        "cons",
+        "]",
+        "fold",
+        "nil",
+        "[",
+        "[",
+        "over",
+        "null?",
+        "]",
+        "[",
+        "cons",
+        "]",
+        "[",
+        "[",
+        "over",
+        "uncons",
+        "swap",
+        "drop",
+        "eq?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "cons",
+        "]",
+        "ifte",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-7), Int(value=-8), Int(value=2), Int(value=-8), Int(value=-9)))"
+        ],
+        "first": [
+          "Lst(items=(Int(value=-7), Int(value=-8), Int(value=2), Int(value=-9)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=-7), Int(value=-8), Int(value=2), Int(value=-8), Int(value=-9)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_negative",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "nil",
+        "[",
+        "cons",
+        "]",
+        "fold"
+      ],
+      "second": [
+        "nil",
+        "[",
+        "[",
+        "over",
+        "null?",
+        "]",
+        "[",
+        "cons",
+        "]",
+        "[",
+        "[",
+        "over",
+        "uncons",
+        "swap",
+        "drop",
+        "eq?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "cons",
+        "]",
+        "ifte",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=1), Int(value=1), Int(value=-4), Int(value=-3)))"
+        ],
+        "first": [
+          "Lst(items=(Int(value=-3), Int(value=-4), Int(value=1), Int(value=1)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=-3), Int(value=-4), Int(value=1)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "same-layer",
+      "shape": "other",
+      "first": [
+        "dup",
+        "div"
+      ],
+      "second": [
+        "drop",
+        "1"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=9), Int(value=3), Int(value=2), Int(value=0)))",
+          "Int(value=0)"
+        ],
+        "first": "div: division by zero",
+        "second": [
+          "Lst(items=(Int(value=9), Int(value=3), Int(value=2), Int(value=0)))",
+          "Int(value=1)"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "dup",
+        "0",
+        "lt?",
+        "]",
+        "[",
+        "0",
+        "swap",
+        "sub",
+        "]",
+        "[",
+        "]",
+        "ifte",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=1), Int(value=-5), Int(value=-4), Int(value=7), Int(value=4)))",
+          "Int(value=1)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=1), Int(value=-5), Int(value=-4), Int(value=7), Int(value=4)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=1), Int(value=-5), Int(value=-4), Int(value=1), Int(value=1)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "over",
+        "0",
+        "eq?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=0), Int(value=7), Int(value=-8), Int(value=8), Int(value=6)))",
+          "Int(value=2)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=0), Int(value=7), Int(value=-8), Int(value=8), Int(value=6)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=2), Int(value=7), Int(value=-8), Int(value=8), Int(value=6)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "dup",
+        "0",
+        "lt?",
+        "]",
+        "[",
+        "0",
+        "swap",
+        "sub",
+        "]",
+        "[",
+        "]",
+        "ifte",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=7), Int(value=-9), Int(value=8), Int(value=-2), Int(value=7), Int(value=-9)))",
+          "Int(value=-4)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=7), Int(value=-9), Int(value=8), Int(value=-2), Int(value=7), Int(value=-9)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=4), Int(value=-9), Int(value=4), Int(value=-2), Int(value=4), Int(value=-9)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "eq?",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "false",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "true",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "filter"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=7), Int(value=-7), Int(value=-3), Int(value=-7), Int(value=7), Int(value=-8)))",
+          "Int(value=-3)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=7), Int(value=-7), Int(value=-3), Int(value=-7), Int(value=7), Int(value=-8)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=7), Int(value=-7), Int(value=-7), Int(value=7), Int(value=-8)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "[",
+        "eq?",
+        "]",
+        "swap",
+        "cons",
+        "filter",
+        "0",
+        "cons"
+      ],
+      "second": [
+        "nil",
+        "quote",
+        "swap",
+        "cons",
+        "[",
+        "[",
+        "uncons",
+        "swap",
+        "uncons",
+        "swap",
+        "drop",
+        "]",
+        "dip",
+        "[",
+        "drop",
+        "drop",
+        "0",
+        "swap",
+        "lt?",
+        "]",
+        "[",
+        "cons",
+        "[",
+        "1",
+        "sub",
+        "]",
+        "dip",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "[",
+        "drop",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "ifte",
+        "]",
+        "fold",
+        "uncons",
+        "drop",
+        "uncons",
+        "swap",
+        "0",
+        "cons",
+        "swap",
+        "drop"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-8), Int(value=6)))",
+          "Int(value=-8)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=0), Int(value=-8)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=0),))"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "over",
+        "0",
+        "eq?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=0), Int(value=6), Int(value=0), Int(value=2)))",
+          "Int(value=-8)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=0), Int(value=6), Int(value=0), Int(value=2)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=-8), Int(value=6), Int(value=-8), Int(value=2)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "eq?",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "false",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "true",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "filter"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=1), Int(value=8), Int(value=0), Int(value=9), Int(value=-7), Int(value=-1)))",
+          "Int(value=0)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=1), Int(value=8), Int(value=0), Int(value=9), Int(value=-7), Int(value=-1)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=1), Int(value=8), Int(value=9), Int(value=-7), Int(value=-1)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "second": [
+        "[",
+        "[",
+        "over",
+        "eq?",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "0",
+        "]",
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=3), Int(value=-9), Int(value=3)))",
+          "Int(value=3)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=3), Int(value=3), Int(value=3)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=0), Int(value=3), Int(value=0)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "[",
+        "eq?",
+        "]",
+        "swap",
+        "cons",
+        "filter",
+        "0",
+        "cons"
+      ],
+      "second": [
+        "nil",
+        "quote",
+        "swap",
+        "cons",
+        "[",
+        "[",
+        "uncons",
+        "swap",
+        "uncons",
+        "swap",
+        "drop",
+        "]",
+        "dip",
+        "[",
+        "drop",
+        "drop",
+        "0",
+        "swap",
+        "lt?",
+        "]",
+        "[",
+        "cons",
+        "[",
+        "1",
+        "sub",
+        "]",
+        "dip",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "[",
+        "drop",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "ifte",
+        "]",
+        "fold",
+        "uncons",
+        "drop",
+        "uncons",
+        "swap",
+        "0",
+        "cons",
+        "swap",
+        "drop"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=5), Int(value=-2), Int(value=9), Int(value=4)))",
+          "Int(value=5)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=0), Int(value=5)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=0),))"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "over",
+        "0",
+        "eq?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-3), Int(value=1), Int(value=-3), Int(value=2), Int(value=0)))",
+          "Int(value=-3)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=-3), Int(value=1), Int(value=-3), Int(value=2), Int(value=0)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=-3), Int(value=1), Int(value=-3), Int(value=2), Int(value=-3)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "eq?",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "false",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "true",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "filter"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=8), Int(value=9), Int(value=-6), Int(value=6), Int(value=-4), Int(value=-7)))",
+          "Int(value=-7)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=8), Int(value=9), Int(value=-6), Int(value=6), Int(value=-4), Int(value=-7)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=8), Int(value=9), Int(value=-6), Int(value=6), Int(value=-4)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "[",
+        "0",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "fold",
+        "]",
+        "dip",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte"
+      ],
+      "second": [
+        "[",
+        "0",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "fold",
+        "]",
+        "dip",
+        "[",
+        "over",
+        "over",
+        "div",
+        "mul",
+        "sub",
+        "0",
+        "eq?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-6), Int(value=-7), Int(value=-1), Int(value=-2)))",
+          "Int(value=-8)"
+        ],
+        "first": [
+          "Int(value=-8)"
+        ],
+        "second": [
+          "Int(value=-2)"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "[",
+        "eq?",
+        "]",
+        "swap",
+        "cons",
+        "filter",
+        "0",
+        "cons"
+      ],
+      "second": [
+        "nil",
+        "quote",
+        "swap",
+        "cons",
+        "[",
+        "[",
+        "uncons",
+        "swap",
+        "uncons",
+        "swap",
+        "drop",
+        "]",
+        "dip",
+        "[",
+        "drop",
+        "drop",
+        "0",
+        "swap",
+        "lt?",
+        "]",
+        "[",
+        "cons",
+        "[",
+        "1",
+        "sub",
+        "]",
+        "dip",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "[",
+        "drop",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "ifte",
+        "]",
+        "fold",
+        "uncons",
+        "drop",
+        "uncons",
+        "swap",
+        "0",
+        "cons",
+        "swap",
+        "drop"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-3), Int(value=-7), Int(value=9), Int(value=-3), Int(value=-5), Int(value=0)))",
+          "Int(value=9)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=0), Int(value=9)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=0),))"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "swap",
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "over",
+        "0",
+        "eq?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=3), Int(value=-9), Int(value=-8), Int(value=-3), Int(value=4)))",
+          "Int(value=0)"
+        ],
+        "first": [
+          "Int(value=0)"
+        ],
+        "second": [
+          "Int(value=3)"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "second": [
+        "[",
+        "[",
+        "dup",
+        "0",
+        "lt?",
+        "]",
+        "[",
+        "0",
+        "swap",
+        "sub",
+        "]",
+        "[",
+        "]",
+        "ifte",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-5), Int(value=6), Int(value=0), Int(value=-9), Int(value=8), Int(value=5)))",
+          "Int(value=0)"
+        ],
+        "first": [
+          "Int(value=8)"
+        ],
+        "second": [
+          "Int(value=9)"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map",
+        "uncons",
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map",
+        "uncons",
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-6), Int(value=-7), Int(value=7), Int(value=-9), Int(value=5), Int(value=-9)))",
+          "Int(value=-7)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=-7), Int(value=7), Int(value=-7), Int(value=5), Int(value=-7)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=-6), Int(value=7), Int(value=-6), Int(value=5), Int(value=-6)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "swap",
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "over",
+        "0",
+        "eq?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=0), Int(value=4)))",
+          "Int(value=0)"
+        ],
+        "first": [
+          "Int(value=0)"
+        ],
+        "second": [
+          "Int(value=4)"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "eq?",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "false",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "true",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "filter"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=3), Int(value=5), Int(value=-3), Int(value=-8), Int(value=6), Int(value=-4)))",
+          "Int(value=-3)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=3), Int(value=5), Int(value=-3), Int(value=-8), Int(value=6), Int(value=-4)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=3), Int(value=5), Int(value=-8), Int(value=6), Int(value=-4)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "swap",
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "over",
+        "0",
+        "eq?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-6), Int(value=-8), Int(value=5), Int(value=-2)))",
+          "Int(value=0)"
+        ],
+        "first": [
+          "Int(value=0)"
+        ],
+        "second": [
+          "Int(value=-6)"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "swap",
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "dup",
+        "0",
+        "lt?",
+        "]",
+        "[",
+        "0",
+        "swap",
+        "sub",
+        "]",
+        "[",
+        "]",
+        "ifte",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "fold"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=2), Int(value=-3)))",
+          "Int(value=4)"
+        ],
+        "first": [
+          "Int(value=4)"
+        ],
+        "second": [
+          "Int(value=2)"
+        ]
+      }
+    },
+    {
+      "behaviour": "n_minus_each",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "nil",
+        "quote",
+        "swap",
+        "cons",
+        "[",
+        "[",
+        "uncons",
+        "swap",
+        "uncons",
+        "swap",
+        "drop",
+        "]",
+        "dip",
+        "[",
+        "drop",
+        "drop",
+        "0",
+        "swap",
+        "lt?",
+        "]",
+        "[",
+        "cons",
+        "[",
+        "1",
+        "sub",
+        "]",
+        "dip",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "[",
+        "drop",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "ifte",
+        "]",
+        "fold",
+        "uncons",
+        "drop",
+        "uncons",
+        "swap",
+        "drop"
+      ],
+      "second": [
+        "nil",
+        "quote",
+        "swap",
+        "cons",
+        "[",
+        "[",
+        "uncons",
+        "swap",
+        "uncons",
+        "swap",
+        "drop",
+        "]",
+        "dip",
+        "[",
+        "drop",
+        "drop",
+        "0",
+        "swap",
+        "lt?",
+        "]",
+        "[",
+        "cons",
+        "[",
+        "1",
+        "sub",
+        "]",
+        "dip",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "[",
+        "drop",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "ifte",
+        "]",
+        "fold",
+        "uncons",
+        "drop",
+        "uncons",
+        "swap",
+        "[",
+        "cons",
+        "]",
+        "fold"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-9), Int(value=-8), Int(value=3), Int(value=-9)))",
+          "Int(value=7)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=-9), Int(value=3), Int(value=-8), Int(value=-9)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=-9), Int(value=-8), Int(value=3), Int(value=-9)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "negate_each",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "drop",
+        "nil"
+      ],
+      "second": [
+        "[",
+        "0",
+        "eq?",
+        "]",
+        "filter"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=6), Int(value=0), Int(value=-8), Int(value=3), Int(value=-8), Int(value=4)))"
+        ],
+        "first": [
+          "Lst(items=())"
+        ],
+        "second": [
+          "Lst(items=(Int(value=0),))"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "drop"
+      ],
+      "second": [
+        "[",
+        "[",
+        "over",
+        "0",
+        "eq?",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=0), Int(value=-4), Int(value=-6), Int(value=-1)))",
+          "Int(value=8)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=0), Int(value=-4), Int(value=-6), Int(value=-1)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=8), Int(value=-4), Int(value=-6), Int(value=-1)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "[",
+        "0",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "fold",
+        "]",
+        "dip",
+        "swap"
+      ],
+      "second": [
+        "[",
+        "0",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "fold",
+        "]",
+        "dip",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "swap",
+        "]",
+        "[",
+        "]",
+        "ifte"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-8), Int(value=-2), Int(value=7), Int(value=-3)))",
+          "Int(value=3)"
+        ],
+        "first": [
+          "Int(value=3)",
+          "Int(value=-3)"
+        ],
+        "second": [
+          "Int(value=-3)",
+          "Int(value=3)"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "drop",
+        "nil",
+        "[",
+        "cons",
+        "]",
+        "fold",
+        "nil"
+      ],
+      "second": [
+        "nil",
+        "quote",
+        "swap",
+        "cons",
+        "[",
+        "[",
+        "uncons",
+        "swap",
+        "uncons",
+        "swap",
+        "drop",
+        "]",
+        "dip",
+        "[",
+        "drop",
+        "drop",
+        "0",
+        "swap",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "[",
+        "1",
+        "sub",
+        "]",
+        "dip",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "[",
+        "cons",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "ifte",
+        "]",
+        "fold",
+        "uncons",
+        "drop",
+        "uncons",
+        "swap"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=4), Int(value=-6), Int(value=2)))",
+          "Int(value=3)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=2), Int(value=-6), Int(value=4)))",
+          "Lst(items=())"
+        ],
+        "second": [
+          "Lst(items=())",
+          "Lst(items=())"
+        ]
+      }
+    },
+    {
+      "behaviour": "negate_each",
+      "kind": "earlier-layer",
+      "shape": "other",
+      "first": [
+        "drop",
+        "nil"
+      ],
+      "second": [
+        "[",
+        "0",
+        "eq?",
+        "]",
+        "filter"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-7), Int(value=-9), Int(value=0)))"
+        ],
+        "first": [
+          "Lst(items=())"
+        ],
+        "second": [
+          "Lst(items=(Int(value=0),))"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "earlier-layer",
+      "shape": "insertion",
+      "first": [
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map",
+        "[",
+        "dup",
+        "1",
+        "1",
+        "add",
+        "div",
+        "1",
+        "1",
+        "add",
+        "mul",
+        "sub",
+        "0",
+        "eq?",
+        "]",
+        "filter"
+      ],
+      "second": [
+        "[",
+        "[",
+        "over",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "]",
+        "[",
+        "swap",
+        "drop",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "map",
+        "nil",
+        "[",
+        "cons",
+        "]",
+        "fold",
+        "[",
+        "dup",
+        "1",
+        "1",
+        "add",
+        "div",
+        "1",
+        "1",
+        "add",
+        "mul",
+        "sub",
+        "0",
+        "eq?",
+        "]",
+        "filter"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=7), Int(value=-3), Int(value=4), Int(value=2), Int(value=-7)))",
+          "Int(value=-8)"
+        ],
+        "first": [
+          "Lst(items=(Int(value=4), Int(value=2)))"
+        ],
+        "second": [
+          "Lst(items=(Int(value=2), Int(value=4)))"
+        ]
+      }
+    },
+    {
+      "behaviour": "keep_below",
+      "kind": "same-layer",
+      "shape": "other",
+      "first": [
+        "[",
+        "uncons",
+        "]",
+        "dip",
+        "[",
+        "[",
+        "drop",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "drop",
+        "false",
+        "]",
+        "[",
+        "[",
+        "[",
+        "drop",
+        "]",
+        "dip",
+        "swap",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "drop",
+        "false",
+        "]",
+        "[",
+        "drop",
+        "drop",
+        "true",
+        "]",
+        "ifte",
+        "]",
+        "ifte",
+        "]",
+        "swap",
+        "cons",
+        "swap",
+        "cons",
+        "filter"
+      ],
+      "second": [
+        "nil",
+        "quote",
+        "swap",
+        "cons",
+        "[",
+        "[",
+        "uncons",
+        "swap",
+        "uncons",
+        "swap",
+        "drop",
+        "]",
+        "dip",
+        "[",
+        "drop",
+        "drop",
+        "0",
+        "swap",
+        "lt?",
+        "]",
+        "[",
+        "drop",
+        "[",
+        "1",
+        "sub",
+        "]",
+        "dip",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "[",
+        "cons",
+        "quote",
+        "swap",
+        "cons",
+        "]",
+        "ifte",
+        "]",
+        "fold",
+        "uncons",
+        "drop",
+        "uncons",
+        "drop"
+      ],
+      "counterexample": {
+        "input": [
+          "Lst(items=(Int(value=-9), Int(value=-7), Int(value=7)))",
+          "Int(value=0)"
+        ],
+        "first": "filter: body must leave exactly one value, left 2",
+        "second": [
+          "Lst(items=())"
+        ]
+      }
+    }
+  ],
+  "label": "world arm 1m-s0-e5, #101 cohort, 10-draw gate",
+  "seed": 169
+}
