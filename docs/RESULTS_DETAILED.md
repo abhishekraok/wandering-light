@@ -552,6 +552,20 @@ Caveats: three seeds, one corpus, one recipe, one 44-task split. The lowest-defi
 
 Caveats: the quotation rows price a body at the flat policy's deficit, not at what a frame-conditioned sub-search would pay (that is #160 E2); every row assumes the right intermediate state survives in the top 64; `1m-s0-e5` was selected on the world-v3 eval split and is fixed here for pairing.
 
+## Inverse dynamics: the encoder can compare states, and a comparison feature makes it data-efficient (#166)
+
+Triples (s, op, s') from executing every legal op on world-arm fit-task states. The label is every op reaching s'. Set-accuracy on held-out tasks' states. Predictions were registered first. [report](../reports/inverse-dynamics-20260923/README.md)
+
+| arm | 10k | 100k | **1M** | 1M, 265 real last-op states |
+|---|---:|---:|---:|---:|
+| current `StackPairPolicy` (registered bars: 0.90 / 0.97) | 0.841 | 0.930 | **0.962** (INCONCLUSIVE) | 0.966 |
+| difference (plus position flags) | 0.945 | 0.980 | 0.994 | 0.989 |
+| aligned (pairwise from the top) | 0.956 | 0.992 | 0.994 | 0.981 |
+
+- **The current encoder fails at depth:** 0.899 with 4-7 stack items, against 0.984 for the comparing arms.
+- **Campaign 2's last-op miss was mostly training data:** that policy never trained on one-step targets.
+- **short-segment-campaign (#168)'s registered rule picks `difference`.**
+
 ## Short-body programs: they exist, the solver writes them, and each policy is fluent only in its own style (#165, #167)
 
 All deficits here are raw log-probabilities, the beam as it runs.
