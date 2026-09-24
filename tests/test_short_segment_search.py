@@ -1072,7 +1072,7 @@ def test_archiving_leaves_the_segment_search_unchanged(name, witness, shape, wan
         )
         assert all(isinstance(entry, ArchivedSegment) for entry in archive)
         assert [entry.segment for entry in archive] == list(range(len(archive)))
-        assert archive[0].roots == (((), 0.0),)
+        assert [(p, s) for _, p, s in archive[0].roots] == [((), 0.0)]
         stop = archive[-1].stop
         assert stop == ("fit" if got.termination == "fit" else None)
 
@@ -1128,3 +1128,54 @@ def test_the_archive_scores_each_state_from_its_root(monkeypatch):
     assert cumulative["A C2"]["chosen_root"] and "A C2" not in local
     assert local["B B2"]["rank_local"] == 0 and local["B B2"]["chosen_root"]
     assert cumulative["B B2"]["rank_cumulative"] == 2
+
+
+def test_the_train_archive_flags_states_on_the_witness():
+    from types import SimpleNamespace
+
+    from experiments.short_segment.archive_train import witness_closed
+
+    task = witness_task("sum", 4)
+    archive = []
+    got = segment_beam_solve(
+        task,
+        WitnessScorer(task, 1.0),
+        roots=4,
+        segment_depth=4,
+        max_segments=4,
+        beam_width=8,
+        max_state_atoms=16_384,
+        archive=archive,
+    )
+    assert got.program == ("0", "nil", "dip", "[", "add", "]", "fold")
+    witness = witness_closed(task, got.program)
+    assert len(witness) == 2  # after dip, and the fit after fold
+    row = SimpleNamespace(
+        program=got.program, task=task, termination="fit", source="search"
+    )
+    record = driver.archive_record(row, 0, archive, top=0, witness=witness)
+    flagged = [
+        s
+        for segment in record["segments"]
+        for s in segment["states"]
+        if s["on_witness"]
+    ]
+    # Flagged by state, not program: an empty dip again reaches the same state.
+    assert [s["program"] for s in flagged] == ["0 nil dip", "0 nil dip nil dip"]
+    assert [s["on_path"] for s in flagged] == [True, False]
+    assert witness_closed(task, ("add",)) is None  # refuses a step on a list
+
+
+def test_an_archive_is_final_only_with_its_cell(tmp_path, tiny_run, monkeypatch):
+    cohort = [(11, witness_task("sum", 6))]
+    monkeypatch.setattr(driver, "cohort_tasks", lambda positions=None: cohort)
+
+    def broken(policy):
+        raise RuntimeError("after the search, before the cell is written")
+
+    monkeypatch.setattr(driver, "checkpoint_encoding", broken)
+    kwargs = {"roots": 2, "segment_depth": 3, "threads": 1, "log": lambda _: None}
+    with pytest.raises(RuntimeError):
+        driver.run_cell(tmp_path, tiny_run, "staged", 0, "segment", **kwargs)
+    assert not list(tmp_path.rglob("*.jsonl.gz"))
+    assert list(tmp_path.rglob("*.jsonl.gz.partial"))

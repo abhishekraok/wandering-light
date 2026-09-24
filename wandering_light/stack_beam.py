@@ -585,13 +585,14 @@ Closed = dict[Product, tuple[float, tuple[str, ...]]]
 class ArchivedSegment(NamedTuple):
     """One segment of a segment search, as ``segment_beam_solve`` archives it.
 
-    ``roots`` are ``(program, score)`` in the order the segment ran them, the
-    score the one the search gave the root (0 under local scoring); ``closed``
-    is the segment's merged closed states; ``stop`` is ``_run_segment``'s.
+    ``roots`` are the segment's roots ``(product, program, score)`` in the
+    order it ran them, the score the one the search gave the root (0 under
+    local scoring); ``closed`` is the segment's merged closed states; ``stop``
+    is ``_run_segment``'s.
     """
 
     segment: int
-    roots: tuple[tuple[tuple[str, ...], float], ...]
+    roots: list[Node]
     closed: Closed
     stop: str | None
 
@@ -809,7 +810,9 @@ def segment_beam_solve(
     expansion produced. The cyclic collector is off, as in ``beam_solve``.
     ``archive``, when given, gets one ``ArchivedSegment`` per segment run: its
     roots as ranked and every closed state it merged. Appending holds
-    references only, so the search and its counters are the same with or without it.
+    references only, so the search and its counters are the same with or
+    without it; holding them defers freeing each segment's closed states from
+    inside the clock to after it.
     """
     collecting = gc.isenabled()
     if collecting:
@@ -886,12 +889,8 @@ def _segment_beam_solve(
             stop_at_fit=True,
             deadline=deadline,
         )
-        if archive is not None:
-            archive.append(
-                ArchivedSegment(
-                    segment, tuple((p, s) for _, p, s in frontier), closed, stop
-                )
-            )
+        if archive is not None:  # references only: no copy inside the clock
+            archive.append(ArchivedSegment(segment, frontier, closed, stop))
         if stop is not None:
             return result(program, stop)
         frontier = _next_roots(closed, expanded)[:roots]

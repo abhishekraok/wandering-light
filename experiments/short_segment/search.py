@@ -62,6 +62,10 @@ segment's roots and, of its merged closed states, the top ``ARCHIVE_TOP`` by
 cumulative score, the top ``ARCHIVE_TOP`` by local score (gained in the
 segment), the ones chosen as next roots and the ones on the program the search
 returned (``archive_record``). It is built after each task's clock stops.
+**The eval-cohort archive is analysis only**: a ranker trained on closed states
+from searches over the 43 eval behaviours and scored on them has seen the
+eval set, as an eval program would be. Train a ranker on the train-task
+archive (`archive_train.py`).
 """
 
 from __future__ import annotations
@@ -425,7 +429,11 @@ def row_record(
 
 
 def archive_record(
-    row: solve.Row, task_index: int, segments: Sequence[Any], top: int = ARCHIVE_TOP
+    row: solve.Row,
+    task_index: int,
+    segments: Sequence[Any],
+    top: int = ARCHIVE_TOP,
+    witness: frozenset | None = None,
 ) -> dict[str, Any]:
     """One task of a segment cell's closed-state archive.
 
@@ -435,28 +443,30 @@ def archive_record(
     score the search ranked by. ``on_path`` marks a state whose program is a
     prefix of the program the search returned (a shown-examples fit).
     Ranks count from 0 among all the segment's merged closed states, ties
-    in merge order.
+    in merge order. ``witness``, when given, is the closed states along the
+    task's authored witness: a state equal to one is kept and ``on_witness``.
     """
     found = tuple(row.program) if row.program is not None else None
     base = {(): 0.0}  # a root's program -> its cumulative score
     out = []
     for position, entry in enumerate(segments):
-        scores = dict(entry.roots)
+        scores = {program: score for _, program, score in entry.roots}
         lengths = sorted({len(program) for program in scores}, reverse=True)
         states = []
-        for score, program in entry.closed.values():
+        for product, (score, program) in entry.closed.items():
             root = next(program[:n] for n in lengths if program[:n] in scores)
             local = score - scores[root]
-            states.append((program, root, local, base[root] + local))
+            on_witness = witness is not None and product in witness
+            states.append((program, root, local, base[root] + local, on_witness))
         by_cumulative = sorted(range(len(states)), key=lambda i: -states[i][3])
         by_local = sorted(range(len(states)), key=lambda i: -states[i][2])
         rank_cumulative = {i: rank for rank, i in enumerate(by_cumulative)}
         rank_local = {i: rank for rank, i in enumerate(by_local)}
         following = segments[position + 1] if position + 1 < len(segments) else None
-        chosen = {program for program, _ in following.roots} if following else set()
+        chosen = {program for _, program, _ in following.roots} if following else set()
         base = {}
         kept = []
-        for i, (program, root, local, cumulative) in enumerate(states):
+        for i, (program, root, local, cumulative, on_witness) in enumerate(states):
             on_path = found is not None and found[: len(program)] == program
             if program in chosen:
                 base[program] = cumulative
@@ -465,9 +475,11 @@ def archive_record(
                 or rank_local[i] < top
                 or program in chosen
                 or on_path
+                or on_witness
             ):
                 kept.append(
                     {
+                        **({"on_witness": on_witness} if witness is not None else {}),
                         "program": " ".join(program),
                         "root_ops": len(root),
                         "cumulative": float(cumulative),
@@ -484,7 +496,7 @@ def archive_record(
                 "stop": entry.stop,
                 "roots": [
                     {"program": " ".join(program), "score": float(score)}
-                    for program, score in entry.roots
+                    for _, program, score in entry.roots
                 ],
                 "closed": len(states),
                 "states": kept,
@@ -646,8 +658,6 @@ def run_cell(
             archive=record,
         )
     cell_seconds = time.perf_counter() - started
-    if archive is not None:
-        os.replace(partial_archive, archive)
     records = [
         row_record(
             row,
@@ -717,6 +727,8 @@ def run_cell(
     out.parent.mkdir(parents=True, exist_ok=True)
     partial = out.with_suffix(".json.partial")
     partial.write_text(json.dumps(cell, indent=2, sort_keys=True) + "\n")
+    if archive is not None:  # the cell's JSON is what marks both done
+        os.replace(partial_archive, archive)
     os.replace(partial, out)  # a crash never leaves a file that reads as done
     log(
         f"RESULT {run_dir.name} {out.name}: {summary.line()}; fuel {cell['fuel']:,}; "

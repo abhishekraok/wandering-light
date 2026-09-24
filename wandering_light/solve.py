@@ -255,6 +255,7 @@ def solve_tasks(
     # collector `beam_solve` turns off from scanning them between tasks.
     gc.freeze()
     for index, task in enumerate(tasks):
+        segments: list = []  # before the clock starts, as its release is after
         started = time.perf_counter()
         deadline = started + seconds_cap if seconds_cap is not None else None
         program: tuple[str, ...] | None = None
@@ -263,7 +264,6 @@ def solve_tasks(
         widening = None
         total = budgets[index] if budgets is not None else None
         capped = None  # "budget" or "wall_clock_cap" when replay hit a cap
-        segments: list = []
         if system.library:
             inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
             outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
@@ -362,6 +362,7 @@ def solve_tasks(
         rows.append(row)
         if archive is not None:
             archive(row, segments)
+            segments.clear()  # free the closed states outside any task's clock
         if progress is not None:
             progress(row)
     for row in rows:
