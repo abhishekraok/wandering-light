@@ -201,7 +201,7 @@ def archive_task_nodes(record: dict) -> list[Node]:
     if record.get("program") is not None:
         programs.add(tuple(record["program"].split()))
     nodes = []
-    for program in programs:
+    for program in sorted(programs):  # set order varies with string hashing
         made = node(inputs, program)
         if made is not None:  # the archive only holds replayable programs
             nodes.append(made)

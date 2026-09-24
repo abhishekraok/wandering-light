@@ -85,7 +85,8 @@ def fit_head(
     y = torch.from_numpy(np.asarray(targets, dtype=np.float32))
     head = Head(x.shape[1], config.hidden)
     head.mean.copy_(x.mean(dim=0))
-    head.scale.copy_(x.std(dim=0).clamp(min=1e-6))
+    # population std: a one-example partition has scale 0 -> clamped, not NaN
+    head.scale.copy_(x.std(dim=0, correction=0).clamp(min=1e-6))
     optimizer = torch.optim.Adam(
         head.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay
     )

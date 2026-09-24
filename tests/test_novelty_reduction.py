@@ -416,3 +416,20 @@ def test_uninformative_labels_stop_after_the_cycle(tmp_path):
     )
     assert reports[-1]["cycle"] == 1
     assert reports[-1]["stop"].startswith("uninformative")
+
+
+def test_final_evaluation_deadline_before_any_chunk(tmp_path):
+    reports = runner.run(
+        tiny_config(cycles=1, final_eval_seconds=0.0), tmp_path, log=lambda line: None
+    )
+    fresh = reports[-1]["test"]["F3"]
+    assert fresh["facts"]["evaluated"] == 0 and fresh["arms"] == {}
+    assert reports[-1]["diagnostics"]["headline_coverage"]["F3_full"] is None
+    assert (tmp_path / "cycle-1" / "policy" / "model.safetensors").exists()
+
+
+def test_singleton_partition_head_is_finite():
+    head = heads.fit_head(
+        np.ones((1, 3), dtype=np.float32), np.array([1.0]), heads.HEAD_FIT, 0
+    )
+    assert np.isfinite(head.predict(np.zeros((2, 3), dtype=np.float32))).all()

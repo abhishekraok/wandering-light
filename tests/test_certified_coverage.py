@@ -234,3 +234,23 @@ def test_draw_is_per_behaviour_capped_and_order_free():
     assert [p.key for p in sampler.draw(pairs, 10, seed=8)] != [
         p.key for p in drawn_pairs
     ]
+
+
+def test_archive_task_nodes_come_in_program_order():
+    task = drawn("sum", 4)
+    record = {
+        "inputs": list(task.inputs),
+        "program": None,
+        "segments": [
+            {
+                "roots": [{"program": ""}],
+                "states": [
+                    {"program": "0 [ add ] fold"},
+                    {"program": "1 drop 0 [ add ] fold"},
+                    {"program": "nil [ cons ] fold"},
+                ],
+            }
+        ],
+    }
+    nodes = sampler.archive_task_nodes(record)
+    assert [n.program for n in nodes] == sorted(n.program for n in nodes)

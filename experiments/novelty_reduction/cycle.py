@@ -520,6 +520,8 @@ def score_pool(
     counted: np.ndarray | None = None,
 ) -> dict:
     """Every arm and control on the same rollouts of one pool (F1-F3)."""
+    if len(pool) == 0:  # e.g. the final evaluation's deadline passed first
+        return {}, 0
     features = H.pair_features(scorer, pool.jobs())
     p_hat = models.p_head.predict(features)
     e_hat = models.e_head.predict(features)
@@ -597,6 +599,8 @@ def diagnostics(report: dict, config: Config) -> dict:
     """The F12 monitors, each read only with ``min_stratum`` pairs behind it."""
 
     def headline(source: str, arm: str) -> float | None:
+        if arm not in report["test"][source]["arms"]:
+            return None  # an empty pool
         gates = report["test"][source]["arms"][arm]["by"]["all"]["gates"]
         gate = f"e0_{HEADLINE_E0}" if f"e0_{HEADLINE_E0}" in gates else "bins"
         return gates[gate]["all"]["wilson"]["certified_coverage"]
@@ -605,7 +609,7 @@ def diagnostics(report: dict, config: Config) -> dict:
     held = report["test"]["archive"]
     paired = report["paired_check"]
     matched = {
-        arm: fresh["arms"][arm].get("matched_coverage")
+        arm: fresh["arms"].get(arm, {}).get("matched_coverage")
         for arm in ("full", "p_e", "distance", "cheap", "constant")
     }
     return {
@@ -858,7 +862,11 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
         # 3. paired check: previous vs current policy on the same fresh pairs
         paired = fresh_pool(
             programs.fresh_pairs(
-                config.paired_check, stream(config, cycle, "paired"), behaviours
+                config.paired_check,
+                stream(config, cycle, "paired"),
+                behaviours,
+                max_cuts=config.max_cuts,
+                grammar=programs.Grammar.parse(config.grammar_level),
             ),
             "paired",
         )
