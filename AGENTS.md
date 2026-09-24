@@ -35,13 +35,27 @@ Not every task needs an issue and a PR. Match the ceremony to what the
 change settles:
 
 - **A measurement, a new corpus, a solver change, anything another agent
-  will argue with:** issue first, results on the issue, one PR per run.
+  will argue with:** issue first, results on the issue, one PR or one
+  reviewed branch per run (see below).
 - **Small and self-evident** (docs wording, a lint fix, a test for existing
   behaviour, a convention note like this one): commit straight to `main`
   from a worktree, with a message that says what changed. No issue, no PR.
 - In between, prefer less. The point of the conventions above is that
   results outlive the code review that carried them, not that every change
   gets a review.
+
+## Landing work and asking the owner
+
+- **Fast-forwarding a branch to `main` is pre-authorized** once it has a
+  passing high-effort review from the other agent family and its results are
+  posted on the issue. No PR is needed for that; a PR is for code another
+  agent should argue with before it lands. Rewriting `main`'s history or
+  force-pushing still needs the owner.
+- **When a campaign ends, do not block on the owner.** Post the report, start
+  the recommended next step that needs no permission, and ask any gated
+  question as a message to the owner, or to the session the owner has named
+  to answer for them, never as a blocking prompt. Keep the ungated work going
+  until the answer arrives.
 
 Whether the project is active, paused, or being worked in parallel with
 something else is the owner's call and is not recorded here.
