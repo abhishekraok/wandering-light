@@ -237,3 +237,25 @@ def test_best_keeps_the_flat_search():
     assert "search" not in solve.BEST.describe()
     with pytest.raises(ValueError, match="unknown search"):
         solve.System("x", "r", "0" * 40, 1, 1, "both", True, "m", search="bogus")
+
+
+def test_witness_rank_counts_a_closed_state_already_expanded():
+    # Codex's reproducer: `nil i` closes back on its own input, which the
+    # search expanded as the first root; the rank must still see it.
+    from types import SimpleNamespace
+
+    from wandering_light.stack_beam import segment_witness_ranks
+
+    task = SimpleNamespace(
+        behaviour="identity_via_i", inputs=["3"], outputs=["3"], program=("nil", "i")
+    )
+
+    class Flat:
+        def log_probs(self, blocks, legal):
+            import numpy as np
+
+            return np.where(legal, 0.0, -np.inf)
+
+    rows = segment_witness_ranks(task, Flat(), beam_width=28, segment_depth=2)
+    assert rows[0]["rank"] is not None
+    assert rows[0]["eligible_rank"] is None

@@ -776,6 +776,9 @@ def _segment_witness_ranks(
                 f"{task.behaviour}: the program refuses step {step} ({name})"
             )
         states.append(moved)
+    # Replaying the witness and scoring its own path are bookkeeping for the
+    # diagnostic, outside the search: they are not charged to `budget` or
+    # counted in `executions`.
     own = _path_scores(states, program, targets, scorer)
     tally = _Tally()
     frontier: list[Node] = [(inputs, (), 0.0)]
@@ -802,9 +805,16 @@ def _segment_witness_ranks(
             max_state_atoms=max_state_atoms,
             stop_at_fit=False,
         )
+        # The rank is among every merged closed state, expanded or not: it says
+        # whether the witness's state was produced and how it scored. Whether it
+        # could be a next root is `eligible_rank`, among the unexpanded ones.
+        every = _next_roots(closed, set())
         ranked = _next_roots(closed, expanded)
         target = states[cut]
         rank = next(
+            (place for place, node in enumerate(every, 1) if node[0] == target), None
+        )
+        eligible = next(
             (place for place, node in enumerate(ranked, 1) if node[0] == target), None
         )
         rows.append(
@@ -813,10 +823,11 @@ def _segment_witness_ranks(
                 "ops": cut - start,
                 "roots": len(frontier),
                 "forced": forced,
-                "closed": len(ranked),
+                "closed": len(every),
                 "rank": rank,
-                "score": float(ranked[rank - 1][2]) if rank is not None else None,
-                "best": float(ranked[0][2]) if ranked else None,
+                "eligible_rank": eligible,
+                "score": float(every[rank - 1][2]) if rank is not None else None,
+                "best": float(every[0][2]) if every else None,
                 "executions": tally.executions,
                 "complete": stop is None,
             }
@@ -824,7 +835,7 @@ def _segment_witness_ranks(
         if stop is not None:
             break
         if rank is not None:
-            witness = ranked[rank - 1]
+            witness = every[rank - 1]
         else:
             witness = (
                 target,
