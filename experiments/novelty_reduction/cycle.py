@@ -107,30 +107,45 @@ def stream(config: Config, cycle: int, role: str) -> random.Random:
 # ---------------------------------------------------------------------------
 
 
-def propose_phase(archive: LoopArchive, config: Config, cycle: int, behaviours) -> dict:
+def propose_phase(
+    archive: LoopArchive, config: Config, cycle: int, behaviours
+) -> tuple[dict, list[dict]]:
+    """Counts, and one log row per proposal with its start kind."""
     rng = stream(config, cycle, "propose")
     grammar = programs.Grammar()
     made = Counter()
+    log = []
     for _ in range(config.proposals):
         if cycle > 1 and archive.states and rng.random() < config.start_archived_share:
             start = rng.randrange(len(archive.states))
             product, route = archive.states[start], archive.origins[start]
-            made["from_archive"] += 1
+            kind, behaviour = "archive", None
         else:
-            _behaviour, inputs = programs.draw_inputs(rng, behaviours)
+            behaviour, inputs = programs.draw_inputs(rng, behaviours)
             product, route = sampler.parse_inputs(inputs), (inputs, ())
-            made["from_inputs"] += 1
+            kind, start = "inputs", None
+        made[f"from_{kind}"] += 1
         proposal = programs.propose(product, rng, grammar)
+        entry = {
+            "start_kind": kind,
+            "start_node": start,
+            "behaviour": behaviour,
+            "k": len(product),
+            "program": " ".join(proposal.ops),
+            "cuts": proposal.cuts,
+        }
+        log.append(entry)
         if not proposal.cuts:
             made["empty"] += 1
             continue
         added, relaxed = archive.add_path(
             proposal.states, proposal.ops, PROPOSAL, cycle, start_origin=route
         )
+        entry["pairs_added"], entry["relaxations"] = added, relaxed
         made["pairs"] += added
         made["relaxations"] += relaxed
         made["segments"] += len(proposal.cuts)
-    return dict(made)
+    return dict(made), log
 
 
 def policy_rows(archive: LoopArchive, config: Config) -> tuple[list[Row], dict]:
@@ -177,6 +192,7 @@ def train_epochs(model, optimizer, rows: list[Row], config: Config, cycle: int) 
     rng = random.Random(f"{config.seed}:{cycle}:train")
     model.train()
     history = []
+    steps = 0
     for _ in range(config.epochs):
         order = list(range(len(rows)))
         rng.shuffle(order)
@@ -189,10 +205,11 @@ def train_epochs(model, optimizer, rows: list[Row], config: Config, cycle: int) 
             loss = nn.functional.cross_entropy(model(*inputs), labels, reduction="sum")
             (loss / len(chunk)).backward()
             optimizer.step()
+            steps += 1
             total += loss.item()
         history.append(total / max(len(rows), 1))
     model.eval()
-    return {"train_cross_entropy": history}
+    return {"train_cross_entropy": history, "epochs": config.epochs, "steps": steps}
 
 
 def attempt(archive, scorer, keys, procedure, seed, cycle, *, record: bool):
@@ -303,7 +320,9 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
     for cycle in range(1, config.cycles + 1):
         clock = time.perf_counter()
         report: dict = {"cycle": cycle, "config": dataclasses.asdict(config)}
-        report["propose"] = propose_phase(archive, config, cycle, behaviours)
+        report["propose"], proposal_log = propose_phase(
+            archive, config, cycle, behaviours
+        )
         rows, report["rows"] = policy_rows(archive, config)
         model.to(config.train_device)
         report["policy"] = train_epochs(model, optimizer, rows, config, cycle)
@@ -546,6 +565,8 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             },
             wandb_url=None,
         )
+        with gzip.open(out / "proposals.jsonl.gz", "wt") as handle:
+            handle.writelines(json.dumps(entry) + "\n" for entry in proposal_log)
         with gzip.open(out / "calibration.jsonl.gz", "wt") as handle:
             for (key, rule), h, st in zip(
                 picks, hits.tolist(), steps.tolist(), strict=True

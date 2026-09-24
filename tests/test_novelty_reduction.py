@@ -240,6 +240,9 @@ def test_two_tiny_cycles_end_to_end(tmp_path):
         assert set(report["test"]["heads"]) == {"F3", "archive"}
         assert set(report["test"]["baselines"]) == {"constant", "distance"}
         assert "unseen_pass" in report["rnd"]
+        assert report["policy"]["steps"] >= 1
+    assert reports[1]["propose"].get("from_archive", 0) >= 1
+    assert (tmp_path / "cycle-2" / "proposals.jsonl.gz").exists()
     assert reports[1]["calibration"]["rules"].get(selector.REATTEMPT, 0) >= 1
     saved = json.loads((tmp_path / "cycle-2" / "report.json").read_text())
     assert saved["cycle"] == 2
