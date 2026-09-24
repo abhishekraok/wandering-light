@@ -101,6 +101,17 @@ def learned_charges(model, task) -> list[float] | None:
     return out
 
 
+def body_lengths(program) -> list[int]:
+    """Ops strictly inside each quotation, nested quotations included."""
+    out, stack = [], []
+    for step, name in enumerate(program):
+        if name == "[":
+            stack.append(step)
+        elif name == "]" and stack:
+            out.append(step - stack.pop() - 1)
+    return out
+
+
 def metrics(row: dict, t: float, prior: list[float], learned) -> dict[str, Any]:
     d = [x / t for x in row["deficits"]]
     body = sum(x for x, c in zip(d, row["classes"], strict=True) if c != "top")
@@ -123,6 +134,8 @@ def metrics(row: dict, t: float, prior: list[float], learned) -> dict[str, Any]:
         "body_share": body / total if total else 0.0,
         "defined_share": defined / total if total else 0.0,
         "worst_body": max(bodies, default=0.0),
+        "quotations": len(body_lengths(row["program"])),
+        "longest_body_ops": max(body_lengths(row["program"]), default=0),
         "clears": {k: {m: v[m] for m in ("flat", "both")} for k, v in clears.items()},
     }
 
@@ -187,6 +200,8 @@ def main(argv: list[str] | None = None) -> int:
                     "body_share",
                     "defined_share",
                     "worst_body",
+                    "quotations",
+                    "longest_body_ops",
                 )
             }
             # Clears count programs on the solver side, witnesses on the other.
