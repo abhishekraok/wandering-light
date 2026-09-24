@@ -458,9 +458,10 @@ def _run_segment(
     and a budget is spread over the roots; with no fit and no budget the closed
     states are those of running the roots one after another. A successor made
     by a top-level combinator is closed: it is recorded whatever its rank, as a
-    hit would be, and takes no beam slot; the slots go to open successors. The
-    guard's ``remaining`` is ``horizon`` less the successor's program length,
-    the steps left in the whole search. Returns ``(stop, program, closed)``:
+    hit would be, and takes no beam slot; the slots go to open successors. For an
+    open successor the guard's ``remaining`` is the steps left in this segment,
+    since a path that cannot close before the segment ends is dropped; for a
+    closed one it is ``horizon`` less the program length. Returns ``(stop, program, closed)``:
     ``stop`` is ``fit`` or ``budget`` when the search must end here, else None;
     ``closed`` merges equal closed states across roots, keeping the best score
     and its program.
@@ -518,7 +519,12 @@ def _run_segment(
             for score, product, program in _ranked(opens, beam, log_probs):
                 if len(beams[owner]) == beam_width:
                     break
-                if not _kept(product, program, *limits) or product in seen:
+                # An open path must close within this segment or it is dropped
+                # when the segment ends, so the guard counts the segment's steps.
+                left = segment_depth - layer - 1
+                if not _open_kept(product, left, guard, max_state_atoms):
+                    continue
+                if product in seen:
                     continue
                 seen.add(product)
                 beams[owner].append((product, program, score))
@@ -546,6 +552,15 @@ def _kept(
 ) -> bool:
     """The guard, with ``remaining`` the steps left in the whole search, and the size cap."""
     if guard != "off" and blocked(product[0], horizon - len(program), guard):
+        return False
+    return max_state_atoms is None or not atoms_exceed(product, max_state_atoms)
+
+
+def _open_kept(
+    product: Product, remaining: int, guard: str, max_state_atoms: int | None
+) -> bool:
+    """The guard with ``remaining`` the steps left in the segment, and the size cap."""
+    if guard != "off" and blocked(product[0], remaining, guard):
         return False
     return max_state_atoms is None or not atoms_exceed(product, max_state_atoms)
 
