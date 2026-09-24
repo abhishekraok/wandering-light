@@ -1,0 +1,1396 @@
+{
+ "calibration": {
+  "temperature": 2.59723,
+  "validation_ce": 2.64399,
+  "calibrated_validation_ce": 1.78696,
+  "at_boundary": false
+ },
+ "summary": {
+  "behaviours": 25,
+  "cap4": 25,
+  "cap4_not_bounded": 22,
+  "bounded": [
+   "cartesian_pair_sums",
+   "stable_distinct_shared_values",
+   "widest_pair"
+  ],
+  "cap8_or_better": 25,
+  "genuine": 22,
+  "median_ops_cap4": 67,
+  "median_longest_segment_cap4": 13,
+  "longer_than_authored": 15,
+  "clears": {
+   "authored": {
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 1,
+     "both": 1
+    }
+   },
+   "capped": {
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 1,
+     "quotations": 0,
+     "both": 1
+    }
+   }
+  },
+  "clears_not_bounded": {
+   "authored": {
+    "flat": 0,
+    "segmented": 0,
+    "quotations": 0,
+    "both": 0
+   },
+   "capped": {
+    "flat": 0,
+    "segmented": 0,
+    "quotations": 0,
+    "both": 0
+   }
+  }
+ },
+ "segmented_gain_raw": 0,
+ "reading": "BETWEEN",
+ "rows": [
+  {
+   "behaviour": "adjacent_sign_change_count",
+   "authored": {
+    "ops": 47,
+    "quotations": 8,
+    "longest_body": 37,
+    "segments": 2,
+    "longest_segment": 44,
+    "raw_total": 122.50087,
+    "raw_per_op": 2.6064014893617022,
+    "body_share": 0.8463542340556438,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a9",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "dup uncons drop 0 quote cat swap [ quote [ mul ] cat ] map [ [ quote cat ] cat ] map swap [ [ uncons ] dip i ] fold [ 0 lt? ] filter 0 [ drop 1 add ] fold",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 44,
+    "quotations": 8,
+    "longest_body": 5,
+    "segments": 5,
+    "longest_segment": 15,
+    "raw_total": 100.75382,
+    "raw_per_op": 2.2898595454545454,
+    "body_share": 0.7464377033049466,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "aligned_matches",
+   "authored": {
+    "ops": 39,
+    "quotations": 7,
+    "longest_body": 26,
+    "segments": 2,
+    "longest_segment": 31,
+    "raw_total": 91.76857,
+    "raw_per_op": 2.353040256410256,
+    "body_share": 0.8261816654656382,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a6",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "[ quote [ cons ] cat ] map [ [ quote cat ] cat ] map swap [ quote ] map [ [ uncons ] dip i ] fold [ uncons quote eq? ] filter [ uncons swap drop ] map",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 41,
+    "quotations": 9,
+    "longest_body": 5,
+    "segments": 6,
+    "longest_segment": 8,
+    "raw_total": 148.46836,
+    "raw_per_op": 3.6211795121951216,
+    "body_share": 0.765896181516385,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "aligned_maxima",
+   "authored": {
+    "ops": 69,
+    "quotations": 14,
+    "longest_body": 56,
+    "segments": 2,
+    "longest_segment": 61,
+    "raw_total": 185.88948,
+    "raw_per_op": 2.6940504347826084,
+    "body_share": 0.9153322716272057,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a5",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "over 0 [ drop 1 add ] fold over 0 [ drop 1 add ] fold lt? [ ] [ drop ] [ drop swap ] ifte over over [ drop uncons drop ] fold [ over ] dip swap [ quote [ sub ] cat ] map [ [ quote cat ] cat ] map [ swap ] dip swap [ [ uncons ] dip i ] fold [ drop uncons drop ] fold dup [ dup mul ] map 0 1 sub [ sub ] fold [ div mul ] swap cons [ dup ] swap cat map [ quote [ sub ] cat ] map [ [ quote cat ] cat ] map swap [ [ uncons ] dip i ] fold",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 125,
+    "quotations": 25,
+    "longest_body": 5,
+    "segments": 16,
+    "longest_segment": 12,
+    "raw_total": 304.05571,
+    "raw_per_op": 2.43244568,
+    "body_share": 0.7496140427686756,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "axis_point_count",
+   "authored": {
+    "ops": 86,
+    "quotations": 12,
+    "longest_body": 73,
+    "segments": 2,
+    "longest_segment": 83,
+    "raw_total": 125.43145,
+    "raw_per_op": 1.4585052325581396,
+    "body_share": 0.8591635510870679,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a3",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "[ quote [ cons ] cat ] map [ [ uncons ] swap cat ] map nil quote nil cons [ i quote cat ] fold uncons swap uncons swap drop swap [ quote [ mul ] cat ] map [ [ uncons ] swap cat ] map swap [ i quote cat ] fold [ 0 eq? ] filter 0 [ drop 1 add ] fold",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 67,
+    "quotations": 12,
+    "longest_body": 5,
+    "segments": 8,
+    "longest_segment": 14,
+    "raw_total": 178.93876,
+    "raw_per_op": 2.67072776119403,
+    "body_share": 0.9221806387839057,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "cartesian_pair_sums",
+   "authored": {
+    "ops": 15,
+    "quotations": 2,
+    "longest_body": 8,
+    "segments": 1,
+    "longest_segment": 15,
+    "raw_total": 59.263239999999996,
+    "raw_per_op": 3.9508826666666663,
+    "body_share": 0.4808805593484258,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "codex",
+   "largest_quotation": 4,
+   "bounded": true,
+   "program": "swap [ null? ] [ swap drop dup 0 ] [ uncons ] ifte [ over ] dip [ add ] swap cons map swap [ swap ] dip [ null? ] [ swap drop dup 0 ] [ uncons ] ifte [ over ] dip [ add ] swap cons map swap [ swap ] dip [ null? ] [ swap drop dup 0 ] [ uncons ] ifte [ over ] dip [ add ] swap cons map swap [ swap ] dip [ null? ] [ swap drop dup 0 ] [ uncons ] ifte [ over ] dip [ add ] swap cons map swap [ swap ] dip [ null? ] [ swap drop dup 0 ] [ uncons ] ifte [ over ] dip [ add ] swap cons map swap [ swap ] dip [ null? ] [ swap drop dup 0 ] [ uncons ] ifte [ over ] dip [ add ] swap cons map swap [ swap ] dip drop drop cat cat cat cat cat",
+   "draw_verdict": "shortcut",
+   "capped": {
+    "ops": 176,
+    "quotations": 36,
+    "longest_body": 4,
+    "segments": 25,
+    "longest_segment": 14,
+    "raw_total": 511.25333,
+    "raw_per_op": 2.9048484659090907,
+    "body_share": 0.7505531944408069,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "concatenate_shorter_first",
+   "authored": {
+    "ops": 26,
+    "quotations": 5,
+    "longest_body": 16,
+    "segments": 1,
+    "longest_segment": 26,
+    "raw_total": 80.50741,
+    "raw_per_op": 3.0964388461538457,
+    "body_share": 0.9586693945315097,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a4",
+   "largest_quotation": 3,
+   "bounded": false,
+   "program": "over over 0 [ drop 1 add ] fold swap 0 [ drop 1 add ] fold lt? [ ] [ drop swap cat ] [ drop cat ] ifte",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 30,
+    "quotations": 5,
+    "longest_body": 3,
+    "segments": 3,
+    "longest_segment": 13,
+    "raw_total": 36.29762,
+    "raw_per_op": 1.2099206666666666,
+    "body_share": 0.7106308898489763,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "farther_choice_from_target",
+   "authored": {
+    "ops": 54,
+    "quotations": 11,
+    "longest_body": 40,
+    "segments": 1,
+    "longest_segment": 54,
+    "raw_total": 207.60414,
+    "raw_per_op": 3.8445211111111113,
+    "body_share": 1.0,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a3",
+   "largest_quotation": 3,
+   "bounded": false,
+   "program": "[ swap ] dip swap over over sub dup mul swap [ [ over ] dip ] dip [ swap ] dip sub dup mul lt? [ ] [ drop ] [ drop swap ] ifte drop",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 37,
+    "quotations": 7,
+    "longest_body": 4,
+    "segments": 5,
+    "longest_segment": 14,
+    "raw_total": 93.52311,
+    "raw_per_op": 2.527651621621622,
+    "body_share": 0.4651644924981644,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "farthest_from_target_last_tie",
+   "authored": {
+    "ops": 59,
+    "quotations": 13,
+    "longest_body": 50,
+    "segments": 2,
+    "longest_segment": 55,
+    "raw_total": 303.20862,
+    "raw_per_op": 5.139129152542373,
+    "body_share": 0.9863471889420558,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a4",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "swap over [ sub ] swap cons map dup [ dup mul ] map dup [ [ lt? ] swap cons ] map [ [ false eq? ] cat ] map swap [ filter ] fold uncons swap drop [ eq? ] swap cons [ dup mul ] swap cat filter nil [ cons ] fold uncons swap drop add",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 60,
+    "quotations": 10,
+    "longest_body": 5,
+    "segments": 8,
+    "longest_segment": 15,
+    "raw_total": 112.69802,
+    "raw_per_op": 1.8783003333333332,
+    "body_share": 0.5569939028210079,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "furthest_squared_radius",
+   "authored": {
+    "ops": 78,
+    "quotations": 10,
+    "longest_body": 65,
+    "segments": 2,
+    "longest_segment": 75,
+    "raw_total": 91.48743,
+    "raw_per_op": 1.1729157692307692,
+    "body_share": 0.7800380882925665,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a8",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "[ dup mul ] map [ quote [ cons ] cat ] map [ [ quote cat ] cat ] map nil quote nil cons [ [ uncons ] dip i ] fold uncons [ quote [ add ] cat ] map [ [ quote cat ] cat ] map swap uncons swap drop [ [ uncons ] dip i ] fold dup [ 1 sub quote ] map [ [ swap lt? ] cat ] map swap [ filter ] fold uncons swap drop",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 85,
+    "quotations": 17,
+    "longest_body": 5,
+    "segments": 11,
+    "longest_segment": 12,
+    "raw_total": 301.62388,
+    "raw_per_op": 3.5485162352941173,
+    "body_share": 0.7858758729580695,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "keep_ascending_pairs",
+   "authored": {
+    "ops": 80,
+    "quotations": 11,
+    "longest_body": 62,
+    "segments": 2,
+    "longest_segment": 72,
+    "raw_total": 38.77061,
+    "raw_per_op": 0.484632625,
+    "body_share": 0.5440432843331586,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a9",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "[ quote [ cons ] cat ] map [ [ quote cat ] cat ] map nil nil cons nil cons [ [ uncons ] dip i ] fold uncons swap uncons swap drop [ quote ] map swap [ quote [ cons ] cat ] map [ [ quote cat ] cat ] map swap [ [ uncons ] dip i ] fold [ i lt? ] filter nil [ swap cat ] fold",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 75,
+    "quotations": 15,
+    "longest_body": 5,
+    "segments": 9,
+    "longest_segment": 13,
+    "raw_total": 263.28816,
+    "raw_per_op": 3.5105088,
+    "body_share": 0.7529389851788246,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "lexicographic_order",
+   "authored": {
+    "ops": 124,
+    "quotations": 24,
+    "longest_body": 86,
+    "segments": 2,
+    "longest_segment": 92,
+    "raw_total": 418.62108,
+    "raw_per_op": 3.375976451612903,
+    "body_share": 0.9512899589289674,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a5",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "over over cat [ dup mul ] map 0 1 sub [ sub ] fold quote [ drop ] swap cat [ over over ] dip dup [ map ] dip swap [ map ] dip [ cat ] dip [ swap ] dip cat swap [ quote [ sub ] cat ] map [ [ quote cat ] cat ] map swap [ [ uncons ] dip i ] fold [ 0 eq? false eq? ] filter 0 quote cat uncons swap drop [ dup 0 lt? ] [ drop 0 1 sub ] [ ] ifte [ dup 0 swap lt? ] [ drop 1 ] [ ] ifte",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 111,
+    "quotations": 21,
+    "longest_body": 5,
+    "segments": 13,
+    "longest_segment": 20,
+    "raw_total": 286.85671,
+    "raw_per_op": 2.584294684684685,
+    "body_share": 0.6126086783885933,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "manhattan_point_radii",
+   "authored": {
+    "ops": 94,
+    "quotations": 14,
+    "longest_body": 76,
+    "segments": 2,
+    "longest_segment": 86,
+    "raw_total": 114.66504,
+    "raw_per_op": 1.21984085106383,
+    "body_share": 0.7981645495436097,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a4",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "[ quote dup cat ] map 0 1 sub [ mul cons ] swap cons [ uncons ] swap cat map [ [ 0 lt? ] filter ] map [ 0 [ sub ] fold ] map nil [ cons ] fold [ [ cons ] swap cons ] map [ [ uncons ] swap cat ] map nil quote dup cat [ i quote cat ] fold uncons swap uncons swap drop [ [ add ] swap cons ] map [ [ uncons ] swap cat ] map swap [ i quote cat ] fold",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 96,
+    "quotations": 18,
+    "longest_body": 5,
+    "segments": 11,
+    "longest_segment": 15,
+    "raw_total": 262.24453,
+    "raw_per_op": 2.731713854166667,
+    "body_share": 0.834349032942651,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "median_floor",
+   "authored": {
+    "ops": 253,
+    "quotations": 36,
+    "longest_body": 114,
+    "segments": 6,
+    "longest_segment": 119,
+    "raw_total": 286.34803,
+    "raw_per_op": 1.131810395256917,
+    "body_share": 0.7597348932346417,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a7",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "dup 0 [ drop 1 add ] fold 1 add over [ dup mul ] map 0 [ add ] fold dup dup add add 1 add [ swap ] dip swap over [ add ] swap cons map [ over ] dip swap [ mul ] swap cons map dup [ quote ] map [ [ div add ] cat ] map [ [ dup ] swap cat ] map swap [ map ] fold [ swap ] dip swap over over dup 1 1 add div [ sub cons ] swap cons [ uncons ] swap cat swap [ div cons ] swap cons [ uncons ] swap cat [ swap ] dip swap [ dup quote swap cons ] map [ swap ] dip swap map over map [ uncons quote cat ] map swap map [ uncons [ eq? ] fold ] filter [ uncons swap drop ] map dup [ 1 add ] map [ quote ] map [ [ lt? ] cat ] map swap [ filter ] fold uncons swap drop swap [ swap ] dip dup 1 add 1 1 add div [ sub cons ] swap cons [ uncons ] swap cat swap [ div cons ] swap cons [ uncons ] swap cat [ swap ] dip swap [ dup quote swap cons ] map [ swap ] dip swap map over map [ uncons quote cat ] map swap map [ uncons [ eq? ] fold ] filter [ uncons swap drop ] map dup [ 1 add ] map [ quote ] map [ [ lt? ] cat ] map swap [ filter ] fold uncons swap drop add 1 1 add div swap sub",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 287,
+    "quotations": 47,
+    "longest_body": 5,
+    "segments": 40,
+    "longest_segment": 35,
+    "raw_total": 759.34797,
+    "raw_per_op": 2.6458117421602787,
+    "body_share": 0.6124047582559548,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "nearest_interval_endpoint_each",
+   "authored": {
+    "ops": 39,
+    "quotations": 6,
+    "longest_body": 32,
+    "segments": 1,
+    "longest_segment": 39,
+    "raw_total": 170.55831,
+    "raw_per_op": 4.37329,
+    "body_share": 0.9261828403435751,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a7",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "over over add 1 add [ [ swap ] dip swap ] dip swap [ dup add ] map swap [ sub ] swap cons map dup 1 [ dup mul add ] fold [ div ] swap cons map [ over over swap sub ] dip swap [ mul ] swap cons map swap [ add ] swap cons map swap drop",
+   "draw_verdict": "shortcut",
+   "capped": {
+    "ops": 63,
+    "quotations": 9,
+    "longest_body": 5,
+    "segments": 9,
+    "longest_segment": 13,
+    "raw_total": 107.49461,
+    "raw_per_op": 1.7062636507936506,
+    "body_share": 0.6217623376651165,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "pair_floor_averages",
+   "authored": {
+    "ops": 69,
+    "quotations": 7,
+    "longest_body": 51,
+    "segments": 2,
+    "longest_segment": 61,
+    "raw_total": 60.83605,
+    "raw_per_op": 0.881681884057971,
+    "body_share": 0.7423792307357233,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a6",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "[ quote [ cons ] cat ] map [ [ quote cat ] cat ] map nil quote nil cons [ [ uncons ] dip i ] fold uncons swap uncons swap drop [ quote [ add ] cat ] map [ [ quote cat ] cat ] map swap [ [ uncons ] dip i ] fold nil [ cons ] fold [ 1 1 add div ] map",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 70,
+    "quotations": 14,
+    "longest_body": 5,
+    "segments": 8,
+    "longest_segment": 13,
+    "raw_total": 209.26508,
+    "raw_per_op": 2.989501142857143,
+    "body_share": 0.7687855517987042,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "polyline_manhattan_length",
+   "authored": {
+    "ops": 188,
+    "quotations": 23,
+    "longest_body": 51,
+    "segments": 7,
+    "longest_segment": 61,
+    "raw_total": 285.86277,
+    "raw_per_op": 1.5205466489361703,
+    "body_share": 0.7467836052942466,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a6",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "dup uncons drop uncons drop [ quote [ sub ] cat ] map [ [ quote cat ] cat ] map swap [ [ uncons ] dip i ] fold uncons drop uncons drop dup [ 0 swap sub ] map cat [ 0 swap lt? ] filter 0 [ add ] fold",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 53,
+    "quotations": 9,
+    "longest_body": 5,
+    "segments": 6,
+    "longest_segment": 13,
+    "raw_total": 93.42532,
+    "raw_per_op": 1.762741886792453,
+    "body_share": 0.8237060360082256,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "positive_balance_prefix_count",
+   "authored": {
+    "ops": 49,
+    "quotations": 6,
+    "longest_body": 36,
+    "segments": 2,
+    "longest_segment": 44,
+    "raw_total": 51.35651,
+    "raw_per_op": 1.0480920408163266,
+    "body_share": 0.869319196339471,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a1",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "nil [ cons ] fold [ [ add ] swap cons ] map 0 quote [ map 0 cons ] fold [ 0 swap lt? ] filter 0 [ drop 1 add ] fold",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 34,
+    "quotations": 6,
+    "longest_body": 5,
+    "segments": 5,
+    "longest_segment": 8,
+    "raw_total": 62.59512,
+    "raw_per_op": 1.8410329411764705,
+    "body_share": 0.7865324006088653,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "positive_majority_three",
+   "authored": {
+    "ops": 39,
+    "quotations": 7,
+    "longest_body": 14,
+    "segments": 2,
+    "longest_segment": 25,
+    "raw_total": 63.58575,
+    "raw_per_op": 1.6304038461538461,
+    "body_share": 0.8067202164006873,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a8",
+   "largest_quotation": 3,
+   "bounded": false,
+   "program": "quote swap cons swap cons [ 0 swap lt? ] filter 0 [ drop 1 add ] fold 1 1 add div",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 22,
+    "quotations": 2,
+    "longest_body": 3,
+    "segments": 3,
+    "longest_segment": 11,
+    "raw_total": 17.78473,
+    "raw_per_op": 0.8083968181818182,
+    "body_share": 0.02817585647912563,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 1,
+     "quotations": 0,
+     "both": 1
+    }
+   }
+  },
+  {
+   "behaviour": "prefix_sums",
+   "authored": {
+    "ops": 25,
+    "quotations": 5,
+    "longest_body": 16,
+    "segments": 2,
+    "longest_segment": 20,
+    "raw_total": 12.63038,
+    "raw_per_op": 0.5052152,
+    "body_share": 0.9474030076688112,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 1,
+     "both": 1
+    }
+   },
+   "status": "cap4",
+   "author": "a3",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "[ quote [ over ] cat ] map [ [ uncons swap ] cat ] map 0 quote [ i drop add cons ] fold nil [ cons ] fold uncons drop",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 32,
+    "quotations": 6,
+    "longest_body": 5,
+    "segments": 5,
+    "longest_segment": 9,
+    "raw_total": 109.38256,
+    "raw_per_op": 3.418205,
+    "body_share": 0.8344774523470653,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "replace_value",
+   "authored": {
+    "ops": 22,
+    "quotations": 4,
+    "longest_body": 15,
+    "segments": 1,
+    "longest_segment": 22,
+    "raw_total": 79.90881999999999,
+    "raw_per_op": 3.6322190909090906,
+    "body_share": 0.8129480575485911,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a2",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "over swap sub [ mul cons ] swap cons [ uncons ] swap cat swap [ sub cons ] swap cons [ uncons ] swap cat [ swap ] dip swap [ quote dup cat ] map swap map [ uncons dup mul cons ] map [ uncons 1 sub cons ] map 1 1 add dup mul dup mul dup mul dup mul dup mul dup mul [ div cons ] swap cons [ uncons ] swap cat map swap map [ 0 [ add ] fold ] map",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 90,
+    "quotations": 12,
+    "longest_body": 5,
+    "segments": 8,
+    "longest_segment": 30,
+    "raw_total": 320.97031,
+    "raw_per_op": 3.5663367777777775,
+    "body_share": 0.47112123859680355,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "second_largest",
+   "authored": {
+    "ops": 83,
+    "quotations": 11,
+    "longest_body": 48,
+    "segments": 4,
+    "longest_segment": 51,
+    "raw_total": 152.84688,
+    "raw_per_op": 1.841528674698795,
+    "body_share": 0.9593224277787024,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a1",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "dup dup [ [ lt? ] swap cons ] map [ [ false eq? ] cat ] map swap [ filter ] fold uncons [ lt? ] swap cons swap [ filter ] dip cat dup [ [ lt? ] swap cons ] map [ [ false eq? ] cat ] map swap [ filter ] fold uncons swap drop",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 60,
+    "quotations": 12,
+    "longest_body": 5,
+    "segments": 8,
+    "longest_segment": 11,
+    "raw_total": 155.106,
+    "raw_per_op": 2.5850999999999997,
+    "body_share": 0.712174190553557,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "shared_value_occurrences",
+   "authored": {
+    "ops": 31,
+    "quotations": 6,
+    "longest_body": 19,
+    "segments": 2,
+    "longest_segment": 24,
+    "raw_total": 103.05366000000001,
+    "raw_per_op": 3.324311612903226,
+    "body_share": 0.954946287206102,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a5",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "swap [ [ eq? ] swap cons ] map over [ over swap filter cons ] fold nil [ cons ] fold [ drop uncons drop ] fold [ null? false eq? ] filter 0 [ drop 1 add ] fold",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 41,
+    "quotations": 7,
+    "longest_body": 5,
+    "segments": 6,
+    "longest_segment": 9,
+    "raw_total": 57.05939,
+    "raw_per_op": 1.3916924390243903,
+    "body_share": 0.8083712426648795,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "span_inside_interval",
+   "authored": {
+    "ops": 76,
+    "quotations": 16,
+    "longest_body": 34,
+    "segments": 4,
+    "longest_segment": 41,
+    "raw_total": 375.4175,
+    "raw_per_op": 4.939703947368422,
+    "body_share": 0.95122065433817,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a7",
+   "largest_quotation": 4,
+   "bounded": false,
+   "program": "1 add [ lt? ] swap cons [ swap ] dip filter swap 1 sub [ swap lt? ] swap cons filter dup dup [ 1 sub ] map [ quote ] map [ [ swap lt? ] cat ] map swap [ filter ] fold uncons swap drop swap dup [ 1 add ] map [ quote ] map [ [ lt? ] cat ] map swap [ filter ] fold uncons swap drop sub",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 76,
+    "quotations": 13,
+    "longest_body": 5,
+    "segments": 12,
+    "longest_segment": 11,
+    "raw_total": 170.18714,
+    "raw_per_op": 2.2393044736842107,
+    "body_share": 0.5622724490228815,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "stable_distinct_shared_values",
+   "authored": {
+    "ops": 49,
+    "quotations": 11,
+    "longest_body": 19,
+    "segments": 3,
+    "longest_segment": 24,
+    "raw_total": 153.37664,
+    "raw_per_op": 3.1301355102040818,
+    "body_share": 0.9713522215638575,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a2",
+   "largest_quotation": 4,
+   "bounded": true,
+   "program": "over swap dup cat dup cat dup cat uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip drop nil quote dup cat dup cat dup cat cat uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip uncons [ eq? false eq? ] swap cons swap [ filter ] dip drop nil quote cat nil swap uncons swap over [ eq? false eq? ] swap cons filter nil quote cat [ quote cat ] dip uncons swap over [ eq? false eq? ] swap cons filter nil quote cat [ quote cat ] dip uncons swap over [ eq? false eq? ] swap cons filter nil quote cat [ quote cat ] dip uncons swap over [ eq? false eq? ] swap cons filter nil quote cat [ quote cat ] dip uncons swap over [ eq? false eq? ] swap cons filter nil quote cat [ quote cat ] dip uncons swap over [ eq? false eq? ] swap cons filter nil quote cat [ quote cat ] dip uncons swap over [ eq? false eq? ] swap cons filter nil quote cat [ quote cat ] dip drop [ nil eq? false eq? ] filter",
+   "draw_verdict": "shortcut",
+   "capped": {
+    "ops": 347,
+    "quotations": 43,
+    "longest_body": 4,
+    "segments": 29,
+    "longest_segment": 23,
+    "raw_total": 942.95707,
+    "raw_per_op": 2.7174555331412105,
+    "body_share": 0.42766926812479383,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  },
+  {
+   "behaviour": "widest_pair",
+   "authored": {
+    "ops": 84,
+    "quotations": 12,
+    "longest_body": 71,
+    "segments": 2,
+    "longest_segment": 81,
+    "raw_total": 93.67858,
+    "raw_per_op": 1.1152211904761904,
+    "body_share": 0.74634585622455,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   },
+   "status": "cap4",
+   "author": "a2",
+   "largest_quotation": 4,
+   "bounded": true,
+   "program": "nil 0 cons dup cat dup cat dup cat cat 0 swap uncons swap uncons [ swap [ swap ] dip ] dip [ lt? ] [ swap ] [ ] ifte sub [ lt? ] [ swap ] [ ] ifte drop swap uncons swap uncons [ swap [ swap ] dip ] dip [ lt? ] [ swap ] [ ] ifte sub [ lt? ] [ swap ] [ ] ifte drop swap uncons swap uncons [ swap [ swap ] dip ] dip [ lt? ] [ swap ] [ ] ifte sub [ lt? ] [ swap ] [ ] ifte drop swap uncons swap uncons [ swap [ swap ] dip ] dip [ lt? ] [ swap ] [ ] ifte sub [ lt? ] [ swap ] [ ] ifte drop swap uncons swap uncons [ swap [ swap ] dip ] dip [ lt? ] [ swap ] [ ] ifte sub [ lt? ] [ swap ] [ ] ifte drop swap drop",
+   "draw_verdict": "genuine",
+   "capped": {
+    "ops": 173,
+    "quotations": 40,
+    "longest_body": 5,
+    "segments": 16,
+    "longest_segment": 23,
+    "raw_total": 247.99008,
+    "raw_per_op": 1.4334686705202313,
+    "body_share": 0.4061813278982772,
+    "raw": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    },
+    "calibrated": {
+     "flat": 0,
+     "segmented": 0,
+     "quotations": 0,
+     "both": 0
+    }
+   }
+  }
+ ]
+}
