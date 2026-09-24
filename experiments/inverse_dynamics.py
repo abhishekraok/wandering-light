@@ -93,6 +93,7 @@ PROBE_SIZE = 100_000
 MAX_EPOCHS = {10_000: 60, 100_000: 20, 1_000_000: 6}
 PATIENCE = 3
 SEED = 0
+GPU_SHARE = 0.32  # of the card, per process
 
 
 # ---------------------------------------------------------------------------
@@ -392,38 +393,54 @@ def evaluate(model, features, rows, arm, device) -> dict[str, Any]:
     }
 
 
+def change(row: dict) -> tuple[str, bool]:
+    """What the move did across every example: its content class, and a depth change."""
+    changed_lists = changed_any = depth_changed = False
+    for s, t in zip(row["s"], row["t"], strict=True):
+        depth_changed |= len(s) != len(t)
+        for k in range(max(len(s), len(t))):
+            a = s[-1 - k] if k < len(s) else None
+            b = t[-1 - k] if k < len(t) else None
+            if a != b:
+                changed_any = True
+                changed_lists |= isinstance(a, Lst) or isinstance(b, Lst)
+    content = (
+        "list changed"
+        if changed_lists
+        else "scalar changed"
+        if changed_any
+        else "unchanged"
+    )
+    return content, depth_changed
+
+
 def strata(rows: list[dict], hits: list[bool]) -> dict[str, dict[str, float]]:
-    """Set-accuracy by stack depth and by what the move changed."""
+    """Set-accuracy by stack depth, by what the move changed, and by op."""
     groups: dict[str, list[bool]] = defaultdict(list)
     for row, hit in zip(rows, hits, strict=True):
-        s, t = row["s"][0], row["t"][0]
-        depth = len(s)
-        groups[
-            f"depth {'0-1' if depth <= 1 else '2-3' if depth <= 3 else '4-7' if depth <= 7 else '8+'}"
-        ].append(hit)
-        f = [x - FLAG_BASE for x in flags(s, t)]
-        changed = [k // 4 for k in f if k % 4 != EQUAL]
-        lists = any(
-            isinstance(v, Lst)
-            for k in changed
-            for v in (
-                s[-1 - k] if k < len(s) else None,
-                t[-1 - k] if k < len(t) else None,
-            )
+        depth = max(len(s) for s in row["s"])
+        bucket = (
+            "0-1"
+            if depth <= 1
+            else "2-3"
+            if depth <= 3
+            else "4-7"
+            if depth <= 7
+            else "8+"
         )
-        kind = (
-            "length change"
-            if len(s) != len(t)
-            else "list changed"
-            if lists
-            else "scalar changed"
-        )
-        groups[kind].append(hit)
+        groups[f"depth {bucket}"].append(hit)
+        content, depth_changed = change(row)
+        groups[f"content: {content}"].append(hit)
+        groups[f"depth change: {'yes' if depth_changed else 'no'}"].append(hit)
         groups[f"op {OP_NAMES[row['op']]}"].append(hit)
     return {
         k: {"n": len(v), "set_accuracy": statistics.fmean(v)}
         for k, v in sorted(groups.items())
     }
+
+
+def pair_key(row: dict) -> tuple:
+    return (row["s"], row["t"])
 
 
 # ---------------------------------------------------------------------------
@@ -500,6 +517,7 @@ def train(
             "set_accuracy": e["set_accuracy"],
             "n": len(split[name]),
         }
+        result[name]["hits"] = e["hits"]
         if name == "test":
             result["test_strata"] = strata(split[name], e["hits"])
         else:
@@ -513,7 +531,8 @@ def train(
                 "set_accuracy": statistics.fmean(unique) if unique else None,
             }
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(result, indent=1) + "\n")
+    torch.save(model.state_dict(), out_path.with_suffix(".pt"))
+    out_path.write_text(json.dumps(result) + "\n")
     log(
         f"RESULT {tag}: test {result['test']['set_accuracy']:.4f} last-op {result['last_op']['set_accuracy']:.4f} "
         f"(unique {result['last_op']['unique']['set_accuracy']})"
@@ -546,15 +565,33 @@ def report(run_dir: Path, log) -> dict:
             path = run_dir / "runs" / f"{arm}-{size}.json"
             if path.exists():
                 rows[f"{arm}-{size}"] = json.loads(path.read_text())
-    table = {
-        k: {
+    split = load_triples(run_dir)
+    seen = {size: {pair_key(r) for r in split["train"][:size]} for size in SIZES}
+    table = {}
+    for k, v in rows.items():
+        entry = {
             "test": v["test"]["set_accuracy"],
             "last_op": v["last_op"]["set_accuracy"],
             "last_op_unique": v["last_op"]["unique"]["set_accuracy"],
             "best_epoch": v["best_epoch"],
+            "lr": v["lr"],
+            "parameters": v["parameters"],
         }
-        for k, v in rows.items()
-    }
+        # A test pair can recur in training even though tasks are disjoint.
+        for name in ("test", "last_op"):
+            hits = v[name]["hits"]
+            unseen = [
+                h
+                for r, h in zip(split[name], hits, strict=True)
+                if pair_key(r)
+                not in seen[v["size"] if v["size"] in seen else max(SIZES)]
+            ]
+            entry[f"{name}_unseen"] = {
+                "n": len(unseen),
+                "set_accuracy": statistics.fmean(unseen) if unseen else None,
+            }
+        entry["test_strata"] = strata(split["test"], v["test"]["hits"])
+        table[k] = entry
     current = rows.get(f"current-{max(SIZES)}")
     reading = None
     if current is not None:
@@ -582,6 +619,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     args.run_dir.mkdir(parents=True, exist_ok=True)
     torch.set_num_threads(8)
+    if args.device.startswith("cuda"):
+        # Three lanes share one 24 GB card here, and running short of GPU memory
+        # stalls silently on this desktop; a capped process fails loudly instead.
+        torch.cuda.set_per_process_memory_fraction(GPU_SHARE)
 
     def log(line: str) -> None:
         stamped = f"{time.strftime('%H:%M:%S')} {line}"

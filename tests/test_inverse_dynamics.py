@@ -65,3 +65,25 @@ def test_set_nll_is_zero_when_all_mass_is_on_the_set():
     out[0, 3] = out[0, 5] = 0.0
     assert idp.set_nll(out, [(3, 5)]).item() < 1e-6
     assert idp.set_nll(out, [(4,)]).item() > 100
+
+
+def test_change_reads_every_example():
+    # Codex's counterexample: swap leaves example 0 unchanged and swaps lists in 1.
+    one, two, three = Lst((Int(1),)), Lst((Int(2),)), Lst((Int(3),))
+    row = {"s": ((one, one), (two, three)), "t": ((one, one), (three, two))}
+    assert idp.change(row) == ("list changed", False)
+    assert idp.change({"s": ((Int(1),),), "t": ((Int(1),),)}) == ("unchanged", False)
+    assert idp.change({"s": ((Int(1),),), "t": ((Int(1), Int(0)),)}) == (
+        "scalar changed",
+        True,
+    )
+
+
+def test_aligned_rows_are_the_state_items_then_the_target_items_from_the_top():
+    row = {"s": ((Int(1), Int(2)),), "t": ((Int(3),),)}
+    values = idp.aligned_block(row)["values"]
+    tokens = [[int(x) for x in r if x != idp.PAD] for r in values]
+    assert tokens[0] == idp.value_tokens(Int(2))
+    assert tokens[1] == idp.value_tokens(Int(1))
+    assert tokens[idp.TOP] == idp.value_tokens(Int(3))
+    assert all(not r for i, r in enumerate(tokens) if i not in (0, 1, idp.TOP))
