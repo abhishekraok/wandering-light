@@ -79,6 +79,7 @@ class Config:
     start_archived_share: float = 0.5  # proposals from archived nodes, cycle 2 on
     calibration: int = 1000
     test_fresh: int = 1000
+    test_fresh_final: int = 0  # the last cycle's F3 pool when > 0
     test_archive: int = 1000
     tracked_new: int = 5000
     max_cuts: int = 1
@@ -221,6 +222,7 @@ def attempt(archive, scorer, keys, procedure, seed, cycle, *, record: bool):
     made = Counter()
     touched: set[int] = set()
     for walker in walks:
+        made[f"end_{walker.end}"] += 1
         hits[walker.owner] += walker.hit
         steps[walker.owner] += len(walker.ops) if walker.hit else procedure.budget
         if record:
@@ -319,13 +321,24 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
     reports = []
     for cycle in range(1, config.cycles + 1):
         clock = time.perf_counter()
+        timings: dict[str, float] = {}
+        last = [clock]
+
+        def mark(phase: str, timings=timings, last=last) -> None:
+            now = time.perf_counter()
+            timings[phase] = round(now - last[0], 2)
+            last[0] = now
+
         report: dict = {"cycle": cycle, "config": dataclasses.asdict(config)}
         report["propose"], proposal_log = propose_phase(
             archive, config, cycle, behaviours
         )
+        mark("propose")
         rows, report["rows"] = policy_rows(archive, config)
+        mark("rows")
         model.to(config.train_device)
         report["policy"] = train_epochs(model, optimizer, rows, config, cycle)
+        mark("policy")
         frozen = StackPairPolicy(architecture, encoding=DIFFERENCE)
         frozen.load_state_dict({k: v.cpu() for k, v in model.state_dict().items()})
         scorer = PolicyScorer(frozen.eval(), "cpu")
@@ -353,7 +366,9 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             cycle,
             record=True,
         )
+        mark("calibration_rollouts")
         report["calibration"] = {
+            "v_emp_histogram": np.bincount(hits, minlength=config.n + 1).tolist(),
             "pairs": len(keys),
             "rules": dict(Counter(rule for _, rule in picks)),
             "unique_pairs": len(set(keys)),
@@ -389,6 +404,7 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             else None,
         }
         last_error.update(zip(keys, error_now.tolist(), strict=True))
+        mark("heads")
         # RND: this phase's visited nodes plus a replay of earlier ones
         visited_states = [archive.states[i] for i in sorted(touched)]
         replay = random.Random(f"{config.seed}:{cycle}:rnd").sample(
@@ -415,6 +431,7 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
         never = sample.sample(never, min(len(never), 5000))
         threshold = H.calibrate_threshold(rnd.novelty(well), rnd.novelty(never))
         report["rnd"].update(threshold)
+        mark("rnd")
         # E on the tracked set, for predicted progress
         tracked_rng = stream(config, cycle, "tracked")
         tracked = {key for key, record in archive.pairs.items() if record.attempts > 0}
@@ -448,10 +465,12 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             )
         report["progress"] = measured
 
+        mark("tracked_e")
         # test: never archived
         before_test = (len(archive.states), len(archive.pairs), sum(archive.visits))
+        final = cycle == config.cycles and config.test_fresh_final > 0
         fresh = programs.fresh_pairs(
-            config.test_fresh,
+            config.test_fresh_final if final else config.test_fresh,
             stream(config, cycle, "F3"),
             behaviours,
             max_cuts=config.max_cuts,
@@ -464,11 +483,13 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
         f3_jobs = [(p.s, p.t) for p in fresh]
         a_jobs = [(archive.states[s], archive.states[t]) for s, t in archive_keys]
         f3_hits = np.zeros(len(fresh), dtype=np.int64)
+        f3_ends = Counter()
         for walker in walk(
             scorer, f3_jobs, cycle_procedure, config.seed * 1000 + 500 + cycle
         ):
             f3_hits[walker.owner] += walker.hit
-        a_hits, _, _, _ = attempt(
+            f3_ends[walker.end] += 1
+        a_hits, _, a_made, _ = attempt(
             archive,
             scorer,
             archive_keys,
@@ -536,8 +557,20 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             if len(archive_keys)
             else None,
             "fresh_pairs": len(fresh),
+            "fresh_walker_ends": dict(f3_ends),
+            "archive_walker_ends": {
+                k: v for k, v in a_made.items() if k.startswith("end_")
+            },
+            "fresh_v_emp_histogram": np.bincount(
+                f3_hits, minlength=config.n + 1
+            ).tolist(),
+            "archive_v_emp_histogram": np.bincount(
+                a_hits, minlength=config.n + 1
+            ).tolist(),
             "archive_pairs": len(archive_keys),
         }
+        mark("test")
+        report["timings"] = timings
         report["archive"] = archive.summary()
         report["test_left_archive_unchanged"] = before_test == (
             len(archive.states),

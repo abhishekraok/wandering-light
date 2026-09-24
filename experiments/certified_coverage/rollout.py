@@ -55,6 +55,7 @@ class Walk:
     ops: list[str]
     states: list
     hit: bool = False
+    end: str = "budget"  # hit, stuck (no legal op), atoms (over the cap) or budget
 
 
 def walk(
@@ -90,6 +91,8 @@ def walk(
                     live.append(w)
                     masks.append(legal)
                     options.append(moved)
+                else:
+                    walks[w].end = "stuck"
             if not live:
                 break
             blocks = [encoders[walks[w].owner](walks[w].states[-1]) for w in live]
@@ -111,8 +114,10 @@ def walk(
                 walker.ops.append(OPS[index].name)
                 walker.states.append(after)
                 if after == jobs[walker.owner][1]:
-                    walker.hit = True
-                elif not atoms_exceed(after, procedure.max_state_atoms):
+                    walker.hit, walker.end = True, "hit"
+                elif atoms_exceed(after, procedure.max_state_atoms):
+                    walker.end = "atoms"
+                else:
                     following.append(w)
             active = following
     return walks
