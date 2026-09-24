@@ -58,8 +58,10 @@ import numpy as np
 from wandering_light.quotation_guard import RUNS_CODE, blocked
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
+    Config,
     Lst,
     Mark,
+    format_stack,
     parse_stack,
     step_raw,
     value_key,
@@ -813,6 +815,7 @@ def _segment_witness_ranks(
     frontier: list[Node] = [(inputs, (), 0.0)]
     witness: Node = frontier[0]
     expanded: set[Product] = set()
+    produced: set[Product] = set()  # closed in an earlier segment
     rows: list[dict] = []
     start = 0
     for segment, cut in enumerate(closed_cuts(states, program)[:max_segments]):
@@ -859,8 +862,10 @@ def _segment_witness_ranks(
                 "best": float(every[0][2]) if every else None,
                 "executions": tally.executions,
                 "complete": stop is None,
+                **_rank_variants(every, frontier, produced | expanded, target),
             }
         )
+        produced.update(closed)
         if stop is not None:
             break
         if rank is not None:
@@ -874,3 +879,79 @@ def _segment_witness_ranks(
         frontier = ranked[:roots]
         start = cut
     return rows
+
+
+def _stack_tokens(product: Product) -> list[str]:
+    """The first shown example's stack as tokens, for an edit distance."""
+    return format_stack(Config(product[0])).split() if product else []
+
+
+def _edit_distance(left: Sequence[str], right: Sequence[str], cap: int = 200) -> int:
+    left, right = list(left[:cap]), list(right[:cap])
+    previous = list(range(len(right) + 1))
+    for i, a in enumerate(left, 1):
+        current = [i]
+        for j, b in enumerate(right, 1):
+            current.append(
+                min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + (a != b))
+            )
+        previous = current
+    return previous[-1]
+
+
+def _rank_variants(
+    every: Sequence[Node], roots: Sequence[Node], stale: set[Product], target: Product
+) -> dict:
+    """The K diagnostic's analysis columns beside the registered cumulative rank.
+
+    ``local_rank`` ranks by the score gained in this segment (cumulative less
+    the root's), the ranking a score reset at each cut would use; ``per_op_rank``
+    by mean log-probability per op of the whole program; ``fresh_rank`` by
+    cumulative score among closed states never closed or expanded before (no
+    revisits, no no-op segments). ``winner`` and ``local_winner`` describe the
+    top state under the cumulative and local rankings: its segment length and
+    the token edit distance of its first stack from its root's.
+    """
+    by_program = {program: (product, score) for product, program, score in roots}
+
+    def root_of(program: tuple[str, ...]) -> tuple[str, ...]:
+        for size in range(len(program), -1, -1):
+            if program[:size] in by_program:
+                return program[:size]
+        raise ValueError("a closed state with no root")
+
+    def local(node: Node) -> float:
+        return node[2] - by_program[root_of(node[1])][1]
+
+    def place(order: Sequence[Node]) -> int | None:
+        return next((n for n, node in enumerate(order, 1) if node[0] == target), None)
+
+    def describe(node: Node | None) -> dict | None:
+        if node is None:
+            return None
+        root = root_of(node[1])
+        return {
+            "segment_ops": len(node[1]) - len(root),
+            "edit_from_root": _edit_distance(
+                _stack_tokens(by_program[root][0]), _stack_tokens(node[0])
+            ),
+            "local": local(node),
+            "program": " ".join(node[1][len(root) :]),
+        }
+
+    locals_ = sorted(every, key=local, reverse=True)
+    per_op = sorted(
+        every, key=lambda node: node[2] / max(1, len(node[1])), reverse=True
+    )
+    fresh = [node for node in every if node[0] not in stale]
+    mine = next((node for node in every if node[0] == target), None)
+    return {
+        "local_rank": place(locals_),
+        "per_op_rank": place(per_op),
+        "fresh_rank": place(fresh),
+        "fresh": len(fresh),
+        "witness_local": local(mine) if mine is not None else None,
+        "witness_segment": describe(mine),
+        "winner": describe(every[0] if every else None),
+        "local_winner": describe(locals_[0] if locals_ else None),
+    }

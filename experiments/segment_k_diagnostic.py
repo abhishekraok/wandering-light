@@ -103,6 +103,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--set", dest="which", choices=SETS, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--device", default="cpu")
+    parser.add_argument("--segment-depth", type=int, default=12)
     parser.add_argument(
         "--limit", type=int, default=None, help="every k-th program, about this many"
     )
@@ -130,7 +131,11 @@ def main(argv: list[str] | None = None) -> int:
         rows = [
             {"behaviour": task.behaviour, **row}
             for row in segment_witness_ranks(
-                mine, scorer, program=program, max_state_atoms=BEST.max_state_atoms
+                mine,
+                scorer,
+                program=program,
+                segment_depth=args.segment_depth,
+                max_state_atoms=BEST.max_state_atoms,
             )
         ]
         with stream.open("a") as handle:
@@ -149,6 +154,7 @@ def main(argv: list[str] | None = None) -> int:
         "set": args.which,
         "limit": args.limit,
         "max_state_atoms": BEST.max_state_atoms,
+        "segment_depth": args.segment_depth,
         **summarise(rows),
         "seconds_this_run": round(time.time() - started, 1),
     }
