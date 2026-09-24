@@ -21,8 +21,12 @@ search):
                    included, so a gain of segment over it is the reset's and not
                    the compute's. ``--budget-unit`` is the counter (below).
 
-Every task also has a wall-clock cap (``--seconds-cap``, 120 s); a search it
-stops ends ``wall_clock_cap`` and the row keeps what it spent. One JSON per
+Every task also has a wall-clock cap (``--seconds-cap``: 120 s for flat and
+segment, 300 s for flat-widening); a search it stops ends ``wall_clock_cap`` and
+the row keeps what it spent. A widening task's budget is the larger of the
+segment row's spend and flat-48's own spend on it, both in the budget unit, so
+the control is never held below the cost flat-48 already pays; the row records
+which term set it, and a widening cell needs both cells first. One JSON per
 (run dir, arm, seed, search, K, segment depth, budget unit) under
 ``--out-dir``, skipped when it exists, so a queue resumes::
 
@@ -36,8 +40,8 @@ executions; a combinator counts once however much its body runs. ``fuel`` is
 the machine's cost of those same applications: 1 for the op plus every step of
 any quotation body it runs. Both are charged at the same place in both beams,
 before each op attempt, and library replay charges the same units. The
-widening budget counts ``executions+fuel`` by default (``fuel`` alone, or
-``executions``, by flag).
+widening budget counts ``fuel`` by default (``executions``, or their sum,
+by flag).
 
 `report` draw-tests every distinct solved program once with best-system-command
 (#158)'s rule (`step3_verify_solves.check`, 10,000 draws per mode, seed 134,
@@ -89,9 +93,14 @@ ROOTS = 16
 # segment lengths, for both encodings. An arm not listed needs --segment-depth.
 SEGMENT_DEPTHS = {"capped": 8, "staged": 16, "fused": 48}
 MAX_SEGMENTS = 12
-BUDGET_UNIT = "executions+fuel"
+# fuel is 1 per op plus every quotation-body step; executions+fuel counts the
+# outer steps twice, so the coordinator chose fuel (#168).
+BUDGET_UNIT = "fuel"
 UNIT_TAGS = {"executions": "exec", "fuel": "fuel", "executions+fuel": "execfuel"}
-TASK_SECONDS_CAP = 120.0
+TASK_SECONDS_CAP = 120.0  # flat-48 and segment
+# The widening control gets more clock, so its matched compute budget binds and
+# not the clock: wider beams make bigger policy batches, slower per execution.
+WIDENING_SECONDS_CAP = 300.0
 MERGE_RULE = (
     "equal closed states (structurally equal products) merge across roots, keeping "
     "the highest cumulative log-probability and its program (a tie keeps the first "
@@ -213,22 +222,41 @@ def cohort_tasks(positions: Sequence[int] | None = None) -> list[tuple[int, Task
     return cohort if positions is None else [cohort[p] for p in positions]
 
 
-def matched_budgets(
-    segment_cell: Path, task_indices: Sequence[int], unit: str = "executions"
-) -> list[int]:
-    """Per task, what the segment cell spent on it in ``unit``, in ``task_indices`` order."""
-    if not segment_cell.exists():
+def cell_spend(cell: Path, task_indices: Sequence[int], unit: str) -> list[int]:
+    """Per task, what ``cell`` spent on it in ``unit``, in ``task_indices`` order."""
+    if not cell.exists():
         raise FileNotFoundError(
-            f"flat-widening needs its segment cell first: {segment_cell} does not exist"
+            f"flat-widening needs its segment and flat cells first: {cell} does not exist"
         )
     spent = {
         row["task_index"]: spent_in(unit, row["executions"], row["fuel"])
-        for row in json.loads(segment_cell.read_text())["rows"]
+        for row in json.loads(cell.read_text())["rows"]
     }
     missing = [index for index in task_indices if index not in spent]
     if missing:
-        raise ValueError(f"{segment_cell} has no row for tasks {missing[:5]}")
+        raise ValueError(f"{cell} has no row for tasks {missing[:5]}")
     return [spent[index] for index in task_indices]
+
+
+def matched_budgets(
+    segment_cell: Path,
+    flat_cell: Path,
+    task_indices: Sequence[int],
+    unit: str = BUDGET_UNIT,
+) -> tuple[list[int], list[str]]:
+    """Per task, max(segment spend, flat-48 spend) in ``unit``, and which term set it.
+
+    The term is ``segment`` when the segment row's spend is at least flat-48's,
+    else ``flat``: an exact segment budget loses near-ties to a control that
+    needs what flat-48 needs, and the loss carries through the library.
+    """
+    segment = cell_spend(segment_cell, task_indices, unit)
+    flat = cell_spend(flat_cell, task_indices, unit)
+    budgets = [max(s, f) for s, f in zip(segment, flat, strict=True)]
+    terms = [
+        "segment" if s >= f else "flat" for s, f in zip(segment, flat, strict=True)
+    ]
+    return budgets, terms
 
 
 def checkpoint_encoding(policy: Path) -> str:
@@ -236,7 +264,11 @@ def checkpoint_encoding(policy: Path) -> str:
 
 
 def row_record(
-    row: solve.Row, task_index: int, budget: int | None, unit: str | None
+    row: solve.Row,
+    task_index: int,
+    budget: int | None,
+    unit: str | None,
+    term: str | None = None,
 ) -> dict[str, Any]:
     record = row.record()
     fit = row.program is not None
@@ -246,6 +278,7 @@ def row_record(
             "bucket": co.bucket_of(row.task.length),
             "budget": budget,
             "budget_unit": unit if budget is not None else None,
+            "budget_term": term,
             "capped": row.termination == "wall_clock_cap",
             # Every search returns at its first shown fit, so the counters of a
             # row with a program are the counters at that fit.
@@ -280,6 +313,7 @@ def budget_use(rows: Sequence[dict[str, Any]]) -> dict[str, Any] | None:
         "unit": budgeted[0]["budget_unit"],
         "tasks": len(budgeted),
         "ended_by": dict(sorted(ended.items())),
+        "set_by_flat": sum(r.get("budget_term") == "flat" for r in budgeted),
         "spent": spent,
         "budget": total,
         "spent_fraction": spent / total if total else None,
@@ -304,7 +338,7 @@ def run_cell(
     segment_depth: int | None = None,
     budget_unit: str = BUDGET_UNIT,
     device: str = "cpu",
-    seconds_cap: float | None = TASK_SECONDS_CAP,
+    seconds_cap: float | None = None,
     threads: int = co.CPU_THREADS,
     lanes: int | None = None,
     positions: Sequence[int] | None = None,
@@ -325,11 +359,15 @@ def run_cell(
         log(f"skip {out}: exists")
         return out
     depth = segment_depth_for(arm, segment_depth)
+    if seconds_cap is None:
+        seconds_cap = (
+            WIDENING_SECONDS_CAP if search == "flat-widening" else TASK_SECONDS_CAP
+        )
     system = system_for(search, roots=roots, segment_depth=depth)
     policy = hs.policy_dir(run_dir, arm, seed, EPOCH)
     cohort = cohort_tasks(positions)
     indices = [index for index, _ in cohort]
-    budgets = budget_source = None
+    budgets = terms = budget_source = flat_source = None
     unit = budget_unit if search == "flat-widening" else None
     if search == "flat-widening":
         budget_source = cell_path(
@@ -342,7 +380,12 @@ def run_cell(
             segment_depth=depth,
             positions=positions,
         )
-        budgets = matched_budgets(budget_source, indices, budget_unit)
+        flat_source = cell_path(
+            out_dir, run_dir, arm, seed, "flat", positions=positions
+        )
+        budgets, terms = matched_budgets(
+            budget_source, flat_source, indices, budget_unit
+        )
     torch.set_num_threads(threads)
     scorer = PolicyScorer(load_policy(policy, device=device), device)
     log(f"run {out.name}: {system.describe()}; policy {policy} ({scorer.encoding})")
@@ -366,7 +409,11 @@ def run_cell(
     cell_seconds = time.perf_counter() - started
     records = [
         row_record(
-            row, task_index, budgets[row.index] if budgets is not None else None, unit
+            row,
+            task_index,
+            budgets[row.index] if budgets is not None else None,
+            unit,
+            terms[row.index] if terms is not None else None,
         )
         for task_index, row in zip(indices, rows, strict=True)
     ]
@@ -397,6 +444,7 @@ def run_cell(
         "system": dataclasses.asdict(system),
         "task_seconds_cap": seconds_cap,
         "budget_source": str(budget_source) if budget_source else None,
+        "budget_floor_source": str(flat_source) if flat_source else None,
         "cohort_positions": list(positions) if positions is not None else None,
         "device": device,
         "threads": threads,
@@ -430,32 +478,23 @@ def run_cell(
 # ---------------------------------------------------------------------------
 
 NOTES = f"""\
-## What the searches share
+## Rules, one line each
 
-- **Counters.** `executions` is one per op applied to one shown example stack:
-  flat's (and widening's) local counter in `_beam_solve` and `_Tally.executions`
-  in the segment beam are incremented by the same `step_all_quiet` count at the
-  same place, before each op attempt, and library replay charges the same unit.
-  A combinator counts once whatever its body runs. `fuel` is those same
-  applications' machine cost, 1 for the op plus every quotation-body step, so
-  `fuel - executions` is the body steps. "Primitive executions", the registered
-  column, is `executions`; the widening budget counts the unit in its cell
-  (`budget_unit`), from the segment row's counters. A restart that passes its
-  budget mid-attempt is charged in full; `overshoot` reports it.
-- **Verification point.** Both beams test every executable successor against
-  the shown outputs, `moved == outputs`, as soon as it is made: flat in
-  `_beam_solve` before ranking, the guard or the visited set; the segment beam
-  in `_run_segment` before the open/closed split, ranking and pruning, and
-  `_segment_beam_solve` passes `stop_at_fit=True`, so it stops at the first
-  shown fit, as flat and widening do. Held-out examples are read only when
-  grading, after the last task.
-- **Merge rule.** {MERGE_RULE}. K = {ROOTS} and each arm's segment depth
-  ({SEGMENT_DEPTHS}, {MAX_SEGMENTS} segments) are recorded in every cell.
-- **Horizon.** flat-48 is `BEST`'s search at depth 48. flat-widening runs at the
-  segment cell's token horizon, {MAX_SEGMENTS} x its depth.
-- **Bearing, not a result.** The 6-task CPU smoke of 2026-09-24 ran `BEST` at
-  the old segment depth 12: flat-48 solved 5/6 with 613k executions, the segment
-  beam 4/6 with 27.5M (45x), missing capped_sum, which flat-48 fits at 117k.
+- **Executions:** one per op applied to one shown example stack, counted at the same place (before each op attempt) in flat, widening and segment, library replay included; the registered "primitive executions" column.
+- **Fuel:** the same applications' machine cost, 1 per op plus every quotation-body step, so fuel - executions is body steps.
+- **Widening budget unit:** each cell's `budget_unit`, `{BUDGET_UNIT}` by default.
+- **Widening budget:** per task, max(the segment row's spend, flat-48's own spend on that task) in that unit; `budget_term` names the larger, and `set by flat` counts the tasks flat-48 set.
+- **Widening stop:** widths 64, 128, 256, ... from scratch on one shared counter, until the first shown fit, the budget, the clock, or a restart that repeats the one before (`saturated`).
+- **Overshoot:** a restart that passes its budget mid-attempt is charged in full and reported as `overshoot`.
+- **Clock:** {TASK_SECONDS_CAP:.0f} s per task for flat-48 and segment, {WIDENING_SECONDS_CAP:.0f} s for flat-widening, recorded per cell; `capped` counts `wall_clock_cap` rows per column.
+- **Fit check:** every executable successor is tested with `moved == outputs` as it is made, before ranking or pruning (in `_run_segment` also before the open/closed split); held-out examples are read only at grading.
+- **Stop at fit:** all three searches return at the first shown fit (the segment beam through `stop_at_fit=True`), so a row's counters with a program are its counters at the fit.
+- **Merge rule:** {MERGE_RULE}.
+- **Frozen per cell:** K = {ROOTS}, segment depth {SEGMENT_DEPTHS} by arm, {MAX_SEGMENTS} segments.
+- **Horizon:** flat-48 is `BEST`'s search at depth 48; flat-widening runs at the segment cell's horizon, {MAX_SEGMENTS} x its depth.
+- **Order and library:** every column runs the #101 cohort in the same order (`co.cohort`, seed 17, bucket order), and each column's library starts empty and holds only its own solves (`solve.solve_tasks`).
+- **Why the flat-48 floor:** on increment_each segment-reset fitted at 10,705 executions against about 10,750 for flat width 64, a hair cheaper; the flat-48 floor is why the control still solves it.
+- **Bearing, not a result:** the 6-task CPU smoke of 2026-09-24 ran `BEST` at the old segment depth 12: flat-48 5/6 at 613k executions, segment 4/6 at 27.5M (45x).
 """
 
 
@@ -617,6 +656,7 @@ def report(out_dir: Path, out: Path, log=print, unit: str = BUDGET_UNIT) -> Path
         use = [f["budget_use"] for f in facts if f["budget_use"]]
         spent = " / ".join(
             f"{u['ended_by'].get('budget', 0)}/{u['tasks']} ended by budget, "
+            f"{u.get('set_by_flat', 0)} set by flat, "
             f"{u['spent_fraction'] or 0:.2f} of {u['unit']} spent, overshoot "
             f"{u['overshoot']:,} on {u['overshoot_tasks']}, widest {u['max_largest_width_completed']}"
             for u in use
@@ -679,6 +719,27 @@ def report(out_dir: Path, out: Path, log=print, unit: str = BUDGET_UNIT) -> Path
                 f"{p['search']} | {p['verified']} | {points} | "
                 f"{', '.join(p['gains']) or '-'} | {', '.join(p['losses']) or '-'} |"
             )
+    truncated = [
+        (cell, r)
+        for cell in cells
+        if cell["search"] == "segment" and cell["cohort_positions"] is None
+        for r in cell["rows"]
+        if r["termination"] == "wall_clock_cap"
+    ]
+    lines += [
+        "",
+        "## Segment tasks the clock truncated",
+        "",
+        "A segment run that ended at the clock cap is a loss the harness caused, not "
+        "a search result.",
+        "",
+    ]
+    lines += [
+        f"- {cell['arm']} / {cell['encoding']} ({cell['run']}) s{cell['seed']}: task "
+        f"{r['task_index']} {r['behaviour']}, {r['seconds']:.0f} s, "
+        f"{r['executions']:,} executions"
+        for cell, r in truncated
+    ] or ["- none"]
     lines += ["", NOTES]
     out.mkdir(parents=True, exist_ok=True)
     (out / "report.json").write_text(
@@ -711,7 +772,13 @@ def main(argv: list[str] | None = None) -> int:
         help="what the widening budget counts; the report's curves too",
     )
     parser.add_argument("--device", default="cpu")
-    parser.add_argument("--seconds-cap", type=float, default=TASK_SECONDS_CAP)
+    parser.add_argument(
+        "--seconds-cap",
+        type=float,
+        default=None,
+        help=f"per task; default {TASK_SECONDS_CAP:.0f} s, "
+        f"{WIDENING_SECONDS_CAP:.0f} s for flat-widening",
+    )
     parser.add_argument("--threads", type=int, default=co.CPU_THREADS)
     parser.add_argument(
         "--lanes", type=int, default=None, help="processes side by side, recorded"

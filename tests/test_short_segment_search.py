@@ -285,16 +285,20 @@ def write_segment_cell(path: Path, spent: dict[int, tuple[int, int]]) -> None:
     path.write_text(json.dumps({"rows": rows}))
 
 
-def test_the_matched_budget_is_read_per_task_in_its_unit(tmp_path):
-    cell = tmp_path / "segment.json"
-    write_segment_cell(cell, {40: (900, 1000), 7: (12, 20), 3: (5_000, 7_000)})
-    assert driver.matched_budgets(cell, [7, 3, 40]) == [12, 5_000, 900]
-    assert driver.matched_budgets(cell, [40], "fuel") == [1000]
-    assert driver.matched_budgets(cell, [7, 40], "executions+fuel") == [32, 1900]
+def test_the_budget_is_the_larger_of_segment_and_flat_spend_per_task(tmp_path):
+    segment = tmp_path / "segment.json"
+    flat = tmp_path / "flat.json"
+    write_segment_cell(segment, {40: (900, 1000), 7: (12, 20), 3: (5_000, 7_000)})
+    write_segment_cell(flat, {3: (50, 60), 7: (30, 40), 40: (900, 1000)})
+    budgets, terms = driver.matched_budgets(segment, flat, [7, 3, 40])
+    assert budgets == [40, 7_000, 1000]  # fuel by default
+    assert terms == ["flat", "segment", "segment"]  # a tie is the segment's
+    budgets, terms = driver.matched_budgets(segment, flat, [7, 40], "executions+fuel")
+    assert budgets == [70, 1900] and terms == ["flat", "segment"]
     with pytest.raises(ValueError, match="no row"):
-        driver.matched_budgets(cell, [7, 8])
-    with pytest.raises(FileNotFoundError, match="segment cell first"):
-        driver.matched_budgets(tmp_path / "absent.json", [7])
+        driver.matched_budgets(segment, flat, [7, 8])
+    with pytest.raises(FileNotFoundError, match="segment and flat cells first"):
+        driver.matched_budgets(segment, tmp_path / "absent.json", [7])
 
 
 def test_an_existing_cell_is_skipped_without_loading_anything(tmp_path, monkeypatch):
@@ -328,10 +332,10 @@ def test_cell_names_carry_k_depth_horizon_and_unit(tmp_path):
     assert name("capped", "segment") == "capped-s0-e3-segment-k16-d8.json"
     assert name("fused", "segment") == "fused-s0-e3-segment-k16-d48.json"
     assert name("capped", "flat-widening") == (
-        "capped-s0-e3-flat-widening-k16-d8-h96-execfuel.json"
+        "capped-s0-e3-flat-widening-k16-d8-h96-fuel.json"
     )
-    assert name("staged", "flat-widening", budget_unit="fuel") == (
-        "staged-s0-e3-flat-widening-k16-d16-h192-fuel.json"
+    assert name("staged", "flat-widening", budget_unit="executions+fuel") == (
+        "staged-s0-e3-flat-widening-k16-d16-h192-execfuel.json"
     )
     assert name("capped", "segment", roots=8, segment_depth=12) == (
         "capped-s0-e3-segment-k8-d12.json"
@@ -395,8 +399,8 @@ def test_three_cells_run_and_the_widening_cell_reads_the_segment_budgets(
     ]
     monkeypatch.setattr(driver, "cohort_tasks", lambda positions=None: cohort)
     out_dir = tmp_path / "out"
-    kwargs = {"roots": 2, "segment_depth": 3, "seconds_cap": 30.0, "threads": 1}
-    with pytest.raises(FileNotFoundError, match="segment cell first"):
+    kwargs = {"roots": 2, "segment_depth": 3, "threads": 1}
+    with pytest.raises(FileNotFoundError, match="segment and flat cells first"):
         driver.run_cell(out_dir, tiny_run, "staged", 0, "flat-widening", **kwargs)
     cells = {
         s: json.loads(
@@ -409,7 +413,8 @@ def test_three_cells_run_and_the_widening_cell_reads_the_segment_budgets(
     for search, cell in cells.items():
         assert cell["search"] == search
         assert cell["encoding"] == "machine"
-        assert cell["task_seconds_cap"] == 30.0
+        want_cap = 300.0 if search == "flat-widening" else 120.0
+        assert cell["task_seconds_cap"] == want_cap
         assert cell["provenance"]["commit"]
         assert cell["lanes"] == 2 and cell["tasks_per_hour"] > 0
         assert [r["task_index"] for r in cell["rows"]] == [11, 22, 33]
@@ -424,17 +429,21 @@ def test_three_cells_run_and_the_widening_cell_reads_the_segment_budgets(
     assert segment["segment_depth"] == widening["segment_depth"] == 3
     assert segment["system"]["segment_depth"] == 3
     assert segment["search_tag"] == "segment-k2-d3"
-    assert widening["max_depth"] == 36 and widening["budget_unit"] == "executions+fuel"
+    assert widening["max_depth"] == 36 and widening["budget_unit"] == "fuel"
     assert cells["flat"]["segment_depth"] is None
-    want = [r["executions"] + r["fuel"] for r in segment["rows"]]
+    pairs = list(zip(segment["rows"], cells["flat"]["rows"], strict=True))
+    want = [max(s["fuel"], f["fuel"]) for s, f in pairs]
     assert [r["budget"] for r in widening["rows"]] == want
+    terms = ["segment" if s["fuel"] >= f["fuel"] else "flat" for s, f in pairs]
+    assert [r["budget_term"] for r in widening["rows"]] == terms
     for row in widening["rows"]:
-        assert row["budget_spent"] == row["executions"] + row["fuel"]
+        assert row["budget_spent"] == row["fuel"]
         assert row["overshoot"] == max(0, row["budget_spent"] - row["budget"])
         if row["source"] == "search":
             assert "widths" in row["widening"]
     use = widening["budget_use"]
-    assert use["budget"] == sum(want) and use["unit"] == "executions+fuel"
+    assert use["budget"] == sum(want) and use["unit"] == "fuel"
+    assert use["set_by_flat"] == terms.count("flat")
     assert cells["flat"]["budget_use"] is None
     assert cells["flat"]["rows"][0]["budget"] is None
 
@@ -507,6 +516,7 @@ def test_the_report_counts_verified_behaviours_shortcuts_and_pairs(
         [
             row(1, "sum", True, sum_program, executions=30),
             row(5, "product", True, ["0", "[", "mul", "]", "fold"], executions=100),
+            row(6, "second_largest", False, None, termination="wall_clock_cap"),
         ],
     )
     budget_use = {
@@ -553,7 +563,16 @@ def test_the_report_counts_verified_behaviours_shortcuts_and_pairs(
     assert "verifies 1; best-system-command (#158) measured 16" in text
     assert "Not reproduced" in text
     assert "0.95 of executions+fuel spent" in text
-    for note in ("stop_at_fit=True", "moved == outputs", "Merge rule", "45x"):
+    assert "task 6 second_largest" in text
+    for note in (
+        "stop_at_fit=True",
+        "moved == outputs",
+        "Merge rule",
+        "45x",
+        "same order",
+        "10,705",
+        "max(the segment row's spend, flat-48's own spend",
+    ):
         assert note in text
 
 
@@ -585,7 +604,7 @@ def test_a_widening_cell_starts_only_after_its_segment_cell_is_written(
         out_dir=tmp_path / "out",
         roots=16,
         segment_depth=None,
-        budget_unit="executions+fuel",
+        budget_unit="fuel",
         jobs=2,
         poll=0.05,
         dry_run=False,
@@ -593,7 +612,7 @@ def test_a_widening_cell_starts_only_after_its_segment_cell_is_written(
 
     def fake(cell, args):
         out = cell.output(args)
-        pause = 0.5 if cell.search == "segment" else 0.0
+        pause = {"segment": 0.5, "flat": 1.0}.get(cell.search, 0.0)
         return [
             sys.executable,
             "-c",
@@ -610,9 +629,9 @@ def test_a_widening_cell_starts_only_after_its_segment_cell_is_written(
     assert run_cells.run_queue(cells, args, lines.append) == 0
     events = [line.split()[0] + " " + line.split()[1] for line in lines]
     label = "short-segment-machine-20260923:capped:s0"
-    assert events.index(f"done {label}:segment") < events.index(
-        f"start {label}:flat-widening"
-    )
+    start = events.index(f"start {label}:flat-widening")
+    assert events.index(f"done {label}:segment") < start
+    assert events.index(f"done {label}:flat") < start
     # A rerun finds every output and starts nothing.
     again = []
     assert run_cells.run_queue(cells, args, again.append) == 0

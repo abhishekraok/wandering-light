@@ -6,8 +6,9 @@ flat-widening. Each cell is one `search.py run` subprocess, its output in
 skipped, and so is one whose checkpoint has not finished training (no
 ``training/<arm>-s<seed>.json`` or an incomplete epoch-3 snapshot): run the
 queue again when it lands. A ``flat-widening`` cell starts only after its
-checkpoint's ``segment`` cell has written its output, since that is where its
-per-task budgets come from; while it waits, later cells take the lane.
+checkpoint's ``segment`` and ``flat`` cells have written their outputs, since
+its per-task budgets are the larger of their spends; while it waits, later
+cells take the lane.
 
     uv run python experiments/short_segment/run_cells.py --dry-run
     uv run python experiments/short_segment/run_cells.py
@@ -107,36 +108,42 @@ def plan(checkpoints: Path, searches, only: set[str] | None) -> list[Cell]:
 
 
 def command(cell: Cell, args) -> list[str]:
-    return [
-        sys.executable,
-        str(Path(__file__).with_name("search.py")),
-        "run",
-        "--out-dir",
-        str(args.out_dir),
-        "--run-dir",
-        str(cell.run_dir),
-        "--arm",
-        cell.arm,
-        "--seed",
-        str(cell.seed),
-        "--search",
-        cell.search,
-        "--roots",
-        str(args.roots),
-        "--budget-unit",
-        args.budget_unit,
-        "--device",
-        args.device,
-        "--seconds-cap",
-        str(args.seconds_cap),
-        "--threads",
-        str(args.threads),
-        "--lanes",
-        str(args.jobs),
-    ] + (
-        ["--segment-depth", str(args.segment_depth)]
-        if args.segment_depth is not None
-        else []
+    return (
+        [
+            sys.executable,
+            str(Path(__file__).with_name("search.py")),
+            "run",
+            "--out-dir",
+            str(args.out_dir),
+            "--run-dir",
+            str(cell.run_dir),
+            "--arm",
+            cell.arm,
+            "--seed",
+            str(cell.seed),
+            "--search",
+            cell.search,
+            "--roots",
+            str(args.roots),
+            "--budget-unit",
+            args.budget_unit,
+            "--device",
+            args.device,
+            "--threads",
+            str(args.threads),
+            "--lanes",
+            str(args.jobs),
+        ]
+        + (
+            ["--segment-depth", str(args.segment_depth)]
+            if args.segment_depth is not None
+            else []
+        )
+        + (
+            ["--seconds-cap", str(args.seconds_cap)]
+            if args.seconds_cap is not None
+            else []
+        )
     )
 
 
@@ -172,13 +179,17 @@ def run_queue(cells: list[Cell], args, log=print) -> int:
             if len(running) >= args.jobs:
                 break
             if cell.search == "flat-widening":
-                segment = Cell(cell.run_dir, cell.arm, cell.seed, "segment")
-                if segment in running or segment in pending:
+                sources = [
+                    Cell(cell.run_dir, cell.arm, cell.seed, s)
+                    for s in ("segment", "flat")
+                ]
+                if any(s in running or s in pending for s in sources):
                     continue  # its budgets are not written yet
-                if not segment.output(args).exists():
+                missing = [s.search for s in sources if not s.output(args).exists()]
+                if missing:
                     pending.remove(cell)
                     failed.add(cell)
-                    log(f"FAILED {cell.label()}: its segment cell has no output")
+                    log(f"FAILED {cell.label()}: no {' or '.join(missing)} output")
                     continue
             pending.remove(cell)
             out[cell].parent.mkdir(parents=True, exist_ok=True)
@@ -223,7 +234,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--budget-unit", choices=BUDGET_UNITS, default=search.BUDGET_UNIT
     )
-    parser.add_argument("--seconds-cap", type=float, default=search.TASK_SECONDS_CAP)
+    parser.add_argument(
+        "--seconds-cap",
+        type=float,
+        default=None,
+        help="override the per-search default (120 s, 300 s for flat-widening)",
+    )
     parser.add_argument("--threads", type=int, default=8, help="torch threads per lane")
     parser.add_argument(
         "--poll", type=float, default=10.0, help="seconds between polls"
