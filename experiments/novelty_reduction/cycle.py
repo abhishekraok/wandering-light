@@ -1104,6 +1104,7 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
                 "rule": rule,
                 "part": int(parts[i]),
                 "hits": int(hits[i]),
+                "p_hat": float(p_cal[i]),
                 "steps_to_go": float(steps[i]),
                 "frozen_d_ops": frozen_d_ops[i],
                 "witness_d_ops": archive.pairs[k].witness_d_ops,

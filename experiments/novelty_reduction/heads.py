@@ -135,9 +135,21 @@ def fit_partitioned(
     p = fit_head(features[first], rate[first], config, seed)
     miss = ~scoring.hit_wilson(p.predict(features[second]), hits[second], n, z)
     e = fit_head(features[second], miss.astype(np.float32), config, seed + 1)
+    # E's target rate per P_emp bin: is a rise P being wrong, or the Wilson
+    # interval narrowing as calibration mass moves into the mid bins?
+    by_bin = {
+        str(h): {
+            "pairs": int((hits[second] == h).sum()),
+            "rate": float(miss[hits[second] == h].mean()),
+        }
+        for h in sorted(set(hits[second].tolist()))
+    }
     facts = {
         "pairs_by_part": np.bincount(parts, minlength=3).tolist(),
+        # share of partition-1 pairs where the frozen P (fit on partition 0)
+        # fails the fresh n-rollout Wilson check: E's training target
         "e_target_rate": float(miss.mean()) if len(miss) else None,
+        "e_target_rate_by_hits": by_bin,
     }
     return p, e, facts
 
