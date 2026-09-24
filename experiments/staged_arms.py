@@ -75,6 +75,7 @@ from wandering_light.stack_policy import (  # noqa: E402
     CONFIG_FILE,
     ENCODINGS,
     MACHINE,
+    MANIFEST_FILE,
     PolicyScorer,
     load_policy,
     train_policy,
@@ -241,23 +242,44 @@ def check_arms(arms: Sequence[str]) -> None:
         capped_programs()
 
 
-def snapshot_encoding(path: Path) -> str:
-    """The encoding a saved snapshot was trained in; none recorded is ``machine``."""
-    return json.loads((path / CONFIG_FILE).read_text()).get("encoding", MACHINE)
+def recorded_encodings(run_dir: Path) -> dict[str, list[str]]:
+    """``encoding -> files`` over everything a run dir records one in.
+
+    Every snapshot's config and manifest (any arm, seed or epoch, so an
+    interrupted run's first epochs count), every training state and every
+    timing cell. A file without the field predates #168 and is ``machine``.
+    """
+    paths = [
+        *run_dir.glob(f"policies/*/{CONFIG_FILE}"),
+        *run_dir.glob(f"policies/*/{MANIFEST_FILE}"),
+        *run_dir.glob("training/*.json"),
+        *run_dir.glob("timing/*.json"),
+    ]
+    found: dict[str, list[str]] = defaultdict(list)
+    for path in sorted(paths):
+        encoding = json.loads(path.read_text()).get("encoding", MACHINE)
+        found[encoding].append(str(path.relative_to(run_dir)))
+    return dict(found)
 
 
-def _existing(run_dir: Path, arm: str, seed: int, encoding: str) -> bool:
-    """Is this seed's final snapshot there? One in another encoding is an error."""
-    path = hs.policy_dir(run_dir, arm, seed, EPOCHS)
-    if not path.exists():
-        return False
-    found = snapshot_encoding(path)
-    if found != encoding:
+def check_run_encoding(run_dir: Path, encoding: str | None = None) -> None:
+    """Refuse a run dir that mixes encodings, or holds one other than ``encoding``."""
+    found = recorded_encodings(run_dir)
+    wanted = set(found) | ({encoding} if encoding is not None else set())
+    if len(wanted) > 1:
+        detail = "; ".join(
+            f"{name}: {len(paths)} files, e.g. {paths[0]}"
+            for name, paths in sorted(found.items())
+        )
+        asked = f", asked for {encoding!r}" if encoding is not None else ""
         raise ValueError(
-            f"{path} was trained with encoding {found!r}, not {encoding!r}; "
+            f"{run_dir} would mix encodings ({detail}){asked}; "
             "use a separate --run-dir per encoding"
         )
-    return True
+
+
+def _existing(run_dir: Path, arm: str, seed: int) -> bool:
+    return hs.policy_dir(run_dir, arm, seed, EPOCHS).exists()
 
 
 def train(
@@ -271,14 +293,15 @@ def train(
     encoding: str = MACHINE,
 ) -> None:
     check_arms(arms)
+    check_run_encoding(run_dir, encoding)
     for arm in arms:
-        if all(_existing(run_dir, arm, s, encoding) for s in seeds):
+        if all(_existing(run_dir, arm, s) for s in seeds):
             log(f"skip train {arm} (snapshots exist)")
             continue
         fit, held, facts = arm_rows(arm, tasks, keep_contrived, encoding)
         log(f"RESULT rows {arm} {encoding}: {json.dumps(facts)} validation {len(held)}")
         for seed in seeds:
-            if _existing(run_dir, arm, seed, encoding):
+            if _existing(run_dir, arm, seed):
                 log(f"skip train {arm} s{seed} (snapshots exist)")
                 continue
             manifest = {
@@ -418,7 +441,11 @@ def time_cell(
 
 
 def report(run_dir: Path, out_dir: Path, log) -> Path:
-    """Graded solves per arm, by task and by distinct behaviour. Verification is separate."""
+    """Graded solves per arm, by task and by distinct behaviour. Verification is separate.
+
+    Cells are keyed without their encoding, so a run dir must hold one.
+    """
+    check_run_encoding(run_dir)
     cells = defaultdict(list)
     for path in sorted((run_dir / "timing").glob("*.json")):
         cell = json.loads(path.read_text())
@@ -475,8 +502,10 @@ def verified_report(run_dir: Path, verdicts_path: Path, out_dir: Path, log) -> P
     A solve counts when its program's verdict is ``genuine`` (10,000 draws in
     each mode, no disagreement) or it equals a catalogue witness; ``shortcut``
     and ``inconclusive`` solves do not. Behaviours are the unit that bounds
-    coverage: the cohort's 300 tasks are 43 behaviours (#151).
+    coverage: the cohort's 300 tasks are 43 behaviours (#151). Cells are keyed
+    without their encoding, so a run dir must hold one.
     """
+    check_run_encoding(run_dir)
     verdicts = {
         (row["behaviour"], row["program"]): row["verdict"]
         for row in json.loads(verdicts_path.read_text())["programs"]
@@ -614,6 +643,7 @@ def main(argv: list[str] | None = None) -> int:
             args.encoding,
         )
     else:
+        check_run_encoding(args.run_dir)
         for arm in arms:
             for seed in seeds:
                 time_cell(

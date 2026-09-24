@@ -324,7 +324,7 @@ def test_capped_rows_replay_the_listed_program_at_the_fused_row_count(capped_fil
     fit, capped_held, facts = sa.arm_rows("capped", tasks, keep_contrived=False)
     assert len(fit) == len(fused) == facts["rows_per_epoch"]
     assert facts["treated_behaviours"] == 1 and facts["treated_tasks"] == 2
-    assert facts["side_file"] == str(capped_file)
+    assert (sa.REPO / facts["side_file"]).resolve() == capped_file.resolve()
     assert len(capped_held) == len(held)
     fit_tasks = [t for t in tasks if not sa.validation_skeleton(t)]
     program = CAPPED_SUM.split()
@@ -362,7 +362,7 @@ def test_train_records_the_encoding_and_refuses_to_mix(
     assert load_policy(snapshot).encoding == DIFFERENCE
     manifest = json.loads((snapshot / "training_manifest.json").read_text())
     assert manifest["encoding"] == DIFFERENCE
-    assert manifest["side_file"] == str(capped_file)
+    assert (sa.REPO / manifest["side_file"]).resolve() == capped_file.resolve()
     state = json.loads((run_dir / "training" / "capped-s0.json").read_text())
     assert state["encoding"] == DIFFERENCE
     # The same encoding skips; the other one is an error, not a silent skip.
@@ -435,3 +435,58 @@ def test_the_debugger_and_workshop_refuse_a_difference_policy(tmp_path):
     )
     status = Adviser().load(path)
     assert not status["ready"] and "machine blocks only" in status["error"]
+
+
+def machine_snapshot(run_dir, arm, seed, epoch):
+    """A pre-#168 snapshot: no ``encoding`` in its config or manifest."""
+    path = save_policy(
+        sa.hs.policy_dir(run_dir, arm, seed, epoch),
+        StackPairPolicy(TINY),
+        trainer_state={},
+        manifest={"arm": arm, "seed": seed},
+        wandb_url=None,
+    )
+    config = json.loads((path / CONFIG_FILE).read_text())
+    del config["encoding"]
+    (path / CONFIG_FILE).write_text(json.dumps(config))
+    return path
+
+
+@pytest.mark.parametrize(
+    ("scenario", "existing", "trained"),
+    [
+        ("cross-arm", ("fused", 0, sa.EPOCHS), ("staged", 0)),
+        ("cross-seed", ("fused", 0, sa.EPOCHS), ("fused", 1)),
+        ("interrupted", ("fused", 0, 1), ("fused", 0)),
+    ],
+)
+def test_train_refuses_a_run_dir_holding_another_encoding(
+    tmp_path, monkeypatch, scenario, existing, trained
+):
+    """Codex's three reproductions on 35354de: each mixed silently."""
+    monkeypatch.setattr(co, "architecture", lambda arm: TINY)
+    run_dir = tmp_path / scenario
+    machine_snapshot(run_dir, *existing)
+    before = sorted(p.name for p in (run_dir / "policies").iterdir())
+    arm, seed = trained
+    with pytest.raises(ValueError, match="separate --run-dir"):
+        sa.train(run_dir, arm_tasks(), "cpu", [arm], [seed], False, print, DIFFERENCE)
+    assert sorted(p.name for p in (run_dir / "policies").iterdir()) == before
+    assert sa.recorded_encodings(run_dir).keys() == {MACHINE}
+    # The encoding already there is still accepted.
+    sa.check_run_encoding(run_dir, MACHINE)
+
+
+def test_reports_refuse_a_run_dir_mixing_encodings(tmp_path):
+    timing = tmp_path / "timing"
+    timing.mkdir()
+    cell = {"arm": "fused", "device": "cpu", "policy_epoch": 3, "beam_width": 64}
+    cell |= {"max_depth": 48, "seed": 0, "cell_seconds": 1.0, "rows": []}
+    (timing / "old.json").write_text(json.dumps(cell))  # no field: machine
+    (timing / "new.json").write_text(json.dumps({**cell, "encoding": DIFFERENCE}))
+    with pytest.raises(ValueError, match="would mix encodings"):
+        sa.report(tmp_path, tmp_path / "out", print)
+    verdicts = tmp_path / "verdicts.json"
+    verdicts.write_text(json.dumps({"programs": []}))
+    with pytest.raises(ValueError, match="would mix encodings"):
+        sa.verified_report(tmp_path, verdicts, tmp_path / "out", print)
