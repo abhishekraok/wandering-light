@@ -17,6 +17,7 @@ from wandering_light.stack_beam import (
     _prepare,
     _run_segment,
     _Tally,
+    block_encoder,
     closed_cuts,
     segment_beam_solve,
     segment_witness_ranks,
@@ -30,7 +31,7 @@ from wandering_light.stack_pbe import (
     draw_task,
 )
 from wandering_light.stack_pbe_eval import grade
-from wandering_light.stack_policy import encode_item, item_array
+from wandering_light.stack_policy import encode_item, encode_targets, item_array
 
 
 def task_for(name: str, seed: int = 4):
@@ -39,7 +40,7 @@ def task_for(name: str, seed: int = 4):
 
 
 def states_along(task, program):
-    inputs, _outputs, _targets = _prepare(task, "both")
+    inputs, _outputs = _prepare(task, "both")
     states = [inputs]
     for name in program:
         states.append(step_all_quiet(states[-1], OP_BY_NAME[name])[0])
@@ -54,7 +55,8 @@ class WitnessScorer:
     """
 
     def __init__(self, task, bonus: float = 5.0):
-        _inputs, _outputs, targets = _prepare(task, "both")
+        _inputs, outputs = _prepare(task, "both")
+        targets = encode_targets(outputs)
         self.bonus = bonus
         self.want = {}
         states = states_along(task, task.program)[:-1]
@@ -122,7 +124,7 @@ def test_a_segment_too_short_for_the_witness_cannot_close_it():
 def test_merge_keeps_the_best_score_whatever_the_root_order():
     """Two roots on one product close the same states; the better root's paths win."""
     task = task_for(TWO)
-    inputs, outputs, targets = _prepare(task, "both")
+    inputs, outputs = _prepare(task, "both")
     good = (inputs, (), 0.0)
     worse = (inputs, ("dup", "drop"), -3.0)
     knobs = {
@@ -135,10 +137,11 @@ def test_merge_keeps_the_best_score_whatever_the_root_order():
         "stop_at_fit": False,
     }
     scorer = WitnessScorer(task)
-    alone = _run_segment([good], outputs, targets, scorer, _Tally(), **knobs)[2]
+    encode = block_encoder(scorer, outputs)
+    alone = _run_segment([good], outputs, encode, scorer, _Tally(), **knobs)[2]
     for roots in ([good, worse], [worse, good]):
         stop, _program, closed = _run_segment(
-            roots, outputs, targets, scorer, _Tally(), **knobs
+            roots, outputs, encode, scorer, _Tally(), **knobs
         )
         assert stop is None
         assert closed == alone

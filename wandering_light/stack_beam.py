@@ -33,6 +33,11 @@ of segment-composite (#160). From each root a flat beam runs until its paths
 close; equal closed states are merged across roots, and the best ``roots`` of
 them by cumulative log-probability start the next segment, each with a fresh
 beam. ``segment_witness_ranks`` is the diagnostic that sizes ``roots``.
+
+Every search builds a node's block with ``block_encoder``: the scorer's own
+``encoder``, so a ``difference`` policy (#168) reads the layout it trained on.
+A scorer without one, such as a test stub that only has ``log_probs``, reads
+the ``machine`` layout every published checkpoint uses.
 """
 
 from __future__ import annotations
@@ -54,10 +59,10 @@ from wandering_light.stack_machine import (
     value_key,
 )
 from wandering_light.stack_pbe import BASIS, OP_BY_NAME, OPS
-from wandering_light.stack_policy import encode_item, encode_targets, item_array
+from wandering_light.stack_policy import MACHINE, node_encoder
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Callable, Mapping, Sequence
 
     from wandering_light.stack_machine import Op
     from wandering_light.stack_pbe import Task
@@ -65,6 +70,19 @@ if TYPE_CHECKING:
 
 Product = tuple[tuple, ...]  # one stack per shown example
 Node = tuple[Product, tuple[str, ...], float]  # (product, program, log-probability)
+
+
+def block_encoder(
+    scorer: PolicyScorer, outputs: Product
+) -> Callable[[Product], np.ndarray]:
+    """``product -> block`` against ``outputs`` in the scorer's layout.
+
+    A `PolicyScorer` (and any subclass) supplies ``encoder``; a duck-typed
+    scorer without it gets ``machine`` blocks, what it was written against.
+    The targets are encoded once, here, not once per node.
+    """
+    encoder = getattr(scorer, "encoder", None)
+    return encoder(outputs) if encoder is not None else node_encoder(outputs, MACHINE)
 
 
 class BeamObserver:
@@ -290,7 +308,7 @@ def _beam_solve(
         isinstance(v, Mark) for stack in outputs for v in stack
     ):
         raise ValueError("the close guard needs mark-free targets")
-    targets = encode_targets(outputs)
+    encode = block_encoder(scorer, outputs)
     # The visited set is keyed on the product itself. Membership is decided by
     # ``Value.__eq__``, which is structural and induces exactly ``value_key``'s
     # partition (the union is closed and each variant carries a distinct class);
@@ -346,12 +364,7 @@ def _beam_solve(
                 successors.append((node, index, moved, extended))
         if not successors:
             return result(None, "frontier_exhausted", depth)
-        blocks = [
-            item_array(
-                [encode_item(s, t) for s, t in zip(product, targets, strict=True)]
-            )
-            for product, _, _ in beam
-        ]
+        blocks = [encode(product) for product, _, _ in beam]
         log_probs = scorer.log_probs(blocks, legal)
         watch.layer_scored(depth, log_probs, legal)
         ranked = sorted(
@@ -425,18 +438,18 @@ class _Tally:
     deepest: int = 0  # ops in the longest program any expansion produced
 
 
-def _prepare(task: Task, guard: str) -> tuple[Product, Product, list[list[int]]]:
+def _prepare(task: Task, guard: str) -> tuple[Product, Product]:
     inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
     outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
     if guard in ("close", "both") and has_mark(outputs):
         raise ValueError("the close guard needs mark-free targets")
-    return inputs, outputs, encode_targets(outputs)
+    return inputs, outputs
 
 
 def _run_segment(
     roots: Sequence[Node],
     outputs: Product,
-    targets: list[list[int]],
+    encode: Callable[[Product], np.ndarray],
     scorer: PolicyScorer,
     tally: _Tally,
     *,
@@ -461,7 +474,8 @@ def _run_segment(
     hit would be, and takes no beam slot; the slots go to open successors. For an
     open successor the guard's ``remaining`` is the steps left in this segment,
     since a path that cannot close before the segment ends is dropped; for a
-    closed one it is ``horizon`` less the program length. Returns ``(stop, program, closed)``:
+    closed one it is ``horizon`` less the program length. ``encode`` is
+    ``block_encoder(scorer, outputs)``. Returns ``(stop, program, closed)``:
     ``stop`` is ``fit`` or ``budget`` when the search must end here, else None;
     ``closed`` merges equal closed states across roots, keeping the best score
     and its program.
@@ -500,12 +514,7 @@ def _run_segment(
             beams[owner] = []
             if not opens and not closes:
                 continue
-            blocks = [
-                item_array(
-                    [encode_item(s, t) for s, t in zip(product, targets, strict=True)]
-                )
-                for product, _, _ in beam
-            ]
+            blocks = [encode(product) for product, _, _ in beam]
             log_probs = scorer.log_probs(blocks, legal)
             for score, product, program in _ranked(closes, beam, log_probs):
                 if not _kept(product, program, *limits):
@@ -636,7 +645,8 @@ def _segment_beam_solve(
     max_state_atoms: int | None,
 ) -> BeamResult:
     started = time.perf_counter()
-    inputs, outputs, targets = _prepare(task, guard)
+    inputs, outputs = _prepare(task, guard)
+    encode = block_encoder(scorer, outputs)
     tally = _Tally()
 
     def result(program, termination):
@@ -657,7 +667,7 @@ def _segment_beam_solve(
         stop, program, closed = _run_segment(
             frontier,
             outputs,
-            targets,
+            encode,
             scorer,
             tally,
             beam_width=beam_width,
@@ -679,7 +689,7 @@ def _segment_beam_solve(
 def _path_scores(
     states: Sequence[Product],
     program: Sequence[str],
-    targets: list[list[int]],
+    encode: Callable[[Product], np.ndarray],
     scorer: PolicyScorer,
 ) -> list[float]:
     """Cumulative log-probability of ``program``'s first t ops, t = 0..len."""
@@ -690,10 +700,7 @@ def _path_scores(
     for step in range(len(program)):
         for index, op in enumerate(OPS):
             legal[step, index] = step_all_quiet(states[step], op)[0] is not None
-    blocks = [
-        item_array([encode_item(s, t) for s, t in zip(state, targets, strict=True)])
-        for state in states[: len(program)]
-    ]
+    blocks = [encode(state) for state in states[: len(program)]]
     rows = scorer.log_probs(blocks, legal)
     for step, name in enumerate(program):
         scores.append(scores[-1] + float(rows[step, OP_INDEX[name]]))
@@ -766,7 +773,8 @@ def _segment_witness_ranks(
     budget: int | None,
     max_state_atoms: int | None,
 ) -> list[dict]:
-    inputs, outputs, targets = _prepare(task, guard)
+    inputs, outputs = _prepare(task, guard)
+    encode = block_encoder(scorer, outputs)
     program = tuple(task.program if program is None else program)
     states = [inputs]
     for step, name in enumerate(program):
@@ -779,7 +787,7 @@ def _segment_witness_ranks(
     # Replaying the witness and scoring its own path are bookkeeping for the
     # diagnostic, outside the search: they are not charged to `budget` or
     # counted in `executions`.
-    own = _path_scores(states, program, targets, scorer)
+    own = _path_scores(states, program, encode, scorer)
     tally = _Tally()
     frontier: list[Node] = [(inputs, (), 0.0)]
     witness: Node = frontier[0]
@@ -794,7 +802,7 @@ def _segment_witness_ranks(
         stop, _program, closed = _run_segment(
             frontier,
             outputs,
-            targets,
+            encode,
             scorer,
             tally,
             beam_width=beam_width,

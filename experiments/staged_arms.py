@@ -1,6 +1,6 @@
 """staged-witness-reauthoring (#155): does the shape of the witness text bind the policy?
 
-Four arms of the #101 / #134 1m recipe. Tasks, examples, splits, labels-per-row
+Arms of the #101 / #134 1m recipe. Tasks, examples, splits, labels-per-row
 rule, optimiser, batch, seeds and the validation set are the same in every arm;
 what differs is which program each train task is replayed along:
 
@@ -8,13 +8,25 @@ what differs is which program each train task is replayed along:
     refused   the re-fused twin: the staged program's algorithm, cycles merged back
     staged    the staged witness: short write-run cycles with closed states between
     both      every task contributes its fused and its staged witness
+    capped    short-segment-campaign (#168): bodies <= 4 atoms, segments <= 8 ops
 
-`experiments/staged_witnesses/v4.jsonl` supplies the programs. A behaviour gets
-its staged / re-fused program only when its verdict is ``staged`` and it is not
-flagged ``contrived`` (``--keep-contrived`` keeps those); every other behaviour
-keeps its fused witness in every arm, so arms differ on the treated behaviours
-alone. ``task.skeleton`` is never touched, so `validation_skeleton` membership
-is the fused corpus's in every arm.
+`experiments/staged_witnesses/v4.jsonl` supplies the programs of the first four.
+A behaviour gets its staged / re-fused program only when its verdict is
+``staged`` and it is not flagged ``contrived`` (``--keep-contrived`` keeps
+those); every other behaviour keeps its fused witness in every arm, so arms
+differ on the treated behaviours alone. ``capped`` reads
+`reports/short-segment-20260923/train_capped.jsonl` instead, lines
+``{"behaviour", "program"}``: every behaviour listed takes that program and every
+other keeps its fused witness, as ``staged`` treats its untreated behaviours.
+``task.skeleton`` is never touched, so `validation_skeleton` membership is the
+fused corpus's in every arm.
+
+**Encoding.** ``--encoding`` is the policy's item layout (`stack_policy`'s
+``machine``, every published checkpoint's, or ``difference``, #168's comparing
+encoder) for every arm a run trains; rows and model are built in it and the
+checkpoint's config and manifest record it. One run directory holds one
+encoding: a snapshot already there in the other encoding is an error, not a
+skip.
 
 **Sampling.** Replaying longer witnesses yields more rows, which under the
 recipe's row-uniform epochs would re-weight behaviours by witness length and
@@ -29,6 +41,7 @@ counts differ by about 2% between arms).
 Stages, each skipped when its output exists so a run resumes::
 
     uv run python experiments/staged_arms.py train --run-dir checkpoints/staged-arms-20260920
+    uv run python experiments/staged_arms.py train --arms fused,staged,capped --encoding difference --run-dir ...
     uv run python experiments/staged_arms.py time  --run-dir checkpoints/staged-arms-20260920
     uv run python experiments/staged_arms.py report --run-dir ... --out reports/...
 """
@@ -38,6 +51,7 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import gc
+import hashlib
 import json
 import random
 import signal
@@ -58,6 +72,9 @@ import experiments.hindsight_subtargets as hs  # noqa: E402
 from wandering_light.stack_beam import beam_solve  # noqa: E402
 from wandering_light.stack_pbe_eval import grade  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
+    CONFIG_FILE,
+    ENCODINGS,
+    MACHINE,
     PolicyScorer,
     load_policy,
     train_policy,
@@ -72,7 +89,9 @@ if TYPE_CHECKING:
     from wandering_light.stack_policy import Row
 
 SIDE_FILE = REPO / "experiments" / "staged_witnesses" / "v4.jsonl"
-ARMS = ("fused", "refused", "staged", "both")
+# short-segment-campaign (#168): the capped witnesses, written when authoring ends.
+CAPPED_FILE = REPO / "reports" / "short-segment-20260923" / "train_capped.jsonl"
+ARMS = ("fused", "refused", "staged", "both", "capped")
 SEEDS = (0, 1, 2)
 # epoch-selection-in-behaviours (#154): the best fixed epoch of the fused arm in
 # verified behaviours. Fixed in advance for every arm; validation CE is not used.
@@ -107,6 +126,37 @@ def treated(keep_contrived: bool) -> dict[str, dict[str, Any]]:
     return rows
 
 
+def capped_programs(path: Path | None = None) -> dict[str, dict[str, Any]]:
+    """The ``capped`` arm's side file, ``behaviour -> row``; every line is treated."""
+    path = CAPPED_FILE if path is None else path
+    if not path.exists():
+        raise FileNotFoundError(
+            f"the capped arm needs {path}, which does not exist yet: it is written "
+            "when short-segment-campaign (#168) authoring ends, one "
+            '{"behaviour", "program"} line per re-authored train behaviour'
+        )
+    rows: dict[str, dict[str, Any]] = {}
+    for number, line in enumerate(path.read_text().splitlines(), 1):
+        if not line.strip():
+            continue
+        row = json.loads(line)
+        behaviour, program = row.get("behaviour"), row.get("program")
+        if not behaviour or not program or not str(program).split():
+            raise ValueError(f"{path}:{number}: a line needs a behaviour and a program")
+        if behaviour in rows:
+            raise ValueError(f"{path}:{number}: {behaviour} is listed twice")
+        rows[behaviour] = row
+    return rows
+
+
+def side_file(arm: str) -> Path:
+    return CAPPED_FILE if arm == "capped" else SIDE_FILE
+
+
+def _repo_path(path: Path) -> str:
+    return str(path.relative_to(REPO)) if path.is_relative_to(REPO) else str(path)
+
+
 def with_program(task: Task, text: str) -> Task:
     program = tuple(text.split())
     return dataclasses.replace(task, program=program, length=len(program))
@@ -131,16 +181,19 @@ def by_task(rows: Sequence[Row], count: int) -> list[list[Row]]:
 
 
 def arm_rows(
-    arm: str, tasks: Sequence[Task], keep_contrived: bool
+    arm: str, tasks: Sequence[Task], keep_contrived: bool, encoding: str = MACHINE
 ) -> tuple[list[Row], list[Row], dict[str, Any]]:
-    """``(fit, validation, facts)``. Validation is the fused holdout in every arm."""
+    """``(fit, validation, facts)``. Validation is the fused holdout in every arm.
+
+    Rows are built in ``encoding``; which rows are drawn does not depend on it.
+    """
     if arm not in ARMS:
         raise ValueError(f"unknown arm {arm!r}; choose one of {ARMS}")
-    side = treated(keep_contrived)
+    side = capped_programs() if arm == "capped" else treated(keep_contrived)
     train = [t for t in tasks if t.split == "train"]
     fit_tasks = [t for t in train if not validation_skeleton(t)]
     held = [t for t in train if validation_skeleton(t)]
-    fused = by_task(witness_rows(fit_tasks), len(fit_tasks))
+    fused = by_task(witness_rows(fit_tasks, encoding), len(fit_tasks))
     size = sum(len(rows) for rows in fused)
 
     def rewritten(key: str) -> list[list[Row]]:
@@ -148,7 +201,7 @@ def arm_rows(
             with_program(t, side[t.behaviour][key]) if t.behaviour in side else t
             for t in fit_tasks
         ]
-        return by_task(witness_rows(swapped), len(swapped))
+        return by_task(witness_rows(swapped, encoding), len(swapped))
 
     if arm == "fused":
         groups = [[rows] for rows in fused]
@@ -161,9 +214,13 @@ def arm_rows(
     else:
         groups = [
             [rows]
-            for rows in rewritten("program" if arm == "staged" else "refused_program")
+            for rows in rewritten("refused_program" if arm == "refused" else "program")
         ]
+    path = side_file(arm)
     facts = {
+        "side_file": _repo_path(path),
+        "side_file_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "side_behaviours": len(side),
         "fit_tasks": len(fit_tasks),
         "treated_behaviours": len(
             {t.behaviour for t in fit_tasks if t.behaviour in side}
@@ -172,31 +229,67 @@ def arm_rows(
         "distinct_rows_available": sum(len(w) for g in groups for w in g),
         "rows_per_epoch": size,
     }
-    return balanced(groups, size), witness_rows(held), facts
+    return balanced(groups, size), witness_rows(held, encoding), facts
+
+
+def check_arms(arms: Sequence[str]) -> None:
+    """Refuse an unknown arm, or ``capped`` without its side file, before any work."""
+    unknown = [arm for arm in arms if arm not in ARMS]
+    if unknown:
+        raise ValueError(f"unknown arms {unknown}; choose from {ARMS}")
+    if "capped" in arms:
+        capped_programs()
+
+
+def snapshot_encoding(path: Path) -> str:
+    """The encoding a saved snapshot was trained in; none recorded is ``machine``."""
+    return json.loads((path / CONFIG_FILE).read_text()).get("encoding", MACHINE)
+
+
+def _existing(run_dir: Path, arm: str, seed: int, encoding: str) -> bool:
+    """Is this seed's final snapshot there? One in another encoding is an error."""
+    path = hs.policy_dir(run_dir, arm, seed, EPOCHS)
+    if not path.exists():
+        return False
+    found = snapshot_encoding(path)
+    if found != encoding:
+        raise ValueError(
+            f"{path} was trained with encoding {found!r}, not {encoding!r}; "
+            "use a separate --run-dir per encoding"
+        )
+    return True
 
 
 def train(
-    run_dir: Path, tasks, device: str, arms, seeds, keep_contrived: bool, log
+    run_dir: Path,
+    tasks,
+    device: str,
+    arms,
+    seeds,
+    keep_contrived: bool,
+    log,
+    encoding: str = MACHINE,
 ) -> None:
+    check_arms(arms)
     for arm in arms:
-        if all(hs.policy_dir(run_dir, arm, s, EPOCHS).exists() for s in seeds):
+        if all(_existing(run_dir, arm, s, encoding) for s in seeds):
             log(f"skip train {arm} (snapshots exist)")
             continue
-        fit, held, facts = arm_rows(arm, tasks, keep_contrived)
-        log(f"RESULT rows {arm}: {json.dumps(facts)} validation {len(held)}")
+        fit, held, facts = arm_rows(arm, tasks, keep_contrived, encoding)
+        log(f"RESULT rows {arm} {encoding}: {json.dumps(facts)} validation {len(held)}")
         for seed in seeds:
-            if hs.policy_dir(run_dir, arm, seed, EPOCHS).exists():
+            if _existing(run_dir, arm, seed, encoding):
                 log(f"skip train {arm} s{seed} (snapshots exist)")
                 continue
             manifest = {
                 "arm": arm,
                 "policy_arm": hs.ARM,
+                "encoding": encoding,
                 "epochs": EPOCHS,
                 "learning_rate": hs.LEARNING_RATE,
                 "seed": seed,
                 "sample_seed": SAMPLE_SEED,
                 "keep_contrived": keep_contrived,
-                "side_file": str(SIDE_FILE.relative_to(REPO)),
                 **facts,
                 "provenance": co.provenance(),
             }
@@ -212,6 +305,7 @@ def train(
                 seed=seed,
                 device=device,
                 epoch_end=hs.snapshotter(run_dir, arm, seed, manifest),
+                encoding=encoding,
             )
             co.write_json(run_dir / "training" / f"{arm}-s{seed}.json", state)
             curve = " ".join(
@@ -219,7 +313,8 @@ def train(
                 for r in state["history"]
             )
             log(
-                f"RESULT train {arm} s{seed}: [{curve}] {time.perf_counter() - started:.0f}s"
+                f"RESULT train {arm} {encoding} s{seed}: [{curve}] "
+                f"{time.perf_counter() - started:.0f}s"
             )
 
 
@@ -297,6 +392,7 @@ def time_cell(
         {
             "arm": arm,
             "policy_arm": hs.ARM,
+            "encoding": scorer.encoding,
             "seed": seed,
             "device": device,
             "policy_epoch": EPOCHS,
@@ -466,6 +562,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--depth", type=int, default=co.MAX_DEPTH)
     parser.add_argument("--keep-contrived", action="store_true")
     parser.add_argument(
+        "--encoding",
+        choices=ENCODINGS,
+        default=MACHINE,
+        help="the policy's item layout, for every arm this run trains",
+    )
+    parser.add_argument(
         "--verdicts",
         type=Path,
         help="step3_verify_solves output; report verified counts",
@@ -488,18 +590,29 @@ def main(argv: list[str] | None = None) -> int:
         if args.verdicts:
             verified_report(args.run_dir, args.verdicts, args.out or args.run_dir, log)
         return 0
+    if args.stage in ("rows", "train"):
+        check_arms(arms)
     tasks = co.corpus()
     if args.stage == "rows":
         for arm in arms:
-            fit, held, facts = arm_rows(arm, tasks, args.keep_contrived)
+            fit, held, facts = arm_rows(arm, tasks, args.keep_contrived, args.encoding)
             labels = defaultdict(int)
             for row in fit:
                 labels[row.label] += 1
             log(
-                f"RESULT rows {arm}: {json.dumps(facts)} validation {len(held)} labels {len(labels)}"
+                f"RESULT rows {arm} {args.encoding}: {json.dumps(facts)} validation {len(held)} labels {len(labels)}"
             )
     elif args.stage == "train":
-        train(args.run_dir, tasks, args.device, arms, seeds, args.keep_contrived, log)
+        train(
+            args.run_dir,
+            tasks,
+            args.device,
+            arms,
+            seeds,
+            args.keep_contrived,
+            log,
+            args.encoding,
+        )
     else:
         for arm in arms:
             for seed in seeds:
