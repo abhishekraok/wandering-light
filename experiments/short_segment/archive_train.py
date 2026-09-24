@@ -6,7 +6,11 @@ capped train tasks, the first ``--sets`` example sets of each of the 148
 capped train behaviours, and writes `search.archive_record` per task with each
 kept closed state flagged ``on_witness`` when it equals a closed state along
 the behaviour's authored capped witness (`train_capped.jsonl`). Train tasks give
-positives on every task from the witness, where eval searches mostly fail;
+positives on every task from the witness, where eval searches mostly fail:
+``witness_cuts`` are the op counts at which the witness is closed, so its
+closed states (positives even where the search never recorded them, and the
+final one, which a fit never records) are its prefixes replayed on
+``inputs``;
 branch-and-check (#164) step 2 trains on this, never on the eval-cohort
 archive. The library is off, so every task is its own search. Appends one gzip
 member per task and resumes from what the file holds::
@@ -43,8 +47,8 @@ from wandering_light.stack_pbe import OP_BY_NAME  # noqa: E402
 from wandering_light.stack_policy import PolicyScorer, load_policy  # noqa: E402
 
 
-def witness_closed(task, program: tuple[str, ...]) -> frozenset | None:
-    """The closed states along ``program`` on ``task``'s shown examples; None if it refuses a step."""
+def witness_path(task, program: tuple[str, ...]) -> tuple[list, list[int]] | None:
+    """States along ``program`` on ``task``'s shown examples and its closed cuts; None if it refuses a step."""
     inputs, _ = _prepare(task, "both")
     states = [inputs]
     for name in program:
@@ -52,7 +56,16 @@ def witness_closed(task, program: tuple[str, ...]) -> frozenset | None:
         if moved is None:
             return None
         states.append(moved)
-    return frozenset(states[cut] for cut in closed_cuts(states, program))
+    return states, closed_cuts(states, program)
+
+
+def witness_closed(task, program: tuple[str, ...]) -> frozenset | None:
+    """The closed states along ``program`` on ``task``'s shown examples; None if it refuses a step."""
+    path = witness_path(task, program)
+    if path is None:
+        return None
+    states, cuts = path
+    return frozenset(states[cut] for cut in cuts)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -85,7 +98,8 @@ def main(argv: list[str] | None = None) -> int:
     work = []
     for row in _jsonl(CAPPED):
         program = tuple(row["program"].split())
-        for number, task in enumerate(tasks[row["behaviour"]][: args.sets]):
+        train = [t for t in tasks[row["behaviour"]] if t.split == "train"]
+        for number, task in enumerate(train[: args.sets]):
             if (row["behaviour"], number) not in done:
                 work.append((number, dataclasses.replace(task, program=program)))
     print(f"{len(work)} tasks to run, {len(done)} done; archive {out}", flush=True)
@@ -102,11 +116,15 @@ def main(argv: list[str] | None = None) -> int:
 
     def record(row: solve.Row, segments: list) -> None:
         number, task = work[row.index]
-        witness = witness_closed(task, task.program)
+        path = witness_path(task, task.program)
+        witness = None if path is None else frozenset(path[0][c] for c in path[1])
         line = driver.archive_record(row, row.index, segments, witness=witness)
         line.update(
             example_set=number,
+            split=task.split,
+            corpus="stack_pbe_v4",
             witness=" ".join(task.program),
+            witness_cuts=None if path is None else path[1],
             witness_closed=None if witness is None else len(witness),
             witness_seen=sum(
                 s.get("on_witness", False)

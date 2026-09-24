@@ -505,6 +505,9 @@ def archive_record(
     return {
         "task_index": task_index,
         "behaviour": row.task.behaviour,
+        # The shown examples: replay a state's program on these to rebuild it.
+        "inputs": list(row.task.inputs),
+        "outputs": list(row.task.outputs),
         "termination": row.termination,
         "source": row.source,
         "program": " ".join(found) if found is not None else None,
