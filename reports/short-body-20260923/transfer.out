@@ -1,0 +1,15 @@
+fused-s0 {'capped': 4.753, 'authored': 0.428}
+fused-s1 {'capped': 4.889, 'authored': 0.422}
+fused-s2 {'capped': 4.568, 'authored': 0.437}
+refused-s0 {'capped': 2.546, 'authored': 1.297}
+refused-s1 {'capped': 2.449, 'authored': 1.198}
+refused-s2 {'capped': 2.448, 'authored': 1.195}
+staged-s0 {'capped': 2.556, 'authored': 1.736}
+staged-s1 {'capped': 2.096, 'authored': 1.773}
+staged-s2 {'capped': 2.522, 'authored': 1.817}
+world {'capped': 3.784, 'authored': 0.374}
+RESULT TRANSFERS [0.537782532893908, 0.42863597035933215, 0.5520943871555615]
+
+real	1m24.348s
+user	9m20.064s
+sys	0m5.921s

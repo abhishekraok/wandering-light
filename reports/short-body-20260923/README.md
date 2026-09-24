@@ -71,3 +71,32 @@ Medians over the 22 genuine programs, under `BEST`:
 - **Neither build is licensed on today's policy.** Decomposing search, by segments (#156, #164) or by skeleton (#163), cannot rescue programs whose every 13-op segment costs `BEST` about 33 raw nats.
 - **The lever is the policy's fluency in a short-body style.** `BEST` pays 0.35 nats per op on programs it finds, but 2.56 on these. That points to training-side re-authoring under a hard body cap: #155's pipeline with a cap of 4, on train behaviours only.
 - **These programs are a clean yardstick for that re-authoring.** Score them, analysis only, under the retrained policy. If per-op cost falls toward 0.35 and segments stay near 13 ops, segment-reset clears become reachable, and the search build becomes worth testing.
+
+## Does the style transfer? (`transfer.py`, registered on #167)
+
+**TRANSFERS, as registered.** Staged over fused, raw nats per op on the capped programs, is 0.54 at the median over seeds (0.43-0.55). The advisor forecast 0.75-0.85, and I forecast 0.85-0.95.
+
+The checkpoints are #155's arms at epoch 3 and the world arm. Median raw nats per op over the 22 genuine programs of the unsolved behaviours, none of them trained on:
+
+| checkpoint | authored witnesses | capped programs |
+|---|---:|---:|
+| `fused`, seeds 0/1/2 (v4 witnesses as authored) | 0.43 / 0.42 / 0.44 | 4.75 / 4.89 / 4.57 |
+| world arm (v4 + world-v3, authored) | 0.37 | 3.78 |
+| `refused` (staged algorithms, cycles merged back) | 1.30 / 1.20 / 1.20 | 2.55 / 2.45 / 2.45 |
+| `staged` (`BEST` is s0) | 1.74 / 1.77 / 1.82 | 2.56 / 2.10 / 2.52 |
+
+- **Each policy is fluent in the style it was trained on**, on behaviours it never saw. `fused` pays 0.43 per op on the authored witnesses of the unsolved behaviours, near the 0.32 a 13-op segment needs. `BEST`'s 2.56 on the capped programs is mostly style mismatch.
+- **The authored witnesses still fail for their length.** Their segments are about 55 ops, so even at 0.4 per op one segment costs over 20 nats. `fused` clears 1 of 22 flat and 1 with segment-reset; the world arm 1 and 2.
+- **The capped programs are further from `staged`'s training than `staged`'s own witnesses are.** Their cap is 4 atoms against 8, and some use unfamiliar idioms: closures run through `i`, unrolling. `staged` halves `fused`'s cost on them, but still pays 2.1-2.6 per op.
+- **Where the cost sits,** pooled over ops under `staged`:
+
+| | per op |
+|---|---:|
+| content ops | 3.2-3.7 |
+| structural ops (`[`, `]`, consumers) | 1.5-1.7 |
+| mid-segment ops | 2.6-3.0 |
+| last op of a segment | 0.7-0.9 |
+
+  The pattern is the same under every arm. In style it is much lower: `fused` on authored witnesses pays 0.9-1.0 per content op pooled, 0.4 at the median program.
+
+**So re-authoring train behaviours under a hard body cap is the lever the data supports.** A policy fluent in that style could plausibly pay near the 0.4 per op `fused` pays in its own style. That is borderline for 13-op segments, which need 0.32. So the likely outcome is some clears with segment-reset search, not many.
