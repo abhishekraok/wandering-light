@@ -32,7 +32,11 @@ the closed states are the ones a ranker over closed states would archive.
 ``TASKS`` is a task file or a corpus manifest; ``--policy`` a local checkpoint
 directory, else `solve.BEST`'s is fetched. The search runs `BEST`'s settings
 with the library off (replay does not search). Writes ``tasks.jsonl`` (one
-row per task), ``summary.json`` and ``summary.md``.
+row per task), ``summary.json`` and ``summary.md``, and ``pairs.jsonl``: one
+row per closed cross-path meeting, the two programs walked back to where they
+diverge (meeting-pairs-shortcut-signal, #169). The pair is the label that issue
+asks about: at the divergence state, the first program's next op reached the
+met state in no more steps than the second's did.
 """
 
 from __future__ import annotations
@@ -72,6 +76,45 @@ if TYPE_CHECKING:
 
 CLASSES = ("cycle", "same-layer", "earlier-layer")
 SAMPLE_LIMIT = 40
+# How the two routes differ after they part: the same ops in another order,
+# the second route being the first with ops inserted, or anything else.
+SHAPES = ("commutation", "insertion", "other")
+
+
+def is_subsequence(short: Sequence[str], long: Sequence[str]) -> bool:
+    it = iter(long)
+    return all(any(op == item for item in it) for op in short)
+
+
+def divergence(first: Sequence[str], second: Sequence[str]) -> dict[str, Any]:
+    """Where two programs to one state part, and how their tails differ.
+
+    ``first`` is the retained program, ``second`` the discarded one, never a
+    prefix of each other (that meeting is a cycle, classified apart). ``d`` is
+    the length of the shared prefix, so the divergence state is the one
+    ``first[:d]`` reaches; ``op_first`` and ``op_second`` are the ops the two
+    routes take from it.
+    """
+    d = 0
+    for a, b in zip(first, second, strict=False):
+        if a != b:
+            break
+        d += 1
+    tail_first, tail_second = tuple(first[d:]), tuple(second[d:])
+    if not tail_first or not tail_second:
+        shape = "extension"
+    elif sorted(tail_first) == sorted(tail_second):
+        shape = "commutation"
+    elif is_subsequence(tail_first, tail_second):
+        shape = "insertion"
+    else:
+        shape = "other"
+    return {
+        "d": d,
+        "op_first": first[d] if d < len(first) else None,
+        "op_second": second[d] if d < len(second) else None,
+        "shape": shape,
+    }
 
 
 def holds_code(value: Value) -> bool:
@@ -106,6 +149,8 @@ class CollisionRecorder(BeamObserver):
     layers: int = 0
     retained_per_layer: list[int] = field(default_factory=list)
     samples: list[dict[str, Any]] = field(default_factory=list)
+    # every closed cross-path meeting, walked back to its divergence (#169)
+    pairs: list[dict[str, Any]] = field(default_factory=list)
     _beam: Sequence[Node] = ()
     _successors: dict[tuple[int, int], Product] = field(default_factory=dict)
     # product -> (program length, program) at first retention; the root is 0.
@@ -170,6 +215,15 @@ class CollisionRecorder(BeamObserver):
                 if product not in self._met:
                     self._met.add(product)
                     self.counts["met:states"] += 1
+                first_program = self._first[product][1]
+                self.pairs.append(
+                    {
+                        "kind": kind,
+                        "first": list(first_program),
+                        "second": list(program),
+                        **divergence(first_program, program),
+                    }
+                )
             if (
                 kind != "cycle"
                 and state == "closed"
@@ -257,6 +311,7 @@ def run_tasks(
             "seconds": time.perf_counter() - started,
             **recorder.row(),
             "samples": recorder.samples,
+            "pairs": recorder.pairs,
         }
         rows.append(row)
         c = recorder.counts
@@ -417,8 +472,15 @@ def main(argv: Sequence[str] | None = None) -> None:
     )
     parser.add_argument("--label", default=None, help="name for the summary table")
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument(
+        "--threads", type=int, default=None, help="torch CPU threads; default torch's"
+    )
     parser.add_argument("--out", required=True, type=Path)
     args = parser.parse_args(argv)
+    if args.threads is not None:
+        import torch
+
+        torch.set_num_threads(args.threads)
 
     path = Path(args.tasks)
     if path.name == "manifest.json":
@@ -446,9 +508,21 @@ def main(argv: Sequence[str] | None = None) -> None:
     args.out.mkdir(parents=True, exist_ok=True)
     log(f"policy {policy_dir}; {system.describe()}; {len(tasks)} tasks")
     rows = run_tasks(tasks, scorer, system, log)
-    with open(args.out / "tasks.jsonl", "w") as handle:
+    with (
+        open(args.out / "tasks.jsonl", "w") as tasks_out,
+        open(args.out / "pairs.jsonl", "w") as pairs_out,
+    ):
         for row in rows:
-            handle.write(json.dumps(row, sort_keys=True) + "\n")
+            pairs = row.pop("pairs")
+            tasks_out.write(json.dumps(row, sort_keys=True) + "\n")
+            for pair in pairs:
+                pairs_out.write(
+                    json.dumps(
+                        {"task": row["index"], "behaviour": row["behaviour"], **pair},
+                        sort_keys=True,
+                    )
+                    + "\n"
+                )
     summary = summarise(rows, system.beam_width)
     summary["label"] = label
     summary["policy"] = str(policy_dir)

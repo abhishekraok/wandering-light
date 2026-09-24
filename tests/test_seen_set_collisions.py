@@ -137,3 +137,60 @@ def test_summary_and_markdown_hold_together():
     text = markdown(summary, "unit")
     assert "**40.0%**" in text and "| same-layer | 0 | 2 |" in text
     assert "| 3 | 2 | | 0 | 2 |" in text
+
+
+def test_divergence_walks_back_to_the_shared_prefix():
+    from experiments.seen_set_collisions import divergence
+
+    # the same ops in another order after the prefix
+    walk = divergence(("dup", "add", "mul"), ("dup", "mul", "add"))
+    assert (walk["d"], walk["op_first"], walk["op_second"]) == (1, "add", "mul")
+    assert walk["shape"] == "commutation"
+    # the second route is the first with a no-op cycle inserted
+    walk = divergence(("dup", "add"), ("dup", "swap", "swap", "add"))
+    assert (walk["d"], walk["op_first"], walk["op_second"]) == (1, "add", "swap")
+    assert walk["shape"] == "insertion"
+    # two routes with nothing in common after the root
+    walk = divergence(("dup", "add"), ("2", "mul"))
+    assert (walk["d"], walk["shape"]) == (0, "other")
+
+
+def test_every_closed_cross_path_meeting_is_a_pair():
+    recorder = CollisionRecorder()
+    beam_solve(
+        task_for("sum", 5), scorer_for(1), observer=recorder, beam_width=16, max_depth=8
+    )
+    c = recorder.counts
+    assert len(recorder.pairs) == (
+        c["duplicate:same-layer:closed"] + c["duplicate:earlier-layer:closed"]
+    )
+    for pair in recorder.pairs:
+        first, second = pair["first"], pair["second"]
+        assert first[: pair["d"]] == second[: pair["d"]]
+        assert pair["shape"] != "extension", "a prefix meeting is a cycle"
+        assert first[pair["d"]] == pair["op_first"] != pair["op_second"]
+        if pair["kind"] == "same-layer":
+            assert len(first) == len(second)
+        else:
+            assert len(first) < len(second)
+
+
+def test_gate_passes_equal_functions_and_fails_aliases():
+    from experiments.meeting_pairs_gate import gate_pair
+
+    behaviour = BY_NAME["sum"]  # samples one list of small ints
+    total = ("0", "[", "add", "]", "fold")
+    # sum + 1 either way round: equal on every input
+    verdict = gate_pair(
+        (*total, "1", "add"), (*total, "1", "swap", "add"), behaviour, random.Random(1)
+    )
+    assert verdict["verdict"] == "pass"
+    # the sum and the product part on the first draw that is not a fixed point
+    verdict = gate_pair(
+        total, ("1", "[", "mul", "]", "fold"), behaviour, random.Random(1), draws=40
+    )
+    assert verdict["verdict"] == "fail"
+    assert verdict["counterexample"] is not None
+    # two programs the machine refuses on every draw say nothing
+    verdict = gate_pair(("add",), ("mul",), behaviour, random.Random(1))
+    assert verdict["verdict"] == "inconclusive"
