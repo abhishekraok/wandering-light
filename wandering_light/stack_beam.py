@@ -921,7 +921,7 @@ def _rank_variants(
         raise ValueError("a closed state with no root")
 
     def local(node: Node) -> float:
-        return node[2] - by_program[root_of(node[1])][1]
+        return float(node[2] - by_program[root_of(node[1])][1])
 
     def place(order: Sequence[Node]) -> int | None:
         return next((n for n, node in enumerate(order, 1) if node[0] == target), None)
