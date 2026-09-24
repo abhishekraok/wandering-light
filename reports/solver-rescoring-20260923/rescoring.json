@@ -1,0 +1,2193 @@
+{
+ "programs": 19,
+ "behaviours": 12,
+ "unfit_on_the_witness_task": [],
+ "checkpoints": {
+  "world": {
+   "policy": "/home/abhishekrao/repos/wandering-light/.claude/worktrees/frame-campaign-2/checkpoints/world-arm-20260922/policies/1m-s0-e5",
+   "calibration": {
+    "temperature": 1.56417,
+    "validation_ce": 0.93116,
+    "calibrated_validation_ce": 0.82283,
+    "at_boundary": false
+   },
+   "pairs": [
+    {
+     "behaviour": "all_positive",
+     "program": "[ 0 swap lt? ] map [ false eq? ] filter [ null? ] [ drop 1 ] [ drop 0 ] ifte",
+     "authored": {
+      "ops": 18,
+      "body_ops": 15,
+      "total": 11.584981172123234,
+      "per_op": 0.6436100651179575,
+      "body_share": 0.707605811638287,
+      "defined_share": 0.707605811638287,
+      "worst_body": 5.0597952907932005,
+      "quotations": 4,
+      "longest_body_ops": 14,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 23,
+      "body_ops": 15,
+      "total": 22.414424263347335,
+      "per_op": 0.9745401853629276,
+      "body_share": 0.8060759892264596,
+      "defined_share": 0.8060759892264596,
+      "worst_body": 13.651188809400512,
+      "quotations": 5,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "capped_sum",
+     "program": "[ [ lt? ] [ ] [ swap ] ifte drop ] swap cons map 0 [ add ] fold",
+     "authored": {
+      "ops": 20,
+      "body_ops": 14,
+      "total": 22.41946207893004,
+      "per_op": 1.1209731039465018,
+      "body_share": 0.9050574814252941,
+      "defined_share": 0.0,
+      "worst_body": 8.212080528331319,
+      "quotations": 4,
+      "longest_body_ops": 13,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 20,
+      "body_ops": 13,
+      "total": 37.817180996950455,
+      "per_op": 1.8908590498475228,
+      "body_share": 0.8650513503233169,
+      "defined_share": 0.8650513503233169,
+      "worst_body": 14.426417844607682,
+      "quotations": 5,
+      "longest_body_ops": 10,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "count_in_range",
+     "program": "[ over ] dip [ lt? ] swap cons filter swap [ swap lt? ] swap cons filter 0 [ drop 1 add ] fold swap drop",
+     "authored": {
+      "ops": 40,
+      "body_ops": 32,
+      "total": 2.1791365388672586,
+      "per_op": 0.05447841347168146,
+      "body_share": 1.0,
+      "defined_share": 0.0,
+      "worst_body": 1.2498257861997097,
+      "quotations": 7,
+      "longest_body_ops": 31,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 27,
+      "body_ops": 11,
+      "total": 27.803052097917746,
+      "per_op": 1.02974267029325,
+      "body_share": 0.6856714502847867,
+      "defined_share": 0.6287598847516711,
+      "worst_body": 12.14924209005415,
+      "quotations": 4,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "count_in_range",
+     "program": "swap [ [ lt? ] swap cons filter ] dip [ swap lt? ] swap cons filter 0 [ drop 1 add ] fold",
+     "authored": {
+      "ops": 40,
+      "body_ops": 32,
+      "total": 2.1791365388672586,
+      "per_op": 0.05447841347168146,
+      "body_share": 1.0,
+      "defined_share": 0.0,
+      "worst_body": 1.2498257861997097,
+      "quotations": 7,
+      "longest_body_ops": 31,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 24,
+      "body_ops": 14,
+      "total": 19.571203897274593,
+      "per_op": 0.8154668290531081,
+      "body_share": 0.6044604378119008,
+      "defined_share": 0.6044604378119008,
+      "worst_body": 5.2184289431455655,
+      "quotations": 4,
+      "longest_body_ops": 6,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "drop_last",
+     "program": "nil [ cons ] fold uncons swap nil [ cons ] fold swap drop",
+     "authored": {
+      "ops": 12,
+      "body_ops": 4,
+      "total": 3.5181278249806605,
+      "per_op": 0.29317731874838837,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 2,
+      "longest_body_ops": 1,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 14,
+      "body_ops": 4,
+      "total": 7.466688403434409,
+      "per_op": 0.5333348859596007,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 2,
+      "longest_body_ops": 1,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "largest_inside_interval",
+     "program": "[ lt? ] swap cons swap [ [ lt? ] [ swap ] [ ] ifte drop ] swap cons [ swap ] dip map swap filter uncons [ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+     "authored": {
+      "ops": 40,
+      "body_ops": 31,
+      "total": 28.051471387381167,
+      "per_op": 0.7012867846845292,
+      "body_share": 0.5323583258484405,
+      "defined_share": 0.529378878859145,
+      "worst_body": 5.618116956596789,
+      "quotations": 8,
+      "longest_body_ops": 17,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 41,
+      "body_ops": 26,
+      "total": 69.47772300964729,
+      "per_op": 1.6945786099913973,
+      "body_share": 0.7937368650757392,
+      "defined_share": 0.3751863009485993,
+      "worst_body": 9.30782459707065,
+      "quotations": 10,
+      "longest_body_ops": 10,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "largest_inside_interval",
+     "program": "swap [ [ lt? ] swap cons filter ] dip [ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+     "authored": {
+      "ops": 40,
+      "body_ops": 31,
+      "total": 28.051471387381167,
+      "per_op": 0.7012867846845292,
+      "body_share": 0.5323583258484405,
+      "defined_share": 0.529378878859145,
+      "worst_body": 5.618116956596789,
+      "quotations": 8,
+      "longest_body_ops": 17,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 23,
+      "body_ops": 18,
+      "total": 41.40569759041536,
+      "per_op": 1.8002477213224068,
+      "body_share": 0.7739034100690877,
+      "defined_share": 0.7739034100690877,
+      "worst_body": 9.671985781596629,
+      "quotations": 6,
+      "longest_body_ops": 10,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "min_pair",
+     "program": "[ lt? ] [ ] [ swap ] ifte drop",
+     "authored": {
+      "ops": 12,
+      "body_ops": 8,
+      "total": 0.41809394119565013,
+      "per_op": 0.034841161766304175,
+      "body_share": 1.0,
+      "defined_share": 1.0,
+      "worst_body": 0.41809394119565013,
+      "quotations": 3,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 10,
+      "body_ops": 5,
+      "total": 23.215232359654,
+      "per_op": 2.3215232359654,
+      "body_share": 0.6210502313661633,
+      "defined_share": 0.6210502313661633,
+      "worst_body": 5.06437279835312,
+      "quotations": 3,
+      "longest_body_ops": 1,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "min_pair",
+     "program": "[ lt? ] [ drop ] [ swap drop ] ifte",
+     "authored": {
+      "ops": 12,
+      "body_ops": 8,
+      "total": 0.41809394119565013,
+      "per_op": 0.034841161766304175,
+      "body_share": 1.0,
+      "defined_share": 1.0,
+      "worst_body": 0.41809394119565013,
+      "quotations": 3,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 11,
+      "body_ops": 7,
+      "total": 6.705345326914593,
+      "per_op": 0.6095768479013266,
+      "body_share": 1.0,
+      "defined_share": 1.0,
+      "worst_body": 4.428975111400934,
+      "quotations": 3,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "min_pair",
+     "program": "[ over lt? ] [ swap ] [ ] ifte drop",
+     "authored": {
+      "ops": 12,
+      "body_ops": 8,
+      "total": 0.41809394119565013,
+      "per_op": 0.034841161766304175,
+      "body_share": 1.0,
+      "defined_share": 1.0,
+      "worst_body": 0.41809394119565013,
+      "quotations": 3,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 11,
+      "body_ops": 6,
+      "total": 3.2397117960324002,
+      "per_op": 0.29451925418476366,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 3,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "negate_each",
+     "program": "[ dup 0 1 add div dup add sub ] map",
+     "authored": {
+      "ops": 6,
+      "body_ops": 4,
+      "total": 1.6261915264964806,
+      "per_op": 0.27103192108274676,
+      "body_share": 0.4992058624648142,
+      "defined_share": 0.4992058624648142,
+      "worst_body": 0.8118043435176483,
+      "quotations": 1,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 11,
+      "body_ops": 9,
+      "total": 20.662370458454003,
+      "per_op": 1.8783973144049093,
+      "body_share": 0.8943367246853754,
+      "defined_share": 0.8943367246853754,
+      "worst_body": 18.479116720049607,
+      "quotations": 1,
+      "longest_body_ops": 8,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "negate_each",
+     "program": "[ dup 0 swap sub quote swap cons ] map [ uncons drop uncons swap drop ] map",
+     "authored": {
+      "ops": 6,
+      "body_ops": 4,
+      "total": 1.6261915264964806,
+      "per_op": 0.27103192108274676,
+      "body_share": 0.4992058624648142,
+      "defined_share": 0.4992058624648142,
+      "worst_body": 0.8118043435176483,
+      "quotations": 1,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 18,
+      "body_ops": 14,
+      "total": 20.803128815921543,
+      "per_op": 1.155729378662308,
+      "body_share": 0.7849188819909753,
+      "defined_share": 0.7849188819909753,
+      "worst_body": 15.550400531911492,
+      "quotations": 2,
+      "longest_body_ops": 7,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "negate_each",
+     "program": "[ dup 0 swap sub quote swap cons ] map nil [ cat ] fold nil [ cons ] fold nil nil cons nil cons [ [ uncons ] dip cons quote cat ] fold uncons swap drop",
+     "authored": {
+      "ops": 6,
+      "body_ops": 4,
+      "total": 1.6261915264964806,
+      "per_op": 0.27103192108274676,
+      "body_share": 0.4992058624648142,
+      "defined_share": 0.4992058624648142,
+      "worst_body": 0.8118043435176483,
+      "quotations": 1,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 38,
+      "body_ops": 20,
+      "total": 60.1959441748659,
+      "per_op": 1.5841037940754183,
+      "body_share": 0.6364989041139828,
+      "defined_share": 0.6364989041139828,
+      "worst_body": 16.777664831827742,
+      "quotations": 5,
+      "longest_body_ops": 7,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "negate_each",
+     "program": "nil [ cons ] fold [ dup 0 swap sub quote swap cons ] map nil [ swap cat ] fold nil [ cons ] fold nil nil cons nil cons [ [ uncons ] dip cons quote cat ] fold uncons swap drop",
+     "authored": {
+      "ops": 6,
+      "body_ops": 4,
+      "total": 1.6261915264964806,
+      "per_op": 0.27103192108274676,
+      "body_share": 0.4992058624648142,
+      "defined_share": 0.4992058624648142,
+      "worst_body": 0.8118043435176483,
+      "quotations": 1,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 44,
+      "body_ops": 23,
+      "total": 73.5300830472391,
+      "per_op": 1.671138251073616,
+      "body_share": 0.6739500693613927,
+      "defined_share": 0.6739500693613927,
+      "worst_body": 17.158940524367555,
+      "quotations": 6,
+      "longest_body_ops": 7,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "pair_floor_averages",
+     "program": "nil [ cons ] fold nil quote nil cons [ [ uncons ] dip cons quote cat ] fold uncons swap uncons swap drop [ [ uncons ] dip add quote cat ] fold [ 1 1 add div ] map",
+     "authored": {
+      "ops": 69,
+      "body_ops": 54,
+      "total": 16.51532761784205,
+      "per_op": 0.23935257417162392,
+      "body_share": 0.9831160254529322,
+      "defined_share": 0.9831160254529322,
+      "worst_body": 16.23648324670592,
+      "quotations": 7,
+      "longest_body_ops": 51,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 41,
+      "body_ops": 23,
+      "total": 75.01736384152618,
+      "per_op": 1.8296918010128336,
+      "body_share": 0.7825250590357534,
+      "defined_share": 0.7825250590357534,
+      "worst_body": 26.92260432050225,
+      "quotations": 6,
+      "longest_body_ops": 7,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "prefix_sums",
+     "program": "0 quote [ over uncons swap drop add cons ] fold nil [ cons ] fold uncons drop",
+     "authored": {
+      "ops": 25,
+      "body_ops": 19,
+      "total": 6.293369646521797,
+      "per_op": 0.2517347858608719,
+      "body_share": 1.0,
+      "defined_share": 0.22320421784049008,
+      "worst_body": 4.888662996988819,
+      "quotations": 5,
+      "longest_body_ops": 16,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 18,
+      "body_ops": 9,
+      "total": 23.340097304001482,
+      "per_op": 1.2966720724445269,
+      "body_share": 0.4020274527033616,
+      "defined_share": 0.4020274527033616,
+      "worst_body": 9.383359864976313,
+      "quotations": 2,
+      "longest_body_ops": 6,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "push_back",
+     "program": "quote cat",
+     "authored": {
+      "ops": 4,
+      "body_ops": 0,
+      "total": 0.5815544346202778,
+      "per_op": 0.14538860865506945,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 0,
+      "longest_body_ops": 0,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 2,
+      "body_ops": 0,
+      "total": 2.106311973762443,
+      "per_op": 1.0531559868812215,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 0,
+      "longest_body_ops": 0,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "rotate_left",
+     "program": "uncons quote cat",
+     "authored": {
+      "ops": 5,
+      "body_ops": 0,
+      "total": 1.26791205559498,
+      "per_op": 0.25358241111899604,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 0,
+      "longest_body_ops": 0,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 3,
+      "body_ops": 0,
+      "total": 1.6901999143315622,
+      "per_op": 0.5633999714438541,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 0,
+      "longest_body_ops": 0,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "sum_negative",
+     "program": "[ 0 lt? ] filter 0 [ add ] fold",
+     "authored": {
+      "ops": 16,
+      "body_ops": 13,
+      "total": 6.661660816918877,
+      "per_op": 0.4163538010574298,
+      "body_share": 0.9328203440125067,
+      "defined_share": 0.9328203440125067,
+      "worst_body": 4.669185574458019,
+      "quotations": 4,
+      "longest_body_ops": 12,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 10,
+      "body_ops": 5,
+      "total": 4.134799925839263,
+      "per_op": 0.4134799925839263,
+      "body_share": 0.30586483557092115,
+      "defined_share": 0.30586483557092115,
+      "worst_body": 0.6556768126226689,
+      "quotations": 2,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 0,
+        "both": 1
+       }
+      }
+     }
+    }
+   ],
+   "summary": {
+    "authored": {
+     "ops": 17.0,
+     "per_op": 0.2623071661008714,
+     "total": 4.905748735751229,
+     "body_share": 0.8063316465317905,
+     "defined_share": 0.36120504015265215,
+     "worst_body": 2.9595056803288644,
+     "quotations": 4.0,
+     "longest_body_ops": 12.5,
+     "counted": 12,
+     "worst_body_over_budget": 6,
+     "clears": {
+      "free": {
+       "flat": 6,
+       "both": 6
+      },
+      "prior": {
+       "flat": 4,
+       "both": 5
+      },
+      "learned": {
+       "flat": 6,
+       "both": 6
+      }
+     }
+    },
+    "solver": {
+     "ops": 19.0,
+     "per_op": 1.0138480861220747,
+     "total": 22.87726078367441,
+     "body_share": 0.6330580877072536,
+     "defined_share": 0.5955775083953148,
+     "worst_body": 9.033597690788085,
+     "quotations": 3.25,
+     "longest_body_ops": 3.75,
+     "counted": 19,
+     "worst_body_over_budget": 14,
+     "clears": {
+      "free": {
+       "flat": 4,
+       "both": 5
+      },
+      "prior": {
+       "flat": 2,
+       "both": 4
+      },
+      "learned": {
+       "flat": 3,
+       "both": 5
+      }
+     }
+    }
+   },
+   "reading": "WEAKENED"
+  },
+  "best": {
+   "policy": "/home/abhishekrao/.cache/wandering-light/stack-policy/abhishekraok__wandering-light-stack-policy/e5a0b1391c5268c3ae04a49e6862f19a30779bb2",
+   "calibration": {
+    "temperature": 2.59723,
+    "validation_ce": 2.64399,
+    "calibrated_validation_ce": 1.78696,
+    "at_boundary": false
+   },
+   "pairs": [
+    {
+     "behaviour": "all_positive",
+     "program": "[ 0 swap lt? ] map [ false eq? ] filter [ null? ] [ drop 1 ] [ drop 0 ] ifte",
+     "authored": {
+      "ops": 18,
+      "body_ops": 15,
+      "total": 22.82121336962841,
+      "per_op": 1.2678451872015783,
+      "body_share": 0.9476792897279894,
+      "defined_share": 0.9476792897279894,
+      "worst_body": 13.220685114525859,
+      "quotations": 4,
+      "longest_body_ops": 14,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 23,
+      "body_ops": 15,
+      "total": 0.781944610219349,
+      "per_op": 0.03399759174866735,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 5,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "capped_sum",
+     "program": "[ [ lt? ] [ ] [ swap ] ifte drop ] swap cons map 0 [ add ] fold",
+     "authored": {
+      "ops": 20,
+      "body_ops": 14,
+      "total": 33.83718038063629,
+      "per_op": 1.6918590190318146,
+      "body_share": 0.8886284414244676,
+      "defined_share": 0.0,
+      "worst_body": 16.5908872144554,
+      "quotations": 4,
+      "longest_body_ops": 13,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 20,
+      "body_ops": 13,
+      "total": 0.8276471471529282,
+      "per_op": 0.04138235735764641,
+      "body_share": 1.0,
+      "defined_share": 1.0,
+      "worst_body": 0.8276471471529282,
+      "quotations": 5,
+      "longest_body_ops": 10,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "count_in_range",
+     "program": "[ over ] dip [ lt? ] swap cons filter swap [ swap lt? ] swap cons filter 0 [ drop 1 add ] fold swap drop",
+     "authored": {
+      "ops": 40,
+      "body_ops": 32,
+      "total": 122.01192809262174,
+      "per_op": 3.0502982023155436,
+      "body_share": 0.9633915279426775,
+      "defined_share": 0.0,
+      "worst_body": 31.154337505727256,
+      "quotations": 7,
+      "longest_body_ops": 31,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 27,
+      "body_ops": 11,
+      "total": 2.1093819184284794,
+      "per_op": 0.07812525623809183,
+      "body_share": 0.31739237571985285,
+      "defined_share": 0.31739237571985285,
+      "worst_body": 0.5695529467933144,
+      "quotations": 4,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "count_in_range",
+     "program": "swap [ [ lt? ] swap cons filter ] dip [ swap lt? ] swap cons filter 0 [ drop 1 add ] fold",
+     "authored": {
+      "ops": 40,
+      "body_ops": 32,
+      "total": 122.01192809262174,
+      "per_op": 3.0502982023155436,
+      "body_share": 0.9633915279426775,
+      "defined_share": 0.0,
+      "worst_body": 31.154337505727256,
+      "quotations": 7,
+      "longest_body_ops": 31,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 24,
+      "body_ops": 14,
+      "total": 2.2177743211036374,
+      "per_op": 0.09240726337931822,
+      "body_share": 0.69017911240662,
+      "defined_share": 0.69017911240662,
+      "worst_body": 1.5306615124575027,
+      "quotations": 4,
+      "longest_body_ops": 6,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "drop_last",
+     "program": "nil [ cons ] fold uncons swap nil [ cons ] fold swap drop",
+     "authored": {
+      "ops": 12,
+      "body_ops": 4,
+      "total": 1.6013907124128397,
+      "per_op": 0.13344922603440332,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 2,
+      "longest_body_ops": 1,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 14,
+      "body_ops": 4,
+      "total": 1.7216996569422036,
+      "per_op": 0.12297854692444311,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 2,
+      "longest_body_ops": 1,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "largest_inside_interval",
+     "program": "[ lt? ] swap cons swap [ [ lt? ] [ swap ] [ ] ifte drop ] swap cons [ swap ] dip map swap filter uncons [ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+     "authored": {
+      "ops": 40,
+      "body_ops": 31,
+      "total": 55.71427251340852,
+      "per_op": 1.392856812835213,
+      "body_share": 0.9281691063571825,
+      "defined_share": 0.8812217014766405,
+      "worst_body": 24.7452747735087,
+      "quotations": 8,
+      "longest_body_ops": 17,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 41,
+      "body_ops": 26,
+      "total": 3.4881084848088153,
+      "per_op": 0.08507581670265403,
+      "body_share": 0.3699276554128189,
+      "defined_share": 0.0,
+      "worst_body": 1.2811995857124705,
+      "quotations": 10,
+      "longest_body_ops": 10,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "largest_inside_interval",
+     "program": "swap [ [ lt? ] swap cons filter ] dip [ [ lt? ] [ swap ] [ ] ifte drop ] fold",
+     "authored": {
+      "ops": 40,
+      "body_ops": 31,
+      "total": 55.71427251340852,
+      "per_op": 1.392856812835213,
+      "body_share": 0.9281691063571825,
+      "defined_share": 0.8812217014766405,
+      "worst_body": 24.7452747735087,
+      "quotations": 8,
+      "longest_body_ops": 17,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 23,
+      "body_ops": 18,
+      "total": 1.6806135767721764,
+      "per_op": 0.07307015551183375,
+      "body_share": 0.703519406910519,
+      "defined_share": 0.703519406910519,
+      "worst_body": 1.1823442667765274,
+      "quotations": 6,
+      "longest_body_ops": 10,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 0,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "min_pair",
+     "program": "[ lt? ] [ ] [ swap ] ifte drop",
+     "authored": {
+      "ops": 12,
+      "body_ops": 8,
+      "total": 2.594410198557694,
+      "per_op": 0.21620084987980784,
+      "body_share": 0.8559469182046456,
+      "defined_share": 0.8559469182046456,
+      "worst_body": 2.055828709817767,
+      "quotations": 3,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 10,
+      "body_ops": 5,
+      "total": 2.1592773839821655,
+      "per_op": 0.21592773839821655,
+      "body_share": 0.17609581786474662,
+      "defined_share": 0.17609581786474662,
+      "worst_body": 0.33400199443253004,
+      "quotations": 3,
+      "longest_body_ops": 1,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "min_pair",
+     "program": "[ lt? ] [ drop ] [ swap drop ] ifte",
+     "authored": {
+      "ops": 12,
+      "body_ops": 8,
+      "total": 2.594410198557694,
+      "per_op": 0.21620084987980784,
+      "body_share": 0.8559469182046456,
+      "defined_share": 0.8559469182046456,
+      "worst_body": 2.055828709817767,
+      "quotations": 3,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 11,
+      "body_ops": 7,
+      "total": 0.5742002056036624,
+      "per_op": 0.05220001869124203,
+      "body_share": 0.34912460689451696,
+      "defined_share": 0.34912460689451696,
+      "worst_body": 0.15422969856346952,
+      "quotations": 3,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "min_pair",
+     "program": "[ over lt? ] [ swap ] [ ] ifte drop",
+     "authored": {
+      "ops": 12,
+      "body_ops": 8,
+      "total": 2.594410198557694,
+      "per_op": 0.21620084987980784,
+      "body_share": 0.8559469182046456,
+      "defined_share": 0.8559469182046456,
+      "worst_body": 2.055828709817767,
+      "quotations": 3,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 11,
+      "body_ops": 6,
+      "total": 4.058366028422588,
+      "per_op": 0.3689423662202353,
+      "body_share": 0.5616369606404245,
+      "defined_share": 0.5616369606404245,
+      "worst_body": 2.114479657173219,
+      "quotations": 3,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "negate_each",
+     "program": "[ dup 0 1 add div dup add sub ] map",
+     "authored": {
+      "ops": 6,
+      "body_ops": 4,
+      "total": 2.2835559422923652,
+      "per_op": 0.3805926570487275,
+      "body_share": 0.8882247610825975,
+      "defined_share": 0.8882247610825975,
+      "worst_body": 2.028310931261382,
+      "quotations": 1,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 11,
+      "body_ops": 9,
+      "total": 3.118580179652938,
+      "per_op": 0.283507289059358,
+      "body_share": 0.9181534556346123,
+      "defined_share": 0.9181534556346123,
+      "worst_body": 2.863335168621955,
+      "quotations": 1,
+      "longest_body_ops": 8,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "negate_each",
+     "program": "[ dup 0 swap sub quote swap cons ] map [ uncons drop uncons swap drop ] map",
+     "authored": {
+      "ops": 6,
+      "body_ops": 4,
+      "total": 2.2835559422923652,
+      "per_op": 0.3805926570487275,
+      "body_share": 0.8882247610825975,
+      "defined_share": 0.8882247610825975,
+      "worst_body": 2.028310931261382,
+      "quotations": 1,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 18,
+      "body_ops": 14,
+      "total": 2.2820196902084144,
+      "per_op": 0.12677887167824525,
+      "body_share": 0.8881495141666933,
+      "defined_share": 0.8881495141666933,
+      "worst_body": 1.3076315921192962,
+      "quotations": 2,
+      "longest_body_ops": 7,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "negate_each",
+     "program": "[ dup 0 swap sub quote swap cons ] map nil [ cat ] fold nil [ cons ] fold nil nil cons nil cons [ [ uncons ] dip cons quote cat ] fold uncons swap drop",
+     "authored": {
+      "ops": 6,
+      "body_ops": 4,
+      "total": 2.2835559422923652,
+      "per_op": 0.3805926570487275,
+      "body_share": 0.8882247610825975,
+      "defined_share": 0.8882247610825975,
+      "worst_body": 2.028310931261382,
+      "quotations": 1,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 38,
+      "body_ops": 20,
+      "total": 5.996681079457729,
+      "per_op": 0.15780739682783498,
+      "body_share": 0.17411953699447055,
+      "defined_share": 0.17411953699447055,
+      "worst_body": 0.719143087058135,
+      "quotations": 5,
+      "longest_body_ops": 7,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "negate_each",
+     "program": "nil [ cons ] fold [ dup 0 swap sub quote swap cons ] map nil [ swap cat ] fold nil [ cons ] fold nil nil cons nil cons [ [ uncons ] dip cons quote cat ] fold uncons swap drop",
+     "authored": {
+      "ops": 6,
+      "body_ops": 4,
+      "total": 2.2835559422923652,
+      "per_op": 0.3805926570487275,
+      "body_share": 0.8882247610825975,
+      "defined_share": 0.8882247610825975,
+      "worst_body": 2.028310931261382,
+      "quotations": 1,
+      "longest_body_ops": 3,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 44,
+      "body_ops": 23,
+      "total": 5.185439872479526,
+      "per_op": 0.11785090619271649,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 6,
+      "longest_body_ops": 7,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "pair_floor_averages",
+     "program": "nil [ cons ] fold nil quote nil cons [ [ uncons ] dip cons quote cat ] fold uncons swap uncons swap drop [ [ uncons ] dip add quote cat ] fold [ 1 1 add div ] map",
+     "authored": {
+      "ops": 69,
+      "body_ops": 54,
+      "total": 23.423435737304743,
+      "per_op": 0.3394700831493441,
+      "body_share": 0.7423792307357233,
+      "defined_share": 0.7423792307357233,
+      "worst_body": 15.931931326836667,
+      "quotations": 7,
+      "longest_body_ops": 51,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 41,
+      "body_ops": 23,
+      "total": 2.1743010823069193,
+      "per_op": 0.05303173371480291,
+      "body_share": 0.13299959625723373,
+      "defined_share": 0.13299959625723373,
+      "worst_body": 0.2891811660884866,
+      "quotations": 6,
+      "longest_body_ops": 7,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 0,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "prefix_sums",
+     "program": "0 quote [ over uncons swap drop add cons ] fold nil [ cons ] fold uncons drop",
+     "authored": {
+      "ops": 25,
+      "body_ops": 19,
+      "total": 4.863019447642296,
+      "per_op": 0.19452077790569183,
+      "body_share": 0.9474030076688111,
+      "defined_share": 0.5395625468117349,
+      "worst_body": 2.6239031583648735,
+      "quotations": 5,
+      "longest_body_ops": 16,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 18,
+      "body_ops": 9,
+      "total": 3.7117929486414374,
+      "per_op": 0.20621071936896873,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 2,
+      "longest_body_ops": 6,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "push_back",
+     "program": "quote cat",
+     "authored": {
+      "ops": 4,
+      "body_ops": 0,
+      "total": 1.9799632685591957,
+      "per_op": 0.4949908171397989,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 0,
+      "longest_body_ops": 0,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 2,
+      "body_ops": 0,
+      "total": 0.8796333016328933,
+      "per_op": 0.43981665081644666,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 0,
+      "longest_body_ops": 0,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "rotate_left",
+     "program": "uncons quote cat",
+     "authored": {
+      "ops": 5,
+      "body_ops": 0,
+      "total": 1.8398409074282984,
+      "per_op": 0.3679681814856597,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 0,
+      "longest_body_ops": 0,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     },
+     "solver": {
+      "ops": 3,
+      "body_ops": 0,
+      "total": 1.2717780096487412,
+      "per_op": 0.42392600321624707,
+      "body_share": 0.0,
+      "defined_share": 0.0,
+      "worst_body": 0.0,
+      "quotations": 0,
+      "longest_body_ops": 0,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 1,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    },
+    {
+     "behaviour": "sum_negative",
+     "program": "[ 0 lt? ] filter 0 [ add ] fold",
+     "authored": {
+      "ops": 16,
+      "body_ops": 13,
+      "total": 17.621104022362285,
+      "per_op": 1.1013190013976428,
+      "body_share": 0.8798572566657474,
+      "defined_share": 0.8798572566657474,
+      "worst_body": 6.715308232232031,
+      "quotations": 4,
+      "longest_body_ops": 12,
+      "clears": {
+       "free": {
+        "flat": 0,
+        "both": 0
+       },
+       "prior": {
+        "flat": 0,
+        "both": 0
+       },
+       "learned": {
+        "flat": 0,
+        "both": 0
+       }
+      }
+     },
+     "solver": {
+      "ops": 10,
+      "body_ops": 5,
+      "total": 2.1965440103494878,
+      "per_op": 0.21965440103494877,
+      "body_share": 0.5709710723882677,
+      "defined_share": 0.5709710723882677,
+      "worst_body": 1.2541630891372733,
+      "quotations": 2,
+      "longest_body_ops": 2,
+      "clears": {
+       "free": {
+        "flat": 1,
+        "both": 1
+       },
+       "prior": {
+        "flat": 0,
+        "both": 1
+       },
+       "learned": {
+        "flat": 1,
+        "both": 1
+       }
+      }
+     }
+    }
+   ],
+   "summary": {
+    "authored": {
+     "ops": 17.0,
+     "per_op": 0.4377917370942632,
+     "total": 11.242061735002292,
+     "body_share": 0.8840410088741725,
+     "defined_share": 0.6409708887737291,
+     "worst_body": 4.669605695298452,
+     "quotations": 4.0,
+     "longest_body_ops": 12.5,
+     "counted": 12,
+     "worst_body_over_budget": 6,
+     "clears": {
+      "free": {
+       "flat": 5,
+       "both": 6
+      },
+      "prior": {
+       "flat": 4,
+       "both": 5
+      },
+      "learned": {
+       "flat": 5,
+       "both": 6
+      }
+     }
+    },
+    "solver": {
+     "ops": 19.0,
+     "per_op": 0.13263584058874162,
+     "total": 2.161427751874112,
+     "body_share": 0.24106210157587535,
+     "defined_share": 0.24106210157587535,
+     "worst_body": 0.3115915802605083,
+     "quotations": 3.25,
+     "longest_body_ops": 3.75,
+     "counted": 19,
+     "worst_body_over_budget": 0,
+     "clears": {
+      "free": {
+       "flat": 17,
+       "both": 17
+      },
+      "prior": {
+       "flat": 3,
+       "both": 10
+      },
+      "learned": {
+       "flat": 9,
+       "both": 15
+      }
+     }
+    }
+   },
+   "reading": "WEAKENED"
+  }
+ },
+ "reading": "WEAKENED",
+ "seconds": 33.0
+}

@@ -1,0 +1,64 @@
+{
+ "behaviours": 25,
+ "cap4": 25,
+ "cap4_not_bounded": 22,
+ "bounded": [
+  "cartesian_pair_sums",
+  "stable_distinct_shared_values",
+  "widest_pair"
+ ],
+ "cap8_or_better": 25,
+ "genuine": 22,
+ "median_ops_cap4": 67,
+ "median_longest_segment_cap4": 13,
+ "longer_than_authored": 15,
+ "clears": {
+  "authored": {
+   "raw": {
+    "flat": 0,
+    "segmented": 0,
+    "quotations": 0,
+    "both": 0
+   },
+   "calibrated": {
+    "flat": 0,
+    "segmented": 0,
+    "quotations": 1,
+    "both": 1
+   }
+  },
+  "capped": {
+   "raw": {
+    "flat": 0,
+    "segmented": 0,
+    "quotations": 0,
+    "both": 0
+   },
+   "calibrated": {
+    "flat": 0,
+    "segmented": 1,
+    "quotations": 0,
+    "both": 1
+   }
+  }
+ },
+ "clears_not_bounded": {
+  "authored": {
+   "flat": 0,
+   "segmented": 0,
+   "quotations": 0,
+   "both": 0
+  },
+  "capped": {
+   "flat": 0,
+   "segmented": 0,
+   "quotations": 0,
+   "both": 0
+  }
+ }
+} 
+RESULT BETWEEN gain 0
+
+real	11m46.956s
+user	13m18.371s
+sys	0m22.915s

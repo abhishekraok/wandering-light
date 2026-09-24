@@ -104,10 +104,16 @@ claim a number supports.
   - **A supplied exit frame helps the body policy little where the deficit is.** On 7+ op bodies it adds nothing at matched LR. The policy misses a last op that frame and exit determine uniquely: 0.53 of the world arm's deficit.
   - **Body cost is exposure, not per-op difficulty.**
   - **Clears compare arms and do not forecast coverage:** the solver verifies the same 12 of 43 cohort behaviours ranking raw or calibrated.
-- **Next, the owner's call.** The advisor session's Codex [design review on #163](https://github.com/abhishekraok/wandering-light/issues/163#issuecomment-5792202085) finds sub-spec derivation is the central algorithm. Proposed before any solver is built:
-  - a perfect-decomposition search pilot on v4 eval, with a stop rule set in advance;
-  - rescoring the solver's own programs against the authored witnesses;
-  - an inverse-dynamics probe of the encoder.
+- **Checks after campaign 2, approved by the owner 2026-09-23** (the advisor's Codex [design review on #163](https://github.com/abhishekraok/wandering-light/issues/163#issuecomment-5792202085) argued sub-spec derivation is the hard part):
+  - **The body-cost diagnosis is partly the authors' style.** `BEST`'s own programs on the behaviours it solves spend 0.24 of their deficit in bodies, against 0.88 for the authored witnesses (solver-program-rescoring #165).
+  - **Short-body programs exist for all 25 unsolved cohort behaviours,** 22 of them genuine, median 67 ops, segments up to 13 ops. `BEST` clears none of them under any decomposition (short-body-authoring #167).
+  - **Each policy is fluent in its own training style, even on behaviours it never saw:** about 0.4 raw nats per op, against 4-5 times that in the other style. `BEST`'s cost on these programs is mostly style mismatch.
+  - **The perfect-decomposition pilot is dropped:** under a 4-atom cap a body is brute-forceable, and the cost is top-level glue.
+  - **The inverse-dynamics probe (#166) is running.** At 100k triples, an encoder that aligns state and target item by item reaches 0.99 set-accuracy against the current encoder's 0.93.
+- **Next, approved by the owner 2026-09-23: one registered campaign.**
+  - **Data:** re-author train behaviours with bodies of at most 4 atoms and a closed state at least every 8 ops, plus a segment-capped version of the 25 yardstick programs, analysis only.
+  - **Training:** complete data (fused, staged, capped) by encoder (current, aligned).
+  - **Search:** a segment-reset beam, with every cell run under both searches.
 
 Also open, none started: world-v3 staged the way #155 staged v4; what training-data-sources (#118) does after step 3, with world-plus-v4-policy (#134) and keep-below-ablation (#136); the ~127 behaviours left in the sampler-passing pool; the highways programme (#94, #96, #98, goal #99); and the unrun `mixed` arm of hindsight-subtargets (#152).
 

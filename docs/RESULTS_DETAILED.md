@@ -552,6 +552,34 @@ Caveats: three seeds, one corpus, one recipe, one 44-task split. The lowest-defi
 
 Caveats: the quotation rows price a body at the flat policy's deficit, not at what a frame-conditioned sub-search would pay (that is #160 E2); every row assumes the right intermediate state survives in the top 64; `1m-s0-e5` was selected on the world-v3 eval split and is fixed here for pairing.
 
+## Short-body programs: they exist, the solver writes them, and each policy is fluent only in its own style (#165, #167)
+
+All deficits here are raw log-probabilities, the beam as it runs.
+- [#165 report](../reports/solver-rescoring-20260923/README.md)
+- [#167 report](../reports/short-body-20260923/README.md)
+- Predictions were registered on each issue first.
+
+| | predicted | measured |
+|---|---:|---:|
+| #165: body share of calibrated deficit under `BEST`, its own 19 genuine programs against the authored witnesses (12 behaviours) | within 0.10 (SURVIVES) | **0.24 against 0.88** (WEAKENED) |
+| #165: longest body, solver against authored | | 3.75 against 12.5 ops |
+| #165: longest authored body, verified against unsolved cohort behaviours | 10 or fewer against 18+ | 2 against 40; witness length 6.5 against 59 |
+| #167: unsolved behaviours with a verified program whose bodies are at most 4 atoms | 15-18 of 25 | **25** (22 pass the 10,000-draw test) |
+| #167: those programs, median length / longest segment | 25-60 / 6-12 | 67 / 13 ops |
+| #167: `BEST` clears them, flat / segment-reset | at most 3 / 6-10 | **0 / 0** |
+| #167: raw nats per op on them, staged over fused #155 arms | 0.75-0.95 | **0.54** (TRANSFERS) |
+
+- **Style.** The programs `BEST` finds are short-body pipelines. `BEST` trained on #155's staged witnesses, whose median longest body is 8 against v4's 29.
+- **Per-op fluency, raw nats per op on the 22 unsolved behaviours none of them trained on:**
+
+  | policy | authored witnesses | capped programs |
+  |---|---:|---:|
+  | `fused` | 0.42-0.44 | 4.6-4.9 |
+  | world arm | 0.37 | 3.78 |
+  | `staged` | 1.74-1.82 | 2.1-2.6 |
+
+  Each policy is fluent in its own style. A 13-op segment needs 0.32 or less.
+
 ## Inner frames campaign 2: oracle BETWEEN, ranker target met, stacking UNCLEAR (#160)
 
 The world arm's recipe, trained on GPU.

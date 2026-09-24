@@ -1,0 +1,328 @@
+{
+ "rows": [
+  {
+   "behaviour": "adjacent_sign_change_count",
+   "status": "unsolved",
+   "ops": 47,
+   "quotations": 8,
+   "longest_body": 37
+  },
+  {
+   "behaviour": "aligned_matches",
+   "status": "unsolved",
+   "ops": 39,
+   "quotations": 7,
+   "longest_body": 26
+  },
+  {
+   "behaviour": "aligned_maxima",
+   "status": "unsolved",
+   "ops": 69,
+   "quotations": 14,
+   "longest_body": 56
+  },
+  {
+   "behaviour": "all_positive",
+   "status": "verified",
+   "ops": 18,
+   "quotations": 4,
+   "longest_body": 14
+  },
+  {
+   "behaviour": "axis_point_count",
+   "status": "unsolved",
+   "ops": 86,
+   "quotations": 12,
+   "longest_body": 73
+  },
+  {
+   "behaviour": "bounds_cover_list_flag",
+   "status": "graded",
+   "ops": 92,
+   "quotations": 22,
+   "longest_body": 24
+  },
+  {
+   "behaviour": "capped_sum",
+   "status": "verified",
+   "ops": 20,
+   "quotations": 4,
+   "longest_body": 13
+  },
+  {
+   "behaviour": "cartesian_pair_sums",
+   "status": "unsolved",
+   "ops": 15,
+   "quotations": 2,
+   "longest_body": 8
+  },
+  {
+   "behaviour": "concatenate_shorter_first",
+   "status": "unsolved",
+   "ops": 26,
+   "quotations": 5,
+   "longest_body": 16
+  },
+  {
+   "behaviour": "count_in_range",
+   "status": "verified",
+   "ops": 40,
+   "quotations": 7,
+   "longest_body": 31
+  },
+  {
+   "behaviour": "drop_last",
+   "status": "verified",
+   "ops": 12,
+   "quotations": 2,
+   "longest_body": 1
+  },
+  {
+   "behaviour": "farther_choice_from_target",
+   "status": "unsolved",
+   "ops": 54,
+   "quotations": 11,
+   "longest_body": 40
+  },
+  {
+   "behaviour": "farthest_from_target_last_tie",
+   "status": "unsolved",
+   "ops": 59,
+   "quotations": 13,
+   "longest_body": 50
+  },
+  {
+   "behaviour": "furthest_squared_radius",
+   "status": "unsolved",
+   "ops": 78,
+   "quotations": 10,
+   "longest_body": 65
+  },
+  {
+   "behaviour": "increment_each",
+   "status": "verified",
+   "ops": 5,
+   "quotations": 1,
+   "longest_body": 2
+  },
+  {
+   "behaviour": "keep_ascending_pairs",
+   "status": "unsolved",
+   "ops": 80,
+   "quotations": 11,
+   "longest_body": 62
+  },
+  {
+   "behaviour": "keep_below",
+   "status": "verified",
+   "ops": 6,
+   "quotations": 1,
+   "longest_body": 1
+  },
+  {
+   "behaviour": "keep_negative",
+   "status": "verified",
+   "ops": 5,
+   "quotations": 1,
+   "longest_body": 2
+  },
+  {
+   "behaviour": "keep_zeros",
+   "status": "verified",
+   "ops": 5,
+   "quotations": 1,
+   "longest_body": 2
+  },
+  {
+   "behaviour": "largest_inside_interval",
+   "status": "verified",
+   "ops": 40,
+   "quotations": 8,
+   "longest_body": 17
+  },
+  {
+   "behaviour": "lexicographic_order",
+   "status": "unsolved",
+   "ops": 124,
+   "quotations": 24,
+   "longest_body": 86
+  },
+  {
+   "behaviour": "manhattan_point_radii",
+   "status": "unsolved",
+   "ops": 94,
+   "quotations": 14,
+   "longest_body": 76
+  },
+  {
+   "behaviour": "median_floor",
+   "status": "unsolved",
+   "ops": 253,
+   "quotations": 36,
+   "longest_body": 114
+  },
+  {
+   "behaviour": "min_pair",
+   "status": "verified",
+   "ops": 12,
+   "quotations": 3,
+   "longest_body": 2
+  },
+  {
+   "behaviour": "n_minus_each",
+   "status": "verified",
+   "ops": 7,
+   "quotations": 1,
+   "longest_body": 2
+  },
+  {
+   "behaviour": "nearest_interval_endpoint_each",
+   "status": "unsolved",
+   "ops": 39,
+   "quotations": 6,
+   "longest_body": 32
+  },
+  {
+   "behaviour": "negate_each",
+   "status": "verified",
+   "ops": 6,
+   "quotations": 1,
+   "longest_body": 3
+  },
+  {
+   "behaviour": "nondecreasing_indicator",
+   "status": "graded",
+   "ops": 43,
+   "quotations": 7,
+   "longest_body": 33
+  },
+  {
+   "behaviour": "pair_floor_averages",
+   "status": "unsolved",
+   "ops": 69,
+   "quotations": 7,
+   "longest_body": 51
+  },
+  {
+   "behaviour": "polyline_manhattan_length",
+   "status": "unsolved",
+   "ops": 188,
+   "quotations": 23,
+   "longest_body": 51
+  },
+  {
+   "behaviour": "positive_balance_prefix_count",
+   "status": "unsolved",
+   "ops": 49,
+   "quotations": 6,
+   "longest_body": 36
+  },
+  {
+   "behaviour": "positive_majority_three",
+   "status": "unsolved",
+   "ops": 39,
+   "quotations": 7,
+   "longest_body": 14
+  },
+  {
+   "behaviour": "prefix_sums",
+   "status": "unsolved",
+   "ops": 25,
+   "quotations": 5,
+   "longest_body": 16
+  },
+  {
+   "behaviour": "push_back",
+   "status": "verified",
+   "ops": 4,
+   "quotations": 0,
+   "longest_body": 0
+  },
+  {
+   "behaviour": "replace_value",
+   "status": "unsolved",
+   "ops": 22,
+   "quotations": 4,
+   "longest_body": 15
+  },
+  {
+   "behaviour": "reverse",
+   "status": "verified",
+   "ops": 5,
+   "quotations": 1,
+   "longest_body": 1
+  },
+  {
+   "behaviour": "rotate_left",
+   "status": "verified",
+   "ops": 5,
+   "quotations": 0,
+   "longest_body": 0
+  },
+  {
+   "behaviour": "second_largest",
+   "status": "unsolved",
+   "ops": 83,
+   "quotations": 11,
+   "longest_body": 48
+  },
+  {
+   "behaviour": "shared_value_occurrences",
+   "status": "unsolved",
+   "ops": 31,
+   "quotations": 6,
+   "longest_body": 19
+  },
+  {
+   "behaviour": "span_inside_interval",
+   "status": "unsolved",
+   "ops": 76,
+   "quotations": 16,
+   "longest_body": 34
+  },
+  {
+   "behaviour": "stable_distinct_shared_values",
+   "status": "unsolved",
+   "ops": 49,
+   "quotations": 11,
+   "longest_body": 19
+  },
+  {
+   "behaviour": "sum_negative",
+   "status": "verified",
+   "ops": 16,
+   "quotations": 4,
+   "longest_body": 12
+  },
+  {
+   "behaviour": "widest_pair",
+   "status": "unsolved",
+   "ops": 84,
+   "quotations": 12,
+   "longest_body": 71
+  }
+ ],
+ "groups": {
+  "verified": {
+   "behaviours": 16,
+   "longest_body": 2.0,
+   "quotations": 1.0,
+   "ops": 6.5
+  },
+  "graded": {
+   "behaviours": 2,
+   "longest_body": 28.5,
+   "quotations": 14.5,
+   "ops": 67.5
+  },
+  "unsolved": {
+   "behaviours": 25,
+   "longest_body": 40,
+   "quotations": 11,
+   "ops": 59
+  }
+ },
+ "gap_unsolved_minus_verified": 38.0,
+ "reading": "SEPARATES",
+ "solved_count": 18
+}
