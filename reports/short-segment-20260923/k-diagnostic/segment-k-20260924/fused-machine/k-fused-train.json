@@ -1,0 +1,20 @@
+{
+ "summary": {
+  "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/staged-arms-20260920/policies/fused-s0-e3",
+  "encoding": "machine",
+  "set": "fused-train",
+  "limit": 40,
+  "max_state_atoms": 16384,
+  "programs": 37,
+  "segments": 68,
+  "not_produced": 48,
+  "within": {
+   "1": 0.014705882352941176,
+   "4": 0.08823529411764706,
+   "16": 0.1323529411764706,
+   "64": 0.14705882352941177
+  },
+  "median_rank_when_produced": 67.5,
+  "seconds_this_run": 122.0
+ }
+}

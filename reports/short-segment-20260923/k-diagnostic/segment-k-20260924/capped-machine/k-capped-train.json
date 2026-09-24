@@ -1,0 +1,20 @@
+{
+ "summary": {
+  "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/short-segment-machine-20260923/policies/capped-s0-e3",
+  "encoding": "machine",
+  "set": "capped-train",
+  "limit": 40,
+  "max_state_atoms": 16384,
+  "programs": 37,
+  "segments": 268,
+  "not_produced": 31,
+  "within": {
+   "1": 0.03731343283582089,
+   "4": 0.08582089552238806,
+   "16": 0.19402985074626866,
+   "64": 0.34328358208955223
+  },
+  "median_rank_when_produced": 401,
+  "seconds_this_run": 951.9
+ }
+}

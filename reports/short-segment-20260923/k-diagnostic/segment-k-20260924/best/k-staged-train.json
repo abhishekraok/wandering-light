@@ -1,0 +1,20 @@
+{
+ "summary": {
+  "checkpoint": "/home/abhishekrao/.cache/wandering-light/stack-policy/abhishekraok__wandering-light-stack-policy/e5a0b1391c5268c3ae04a49e6862f19a30779bb2",
+  "encoding": "machine",
+  "set": "staged-train",
+  "limit": 40,
+  "max_state_atoms": 16384,
+  "programs": 36,
+  "segments": 179,
+  "not_produced": 66,
+  "within": {
+   "1": 0.01675977653631285,
+   "4": 0.0446927374301676,
+   "16": 0.11173184357541899,
+   "64": 0.21787709497206703
+  },
+  "median_rank_when_produced": 339,
+  "seconds_this_run": 524.7
+ }
+}

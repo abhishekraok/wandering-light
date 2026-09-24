@@ -1,0 +1,21 @@
+{
+ "summary": {
+  "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/short-segment-difference-20260923/policies/capped-s0-e3",
+  "encoding": "difference",
+  "set": "capped-train",
+  "limit": 40,
+  "max_state_atoms": 16384,
+  "segment_depth": 8,
+  "programs": 37,
+  "segments": 268,
+  "not_produced": 35,
+  "within": {
+   "1": 0.041044776119402986,
+   "4": 0.10074626865671642,
+   "16": 0.1865671641791045,
+   "64": 0.3208955223880597
+  },
+  "median_rank_when_produced": 282,
+  "seconds_this_run": 640.2
+ }
+}
