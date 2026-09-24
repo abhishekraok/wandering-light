@@ -16,6 +16,10 @@ Dumps, per cycle, into ``<out>/cycle-<c>/dump.pkl.gz``:
 - ``rnd``: the RND module after the cycle, for later probes.
 
 Diagnostic only: the numbers from it are not registered results.
+
+Known limitation: every bootstrap block loads the final cycle-0 weights, so a
+run whose floor was met after block 1 does not replay (its per-block rollout
+seeds differ, and ``--check`` rejects it). m2-s0 met the floor at block 1.
 """
 
 from __future__ import annotations

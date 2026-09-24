@@ -495,3 +495,14 @@ def test_m2b_on_a_tiny_frozen_run(tmp_path):
         )
     assert report["test_draws"]["kept"] == 20
     assert (tmp_path / "m2b" / "test_rows.jsonl.gz").exists()
+    # the models reload as plain JSON, from any module
+    plain = json.loads((tmp_path / "m2b" / "models-fresh.json").read_text())
+    assert len(plain["cheap"]["features"]) == len(plain["cheap"]["mean"])
+    assert len(plain["p"]["theta"]) == len(plain["p"]["features"]) + 1
+    x = np.zeros((1, len(plain["p"]["features"])))
+    assert 0 < evaluate.predict_logistic(m2b.logistic_from(plain["p"]), x)[0] < 1
+
+
+def test_m2b_ranks_average_ties():
+    assert (m2b.ranks(np.full(5, 0.3)) == 0.5).all()  # a constant signal: no ramp
+    assert m2b.ranks([3.0, 1.0, 1.0, 2.0]).tolist() == [1.0, 1 / 6, 1 / 6, 2 / 3]

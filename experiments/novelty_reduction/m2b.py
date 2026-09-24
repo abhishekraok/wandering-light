@@ -244,9 +244,19 @@ def risk_coverage(miss, confidence, seed: int) -> dict:
 
 
 def ranks(values) -> np.ndarray:
-    return np.argsort(
-        np.argsort(np.asarray(values), kind="stable"), kind="stable"
-    ) / max(len(values) - 1, 1)
+    """Average ranks scaled to [0, 1]: equal values share a rank, so a constant signal adds nothing."""
+    values = np.asarray(values, dtype=float)
+    order = np.argsort(values, kind="stable")
+    ordered = values[order]
+    out = np.empty(len(values))
+    start = 0
+    while start < len(values):
+        end = start
+        while end + 1 < len(values) and ordered[end + 1] == ordered[start]:
+            end += 1
+        out[order[start : end + 1]] = (start + end) / 2
+        start = end + 1
+    return out / max(len(values) - 1, 1)
 
 
 @dataclass
@@ -323,6 +333,56 @@ def fit_population(pool, features, hits, parts, config: Config, seed: int) -> Fi
         rates,
         facts,
     )
+
+
+CHEAP_FEATURES = (
+    "d_ops",
+    "k",
+    "atoms_s",
+    "atoms_t",
+    "atoms_delta",
+    "depth_s",
+    "depth_t",
+    *(f"top_s_{kind}" for kind in canon.TYPES),
+    *(f"top_t_{kind}" for kind in canon.TYPES),
+    *(f"last_{name}" for name in canon.COMBINATORS),
+)
+
+
+def plain_models(fitted: Fitted, trunk_width: int) -> dict:
+    """The fitted models as plain JSON: scaler, weights (intercept first), lambda, feature names."""
+    trunk = [f"pooled_mean_{i}" for i in range(trunk_width // 2)] + [
+        f"pooled_max_{i}" for i in range(trunk_width - trunk_width // 2)
+    ]
+
+    def logistic(model: dict, names) -> dict:
+        return {
+            "features": list(names),
+            "mean": np.asarray(model["mean"]).tolist(),
+            "scale": np.asarray(model["scale"]).tolist(),
+            "theta": np.asarray(model["theta"]).tolist(),
+            "lambda": model.get("lambda"),
+            "cv": model.get("cv"),
+        }
+
+    return {
+        "p": logistic(fitted.p, trunk),
+        "e": logistic(fitted.e, trunk),
+        "cheap": logistic(fitted.cheap, CHEAP_FEATURES),
+        "cheap_e": logistic(fitted.cheap_e, CHEAP_FEATURES),
+        "distance": fitted.distance,
+        "constant": fitted.constant,
+        "wilson_constant": fitted.wilson_constant,
+        "bins": fitted.bins,
+        "bin_rates": {
+            a: {str(d): r for d, r in v.items()} for a, v in fitted.bin_rates.items()
+        },
+    }
+
+
+def logistic_from(plain: dict) -> dict:
+    """A plain logistic model back into ``evaluate.predict_logistic``'s form."""
+    return {k: np.asarray(plain[k]) for k in ("mean", "scale", "theta")}
 
 
 def arms_on(fitted: Fitted, pool, features) -> dict:
@@ -598,8 +658,9 @@ def run(config: Config, run_dir: Path, log=print) -> dict:
                     "e_ridge": float(e_ridge[i]),
                 }
             )
-        with gzip.open(run_dir / f"models-{name}.pkl.gz", "wb") as handle:
-            pickle.dump(fitted, handle)
+        (run_dir / f"models-{name}.json").write_text(
+            json.dumps(plain_models(fitted, features[name].shape[1]), indent=1)
+        )
         log(f"{name}: falsifier {report['populations'][name]['test']['falsifier']}")
     report["test_novelty"] = {
         "count_mean": float(novelty["count"].mean()),
