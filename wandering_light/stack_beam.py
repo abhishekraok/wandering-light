@@ -27,7 +27,9 @@ stays small.
 
 ``budget`` caps primitive executions and ``deadline``, a ``time.perf_counter()``
 value, caps wall-clock; both are checked before every op attempt, and a search
-stopped by one ends ``budget`` or ``wall_clock_cap``. Left None, neither is
+stopped by one ends ``budget`` or ``wall_clock_cap``. The flat beam's
+``budget_unit`` can count ``fuel`` (the outer op's 1 plus every quotation-body
+step) or ``executions+fuel`` against the budget instead (``BUDGET_UNITS``). Left None, neither is
 read and the search is the uncapped one (``tests/test_short_segment_search.py``
 pins that).
 
@@ -75,6 +77,8 @@ if TYPE_CHECKING:
     from wandering_light.stack_machine import Op
     from wandering_light.stack_pbe import Task
     from wandering_light.stack_policy import PolicyScorer
+
+BUDGET_UNITS = ("executions", "fuel", "executions+fuel")
 
 Product = tuple[tuple, ...]  # one stack per shown example
 Node = tuple[Product, tuple[str, ...], float]  # (product, program, log-probability)
@@ -157,6 +161,17 @@ class BeamResult:
     fuel: int
     expansions: int
     depth: int
+
+
+def spent_in(unit: str, executions: int, fuel: int) -> int:
+    """What a search has spent, counted in one of ``BUDGET_UNITS``."""
+    if unit == "executions":
+        return executions
+    if unit == "fuel":
+        return fuel
+    if unit == "executions+fuel":
+        return executions + fuel
+    raise ValueError(f"unknown budget unit {unit!r}; choose one of {BUDGET_UNITS}")
 
 
 def replay_program(
@@ -265,6 +280,7 @@ def beam_solve(
     observer: BeamObserver | None = None,
     max_state_atoms: int | None = None,
     deadline: float | None = None,
+    budget_unit: str = "executions",
 ) -> BeamResult:
     """Search one task. The cyclic collector is off for the duration.
 
@@ -293,6 +309,7 @@ def beam_solve(
             observer=observer,
             max_state_atoms=max_state_atoms,
             deadline=deadline,
+            budget_unit=budget_unit,
         )
     finally:
         if collecting:
@@ -310,8 +327,11 @@ def _beam_solve(
     observer: BeamObserver | None = None,
     max_state_atoms: int | None = None,
     deadline: float | None = None,
+    budget_unit: str = "executions",
 ) -> BeamResult:
     started = time.perf_counter()
+    spent_in(budget_unit, 0, 0)  # refuse an unknown unit before any work
+    by_executions = budget_unit == "executions"
     watch = observer if observer is not None else BeamObserver()
     watching = observer is not None
     inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
@@ -352,7 +372,11 @@ def _beam_solve(
         for node, (product, program, _) in enumerate(beam):
             expansions += 1
             for index, op in enumerate(OPS):
-                if budget is not None and executions >= budget:
+                if budget is not None and (
+                    executions >= budget
+                    if by_executions
+                    else spent_in(budget_unit, executions, fuel) >= budget
+                ):
                     return result(None, "budget", depth + 1)
                 if deadline is not None and time.perf_counter() >= deadline:
                     return result(None, "wall_clock_cap", depth + 1)
@@ -412,6 +436,87 @@ def _beam_solve(
             return result(None, "frontier_exhausted", depth + 1)
         beam = next_beam
     return result(None, "max_depth", max_depth)
+
+
+def widening_beam_solve(
+    task: Task,
+    scorer: PolicyScorer,
+    *,
+    budget: int,
+    start_width: int = 64,
+    max_depth: int = 48,
+    guard: str = "both",
+    max_state_atoms: int | None = None,
+    deadline: float | None = None,
+    budget_unit: str = "executions",
+) -> tuple[BeamResult, dict]:
+    """``beam_solve`` at ``start_width``, then twice as wide, from scratch, until one ends it.
+
+    The matched control of short-segment-campaign (#168). Every restart draws
+    on one execution counter capped at ``budget``, and the widening stops at
+    the first shown fit, when the budget (counted in ``budget_unit``) or the
+    ``deadline`` runs out, or when a
+    restart spends exactly what the one before it spent without a fit: its beam
+    never filled, so every wider beam is the same search (``saturated``). The
+    budget is checked before every op attempt, so the last restart may overshoot
+    it by less than one attempt; the overshoot is charged. Returns the combined
+    result (termination of the last restart; ``depth`` the deepest restart's)
+    and a record of the restarts: ``widths`` (width, termination, executions,
+    each), ``largest_width_completed`` (the widest restart that ran to its own
+    end, a fit included), ``fit_width`` and ``saturated``.
+    """
+    started = time.perf_counter()
+    executions = fuel = expansions = depth = 0
+    runs: list[dict] = []
+    width = start_width
+    saturated = False
+    while True:
+        run = beam_solve(
+            task,
+            scorer,
+            beam_width=width,
+            max_depth=max_depth,
+            guard=guard,
+            budget=max(0, budget - spent_in(budget_unit, executions, fuel)),
+            max_state_atoms=max_state_atoms,
+            deadline=deadline,
+            budget_unit=budget_unit,
+        )
+        executions += run.executions
+        fuel += run.fuel
+        expansions += run.expansions
+        depth = max(depth, run.depth)
+        runs.append(
+            {
+                "width": width,
+                "termination": run.termination,
+                "executions": run.executions,
+            }
+        )
+        if run.termination in ("fit", "budget", "wall_clock_cap"):
+            break
+        if len(runs) > 1 and run.executions == runs[-2]["executions"]:
+            saturated = True
+            break
+        width *= 2
+    completed = [
+        r["width"] for r in runs if r["termination"] not in ("budget", "wall_clock_cap")
+    ]
+    result = BeamResult(
+        run.program,
+        run.termination,
+        time.perf_counter() - started,
+        executions,
+        fuel,
+        expansions,
+        run.depth if run.program is not None else depth,
+    )
+    return result, {
+        "widths": runs,
+        "largest_width_completed": max(completed, default=None),
+        "fit_width": width if run.termination == "fit" else None,
+        "saturated": saturated,
+    }
 
 
 # ---------------------------------------------------------------------------

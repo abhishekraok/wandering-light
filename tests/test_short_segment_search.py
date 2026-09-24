@@ -18,7 +18,11 @@ from tests.test_segment_beam import task_for as witness_task
 from tests.test_stack_beam_equivalence import _Deterministic
 from wandering_light import solve
 from wandering_light.rollout_policy import PolicyArchitecture
-from wandering_light.stack_beam import beam_solve, segment_beam_solve
+from wandering_light.stack_beam import (
+    beam_solve,
+    segment_beam_solve,
+    widening_beam_solve,
+)
 from wandering_light.stack_pbe import BY_NAME, build_task, draw_task
 from wandering_light.stack_policy import save_policy, train_policy, witness_rows
 
@@ -169,17 +173,124 @@ def test_solve_tasks_budgets_count_library_replay_and_none_changes_nothing():
         solve.solve_tasks(tasks, scorer, system, budgets=[1])
 
 
-def write_segment_cell(path: Path, spent: dict[int, int]) -> None:
+def test_the_flat_beam_can_budget_fuel_or_both_counters():
+    task = drawn("negate_each", 3)
+    free = beam_solve(task, _Deterministic(3), beam_width=16, max_depth=8)
+    assert free.fuel > free.executions  # fuel adds the quotation bodies' steps
+    for unit, spent in (
+        ("fuel", lambda r: r.fuel),
+        ("executions+fuel", lambda r: r.executions + r.fuel),
+    ):
+        capped = beam_solve(
+            task,
+            _Deterministic(3),
+            beam_width=16,
+            max_depth=8,
+            budget=1000,
+            budget_unit=unit,
+        )
+        assert capped.termination == "budget"
+        assert 1000 <= spent(capped) < 1000 + 50  # one attempt's worth over at most
+    with pytest.raises(ValueError, match="budget unit"):
+        beam_solve(task, _Deterministic(3), budget=10, budget_unit="seconds")
+
+
+def test_widening_doubles_from_scratch_on_one_counter_and_stops_at_a_fit():
+    task = witness_task("min_pair", 4)  # a 12-op witness: width 1 cannot keep it
+    result, detail = widening_beam_solve(
+        task,
+        WitnessScorer(task, 0.5),
+        budget=10**7,
+        start_width=1,
+        max_depth=14,
+        max_state_atoms=16_384,
+    )
+    widths = [run["width"] for run in detail["widths"]]
+    assert widths == [2**i for i in range(len(widths))]
+    assert result.termination == "fit" and detail["fit_width"] == widths[-1]
+    assert detail["largest_width_completed"] == widths[-1]
+    assert result.executions == sum(run["executions"] for run in detail["widths"])
+    # The fit is the one a single beam at that width finds, from scratch.
+    alone = beam_solve(
+        task,
+        WitnessScorer(task, 0.5),
+        beam_width=widths[-1],
+        max_depth=14,
+        max_state_atoms=16_384,
+    )
+    assert alone.program == result.program
+    assert alone.executions == detail["widths"][-1]["executions"]
+
+
+def test_widening_stops_on_the_shared_budget_and_charges_the_overshoot():
+    task = drawn("negate_each", 3)
+    for unit in ("executions", "executions+fuel"):
+        result, detail = widening_beam_solve(
+            task,
+            _Deterministic(3),
+            budget=20_000,
+            start_width=4,
+            max_depth=8,
+            budget_unit=unit,
+        )
+        assert result.termination == "budget"
+        assert len(detail["widths"]) > 1
+        spent = result.executions + (result.fuel if unit != "executions" else 0)
+        assert 20_000 <= spent < 20_000 + 50
+        assert detail["fit_width"] is None
+        assert detail["largest_width_completed"] == detail["widths"][-2]["width"]
+
+
+def test_widening_stops_when_a_wider_beam_is_the_same_search():
+    task = drawn("negate_each", 3)
+    # A 2-deep search on four examples never fills a beam of 1,024, so the next
+    # width repeats it exactly and the widening ends there, under budget.
+    result, detail = widening_beam_solve(
+        task, _Deterministic(3), budget=10**9, start_width=1024, max_depth=2
+    )
+    assert detail["saturated"]
+    assert [run["width"] for run in detail["widths"]] == [1024, 2048]
+    assert result.executions < 10**9
+
+
+def test_a_widening_search_needs_budgets_and_a_segment_search_counts_executions():
+    tasks = [drawn("negate_each", 3)]
+    with pytest.raises(ValueError, match="needs a budget"):
+        solve.solve_tasks(tasks, _Deterministic(3), tiny_system(search="widening"))
+    with pytest.raises(ValueError, match="executions only"):
+        solve.solve_tasks(
+            tasks,
+            _Deterministic(3),
+            tiny_system(search="segment"),
+            budgets=[100],
+            budget_unit="fuel",
+        )
+    rows = solve.solve_tasks(
+        tasks,
+        _Deterministic(3),
+        tiny_system(search="widening"),
+        budgets=[5_000],
+        budget_unit="fuel",
+    )
+    assert rows[0].termination == "budget"
+    assert 5_000 <= rows[0].fuel < 5_050
+    assert rows[0].record()["widening"]["widths"][0]["width"] == 8
+
+
+def write_segment_cell(path: Path, spent: dict[int, tuple[int, int]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    rows = [{"task_index": i, "executions": e} for i, e in spent.items()]
+    rows = [
+        {"task_index": i, "executions": e, "fuel": f} for i, (e, f) in spent.items()
+    ]
     path.write_text(json.dumps({"rows": rows}))
 
 
-def test_the_matched_budget_is_read_per_task(tmp_path):
+def test_the_matched_budget_is_read_per_task_in_its_unit(tmp_path):
     cell = tmp_path / "segment.json"
-    write_segment_cell(cell, {40: 900, 7: 12, 3: 5_000})
+    write_segment_cell(cell, {40: (900, 1000), 7: (12, 20), 3: (5_000, 7_000)})
     assert driver.matched_budgets(cell, [7, 3, 40]) == [12, 5_000, 900]
-    assert driver.matched_budgets(cell, [40]) == [900]
+    assert driver.matched_budgets(cell, [40], "fuel") == [1000]
+    assert driver.matched_budgets(cell, [7, 40], "executions+fuel") == [32, 1900]
     with pytest.raises(ValueError, match="no row"):
         driver.matched_budgets(cell, [7, 8])
     with pytest.raises(FileNotFoundError, match="segment cell first"):
@@ -206,47 +317,46 @@ def test_an_existing_cell_is_skipped_without_loading_anything(tmp_path, monkeypa
     assert lines == [f"skip {out}: exists"]
 
 
-def test_cell_names_keep_searches_k_and_width_apart(tmp_path):
+def test_cell_names_carry_k_depth_horizon_and_unit(tmp_path):
     run = tmp_path / "staged-arms-20260920"
-    names = {
-        driver.cell_path(
-            tmp_path, run, "staged", 0, s, roots=k, width=w, segment_depth=d
-        ).name
-        for s in driver.SEARCHES
-        for k in (8, 16)
-        for w in (512, 1024)
-        for d in (None, 12)
-    }
-    # flat depends on none, segment on K and depth, flat-matched on all three.
-    assert len(names) == 1 + 2 * 2 + 4 * 2
-    assert driver.cell_path(tmp_path, run, "capped", 0, "segment").name == (
-        "capped-s0-e3-segment-k16-d8.json"
+
+    def name(arm, search, **kwargs):
+        return driver.cell_path(tmp_path, run, arm, 0, search, **kwargs).name
+
+    # The first wave's cells (eba479a) keep their names.
+    assert name("staged", "flat") == "staged-s0-e3-flat-w64.json"
+    assert name("capped", "segment") == "capped-s0-e3-segment-k16-d8.json"
+    assert name("fused", "segment") == "fused-s0-e3-segment-k16-d48.json"
+    assert name("capped", "flat-widening") == (
+        "capped-s0-e3-flat-widening-k16-d8-h96-execfuel.json"
     )
-    assert driver.cell_path(tmp_path, run, "fused", 0, "segment").name == (
-        "fused-s0-e3-segment-k16-d48.json"
+    assert name("staged", "flat-widening", budget_unit="fuel") == (
+        "staged-s0-e3-flat-widening-k16-d16-h192-fuel.json"
+    )
+    assert name("capped", "segment", roots=8, segment_depth=12) == (
+        "capped-s0-e3-segment-k8-d12.json"
     )
     with pytest.raises(ValueError, match="segment depth"):
-        driver.cell_path(tmp_path, run, "refused", 0, "segment")
-    assert driver.cell_path(tmp_path, run, "staged", 0, "flat").name == (
-        "staged-s0-e3-flat-w64.json"
-    )
+        name("refused", "segment")
 
 
-def test_the_searches_are_best_with_one_setting_changed():
+def test_the_searches_are_best_with_the_registered_settings_changed():
     flat = driver.system_for("flat")
-    segment = driver.system_for("segment", roots=8)
-    matched = driver.system_for("flat-matched", width=256)
-    for system in (flat, segment, matched):
+    segment = driver.system_for("segment", roots=8, segment_depth=16)
+    widening = driver.system_for("flat-widening", segment_depth=16)
+    for system in (flat, segment, widening):
         assert system.library and system.guard == "both"
         assert system.max_state_atoms == solve.BEST.max_state_atoms == 16_384
-    assert (flat.beam_width, flat.max_depth, flat.search) == (64, 48, "flat")
-    assert (segment.search, segment.roots, segment.beam_width) == ("segment", 8, 64)
-    assert (segment.segment_depth, segment.max_segments) == (12, 12)
-    assert (matched.beam_width, matched.max_depth, matched.search) == (
-        256,
-        48,
-        "flat",
-    )
+        assert system.beam_width == 64
+    assert (flat.max_depth, flat.search) == (48, "flat")
+    assert (segment.search, segment.roots) == ("segment", 8)
+    assert (segment.segment_depth, segment.max_segments) == (16, 12)
+    # The widening control runs at the segment cell's token horizon, 12 x depth.
+    assert (widening.search, widening.max_depth) == ("widening", 192)
+    assert [
+        driver.system_for("flat-widening", segment_depth=d).max_depth
+        for d in driver.SEGMENT_DEPTHS.values()
+    ] == [96, 192, 576]
 
 
 @pytest.fixture(scope="module")
@@ -275,7 +385,7 @@ def tiny_run(tmp_path_factory):
     return run_dir
 
 
-def test_three_cells_run_and_the_matched_cell_spends_the_segment_budgets(
+def test_three_cells_run_and_the_widening_cell_reads_the_segment_budgets(
     tmp_path, tiny_run, monkeypatch
 ):
     cohort = [
@@ -285,13 +395,13 @@ def test_three_cells_run_and_the_matched_cell_spends_the_segment_budgets(
     ]
     monkeypatch.setattr(driver, "cohort_tasks", lambda positions=None: cohort)
     out_dir = tmp_path / "out"
-    kwargs = {"roots": 2, "width": 16, "seconds_cap": 30.0, "threads": 1}
+    kwargs = {"roots": 2, "segment_depth": 3, "seconds_cap": 30.0, "threads": 1}
     with pytest.raises(FileNotFoundError, match="segment cell first"):
-        driver.run_cell(out_dir, tiny_run, "staged", 0, "flat-matched", **kwargs)
+        driver.run_cell(out_dir, tiny_run, "staged", 0, "flat-widening", **kwargs)
     cells = {
         s: json.loads(
             driver.run_cell(
-                out_dir, tiny_run, "staged", 0, s, log=lambda _: None, **kwargs
+                out_dir, tiny_run, "staged", 0, s, log=lambda _: None, lanes=2, **kwargs
             ).read_text()
         )
         for s in driver.SEARCHES
@@ -301,47 +411,59 @@ def test_three_cells_run_and_the_matched_cell_spends_the_segment_budgets(
         assert cell["encoding"] == "machine"
         assert cell["task_seconds_cap"] == 30.0
         assert cell["provenance"]["commit"]
+        assert cell["lanes"] == 2 and cell["tasks_per_hour"] > 0
         assert [r["task_index"] for r in cell["rows"]] == [11, 22, 33]
         for row in cell["rows"]:
-            for field in ("solved", "shown_fit", "program", "executions", "seconds"):
+            for field in ("solved", "shown_fit", "program", "executions", "fuel"):
                 assert field in row
             assert row["termination"] and row["behaviour"]
-    segment, matched = cells["segment"], cells["flat-matched"]
-    assert segment["roots"] == 2 and matched["beam_width"] == 16
-    # staged's registered depth, in the cell and its name, and the matched cell's.
-    assert segment["segment_depth"] == matched["segment_depth"] == 16
-    assert segment["system"]["segment_depth"] == 16
-    assert segment["search_tag"] == "segment-k2-d16"
+            fit = row["program"] is not None
+            assert (row["executions_at_fit"] == row["executions"]) is fit
+    segment, widening = cells["segment"], cells["flat-widening"]
+    assert segment["roots"] == 2 and segment["merge_rule"] == driver.MERGE_RULE
+    assert segment["segment_depth"] == widening["segment_depth"] == 3
+    assert segment["system"]["segment_depth"] == 3
+    assert segment["search_tag"] == "segment-k2-d3"
+    assert widening["max_depth"] == 36 and widening["budget_unit"] == "executions+fuel"
     assert cells["flat"]["segment_depth"] is None
-    want = [r["executions"] for r in segment["rows"]]
-    assert [r["budget"] for r in matched["rows"]] == want
-    for row in matched["rows"]:
-        assert row["executions"] < row["budget"] + 4 or row["budget"] == 0
-    assert matched["budget_use"]["budget"] == sum(want)
+    want = [r["executions"] + r["fuel"] for r in segment["rows"]]
+    assert [r["budget"] for r in widening["rows"]] == want
+    for row in widening["rows"]:
+        assert row["budget_spent"] == row["executions"] + row["fuel"]
+        assert row["overshoot"] == max(0, row["budget_spent"] - row["budget"])
+        if row["source"] == "search":
+            assert "widths" in row["widening"]
+    use = widening["budget_use"]
+    assert use["budget"] == sum(want) and use["unit"] == "executions+fuel"
     assert cells["flat"]["budget_use"] is None
     assert cells["flat"]["rows"][0]["budget"] is None
 
 
-def test_the_report_counts_verified_behaviours_and_shortcuts(tmp_path, monkeypatch):
+def test_the_report_counts_verified_behaviours_shortcuts_and_pairs(
+    tmp_path, monkeypatch
+):
     def check(program, behaviour, draws, seed):
         return {"verdict": "genuine" if behaviour.name == "sum" else "shortcut"}
 
     monkeypatch.setattr(verify, "check", check)
+    sum_program = ["0", "[", "add", "]", "fold"]
 
-    def row(behaviour, solved, program, shown_fit=None, executions=10, **extra):
+    def row(index, behaviour, solved, program, shown_fit=None, executions=10, **extra):
         return {
+            "task_index": index,
             "behaviour": behaviour,
             "solved": solved,
             "shown_fit": solved if shown_fit is None else shown_fit,
             "program": program,
             "executions": executions,
+            "fuel": executions,
             "seconds": 1.0,
             "termination": "fit" if program else "max_depth",
             **extra,
         }
 
-    def cell(run, arm, seed, search, rows, encoding="machine"):
-        path = tmp_path / run / f"{arm}-s{seed}-{search}.json"
+    def cell(run, arm, seed, search, tag, rows, **extra):
+        path = tmp_path / run / f"{arm}-s{seed}-{tag}.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
             json.dumps(
@@ -349,11 +471,12 @@ def test_the_report_counts_verified_behaviours_and_shortcuts(tmp_path, monkeypat
                     "run": run,
                     "arm": arm,
                     "seed": seed,
-                    "encoding": encoding,
-                    "search": search.split("-w")[0].split("-k")[0],
-                    "search_tag": search,
+                    "encoding": "machine",
+                    "search": search,
+                    "search_tag": tag,
                     "cohort_positions": None,
                     "rows": rows,
+                    **extra,
                 }
             )
         )
@@ -363,24 +486,52 @@ def test_the_report_counts_verified_behaviours_and_shortcuts(tmp_path, monkeypat
         run,
         "staged",
         0,
+        "flat",
         "flat-w64",
         [
-            row("sum", True, ["0", "[", "add", "]", "fold"]),
-            row("add_pair", True, ["add"]),
-            row("last", False, ["drop"], shown_fit=True),
-            row("reverse", False, None, termination="wall_clock_cap"),
+            row(1, "sum", True, sum_program, executions=10),
+            row(2, "add_pair", True, ["add"]),
+            row(3, "last", False, ["drop"], shown_fit=True),
+            row(4, "reverse", False, None, termination="wall_clock_cap"),
+            row(5, "product", False, None),
         ],
     )
+    # The segment beam also solves `sum` (at 3x flat's cost, 60 in both
+    # counters) and a `product` flat missed; it loses `add_pair`.
     cell(
         run,
         "staged",
         0,
-        "flat-matched-w1024-k16",
-        [row("sum", True, ["0", "[", "add", "]", "fold"], budget=20, executions=19)],
+        "segment",
+        "segment-k16-d16",
+        [
+            row(1, "sum", True, sum_program, executions=30),
+            row(5, "product", True, ["0", "[", "mul", "]", "fold"], executions=100),
+        ],
+    )
+    budget_use = {
+        "unit": "executions+fuel",
+        "tasks": 1,
+        "ended_by": {"budget": 1},
+        "spent": 19,
+        "budget": 20,
+        "spent_fraction": 0.95,
+        "overshoot": 0,
+        "overshoot_tasks": 0,
+        "max_largest_width_completed": 128,
+    }
+    cell(
+        run,
+        "staged",
+        0,
+        "flat-widening",
+        "flat-widening-k16-d16-h192-execfuel",
+        [row(1, "sum", True, sum_program, executions=19, budget=20)],
+        budget_use=budget_use,
     )
     driver.report(tmp_path, tmp_path / "report", log=lambda _: None)
-    table = json.loads((tmp_path / "report" / "report.json").read_text())
-    flat = next(t for t in table if t["search"] == "flat-w64")
+    result = json.loads((tmp_path / "report" / "report.json").read_text())
+    flat = next(t for t in result["table"] if t["search"] == "flat-w64")
     assert flat["is_best"]
     assert flat["verified_per_seed"] == [1]
     facts = flat["cells"][0]
@@ -388,26 +539,44 @@ def test_the_report_counts_verified_behaviours_and_shortcuts(tmp_path, monkeypat
     assert facts["heldout_fail_tasks"] == 1
     assert facts["unverified_solve_tasks"] == 1
     assert facts["unverified_behaviours"] == ["add_pair"]
-    assert facts["executions"] == 40 and facts["capped"] == 1
-    matched = next(t for t in table if t["search"].startswith("flat-matched"))
-    assert matched["cells"][0]["budget_use"]["spent_fraction"] == pytest.approx(0.95)
+    assert facts["executions"] == 50 and facts["fuel"] == 50 and facts["capped"] == 1
+    pairs = {p["search"]: p for p in result["paired"]}
+    segment = pairs["segment-k16-d16"]
+    # `product` is graded but the fake calls it a shortcut, so it is no gain.
+    assert segment["gains"] == [] and segment["losses"] == []
+    assert segment["curve"]["1"] == {"tasks": 0, "verified_behaviours": 0}
+    assert segment["curve"]["4"]["verified_behaviours"] == 1
+    # sum costs 60 against flat's 20; product 200 against flat's 20.
+    assert segment["curve"]["4"]["tasks"] == 1
+    assert segment["curve"]["16"]["tasks"] == 2
     text = (tmp_path / "report" / "report.md").read_text()
     assert "verifies 1; best-system-command (#158) measured 16" in text
     assert "Not reproduced" in text
+    assert "0.95 of executions+fuel spent" in text
+    for note in ("stop_at_fit=True", "moved == outputs", "Merge rule", "45x"):
+        assert note in text
 
 
-def test_the_queue_puts_every_segment_cell_before_any_matched_one(tmp_path):
+def test_the_queue_runs_the_registered_cells_in_the_advised_order(tmp_path):
     cells = run_cells.plan(tmp_path, list(driver.SEARCHES), None)
-    assert len(cells) == 3 * 3 * (2 + 3 + 1)
-    first_matched = next(i for i, c in enumerate(cells) if c.search == "flat-matched")
-    assert all(c.search == "flat-matched" for c in cells[first_matched:])
-    assert cells[0].run_dir.name == driver.BEST_CELL[0]
-    assert (cells[0].arm, cells[0].seed, cells[0].search) == ("staged", 0, "flat")
-    only = run_cells.plan(tmp_path, ["flat-matched"], {"staged-arms-20260920:fused:1"})
-    assert [(c.arm, c.seed, c.search) for c in only] == [("fused", 1, "flat-matched")]
+    assert len(cells) == 6 * 3 * 3
+    labels = [(c.run_dir.name, c.arm, c.seed, c.search) for c in cells]
+    difference = "short-segment-difference-20260923"
+    assert labels[:4] == [
+        (difference, "capped", 0, "flat"),
+        (difference, "capped", 0, "segment"),
+        (difference, "capped", 0, "flat-widening"),
+        ("staged-arms-20260920", "staged", 0, "flat"),  # BEST, the equivalence check
+    ]
+    assert labels[4][:3] == ("short-segment-machine-20260923", "capped", 0)
+    assert all(label[2] == 0 for label in labels[:18])
+    assert all(label[2] > 0 for label in labels[18:])
+    assert {c.arm for c in cells} == {"capped", "staged", "fused"}
+    only = run_cells.plan(tmp_path, ["flat-widening"], {"staged-arms-20260920:fused:1"})
+    assert [(c.arm, c.seed, c.search) for c in only] == [("fused", 1, "flat-widening")]
 
 
-def test_a_matched_cell_starts_only_after_its_segment_cell_is_written(
+def test_a_widening_cell_starts_only_after_its_segment_cell_is_written(
     tmp_path, monkeypatch
 ):
     import argparse
@@ -415,15 +584,15 @@ def test_a_matched_cell_starts_only_after_its_segment_cell_is_written(
     args = argparse.Namespace(
         out_dir=tmp_path / "out",
         roots=16,
-        width=1024,
         segment_depth=None,
-        jobs=3,
+        budget_unit="executions+fuel",
+        jobs=2,
         poll=0.05,
         dry_run=False,
     )
 
     def fake(cell, args):
-        out = cell.output(args.out_dir, args.roots, args.width)
+        out = cell.output(args)
         pause = 0.5 if cell.search == "segment" else 0.0
         return [
             sys.executable,
@@ -435,14 +604,15 @@ def test_a_matched_cell_starts_only_after_its_segment_cell_is_written(
     monkeypatch.setattr(run_cells, "command", fake)
     monkeypatch.setattr(run_cells.Cell, "trained", lambda self: True)
     cells = run_cells.plan(
-        tmp_path, list(driver.SEARCHES), {"staged-arms-20260920:staged:0"}
+        tmp_path, list(driver.SEARCHES), {"short-segment-machine-20260923:capped:0"}
     )
     lines = []
     assert run_cells.run_queue(cells, args, lines.append) == 0
     events = [line.split()[0] + " " + line.split()[1] for line in lines]
-    segment_done = events.index("done staged-arms-20260920:staged:s0:segment")
-    matched_start = events.index("start staged-arms-20260920:staged:s0:flat-matched")
-    assert segment_done < matched_start
+    label = "short-segment-machine-20260923:capped:s0"
+    assert events.index(f"done {label}:segment") < events.index(
+        f"start {label}:flat-widening"
+    )
     # A rerun finds every output and starts nothing.
     again = []
     assert run_cells.run_queue(cells, args, again.append) == 0

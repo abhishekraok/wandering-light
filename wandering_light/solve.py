@@ -41,7 +41,13 @@ from typing import TYPE_CHECKING, Any
 
 import torch
 
-from wandering_light.stack_beam import beam_solve, replay_program, segment_beam_solve
+from wandering_light.stack_beam import (
+    beam_solve,
+    replay_program,
+    segment_beam_solve,
+    spent_in,
+    widening_beam_solve,
+)
 from wandering_light.stack_machine import parse_stack, run_body
 from wandering_light.stack_pbe import BASIS, load
 from wandering_light.stack_pbe_eval import grade
@@ -55,7 +61,7 @@ if TYPE_CHECKING:
     from wandering_light.stack_pbe import Task
 
 REPO = Path(__file__).resolve().parents[1]
-SEARCHES = ("flat", "segment")
+SEARCHES = ("flat", "segment", "widening")
 
 
 @dataclass(frozen=True)
@@ -76,7 +82,9 @@ class System:
     # short-segment-campaign (#168): "flat" is `beam_solve`, beam_width x
     # max_depth; "segment" is `segment_beam_solve`, beam_width per root, `roots`
     # roots and up to max_segments segments of at most segment_depth ops, with
-    # max_depth unused.
+    # max_depth unused. "widening" is `widening_beam_solve`: beam_width is the
+    # first width, doubled per restart, max_depth each restart's depth, and it
+    # needs a per-task budget.
     search: str = "flat"
     roots: int = 16
     segment_depth: int = 12
@@ -95,7 +103,9 @@ class System:
             f"{'on' if self.library else 'off'}, state cap "
             f"{self.max_state_atoms if self.max_state_atoms is not None else 'none'}"
         )
-        if self.search != "flat":
+        if self.search == "widening":
+            text += ", search widening: the width doubles per restart within a budget"
+        elif self.search != "flat":
             text += (
                 f", search {self.search}: {self.roots} roots, {self.max_segments} "
                 f"segments of up to {self.segment_depth} ops, the beam per root"
@@ -138,6 +148,7 @@ class Row:
     depth: int
     solved: bool = False
     shown_fit: bool = False
+    widening: dict[str, Any] | None = None  # the restarts, for a widening search
 
     @property
     def verdict(self) -> str:
@@ -163,7 +174,7 @@ class Row:
             "depth": self.depth,
             "solved": self.solved,
             "shown_fit": self.shown_fit,
-        }
+        } | ({"widening": self.widening} if self.widening is not None else {})
 
 
 @dataclass(frozen=True)
@@ -207,16 +218,22 @@ def solve_tasks(
     progress: Callable[[Row], None] | None = None,
     budgets: Sequence[int | None] | None = None,
     seconds_cap: float | None = None,
+    budget_unit: str = "executions",
 ) -> list[Row]:
     """Attempt every task in order under ``system``; grade after the last clock stops.
 
     ``budgets[i]``, when given, caps task i's primitive executions, library
-    replay included: the search gets what the replay left. ``seconds_cap``
+    replay included: the search gets what the replay left. ``budget_unit``
+    (`stack_beam.BUDGET_UNITS`) is what the budget counts; the segment search
+    takes ``executions`` only. ``seconds_cap``
     caps each task's wall-clock, replay included; a search it stops ends
     ``wall_clock_cap``. Both None is the uncapped run `BEST` measures.
     """
     if budgets is not None and len(budgets) != len(tasks):
         raise ValueError(f"{len(budgets)} budgets for {len(tasks)} tasks")
+    spent_in(budget_unit, 0, 0)  # refuse an unknown unit before any work
+    if system.search == "segment" and budget_unit != "executions":
+        raise ValueError("the segment search budgets executions only")
     library: list[tuple[str, ...]] = []
     rows: list[Row] = []
     # `run_body` memoises quotation bodies process-globally and for the life of
@@ -234,6 +251,7 @@ def solve_tasks(
         program: tuple[str, ...] | None = None
         source, termination = "search", "library_miss"
         executions = fuel = expansions = depth = 0
+        widening = None
         if system.library:
             inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
             outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
@@ -247,8 +265,22 @@ def solve_tasks(
         if program is None:
             budget = budgets[index] if budgets is not None else None
             if budget is not None:
-                budget = max(0, budget - executions)
-            if system.search == "segment":
+                budget = max(0, budget - spent_in(budget_unit, executions, fuel))
+            if system.search == "widening":
+                if budget is None:
+                    raise ValueError("a widening search needs a budget for every task")
+                result, widening = widening_beam_solve(
+                    task,
+                    scorer,
+                    budget=budget,
+                    start_width=system.beam_width,
+                    max_depth=system.max_depth,
+                    guard=system.guard,
+                    max_state_atoms=system.max_state_atoms,
+                    deadline=deadline,
+                    budget_unit=budget_unit,
+                )
+            elif system.search == "segment":
                 result = segment_beam_solve(
                     task,
                     scorer,
@@ -271,6 +303,7 @@ def solve_tasks(
                     budget=budget,
                     max_state_atoms=system.max_state_atoms,
                     deadline=deadline,
+                    budget_unit=budget_unit,
                 )
             program, termination = result.program, result.termination
             executions += result.executions
@@ -290,6 +323,7 @@ def solve_tasks(
             fuel,
             expansions,
             depth,
+            widening=widening,
         )
         rows.append(row)
         if progress is not None:

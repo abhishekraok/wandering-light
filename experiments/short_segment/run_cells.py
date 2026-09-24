@@ -1,18 +1,20 @@
-"""Run short-segment-campaign (#168) search cells on at most ``--jobs`` GPU processes.
+"""Run the registered short-segment-campaign (#168) search cells on at most ``--jobs`` CPU lanes.
 
-Each cell is one `search.py run` subprocess, its output in ``<out-dir>/<run>/``
-and its log beside it. A cell whose output exists is skipped, and so is one
-whose checkpoint has not finished training (no ``training/<arm>-s<seed>.json``
-or an incomplete epoch-3 snapshot): run the queue again when it lands. A
-``flat-matched`` cell starts only after its checkpoint's ``segment`` cell has
-written its output, since that is where its per-task budgets come from.
+The six registered checkpoints, three seeds each, under flat-48, segment and
+flat-widening. Each cell is one `search.py run` subprocess, its output in
+``<out-dir>/<run>/`` and its log beside it. A cell whose output exists is
+skipped, and so is one whose checkpoint has not finished training (no
+``training/<arm>-s<seed>.json`` or an incomplete epoch-3 snapshot): run the
+queue again when it lands. A ``flat-widening`` cell starts only after its
+checkpoint's ``segment`` cell has written its output, since that is where its
+per-task budgets come from; while it waits, later cells take the lane.
 
     uv run python experiments/short_segment/run_cells.py --dry-run
-    uv run python experiments/short_segment/run_cells.py --jobs 3
-    uv run python experiments/short_segment/run_cells.py --only staged-arms-20260920:staged:0
+    uv run python experiments/short_segment/run_cells.py
+    uv run python experiments/short_segment/run_cells.py --only short-segment-difference-20260923:capped:0
 
-At most 3 jobs: a fourth lane of the 1m policy fills the 4090 and stalls
-silently (#80's campaign on UltraDesk).
+Two lanes of 8 threads by default: the standing rule on UltraDesk is at most two
+CPU processes of 8 threads, since four once cut throughput fourfold.
 """
 
 from __future__ import annotations
@@ -29,15 +31,24 @@ sys.path.insert(0, str(REPO))
 
 import experiments.hindsight_subtargets as hs  # noqa: E402
 from experiments.short_segment import search  # noqa: E402
+from wandering_light.stack_beam import BUDGET_UNITS  # noqa: E402
 from wandering_light.stack_policy_hub import is_checkpoint  # noqa: E402
 
 SEEDS = (0, 1, 2)
-# (run dir under the main checkout's checkpoints/, arms). BEST, staged s0 of the
-# first, goes first so the equivalence check is the first number in.
-PLAN: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("staged-arms-20260920", ("staged", "fused")),
-    ("short-segment-difference-20260923", ("fused", "staged", "capped")),
-    ("short-segment-machine-20260923", ("capped",)),
+DIFFERENCE = "short-segment-difference-20260923"
+MACHINE = "short-segment-machine-20260923"
+STAGED_ARMS = "staged-arms-20260920"
+# The six registered cells, (run dir under the main checkout's checkpoints/,
+# arm), in queue order: capped/difference, capped/machine, then staged and fused
+# in each encoding. Machine: staged-arms fused and staged, and the machine run's
+# capped; difference: the difference run's fused, staged and capped.
+REGISTERED: tuple[tuple[str, str], ...] = (
+    (DIFFERENCE, "capped"),
+    (MACHINE, "capped"),
+    (STAGED_ARMS, "staged"),
+    (DIFFERENCE, "staged"),
+    (STAGED_ARMS, "fused"),
+    (DIFFERENCE, "fused"),
 )
 
 
@@ -48,18 +59,16 @@ class Cell:
     seed: int
     search: str
 
-    def output(
-        self, out_dir: Path, roots: int, width: int, segment_depth: int | None = None
-    ) -> Path:
+    def output(self, args) -> Path:
         return search.cell_path(
-            out_dir,
+            args.out_dir,
             self.run_dir,
             self.arm,
             self.seed,
             self.search,
-            roots=roots,
-            width=width,
-            segment_depth=segment_depth,
+            roots=args.roots,
+            segment_depth=args.segment_depth,
+            budget_unit=args.budget_unit,
         )
 
     def trained(self) -> bool:
@@ -72,22 +81,29 @@ class Cell:
 
 
 def plan(checkpoints: Path, searches, only: set[str] | None) -> list[Cell]:
-    """Every cell, flat and segment of every checkpoint before any flat-matched one."""
-    triples = [
-        (checkpoints / run, arm, seed)
-        for run, arms in PLAN
-        for arm in arms
-        for seed in SEEDS
+    """Seed 0 of every registered cell, in `REGISTERED` order, then seeds 1-2.
+
+    `BEST`'s flat cell (staged-arms staged s0) is moved up to follow
+    capped/difference s0, so the equivalence check is among the first numbers.
+    """
+    order = [s for s in search.SEARCHES if s in searches]
+    cells = [
+        Cell(checkpoints / run, arm, seed, s)
+        for seeds in ((0,), SEEDS[1:])
+        for run, arm in REGISTERED
+        for seed in seeds
+        for s in order
         if not only or f"{run}:{arm}:{seed}" in only
     ]
-    first = [
-        Cell(*triple, s)
-        for triple in triples
-        for s in ("flat", "segment")
-        if s in searches
-    ]
-    matched = [Cell(*triple, "flat-matched") for triple in triples]
-    return first + (matched if "flat-matched" in searches else [])
+    best = Cell(checkpoints / search.BEST_CELL[0], *search.BEST_CELL[1:], "flat")
+    if best in cells:
+        cells.remove(best)
+        first = sum(
+            c.run_dir.name == DIFFERENCE and c.arm == "capped" and c.seed == 0
+            for c in cells
+        )
+        cells.insert(first, best)
+    return cells
 
 
 def command(cell: Cell, args) -> list[str]:
@@ -107,14 +123,16 @@ def command(cell: Cell, args) -> list[str]:
         cell.search,
         "--roots",
         str(args.roots),
-        "--width",
-        str(args.width),
+        "--budget-unit",
+        args.budget_unit,
         "--device",
         args.device,
         "--seconds-cap",
         str(args.seconds_cap),
         "--threads",
         str(args.threads),
+        "--lanes",
+        str(args.jobs),
     ] + (
         ["--segment-depth", str(args.segment_depth)]
         if args.segment_depth is not None
@@ -124,10 +142,7 @@ def command(cell: Cell, args) -> list[str]:
 
 def run_queue(cells: list[Cell], args, log=print) -> int:
     """Start cells as lanes free up; return how many failed."""
-    out = {
-        cell: cell.output(args.out_dir, args.roots, args.width, args.segment_depth)
-        for cell in cells
-    }
+    out = {cell: cell.output(args) for cell in cells}
     pending = []
     for cell in cells:
         if out[cell].exists():
@@ -156,13 +171,11 @@ def run_queue(cells: list[Cell], args, log=print) -> int:
         for cell in list(pending):
             if len(running) >= args.jobs:
                 break
-            if cell.search == "flat-matched":
+            if cell.search == "flat-widening":
                 segment = Cell(cell.run_dir, cell.arm, cell.seed, "segment")
                 if segment in running or segment in pending:
                     continue  # its budgets are not written yet
-                if not segment.output(
-                    args.out_dir, args.roots, args.width, args.segment_depth
-                ).exists():
+                if not segment.output(args).exists():
                     pending.remove(cell)
                     failed.add(cell)
                     log(f"FAILED {cell.label()}: its segment cell has no output")
@@ -187,7 +200,7 @@ def main(argv: list[str] | None = None) -> int:
         "--checkpoints",
         type=Path,
         default=search.main_checkout() / "checkpoints",
-        help="where the PLAN's run dirs live",
+        help="where the registered run dirs live",
     )
     parser.add_argument("--out-dir", type=Path, default=search.DEFAULT_OUT)
     parser.add_argument(
@@ -196,20 +209,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--only",
         default=None,
-        help="comma-separated run:arm:seed triples, e.g. staged-arms-20260920:staged:0",
+        help=f"comma-separated run:arm:seed triples, e.g. {DIFFERENCE}:capped:0",
     )
-    parser.add_argument("--jobs", type=int, default=3)
-    parser.add_argument("--device", default="cuda")
+    parser.add_argument("--jobs", type=int, default=2, help="lanes side by side")
+    parser.add_argument("--device", default="cpu")
     parser.add_argument("--roots", type=int, default=search.ROOTS)
-    parser.add_argument("--width", type=int, default=search.MATCHED_WIDTH)
     parser.add_argument(
         "--segment-depth",
         type=int,
         default=None,
         help="override every arm's registered segment depth",
     )
+    parser.add_argument(
+        "--budget-unit", choices=BUDGET_UNITS, default=search.BUDGET_UNIT
+    )
     parser.add_argument("--seconds-cap", type=float, default=search.TASK_SECONDS_CAP)
-    parser.add_argument("--threads", type=int, default=4, help="torch threads per job")
+    parser.add_argument("--threads", type=int, default=8, help="torch threads per lane")
     parser.add_argument(
         "--poll", type=float, default=10.0, help="seconds between polls"
     )
