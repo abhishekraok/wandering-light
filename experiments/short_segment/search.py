@@ -21,6 +21,12 @@ search):
                    included, so a gain of segment over it is the reset's and not
                    the compute's. ``--budget-unit`` is the counter (below).
 
+``--scoring local`` (exploratory, capped/difference s0 at ``--roots 64``) ranks
+the segment beam's next roots by what each gained in the segment just finished
+and restarts them at 0; a widening cell with the same flags is its control.
+Every setting that changes a cell's results is in its file name; a setting at
+its default is left out, so the first wave's names stand (``search_tag``).
+
 Every task also has a wall-clock cap (``--seconds-cap``: 120 s for flat and
 segment, 300 s for flat-widening); a search it stops ends ``wall_clock_cap`` and
 the row keeps what it spent. A widening task's budget is the larger of the
@@ -54,6 +60,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import hashlib
 import json
 import os
 import statistics
@@ -73,7 +80,7 @@ import experiments.best_system_cells as bsc  # noqa: E402
 import experiments.compute_optimal_mark28 as co  # noqa: E402
 import experiments.hindsight_subtargets as hs  # noqa: E402
 from wandering_light import solve  # noqa: E402
-from wandering_light.stack_beam import BUDGET_UNITS, spent_in  # noqa: E402
+from wandering_light.stack_beam import BUDGET_UNITS, SCORINGS, spent_in  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
     CONFIG_FILE,
     MACHINE,
@@ -89,6 +96,7 @@ if TYPE_CHECKING:
 SEARCHES = ("flat", "segment", "flat-widening")
 EPOCH = 3  # staged_arms.EPOCHS: the snapshot every arm is scored at (#154)
 ROOTS = 16
+WIDTH = 64  # BEST's beam: flat's width, the segment beam's per root, widening's first
 # The advisor's choice (#168): the 95th percentile of each arm's own train
 # segment lengths, for both encodings. An arm not listed needs --segment-depth.
 SEGMENT_DEPTHS = {"capped": 8, "staged": 16, "fused": 48}
@@ -130,6 +138,39 @@ def main_checkout() -> Path:
 
 
 DEFAULT_OUT = main_checkout() / "checkpoints" / "short-segment-search"
+# best-system-command (#158)'s recorded b64 cell: BEST on the cohort, uncapped.
+BEST_REFERENCE = (
+    main_checkout() / "checkpoints" / "best-system-20260922" / "timing" / "b64.json"
+)
+
+
+def best_check(cell: dict[str, Any], reference: Path = BEST_REFERENCE) -> dict:
+    """``BEST``'s flat cell against #158's b64 cell, task by task: program and solved."""
+    if not reference.exists():
+        return {"reference": str(reference), "missing": True}
+    theirs = {r["task_index"]: r for r in json.loads(reference.read_text())["rows"]}
+    differ = [
+        {
+            "task_index": r["task_index"],
+            "behaviour": r["behaviour"],
+            "ours": [r["program"], r["solved"]],
+            "theirs": [
+                theirs.get(r["task_index"], {}).get("program"),
+                theirs.get(r["task_index"], {}).get("solved"),
+            ],
+        }
+        for r in cell["rows"]
+        if r["task_index"] not in theirs
+        or (r["program"], r["solved"])
+        != (theirs[r["task_index"]]["program"], theirs[r["task_index"]]["solved"])
+    ]
+    return {
+        "reference": str(reference),
+        "tasks": len(cell["rows"]),
+        "identical": len(cell["rows"]) - len(differ),
+        "differ": differ,
+        "capped": sum(r["termination"] == "wall_clock_cap" for r in cell["rows"]),
+    }
 
 
 def segment_depth_for(arm: str, override: int | None = None) -> int:
@@ -144,13 +185,24 @@ def segment_depth_for(arm: str, override: int | None = None) -> int:
     return SEGMENT_DEPTHS[arm]
 
 
-def system_for(search: str, *, roots: int = ROOTS, segment_depth: int = 12):
-    """The `solve.System` of a search: `BEST` with the one or two settings changed."""
+def system_for(
+    search: str,
+    *,
+    roots: int = ROOTS,
+    segment_depth: int = 12,
+    scoring: str = "cumulative",
+    width: int = WIDTH,
+):
+    """The `solve.System` of a search: `BEST` with the one or two settings changed.
+
+    ``width`` is flat's beam, the segment beam's per root and widening's first.
+    """
     common = {
         "name": f"short-segment {search}",
         "repo_id": "local",
         "revision": "checkpoint",
         "measured": "short-segment-campaign (#168)",
+        "beam_width": width,
     }
     if search == "flat":
         return dataclasses.replace(solve.BEST, **common)
@@ -162,6 +214,7 @@ def system_for(search: str, *, roots: int = ROOTS, segment_depth: int = 12):
             roots=roots,
             segment_depth=segment_depth,
             max_segments=MAX_SEGMENTS,
+            scoring=scoring,
         )
     if search == "flat-widening":
         return dataclasses.replace(
@@ -173,24 +226,62 @@ def system_for(search: str, *, roots: int = ROOTS, segment_depth: int = 12):
     raise ValueError(f"unknown search {search!r}; choose one of {SEARCHES}")
 
 
+def default_seconds_cap(search: str) -> float:
+    return WIDENING_SECONDS_CAP if search == "flat-widening" else TASK_SECONDS_CAP
+
+
 def search_tag(
     search: str,
     *,
     roots: int = ROOTS,
     segment_depth: int = 12,
     budget_unit: str = BUDGET_UNIT,
+    scoring: str = "cumulative",
+    width: int = WIDTH,
+    seconds_cap: float | None = None,
+    device: str = "cpu",
 ) -> str:
-    """The cell's name for its search; a widening cell names the segment cell it matches."""
+    """The cell's name: every setting that changes its results.
+
+    The mapping, fixed so the first wave's (eba479a) names stand: the search,
+    then what it depends on, each always named (flat: ``w`` its width, 64;
+    segment: ``k`` roots and ``d`` depth, 12 segments; widening: ``k`` and
+    ``d`` of the segment cell it matches, ``h`` its horizon, 12 x d, and the
+    budget unit), then only the settings off their default: the scoring
+    (``local``; cumulative is left out), ``w`` the segment beam's per-root or
+    widening's first width (64), ``cap`` the per-task clock (120 s; 300 s for
+    widening) and the device (cpu). So ``flat-w64`` is flat-48 at width 64,
+    120 s, cpu, and ``segment-local-k64-d8-cap300-cuda`` spells out each change.
+    """
+    if scoring not in SCORINGS:
+        raise ValueError(f"unknown scoring {scoring!r}; choose one of {SCORINGS}")
+    local = "" if scoring == "cumulative" else f"{scoring}-"
     if search == "flat":
-        return f"flat-w{solve.BEST.beam_width}"
-    if search == "segment":
-        return f"segment-k{roots}-d{segment_depth}"
-    if search == "flat-widening":
-        return (
-            f"flat-widening-k{roots}-d{segment_depth}-h{MAX_SEGMENTS * segment_depth}"
-            f"-{UNIT_TAGS[budget_unit]}"
+        tag = f"flat-w{width}"
+    elif search == "segment":
+        tag = f"segment-{local}k{roots}-d{segment_depth}"
+    elif search == "flat-widening":
+        tag = (
+            f"flat-widening-{local}k{roots}-d{segment_depth}"
+            f"-h{MAX_SEGMENTS * segment_depth}-{UNIT_TAGS[budget_unit]}"
         )
-    raise ValueError(f"unknown search {search!r}; choose one of {SEARCHES}")
+    else:
+        raise ValueError(f"unknown search {search!r}; choose one of {SEARCHES}")
+    if search != "flat" and width != WIDTH:
+        tag += f"-w{width}"
+    if seconds_cap is not None and seconds_cap != default_seconds_cap(search):
+        tag += f"-cap{seconds_cap:g}"
+    if device != "cpu":
+        tag += f"-{device.replace(':', '')}"
+    return tag
+
+
+def subset_tag(positions: Sequence[int] | None) -> str:
+    """``-p<count>-<hash of the position list>``, or nothing for the whole cohort."""
+    if positions is None:
+        return ""
+    digest = hashlib.sha256(",".join(map(str, positions)).encode()).hexdigest()
+    return f"-p{len(positions)}-{digest[:8]}"
 
 
 def cell_path(
@@ -203,17 +294,28 @@ def cell_path(
     roots: int = ROOTS,
     segment_depth: int | None = None,
     budget_unit: str = BUDGET_UNIT,
+    scoring: str = "cumulative",
+    width: int = WIDTH,
+    seconds_cap: float | None = None,
+    device: str = "cpu",
     positions: Sequence[int] | None = None,
 ) -> Path:
-    """``segment_depth`` None is the arm's registered depth."""
+    """``segment_depth`` None is the arm's registered depth, ``seconds_cap`` the search's."""
     tag = search_tag(
         search,
         roots=roots,
         segment_depth=segment_depth_for(arm, segment_depth),
         budget_unit=budget_unit,
+        scoring=scoring,
+        width=width,
+        seconds_cap=seconds_cap,
+        device=device,
     )
-    subset = f"-subset{len(positions)}" if positions is not None else ""
-    return out_dir / run_dir.name / f"{arm}-s{seed}-e{EPOCH}-{tag}{subset}.json"
+    return (
+        out_dir
+        / run_dir.name
+        / f"{arm}-s{seed}-e{EPOCH}-{tag}{subset_tag(positions)}.json"
+    )
 
 
 def cohort_tasks(positions: Sequence[int] | None = None) -> list[tuple[int, Task]]:
@@ -337,6 +439,8 @@ def run_cell(
     roots: int = ROOTS,
     segment_depth: int | None = None,
     budget_unit: str = BUDGET_UNIT,
+    scoring: str = "cumulative",
+    width: int = WIDTH,
     device: str = "cpu",
     seconds_cap: float | None = None,
     threads: int = co.CPU_THREADS,
@@ -353,6 +457,10 @@ def run_cell(
         roots=roots,
         segment_depth=segment_depth,
         budget_unit=budget_unit,
+        scoring=scoring,
+        width=width,
+        seconds_cap=seconds_cap,
+        device=device,
         positions=positions,
     )
     if out.exists():
@@ -360,10 +468,10 @@ def run_cell(
         return out
     depth = segment_depth_for(arm, segment_depth)
     if seconds_cap is None:
-        seconds_cap = (
-            WIDENING_SECONDS_CAP if search == "flat-widening" else TASK_SECONDS_CAP
-        )
-    system = system_for(search, roots=roots, segment_depth=depth)
+        seconds_cap = default_seconds_cap(search)
+    system = system_for(
+        search, roots=roots, segment_depth=depth, scoring=scoring, width=width
+    )
     policy = hs.policy_dir(run_dir, arm, seed, EPOCH)
     cohort = cohort_tasks(positions)
     indices = [index for index, _ in cohort]
@@ -378,10 +486,14 @@ def run_cell(
             "segment",
             roots=roots,
             segment_depth=depth,
+            scoring=scoring,
+            device=device,
             positions=positions,
         )
+        # Both sources at their own defaults (width 64, their clock), on this
+        # cell's device and tasks.
         flat_source = cell_path(
-            out_dir, run_dir, arm, seed, "flat", positions=positions
+            out_dir, run_dir, arm, seed, "flat", device=device, positions=positions
         )
         budgets, terms = matched_budgets(
             budget_source, flat_source, indices, budget_unit
@@ -429,8 +541,18 @@ def run_cell(
         "scorer_encoding": scorer.encoding,
         "search": search,
         "search_tag": search_tag(
-            search, roots=roots, segment_depth=depth, budget_unit=budget_unit
+            search,
+            roots=roots,
+            segment_depth=depth,
+            budget_unit=budget_unit,
+            scoring=scoring,
+            width=width,
+            seconds_cap=seconds_cap,
+            device=device,
         ),
+        # The segment beam's root ranking, or for a widening cell that of the
+        # segment cell its budgets come from; local is exploratory (#168).
+        "scoring": scoring if search != "flat" else None,
         # Frozen per cell: K, the depth (the segment beam's, or for a widening
         # cell that of the segment cell its budgets come from), the merge rule.
         "roots": roots if search != "flat" else None,
@@ -490,16 +612,23 @@ NOTES = f"""\
 - **Fit check:** every executable successor is tested with `moved == outputs` as it is made, before ranking or pruning (in `_run_segment` also before the open/closed split); held-out examples are read only at grading.
 - **Stop at fit:** all three searches return at the first shown fit (the segment beam through `stop_at_fit=True`), so a row's counters with a program are its counters at the fit.
 - **Merge rule:** {MERGE_RULE}.
+- **Local scoring (exploratory, capped/difference s0 only):** at each cut the next roots are ranked by what they gained in the segment just finished and restart at 0, and equal closed states keep the best gain; K = 64, depth 8, width 64, 12 segments, 120 s, no budget, with its own flat-widening control budgeted on its fuel.
 - **Frozen per cell:** K = {ROOTS}, segment depth {SEGMENT_DEPTHS} by arm, {MAX_SEGMENTS} segments.
 - **Horizon:** flat-48 is `BEST`'s search at depth 48; flat-widening runs at the segment cell's horizon, {MAX_SEGMENTS} x its depth.
 - **Order and library:** every column runs the #101 cohort in the same order (`co.cohort`, seed 17, bucket order), and each column's library starts empty and holds only its own solves (`solve.solve_tasks`).
 - **Why the flat-48 floor:** on increment_each segment-reset fitted at 10,705 executions against about 10,750 for flat width 64, a hair cheaper; the flat-48 floor is why the control still solves it.
+- **Matched computation, a limit:** a combinator that fails on an example drops the body cost it had already run there (inherited from `step_all_quiet`), so fuel is the recorded counter, not every step attempted.
+- **K diagnostic:** the 0.46 and 0.27 local K figures were computed on cumulatively chosen roots; the local-scoring diagnostic (`segment_k_diagnostic.py --scoring local`) replaces them.
 - **Bearing, not a result:** the 6-task CPU smoke of 2026-09-24 ran `BEST` at the old segment depth 12: flat-48 5/6 at 613k executions, segment 4/6 at 27.5M (45x).
 """
 
 
 def load_cells(out_dir: Path) -> list[dict[str, Any]]:
-    return [json.loads(path.read_text()) for path in sorted(out_dir.glob("*/*.json"))]
+    """Cell files only: ``<run>/<arm>-s<seed>-e3-<tag>.json``, never a report."""
+    return [
+        json.loads(path.read_text())
+        for path in sorted(out_dir.glob(f"*/*-s*-e{EPOCH}-*.json"))
+    ]
 
 
 def cell_facts(cell: dict[str, Any], verdicts: dict[str, Any]) -> dict[str, Any]:
@@ -527,6 +656,7 @@ def cell_facts(cell: dict[str, Any], verdicts: dict[str, Any]) -> dict[str, Any]
         "median_executions": statistics.median(executions) if executions else 0,
         "fuel": sum(r.get("fuel", 0) for r in rows),
         "seconds": sum(r["seconds"] for r in rows),
+        "median_seconds": statistics.median(r["seconds"] for r in rows) if rows else 0,
         "tasks_per_hour": cell.get("tasks_per_hour"),
         "capped": sum(r["termination"] == "wall_clock_cap" for r in rows),
         "budget_use": cell.get("budget_use") if cell["search"] != "flat" else None,
@@ -602,7 +732,13 @@ def paired(
     return out
 
 
-def report(out_dir: Path, out: Path, log=print, unit: str = BUDGET_UNIT) -> Path:
+def report(
+    out_dir: Path,
+    out: Path,
+    log=print,
+    unit: str = BUDGET_UNIT,
+    reference: Path = BEST_REFERENCE,
+) -> Path:
     cells = load_cells(out_dir)
     verdicts = bsc.verified_programs(out_dir, cells, log)
     groups: dict[tuple, list[dict[str, Any]]] = defaultdict(list)
@@ -646,9 +782,9 @@ def report(out_dir: Path, out: Path, log=print, unit: str = BUDGET_UNIT) -> Path
     lines = [
         "| arm | encoding | search | run | tasks | verified /43 per seed | mean | "
         "primitive executions (sum) | fuel (sum) | median exec / task | clock (s) | "
-        "tasks/h/lane | capped | held-out fails (tasks) | unverified solves (tasks) | "
-        "budget spent |",
-        "|---|---|---|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+        "median s / task | tasks/h/lane | capped | held-out fails (tasks) | "
+        "unverified solves (tasks) | budget spent |",
+        "|---|---|---|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
     ]
     for t in table:
         facts = t["cells"]
@@ -662,12 +798,15 @@ def report(out_dir: Path, out: Path, log=print, unit: str = BUDGET_UNIT) -> Path
             for u in use
         )
         label = f"**{t['arm']}** (BEST s0)" if t["is_best"] else t["arm"]
+        exploratory = " (exploratory)" if "-local-" in t["search"] else ""
         lines.append(
-            f"| {label} | {t['encoding']} | {t['search']}{' (subset)' if t['subset'] else ''} "
+            f"| {label} | {t['encoding']} | {t['search']}{exploratory}"
+            f"{' (subset)' if t['subset'] else ''} "
             f"| {t['run']} | {facts[0]['tasks']} | {per_seed} | {t['verified_mean']:.2f} | "
             f"{mean_of(facts, 'executions'):,.0f} | {mean_of(facts, 'fuel'):,.0f} | "
             f"{mean_of(facts, 'median_executions'):,.0f} | "
-            f"{mean_of(facts, 'seconds'):.0f} | {mean_of(facts, 'tasks_per_hour'):.0f} | "
+            f"{mean_of(facts, 'seconds'):.0f} | {mean_of(facts, 'median_seconds'):.2f} | "
+            f"{mean_of(facts, 'tasks_per_hour'):.0f} | "
             f"{mean_of(facts, 'capped'):.1f} | "
             f"{mean_of(facts, 'heldout_fail_tasks'):.1f} | "
             f"{mean_of(facts, 'unverified_solve_tasks'):.1f} | {spent} |"
@@ -680,6 +819,14 @@ def report(out_dir: Path, out: Path, log=print, unit: str = BUDGET_UNIT) -> Path
         if f["seed"] == BEST_CELL[2]
     ]
     lines.append("")
+    best_cells = [
+        c
+        for c in cells
+        if (c["run"], c["arm"], c["seed"]) == BEST_CELL
+        and c["search_tag"] == search_tag("flat")
+        and c["cohort_positions"] is None
+    ]
+    check = best_check(best_cells[0], reference) if best_cells else None
     if best:
         got = len(best[0]["verified"])
         lines.append(
@@ -689,9 +836,25 @@ def report(out_dir: Path, out: Path, log=print, unit: str = BUDGET_UNIT) -> Path
         )
     else:
         lines.append("Equivalence check: `BEST`'s flat cell has not run yet.")
+    if check and not check.get("missing"):
+        lines.append(
+            f"Per task against #158's b64 cell: {check['identical']}/{check['tasks']} "
+            f"with the same program and solved; {check['capped']} of BEST's tasks hit "
+            f"the {TASK_SECONDS_CAP:.0f} s cap (the whole cohort took 154 s in #158)."
+            + (
+                " Differing: "
+                + "; ".join(
+                    f"task {d['task_index']} {d['behaviour']}"
+                    for d in check["differ"][:10]
+                )
+                if check["differ"]
+                else ""
+            )
+        )
     lines += [
         "",
         "Executions, fuel, clock, capped and shortcut columns are means over seeds. "
+        "Every row records seconds, executions and fuel. "
         "The clock is the sum of per-task seconds (library replay, search and policy "
         "inference). Budget spent is flat-widening only, per seed.",
     ]
@@ -743,7 +906,8 @@ def report(out_dir: Path, out: Path, log=print, unit: str = BUDGET_UNIT) -> Path
     lines += ["", NOTES]
     out.mkdir(parents=True, exist_ok=True)
     (out / "report.json").write_text(
-        json.dumps({"table": table, "paired": pairs}, indent=2) + "\n"
+        json.dumps({"table": table, "paired": pairs, "best_check": check}, indent=2)
+        + "\n"
     )
     (out / "report.md").write_text("\n".join(lines) + "\n")
     log("\n".join(lines))
@@ -760,6 +924,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--search", choices=SEARCHES)
     parser.add_argument("--roots", type=int, default=ROOTS, help="K, segment roots")
     parser.add_argument(
+        "--scoring",
+        choices=SCORINGS,
+        default="cumulative",
+        help="segment root ranking; local is the exploratory arm",
+    )
+    parser.add_argument(
         "--segment-depth",
         type=int,
         default=None,
@@ -770,6 +940,12 @@ def main(argv: list[str] | None = None) -> int:
         choices=BUDGET_UNITS,
         default=BUDGET_UNIT,
         help="what the widening budget counts; the report's curves too",
+    )
+    parser.add_argument(
+        "--width",
+        type=int,
+        default=WIDTH,
+        help="flat's beam, the segment beam's per root, widening's first width",
     )
     parser.add_argument("--device", default="cpu")
     parser.add_argument(
@@ -806,6 +982,8 @@ def main(argv: list[str] | None = None) -> int:
         roots=args.roots,
         segment_depth=args.segment_depth,
         budget_unit=args.budget_unit,
+        scoring=args.scoring,
+        width=args.width,
         device=args.device,
         seconds_cap=args.seconds_cap,
         threads=args.threads,

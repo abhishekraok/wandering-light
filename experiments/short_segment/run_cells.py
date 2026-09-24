@@ -14,6 +14,11 @@ cells take the lane.
     uv run python experiments/short_segment/run_cells.py
     uv run python experiments/short_segment/run_cells.py --only short-segment-difference-20260923:capped:0
 
+After capped/difference s0's registered columns and `BEST`'s flat cell come
+the exploratory local-scoring cells, capped/difference s0 only: the segment
+beam with local scoring at K = 64, then its own flat-widening control
+(``--no-exploratory`` leaves them out).
+
 Two lanes of 8 threads by default: the standing rule on UltraDesk is at most two
 CPU processes of 8 threads, since four once cut throughput fourfold.
 """
@@ -51,6 +56,9 @@ REGISTERED: tuple[tuple[str, str], ...] = (
     (STAGED_ARMS, "fused"),
     (DIFFERENCE, "fused"),
 )
+# Exploratory, frozen by the coordinator (#168): local scoring at K = 64 on
+# capped/difference s0, and a widening control budgeted on its fuel.
+LOCAL_ROOTS = 64
 
 
 @dataclass(frozen=True)
@@ -59,17 +67,29 @@ class Cell:
     arm: str
     seed: int
     search: str
+    roots: int | None = None  # None: the queue's --roots
+    scoring: str = "cumulative"
 
-    def output(self, args) -> Path:
+    def k(self, args) -> int:
+        return self.roots if self.roots is not None else args.roots
+
+    def output(self, args, *, source: bool = False) -> Path:
+        """This cell's file; ``source`` is its name as a widening cell's budget source.
+
+        A source is looked up at its own default clock, as `search.run_cell` does.
+        """
         return search.cell_path(
             args.out_dir,
             self.run_dir,
             self.arm,
             self.seed,
             self.search,
-            roots=args.roots,
+            roots=self.k(args),
             segment_depth=args.segment_depth,
             budget_unit=args.budget_unit,
+            scoring=self.scoring,
+            seconds_cap=None if source else args.seconds_cap,
+            device=args.device,
         )
 
     def trained(self) -> bool:
@@ -78,14 +98,18 @@ class Cell:
         return done.exists() and is_checkpoint(policy)
 
     def label(self) -> str:
-        return f"{self.run_dir.name}:{self.arm}:s{self.seed}:{self.search}"
+        variant = "" if self.scoring == "cumulative" else f"-{self.scoring}"
+        return f"{self.run_dir.name}:{self.arm}:s{self.seed}:{self.search}{variant}"
 
 
-def plan(checkpoints: Path, searches, only: set[str] | None) -> list[Cell]:
+def plan(
+    checkpoints: Path, searches, only: set[str] | None, exploratory: bool = True
+) -> list[Cell]:
     """Seed 0 of every registered cell, in `REGISTERED` order, then seeds 1-2.
 
     `BEST`'s flat cell (staged-arms staged s0) is moved up to follow
-    capped/difference s0, so the equivalence check is among the first numbers.
+    capped/difference s0, so the equivalence check is among the first numbers,
+    and the exploratory local-scoring pair follows it.
     """
     order = [s for s in search.SEARCHES if s in searches]
     cells = [
@@ -104,6 +128,17 @@ def plan(checkpoints: Path, searches, only: set[str] | None) -> list[Cell]:
             for c in cells
         )
         cells.insert(first, best)
+    if exploratory and (not only or f"{DIFFERENCE}:capped:0" in only):
+        local = [
+            Cell(checkpoints / DIFFERENCE, "capped", 0, s, LOCAL_ROOTS, "local")
+            for s in ("segment", "flat-widening")
+            if s in searches
+        ]
+        after = sum(
+            c.run_dir.name == DIFFERENCE and c.arm == "capped" and c.seed == 0
+            for c in cells
+        ) + (best in cells)
+        cells[after:after] = local
     return cells
 
 
@@ -124,7 +159,9 @@ def command(cell: Cell, args) -> list[str]:
             "--search",
             cell.search,
             "--roots",
-            str(args.roots),
+            str(cell.k(args)),
+            "--scoring",
+            cell.scoring,
             "--budget-unit",
             args.budget_unit,
             "--device",
@@ -180,12 +217,23 @@ def run_queue(cells: list[Cell], args, log=print) -> int:
                 break
             if cell.search == "flat-widening":
                 sources = [
-                    Cell(cell.run_dir, cell.arm, cell.seed, s)
-                    for s in ("segment", "flat")
+                    Cell(
+                        cell.run_dir,
+                        cell.arm,
+                        cell.seed,
+                        "segment",
+                        cell.roots,
+                        cell.scoring,
+                    ),
+                    Cell(cell.run_dir, cell.arm, cell.seed, "flat"),
                 ]
                 if any(s in running or s in pending for s in sources):
                     continue  # its budgets are not written yet
-                missing = [s.search for s in sources if not s.output(args).exists()]
+                missing = [
+                    s.search
+                    for s in sources
+                    if not s.output(args, source=True).exists()
+                ]
                 if missing:
                     pending.remove(cell)
                     failed.add(cell)
@@ -244,6 +292,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--poll", type=float, default=10.0, help="seconds between polls"
     )
+    parser.add_argument(
+        "--no-exploratory",
+        dest="exploratory",
+        action="store_false",
+        help="leave out the local-scoring pair",
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
     searches = [s for s in args.searches.split(",") if s]
@@ -251,7 +305,7 @@ def main(argv: list[str] | None = None) -> int:
     if unknown:
         parser.error(f"unknown searches {sorted(unknown)}")
     only = set(args.only.split(",")) if args.only else None
-    cells = plan(args.checkpoints, searches, only)
+    cells = plan(args.checkpoints, searches, only, args.exploratory)
 
     def log(line: str) -> None:
         print(f"{time.strftime('%H:%M:%S')} {line}", flush=True)

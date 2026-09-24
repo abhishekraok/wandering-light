@@ -9,6 +9,13 @@ share within 16 is the registered number; the full distribution sets K.
 Rows are appended per program to ``k-<set>.jsonl`` as they finish, so a run
 resumes and can be read while it goes; the summary is written at the end.
 
+``--scoring local`` runs the witness ranks under local scoring: roots are
+chosen by the score gained in the segment and restart at 0, so it measures
+true-reset retention, which the ``local_rank`` column of a cumulative run does
+not (its roots were still chosen cumulatively). ``--roots`` is K. A run other
+than cumulative K = 16 writes ``k-<set>-<scoring>-k<K>.jsonl``, and the
+summary records both.
+
     uv run python experiments/segment_k_diagnostic.py --set staged-train --out DIR [--checkpoint PATH] [--device cuda] [--limit 40]
 """
 
@@ -30,7 +37,7 @@ import torch  # noqa: E402
 from experiments.frame_gate import eval_witnesses  # noqa: E402
 from experiments.staged_witnesses import check as staged  # noqa: E402
 from wandering_light.solve import BEST  # noqa: E402
-from wandering_light.stack_beam import segment_witness_ranks  # noqa: E402
+from wandering_light.stack_beam import SCORINGS, segment_witness_ranks  # noqa: E402
 from wandering_light.stack_policy import PolicyScorer, load_policy  # noqa: E402
 from wandering_light.stack_policy_hub import fetch_stack_policy  # noqa: E402
 
@@ -104,6 +111,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--segment-depth", type=int, default=12)
+    parser.add_argument("--scoring", choices=SCORINGS, default="cumulative")
+    parser.add_argument("--roots", type=int, default=16, help="K")
     parser.add_argument(
         "--limit", type=int, default=None, help="every k-th program, about this many"
     )
@@ -120,7 +129,12 @@ def main(argv: list[str] | None = None) -> int:
         stride = -(-len(pairs) // args.limit)
         pairs = pairs[::stride]
     args.out.mkdir(parents=True, exist_ok=True)
-    stream = args.out / f"k-{args.which}.jsonl"
+    variant = (
+        ""
+        if (args.scoring, args.roots) == ("cumulative", 16)
+        else f"-{args.scoring}-k{args.roots}"
+    )
+    stream = args.out / f"k-{args.which}{variant}.jsonl"
     done = {r["behaviour"] for r in _jsonl(stream)} if stream.exists() else set()
     started = time.time()
     for number, (task, program) in enumerate(pairs, 1):
@@ -134,8 +148,10 @@ def main(argv: list[str] | None = None) -> int:
                 mine,
                 scorer,
                 program=program,
+                roots=args.roots,
                 segment_depth=args.segment_depth,
                 max_state_atoms=BEST.max_state_atoms,
+                scoring=args.scoring,
             )
         ]
         with stream.open("a") as handle:
@@ -155,10 +171,12 @@ def main(argv: list[str] | None = None) -> int:
         "limit": args.limit,
         "max_state_atoms": BEST.max_state_atoms,
         "segment_depth": args.segment_depth,
+        "scoring": args.scoring,
+        "roots": args.roots,
         **summarise(rows),
         "seconds_this_run": round(time.time() - started, 1),
     }
-    (args.out / f"k-{args.which}.json").write_text(
+    (args.out / f"k-{args.which}{variant}.json").write_text(
         json.dumps({"summary": summary}, indent=1) + "\n"
     )
     print("RESULT", json.dumps(summary), flush=True)

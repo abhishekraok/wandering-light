@@ -43,6 +43,7 @@ import torch
 
 from wandering_light.stack_beam import (
     beam_solve,
+    replay_capped,
     replay_program,
     segment_beam_solve,
     spent_in,
@@ -89,6 +90,8 @@ class System:
     roots: int = 16
     segment_depth: int = 12
     max_segments: int = 12
+    # The segment beam's root ranking, `stack_beam.SCORINGS`.
+    scoring: str = "cumulative"
 
     def __post_init__(self) -> None:
         if self.search not in SEARCHES:
@@ -110,6 +113,8 @@ class System:
                 f", search {self.search}: {self.roots} roots, {self.max_segments} "
                 f"segments of up to {self.segment_depth} ops, the beam per root"
             )
+            if self.scoring != "cumulative":
+                text += f", {self.scoring} scoring"
         return text
 
 
@@ -252,18 +257,40 @@ def solve_tasks(
         source, termination = "search", "library_miss"
         executions = fuel = expansions = depth = 0
         widening = None
+        total = budgets[index] if budgets is not None else None
+        capped = None  # "budget" or "wall_clock_cap" when replay hit a cap
         if system.library:
             inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
             outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
             for candidate in library:
-                fits, spent, spent_fuel = replay_program(candidate, inputs, outputs)
+                if total is None and deadline is None:
+                    fits, spent, spent_fuel = replay_program(candidate, inputs, outputs)
+                else:
+                    # Replay is charged to the task's budget and clock, and
+                    # checked against them before every op, as the beams are.
+                    left = (
+                        None
+                        if total is None
+                        else total - spent_in(budget_unit, executions, fuel)
+                    )
+                    fits, spent, spent_fuel, capped = replay_capped(
+                        candidate,
+                        inputs,
+                        outputs,
+                        budget=left,
+                        budget_unit=budget_unit,
+                        deadline=deadline,
+                    )
                 executions += spent
                 fuel += spent_fuel
+                if capped is not None:
+                    termination = capped
+                    break
                 if fits:
                     program, source, termination = candidate, "library", "fit"
                     break
-        if program is None:
-            budget = budgets[index] if budgets is not None else None
+        if program is None and capped is None:
+            budget = total
             if budget is not None:
                 budget = max(0, budget - spent_in(budget_unit, executions, fuel))
             if system.search == "widening":
@@ -292,6 +319,7 @@ def solve_tasks(
                     budget=budget,
                     max_state_atoms=system.max_state_atoms,
                     deadline=deadline,
+                    scoring=system.scoring,
                 )
             else:
                 result = beam_solve(

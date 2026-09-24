@@ -6,6 +6,7 @@ import sys
 import time
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -243,14 +244,68 @@ def test_widening_stops_on_the_shared_budget_and_charges_the_overshoot():
 
 def test_widening_stops_when_a_wider_beam_is_the_same_search():
     task = drawn("negate_each", 3)
-    # A 2-deep search on four examples never fills a beam of 1,024, so the next
-    # width repeats it exactly and the widening ends there, under budget.
+    # A 2-deep search on four examples never fills a beam of 1,024: nothing was
+    # pruned, so any wider beam is this search, and the widening ends at once.
     result, detail = widening_beam_solve(
         task, _Deterministic(3), budget=10**9, start_width=1024, max_depth=2
     )
-    assert detail["saturated"]
-    assert [run["width"] for run in detail["widths"]] == [1024, 2048]
+    assert detail["saturated"] and detail["stop"] == "saturated"
+    assert [run["width"] for run in detail["widths"]] == [1024]
+    assert detail["widths"][0]["pruned"] is False
     assert result.executions < 10**9
+
+
+def test_equal_spend_at_two_widths_is_not_saturation(monkeypatch):
+    """Codex's counterexample (#168 review 3): widths 1 and 2 fail at 7, width 4 fits.
+
+    A finite graph with normalised, state-dependent policy probabilities, run
+    through the real `beam_solve` with the machine patched out.
+    """
+    from types import SimpleNamespace
+
+    from wandering_light import stack_beam as beam
+
+    edges = {
+        "R": [("A", 0.6), ("B", 0.3), ("F", 0.1)],
+        "A": [("R", 0.99), ("C", 0.01)],
+        "B": [("X", 0.5), ("Y", 0.5)],
+        "C": [("D", 1.0)],
+        "D": [("E", 1.0)],
+        "F": [("T", 1.0)],
+    }
+
+    def step(product, op):
+        options = edges.get(product[0][0], [])
+        if op.index < len(options):
+            return ((options[op.index][0],),), 1, 1
+        return None, 0, 0
+
+    class Graph:
+        def log_probs(self, blocks, legal):
+            scores = np.full(legal.shape, -np.inf)
+            for row, state in enumerate(blocks):
+                for col, (_, prob) in enumerate(edges.get(state, [])):
+                    scores[row, col] = np.log(prob)
+            return scores
+
+    ops = tuple(SimpleNamespace(name=str(i), index=i) for i in range(3))
+    monkeypatch.setattr(beam, "OPS", ops)
+    monkeypatch.setattr(beam, "parse_stack", lambda text, **kw: (text,))
+    monkeypatch.setattr(beam, "block_encoder", lambda *a: lambda p: p[0][0])
+    monkeypatch.setattr(beam, "step_all_quiet", step)
+    task = SimpleNamespace(inputs=("R",), outputs=("T",))
+    flat = {
+        w: beam.beam_solve(task, Graph(), beam_width=w, max_depth=8, guard="off")
+        for w in (1, 2, 4)
+    }
+    assert flat[1].executions == flat[2].executions and flat[1].program is None
+    assert flat[1].pruned and flat[2].pruned
+    assert flat[4].termination == "fit"
+    result, detail = beam.widening_beam_solve(
+        task, Graph(), start_width=1, max_depth=8, guard="off", budget=100
+    )
+    assert not detail["saturated"] and detail["stop"] == "fit"
+    assert result.program == flat[4].program and detail["fit_width"] == 4
 
 
 def test_a_widening_search_needs_budgets_and_a_segment_search_counts_executions():
@@ -342,6 +397,30 @@ def test_cell_names_carry_k_depth_horizon_and_unit(tmp_path):
     )
     with pytest.raises(ValueError, match="segment depth"):
         name("refused", "segment")
+    # Every setting off its default is named; the defaults are the mapping.
+    assert name("capped", "segment", scoring="local", roots=64) == (
+        "capped-s0-e3-segment-local-k64-d8.json"
+    )
+    assert name("capped", "flat-widening", scoring="local", roots=64) == (
+        "capped-s0-e3-flat-widening-local-k64-d8-h96-fuel.json"
+    )
+    assert name("staged", "flat", width=128) == "staged-s0-e3-flat-w128.json"
+    assert name("capped", "segment", width=128) == (
+        "capped-s0-e3-segment-k16-d8-w128.json"
+    )
+    assert name("capped", "flat-widening", width=32) == (
+        "capped-s0-e3-flat-widening-k16-d8-h96-fuel-w32.json"
+    )
+    assert name("staged", "flat", seconds_cap=120) == "staged-s0-e3-flat-w64.json"
+    assert name("staged", "flat", seconds_cap=300) == (
+        "staged-s0-e3-flat-w64-cap300.json"
+    )
+    assert name("capped", "flat-widening", seconds_cap=300).endswith("-fuel.json")
+    assert name("staged", "flat", device="cuda") == "staged-s0-e3-flat-w64-cuda.json"
+    # Subsets are named by their positions, not only their count.
+    first = name("staged", "flat", positions=[0, 1])
+    assert first != name("staged", "flat", positions=[2, 3])
+    assert first.startswith("staged-s0-e3-flat-w64-p2-")
 
 
 def test_the_searches_are_best_with_the_registered_settings_changed():
@@ -472,7 +551,7 @@ def test_the_report_counts_verified_behaviours_shortcuts_and_pairs(
         }
 
     def cell(run, arm, seed, search, tag, rows, **extra):
-        path = tmp_path / run / f"{arm}-s{seed}-{tag}.json"
+        path = tmp_path / run / f"{arm}-s{seed}-e3-{tag}.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
             json.dumps(
@@ -578,18 +657,24 @@ def test_the_report_counts_verified_behaviours_shortcuts_and_pairs(
 
 def test_the_queue_runs_the_registered_cells_in_the_advised_order(tmp_path):
     cells = run_cells.plan(tmp_path, list(driver.SEARCHES), None)
-    assert len(cells) == 6 * 3 * 3
-    labels = [(c.run_dir.name, c.arm, c.seed, c.search) for c in cells]
+    assert len(cells) == 6 * 3 * 3 + 2
+    labels = [(c.run_dir.name, c.arm, c.seed, c.search, c.scoring) for c in cells]
     difference = "short-segment-difference-20260923"
-    assert labels[:4] == [
-        (difference, "capped", 0, "flat"),
-        (difference, "capped", 0, "segment"),
-        (difference, "capped", 0, "flat-widening"),
-        ("staged-arms-20260920", "staged", 0, "flat"),  # BEST, the equivalence check
+    assert labels[:6] == [
+        (difference, "capped", 0, "flat", "cumulative"),
+        (difference, "capped", 0, "segment", "cumulative"),
+        (difference, "capped", 0, "flat-widening", "cumulative"),
+        # BEST, the equivalence check
+        ("staged-arms-20260920", "staged", 0, "flat", "cumulative"),
+        # The exploratory pair, local scoring at K = 64.
+        (difference, "capped", 0, "segment", "local"),
+        (difference, "capped", 0, "flat-widening", "local"),
     ]
-    assert labels[4][:3] == ("short-segment-machine-20260923", "capped", 0)
-    assert all(label[2] == 0 for label in labels[:18])
-    assert all(label[2] > 0 for label in labels[18:])
+    assert {c.roots for c in cells[4:6]} == {64}
+    assert labels[6][:3] == ("short-segment-machine-20260923", "capped", 0)
+    assert all(label[2] == 0 for label in labels[:20])
+    assert all(label[2] > 0 for label in labels[20:])
+    assert len(run_cells.plan(tmp_path, list(driver.SEARCHES), None, False)) == 54
     assert {c.arm for c in cells} == {"capped", "staged", "fused"}
     only = run_cells.plan(tmp_path, ["flat-widening"], {"staged-arms-20260920:fused:1"})
     assert [(c.arm, c.seed, c.search) for c in only] == [("fused", 1, "flat-widening")]
@@ -605,6 +690,8 @@ def test_a_widening_cell_starts_only_after_its_segment_cell_is_written(
         roots=16,
         segment_depth=None,
         budget_unit="fuel",
+        seconds_cap=None,
+        device="cpu",
         jobs=2,
         poll=0.05,
         dry_run=False,
@@ -636,3 +723,241 @@ def test_a_widening_cell_starts_only_after_its_segment_cell_is_written(
     again = []
     assert run_cells.run_queue(cells, args, again.append) == 0
     assert not any(line.startswith("start") for line in again)
+
+
+def test_library_replay_honours_the_budget_and_the_clock(monkeypatch):
+    first = witness_task("sum", 4)
+    scorer = WitnessScorer(first, 2.0)
+    system = tiny_system(search="widening")
+    rows = solve.solve_tasks(
+        [first, first], scorer, system, budgets=[100_000, 0], budget_unit="fuel"
+    )
+    # Codex's case: a zero budget used to return the replayed fit anyway.
+    assert rows[1].termination == "budget" and rows[1].program is None
+    assert rows[1].fuel == 0 and not rows[1].solved
+    roomy = solve.solve_tasks(
+        [first, first], scorer, system, budgets=[100_000, 100_000], budget_unit="fuel"
+    )
+    assert roomy[1].source == "library" and roomy[1].solved
+    # A budget that runs out part-way through a replay stops it there.
+    part = solve.solve_tasks(
+        [first, first], scorer, system, budgets=[100_000, 10], budget_unit="fuel"
+    )
+    assert part[1].termination == "budget" and 10 <= part[1].fuel < 10 + 20
+    # The clock: a replay that finds the deadline passed stops, unsolved.
+    clock = [0.0]
+    real = solve.replay_capped
+
+    def slow(*args, **kwargs):
+        clock[0] += 10.0
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(solve.time, "perf_counter", lambda: clock[0])
+    monkeypatch.setattr(
+        "wandering_light.stack_beam.time.perf_counter", lambda: clock[0]
+    )
+    monkeypatch.setattr(solve, "replay_capped", slow)
+    rows = solve.solve_tasks([first, first], scorer, tiny_system(), seconds_cap=1.0)
+    assert rows[1].termination == "wall_clock_cap" and not rows[1].solved
+
+
+# segment_beam_solve at 6d19198, before scoring existed: cumulative is unchanged.
+SEGMENT_GOLDEN = [
+    # name, witness scorer?, (roots, segment_depth, max_segments, width), result
+    (
+        "sum",
+        True,
+        (4, 4, 4, 8),
+        (("0", "nil", "dip", "[", "add", "]", "fold"), "fit", 7844, 8254, 118, 7),
+    ),
+    ("min_pair", True, (4, 4, 4, 8), (None, "frontier_exhausted", 2388, 2388, 25, 4)),
+    ("keep_below", True, (4, 4, 4, 8), (None, "max_segments", 16344, 16518, 275, 13)),
+]
+
+
+@pytest.mark.parametrize(("name", "witness", "shape", "want"), SEGMENT_GOLDEN)
+def test_cumulative_scoring_is_the_segment_beam_before(name, witness, shape, want):
+    task = witness_task(name, 4)
+    roots, depth, segments, width = shape
+    kwargs = {
+        "roots": roots,
+        "segment_depth": depth,
+        "max_segments": segments,
+        "beam_width": width,
+        "max_state_atoms": 16_384,
+    }
+    for extra in ({}, {"scoring": "cumulative"}):
+        got = segment_beam_solve(task, WitnessScorer(task, 1.0), **kwargs, **extra)
+        assert tuple(getattr(got, f) for f in FIELDS) == want
+
+
+def test_local_scoring_picks_roots_by_segment_gain_and_restarts_them_at_zero(
+    monkeypatch,
+):
+    from wandering_light import stack_beam as beam
+
+    # What each root's segment closes, and the log-probability gained doing it.
+    children = {
+        (): [("A", -1.0), ("B", -3.0)],
+        ("A",): [("A2", -2.0), ("C2", -2.5)],
+        ("B",): [("B2", -1.0)],
+    }
+
+    def run(scoring):
+        seen = []
+
+        def fake(frontier, outputs, encode, scorer, tally, **kwargs):
+            seen.append([(program, score) for _, program, score in frontier])
+            closed = {}
+            for _, program, score in frontier:
+                for name, gain in children.get(program, []):
+                    closed[((name,),)] = (score + gain, (*program, name))
+            return None, None, closed
+
+        monkeypatch.setattr(beam, "_run_segment", fake)
+        task = witness_task("sum", 4)
+        result = beam.segment_beam_solve(
+            task, WitnessScorer(task), roots=2, max_segments=3, scoring=scoring
+        )
+        assert result.termination == "frontier_exhausted"
+        return seen
+
+    cumulative, local = run("cumulative"), run("local")
+    assert cumulative[1] == [(("A",), -1.0), (("B",), -3.0)]
+    assert local[1] == [(("A",), 0.0), (("B",), 0.0)]
+    # Cumulatively A2 (-3) and C2 (-3.5) beat B2 (-4); by what each gained in
+    # the segment, B2 (-1) and A2 (-2) beat C2 (-2.5), and restart at 0.
+    assert cumulative[2] == [(("A", "A2"), -3.0), (("A", "C2"), -3.5)]
+    assert local[2] == [(("B", "B2"), 0.0), (("A", "A2"), 0.0)]
+    with pytest.raises(ValueError, match="scoring"):
+        run("greedy")
+
+
+def test_the_merge_keeps_the_best_gain_when_roots_restart_at_zero():
+    """Two roots close into one state with `i`; the policy likes `i` at the second."""
+    from wandering_light.stack_beam import OP_INDEX, _run_segment, _Tally
+    from wandering_light.stack_machine import parse_stack
+    from wandering_light.stack_pbe import BASIS, OP_BY_NAME
+    from wandering_light.stack_policy import MACHINE, node_encoder
+
+    one = (parse_stack("[ ( 1 2 ) ( ) ]", basis=BASIS),)
+    two = (parse_stack("[ ( 1 2 ) ( dup drop ) ]", basis=BASIS),)
+    closed_state = beam_step(one, OP_BY_NAME["i"])
+    assert closed_state == beam_step(two, OP_BY_NAME["i"])
+    outputs = (parse_stack("[ 0 0 0 0 ]", basis=BASIS),)
+    encode = node_encoder(outputs, MACHINE)
+    likes_i = encode(two).tobytes()
+
+    class Scorer:
+        def log_probs(self, blocks, legal):
+            logits = np.zeros(legal.shape)
+            for row, block in enumerate(blocks):
+                if block.tobytes() == likes_i:
+                    logits[row, OP_INDEX["i"]] = 5.0
+            logits = np.where(legal, logits, -np.inf)
+            peak = logits.max(axis=1, keepdims=True)
+            shifted = logits - peak
+            return shifted - np.log(np.exp(shifted).sum(axis=1, keepdims=True))
+
+    def merged(first_score, second_score):
+        _stop, _program, closed = _run_segment(
+            [(one, ("a",), first_score), (two, ("b",), second_score)],
+            outputs,
+            encode,
+            Scorer(),
+            _Tally(),
+            beam_width=4,
+            segment_depth=1,
+            horizon=10,
+            guard="off",
+            budget=None,
+            max_state_atoms=None,
+            stop_at_fit=False,
+        )
+        return closed[closed_state][1]
+
+    # Local scoring: both roots at 0, so the higher gain, the second's, is kept.
+    assert merged(0.0, 0.0) == ("b", "i")
+    # Cumulative: the second root arrived far behind, so the first's is kept
+    # (its `i` or its `dip`, which close into the same state at equal odds).
+    assert merged(0.0, -50.0)[0] == "a"
+
+
+def beam_step(product, op):
+    from wandering_light.stack_beam import step_all_quiet
+
+    return step_all_quiet(product, op)[0]
+
+
+def test_witness_ranks_under_local_scoring_restart_every_root(monkeypatch):
+    from wandering_light import stack_beam as beam
+
+    task = witness_task("sum", 4)
+    # A sum program with two cuts, after `dip` and after `fold`.
+    kwargs = {
+        "program": ("0", "nil", "dip", "[", "add", "]", "fold"),
+        "roots": 2,
+        "segment_depth": 4,
+        "max_segments": 4,
+        "beam_width": 8,
+    }
+    real = beam._run_segment
+    frontiers = []
+
+    def spy(frontier, *args, **kw):
+        frontiers.append([score for _, _, score in frontier])
+        return real(frontier, *args, **kw)
+
+    monkeypatch.setattr(beam, "_run_segment", spy)
+    cumulative = beam.segment_witness_ranks(task, WitnessScorer(task, 1.0), **kwargs)
+    cumulative_scores = list(frontiers)
+    frontiers.clear()
+    local = beam.segment_witness_ranks(
+        task, WitnessScorer(task, 1.0), scoring="local", **kwargs
+    )
+    assert len(local) == len(cumulative) > 1
+    # Every root, forced witness roots included, starts each segment at 0.
+    assert all(score == 0.0 for scores in frontiers for score in scores)
+    assert any(score != 0.0 for scores in cumulative_scores[1:] for score in scores)
+
+
+def test_a_second_report_does_not_read_the_first(tmp_path, monkeypatch):
+    monkeypatch.setattr(verify, "check", lambda *a: {"verdict": "genuine"})
+    driver.report(tmp_path, tmp_path / "report", log=lambda _: None)
+    driver.report(tmp_path, tmp_path / "report", log=lambda _: None)
+    assert (tmp_path / "report" / "report.md").exists()
+
+
+def test_best_is_checked_task_by_task_against_158(tmp_path):
+    reference = tmp_path / "b64.json"
+    reference.write_text(
+        json.dumps(
+            {
+                "rows": [
+                    {"task_index": 1, "program": ["add"], "solved": True},
+                    {"task_index": 2, "program": None, "solved": False},
+                ]
+            }
+        )
+    )
+    cell = {
+        "rows": [
+            {
+                "task_index": 1,
+                "behaviour": "add_pair",
+                "program": ["add"],
+                "solved": True,
+                "termination": "fit",
+            },
+            {
+                "task_index": 2,
+                "behaviour": "last",
+                "program": ["drop"],
+                "solved": False,
+                "termination": "wall_clock_cap",
+            },
+        ]
+    }
+    check = driver.best_check(cell, reference)
+    assert check["identical"] == 1 and check["capped"] == 1
+    assert [d["task_index"] for d in check["differ"]] == [2]

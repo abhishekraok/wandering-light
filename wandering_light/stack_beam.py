@@ -79,6 +79,10 @@ if TYPE_CHECKING:
     from wandering_light.stack_policy import PolicyScorer
 
 BUDGET_UNITS = ("executions", "fuel", "executions+fuel")
+# How the segment beam ranks closed states at a cut: by cumulative
+# log-probability from the inputs, or by what each gained in the segment just
+# finished, its root restarting at 0 (short-segment-campaign #168, exploratory).
+SCORINGS = ("cumulative", "local")
 
 Product = tuple[tuple, ...]  # one stack per shown example
 Node = tuple[Product, tuple[str, ...], float]  # (product, program, log-probability)
@@ -161,6 +165,11 @@ class BeamResult:
     fuel: int
     expansions: int
     depth: int
+    # Did the width ever turn away a successor the guards, the size cap and the
+    # visited set would have kept? Conservatively True whenever a layer filled
+    # with ranked successors still unread. A flat search that never pruned is
+    # the search every wider beam would run (short-segment-campaign #168).
+    pruned: bool = False
 
 
 def spent_in(unit: str, executions: int, fuel: int) -> int:
@@ -196,6 +205,39 @@ def replay_program(
             return False, executions, fuel
         product = moved
     return product == outputs, executions, fuel
+
+
+def replay_capped(
+    program: Sequence[str],
+    inputs: Product,
+    outputs: Product,
+    *,
+    budget: int | None = None,
+    budget_unit: str = "executions",
+    deadline: float | None = None,
+) -> tuple[bool, int, int, str | None]:
+    """``replay_program`` with the beams' caps, checked before every op.
+
+    Returns ``(fits, executions, fuel, stop)``: ``stop`` is ``budget`` or
+    ``wall_clock_cap`` when a cap ended the replay first, else None. ``budget``
+    is what this replay may spend, in ``budget_unit``. With neither cap it is
+    ``replay_program``.
+    """
+    executions = 0
+    fuel = 0
+    product = inputs
+    for name in program:
+        if budget is not None and spent_in(budget_unit, executions, fuel) >= budget:
+            return False, executions, fuel, "budget"
+        if deadline is not None and time.perf_counter() >= deadline:
+            return False, executions, fuel, "wall_clock_cap"
+        moved, spent, stepped = step_all_quiet(product, OP_BY_NAME[name])
+        executions += stepped
+        fuel += spent
+        if moved is None:
+            return False, executions, fuel, None
+        product = moved
+    return product == outputs, executions, fuel, None
 
 
 def atoms_exceed(product: Product, cap: int) -> bool:
@@ -351,6 +393,7 @@ def _beam_solve(
     seen = {inputs}
     beam: list[Node] = [(inputs, (), 0.0)]
     executions = fuel = expansions = 0
+    pruned = False
 
     def result(program, termination, depth):
         watch.search_terminated(termination, depth, executions, fuel, expansions)
@@ -362,6 +405,7 @@ def _beam_solve(
             fuel,
             expansions,
             depth,
+            pruned,
         )
 
     for depth in range(max_depth):
@@ -413,7 +457,7 @@ def _beam_solve(
         next_beam = []
         verdicts: dict[tuple[int, int], str] = {}
         parents: list[tuple[int, int]] = []
-        for node, index, product, program in ranked:
+        for rank, (node, index, product, program) in enumerate(ranked):
             if guard != "off":
                 why = blocked(product[0], remaining, guard)
                 if why is not None:
@@ -430,6 +474,7 @@ def _beam_solve(
             parents.append((node, index))
             next_beam.append((product, program, beam[node][2] + log_probs[node, index]))
             if len(next_beam) == beam_width:
+                pruned = pruned or rank + 1 < len(ranked)
                 break
         watch.layer_retained(depth, next_beam, verdicts, parents)
         if not next_beam:
@@ -456,8 +501,10 @@ def widening_beam_solve(
     on one execution counter capped at ``budget``, and the widening stops at
     the first shown fit, when the budget (counted in ``budget_unit``) or the
     ``deadline`` runs out, or when a
-    restart spends exactly what the one before it spent without a fit: its beam
-    never filled, so every wider beam is the same search (``saturated``). The
+    restart ran to its own end without the width ever turning a successor away
+    (``BeamResult.pruned`` False), so every wider beam is the same search
+    (``saturated``). Equal spend at two widths proves nothing: a pruned beam
+    can fail at the same cost as a narrower one and a wider one still fit. The
     budget is checked before every op attempt, so the last restart may overshoot
     it by less than one attempt; the overshoot is charged. Returns the combined
     result (termination of the last restart; ``depth`` the deepest restart's)
@@ -491,11 +538,13 @@ def widening_beam_solve(
                 "width": width,
                 "termination": run.termination,
                 "executions": run.executions,
+                "fuel": run.fuel,
+                "pruned": run.pruned,
             }
         )
         if run.termination in ("fit", "budget", "wall_clock_cap"):
             break
-        if len(runs) > 1 and run.executions == runs[-2]["executions"]:
+        if not run.pruned:
             saturated = True
             break
         width *= 2
@@ -516,6 +565,8 @@ def widening_beam_solve(
         "largest_width_completed": max(completed, default=None),
         "fit_width": width if run.termination == "fit" else None,
         "saturated": saturated,
+        # Why the widening ended: fit, budget, wall_clock_cap or saturated.
+        "stop": "saturated" if saturated else run.termination,
     }
 
 
@@ -722,6 +773,7 @@ def segment_beam_solve(
     budget: int | None = None,
     max_state_atoms: int | None = None,
     deadline: float | None = None,
+    scoring: str = "cumulative",
 ) -> BeamResult:
     """Search one task by segments that reset at closed states.
 
@@ -732,7 +784,11 @@ def segment_beam_solve(
     search cannot circle. A successor equal to the shown outputs ends the search
     with the whole program from the inputs. ``budget`` caps primitive
     executions over the whole search and ``deadline`` its wall-clock, as in
-    ``beam_solve``. Terminations: ``fit``, ``budget``, ``wall_clock_cap``,
+    ``beam_solve``. ``scoring`` ``local`` starts every root at score 0, so a
+    closed state's score is what it gained in its segment: the next roots are
+    ranked by that gain and equal closed states merge keeping the best gain.
+    Within a root's beam the ranking is the same either way, up to the root's
+    constant. Terminations: ``fit``, ``budget``, ``wall_clock_cap``,
     ``frontier_exhausted`` (a segment closed nothing new) and ``max_segments``.
     ``depth`` is the length of the returned program, or of the longest one any
     expansion produced. The cyclic collector is off, as in ``beam_solve``.
@@ -752,6 +808,7 @@ def segment_beam_solve(
             budget=budget,
             max_state_atoms=max_state_atoms,
             deadline=deadline,
+            scoring=scoring,
         )
     finally:
         if collecting:
@@ -770,7 +827,10 @@ def _segment_beam_solve(
     budget: int | None,
     max_state_atoms: int | None,
     deadline: float | None = None,
+    scoring: str = "cumulative",
 ) -> BeamResult:
+    if scoring not in SCORINGS:
+        raise ValueError(f"unknown scoring {scoring!r}; choose one of {SCORINGS}")
     started = time.perf_counter()
     inputs, outputs = _prepare(task, guard)
     encode = block_encoder(scorer, outputs)
@@ -809,6 +869,8 @@ def _segment_beam_solve(
         if stop is not None:
             return result(program, stop)
         frontier = _next_roots(closed, expanded)[:roots]
+        if scoring == "local":
+            frontier = [(product, program, 0.0) for product, program, _ in frontier]
         if not frontier:
             return result(None, "frontier_exhausted")
     return result(None, "max_segments")
@@ -847,6 +909,7 @@ def segment_witness_ranks(
     guard: str = "both",
     budget: int | None = None,
     max_state_atoms: int | None = None,
+    scoring: str = "cumulative",
 ) -> list[dict]:
     """Where the witness's closed states rank in the segment search: the K diagnostic.
 
@@ -866,6 +929,10 @@ def segment_witness_ranks(
     or, if the search never produced it, the forced root before it plus the
     witness's own log-probability over the segment between them. The rows stop
     early, with ``complete`` False on the last, if ``budget`` runs out.
+
+    ``scoring`` ``local`` is ``segment_beam_solve``'s: every root, the forced
+    witness root included, starts its segment at 0, so ``rank`` and ``score``
+    are by the gain in the segment, and the roots were chosen by that gain too.
     """
     collecting = gc.isenabled()
     if collecting:
@@ -882,6 +949,7 @@ def segment_witness_ranks(
             guard=guard,
             budget=budget,
             max_state_atoms=max_state_atoms,
+            scoring=scoring,
         )
     finally:
         if collecting:
@@ -900,7 +968,11 @@ def _segment_witness_ranks(
     guard: str,
     budget: int | None,
     max_state_atoms: int | None,
+    scoring: str = "cumulative",
 ) -> list[dict]:
+    if scoring not in SCORINGS:
+        raise ValueError(f"unknown scoring {scoring!r}; choose one of {SCORINGS}")
+    local = scoring == "local"
     inputs, outputs = _prepare(task, guard)
     encode = block_encoder(scorer, outputs)
     program = tuple(task.program if program is None else program)
@@ -926,7 +998,11 @@ def _segment_witness_ranks(
     for segment, cut in enumerate(closed_cuts(states, program)[:max_segments]):
         forced = witness[0] not in {product for product, _, _ in frontier}
         if forced:
-            frontier = [*frontier, witness]
+            # Under local scoring the forced root restarts at 0 like the others.
+            frontier = [
+                *frontier,
+                (witness[0], witness[1], 0.0 if local else witness[2]),
+            ]
         expanded.update(product for product, _, _ in frontier)
         stop, _program, closed = _run_segment(
             frontier,
@@ -976,12 +1052,17 @@ def _segment_witness_ranks(
         if rank is not None:
             witness = every[rank - 1]
         else:
+            # The witness root's score at the segment's start: 0 under local
+            # scoring, where every root restarts, else what it carried.
+            base = 0.0 if local else witness[2]
             witness = (
                 target,
                 (*witness[1], *program[start:cut]),
-                witness[2] + own[cut] - own[start],
+                base + own[cut] - own[start],
             )
         frontier = ranked[:roots]
+        if local:
+            frontier = [(product, path, 0.0) for product, path, _ in frontier]
         start = cut
     return rows
 
