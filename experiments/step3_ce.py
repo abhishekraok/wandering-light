@@ -156,7 +156,18 @@ def main(argv: list[str] | None = None) -> int:
     v4 = load(fetch_corpus(V4))
     world = load(fetch_corpus(WORLD))
     sets = row_sets(v4, world)
-    rows = {name: witness_rows(tasks) for name, tasks in sets.items()}
+    # Rows are built in each checkpoint's own encoding (#168); machine first,
+    # since its counts are the shape every encoding shares.
+    by_encoding: dict[str, dict[str, list]] = {}
+
+    def rows_in(encoding: str) -> dict[str, list]:
+        if encoding not in by_encoding:
+            by_encoding[encoding] = {
+                name: witness_rows(tasks, encoding) for name, tasks in sets.items()
+            }
+        return by_encoding[encoding]
+
+    rows = rows_in("machine")
     shape = {name: {"tasks": len(sets[name]), "rows": len(rows[name])} for name in sets}
     print(json.dumps(shape, indent=1))
 
@@ -168,6 +179,7 @@ def main(argv: list[str] | None = None) -> int:
     for checkpoint in args.checkpoint:
         model = load_policy(checkpoint, device=args.device)
         model.eval()
+        rows = rows_in(getattr(model, "encoding", "machine"))
         # An empty set scores None rather than dividing by zero: after the
         # contaminated world eval behaviours are removed, `world-eval-dirty`
         # is empty by construction, and that emptiness is itself the check.
