@@ -70,10 +70,38 @@ def shape(task) -> dict[str, int]:
     }
 
 
+def eval_skeletons(tasks: dict[str, list]) -> set:
+    """Skeletons of the eval behaviours: a train program must not share one."""
+    return {
+        staged.skeleton(group[0].program)
+        for group in tasks.values()
+        if group[0].split != "train"
+    }
+
+
+def needs_capping(tasks: dict[str, list], cap: int, segment_cap: int) -> list[str]:
+    """Train behaviours whose witness breaks the body cap or the segment cap."""
+    out = []
+    for name, group in sorted(tasks.items()):
+        witness = group[0]
+        if witness.split != "train":
+            continue
+        root = staged.parse_stack(witness.inputs[0], basis=staged.BASIS)
+        body = staged.measure(witness.program, root)["largest_quotation"]
+        if body > cap or shape(witness)["longest_segment"] > segment_cap:
+            out.append(name)
+    return out
+
+
 def assess(
-    name: str, text: str, tasks: dict[str, list], cap: int = 4
+    name: str,
+    text: str,
+    tasks: dict[str, list],
+    cap: int = 4,
+    segment_cap: int | None = None,
+    skeletons: set | None = None,
 ) -> dict[str, Any]:
-    out = staged.assess(name, text, tasks, set())
+    out = staged.assess(name, text, tasks, skeletons or set())
     result: dict[str, Any] = {
         "behaviour": name,
         "program": text,
@@ -91,6 +119,14 @@ def assess(
         metrics={**metrics, **shape(mine)},
         witness_metrics={**out["fused"], **shape(witness)},
     )
+    if segment_cap is not None:
+        result["segment_cap"] = segment_cap
+        result["within_segment_cap"] = (
+            result["metrics"]["longest_segment"] <= segment_cap
+        )
+    if skeletons:
+        # Training data must never reproduce an eval behaviour's skeleton.
+        result["eval_collision"] = out["verdict"] == "collides with an eval skeleton"
     return result
 
 
@@ -103,8 +139,25 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--file", type=Path, help="jsonl of {behaviour, program}")
     parser.add_argument("--cap", type=int, choices=CAPS, default=4)
+    parser.add_argument(
+        "--segment-cap", type=int, default=None, help="longest closed-state segment"
+    )
+    parser.add_argument(
+        "--train",
+        action="store_true",
+        help="train-side authoring: reject eval-skeleton collisions",
+    )
+    parser.add_argument(
+        "--list-train",
+        action="store_true",
+        help="train behaviours breaking --cap or --segment-cap",
+    )
     args = parser.parse_args(argv)
     tasks = staged.v4_tasks()
+    skeletons = eval_skeletons(tasks) if args.train else None
+    if args.list_train:
+        for name in needs_capping(tasks, args.cap, args.segment_cap or 10**9):
+            print(f"{name}\t{tasks[name][0].length}")
     if args.list:
         for name in unsolved():
             print(f"{name}\t{tasks[name][0].length}")
@@ -112,16 +165,25 @@ def main(argv: list[str] | None = None) -> int:
         staged.show(args.show, tasks)
         print(f"\nCap: no executed quotation over {args.cap} atoms, nested counted.")
     if args.attempt:
-        print(json.dumps(assess(*args.attempt, tasks, args.cap), indent=1))
+        print(
+            json.dumps(
+                assess(*args.attempt, tasks, args.cap, args.segment_cap, skeletons),
+                indent=1,
+            )
+        )
     if args.file:
         for line in args.file.read_text().splitlines():
             if line.strip():
                 row = json.loads(line)
-                print(
-                    json.dumps(
-                        {**row, **assess(row["behaviour"], row["program"], tasks)}
-                    )
+                verdict = assess(
+                    row["behaviour"],
+                    row["program"],
+                    tasks,
+                    args.cap,
+                    args.segment_cap,
+                    skeletons,
                 )
+                print(json.dumps({**row, **verdict}))
     return 0
 
 
