@@ -25,6 +25,12 @@ of atoms, where hashing, comparing and encoding them is all the search does
 guard verdict; a bound far above any witness's peak state changes no search that
 stays small.
 
+``budget`` caps primitive executions and ``deadline``, a ``time.perf_counter()``
+value, caps wall-clock; both are checked before every op attempt, and a search
+stopped by one ends ``budget`` or ``wall_clock_cap``. Left None, neither is
+read and the search is the uncapped one (``tests/test_short_segment_search.py``
+pins that).
+
 ``segment_beam_solve`` is the segment-reset beam of short-segment-campaign
 (#168). A **closed state** is what a top-level combinator application leaves: an
 op that runs a quotation (``RUNS_CODE``) applied to a product with no mark on any
@@ -141,7 +147,8 @@ class BeamObserver:
 @dataclass(frozen=True, slots=True)
 class BeamResult:
     program: tuple[str, ...] | None
-    # fit | max_depth | frontier_exhausted | budget; max_segments for the segment beam
+    # fit | max_depth | frontier_exhausted | budget | wall_clock_cap; max_segments
+    # for the segment beam
     termination: str
     seconds: float  # to the hit, or to termination
     executions: int
@@ -255,6 +262,7 @@ def beam_solve(
     budget: int | None = None,
     observer: BeamObserver | None = None,
     max_state_atoms: int | None = None,
+    deadline: float | None = None,
 ) -> BeamResult:
     """Search one task. The cyclic collector is off for the duration.
 
@@ -282,6 +290,7 @@ def beam_solve(
             budget=budget,
             observer=observer,
             max_state_atoms=max_state_atoms,
+            deadline=deadline,
         )
     finally:
         if collecting:
@@ -298,6 +307,7 @@ def _beam_solve(
     budget: int | None = None,
     observer: BeamObserver | None = None,
     max_state_atoms: int | None = None,
+    deadline: float | None = None,
 ) -> BeamResult:
     started = time.perf_counter()
     watch = observer if observer is not None else BeamObserver()
@@ -342,6 +352,8 @@ def _beam_solve(
             for index, op in enumerate(OPS):
                 if budget is not None and executions >= budget:
                     return result(None, "budget", depth + 1)
+                if deadline is not None and time.perf_counter() >= deadline:
+                    return result(None, "wall_clock_cap", depth + 1)
                 if watching:
                     moved, spent, stepped, reason = step_all_explained(product, op)
                     watch.expansion_attempted(
@@ -460,6 +472,7 @@ def _run_segment(
     budget: int | None,
     max_state_atoms: int | None,
     stop_at_fit: bool,
+    deadline: float | None = None,
 ) -> tuple[str | None, tuple[str, ...] | None, Closed]:
     """One segment: a flat beam from every root, until its paths close.
 
@@ -476,7 +489,8 @@ def _run_segment(
     since a path that cannot close before the segment ends is dropped; for a
     closed one it is ``horizon`` less the program length. ``encode`` is
     ``block_encoder(scorer, outputs)``. Returns ``(stop, program, closed)``:
-    ``stop`` is ``fit`` or ``budget`` when the search must end here, else None;
+    ``stop`` is ``fit``, ``budget`` or ``wall_clock_cap`` when the search must
+    end here, else None;
     ``closed`` merges equal closed states across roots, keeping the best score
     and its program.
     """
@@ -497,6 +511,8 @@ def _run_segment(
                 for index, op in enumerate(OPS):
                     if budget is not None and tally.executions >= budget:
                         return "budget", None, closed
+                    if deadline is not None and time.perf_counter() >= deadline:
+                        return "wall_clock_cap", None, closed
                     moved, spent, stepped = step_all_quiet(product, op)
                     tally.executions += stepped
                     tally.fuel += spent
@@ -598,6 +614,7 @@ def segment_beam_solve(
     guard: str = "both",
     budget: int | None = None,
     max_state_atoms: int | None = None,
+    deadline: float | None = None,
 ) -> BeamResult:
     """Search one task by segments that reset at closed states.
 
@@ -607,7 +624,8 @@ def segment_beam_solve(
     roots. A closed state that has already been a root is not one again, so the
     search cannot circle. A successor equal to the shown outputs ends the search
     with the whole program from the inputs. ``budget`` caps primitive
-    executions over the whole search. Terminations: ``fit``, ``budget``,
+    executions over the whole search and ``deadline`` its wall-clock, as in
+    ``beam_solve``. Terminations: ``fit``, ``budget``, ``wall_clock_cap``,
     ``frontier_exhausted`` (a segment closed nothing new) and ``max_segments``.
     ``depth`` is the length of the returned program, or of the longest one any
     expansion produced. The cyclic collector is off, as in ``beam_solve``.
@@ -626,6 +644,7 @@ def segment_beam_solve(
             guard=guard,
             budget=budget,
             max_state_atoms=max_state_atoms,
+            deadline=deadline,
         )
     finally:
         if collecting:
@@ -643,6 +662,7 @@ def _segment_beam_solve(
     guard: str,
     budget: int | None,
     max_state_atoms: int | None,
+    deadline: float | None = None,
 ) -> BeamResult:
     started = time.perf_counter()
     inputs, outputs = _prepare(task, guard)
@@ -677,6 +697,7 @@ def _segment_beam_solve(
             budget=budget,
             max_state_atoms=max_state_atoms,
             stop_at_fit=True,
+            deadline=deadline,
         )
         if stop is not None:
             return result(program, stop)

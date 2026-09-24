@@ -205,8 +205,18 @@ def solve_tasks(
     system: System,
     *,
     progress: Callable[[Row], None] | None = None,
+    budgets: Sequence[int | None] | None = None,
+    seconds_cap: float | None = None,
 ) -> list[Row]:
-    """Attempt every task in order under ``system``; grade after the last clock stops."""
+    """Attempt every task in order under ``system``; grade after the last clock stops.
+
+    ``budgets[i]``, when given, caps task i's primitive executions, library
+    replay included: the search gets what the replay left. ``seconds_cap``
+    caps each task's wall-clock, replay included; a search it stops ends
+    ``wall_clock_cap``. Both None is the uncapped run `BEST` measures.
+    """
+    if budgets is not None and len(budgets) != len(tasks):
+        raise ValueError(f"{len(budgets)} budgets for {len(tasks)} tasks")
     library: list[tuple[str, ...]] = []
     rows: list[Row] = []
     # `run_body` memoises quotation bodies process-globally and for the life of
@@ -220,6 +230,7 @@ def solve_tasks(
     gc.freeze()
     for index, task in enumerate(tasks):
         started = time.perf_counter()
+        deadline = started + seconds_cap if seconds_cap is not None else None
         program: tuple[str, ...] | None = None
         source, termination = "search", "library_miss"
         executions = fuel = expansions = depth = 0
@@ -234,6 +245,9 @@ def solve_tasks(
                     program, source, termination = candidate, "library", "fit"
                     break
         if program is None:
+            budget = budgets[index] if budgets is not None else None
+            if budget is not None:
+                budget = max(0, budget - executions)
             if system.search == "segment":
                 result = segment_beam_solve(
                     task,
@@ -243,7 +257,9 @@ def solve_tasks(
                     segment_depth=system.segment_depth,
                     max_segments=system.max_segments,
                     guard=system.guard,
+                    budget=budget,
                     max_state_atoms=system.max_state_atoms,
+                    deadline=deadline,
                 )
             else:
                 result = beam_solve(
@@ -252,7 +268,9 @@ def solve_tasks(
                     beam_width=system.beam_width,
                     max_depth=system.max_depth,
                     guard=system.guard,
+                    budget=budget,
                     max_state_atoms=system.max_state_atoms,
+                    deadline=deadline,
                 )
             program, termination = result.program, result.termination
             executions += result.executions
