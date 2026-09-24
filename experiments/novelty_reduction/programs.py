@@ -33,6 +33,7 @@ PLAIN = (
     *("add", "sub", "mul", "div", "eq?", "lt?", "quote", "cat"),
 )
 COMBINATORS = ("map", "filter", "fold", "dip", "i")
+RUNS = frozenset((*COMBINATORS, "ifte"))
 SEGMENT_OPS = 8
 BODY_ATOMS = 4
 PREFIX_OPS = 3
@@ -42,12 +43,70 @@ FRESH = "F3"
 
 @dataclass(frozen=True, slots=True)
 class Grammar:
-    segments: tuple[int, int] = (1, 3)
+    """The grammar level (max body atoms, max segments, nesting) and rejection limits.
+
+    M2 is fixed at level (4, 3, none). A later run can start smaller, e.g.
+    (2, 1, none), and widen as certification grows; the widening rule is not
+    built. Nesting is not implemented, so only ``nesting=False`` is accepted.
+    """
+
+    max_body: int = BODY_ATOMS
+    max_segments: int = 3
+    nesting: bool = False
     tries: int = 200  # candidate segments per step before the proposal ends
     max_state_atoms: int = MAX_STATE_ATOMS
 
+    def __post_init__(self) -> None:
+        if self.nesting:
+            raise NotImplementedError("nested bodies are not in the M2 grammar")
+        if not 1 <= self.max_body <= BODY_ATOMS or self.max_segments < 1:
+            raise ValueError(f"bad grammar level {self.level}")
+
+    @property
+    def level(self) -> str:
+        return f"{self.max_body},{self.max_segments},{'nested' if self.nesting else 'none'}"
+
+    @staticmethod
+    def parse(level: str) -> Grammar:
+        body, segments, nesting = level.split(",")
+        if nesting not in ("none", "nested"):
+            raise ValueError(f"nesting must be none or nested, not {nesting!r}")
+        return Grammar(int(body), int(segments), nesting == "nested")
+
 
 GRAMMAR = Grammar()
+
+
+def body_atoms(path) -> int:
+    """The most atoms in any top-level quotation of ``path``, nested atoms counted."""
+    best = depth = count = 0
+    for name in path:
+        if name == "[":
+            depth += 1
+            if depth == 1:
+                count = 0
+            continue
+        if name == "]":
+            depth -= 1
+            if depth == 0:
+                best = max(best, count)
+            continue
+        if depth >= 1:
+            count += 1
+    return best
+
+
+def path_segments(path) -> int:
+    """Top-level combinator applications along ``path``."""
+    depth = segments = 0
+    for name in path:
+        depth += (name == "[") - (name == "]")
+        segments += depth == 0 and name in RUNS
+    return segments
+
+
+def body_stratum(atoms: int) -> str:
+    return {0: "0", 1: "1", 2: "2", 3: "3-4", 4: "3-4"}.get(atoms, "5+")
 
 
 @dataclass(slots=True)
@@ -59,8 +118,8 @@ class Proposal:
     cuts: list[int]
 
 
-def random_segment(rng: random.Random) -> tuple[str, ...]:
-    body = rng.randint(1, BODY_ATOMS)
+def random_segment(rng: random.Random, grammar: Grammar = GRAMMAR) -> tuple[str, ...]:
+    body = rng.randint(1, grammar.max_body)
     prefix = rng.randint(0, min(PREFIX_OPS, SEGMENT_OPS - 3 - body))
     return (
         *rng.choices(PLAIN, k=prefix),
@@ -90,12 +149,12 @@ def propose(
     product: Product, rng: random.Random, grammar: Grammar = GRAMMAR
 ) -> Proposal:
     """Up to a random number of admissible segments from ``product``; possibly none."""
-    target = rng.randint(*grammar.segments)
+    target = rng.randint(1, grammar.max_segments)
     out = Proposal([], [product], [])
     seen = {product}
     for _ in range(target):
         for _ in range(grammar.tries):
-            segment = random_segment(rng)
+            segment = random_segment(rng, grammar)
             states = run_segment(out.states[-1], segment, grammar.max_state_atoms)
             if states is None or states[-1] in seen:
                 continue

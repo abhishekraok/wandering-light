@@ -4,14 +4,14 @@ Of ``size`` picks, from archived pairs within the curriculum's ``max_cuts``:
 
 - ``reattempt``: 10% from pairs already attempted (cycle 2 on), so measured
   progress (the change in |V_hat - V_emp| on the same pair) exists;
-- ``progress``: half the rest, the largest *predicted* drop in E between the
-  last two calibration phases, among tracked pairs E was predicted on in both;
-  with fewer than two phases behind it the share goes to the novelty rule;
 - ``novel``: the rest, uniform over pairs whose target's count novelty is
   above ``novel_threshold``; ``novel_fill`` tops up by lowest v(t) when too
   few are novel.
 
-Every pick carries the rule that chose it.
+The predicted-progress ranking (largest drop in predicted E between the last
+two calibration phases) is computed and logged, never used to collect: a
+falling E is not demonstrated progress (#171 F11). Every pick carries the
+rule that chose it.
 """
 
 from __future__ import annotations
@@ -25,7 +25,6 @@ if TYPE_CHECKING:
     from experiments.novelty_reduction.archive import LoopArchive
 
 REATTEMPT = "reattempt"
-PROGRESS = "progress"
 NOVEL = "novel"
 NOVEL_FILL = "novel_fill"
 
@@ -44,12 +43,14 @@ SELECTOR = Selector()
 def select(
     archive: LoopArchive,
     cycle: int,
-    e_history: dict[int, dict[tuple[int, int], float]],
     rng: random.Random,
     config: Selector = SELECTOR,
 ) -> list[tuple[tuple[int, int], str]]:
+    """Eligibility is on the witness d_cuts, which relaxation never changes."""
     candidates = sorted(
-        key for key, record in archive.pairs.items() if record.d_cuts <= config.max_cuts
+        key
+        for key, record in archive.pairs.items()
+        if record.witness_d_cuts <= config.max_cuts
     )
     picked: list[tuple[tuple[int, int], str]] = []
     taken: set[tuple[int, int]] = set()
@@ -65,12 +66,6 @@ def select(
         count = min(round(config.size * config.reattempt), len(attempted))
         take(rng.sample(attempted, count), REATTEMPT)
     rest = config.size - len(picked)
-    previous, latest = e_history.get(cycle - 2), e_history.get(cycle - 1)
-    if previous is not None and latest is not None:
-        both = [k for k in latest if k in previous and k not in taken]
-        both.sort(key=lambda k: (-(previous[k] - latest[k]), k))
-        take(both[: rest // 2], PROGRESS)
-    rest = config.size - len(picked)
     novel = [
         key
         for key in candidates
@@ -83,3 +78,19 @@ def select(
         left.sort(key=lambda k: (archive.visits[k[1]], k))
         take(left[:rest], NOVEL_FILL)
     return picked
+
+
+def predicted_progress(
+    e_history: dict[int, dict[tuple[int, int], float]], cycle: int, limit: int
+) -> list[dict]:
+    """The top ``limit`` pairs by predicted E drop from cycle - 2 to cycle - 1; logged only."""
+    previous, latest = e_history.get(cycle - 2), e_history.get(cycle - 1)
+    if previous is None or latest is None:
+        return []
+    both = sorted(
+        (k for k in latest if k in previous),
+        key=lambda k: (-(previous[k] - latest[k]), k),
+    )
+    return [
+        {"s": k[0], "t": k[1], "e_drop": previous[k] - latest[k]} for k in both[:limit]
+    ]

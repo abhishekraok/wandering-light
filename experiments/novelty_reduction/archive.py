@@ -36,6 +36,10 @@ ROLLOUT = "rollout"
 
 @dataclass(slots=True)
 class PairRecord:
+    """``path``/``d_ops``/``d_cuts`` are the shortest known and may relax; the
+    ``witness_*`` fields are the path that first archived the pair and never
+    change, so strata and distance features keep one provenance (#171 F5)."""
+
     s: int
     t: int
     path: tuple[str, ...]
@@ -44,6 +48,15 @@ class PairRecord:
     origin: str
     cycle: int
     attempts: int = 0
+    witness_path: tuple[str, ...] = ()
+    witness_d_ops: int = 0
+    witness_d_cuts: int = 0
+
+    def __post_init__(self) -> None:
+        if not self.witness_path:
+            self.witness_path = self.path
+            self.witness_d_ops = self.d_ops
+            self.witness_d_cuts = self.d_cuts
 
 
 @dataclass(slots=True)
@@ -126,6 +139,11 @@ class LoopArchive:
 
     def origin_of(self, node: int):
         return self.origins[node]
+
+    def lineage(self, node: int) -> tuple:
+        """The input set a node was first reached from: its root's texts."""
+        origin = self.origins[node]
+        return origin[0] if origin is not None else ("node", node)
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)

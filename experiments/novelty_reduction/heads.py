@@ -1,10 +1,12 @@
-"""novelty-reduction (#171): V and E heads on the frozen trunk, and RND novelty.
+"""novelty-reduction (#171): P and E heads on the frozen trunk, and RND novelty.
 
-V and E read the policy's pooled ``(s, t)`` features, computed with the policy
-frozen, so no gradient reaches the trunk (the stop-gradient is exact). V is
-P(reach t within B), fit to ``hits / n``; E is P(V is wrong), fit to the
-Wilson-rule miss of a V that did not see the pair. Cross-fit: V on half A
-labels half B, and the reverse; E fits all labels; V is then refit on all.
+P and E read the policy's pooled ``(s, t)`` features, computed with the policy
+frozen, so no gradient reaches the trunk (the stop-gradient is exact). P is
+P(reach t within B), fit to ``hits / n``; E is P(the frozen P fails a fresh
+n-rollout Wilson check), fit on pairs P did not see. (V is reserved for the
+value function, negative expected steps to go, which is not built.) Three partitions
+grouped by lineage: P on the first, E on the second, thresholds on the
+third; nothing is refit (#171 F6).
 
 RND: a frozen random encoder and a trained predictor, both the policy's
 pooled item encoder with their own weights, reading one state against an
@@ -77,6 +79,8 @@ def fit_head(
 ) -> Head:
     """Full-batch Adam on BCE against soft targets in [0, 1]."""
     torch.manual_seed(seed)
+    if len(features) == 0:  # an empty partition: an untrained head, logged upstream
+        return Head(features.shape[1], config.hidden).eval()
     x = torch.from_numpy(features).float()
     y = torch.from_numpy(np.asarray(targets, dtype=np.float32))
     head = Head(x.shape[1], config.hidden)
@@ -94,29 +98,47 @@ def fit_head(
     return head
 
 
-def fit_heads(
+def partition(groups: Sequence, seed: int, parts: int = 3) -> np.ndarray:
+    """A part per item, whole groups (lineages) at a time, as even as groups allow."""
+    order = list(dict.fromkeys(groups))
+    np.random.default_rng(seed).shuffle(order)
+    sizes = dict.fromkeys(order, 0)
+    for g in groups:
+        sizes[g] += 1
+    load = [0] * parts
+    assign = {}
+    for g in order:  # greedy: each group to the lightest part so far
+        part = int(np.argmin(load))
+        assign[g] = part
+        load[part] += sizes[g]
+    return np.array([assign[g] for g in groups], dtype=int)
+
+
+def fit_partitioned(
     features: np.ndarray,
     hits: np.ndarray,
     n: int,
+    parts: np.ndarray,
     seed: int,
     config: HeadFit = HEAD_FIT,
     z: float = scoring.Z90,
-) -> tuple[Head, Head, dict, np.ndarray]:
-    """Cross-fit V and E on one phase: ``(V, E, facts, out-of-fold V_hat)``."""
+) -> tuple[Head, Head, dict]:
+    """P on part 0, frozen; E on part 1; part 2 is left for thresholds (#171 F6).
+
+    E's target is "the frozen P fails a fresh n-rollout Wilson check" on a
+    pair P never saw; P is not refit afterwards.
+    """
     hits = np.asarray(hits)
     rate = hits / n
-    order = np.random.default_rng(seed).permutation(len(hits))
-    halves = order[: len(order) // 2], order[len(order) // 2 :]
-    miss = np.zeros(len(hits), dtype=bool)
-    held_out = np.zeros(len(hits))
-    for fit_on, label in (halves, halves[::-1]):
-        v = fit_head(features[fit_on], rate[fit_on], config, seed)
-        held_out[label] = v.predict(features[label])
-        miss[label] = ~scoring.hit_wilson(held_out[label], hits[label], n, z)
-    e = fit_head(features, miss.astype(np.float32), config, seed + 1)
-    v = fit_head(features, rate, config, seed + 2)
-    facts = {"pairs": len(hits), "cross_fit_miss_rate": float(miss.mean())}
-    return v, e, facts, held_out
+    first, second = parts == 0, parts == 1
+    p = fit_head(features[first], rate[first], config, seed)
+    miss = ~scoring.hit_wilson(p.predict(features[second]), hits[second], n, z)
+    e = fit_head(features[second], miss.astype(np.float32), config, seed + 1)
+    facts = {
+        "pairs_by_part": np.bincount(parts, minlength=3).tolist(),
+        "e_target_rate": float(miss.mean()) if len(miss) else None,
+    }
+    return p, e, facts
 
 
 # ---------------------------------------------------------------------------
