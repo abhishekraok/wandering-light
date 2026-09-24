@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 def features_of(
     scorer: PolicyScorer, products: Sequence[Product], outputs: Product
 ) -> np.ndarray:
+    if getattr(scorer, "encoding", "machine") != "machine":
+        raise ValueError(f"feature map: machine blocks only, not {scorer.encoding}")
     if not products:
         return np.zeros((0, 0), dtype=np.float32)
     targets = encode_targets(outputs)

@@ -13,6 +13,11 @@ op on the capped programs: TRANSFERS at 0.85 or less, NO_TRANSFER at 0.95 or
 more, PARTIAL between.
 
     uv run python experiments/short_body/transfer.py --out reports/short-body-20260923
+
+``--checkpoint NAME=PATH`` (repeatable) scores those policies in place of the
+default set, a ``difference`` one (short-segment-campaign #168) included; the
+staged/fused reading is made only when every seed of both is among them.
+``--scores`` names the `score.py` output to read, ``--name`` this one's.
 """
 
 from __future__ import annotations
@@ -91,9 +96,18 @@ def profile(rows: list[dict]) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument(
+        "--checkpoint",
+        action="append",
+        default=[],
+        metavar="NAME=PATH",
+        help="score these policies in place of the default set",
+    )
+    parser.add_argument("--scores", default="scores.json", help="input file in --out")
+    parser.add_argument("--name", default="transfer.json", help="output file in --out")
     args = parser.parse_args(argv)
     torch.set_num_threads(8)
-    scores = json.loads((args.out / "scores.json").read_text())
+    scores = json.loads((args.out / args.scores).read_text())
     genuine = [
         r
         for r in scores["rows"]
@@ -109,19 +123,34 @@ def main(argv: list[str] | None = None) -> int:
         ],
         "authored": [authored[r["behaviour"]] for r in genuine],
     }
-    checkpoints = {
-        f"{arm}-s{s}": STAGED / f"{arm}-s{s}-e3" for arm in ARMS for s in SEEDS
-    }
-    checkpoints["world"] = WORLD
+    if args.checkpoint:
+        pairs = [item.split("=", 1) for item in args.checkpoint]
+        if any(len(pair) != 2 for pair in pairs):
+            parser.error("--checkpoint takes NAME=PATH")
+        checkpoints = {name: Path(path) for name, path in pairs}
+    else:
+        checkpoints = {
+            f"{arm}-s{s}": STAGED / f"{arm}-s{s}-e3" for arm in ARMS for s in SEEDS
+        }
+        checkpoints["world"] = WORLD
     out: dict[str, Any] = {"programs": len(genuine), "checkpoints": {}}
+    encodings = {}
     for name, path in checkpoints.items():
         scorer = PolicyScorer(load_policy(path), "cpu")
+        encodings[name] = scorer.encoding
         out["checkpoints"][name] = {
             side: profile([walk(t, scorer, encoding=None, mask=False) for t in group])
             for side, group in tasks.items()
         }
         c = out["checkpoints"][name]
         print(name, {s: round(c[s]["median_per_op"], 3) for s in c}, flush=True)
+    if args.checkpoint:
+        out["encodings"] = encodings
+    needed = [f"{arm}-s{s}" for arm in ("staged", "fused") for s in SEEDS]
+    if not all(name in out["checkpoints"] for name in needed):
+        (args.out / args.name).write_text(json.dumps(out, indent=1) + "\n")
+        print("RESULT no staged/fused reading for these checkpoints", flush=True)
+        return 0
     ratios = [
         out["checkpoints"][f"staged-s{s}"]["capped"]["median_per_op"]
         / out["checkpoints"][f"fused-s{s}"]["capped"]["median_per_op"]
@@ -136,7 +165,7 @@ def main(argv: list[str] | None = None) -> int:
         if ratio >= NO_TRANSFER
         else "PARTIAL"
     )
-    (args.out / "transfer.json").write_text(json.dumps(out, indent=1) + "\n")
+    (args.out / args.name).write_text(json.dumps(out, indent=1) + "\n")
     print("RESULT", out["reading"], ratios, flush=True)
     return 0
 

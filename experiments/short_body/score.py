@@ -15,6 +15,11 @@ Clears come from `frame_gate.composite`:
 - **both**.
 
     uv run python experiments/short_body/score.py --out reports/short-body-20260923
+
+``--checkpoint`` scores under another policy in place of `BEST`, a
+``difference`` one (short-segment-campaign #168) included: blocks and the
+calibration rows are built in the checkpoint's own encoding. ``--name`` keeps
+its output apart from `BEST`'s ``scores.json``.
 """
 
 from __future__ import annotations
@@ -104,16 +109,21 @@ def scored(row: dict, t: float) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument(
+        "--checkpoint", type=Path, help="a local policy in place of BEST's"
+    )
+    parser.add_argument("--name", default="scores.json", help="output file in --out")
     args = parser.parse_args(argv)
     torch.set_num_threads(8)
     tasks = staged.v4_tasks()
     picks = chosen(args.out, tasks)
     by_name = {b.name: b for b in CATALOGUE}
     authored = {t.behaviour: t for t in eval_witnesses("stack_pbe_v4")}
-    scorer = PolicyScorer(
-        load_policy(fetch_stack_policy(BEST.repo_id, BEST.revision)), "cpu"
+    policy = args.checkpoint or fetch_stack_policy(BEST.repo_id, BEST.revision)
+    scorer = PolicyScorer(load_policy(policy), "cpu")
+    calibration = fit_temperature(
+        scorer, validation_rows(None, scorer.encoding), validation_legal()
     )
-    calibration = fit_temperature(scorer, validation_rows(None), validation_legal())
     t = calibration["temperature"]
     rows = []
     for name in unsolved():
@@ -199,7 +209,13 @@ def main(argv: list[str] | None = None) -> int:
         "reading": reading,
         "rows": rows,
     }
-    (args.out / "scores.json").write_text(json.dumps(out, indent=1) + "\n")
+    if args.checkpoint is not None:  # `BEST`'s output stays as it was
+        out = {
+            "checkpoint": str(args.checkpoint),
+            "encoding": scorer.encoding,
+            **out,
+        }
+    (args.out / args.name).write_text(json.dumps(out, indent=1) + "\n")
     print(json.dumps(summary, indent=1), "\nRESULT", reading, "gain", gain, flush=True)
     return 0
 

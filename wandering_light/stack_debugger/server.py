@@ -88,6 +88,10 @@ def _op_table(
     The same mask and per-node normalization the beam uses, so a hand-driven
     step and a searched step rank ops alike.
     """
+    if getattr(context.scorer, "encoding", "machine") != "machine":
+        raise ValueError(
+            f"debugger: machine blocks only, not {context.scorer.encoding}"
+        )
     targets = encode_targets(outputs)
     block = item_array(
         [encode_item(s, t) for s, t in zip(product, targets, strict=True)]

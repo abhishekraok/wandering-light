@@ -372,3 +372,66 @@ def test_train_records_the_encoding_and_refuses_to_mix(
     assert any("skip train capped" in line for line in lines)
     with pytest.raises(ValueError, match="separate --run-dir"):
         sa.train(run_dir, arm_tasks(), "cpu", ["capped"], [0], False, lines.append)
+
+
+# ---------------------------------------------------------------------------
+# Per-op scoring scripts and the machine-only tools
+# ---------------------------------------------------------------------------
+
+
+def test_the_per_op_scripts_build_blocks_in_the_scorers_encoding():
+    import experiments.cycle_deficit as cd
+    import experiments.floored_beam as fb
+    import experiments.frame_gate as fg
+    import experiments.search_proxy as sp
+    import experiments.segment_composite as sc
+    import experiments.staged_transfer as st
+
+    torch.manual_seed(0)
+    task = task_for("sum")
+    calls = {
+        "frame_gate.walk": lambda s: fg.walk(task, s, encoding=None, mask=False),
+        "segment_composite": lambda s: sc.step_deficits(task, s),
+        "staged_transfer": lambda s: st.score(task, s),
+        "cycle_deficit": lambda s: cd.deficits(task, s),
+        "search_proxy": lambda s: sp.score_task(task, s),
+        "floored_beam": lambda s: fb.floored_beam_solve(
+            task, s, tau=3.0, beam_width=4, max_depth=4
+        ),
+    }
+    for encoding, flagged in ((DIFFERENCE, True), (MACHINE, False)):
+        for name, call in calls.items():
+            scorer = Recording(StackPairPolicy(TINY, encoding=encoding), "cpu")
+            call(scorer)
+            assert (scorer.peak >= FLAG_BASE) is flagged, (name, encoding)
+
+
+def test_frame_validation_rows_are_machine_only():
+    import experiments.frame_gate as fg
+
+    with pytest.raises(ValueError, match="machine-only"):
+        fg.validation_rows("frames", DIFFERENCE)
+
+
+def test_the_debugger_and_workshop_refuse_a_difference_policy(tmp_path):
+    from types import SimpleNamespace
+
+    from wandering_light.stack_debugger.feature_map import features_of
+    from wandering_light.stack_debugger.server import _op_table
+    from wandering_light.stack_workshop.model import Adviser
+
+    scorer = PolicyScorer(StackPairPolicy(TINY, encoding=DIFFERENCE), "cpu")
+    product, outputs = witness_products(("sum",))[0]
+    with pytest.raises(ValueError, match="machine blocks only"):
+        features_of(scorer, [product], outputs)
+    with pytest.raises(ValueError, match="machine blocks only"):
+        _op_table(SimpleNamespace(scorer=scorer), product, outputs, 4, "both")
+    path = save_policy(
+        tmp_path / "difference",
+        StackPairPolicy(TINY, encoding=DIFFERENCE),
+        trainer_state={},
+        manifest={},
+        wandb_url=None,
+    )
+    status = Adviser().load(path)
+    assert not status["ready"] and "machine blocks only" in status["error"]

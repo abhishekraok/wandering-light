@@ -39,14 +39,11 @@ import torch  # noqa: E402
 import experiments.compute_optimal_mark28 as co  # noqa: E402
 from experiments.hindsight_subtargets import replay_states  # noqa: E402
 from experiments.staged_arms import EPOCHS, SEEDS, treated, with_program  # noqa: E402
-from wandering_light.stack_beam import step_all_quiet  # noqa: E402
+from wandering_light.stack_beam import block_encoder, step_all_quiet  # noqa: E402
 from wandering_light.stack_pbe import OPS  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
     OP_INDEX,
     PolicyScorer,
-    encode_item,
-    encode_targets,
-    item_array,
     load_policy,
     validation_skeleton,
 )
@@ -81,7 +78,7 @@ def library(programs: list[tuple[str, ...]], size: int) -> list[tuple[str, ...]]
 def deficits(task, scorer: PolicyScorer) -> list[float] | None:
     """Per-step deficit along ``task.program``; the `search_proxy.score_task` walk, batched."""
     states = replay_states(task)
-    targets = encode_targets(states[-1])
+    encode = block_encoder(scorer, states[-1])
     legal = np.zeros((len(task.program), len(OPS)), dtype=bool)
     blocks = []
     for step, name in enumerate(task.program):
@@ -90,11 +87,7 @@ def deficits(task, scorer: PolicyScorer) -> list[float] | None:
             legal[step, index] = moved is not None
         if not legal[step, OP_INDEX[name]]:
             return None
-        blocks.append(
-            item_array(
-                [encode_item(s, t) for s, t in zip(states[step], targets, strict=True)]
-            )
-        )
+        blocks.append(encode(states[step]))
     rows = scorer.log_probs(blocks, legal)
     return [
         float(np.max(rows[i][legal[i]]) - rows[i][OP_INDEX[name]])

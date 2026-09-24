@@ -44,15 +44,12 @@ import torch  # noqa: E402
 import experiments.compute_optimal_mark28 as co  # noqa: E402
 from experiments.hindsight_subtargets import replay_states  # noqa: E402
 from experiments.search_proxy import TOLERANCE  # noqa: E402
-from wandering_light.stack_beam import step_all_quiet  # noqa: E402
+from wandering_light.stack_beam import block_encoder, step_all_quiet  # noqa: E402
 from wandering_light.stack_machine import Mark  # noqa: E402
 from wandering_light.stack_pbe import OPS  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
     OP_INDEX,
     PolicyScorer,
-    encode_item,
-    encode_targets,
-    item_array,
     load_policy,
 )
 
@@ -91,7 +88,7 @@ def score(task: Task, scorer: PolicyScorer) -> dict[str, Any] | None:
     accepts any program that replays, not only a corpus witness.
     """
     states = replay_states(task)
-    targets = encode_targets(states[-1])
+    encode = block_encoder(scorer, states[-1])
     kinds = step_kinds(task)
     deficits: list[float] = []
     ranks: list[int] = []
@@ -105,10 +102,7 @@ def score(task: Task, scorer: PolicyScorer) -> dict[str, Any] | None:
         want = OP_INDEX[name]
         if not legal[0, want]:
             return None  # a program cannot refuse its own op
-        block = item_array(
-            [encode_item(s, t) for s, t in zip(product, targets, strict=True)]
-        )
-        row = scorer.log_probs([block], legal)[0]
+        row = scorer.log_probs([encode(product)], legal)[0]
         best = float(np.max(row[legal[0]]))
         mine = float(row[want])
         deficits.append(best - mine)

@@ -43,15 +43,16 @@ import torch  # noqa: E402
 
 import experiments.compute_optimal_mark28 as co  # noqa: E402
 from wandering_light.quotation_guard import blocked  # noqa: E402
-from wandering_light.stack_beam import BeamResult, step_all_quiet  # noqa: E402
+from wandering_light.stack_beam import (  # noqa: E402
+    BeamResult,
+    block_encoder,
+    step_all_quiet,
+)
 from wandering_light.stack_machine import Mark, parse_stack  # noqa: E402
 from wandering_light.stack_pbe import BASIS, OPS  # noqa: E402
 from wandering_light.stack_pbe_eval import grade  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
     PolicyScorer,
-    encode_item,
-    encode_targets,
-    item_array,
     load_policy,
 )
 
@@ -80,7 +81,7 @@ def floored_beam_solve(
             isinstance(v, Mark) for stack in outputs for v in stack
         ):
             raise ValueError("the close guard needs mark-free targets")
-        targets = encode_targets(outputs)
+        encode = block_encoder(scorer, outputs)
         seen = {inputs}
         beam = [(inputs, (), 0.0)]
         executions = fuel = expansions = 0
@@ -115,12 +116,7 @@ def floored_beam_solve(
                     successors.append((node, index, moved, extended))
             if not successors:
                 return result(None, "frontier_exhausted", depth)
-            blocks = [
-                item_array(
-                    [encode_item(s, t) for s, t in zip(product, targets, strict=True)]
-                )
-                for product, _, _ in beam
-            ]
+            blocks = [encode(product) for product, _, _ in beam]
             log_probs = scorer.log_probs(blocks, legal)
             charged = np.maximum(log_probs, -tau) if math.isfinite(tau) else log_probs
             ranked = sorted(

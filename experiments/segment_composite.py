@@ -53,14 +53,11 @@ from experiments.search_proxy import TOLERANCE  # noqa: E402
 from experiments.staged_transfer import step_kinds  # noqa: E402
 from wandering_light.corpus_hub import fetch_corpus  # noqa: E402
 from wandering_light.solve import BEST  # noqa: E402
-from wandering_light.stack_beam import step_all_quiet  # noqa: E402
+from wandering_light.stack_beam import block_encoder, step_all_quiet  # noqa: E402
 from wandering_light.stack_pbe import OPS, load  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
     OP_INDEX,
     PolicyScorer,
-    encode_item,
-    encode_targets,
-    item_array,
     load_policy,
 )
 from wandering_light.stack_policy_hub import fetch_stack_policy  # noqa: E402
@@ -76,7 +73,7 @@ DATA = REPO / "wandering_light" / "evals" / "data"
 def step_deficits(task: Task, scorer: PolicyScorer) -> list[float] | None:
     """Nats behind the best legal op at each witness step; None if the witness refuses."""
     states = replay_states(task)
-    targets = encode_targets(states[-1])
+    encode = block_encoder(scorer, states[-1])
     out = []
     for step, name in enumerate(task.program):
         product = states[step]
@@ -87,10 +84,7 @@ def step_deficits(task: Task, scorer: PolicyScorer) -> list[float] | None:
         want = OP_INDEX[name]
         if not legal[0, want]:
             return None
-        block = item_array(
-            [encode_item(s, t) for s, t in zip(product, targets, strict=True)]
-        )
-        row = scorer.log_probs([block], legal)[0]
+        row = scorer.log_probs([encode(product)], legal)[0]
         out.append(float(np.max(row[legal[0]])) - float(row[want]))
     return out
 

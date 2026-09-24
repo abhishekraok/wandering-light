@@ -67,6 +67,10 @@ class Adviser:
                     )
                     artifact.download(root=str(path))
                 self.scorer = PolicyScorer(load_policy(path), "cpu")
+                if self.scorer.encoding != "machine":
+                    raise ValueError(
+                        f"workshop: machine blocks only, not {self.scorer.encoding}"
+                    )
                 self.path = path
             except Exception as exc:
                 # A failed replacement must not leave the previous checkpoint

@@ -84,17 +84,15 @@ from experiments.search_proxy import TOLERANCE  # noqa: E402
 from experiments.segment_composite import levels, segments  # noqa: E402
 from experiments.staged_transfer import step_kinds  # noqa: E402
 from wandering_light.corpus_hub import fetch_corpus  # noqa: E402
-from wandering_light.stack_beam import step_all_quiet  # noqa: E402
+from wandering_light.stack_beam import block_encoder, step_all_quiet  # noqa: E402
 from wandering_light.stack_machine import Mark, Sym, parse_stack, run_body  # noqa: E402
 from wandering_light.stack_pbe import BASIS, OPS, load  # noqa: E402
 from wandering_light.stack_policy import (  # noqa: E402
+    MACHINE,
     OP_INDEX,
     STATE_CAP,
     PolicyScorer,
     _encode_value,
-    encode_item,
-    encode_targets,
-    item_array,
     load_policy,
     train_policy,
     witness_rows,
@@ -247,10 +245,12 @@ def walk(
     ``encoding`` is what the policy is shown at body steps: ``None`` for the
     machine state, or a `frame_rows` encoding. ``mask`` removes, at defined body
     steps, every non-structural op that refuses on the frame; a witness op it
-    removes is recorded as a kill (deficit ``None``), not restored.
+    removes is recorded as a kill (deficit ``None``), not restored. Blocks are
+    built in the scorer's own layout (`stack_beam.block_encoder`), so a
+    ``difference`` policy (#168) is scored on what it trained on.
     """
     states = replay_states(task)
-    targets = encode_targets(states[-1])
+    encode = block_encoder(scorer, states[-1])
     walks = example_walks(task)
     classes, tags = step_classes(task, walks)
     exits = [
@@ -283,10 +283,7 @@ def walk(
             if encoding
             else product
         )
-        block = item_array(
-            [encode_item(s, t) for s, t in zip(shown, targets, strict=True)]
-        )
-        row = scorer.log_probs([block], legal)[0]
+        row = scorer.log_probs([encode(shown)], legal)[0]
         mine = float(row[want])
         deficits.append(float(np.max(row[legal[0]])) - mine)
         ranks.append(int((row[legal[0]] > mine).sum()) + 1)
@@ -383,23 +380,30 @@ def exchange_rate(
 # Calibration
 # ---------------------------------------------------------------------------
 
-_VALIDATION: dict[str | None, list] = {}
+_VALIDATION: dict[tuple[str | None, str], list] = {}
 _LEGAL: list[np.ndarray] = []
 # log T is searched over [1/64, 64]; an optimum at either edge is reported, and
 # the gate refuses a verdict on it, rather than being silently clipped.
 T_BOUNDS = (1 / 64, 64.0)
 
 
-def validation_rows(encoding: str | None) -> list:
-    """The world arm's validation rows (v4 holdout), in ``encoding``."""
-    if encoding not in _VALIDATION:
+def validation_rows(encoding: str | None, policy_encoding: str = MACHINE) -> list:
+    """The world arm's validation rows (v4 holdout), in ``encoding``.
+
+    ``policy_encoding`` is the policy's item layout (`stack_policy`); frame
+    rows exist only in ``machine``.
+    """
+    key = (encoding, policy_encoding)
+    if key not in _VALIDATION:
+        if encoding is not None and policy_encoding != MACHINE:
+            raise ValueError(f"frame rows are machine-only, not {policy_encoding!r}")
         _fit, held = co.split_tasks(wa.configure())
-        _VALIDATION[encoding] = (
-            witness_rows(held)
+        _VALIDATION[key] = (
+            witness_rows(held, policy_encoding)
             if encoding is None
             else frame_witness_rows(held, encoding)
         )
-    return _VALIDATION[encoding]
+    return _VALIDATION[key]
 
 
 def validation_legal() -> np.ndarray:
@@ -489,7 +493,9 @@ def commit_charges(corpus: str, tasks: Sequence[Task]) -> dict[str, list[float]]
 
 
 def measure_cells(scorer: PolicyScorer, *, encoding: str | None, log) -> dict[str, Any]:
-    calibration = fit_temperature(scorer, validation_rows(encoding), validation_legal())
+    calibration = fit_temperature(
+        scorer, validation_rows(encoding, scorer.encoding), validation_legal()
+    )
     t = calibration["temperature"]
     log(f"calibration {calibration}")
     cells: dict[str, Any] = {"calibration": calibration}
