@@ -1,0 +1,1391 @@
+{
+ "table": {
+  "current-10000": {
+   "test": 0.8410556305293148,
+   "last_op": 0.7584905660377359,
+   "last_op_unique": 0.7288135593220338,
+   "best_epoch": 9,
+   "lr": 0.004,
+   "parameters": 655836,
+   "test_unseen": {
+    "n": 19426,
+    "set_accuracy": 0.83686811489756
+   },
+   "last_op_unseen": {
+    "n": 242,
+    "set_accuracy": 0.7355371900826446
+   },
+   "test_strata": {
+    "content: list changed": {
+     "n": 14985,
+     "set_accuracy": 0.8453119786453119
+    },
+    "content: scalar changed": {
+     "n": 4968,
+     "set_accuracy": 0.8339371980676329
+    },
+    "content: unchanged": {
+     "n": 54,
+     "set_accuracy": 0.3148148148148148
+    },
+    "depth 0-1": {
+     "n": 2962,
+     "set_accuracy": 0.9638757596218771
+    },
+    "depth 2-3": {
+     "n": 12339,
+     "set_accuracy": 0.8522570710754518
+    },
+    "depth 4-7": {
+     "n": 4706,
+     "set_accuracy": 0.7343816404589886
+    },
+    "depth change: no": {
+     "n": 3528,
+     "set_accuracy": 0.8163265306122449
+    },
+    "depth change: yes": {
+     "n": 16479,
+     "set_accuracy": 0.846349899872565
+    },
+    "op 0": {
+     "n": 1481,
+     "set_accuracy": 0.9932478055367995
+    },
+    "op 1": {
+     "n": 1481,
+     "set_accuracy": 0.9966239027683997
+    },
+    "op add": {
+     "n": 338,
+     "set_accuracy": 0.5443786982248521
+    },
+    "op cat": {
+     "n": 210,
+     "set_accuracy": 0.7
+    },
+    "op cons": {
+     "n": 489,
+     "set_accuracy": 0.8077709611451943
+    },
+    "op dip": {
+     "n": 410,
+     "set_accuracy": 0.6609756097560976
+    },
+    "op div": {
+     "n": 206,
+     "set_accuracy": 0.5242718446601942
+    },
+    "op drop": {
+     "n": 1479,
+     "set_accuracy": 0.7281947261663286
+    },
+    "op dup": {
+     "n": 1446,
+     "set_accuracy": 0.9100968188105117
+    },
+    "op eq?": {
+     "n": 1177,
+     "set_accuracy": 0.8309260832625318
+    },
+    "op false": {
+     "n": 1481,
+     "set_accuracy": 0.9662390276839973
+    },
+    "op filter": {
+     "n": 22,
+     "set_accuracy": 0.7272727272727273
+    },
+    "op fold": {
+     "n": 87,
+     "set_accuracy": 0.41379310344827586
+    },
+    "op i": {
+     "n": 572,
+     "set_accuracy": 0.6765734265734266
+    },
+    "op ifte": {
+     "n": 39,
+     "set_accuracy": 0.358974358974359
+    },
+    "op lt?": {
+     "n": 338,
+     "set_accuracy": 0.6923076923076923
+    },
+    "op map": {
+     "n": 58,
+     "set_accuracy": 0.7241379310344828
+    },
+    "op mul": {
+     "n": 338,
+     "set_accuracy": 0.5857988165680473
+    },
+    "op nil": {
+     "n": 1480,
+     "set_accuracy": 0.9763513513513513
+    },
+    "op null?": {
+     "n": 680,
+     "set_accuracy": 0.8514705882352941
+    },
+    "op over": {
+     "n": 1153,
+     "set_accuracy": 0.6851691240242844
+    },
+    "op quote": {
+     "n": 1469,
+     "set_accuracy": 0.9938733832539143
+    },
+    "op sub": {
+     "n": 338,
+     "set_accuracy": 0.3343195266272189
+    },
+    "op swap": {
+     "n": 1170,
+     "set_accuracy": 0.617948717948718
+    },
+    "op true": {
+     "n": 1481,
+     "set_accuracy": 0.9858203916272789
+    },
+    "op uncons": {
+     "n": 584,
+     "set_accuracy": 0.815068493150685
+    }
+   }
+  },
+  "current-100000": {
+   "test": 0.9302244214524916,
+   "last_op": 0.8830188679245283,
+   "last_op_unique": 0.8686440677966102,
+   "best_epoch": 4,
+   "lr": 0.004,
+   "parameters": 655836,
+   "test_unseen": {
+    "n": 18404,
+    "set_accuracy": 0.9243642686372527
+   },
+   "last_op_unseen": {
+    "n": 211,
+    "set_accuracy": 0.8530805687203792
+   },
+   "test_strata": {
+    "content: list changed": {
+     "n": 14985,
+     "set_accuracy": 0.934401067734401
+    },
+    "content: scalar changed": {
+     "n": 4968,
+     "set_accuracy": 0.9202898550724637
+    },
+    "content: unchanged": {
+     "n": 54,
+     "set_accuracy": 0.6851851851851852
+    },
+    "depth 0-1": {
+     "n": 2962,
+     "set_accuracy": 0.9945982444294396
+    },
+    "depth 2-3": {
+     "n": 12339,
+     "set_accuracy": 0.9486182024475242
+    },
+    "depth 4-7": {
+     "n": 4706,
+     "set_accuracy": 0.8414789630259244
+    },
+    "depth change: no": {
+     "n": 3528,
+     "set_accuracy": 0.911281179138322
+    },
+    "depth change: yes": {
+     "n": 16479,
+     "set_accuracy": 0.9342799927180048
+    },
+    "op 0": {
+     "n": 1481,
+     "set_accuracy": 0.9979743416610398
+    },
+    "op 1": {
+     "n": 1481,
+     "set_accuracy": 0.9993247805536799
+    },
+    "op add": {
+     "n": 338,
+     "set_accuracy": 0.6893491124260355
+    },
+    "op cat": {
+     "n": 210,
+     "set_accuracy": 0.8952380952380953
+    },
+    "op cons": {
+     "n": 489,
+     "set_accuracy": 0.9284253578732107
+    },
+    "op dip": {
+     "n": 410,
+     "set_accuracy": 0.8268292682926829
+    },
+    "op div": {
+     "n": 206,
+     "set_accuracy": 0.9514563106796117
+    },
+    "op drop": {
+     "n": 1479,
+     "set_accuracy": 0.8749154834347532
+    },
+    "op dup": {
+     "n": 1446,
+     "set_accuracy": 0.9688796680497925
+    },
+    "op eq?": {
+     "n": 1177,
+     "set_accuracy": 0.8555649957519117
+    },
+    "op false": {
+     "n": 1481,
+     "set_accuracy": 0.9932478055367995
+    },
+    "op filter": {
+     "n": 22,
+     "set_accuracy": 0.7727272727272727
+    },
+    "op fold": {
+     "n": 87,
+     "set_accuracy": 0.632183908045977
+    },
+    "op i": {
+     "n": 572,
+     "set_accuracy": 0.8793706293706294
+    },
+    "op ifte": {
+     "n": 39,
+     "set_accuracy": 0.6153846153846154
+    },
+    "op lt?": {
+     "n": 338,
+     "set_accuracy": 0.9260355029585798
+    },
+    "op map": {
+     "n": 58,
+     "set_accuracy": 0.7586206896551724
+    },
+    "op mul": {
+     "n": 338,
+     "set_accuracy": 0.878698224852071
+    },
+    "op nil": {
+     "n": 1480,
+     "set_accuracy": 0.9972972972972973
+    },
+    "op null?": {
+     "n": 680,
+     "set_accuracy": 0.9455882352941176
+    },
+    "op over": {
+     "n": 1153,
+     "set_accuracy": 0.9392888117953165
+    },
+    "op quote": {
+     "n": 1469,
+     "set_accuracy": 0.9965963240299524
+    },
+    "op sub": {
+     "n": 338,
+     "set_accuracy": 0.591715976331361
+    },
+    "op swap": {
+     "n": 1170,
+     "set_accuracy": 0.7923076923076923
+    },
+    "op true": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op uncons": {
+     "n": 584,
+     "set_accuracy": 0.9297945205479452
+    }
+   }
+  },
+  "current-1000000": {
+   "test": 0.9623631728894887,
+   "last_op": 0.9660377358490566,
+   "last_op_unique": 0.961864406779661,
+   "best_epoch": 6,
+   "lr": 0.004,
+   "parameters": 655836,
+   "test_unseen": {
+    "n": 18054,
+    "set_accuracy": 0.9582917912927883
+   },
+   "last_op_unseen": {
+    "n": 205,
+    "set_accuracy": 0.9560975609756097
+   },
+   "test_strata": {
+    "content: list changed": {
+     "n": 14985,
+     "set_accuracy": 0.958958958958959
+    },
+    "content: scalar changed": {
+     "n": 4968,
+     "set_accuracy": 0.9740338164251208
+    },
+    "content: unchanged": {
+     "n": 54,
+     "set_accuracy": 0.8333333333333334
+    },
+    "depth 0-1": {
+     "n": 2962,
+     "set_accuracy": 0.9986495611073599
+    },
+    "depth 2-3": {
+     "n": 12339,
+     "set_accuracy": 0.9776318988572817
+    },
+    "depth 4-7": {
+     "n": 4706,
+     "set_accuracy": 0.8994900127496812
+    },
+    "depth change: no": {
+     "n": 3528,
+     "set_accuracy": 0.963718820861678
+    },
+    "depth change: yes": {
+     "n": 16479,
+     "set_accuracy": 0.9620729413192548
+    },
+    "op 0": {
+     "n": 1481,
+     "set_accuracy": 0.9979743416610398
+    },
+    "op 1": {
+     "n": 1481,
+     "set_accuracy": 0.9912221471978393
+    },
+    "op add": {
+     "n": 338,
+     "set_accuracy": 0.849112426035503
+    },
+    "op cat": {
+     "n": 210,
+     "set_accuracy": 0.8857142857142857
+    },
+    "op cons": {
+     "n": 489,
+     "set_accuracy": 0.983640081799591
+    },
+    "op dip": {
+     "n": 410,
+     "set_accuracy": 0.9073170731707317
+    },
+    "op div": {
+     "n": 206,
+     "set_accuracy": 0.9611650485436893
+    },
+    "op drop": {
+     "n": 1479,
+     "set_accuracy": 0.9276538201487492
+    },
+    "op dup": {
+     "n": 1446,
+     "set_accuracy": 0.9619640387275242
+    },
+    "op eq?": {
+     "n": 1177,
+     "set_accuracy": 0.9626168224299065
+    },
+    "op false": {
+     "n": 1481,
+     "set_accuracy": 0.9810938555030385
+    },
+    "op filter": {
+     "n": 22,
+     "set_accuracy": 1.0
+    },
+    "op fold": {
+     "n": 87,
+     "set_accuracy": 0.7471264367816092
+    },
+    "op i": {
+     "n": 572,
+     "set_accuracy": 0.9195804195804196
+    },
+    "op ifte": {
+     "n": 39,
+     "set_accuracy": 0.9487179487179487
+    },
+    "op lt?": {
+     "n": 338,
+     "set_accuracy": 0.9526627218934911
+    },
+    "op map": {
+     "n": 58,
+     "set_accuracy": 0.896551724137931
+    },
+    "op mul": {
+     "n": 338,
+     "set_accuracy": 0.9674556213017751
+    },
+    "op nil": {
+     "n": 1480,
+     "set_accuracy": 1.0
+    },
+    "op null?": {
+     "n": 680,
+     "set_accuracy": 0.975
+    },
+    "op over": {
+     "n": 1153,
+     "set_accuracy": 0.9150043365134432
+    },
+    "op quote": {
+     "n": 1469,
+     "set_accuracy": 0.9904697072838666
+    },
+    "op sub": {
+     "n": 338,
+     "set_accuracy": 0.8550295857988166
+    },
+    "op swap": {
+     "n": 1170,
+     "set_accuracy": 0.9307692307692308
+    },
+    "op true": {
+     "n": 1481,
+     "set_accuracy": 0.9993247805536799
+    },
+    "op uncons": {
+     "n": 584,
+     "set_accuracy": 0.9811643835616438
+    }
+   }
+  },
+  "difference-10000": {
+   "test": 0.9444694356975059,
+   "last_op": 0.8905660377358491,
+   "last_op_unique": 0.8771186440677966,
+   "best_epoch": 13,
+   "lr": 0.001,
+   "parameters": 659932,
+   "test_unseen": {
+    "n": 19426,
+    "set_accuracy": 0.9431174714300422
+   },
+   "last_op_unseen": {
+    "n": 242,
+    "set_accuracy": 0.8884297520661157
+   },
+   "test_strata": {
+    "content: list changed": {
+     "n": 14985,
+     "set_accuracy": 0.9581581581581582
+    },
+    "content: scalar changed": {
+     "n": 4968,
+     "set_accuracy": 0.9025764895330113
+    },
+    "content: unchanged": {
+     "n": 54,
+     "set_accuracy": 1.0
+    },
+    "depth 0-1": {
+     "n": 2962,
+     "set_accuracy": 0.9956110735989196
+    },
+    "depth 2-3": {
+     "n": 12339,
+     "set_accuracy": 0.9421346948699246
+    },
+    "depth 4-7": {
+     "n": 4706,
+     "set_accuracy": 0.9184020399490013
+    },
+    "depth change: no": {
+     "n": 3528,
+     "set_accuracy": 0.9934807256235828
+    },
+    "depth change: yes": {
+     "n": 16479,
+     "set_accuracy": 0.9339765762485588
+    },
+    "op 0": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op 1": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op add": {
+     "n": 338,
+     "set_accuracy": 0.6745562130177515
+    },
+    "op cat": {
+     "n": 210,
+     "set_accuracy": 0.8523809523809524
+    },
+    "op cons": {
+     "n": 489,
+     "set_accuracy": 0.967280163599182
+    },
+    "op dip": {
+     "n": 410,
+     "set_accuracy": 0.7951219512195122
+    },
+    "op div": {
+     "n": 206,
+     "set_accuracy": 0.7281553398058253
+    },
+    "op drop": {
+     "n": 1479,
+     "set_accuracy": 0.9107505070993914
+    },
+    "op dup": {
+     "n": 1446,
+     "set_accuracy": 1.0
+    },
+    "op eq?": {
+     "n": 1177,
+     "set_accuracy": 0.8912489379779099
+    },
+    "op false": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op filter": {
+     "n": 22,
+     "set_accuracy": 0.8636363636363636
+    },
+    "op fold": {
+     "n": 87,
+     "set_accuracy": 0.5172413793103449
+    },
+    "op i": {
+     "n": 572,
+     "set_accuracy": 0.8706293706293706
+    },
+    "op ifte": {
+     "n": 39,
+     "set_accuracy": 0.8974358974358975
+    },
+    "op lt?": {
+     "n": 338,
+     "set_accuracy": 0.8372781065088757
+    },
+    "op map": {
+     "n": 58,
+     "set_accuracy": 0.7758620689655172
+    },
+    "op mul": {
+     "n": 338,
+     "set_accuracy": 0.7928994082840237
+    },
+    "op nil": {
+     "n": 1480,
+     "set_accuracy": 0.9993243243243243
+    },
+    "op null?": {
+     "n": 680,
+     "set_accuracy": 1.0
+    },
+    "op over": {
+     "n": 1153,
+     "set_accuracy": 0.9930615784908933
+    },
+    "op quote": {
+     "n": 1469,
+     "set_accuracy": 1.0
+    },
+    "op sub": {
+     "n": 338,
+     "set_accuracy": 0.5059171597633136
+    },
+    "op swap": {
+     "n": 1170,
+     "set_accuracy": 1.0
+    },
+    "op true": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op uncons": {
+     "n": 584,
+     "set_accuracy": 0.7996575342465754
+    }
+   }
+  },
+  "difference-100000": {
+   "test": 0.9794571899835057,
+   "last_op": 0.9547169811320755,
+   "last_op_unique": 0.9491525423728814,
+   "best_epoch": 7,
+   "lr": 0.001,
+   "parameters": 659932,
+   "test_unseen": {
+    "n": 18404,
+    "set_accuracy": 0.977667898282982
+   },
+   "last_op_unseen": {
+    "n": 211,
+    "set_accuracy": 0.943127962085308
+   },
+   "test_strata": {
+    "content: list changed": {
+     "n": 14985,
+     "set_accuracy": 0.9842509175842509
+    },
+    "content: scalar changed": {
+     "n": 4968,
+     "set_accuracy": 0.9647745571658615
+    },
+    "content: unchanged": {
+     "n": 54,
+     "set_accuracy": 1.0
+    },
+    "depth 0-1": {
+     "n": 2962,
+     "set_accuracy": 0.99966239027684
+    },
+    "depth 2-3": {
+     "n": 12339,
+     "set_accuracy": 0.9811167841802415
+    },
+    "depth 4-7": {
+     "n": 4706,
+     "set_accuracy": 0.9623884402889927
+    },
+    "depth change: no": {
+     "n": 3528,
+     "set_accuracy": 0.9991496598639455
+    },
+    "depth change: yes": {
+     "n": 16479,
+     "set_accuracy": 0.9752412160932096
+    },
+    "op 0": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op 1": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op add": {
+     "n": 338,
+     "set_accuracy": 0.7100591715976331
+    },
+    "op cat": {
+     "n": 210,
+     "set_accuracy": 1.0
+    },
+    "op cons": {
+     "n": 489,
+     "set_accuracy": 0.9856850715746421
+    },
+    "op dip": {
+     "n": 410,
+     "set_accuracy": 0.8853658536585366
+    },
+    "op div": {
+     "n": 206,
+     "set_accuracy": 0.9514563106796117
+    },
+    "op drop": {
+     "n": 1479,
+     "set_accuracy": 0.9607843137254902
+    },
+    "op dup": {
+     "n": 1446,
+     "set_accuracy": 1.0
+    },
+    "op eq?": {
+     "n": 1177,
+     "set_accuracy": 0.9702633814783348
+    },
+    "op false": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op filter": {
+     "n": 22,
+     "set_accuracy": 0.8636363636363636
+    },
+    "op fold": {
+     "n": 87,
+     "set_accuracy": 0.8275862068965517
+    },
+    "op i": {
+     "n": 572,
+     "set_accuracy": 0.9283216783216783
+    },
+    "op ifte": {
+     "n": 39,
+     "set_accuracy": 1.0
+    },
+    "op lt?": {
+     "n": 338,
+     "set_accuracy": 0.9526627218934911
+    },
+    "op map": {
+     "n": 58,
+     "set_accuracy": 0.8448275862068966
+    },
+    "op mul": {
+     "n": 338,
+     "set_accuracy": 0.9940828402366864
+    },
+    "op nil": {
+     "n": 1480,
+     "set_accuracy": 0.9993243243243243
+    },
+    "op null?": {
+     "n": 680,
+     "set_accuracy": 1.0
+    },
+    "op over": {
+     "n": 1153,
+     "set_accuracy": 0.9965307892454467
+    },
+    "op quote": {
+     "n": 1469,
+     "set_accuracy": 1.0
+    },
+    "op sub": {
+     "n": 338,
+     "set_accuracy": 0.8224852071005917
+    },
+    "op swap": {
+     "n": 1170,
+     "set_accuracy": 1.0
+    },
+    "op true": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op uncons": {
+     "n": 584,
+     "set_accuracy": 0.9914383561643836
+    }
+   }
+  },
+  "difference-1000000": {
+   "test": 0.9940020992652572,
+   "last_op": 0.9886792452830189,
+   "last_op_unique": 0.9872881355932204,
+   "best_epoch": 6,
+   "lr": 0.001,
+   "parameters": 659932,
+   "test_unseen": {
+    "n": 18054,
+    "set_accuracy": 0.9933532735127949
+   },
+   "last_op_unseen": {
+    "n": 205,
+    "set_accuracy": 0.9853658536585366
+   },
+   "test_strata": {
+    "content: list changed": {
+     "n": 14985,
+     "set_accuracy": 0.9939272605939272
+    },
+    "content: scalar changed": {
+     "n": 4968,
+     "set_accuracy": 0.9941626409017713
+    },
+    "content: unchanged": {
+     "n": 54,
+     "set_accuracy": 1.0
+    },
+    "depth 0-1": {
+     "n": 2962,
+     "set_accuracy": 1.0
+    },
+    "depth 2-3": {
+     "n": 12339,
+     "set_accuracy": 0.9965151146770402
+    },
+    "depth 4-7": {
+     "n": 4706,
+     "set_accuracy": 0.9836379090522737
+    },
+    "depth change: no": {
+     "n": 3528,
+     "set_accuracy": 1.0
+    },
+    "depth change: yes": {
+     "n": 16479,
+     "set_accuracy": 0.992718004733297
+    },
+    "op 0": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op 1": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op add": {
+     "n": 338,
+     "set_accuracy": 0.9704142011834319
+    },
+    "op cat": {
+     "n": 210,
+     "set_accuracy": 0.9809523809523809
+    },
+    "op cons": {
+     "n": 489,
+     "set_accuracy": 0.9959100204498977
+    },
+    "op dip": {
+     "n": 410,
+     "set_accuracy": 0.9780487804878049
+    },
+    "op div": {
+     "n": 206,
+     "set_accuracy": 0.9951456310679612
+    },
+    "op drop": {
+     "n": 1479,
+     "set_accuracy": 0.9979716024340771
+    },
+    "op dup": {
+     "n": 1446,
+     "set_accuracy": 1.0
+    },
+    "op eq?": {
+     "n": 1177,
+     "set_accuracy": 0.9906542056074766
+    },
+    "op false": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op filter": {
+     "n": 22,
+     "set_accuracy": 1.0
+    },
+    "op fold": {
+     "n": 87,
+     "set_accuracy": 0.9080459770114943
+    },
+    "op i": {
+     "n": 572,
+     "set_accuracy": 0.9370629370629371
+    },
+    "op ifte": {
+     "n": 39,
+     "set_accuracy": 1.0
+    },
+    "op lt?": {
+     "n": 338,
+     "set_accuracy": 0.9644970414201184
+    },
+    "op map": {
+     "n": 58,
+     "set_accuracy": 0.8793103448275862
+    },
+    "op mul": {
+     "n": 338,
+     "set_accuracy": 0.9970414201183432
+    },
+    "op nil": {
+     "n": 1480,
+     "set_accuracy": 1.0
+    },
+    "op null?": {
+     "n": 680,
+     "set_accuracy": 1.0
+    },
+    "op over": {
+     "n": 1153,
+     "set_accuracy": 1.0
+    },
+    "op quote": {
+     "n": 1469,
+     "set_accuracy": 1.0
+    },
+    "op sub": {
+     "n": 338,
+     "set_accuracy": 0.9585798816568047
+    },
+    "op swap": {
+     "n": 1170,
+     "set_accuracy": 1.0
+    },
+    "op true": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op uncons": {
+     "n": 584,
+     "set_accuracy": 0.9965753424657534
+    }
+   }
+  },
+  "aligned-10000": {
+   "test": 0.9560653771180087,
+   "last_op": 0.8490566037735849,
+   "last_op_unique": 0.8305084745762712,
+   "best_epoch": 8,
+   "lr": 0.001,
+   "parameters": 968348,
+   "test_unseen": {
+    "n": 19426,
+    "set_accuracy": 0.9552146607639246
+   },
+   "last_op_unseen": {
+    "n": 242,
+    "set_accuracy": 0.8347107438016529
+   },
+   "test_strata": {
+    "content: list changed": {
+     "n": 14985,
+     "set_accuracy": 0.9708375041708375
+    },
+    "content: scalar changed": {
+     "n": 4968,
+     "set_accuracy": 0.9110305958132046
+    },
+    "content: unchanged": {
+     "n": 54,
+     "set_accuracy": 1.0
+    },
+    "depth 0-1": {
+     "n": 2962,
+     "set_accuracy": 0.9966239027683997
+    },
+    "depth 2-3": {
+     "n": 12339,
+     "set_accuracy": 0.9558311046276036
+    },
+    "depth 4-7": {
+     "n": 4706,
+     "set_accuracy": 0.9311517212069699
+    },
+    "depth change: no": {
+     "n": 3528,
+     "set_accuracy": 0.9985827664399093
+    },
+    "depth change: yes": {
+     "n": 16479,
+     "set_accuracy": 0.946962801140846
+    },
+    "op 0": {
+     "n": 1481,
+     "set_accuracy": 0.9939230249831195
+    },
+    "op 1": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op add": {
+     "n": 338,
+     "set_accuracy": 0.849112426035503
+    },
+    "op cat": {
+     "n": 210,
+     "set_accuracy": 0.9666666666666667
+    },
+    "op cons": {
+     "n": 489,
+     "set_accuracy": 0.9693251533742331
+    },
+    "op dip": {
+     "n": 410,
+     "set_accuracy": 0.8707317073170732
+    },
+    "op div": {
+     "n": 206,
+     "set_accuracy": 0.8446601941747572
+    },
+    "op drop": {
+     "n": 1479,
+     "set_accuracy": 0.9012846517917512
+    },
+    "op dup": {
+     "n": 1446,
+     "set_accuracy": 0.9944674965421854
+    },
+    "op eq?": {
+     "n": 1177,
+     "set_accuracy": 0.9600679694137638
+    },
+    "op false": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op filter": {
+     "n": 22,
+     "set_accuracy": 0.8181818181818182
+    },
+    "op fold": {
+     "n": 87,
+     "set_accuracy": 0.735632183908046
+    },
+    "op i": {
+     "n": 572,
+     "set_accuracy": 0.8828671328671329
+    },
+    "op ifte": {
+     "n": 39,
+     "set_accuracy": 0.8461538461538461
+    },
+    "op lt?": {
+     "n": 338,
+     "set_accuracy": 0.7396449704142012
+    },
+    "op map": {
+     "n": 58,
+     "set_accuracy": 0.8275862068965517
+    },
+    "op mul": {
+     "n": 338,
+     "set_accuracy": 0.757396449704142
+    },
+    "op nil": {
+     "n": 1480,
+     "set_accuracy": 1.0
+    },
+    "op null?": {
+     "n": 680,
+     "set_accuracy": 1.0
+    },
+    "op over": {
+     "n": 1153,
+     "set_accuracy": 0.997398091934085
+    },
+    "op quote": {
+     "n": 1469,
+     "set_accuracy": 1.0
+    },
+    "op sub": {
+     "n": 338,
+     "set_accuracy": 0.41420118343195267
+    },
+    "op swap": {
+     "n": 1170,
+     "set_accuracy": 1.0
+    },
+    "op true": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op uncons": {
+     "n": 584,
+     "set_accuracy": 0.9486301369863014
+    }
+   }
+  },
+  "aligned-100000": {
+   "test": 0.9920527815264657,
+   "last_op": 0.9735849056603774,
+   "last_op_unique": 0.9703389830508474,
+   "best_epoch": 10,
+   "lr": 0.001,
+   "parameters": 968348,
+   "test_unseen": {
+    "n": 18404,
+    "set_accuracy": 0.991523581830037
+   },
+   "last_op_unseen": {
+    "n": 211,
+    "set_accuracy": 0.966824644549763
+   },
+   "test_strata": {
+    "content: list changed": {
+     "n": 14985,
+     "set_accuracy": 0.9923923923923924
+    },
+    "content: scalar changed": {
+     "n": 4968,
+     "set_accuracy": 0.9909420289855072
+    },
+    "content: unchanged": {
+     "n": 54,
+     "set_accuracy": 1.0
+    },
+    "depth 0-1": {
+     "n": 2962,
+     "set_accuracy": 1.0
+    },
+    "depth 2-3": {
+     "n": 12339,
+     "set_accuracy": 0.9938406678012804
+    },
+    "depth 4-7": {
+     "n": 4706,
+     "set_accuracy": 0.9823629409264768
+    },
+    "depth change: no": {
+     "n": 3528,
+     "set_accuracy": 0.9988662131519275
+    },
+    "depth change: yes": {
+     "n": 16479,
+     "set_accuracy": 0.9905940894471752
+    },
+    "op 0": {
+     "n": 1481,
+     "set_accuracy": 0.9986495611073599
+    },
+    "op 1": {
+     "n": 1481,
+     "set_accuracy": 0.9972991222147198
+    },
+    "op add": {
+     "n": 338,
+     "set_accuracy": 0.9733727810650887
+    },
+    "op cat": {
+     "n": 210,
+     "set_accuracy": 0.9904761904761905
+    },
+    "op cons": {
+     "n": 489,
+     "set_accuracy": 0.9918200408997955
+    },
+    "op dip": {
+     "n": 410,
+     "set_accuracy": 0.9219512195121952
+    },
+    "op div": {
+     "n": 206,
+     "set_accuracy": 0.9757281553398058
+    },
+    "op drop": {
+     "n": 1479,
+     "set_accuracy": 0.991210277214334
+    },
+    "op dup": {
+     "n": 1446,
+     "set_accuracy": 1.0
+    },
+    "op eq?": {
+     "n": 1177,
+     "set_accuracy": 0.9932030586236194
+    },
+    "op false": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op filter": {
+     "n": 22,
+     "set_accuracy": 1.0
+    },
+    "op fold": {
+     "n": 87,
+     "set_accuracy": 0.9080459770114943
+    },
+    "op i": {
+     "n": 572,
+     "set_accuracy": 0.9615384615384616
+    },
+    "op ifte": {
+     "n": 39,
+     "set_accuracy": 0.9743589743589743
+    },
+    "op lt?": {
+     "n": 338,
+     "set_accuracy": 0.9644970414201184
+    },
+    "op map": {
+     "n": 58,
+     "set_accuracy": 0.8620689655172413
+    },
+    "op mul": {
+     "n": 338,
+     "set_accuracy": 0.9881656804733728
+    },
+    "op nil": {
+     "n": 1480,
+     "set_accuracy": 1.0
+    },
+    "op null?": {
+     "n": 680,
+     "set_accuracy": 1.0
+    },
+    "op over": {
+     "n": 1153,
+     "set_accuracy": 0.9991326973113617
+    },
+    "op quote": {
+     "n": 1469,
+     "set_accuracy": 1.0
+    },
+    "op sub": {
+     "n": 338,
+     "set_accuracy": 0.9408284023668639
+    },
+    "op swap": {
+     "n": 1170,
+     "set_accuracy": 1.0
+    },
+    "op true": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op uncons": {
+     "n": 584,
+     "set_accuracy": 0.9931506849315068
+    }
+   }
+  },
+  "aligned-1000000": {
+   "test": 0.99440195931424,
+   "last_op": 0.9811320754716981,
+   "last_op_unique": 0.9788135593220338,
+   "best_epoch": 2,
+   "lr": 0.001,
+   "parameters": 968348,
+   "test_unseen": {
+    "n": 18054,
+    "set_accuracy": 0.993796388611942
+   },
+   "last_op_unseen": {
+    "n": 205,
+    "set_accuracy": 0.975609756097561
+   },
+   "test_strata": {
+    "content: list changed": {
+     "n": 14985,
+     "set_accuracy": 0.993993993993994
+    },
+    "content: scalar changed": {
+     "n": 4968,
+     "set_accuracy": 0.9955716586151369
+    },
+    "content: unchanged": {
+     "n": 54,
+     "set_accuracy": 1.0
+    },
+    "depth 0-1": {
+     "n": 2962,
+     "set_accuracy": 1.0
+    },
+    "depth 2-3": {
+     "n": 12339,
+     "set_accuracy": 0.9970824215900802
+    },
+    "depth 4-7": {
+     "n": 4706,
+     "set_accuracy": 0.9838504037399065
+    },
+    "depth change: no": {
+     "n": 3528,
+     "set_accuracy": 0.9994331065759637
+    },
+    "depth change: yes": {
+     "n": 16479,
+     "set_accuracy": 0.9933248376721888
+    },
+    "op 0": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op 1": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op add": {
+     "n": 338,
+     "set_accuracy": 0.9970414201183432
+    },
+    "op cat": {
+     "n": 210,
+     "set_accuracy": 1.0
+    },
+    "op cons": {
+     "n": 489,
+     "set_accuracy": 0.9918200408997955
+    },
+    "op dip": {
+     "n": 410,
+     "set_accuracy": 0.9512195121951219
+    },
+    "op div": {
+     "n": 206,
+     "set_accuracy": 0.9951456310679612
+    },
+    "op drop": {
+     "n": 1479,
+     "set_accuracy": 0.9891818796484111
+    },
+    "op dup": {
+     "n": 1446,
+     "set_accuracy": 0.9965421853388658
+    },
+    "op eq?": {
+     "n": 1177,
+     "set_accuracy": 0.9889549702633815
+    },
+    "op false": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op filter": {
+     "n": 22,
+     "set_accuracy": 0.9545454545454546
+    },
+    "op fold": {
+     "n": 87,
+     "set_accuracy": 0.8735632183908046
+    },
+    "op i": {
+     "n": 572,
+     "set_accuracy": 0.9667832167832168
+    },
+    "op ifte": {
+     "n": 39,
+     "set_accuracy": 1.0
+    },
+    "op lt?": {
+     "n": 338,
+     "set_accuracy": 0.9911242603550295
+    },
+    "op map": {
+     "n": 58,
+     "set_accuracy": 1.0
+    },
+    "op mul": {
+     "n": 338,
+     "set_accuracy": 0.9911242603550295
+    },
+    "op nil": {
+     "n": 1480,
+     "set_accuracy": 1.0
+    },
+    "op null?": {
+     "n": 680,
+     "set_accuracy": 1.0
+    },
+    "op over": {
+     "n": 1153,
+     "set_accuracy": 0.9956634865568084
+    },
+    "op quote": {
+     "n": 1469,
+     "set_accuracy": 1.0
+    },
+    "op sub": {
+     "n": 338,
+     "set_accuracy": 0.9763313609467456
+    },
+    "op swap": {
+     "n": 1170,
+     "set_accuracy": 1.0
+    },
+    "op true": {
+     "n": 1481,
+     "set_accuracy": 1.0
+    },
+    "op uncons": {
+     "n": 584,
+     "set_accuracy": 0.9965753424657534
+    }
+   }
+  }
+ },
+ "reading": "INCONCLUSIVE"
+}
