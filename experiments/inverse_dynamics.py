@@ -84,6 +84,8 @@ TOP = 8  # items compared from the top, in `difference` and `aligned`
 EQUAL, CHANGED, ADDED, REMOVED = range(4)
 FLAG_BASE = VOCAB  # `difference`'s extra tokens: FLAG_BASE + 4 * position + flag
 VALUE_CAP = 64  # tokens per value in `aligned`
+PAIR = 64  # `aligned`: width of each compared (s, s') item pair
+EVAL_CHUNK = 256  # `aligned` expands a triple to 2 * TOP value rows per example
 TEST_TRIPLES, VALIDATION_TRIPLES = 20_000, 5_000
 BATCH = 256
 PROBE_LRS = (2.5e-4, 1e-3, 4e-3)
@@ -283,7 +285,11 @@ class DifferencePolicy(StackPairPolicy):
 
 
 class AlignedPolicy(nn.Module):
-    """Each value embedded by one convolution; s and s' compared item by item from the top."""
+    """Each value embedded by one convolution; s and s' compared item by item from the top.
+
+    Sized near `StackPairPolicy`'s: the same embedding and convolution, and a
+    per-example vector of the convolution's width feeding the same head shape.
+    """
 
     def __init__(self, architecture: PolicyArchitecture) -> None:
         super().__init__()
@@ -296,11 +302,11 @@ class AlignedPolicy(nn.Module):
         self.convolution = nn.Conv1d(e, c, kernel_size=5, padding=2)
         self.absent = nn.Parameter(torch.zeros(c))
         self.position = nn.Embedding(TOP, c)
-        self.depth = nn.Embedding(32, c)
-        self.pair = nn.Sequential(nn.Linear(5 * c, c), nn.ReLU())
-        self.example = nn.Sequential(nn.Linear(TOP * c + 2 * c, h), nn.ReLU())
+        self.depth = nn.Embedding(32, PAIR)
+        self.pair = nn.Sequential(nn.Linear(5 * c, PAIR), nn.ReLU())
+        self.example = nn.Sequential(nn.Linear((TOP + 2) * PAIR, c), nn.ReLU())
         self.head = nn.Sequential(
-            nn.Linear(2 * h, h), nn.ReLU(), nn.Linear(h, len(OP_NAMES))
+            nn.Linear(2 * c, h), nn.ReLU(), nn.Linear(h, len(OP_NAMES))
         )
 
     def forward(self, values: torch.Tensor, depth: torch.Tensor, counts: torch.Tensor):
@@ -373,9 +379,9 @@ def evaluate(model, features, rows, arm, device) -> dict[str, Any]:
     model.eval()
     losses, hits = [], []
     with torch.inference_mode():
-        for start in range(0, len(rows), 1024):
-            chunk = rows[start : start + 1024]
-            out = logits(model, features[start : start + 1024], arm, device)
+        for start in range(0, len(rows), EVAL_CHUNK):
+            chunk = rows[start : start + EVAL_CHUNK]
+            out = logits(model, features[start : start + EVAL_CHUNK], arm, device)
             losses += set_nll(out, [r["set"] for r in chunk]).tolist()
             top = out.argmax(dim=-1).tolist()
             hits += [p in r["set"] for p, r in zip(top, chunk, strict=True)]
