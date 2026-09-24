@@ -54,12 +54,22 @@ by flag).
 cached in ``<out-dir>/verified.json``), the rule staged-witness-reauthoring
 (#155) used too. A behaviour is verified when some solve of it passes.
 `run_cells.py` runs the registered cells on at most two CPU lanes.
+
+A segment cell also writes its closed-state archive, training data for a
+learned ranker (branch-and-check, #164, step 2), to
+``<out-dir>/<run>/archive/<cell>.jsonl.gz``: one line per task with every
+segment's roots and, of its merged closed states, the top ``ARCHIVE_TOP`` by
+cumulative score, the top ``ARCHIVE_TOP`` by local score (gained in the
+segment), the ones chosen as next roots and the ones on the program the search
+returned (``archive_record``). It is built after each task's clock stops.
 """
 
 from __future__ import annotations
 
 import argparse
+import contextlib
 import dataclasses
+import gzip
 import hashlib
 import json
 import os
@@ -120,6 +130,8 @@ CURVE_MULTIPLES = (1, 4, 16, 45)
 # 2113f001...); under flat it must give best-system-command (#158)'s 16.
 BEST_CELL = ("staged-arms-20260920", "staged", 0)
 BEST_VERIFIED = 16
+# Closed states kept per segment in the archive, by each of the two scores.
+ARCHIVE_TOP = 64
 
 
 def main_checkout() -> Path:
@@ -412,6 +424,86 @@ def row_record(
     return record
 
 
+def archive_record(
+    row: solve.Row, task_index: int, segments: Sequence[Any], top: int = ARCHIVE_TOP
+) -> dict[str, Any]:
+    """One task of a segment cell's closed-state archive.
+
+    Each closed state's root is the root whose program its program extends;
+    ``local`` is its score less its root's (what it gained in the segment)
+    and ``cumulative`` that gain plus the root's cumulative score, whichever
+    score the search ranked by. ``on_path`` marks a state whose program is a
+    prefix of the program the search returned (a shown-examples fit).
+    Ranks count from 0 among all the segment's merged closed states, ties
+    in merge order.
+    """
+    found = tuple(row.program) if row.program is not None else None
+    base = {(): 0.0}  # a root's program -> its cumulative score
+    out = []
+    for position, entry in enumerate(segments):
+        scores = dict(entry.roots)
+        lengths = sorted({len(program) for program in scores}, reverse=True)
+        states = []
+        for score, program in entry.closed.values():
+            root = next(program[:n] for n in lengths if program[:n] in scores)
+            local = score - scores[root]
+            states.append((program, root, local, base[root] + local))
+        by_cumulative = sorted(range(len(states)), key=lambda i: -states[i][3])
+        by_local = sorted(range(len(states)), key=lambda i: -states[i][2])
+        rank_cumulative = {i: rank for rank, i in enumerate(by_cumulative)}
+        rank_local = {i: rank for rank, i in enumerate(by_local)}
+        following = segments[position + 1] if position + 1 < len(segments) else None
+        chosen = {program for program, _ in following.roots} if following else set()
+        base = {}
+        kept = []
+        for i, (program, root, local, cumulative) in enumerate(states):
+            on_path = found is not None and found[: len(program)] == program
+            if program in chosen:
+                base[program] = cumulative
+            if (
+                rank_cumulative[i] < top
+                or rank_local[i] < top
+                or program in chosen
+                or on_path
+            ):
+                kept.append(
+                    {
+                        "program": " ".join(program),
+                        "root_ops": len(root),
+                        "cumulative": float(cumulative),
+                        "local": float(local),
+                        "rank_cumulative": rank_cumulative[i],
+                        "rank_local": rank_local[i],
+                        "chosen_root": program in chosen,
+                        "on_path": on_path,
+                    }
+                )
+        out.append(
+            {
+                "segment": entry.segment,
+                "stop": entry.stop,
+                "roots": [
+                    {"program": " ".join(program), "score": float(score)}
+                    for program, score in entry.roots
+                ],
+                "closed": len(states),
+                "states": kept,
+            }
+        )
+    return {
+        "task_index": task_index,
+        "behaviour": row.task.behaviour,
+        "termination": row.termination,
+        "source": row.source,
+        "program": " ".join(found) if found is not None else None,
+        "segments": out,
+    }
+
+
+def archive_path(out: Path) -> Path:
+    return out.parent / "archive" / f"{out.stem}.jsonl.gz"
+
+
 def budget_use(rows: Sequence[dict[str, Any]]) -> dict[str, Any] | None:
     """Did a widening cell spend its budgets? None for a cell without them."""
     budgeted = [r for r in rows if r.get("budget") is not None]
@@ -530,17 +622,32 @@ def run_cell(
             f"{row.executions:,} exec {row.fuel:,} fuel {row.seconds:.2f}s"
         )
 
+    archive = archive_path(out) if search == "segment" else None
     started = time.perf_counter()
-    rows = solve.solve_tasks(
-        [task for _, task in cohort],
-        scorer,
-        system,
-        progress=progress,
-        budgets=budgets,
-        seconds_cap=seconds_cap,
-        budget_unit=unit or "executions",
-    )
+    with contextlib.ExitStack() as stack:
+        record = None
+        if archive is not None:
+            archive.parent.mkdir(parents=True, exist_ok=True)
+            partial_archive = archive.with_suffix(".gz.partial")
+            lines = stack.enter_context(gzip.open(partial_archive, "wt"))
+
+            def record(row: solve.Row, segments: list) -> None:
+                line = archive_record(row, indices[row.index], segments)
+                lines.write(json.dumps(line) + "\n")
+
+        rows = solve.solve_tasks(
+            [task for _, task in cohort],
+            scorer,
+            system,
+            progress=progress,
+            budgets=budgets,
+            seconds_cap=seconds_cap,
+            budget_unit=unit or "executions",
+            archive=record,
+        )
     cell_seconds = time.perf_counter() - started
+    if archive is not None:
+        os.replace(partial_archive, archive)
     records = [
         row_record(
             row,
@@ -591,6 +698,7 @@ def run_cell(
         "budget_source": str(budget_source) if budget_source else None,
         "budget_floor_source": str(flat_source) if flat_source else None,
         "cohort_positions": list(positions) if positions is not None else None,
+        "archive": str(archive) if archive is not None else None,
         "device": device,
         "threads": threads,
         "lanes": lanes,

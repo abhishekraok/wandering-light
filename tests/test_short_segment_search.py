@@ -1,5 +1,6 @@
 """The short-segment-campaign (#168) search driver and the caps it added to the beams."""
 
+import gzip
 import json
 import random
 import sys
@@ -533,6 +534,15 @@ def test_three_cells_run_and_the_widening_cell_reads_the_segment_budgets(
     assert use["set_by_flat"] == terms.count("flat")
     assert cells["flat"]["budget_use"] is None
     assert cells["flat"]["rows"][0]["budget"] is None
+    # Only the segment cell archives, one line per task in cohort order.
+    assert cells["flat"]["archive"] is None and widening["archive"] is None
+    with gzip.open(segment["archive"], "rt") as lines:
+        archived = [json.loads(line) for line in lines]
+    assert [a["task_index"] for a in archived] == [11, 22, 33]
+    for line, row in zip(archived, segment["rows"], strict=True):
+        assert line["termination"] == row["termination"]
+        assert line["program"] == row["program"]
+        assert bool(line["segments"]) == (row["source"] == "search")
 
 
 def test_the_report_counts_verified_behaviours_shortcuts_and_pairs(
@@ -1034,3 +1044,87 @@ def test_local_per_op_rank_divides_the_gain_by_the_segment_ops():
     # Cumulative keeps the whole-program mean: -2 / 10 beats -1 / 2.
     cumulative = _rank_variants(every, [long_root, short_root], set(), product(30))
     assert cumulative["per_op_rank"] == 2
+
+
+@pytest.mark.parametrize(("name", "witness", "shape", "want"), SEGMENT_GOLDEN)
+def test_archiving_leaves_the_segment_search_unchanged(name, witness, shape, want):
+    from wandering_light.stack_beam import ArchivedSegment
+
+    task = witness_task(name, 4)
+    roots, depth, segments, width = shape
+    kwargs = {
+        "roots": roots,
+        "segment_depth": depth,
+        "max_segments": segments,
+        "beam_width": width,
+        "max_state_atoms": 16_384,
+    }
+    for scoring in ("cumulative", "local"):
+        plain = segment_beam_solve(
+            task, WitnessScorer(task, 1.0), scoring=scoring, **kwargs
+        )
+        archive = []
+        got = segment_beam_solve(
+            task, WitnessScorer(task, 1.0), scoring=scoring, archive=archive, **kwargs
+        )
+        assert tuple(getattr(got, f) for f in FIELDS) == tuple(
+            getattr(plain, f) for f in FIELDS
+        )
+        assert all(isinstance(entry, ArchivedSegment) for entry in archive)
+        assert [entry.segment for entry in archive] == list(range(len(archive)))
+        assert archive[0].roots == (((), 0.0),)
+        stop = archive[-1].stop
+        assert stop == ("fit" if got.termination == "fit" else None)
+
+
+def test_the_archive_scores_each_state_from_its_root(monkeypatch):
+    from types import SimpleNamespace
+
+    from wandering_light import stack_beam as beam
+
+    children = {
+        (): [("A", -1.0), ("B", -3.0)],
+        ("A",): [("A2", -2.0), ("C2", -2.5)],
+        ("B",): [("B2", -1.0)],
+    }
+
+    def fake(frontier, outputs, encode, scorer, tally, **kwargs):
+        closed = {}
+        for _, program, score in frontier:
+            for name, gain in children.get(program, []):
+                closed[((name,),)] = (score + gain, (*program, name))
+        return None, None, closed
+
+    monkeypatch.setattr(beam, "_run_segment", fake)
+    task = witness_task("sum", 4)
+    records = {}
+    for scoring in ("cumulative", "local"):
+        archive = []
+        beam.segment_beam_solve(
+            task,
+            WitnessScorer(task),
+            roots=2,
+            max_segments=3,
+            scoring=scoring,
+            archive=archive,
+        )
+        row = SimpleNamespace(
+            program=("B", "B2"), task=task, termination="x", source="search"
+        )
+        record = driver.archive_record(row, 7, archive, top=1)
+        records[scoring] = {
+            state["program"]: state
+            for segment in record["segments"]
+            for state in segment["states"]
+        }
+    cumulative, local = records["cumulative"], records["local"]
+    for got in (cumulative, local):
+        assert (got["A A2"]["cumulative"], got["A A2"]["local"]) == (-3.0, -2.0)
+        assert (got["B B2"]["cumulative"], got["B B2"]["local"]) == (-4.0, -1.0)
+        assert got["B"]["on_path"] and got["B B2"]["on_path"]
+        assert not got["A"]["on_path"] and got["A"]["chosen_root"]
+    # top=1 keeps the best by each score plus the chosen roots and the path:
+    # cumulatively C2 (-3.5) is a chosen root; locally it is neither.
+    assert cumulative["A C2"]["chosen_root"] and "A C2" not in local
+    assert local["B B2"]["rank_local"] == 0 and local["B B2"]["chosen_root"]
+    assert cumulative["B B2"]["rank_cumulative"] == 2

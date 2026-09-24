@@ -53,7 +53,7 @@ from __future__ import annotations
 import gc
 import time
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 
@@ -582,6 +582,20 @@ OP_INDEX: dict[str, int] = {op.name: index for index, op in enumerate(OPS)}
 Closed = dict[Product, tuple[float, tuple[str, ...]]]
 
 
+class ArchivedSegment(NamedTuple):
+    """One segment of a segment search, as ``segment_beam_solve`` archives it.
+
+    ``roots`` are ``(program, score)`` in the order the segment ran them, the
+    score the one the search gave the root (0 under local scoring); ``closed``
+    is the segment's merged closed states; ``stop`` is ``_run_segment``'s.
+    """
+
+    segment: int
+    roots: tuple[tuple[tuple[str, ...], float], ...]
+    closed: Closed
+    stop: str | None
+
+
 def has_mark(product: Product) -> bool:
     return any(isinstance(value, Mark) for stack in product for value in stack)
 
@@ -774,6 +788,7 @@ def segment_beam_solve(
     max_state_atoms: int | None = None,
     deadline: float | None = None,
     scoring: str = "cumulative",
+    archive: list | None = None,
 ) -> BeamResult:
     """Search one task by segments that reset at closed states.
 
@@ -792,6 +807,9 @@ def segment_beam_solve(
     ``frontier_exhausted`` (a segment closed nothing new) and ``max_segments``.
     ``depth`` is the length of the returned program, or of the longest one any
     expansion produced. The cyclic collector is off, as in ``beam_solve``.
+    ``archive``, when given, gets one ``ArchivedSegment`` per segment run: its
+    roots as ranked and every closed state it merged. Appending holds
+    references only, so the search and its counters are the same with or without it.
     """
     collecting = gc.isenabled()
     if collecting:
@@ -809,6 +827,7 @@ def segment_beam_solve(
             max_state_atoms=max_state_atoms,
             deadline=deadline,
             scoring=scoring,
+            archive=archive,
         )
     finally:
         if collecting:
@@ -828,6 +847,7 @@ def _segment_beam_solve(
     max_state_atoms: int | None,
     deadline: float | None = None,
     scoring: str = "cumulative",
+    archive: list | None = None,
 ) -> BeamResult:
     if scoring not in SCORINGS:
         raise ValueError(f"unknown scoring {scoring!r}; choose one of {SCORINGS}")
@@ -849,7 +869,7 @@ def _segment_beam_solve(
 
     frontier: list[Node] = [(inputs, (), 0.0)]
     expanded: set[Product] = set()
-    for _segment in range(max_segments):
+    for segment in range(max_segments):
         expanded.update(product for product, _, _ in frontier)
         stop, program, closed = _run_segment(
             frontier,
@@ -866,6 +886,12 @@ def _segment_beam_solve(
             stop_at_fit=True,
             deadline=deadline,
         )
+        if archive is not None:
+            archive.append(
+                ArchivedSegment(
+                    segment, tuple((p, s) for _, p, s in frontier), closed, stop
+                )
+            )
         if stop is not None:
             return result(program, stop)
         frontier = _next_roots(closed, expanded)[:roots]

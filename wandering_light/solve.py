@@ -224,6 +224,7 @@ def solve_tasks(
     budgets: Sequence[int | None] | None = None,
     seconds_cap: float | None = None,
     budget_unit: str = "executions",
+    archive: Callable[[Row, list], None] | None = None,
 ) -> list[Row]:
     """Attempt every task in order under ``system``; grade after the last clock stops.
 
@@ -233,6 +234,9 @@ def solve_tasks(
     takes ``executions`` only. ``seconds_cap``
     caps each task's wall-clock, replay included; a search it stops ends
     ``wall_clock_cap``. Both None is the uncapped run `BEST` measures.
+    ``archive``, when given, is called after each task's clock stops with its
+    row and the segment search's ``ArchivedSegment`` list (empty for a library
+    fit or another search).
     """
     if budgets is not None and len(budgets) != len(tasks):
         raise ValueError(f"{len(budgets)} budgets for {len(tasks)} tasks")
@@ -259,6 +263,7 @@ def solve_tasks(
         widening = None
         total = budgets[index] if budgets is not None else None
         capped = None  # "budget" or "wall_clock_cap" when replay hit a cap
+        segments: list = []
         if system.library:
             inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
             outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
@@ -320,6 +325,7 @@ def solve_tasks(
                     max_state_atoms=system.max_state_atoms,
                     deadline=deadline,
                     scoring=system.scoring,
+                    archive=segments if archive is not None else None,
                 )
             else:
                 result = beam_solve(
@@ -354,6 +360,8 @@ def solve_tasks(
             widening=widening,
         )
         rows.append(row)
+        if archive is not None:
+            archive(row, segments)
         if progress is not None:
             progress(row)
     for row in rows:
