@@ -1028,6 +1028,72 @@ def final_rows(run_dir: Path) -> tuple[int, list[dict]]:
     )
 
 
+def cycle_record(baseline: Path, run_dir: Path) -> list[dict]:
+    """Per cycle: the panel line, the gate record and the submarine monitor.
+
+    ``newly_cumulative`` counts panel pairs certified this cycle and never at
+    baseline or in an earlier cycle (the executions line reads it);
+    ``newly_vs_previous`` is the runner's logged per-cycle-previous count.
+    """
+    ever = np.array(
+        [
+            r["certified"]
+            for r in read_rows(baseline / "cycle-0" / "panel_rows.jsonl.gz")
+        ]
+    )
+    out = []
+    cycles = sorted(
+        int(p.name.split("-")[1])
+        for p in run_dir.glob("cycle-*")
+        if (p / "panel_rows.jsonl.gz").exists()
+    )
+    for cycle in cycles:
+        folder = run_dir / f"cycle-{cycle}"
+        report = json.loads((folder / "report.json").read_text())
+        now = np.array(
+            [r["certified"] for r in read_rows(folder / "panel_rows.jsonl.gz")]
+        )
+        cumulative = int((now & ~ever).sum())
+        ever |= now
+        gate = report["heads"]["certification_gate"]
+        rollouts = report["executions"]["rollouts_this_cycle"]
+        panel = report["panel"]
+        out.append(
+            {
+                "cycle": cycle,
+                "walker_success": panel["walker_success"],
+                **{
+                    k: panel["gates"]["certification"][k]
+                    for k in (
+                        "open",
+                        "certified_coverage",
+                        "false_certification",
+                        "conditional_miss",
+                    )
+                },
+                "gate": {
+                    "ladder": gate["ladder"],
+                    "quantile": gate["quantile"],
+                    "open_on_gate_partition": gate.get("open_on_gate_partition"),
+                    "best_bound": {
+                        name: min(r["upper"] for r in ladder["rungs"])
+                        for name, ladder in gate["ladders"].items()
+                    },
+                },
+                "newly_cumulative": cumulative,
+                "newly_vs_previous": report["executions"][
+                    "newly_certified_panel_pairs"
+                ],
+                "ever_certified": int(ever.sum()),
+                "rollouts": rollouts,
+                "rollouts_per_newly_cumulative": rollouts / cumulative
+                if cumulative
+                else None,
+            }
+        )
+    return out
+
+
 def compare(
     baseline: Path,
     adaptive: Path,
@@ -1072,6 +1138,15 @@ def compare(
         and out["adaptive_final_conditional_miss"]["upper_90"] <= 0.20
     )
     out["met"] = met
+    out["by_cycle"] = {
+        name: cycle_record(baseline, path)
+        for name, path in (
+            ("adaptive", adaptive),
+            ("control", control),
+            ("solved", solved),
+        )
+        if path is not None
+    }
     if solved is not None:
         cycle_s, final_s = final_rows(solved)
         report_s = json.loads((solved / f"cycle-{cycle_s}" / "report.json").read_text())

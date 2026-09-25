@@ -781,6 +781,16 @@ def test_m3_baseline_and_branches_on_a_tiny_source(tmp_path):
     assert verdict["cycles"] == {"adaptive": 2, "control": 1}
     assert isinstance(verdict["met"], bool)
     assert "solved_minus_adaptive_success" in verdict["solved"]
+    lines = verdict["by_cycle"]["adaptive"]
+    assert [line["cycle"] for line in lines] == [1, 2]
+    assert lines[1]["ever_certified"] >= lines[0]["ever_certified"]
+    assert {"E", "u"} == set(lines[0]["gate"]["best_bound"])
+    total = sum(line["newly_cumulative"] for line in lines)
+    base_certified = sum(
+        r["certified"]
+        for r in m3.read_rows(base_dir / "cycle-0" / "panel_rows.jsonl.gz")
+    )
+    assert base_certified + total == lines[-1]["ever_certified"]
 
 
 def test_m3_label_draws_avoid_panel_endpoints_and_lineages():
