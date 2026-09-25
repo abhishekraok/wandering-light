@@ -1216,6 +1216,17 @@ def test_the_report_reads_a_capped_tasks_rerun_against_its_cell():
         "- capped / difference segment-k16-d8 s0: 2/2 rerun at 1800 s, 1 fit, "
         "1 max_segments; median 50 s; 1 solved; verified 1 -> 2 (+b)"
     )
-    # A rerun of other positions is not this cell's.
-    other = {**rerun, "cohort_positions": [2]}
+    # Split over two reruns, the positions are read together.
+    halves = [
+        {**rerun, "cohort_positions": [1], "rows": rerun["rows"][:1]},
+        {**rerun, "cohort_positions": [2], "rows": rerun["rows"][1:]},
+    ]
+    assert driver.rerun_lines([cell], halves, verdicts)[-1] == (
+        "- capped / difference segment-k16-d8 s0: 2/2 rerun at 1800 s in 2 parts, "
+        "1 fit, 1 max_segments; median 50 s; 1 solved; verified 1 -> 2 (+b)"
+    )
+    # A rerun of other positions is not this cell's, and a part is not reported.
+    other = {**rerun, "cohort_positions": [0, 1, 2]}
+    assert not driver.rerun_lines([cell], [other], verdicts)[-1].startswith("- ")
+    other = halves[1]
     assert not driver.rerun_lines([cell], [other], verdicts)[-1].startswith("- ")

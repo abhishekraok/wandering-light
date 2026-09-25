@@ -889,8 +889,10 @@ def rerun_lines(
 ) -> list[str]:
     """Each segment cell's clock-capped tasks rerun on their own under a longer clock.
 
-    A rerun holds only the capped positions, so its library starts empty; these
+    A rerun holds only capped positions, so its library starts empty; these
     tasks reached search in the full cell, so replay had not fitted them there.
+    The positions may be split over several reruns (lanes); a cell is reported
+    once they cover every capped position, never partly.
     """
     if not again:
         return []
@@ -910,25 +912,28 @@ def rerun_lines(
             for p, r in enumerate(cell["rows"])
             if r["termination"] == "wall_clock_cap"
         ]
+        wanted = [p for p, _ in capped]
         match = [
             c
             for c in again
             if (c["run"], c["arm"], c["seed"])
             == (cell["run"], cell["arm"], cell["seed"])
             and c["search_tag"].split("-cap")[0] == cell["search_tag"]
-            and c["cohort_positions"] == [p for p, _ in capped]
+            and set(c["cohort_positions"]) <= set(wanted)
         ]
-        if not capped or not match:
+        covered = sorted(p for c in match for p in c["cohort_positions"])
+        if not capped or covered != wanted:
             continue
-        rows = match[0]["rows"]
+        rows = [r for c in match for r in c["rows"]]
         base = {r["behaviour"] for r in verified_rows(cell, verdicts)}
-        new = {r["behaviour"] for r in verified_rows(match[0], verdicts)} - base
+        new = {r["behaviour"] for c in match for r in verified_rows(c, verdicts)} - base
         ended = defaultdict(int)
         for r in rows:
             ended[r["termination"]] += 1
         lines.append(
             f"- {cell['arm']} / {cell['encoding']} {cell['search_tag']} s{cell['seed']}: "
-            f"{len(rows)}/{len(capped)} rerun at {match[0]['task_seconds_cap']:.0f} s, "
+            f"{len(rows)}/{len(capped)} rerun at {match[0]['task_seconds_cap']:.0f} s"
+            f"{f' in {len(match)} parts' if len(match) > 1 else ''}, "
             + ", ".join(f"{n} {t}" for t, n in sorted(ended.items()))
             + f"; median {statistics.median(r['seconds'] for r in rows):.0f} s; "
             f"{sum(r['solved'] for r in rows)} solved; verified "
