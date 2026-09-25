@@ -16,12 +16,17 @@ heads, roll the panel. No policy phase, no attempts.
   off the panel's endpoints and lineages), lineage-split 1,000 P / 500 E /
   500 gate, never archived; M2b's ridge probes and controls
   (``m2b.fit_population``).
-- **Gate**: a ladder of the E partition's Ê deciles; the certification
-  threshold is the widest rung whose one-sided 90% Clopper-Pearson upper
-  bound on the conditional Wilson-miss rate on the gate partition,
-  Bonferroni over the ladder, is at most 0.20; closed if none. The same rule
-  on P-confidence u = 1 - max(P̂, 1 - P̂) is reported beside it, and M2b's
-  point rule (``probes.set_threshold``) is logged.
+- **Gate** (as amended on #171 after the first baseline, whose E ladder
+  closed at a best bound of 0.204): two ladders, one on the E partition's Ê
+  deciles and one on its P-confidence u = 1 - max(P̂, 1 - P̂) deciles. The
+  certification gate is the widest rung (most gate-partition pairs open)
+  across both whose one-sided 90% Clopper-Pearson upper bound on the
+  conditional Wilson-miss rate on the gate partition, Bonferroni over all 2
+  x 10 rungs, is at most 0.20; closed if none. It is read everywhere
+  certification is (attempt certification and the uncertified filter, the
+  panel's coverage, false certification and conditional miss, the
+  submarine monitor). The E-only and u-only ladders (Bonferroni over their
+  own 10) and M2b's point rule (``probes.set_threshold``) are logged beside.
 
 **Branches** (``adaptive``, ``control``, ``solved``), each cycle:
 
@@ -29,8 +34,8 @@ heads, roll the panel. No policy phase, no attempts.
    archive pairs at n = 8, 10% uniform re-attempts, the rest by the branch's
    ranking over up to ``e_candidates`` uncertified eligible pairs (adaptive:
    descending rank-sum of Ê and count novelty; control: the same with Ê
-   replaced by u). A pair is certified when it is gate-open (E rule) and a
-   Wilson hit on its own rollouts. Walks are archived as M2 archived
+   replaced by u). A pair is certified when it is open under the
+   certification gate and a Wilson hit on its own rollouts. Walks are archived as M2 archived
    calibration walks;
 2. proposals as M2 (1,000, half from archived nodes);
 3. policy phase: M2's hindsight imitation (``imitate="all"``), or only paths
@@ -269,10 +274,13 @@ def uncertainty(p_hat: np.ndarray) -> np.ndarray:
     return 1 - np.maximum(p_hat, 1 - p_hat)
 
 
-def ladder(fit_scores, gate_scores, gate_hit, config: Config) -> dict:
-    """Rungs at the fitting partition's deciles; open is score <= rung; the widest safe rung."""
+def ladder(fit_scores, gate_scores, gate_hit, config: Config, ladders: int = 1) -> dict:
+    """Rungs at the fitting partition's deciles; open is score <= rung; the widest safe rung.
+
+    Bonferroni over ``ladders`` x ``config.ladder`` rungs.
+    """
     fit_scores = np.asarray(fit_scores, dtype=float)
-    level = config.alpha / config.ladder
+    level = config.alpha / (config.ladder * ladders)
     rungs, chosen = [], None
     quantiles = [(i + 1) / config.ladder for i in range(config.ladder)]
     for q, rung in zip(quantiles, np.quantile(fit_scores, quantiles), strict=True):
@@ -301,6 +309,30 @@ def ladder(fit_scores, gate_scores, gate_hit, config: Config) -> dict:
     }
 
 
+def certification_gate(e_fit, u_fit, e_gate, u_gate, gate_hit, config: Config) -> dict:
+    """The amended gate: the widest qualifying rung across the E and u ladders,
+    Bonferroni over both (2 x ``config.ladder`` rungs); ties go to E."""
+    ladders = {
+        "E": ladder(e_fit, e_gate, gate_hit, config, ladders=2),
+        "u": ladder(u_fit, u_gate, gate_hit, config, ladders=2),
+    }
+    best = None
+    for name in ("E", "u"):
+        for rung in ladders[name]["rungs"]:
+            if rung["qualifies"] and (best is None or rung["open"] > best[1]["open"]):
+                best = (name, rung)
+    out = {"ladder": None, "threshold": None, "quantile": None}
+    if best is not None:
+        out = {
+            "ladder": best[0],
+            "threshold": best[1]["threshold"],
+            "quantile": best[1]["quantile"],
+            "open_on_gate_partition": best[1]["open"],
+            "upper": best[1]["upper"],
+        }
+    return {**out, "ladders": ladders}
+
+
 @dataclass
 class HeadSet:
     """P and E probes and the thresholds a measurement set; what an attempt phase reads."""
@@ -310,6 +342,8 @@ class HeadSet:
     t_e: float | None
     t_u: float | None
     e0_point: float | None
+    gate: str | None = None  # the certification gate's ladder, "E" or "u"
+    t_gate: float | None = None
 
     def predict(self, features) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         p_hat = probes.Probe(self.p).predict(features)
@@ -326,6 +360,12 @@ class HeadSet:
             return np.zeros(len(u), dtype=bool)
         return u <= self.t_u
 
+    def open_cert(self, e_hat, u) -> np.ndarray:
+        """Open under the certification gate, whichever ladder won."""
+        if self.gate is None:
+            return np.zeros(len(e_hat), dtype=bool)
+        return (e_hat if self.gate == "E" else u) <= self.t_gate
+
     def plain(self, width: int) -> dict:
         names = probes.trunk_names(width)
         return {
@@ -334,6 +374,8 @@ class HeadSet:
             "t_e": self.t_e,
             "t_u": self.t_u,
             "e0_point": self.e0_point,
+            "gate": self.gate,
+            "t_gate": self.t_gate,
         }
 
     @staticmethod
@@ -345,6 +387,8 @@ class HeadSet:
             plain["t_e"],
             plain["t_u"],
             plain["e0_point"],
+            plain.get("gate"),
+            plain.get("t_gate"),
         )
 
 
@@ -360,6 +404,14 @@ def fit_heads(pool: loop.Pool, features, hits, config: Config, seed: int):
     hit_third = scoring.hit_wilson(p_third, hits[third], config.n)
     gate_e = ladder(e_second, e_third, hit_third, config)
     gate_u = ladder(uncertainty(p_second), uncertainty(p_third), hit_third, config)
+    gate = certification_gate(
+        e_second,
+        uncertainty(p_second),
+        e_third,
+        uncertainty(p_third),
+        hit_third,
+        config,
+    )
     point = probes.set_threshold(
         e_third,
         p_third,
@@ -369,10 +421,17 @@ def fit_heads(pool: loop.Pool, features, hits, config: Config, seed: int):
         config.point_precision,
     )
     head_set = HeadSet(
-        fitted.p, fitted.e, gate_e["threshold"], gate_u["threshold"], point["e0"]
+        fitted.p,
+        fitted.e,
+        gate_e["threshold"],
+        gate_u["threshold"],
+        point["e0"],
+        gate["ladder"],
+        gate["threshold"],
     )
     facts = {
         **fitted.facts,
+        "certification_gate": gate,
         "gate_e": gate_e,
         "gate_u": gate_u,
         "point_rule": point,
@@ -440,6 +499,7 @@ def measure_panel(
     p_hat, e_hat, u = head_set.predict(features)
     hit = scoring.hit_wilson(p_hat, hits, config.n)
     open_e, open_u = head_set.open_e(e_hat), head_set.open_u(u)
+    open_cert = head_set.open_cert(e_hat, u)
     open_point = (
         e_hat < head_set.e0_point
         if head_set.e0_point is not None
@@ -464,11 +524,14 @@ def measure_panel(
         **loop.success(hits, config.n),
         "ends": ends,
         "gates": {
+            "certification": gate_metrics(open_cert, hit),
             "E": gate_metrics(open_e, hit),
             "P_confidence": gate_metrics(open_u, hit),
             "E_point_rule": gate_metrics(open_point, hit),
         },
         "thresholds": {
+            "gate": head_set.gate,
+            "t_gate": head_set.t_gate,
             "t_e": head_set.t_e,
             "t_u": head_set.t_u,
             "e0_point": head_set.e0_point,
@@ -494,15 +557,17 @@ def measure_panel(
             "e_hat": float(e_hat[i]),
             "u": float(u[i]),
             "wilson_hit": bool(hit[i]),
+            "open_cert": bool(open_cert[i]),
             "open_e": bool(open_e[i]),
             "open_u": bool(open_u[i]),
             "open_point": bool(open_point[i]),
-            "certified": bool(open_e[i] and hit[i]),
-            "certified_u": bool(open_u[i] and hit[i]),
+            "certified": bool(open_cert[i] and hit[i]),
+            "certified_e_only": bool(open_e[i] and hit[i]),
+            "certified_u_only": bool(open_u[i] and hit[i]),
         }
         for i in range(len(panel))
     ]
-    return report, rows, open_e & hit
+    return report, rows, open_cert & hit
 
 
 def attempt_phase(
@@ -551,7 +616,8 @@ def attempt_phase(
     pool_features = heads.pair_features(scorer, pool.jobs())
     p_pool, e_pool, u_pool = head_set.predict(pool_features)
     hit = scoring.hit_wilson(p_pool, hits, config.n)
-    now = head_set.open_e(e_pool) & hit
+    open_cert = head_set.open_cert(e_pool, u_pool)
+    now = open_cert & hit
     before = len(certified)
     certified |= {k for k, c in zip(keys, now, strict=True) if c}
     made, _touched = loop.archive_walks(
@@ -576,7 +642,7 @@ def attempt_phase(
                 "p_hat": float(p_pool[i]),
                 "hits": int(hits[i]),
                 "wilson_hit": bool(hit[i]),
-                "open_e": bool(head_set.open_e(e_pool[i : i + 1])[0]),
+                "open_cert": bool(open_cert[i]),
                 "certified": bool(now[i]),
                 "origin": archive.pairs[k].origin,
                 "body": programs.body_stratum(
@@ -594,6 +660,7 @@ def attempt_phase(
         **loop.success(hits, config.n),
         "ends": ends,
         "archived": made,
+        "gate": {"ladder": head_set.gate, "threshold": head_set.t_gate},
         "certified_this_phase": int(now.sum()),
         "certified_new": len(certified) - before,
         "certified_total": len(certified),
@@ -774,7 +841,8 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
         )
         log(
             f"baseline: panel success {panel_report['walker_success']:.3f}, "
-            f"E-certified {panel_report['gates']['E']['certified_coverage']}"
+            f"certified {panel_report['gates']['certification']['certified_coverage']}"
+            f" via {head_set.gate}"
         )
         return [report]
 
@@ -934,8 +1002,9 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
         reports.append(report)
         log(
             f"{name}: attempt success {attempt['walker_success']:.3f}, panel success "
-            f"{panel_report['walker_success']:.3f}, E-certified "
-            f"{panel_report['gates']['E']['certified_coverage']}, new {newly}, "
+            f"{panel_report['walker_success']:.3f}, certified "
+            f"{panel_report['gates']['certification']['certified_coverage']} via "
+            f"{head_set.gate}, new {newly}, "
             f"timings {clock.phases}"
         )
         previous_success = panel_report["walker_success"]
@@ -982,8 +1051,8 @@ def compare(
 
     cycle_a, final_a = final_rows(adaptive)
     cycle_c, final_c = final_rows(control)
-    miss = sum(r["open_e"] and not r["wilson_hit"] for r in final_a)
-    opened = sum(r["open_e"] for r in final_a)
+    miss = sum(r["open_cert"] and not r["wilson_hit"] for r in final_a)
+    opened = sum(r["open_cert"] for r in final_a)
     out = {
         "cycles": {"adaptive": cycle_a, "control": cycle_c},
         "adaptive_minus_baseline_certified": paired(final_a, base, "certified"),

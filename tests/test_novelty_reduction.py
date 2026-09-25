@@ -723,7 +723,12 @@ def test_m3_baseline_and_branches_on_a_tiny_source(tmp_path):
     [base] = m3.run(tiny_m3(source), base_dir, log=lambda line: None)
     assert base["panel_draws"]["kept"] == 20
     assert base["heads"]["gate_e"]["threshold"] is not None
-    assert {"E", "P_confidence", "E_point_rule"} == set(base["panel"]["gates"])
+    assert {"certification", "E", "P_confidence", "E_point_rule"} == set(
+        base["panel"]["gates"]
+    )
+    gate = base["heads"]["certification_gate"]
+    assert gate["ladder"] in ("E", "u") and gate["threshold"] is not None
+    assert gate["ladders"]["E"]["level_per_rung"] == 0.1 / 8  # 2 x 4 rungs
     with gzip.open(base_dir / "panel.pkl.gz", "rb") as handle:
         saved = pickle.load(handle)
     panel, quarantine = saved["panel"], saved["quarantine"]
@@ -834,3 +839,35 @@ def test_m3_uninformative_baseline_stops_and_branches_refuse(tmp_path):
     )
     with pytest.raises(ValueError, match="baseline stopped"):
         m3.run(branch, tmp_path / "adaptive", log=lambda line: None)
+
+
+def test_certification_gate_opens_on_u_when_e_just_misses():
+    config = m3.Config()  # 2 x 10 rungs, per-rung level 0.005, bound 0.20
+    size = 400
+    hit = np.ones(size, dtype=bool)
+    hit[::5] = False  # 20% misses, spread evenly over E's order
+    e_gate = np.linspace(0, 1, size)  # E ranks nothing: every rung ~20% misses
+    u_gate = np.where(hit, 0.1, 0.4) + np.linspace(0, 0.01, size)  # misses last
+    got = m3.certification_gate(e_gate, u_gate, e_gate, u_gate, hit, config)
+    best_e = min(r["upper"] for r in got["ladders"]["E"]["rungs"])
+    assert 0.20 < best_e < 0.30  # E just above the bound
+    assert got["ladder"] == "u" and got["upper"] <= 0.20
+    assert got["ladders"]["u"]["level_per_rung"] == 0.005
+    # a HeadSet built on it opens by u, not by E
+    head = m3.HeadSet({}, {}, None, None, None, got["ladder"], got["threshold"])
+    assert head.open_cert(np.zeros(2), np.array([0.05, 0.45])).tolist() == [
+        True,
+        False,
+    ]
+
+
+def test_certification_gate_closes_when_neither_ladder_qualifies():
+    config = m3.Config()
+    size = 400
+    hit = np.ones(size, dtype=bool)
+    hit[::4] = False  # 25% misses, spread evenly over both orders
+    scores = np.linspace(0, 1, size)
+    got = m3.certification_gate(scores, scores, scores, scores, hit, config)
+    assert got["ladder"] is None and got["threshold"] is None
+    head = m3.HeadSet({}, {}, None, None, None, got["ladder"], got["threshold"])
+    assert not head.open_cert(np.zeros(3), np.zeros(3)).any()
