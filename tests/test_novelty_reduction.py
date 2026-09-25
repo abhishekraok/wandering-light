@@ -781,6 +781,9 @@ def test_m3_baseline_and_branches_on_a_tiny_source(tmp_path):
     assert verdict["cycles"] == {"adaptive": 2, "control": 1}
     assert isinstance(verdict["met"], bool)
     assert "solved_minus_adaptive_success" in verdict["solved"]
+    post = verdict["post_hoc_gate_free"]
+    assert set(post["adaptive"]) == {"1", "2"}
+    assert set(post["baseline"]["u"]) == {str(x) for x in m3.SHARES}
     lines = verdict["by_cycle"]["adaptive"]
     assert [line["cycle"] for line in lines] == [1, 2]
     assert lines[1]["ever_certified"] >= lines[0]["ever_certified"]

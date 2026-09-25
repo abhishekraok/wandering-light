@@ -1094,6 +1094,23 @@ def cycle_record(baseline: Path, run_dir: Path) -> list[dict]:
     return out
 
 
+SHARES = (0.3, 0.4, 0.5, 0.6, 0.7)
+
+
+def gate_free(rows: list[dict], seed: int = 0) -> dict:
+    """Post-hoc: at fixed panel open shares, ranked by u and by E_hat (lowest
+    first, random ties), certified coverage, false certification, conditional miss."""
+    hit = np.array([r["wilson_hit"] for r in rows])
+    out = {}
+    for name, key in (("u", "u"), ("E", "e_hat")):
+        take_by = -np.array([r[key] for r in rows])
+        out[name] = {}
+        for share in SHARES:
+            open_ = m2b.accepted(take_by, share, seed)
+            out[name][str(share)] = gate_metrics(open_, hit)
+    return out
+
+
 def compare(
     baseline: Path,
     adaptive: Path,
@@ -1138,6 +1155,23 @@ def compare(
         and out["adaptive_final_conditional_miss"]["upper_90"] <= 0.20
     )
     out["met"] = met
+    out["post_hoc_gate_free"] = {
+        "baseline": gate_free(base),
+        **{
+            name: {
+                str(line["cycle"]): gate_free(
+                    read_rows(path / f"cycle-{line['cycle']}" / "panel_rows.jsonl.gz")
+                )
+                for line in cycle_record(baseline, path)
+            }
+            for name, path in (
+                ("adaptive", adaptive),
+                ("control", control),
+                ("solved", solved),
+            )
+            if path is not None
+        },
+    }
     out["by_cycle"] = {
         name: cycle_record(baseline, path)
         for name, path in (
