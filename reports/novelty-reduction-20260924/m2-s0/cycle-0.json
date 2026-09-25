@@ -1,0 +1,157 @@
+{
+ "cycle": 0,
+ "config": {
+  "seed": 0,
+  "cycles": 3,
+  "proposals": 1000,
+  "start_archived_share": 0.5,
+  "grammar_level": "4,3,none",
+  "calibration": 500,
+  "test_fresh": 250,
+  "test_fresh_final": 1000,
+  "test_archive": 250,
+  "paired_check": 250,
+  "tracked_new": 5000,
+  "max_cuts": 1,
+  "epochs": 5,
+  "row_cap": 300000,
+  "learning_rate": 0.000125,
+  "batch": 256,
+  "architecture": [
+   128,
+   320,
+   640
+  ],
+  "rnd_replay": 20000,
+  "rnd_epochs": 1,
+  "rnd_cohort": 500,
+  "budget": 16,
+  "temperature": 1.0,
+  "n": 8,
+  "train_device": "cuda",
+  "threads": 1,
+  "behaviours": null,
+  "bootstrap_proposals": 3000,
+  "bootstrap_block_epochs": 5,
+  "bootstrap_max_epochs": 30,
+  "bootstrap_check": 250,
+  "floor_success": 0.05,
+  "floor_pairs": 0.2,
+  "uninformative_zero_share": 0.98,
+  "collapse_ratio": 0.5,
+  "min_stratum": 100,
+  "final_eval_seconds": 3600.0
+ },
+ "started": "2026-09-24T14:06:43-07:00",
+ "propose": {
+  "from_inputs": 3000,
+  "pairs": 10611,
+  "relaxations": 123,
+  "segments": 5972
+ },
+ "rows": {
+  "proposal_rows": 34905,
+  "rollout_rows": 0,
+  "proposal_pairs": 6018,
+  "rollout_pairs": 0,
+  "rollout_pairs_available": 0,
+  "rows_trained": 34905,
+  "path_turnover": null
+ },
+ "blocks": [
+  {
+   "block": 1,
+   "epochs": 5,
+   "train_cross_entropy": [
+    2.509828483954215,
+    1.8938384917963713,
+    1.7055975301578894,
+    1.6238376544755129,
+    1.5624402439503764
+   ],
+   "steps": 685,
+   "pairs": 250,
+   "walker_success": 0.206,
+   "pairs_with_hit": 0.504,
+   "histogram": [
+    124,
+    38,
+    21,
+    16,
+    15,
+    12,
+    8,
+    12,
+    4
+   ],
+   "ends": {
+    "budget": 1588,
+    "hit": 412
+   },
+   "by_d_ops": {
+    "4": {
+     "pairs": 42,
+     "walker_success": 0.375
+    },
+    "5": {
+     "pairs": 46,
+     "walker_success": 0.1793478260869565
+    },
+    "6": {
+     "pairs": 60,
+     "walker_success": 0.17916666666666667
+    },
+    "7": {
+     "pairs": 66,
+     "walker_success": 0.17803030303030304
+    },
+    "8": {
+     "pairs": 36,
+     "walker_success": 0.1388888888888889
+    }
+   },
+   "by_combinator": {
+    "dip": {
+     "pairs": 88,
+     "walker_success": 0.08522727272727272
+    },
+    "filter": {
+     "pairs": 15,
+     "walker_success": 0.4666666666666667
+    },
+    "fold": {
+     "pairs": 15,
+     "walker_success": 0.4083333333333333
+    },
+    "i": {
+     "pairs": 116,
+     "walker_success": 0.2025862068965517
+    },
+    "map": {
+     "pairs": 16,
+     "walker_success": 0.4609375
+    }
+   },
+   "by_body": {
+    "1": {
+     "pairs": 109,
+     "walker_success": 0.25573394495412843
+    },
+    "2": {
+     "pairs": 56,
+     "walker_success": 0.12723214285714285
+    },
+    "3-4": {
+     "pairs": 85,
+     "walker_success": 0.19411764705882353
+    }
+   }
+  }
+ ],
+ "floor_met_at_block": 1,
+ "timings": {
+  "bootstrap": 180.85
+ },
+ "archive_snapshot": "/home/abhishekrao/repos/wandering-light/checkpoints/novelty-reduction/m2-s0/cycle-0/archive.pkl.gz",
+ "finished": "2026-09-24T14:09:49-07:00"
+}
