@@ -564,6 +564,38 @@ Synthetic stack pairs. P is P(reach t within B = 16 ops at T = 1), fit to hits o
 
 - **Post-hoc, on `m2b-s0`** (not registered; `.drafts/posthoc_m2b.py`, [comment](https://github.com/abhishekraok/wandering-light/issues/171#issuecomment-5824270680)). The ridge P is calibrated to within about 0.03 in most P̂ bins. An e0 taken at the largest gate-partition Ê with Wilson precision of at least 0.8 is 0.286 on A and 0.236 on B. On test it gives 26.3% / 17.2% certified coverage, 6.2% / 3.4% false certification, and precision 0.81 / 0.84.
 
+## Certified coverage M3: an adaptive attempt selector against a u-ranked control (#171)
+
+- **Setup:** one common start, the `m2-s0` cycle-3 policy and archive, with grammar 4,3,none, B = 16, T = 1 and n = 8. Each cycle draws fresh labels: 2,000 pairs (1,000 / 500 / 500 by lineage), fit with ridge P and E probes.
+- **Panel:** a quarantined 1,000-pair test panel.
+- **Registered readout:** certified coverage under the certification gate. The gate is the widest qualifying rung across the Ê and u decile ladders, where u = 1 − max(P̂, 1 − P̂). A rung qualifies when the one-sided Clopper–Pearson upper bound on conditional miss, over the 500-pair gate partition, is at most 0.20, Bonferroni over 20 rungs.
+- **Branches:** each cycle attempts 1,000 pairs, 10% of them re-attempts. The rest are ranked by Ê + count novelty (adaptive) or u + count novelty (control). The policy is then retrained on the archive.
+- **Falsifier:** paired lineage-clustered one-sided 90% lower bounds above 0 for adaptive − baseline certified, adaptive − control certified and adaptive − baseline walker success, and a final conditional-miss upper bound of at most 0.20.
+
+Seed 0, code `9480d9c`. Run dirs are `m3-*` under `checkpoints/novelty-reduction/`. [control and falsifier](https://github.com/abhishekraok/wandering-light/issues/171#issuecomment-5827569599) · [solved and final compare](https://github.com/abhishekraok/wandering-light/issues/171#issuecomment-5828288463)
+
+| run | procedure | falsifier | numbers |
+|---|---|---|---|
+| `m3-baseline` | The frozen start policy: panel, labels and heads. The gate as first registered was the Ê decile ladder only. It was closed at baseline, and the registration was amended to both ladders before any branch ran. The E-only baseline is kept as `m3-baseline-e-only`. | – | Panel walker success 0.409. Certified 0.410, false certification 0.073, conditional miss 0.151, gate u q0.5. The E-only gate is closed. |
+| `m3-adaptive` | 3 cycles, Ê-ranked attempts. | **not met** | Walker success 0.396 / 0.468 / 0.448. Certified 0.406 / 0 (gate closed) / 0.401, gate u q0.5 in cycles 1 and 3. Final − baseline certified −0.009 (lower 90 −0.029). Adaptive − control certified +0.140 (0.123), which is the gate rung and not capability (see below). Walker success +0.039 (0.031). Final conditional-miss upper bound 0.181. |
+| `m3-control` | 3 cycles, u-ranked attempts. Restarted from scratch after a memory stop and run under a 12 GB cap. The stopped run is `m3-control-oom-stopped`. | – | Walker success 0.422 / 0.419 / 0.471. Certified 0.448 / 0.469 / 0.261, gate u q0.6 / q0.6 / q0.3. |
+| `m3-solved` | 3 cycles, adaptive ranking; the policy imitates solved walks. 12 GB cap. | – | Walker success 0.432 / 0.459 / 0.471. Certified 0.340 / 0 (gate closed) / 0.388, gate u q0.4 / closed / q0.5. |
+
+- **Post-hoc, unregistered: capability rose, certified coverage did not.** These are paired lineage-clustered bounds of the final cycle against the baseline, as mean (one-sided 90% lower bound).
+  - Walker success: adaptive +0.039 (0.031), control +0.061 (0.053).
+  - P_emp ≥ 0.5: adaptive +0.036 (0.021), control +0.054 (0.039).
+  - Certified-reachable (P̂ ≥ 0.5) at a fixed u@0.5 open share: adaptive +0.036 (0.025), control +0.080 (0.067).
+  - Certified at fixed u@0.5: adaptive −0.007 (−0.026), control +0.004 (−0.018). Across every run and cycle it stays between 0.400 and 0.425.
+  - Solved (vs baseline): success +0.062 (0.053), P_emp ≥ 0.5 +0.069 (0.054), certified-reachable at u@0.5 +0.060 (0.048), certified at u@0.5 −0.021 (−0.041).
+  - Control − adaptive: success +0.023 (0.015), certified-reachable at u@0.5 +0.044 (0.033). Solved − adaptive: success +0.023 (0.015). Solved − control: success +0.000 (−0.009). The u-ranked selector alone gets as far as the Ê-ranked selector plus solved imitation.
+- **Same-seed replicate, control cycle 1, run twice:** the two runs used the same panel and seeds; only GPU training nondeterminism differs. Per-pair hits agree exactly on 41.5% of pairs, correlation 0.89.
+  - Walker success: 0.420 against 0.422.
+  - Registered certified: 0.395 against 0.448, rungs q0.5 against q0.6.
+  - Fixed u@0.5 certified: 0.415 against 0.419.
+  - Fixed Ê@0.5 certified: 0.398 against 0.406.
+  - The registered readout's replicate spread is about ±0.05; the fixed-share spread is under 0.01. The bootstrap bounds above leave this spread out.
+- **Gate-partition failures:** two ladders are non-monotone. The stopped control run's q0.4 fails at 0.2007 while q0.5 passes, and control cycle 3's q0.4 fails at 0.204 while q0.3 passes. Control cycle 2 qualified q0.6, but its panel conditional miss was 0.209.
+
 ## Inverse dynamics: the encoder can compare states, and a comparison feature makes it data-efficient (#166)
 
 Triples (s, op, s') from executing every legal op on world-arm fit-task states. The label is every op reaching s'. Set-accuracy on held-out tasks' states. Predictions were registered first. [report](../reports/inverse-dynamics-20260923/README.md)
