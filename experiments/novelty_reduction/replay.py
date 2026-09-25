@@ -44,6 +44,11 @@ def replay(source: Path, out: Path) -> None:
         **{
             **report0["config"],
             "architecture": tuple(report0["config"]["architecture"]),
+            **{
+                k: tuple(report0["config"][k])
+                for k in ("ridge_lambdas", "widen_levels")
+                if k in report0["config"]
+            },
             "train_device": "cpu",
         }
     )
@@ -67,8 +72,10 @@ def replay(source: Path, out: Path) -> None:
 
     original_rows = loop.policy_rows
 
-    def policy_rows(archive, config, cycle, previous_paths):
-        rows, facts, paths = original_rows(archive, config, cycle, previous_paths)
+    def policy_rows(archive, config, cycle, previous_paths, **kwargs):
+        rows, facts, paths = original_rows(
+            archive, config, cycle, previous_paths, **kwargs
+        )
         dumps.setdefault(cycle, {})["rows"] = [
             (archive.pairs[k].origin, archive.pairs[k].witness_path, path)
             for k, path in paths.items()
@@ -77,8 +84,10 @@ def replay(source: Path, out: Path) -> None:
 
     original_fit = loop.fit_models
 
-    def fit_models(scorer, pool, hits, n, parts, seed, n0):
-        models, features = original_fit(scorer, pool, hits, n, parts, seed, n0)
+    def fit_models(scorer, pool, hits, n, parts, seed, n0, **kwargs):
+        models, features = original_fit(
+            scorer, pool, hits, n, parts, seed, n0, **kwargs
+        )
         dumps.setdefault(state["cycle"], {})["calibration"] = {
             "features": features,
             "hits": np.asarray(hits),
@@ -94,9 +103,11 @@ def replay(source: Path, out: Path) -> None:
 
     original_score = loop.score_pool
 
-    def score_pool(models, scorer, rnd, pool, hits, n, stratifications, counted=None):
+    def score_pool(
+        models, scorer, rnd, pool, hits, n, stratifications, counted=None, **kwargs
+    ):
         result = original_score(
-            models, scorer, rnd, pool, hits, n, stratifications, counted
+            models, scorer, rnd, pool, hits, n, stratifications, counted, **kwargs
         )
         if len(pool):
             features = heads.pair_features(scorer, pool.jobs())

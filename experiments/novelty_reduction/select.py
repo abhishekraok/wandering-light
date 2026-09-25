@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 REATTEMPT = "reattempt"
 NOVEL = "novel"
 NOVEL_FILL = "novel_fill"
+E_RANKED = "e_ranked"
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,6 +78,51 @@ def select(
         left = [key for key in candidates if key not in taken]
         left.sort(key=lambda k: (archive.visits[k[1]], k))
         take(left[:rest], NOVEL_FILL)
+    return picked
+
+
+def select_ranked(
+    archive: LoopArchive,
+    cycle: int,
+    rng: random.Random,
+    ranked: dict[tuple[int, int], float],
+    config: Selector = SELECTOR,
+) -> list[tuple[tuple[int, int], str]]:
+    """M3's E-ranked arm: the same re-attempt share, then highest E_hat first.
+
+    ``ranked`` holds E_hat for uncertified eligible pairs (the previous cycle's
+    E on its own trunk); pairs outside it are reached only by the novel
+    rules, if the ranking runs out.
+    """
+    candidates = sorted(
+        key
+        for key, record in archive.pairs.items()
+        if record.witness_d_cuts <= config.max_cuts
+    )
+    attempted = [key for key in candidates if archive.pairs[key].attempts > 0]
+    taken: set[tuple[int, int]] = set()
+    picked = []
+    if cycle >= 2 and attempted:
+        count = min(round(config.size * config.reattempt), len(attempted))
+        for key in rng.sample(attempted, count):
+            taken.add(key)
+            picked.append((key, REATTEMPT))
+    order = sorted(
+        (k for k in ranked if k not in taken and k in archive.pairs),
+        key=lambda k: (-ranked[k], k),
+    )
+    for key in order[: config.size - len(picked)]:
+        taken.add(key)
+        picked.append((key, E_RANKED))
+    rest = config.size - len(picked)
+    if rest > 0:  # the ranking ran out: the uniform arm's novel rules fill
+        fill = select(
+            archive,
+            0,  # no re-attempts in the fill
+            rng,
+            Selector(len(candidates), 0.0, config.novel_threshold, config.max_cuts),
+        )
+        picked += [(k, rule) for k, rule in fill if k not in taken][:rest]
     return picked
 
 

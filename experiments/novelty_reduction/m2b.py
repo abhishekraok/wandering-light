@@ -54,7 +54,7 @@ import torch  # noqa: E402
 
 from experiments.certified_coverage import score as scoring  # noqa: E402
 from experiments.certified_coverage.rollout import Procedure  # noqa: E402
-from experiments.novelty_reduction import canon, heads, programs  # noqa: E402
+from experiments.novelty_reduction import canon, heads, probes, programs  # noqa: E402
 from experiments.novelty_reduction import cycle as loop  # noqa: E402
 from experiments.novelty_reduction import evaluate as ev  # noqa: E402
 from experiments.novelty_reduction import select as selector  # noqa: E402
@@ -113,34 +113,12 @@ def split(groups, seed: int, targets) -> np.ndarray:
     return np.array([assign[g] for g in groups], dtype=int)
 
 
-def folds_of(groups, k: int, seed: int) -> np.ndarray:
-    order = list(dict.fromkeys(groups))
-    np.random.default_rng(seed).shuffle(order)
-    fold = {g: i % k for i, g in enumerate(order)}
-    return np.array([fold[g] for g in groups])
+folds_of = probes.folds_of
 
 
 def ridge(x, hits, n: int, groups, config: Config, seed: int) -> dict:
     """Standardised ridge logistic, lambda by lineage CV inside ``x`` (mean-BCE scale)."""
-    x, hits = np.asarray(x, dtype=float), np.asarray(hits)
-    folds = folds_of(groups, config.folds, seed)
-    table = {}
-    for lam in config.lambdas:
-        losses = []
-        for f in range(config.folds):
-            train, held = folds != f, folds == f
-            if not held.any() or not train.any():
-                continue
-            model = ev.fit_logistic(x[train], hits[train], n, ridge=lam * train.sum())
-            losses.append(
-                ev.log_loss(ev.predict_logistic(model, x[held]), hits[held], n)
-            )
-        table[lam] = float(np.concatenate(losses).mean()) if losses else np.inf
-    best = min(table, key=lambda lam: (table[lam], lam))
-    model = ev.fit_logistic(x, hits, n, ridge=best * len(x))
-    model["lambda"] = best
-    model["cv"] = {str(k): v for k, v in table.items()}
-    return model
+    return probes.ridge(x, hits, n, groups, seed, config.lambdas, config.folds)
 
 
 # ---------------------------------------------------------------------------
@@ -194,12 +172,7 @@ def cheap_matrix(pool: loop.Pool) -> np.ndarray:
 
 def count_novelty(archive: LoopArchive, pool: loop.Pool) -> np.ndarray:
     """max over s, t of 1 / sqrt(1 + v); a state the archive never met has v = 0."""
-
-    def one(state):
-        node = archive.index.get(state)
-        return 1.0 if node is None else archive.novelty(node)
-
-    return np.array([max(one(s), one(t)) for s, t in zip(pool.s, pool.t, strict=True)])
+    return probes.count_novelty(archive, pool.s, pool.t)
 
 
 # ---------------------------------------------------------------------------
@@ -335,35 +308,13 @@ def fit_population(pool, features, hits, parts, config: Config, seed: int) -> Fi
     )
 
 
-CHEAP_FEATURES = (
-    "d_ops",
-    "k",
-    "atoms_s",
-    "atoms_t",
-    "atoms_delta",
-    "depth_s",
-    "depth_t",
-    *(f"top_s_{kind}" for kind in canon.TYPES),
-    *(f"top_t_{kind}" for kind in canon.TYPES),
-    *(f"last_{name}" for name in canon.COMBINATORS),
-)
+CHEAP_FEATURES = canon.CHEAP_FEATURES
 
 
 def plain_models(fitted: Fitted, trunk_width: int) -> dict:
     """The fitted models as plain JSON: scaler, weights (intercept first), lambda, feature names."""
-    trunk = [f"pooled_mean_{i}" for i in range(trunk_width // 2)] + [
-        f"pooled_max_{i}" for i in range(trunk_width - trunk_width // 2)
-    ]
-
-    def logistic(model: dict, names) -> dict:
-        return {
-            "features": list(names),
-            "mean": np.asarray(model["mean"]).tolist(),
-            "scale": np.asarray(model["scale"]).tolist(),
-            "theta": np.asarray(model["theta"]).tolist(),
-            "lambda": model.get("lambda"),
-            "cv": model.get("cv"),
-        }
+    trunk = probes.trunk_names(trunk_width)
+    logistic = probes.plain_logistic
 
     return {
         "p": logistic(fitted.p, trunk),
@@ -380,9 +331,7 @@ def plain_models(fitted: Fitted, trunk_width: int) -> dict:
     }
 
 
-def logistic_from(plain: dict) -> dict:
-    """A plain logistic model back into ``evaluate.predict_logistic``'s form."""
-    return {k: np.asarray(plain[k]) for k in ("mean", "scale", "theta")}
+logistic_from = probes.logistic_from
 
 
 def arms_on(fitted: Fitted, pool, features) -> dict:

@@ -14,7 +14,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from experiments.certified_coverage import pairs as sampler
-from experiments.novelty_reduction import canon, evaluate, heads, m2b, programs
+from experiments.novelty_reduction import canon, evaluate, heads, m2b, probes, programs
 from experiments.novelty_reduction import cycle as runner
 from experiments.novelty_reduction import select as selector
 from experiments.novelty_reduction.archive import PROPOSAL, ROLLOUT, LoopArchive
@@ -506,3 +506,130 @@ def test_m2b_on_a_tiny_frozen_run(tmp_path):
 def test_m2b_ranks_average_ties():
     assert (m2b.ranks(np.full(5, 0.3)) == 0.5).all()  # a constant signal: no ramp
     assert m2b.ranks([3.0, 1.0, 1.0, 2.0]).tolist() == [1.0, 1 / 6, 1 / 6, 2 / 3]
+
+
+# ---------------------------------------------------------------------------
+# M3 switches
+# ---------------------------------------------------------------------------
+
+
+def m3_config(**changes):
+    switches = {
+        "heads": "ridge",
+        "ridge_folds": 2,
+        "gate": "e_set",
+        "gate_min_open": 1,
+        "gate_precision": 0.0,
+        "selector": "e_ranked",
+        "e_candidates": 50,
+        "widen_levels": ("1,1,none", "4,3,none"),
+        "widen_threshold": 0.0,
+        "widen_min_pairs": 0,
+    }
+    return tiny_config(**{**switches, **changes})
+
+
+def test_m3_switches_on_a_tiny_run(tmp_path):
+    reports = runner.run(m3_config(), tmp_path, log=lambda line: None)
+    assert [r["cycle"] for r in reports] == [0, 1, 2]
+    first, second = reports[1], reports[2]
+    # heads: ridge P and E, lambdas logged, models saved as plain JSON
+    assert "p_lambda" in first["calibration"]["heads"]
+    plain = json.loads((tmp_path / "cycle-1" / "models.json").read_text())
+    assert len(plain["p"]["theta"]) == len(plain["p"]["features"]) + 1
+    assert plain["cheap"]["features"] == list(canon.CHEAP_FEATURES)
+    # gate: E alone, the partition-set e0 beside the sweep, per-pair novelty
+    e_set = first["calibration"]["heads"]["e_set"]
+    assert e_set["e0"] is not None  # gate_precision 0 always qualifies
+    gates = first["test"]["F3"]["arms"]["full"]["by"]["all"]["gates"]
+    assert set(gates) == {"e_set", "e0_0.1", "e0_0.2", "e0_0.3"}
+    assert "full_count_gate" not in first["test"]["archive"]["arms"]
+    assert first["executions"]["certified_gate"] == "e_set"
+    with gzip.open(tmp_path / "cycle-1" / "test_rows.jsonl.gz", "rt") as handle:
+        rows = [json.loads(line) for line in handle]
+    assert len(rows) == first["test"]["F3"]["facts"]["evaluated"]
+    assert {"rnd", "rnd_open", "count_novelty", "novelty_class"} <= set(rows[0])
+    assert (
+        sum(r["certified"] for r in rows)
+        == (first["executions"]["certified_fresh_this_cycle"])
+    )
+    assert "certified" in first["calibration"]
+    # selector: uniform in cycle 1 (no E yet), E-ranked from cycle 2
+    assert "e_ranking" not in first
+    assert second["e_ranking"]["scored"] > 0
+    assert second["calibration"]["rules"].get(selector.E_RANKED, 0) >= 1
+    assert second["calibration"]["rules"].get(selector.REATTEMPT, 0) >= 1
+    assert "rollout_pairs_e_ranked" in second["rows"]
+    # widening: threshold 0 clears at once, then the ceiling holds
+    assert first["grammar_level"] == "1,1,none"
+    assert first["widening"]["cleared"] and second["grammar_level"] == "4,3,none"
+    assert second["widening"]["next_level"] == "4,3,none"
+    assert first["paired_check"]["by_body"]
+    assert set(first["calibration"]["by_body"]) <= {"0", "1", "2", "3-4", "5+"}
+    assert first["test"]["F3"]["by_body"]
+    saved = json.loads((tmp_path / "cycle-0" / "report.json").read_text())
+    assert saved["config"]["widen_levels"] == ["1,1,none", "4,3,none"]
+
+
+def test_m3_widening_waits_below_threshold(tmp_path):
+    reports = runner.run(
+        m3_config(widen_threshold=1.1, cycles=2, selector="uniform"),
+        tmp_path,
+        log=lambda line: None,
+    )
+    assert [r["grammar_level"] for r in reports[1:]] == ["1,1,none", "1,1,none"]
+    assert not reports[1]["widening"]["cleared"]
+    # the first level's proposals respect it
+    with gzip.open(tmp_path / "cycle-1" / "proposals.jsonl.gz", "rt") as handle:
+        made = [json.loads(line) for line in handle]
+    assert all(p["body_atoms"] <= 1 and p["segments"] <= 1 for p in made)
+
+
+def test_m3_config_rejects_levels_past_the_ceiling():
+    for bad in (
+        {"widen_levels": ("4,4,none",)},
+        {"gate": "rnd"},
+        {"heads": "mlp2"},
+        {"selector": "e"},
+    ):
+        try:
+            runner.check_config(tiny_config(**bad))
+        except ValueError:
+            continue
+        raise AssertionError(bad)
+
+
+def test_set_threshold_takes_the_largest_qualifying_e0():
+    # E_hat ascending; P = 0.5 on n = 8: 4/8 is a Wilson hit, 0/8 is a miss
+    e_hat = np.array([0.1, 0.2, 0.3, 0.4, 0.5])
+    hits = np.array([4, 4, 4, 0, 0])
+    p_hat = np.full(5, 0.5)
+    got = probes.set_threshold(e_hat, p_hat, hits, 8, min_open=2, precision=0.8)
+    assert got["e0"] == 0.4 and got["open_pairs"] == 3 and got["precision"] == 1.0
+    closed = probes.set_threshold(e_hat, p_hat, hits, 8, min_open=4, precision=0.8)
+    assert closed["e0"] is None and "open_pairs" not in closed
+
+
+def test_select_ranked_takes_reattempts_then_highest_e():
+    archive = LoopArchive()
+    start = inputs_of("sum", 3)
+    proposal = programs.propose(start, random.Random(5))
+    while len(archive.pairs) < 30:
+        proposal = programs.propose(start, random.Random(len(archive.pairs) + 7))
+        if proposal.cuts:
+            archive.add_path(proposal.states, proposal.ops, PROPOSAL, 1)
+    keys = sorted(archive.pairs)
+    for k in keys[:10]:
+        archive.pairs[k].attempts = 1
+    ranked = {k: i / len(keys) for i, k in enumerate(keys)}
+    picks = selector.select_ranked(
+        archive, 2, random.Random(0), ranked, selector.Selector(size=10)
+    )
+    rules = [rule for _, rule in picks]
+    assert rules.count(selector.REATTEMPT) == 1
+    e_picks = [k for k, rule in picks if rule == selector.E_RANKED]
+    left = sorted(
+        (k for k in keys if k not in {p for p, _ in picks if p not in e_picks}),
+        key=lambda k: -ranked[k],
+    )
+    assert e_picks == left[:9]

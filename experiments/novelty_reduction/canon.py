@@ -95,6 +95,20 @@ def _majority(stacks) -> str:
     return max(TYPES, key=kinds.count)
 
 
+CHEAP_FEATURES = (
+    "d_ops",
+    "k",
+    "atoms_s",
+    "atoms_t",
+    "atoms_delta",
+    "depth_s",
+    "depth_t",
+    *(f"top_s_{kind}" for kind in TYPES),
+    *(f"top_t_{kind}" for kind in TYPES),
+    *(f"last_{name}" for name in COMBINATORS),
+)
+
+
 def cheap_features(s: Product, t: Product, path: Sequence[str]) -> list[float]:
     atoms_s = sum(_atoms(v) for stack in s for v in stack) / len(s)
     atoms_t = sum(_atoms(v) for stack in t for v in stack) / len(t)

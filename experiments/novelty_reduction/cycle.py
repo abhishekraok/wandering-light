@@ -23,6 +23,29 @@ Below the floor the run writes its bootstrap diagnosis and stops.
 5. test: fresh F3 pairs and archive pairs, never archived, every arm and
    control scored on the same rollouts (F1-F4, F8), under a wall-clock cap.
 
+**M3 switches** (each default reproduces M2; replay needs the defaults):
+
+- ``heads="ridge"``: M2b's ridge logistic probes replace the MLP P and E
+  (P on partition 0, E on partition 1 against the ridge P's Wilson misses,
+  lambda by inner lineage CV); distance is fit on every origin; the models
+  are saved per cycle as ``models.json``.
+- ``gate="e_set"``: E alone gates, at e0 set on partition 2 each cycle
+  (``probes.set_threshold``: the largest gate-partition E_hat with at least
+  ``gate_min_open`` open pairs at Wilson precision ``gate_precision``,
+  closed if none), beside the {0.1, 0.2, 0.3} sweep. RND and count novelty
+  go per F3 pair into ``test_rows.jsonl.gz``, never gating. Certified fresh
+  pairs, and so executions per certified pair, are read at that e0.
+- ``selector="e_ranked"``: from cycle 2, the previous cycle's E (on its own
+  trunk) ranks up to ``e_candidates`` uncertified archive pairs; calibration
+  keeps the 10% re-attempts and takes the rest highest E_hat first, and the
+  rollout-made training rows take ranked pairs first. An archive pair is
+  certified once a calibration phase finds it gate-open and a Wilson hit.
+- ``widen_levels``: proposals, the paired check and (unless ``test_level``)
+  F3 use the current level; after the paired check the next cycle moves one
+  level on when fresh success on the level's widest body stratum clears
+  ``widen_threshold`` over at least ``widen_min_pairs`` pairs. Levels past
+  (4, 3, none) are refused.
+
 Hard stops (F12): an exception; after bootstrap, calibration labels nearly all
 zero ("uninformative"); a cycle that archives no new proposal pair; current
 fresh success below ``collapse_ratio`` of the previous policy's on the same
@@ -58,7 +81,11 @@ from torch import nn  # noqa: E402
 from experiments.certified_coverage import pairs as sampler  # noqa: E402
 from experiments.certified_coverage import score as scoring  # noqa: E402
 from experiments.certified_coverage.rollout import Procedure, walk  # noqa: E402
-from experiments.novelty_reduction import canon, programs  # noqa: E402
+from experiments.novelty_reduction import (  # noqa: E402
+    canon,
+    probes,
+    programs,
+)
 from experiments.novelty_reduction import evaluate as ev  # noqa: E402
 from experiments.novelty_reduction import heads as H  # noqa: E402, N812
 from experiments.novelty_reduction import select as selector  # noqa: E402
@@ -124,6 +151,37 @@ class Config:
     collapse_ratio: float = 0.5
     min_stratum: int = 100
     final_eval_seconds: float = 3600.0
+    # M3 switches; each default reproduces M2
+    heads: str = "mlp"  # "ridge": M2b's ridge probes for P and E (probes.py)
+    ridge_lambdas: tuple[float, ...] = probes.LAMBDAS
+    ridge_folds: int = 5
+    gate: str = "rnd_e"  # "e_set": E only, e0 set on partition 2 each cycle
+    gate_min_open: int = 10
+    gate_precision: float = 0.8
+    selector: str = "uniform"  # "e_ranked": highest previous-cycle E_hat first
+    e_candidates: int = 20_000  # uncertified archive pairs scored for the ranking
+    widen_levels: tuple[str, ...] = ()  # () keeps grammar_level fixed
+    widen_threshold: float = 0.5  # paired-check success on the widest body stratum
+    widen_min_pairs: int = 20
+    test_level: str = ""  # F3's grammar level; "" follows the current level
+
+
+GATES = ("rnd_e", "e_set")
+HEADS = ("mlp", "ridge")
+SELECTORS = ("uniform", "e_ranked")
+CEILING = programs.Grammar.parse("4,3,none")
+
+
+def check_config(config: Config) -> None:
+    """Unknown switches and levels past the M2 ceiling fail before any work."""
+    if config.heads not in HEADS or config.gate not in GATES:
+        raise ValueError(f"heads {config.heads!r} / gate {config.gate!r}")
+    if config.selector not in SELECTORS:
+        raise ValueError(f"selector {config.selector!r}")
+    for level in (*config.widen_levels, config.test_level or config.grammar_level):
+        grammar = programs.Grammar.parse(level)
+        if grammar.max_segments > CEILING.max_segments:
+            raise ValueError(f"level {level} is past the ceiling {CEILING.level}")
 
 
 def stream(config: Config, cycle: int, role: str) -> random.Random:
@@ -159,10 +217,11 @@ def propose_phase(
     count: int,
     *,
     archived_share: float,
+    level: str | None = None,
 ) -> tuple[dict, list[dict]]:
     """Counts, and one log row per proposal (start kind, body atoms, segments)."""
     rng = stream(config, cycle, "propose")
-    grammar = programs.Grammar.parse(config.grammar_level)
+    grammar = programs.Grammar.parse(level or config.grammar_level)
     made = Counter()
     log = []
     for _ in range(count):
@@ -205,14 +264,21 @@ def last_combinator(path) -> str:
 
 
 def policy_rows(
-    archive: LoopArchive, config: Config, cycle: int, previous_paths: dict
+    archive: LoopArchive,
+    config: Config,
+    cycle: int,
+    previous_paths: dict,
+    ranked: dict | None = None,
 ) -> tuple[list[Row], dict, dict]:
     """Imitation rows on shortest known paths (F10).
 
     Every eligible proposal pair is in. Rollout-made pairs fill at most the
     same number of rows, drawn round-robin over (d_ops, last combinator)
     strata and, within a stratum, a lineage at a time, ties broken by key.
-    Also returns the paths used, for the next cycle's turnover.
+    With ``ranked`` (E_hat per uncertified pair, the M3 E-ranked selector),
+    rollout-made pairs in it go first, highest E_hat first, and the
+    round-robin fills what budget is left. Also returns the paths used, for
+    the next cycle's turnover.
     """
     eligible = sorted(
         (r for r in archive.pairs.values() if r.witness_d_cuts <= config.max_cuts),
@@ -222,6 +288,19 @@ def policy_rows(
     walked = [r for r in eligible if r.origin == ROLLOUT]
     budget = sum(r.d_ops for r in made)
     rng = stream(config, cycle, "rows")
+    available = len(walked)
+    kept = []
+    if ranked:
+        first = sorted(
+            (r for r in walked if (r.s, r.t) in ranked),
+            key=lambda r: (-ranked[(r.s, r.t)], r.s, r.t),
+        )
+        for record in first:
+            if record.d_ops <= budget:
+                kept.append(record)
+                budget -= record.d_ops
+        walked = [r for r in walked if (r.s, r.t) not in ranked]
+    e_ranked_pairs = len(kept)
     strata: dict[tuple, dict[tuple, list]] = defaultdict(lambda: defaultdict(list))
     for record in walked:
         key = (record.d_ops, last_combinator(record.path))
@@ -233,7 +312,6 @@ def policy_rows(
         lineages = sorted(strata[key], key=str)
         rng.shuffle(lineages)
         queues[key] = [list(strata[key][lineage]) for lineage in lineages]
-    kept = []
     while budget > 0 and any(queues.values()):
         for key in order:
             lanes = queues[key]
@@ -274,7 +352,8 @@ def policy_rows(
         "rollout_rows": sum(r.d_ops for r in kept),
         "proposal_pairs": len(made),
         "rollout_pairs": len(kept),
-        "rollout_pairs_available": len(walked),
+        "rollout_pairs_available": available,
+        "rollout_pairs_e_ranked": e_ranked_pairs,
         "rows_trained": len(rows),
         "path_turnover": turnover,
     }
@@ -451,8 +530,8 @@ def by_label(values: np.ndarray, labels, n: int) -> dict:
 
 @dataclass
 class Models:
-    p_head: H.Head
-    e_head: H.Head
+    p_head: H.Head | probes.Probe
+    e_head: H.Head | probes.Probe
     n0: float | None
     constant: float
     distance: dict
@@ -461,17 +540,58 @@ class Models:
     bins: dict  # arm -> open d_ops values, fitted on the third partition
     bin_rates: dict  # arm -> {d_ops: hit rate on the third partition}
     facts: dict
+    e0_set: float | None = None  # M3: E's threshold, set on the third partition
+    plain: dict | None = None  # M3: the ridge models as plain JSON
+
+
+def fit_ridge_heads(features, hits, n, parts, lineage, seed, config: Config):
+    """M2b's probes: ridge P on part 0, ridge E on part 1 against P's Wilson misses."""
+    first, second = parts == 0, parts == 1
+    groups = [str(g) for g in lineage]
+    at = lambda mask: [g for g, m in zip(groups, mask, strict=True) if m]  # noqa: E731
+    fit = {"lambdas": config.ridge_lambdas, "folds": config.ridge_folds}
+    p = probes.ridge(features[first], hits[first], n, at(first), seed, **fit)
+    miss = ~scoring.hit_wilson(
+        ev.predict_logistic(p, features[second]), hits[second], n
+    )
+    e = probes.ridge(features[second], miss.astype(int), 1, at(second), seed + 1, **fit)
+    facts = {
+        "pairs_by_part": np.bincount(parts, minlength=3).tolist(),
+        "e_target_rate": float(miss.mean()) if len(miss) else None,
+        "e_target_rate_by_hits": {
+            str(h): {
+                "pairs": int((hits[second] == h).sum()),
+                "rate": float(miss[hits[second] == h].mean()),
+            }
+            for h in sorted(set(hits[second].tolist()))
+        },
+        "p_lambda": p["lambda"],
+        "p_cv": p["cv"],
+        "e_lambda": e["lambda"],
+        "e_cv": e["cv"],
+    }
+    return probes.Probe(p), probes.Probe(e), facts
 
 
 def fit_models(
-    scorer, pool: Pool, hits, n, parts, seed, n0
+    scorer, pool: Pool, hits, n, parts, seed, n0, config: Config | None = None
 ) -> tuple[Models, np.ndarray]:
+    """M2's heads and controls; with ``config`` its M3 switches (heads, gate) apply."""
     features = H.pair_features(scorer, pool.jobs())
-    p_head, e_head, facts = H.fit_partitioned(features, hits, n, parts, seed)
+    ridge = config is not None and config.heads == "ridge"
+    if ridge:
+        p_head, e_head, facts = fit_ridge_heads(
+            features, hits, n, parts, pool.lineage, seed, config
+        )
+    else:
+        p_head, e_head, facts = H.fit_partitioned(features, hits, n, parts, seed)
     first, third = parts == 0, parts == 2
     rate = hits / n
     constant = float(rate[first].mean()) if first.any() else 0.0
-    proposal_first = first & (np.array(pool.origin) == PROPOSAL)
+    # M2 fit distance on proposal pairs only; M3 (as M2b) on every origin
+    proposal_first = first & (
+        np.ones(len(pool), dtype=bool) if ridge else np.array(pool.origin) == PROPOSAL
+    )
     ops = pool.d_ops
     distance = scoring.fit_distance(ops[proposal_first], hits[proposal_first], n)
     cheap_x = np.array(
@@ -506,6 +626,35 @@ def fit_models(
         rates,
         facts,
     )
+    if config is not None and config.gate == "e_set":
+        threshold = probes.set_threshold(
+            e_head.predict(features[third]),
+            p_head.predict(features[third]),
+            hits[third],
+            n,
+            config.gate_min_open,
+            config.gate_precision,
+        )
+        models.e0_set = threshold["e0"]
+        facts["e_set"] = threshold
+    if ridge:
+        models.plain = {
+            "p": probes.plain_logistic(
+                p_head.model, probes.trunk_names(features.shape[1])
+            ),
+            "e": probes.plain_logistic(
+                e_head.model, probes.trunk_names(features.shape[1])
+            ),
+            "cheap": probes.plain_logistic(cheap, canon.CHEAP_FEATURES),
+            "distance": distance,
+            "constant": constant,
+            "wilson_constant": models.wilson_constant,
+            "bins": bins,
+            "bin_rates": {
+                a: {str(d): r for d, r in v.items()} for a, v in rates.items()
+            },
+            "e0_set": models.e0_set,
+        }
     return models, features
 
 
@@ -518,8 +667,18 @@ def score_pool(
     n: int,
     stratifications: dict,
     counted: np.ndarray | None = None,
+    *,
+    gate: str = "rnd_e",
+    count: np.ndarray | None = None,
+    rows_out: list | None = None,
 ) -> dict:
-    """Every arm and control on the same rollouts of one pool (F1-F3)."""
+    """Every arm and control on the same rollouts of one pool (F1-F3).
+
+    ``gate="rnd_e"`` is M2's (RND and E gate the learned arms). ``"e_set"``
+    is M3's: E alone gates, at the e0 sweep and at the partition-set
+    ``models.e0_set`` (closed when None); RND and count novelty are logged
+    per pair into ``rows_out``, never gating.
+    """
     if len(pool) == 0:  # e.g. the final evaluation's deadline passed first
         return {}, 0
     features = H.pair_features(scorer, pool.jobs())
@@ -542,8 +701,19 @@ def score_pool(
     p_distance = scoring.predict_distance(models.distance, ops)
     p_cheap = ev.predict_logistic(models.cheap, cheap_x) if len(pool) else np.zeros(0)
 
+    e_only = gate == "e_set"
+
     def learned(e_mask_from):
+        if e_only:
+            set_open = (
+                e_mask_from < models.e0_set
+                if models.e0_set is not None
+                else np.zeros(len(pool), dtype=bool)
+            )
+            return {"e_set": set_open, **{f"e0_{e0}": e_mask_from < e0 for e0 in E0S}}
         return {f"e0_{e0}": rnd_open & (e_mask_from < e0) for e0 in E0S}
+
+    learned_confidence = 1 - e_hat if e_only else np.where(rnd_open, 1 - e_hat, -1.0)
 
     def binned(arm):
         return {"bins": scoring.apply_gate(models.bins[arm], ops), "open": ones}
@@ -552,14 +722,10 @@ def score_pool(
         return np.array([models.bin_rates[arm].get(int(d), 0.0) for d in ops])
 
     arms = {
-        "full": (p_hat, learned(e_hat), np.where(rnd_open, 1 - e_hat, -1.0)),
+        "full": (p_hat, learned(e_hat), learned_confidence),
         "p_open": (p_hat, {"open": ones}, None),
         "p_e": (p_hat, {f"e0_{e0}": e_hat < e0 for e0 in E0S}, 1 - e_hat),
-        "distance_learned_gate": (
-            p_distance,
-            learned(e_hat),
-            np.where(rnd_open, 1 - e_hat, -1.0),
-        ),
+        "distance_learned_gate": (p_distance, learned(e_hat), learned_confidence),
         "cheap": (p_cheap, binned("cheap"), bin_confidence("cheap")),
         "constant": (
             np.full(len(pool), models.constant),
@@ -574,7 +740,7 @@ def score_pool(
             None,
         ),
     }
-    if counted is not None:
+    if counted is not None and not e_only:
         arms["full_count_gate"] = (
             p_hat,
             {f"e0_{e0}": counted & (e_hat < e0) for e0 in E0S},
@@ -591,7 +757,31 @@ def score_pool(
     }
     out["rnd_pass_rate"] = float(rnd_open.mean()) if len(pool) else None
     out["n_pair_mean"] = float(n_pair.mean()) if len(pool) else None
-    headline = rnd_open & (e_hat < HEADLINE_E0) & scoring.hit_wilson(p_hat, hits, n)
+    hit = scoring.hit_wilson(p_hat, hits, n)
+    if e_only:
+        headline = arms["full"][1]["e_set"] & hit
+        out["e0_set"] = models.e0_set
+    else:
+        headline = rnd_open & (e_hat < HEADLINE_E0) & hit
+    if rows_out is not None:
+        for i in range(len(pool)):
+            rows_out.append(
+                {
+                    "lineage": str(pool.lineage[i]),
+                    "origin": pool.origin[i],
+                    "d_ops": int(ops[i]),
+                    **{k: v[i] for k, v in stratifications.items() if k != "all"},
+                    "hits": int(hits[i]),
+                    "p_hat": float(p_hat[i]),
+                    "e_hat": float(e_hat[i]),
+                    "wilson_hit": bool(hit[i]),
+                    "certified": bool(headline[i]),
+                    "rnd": float(n_pair[i]),
+                    "rnd_open": bool(rnd_open[i]),
+                    "count_novelty": float(count[i]) if count is not None else None,
+                    "counted": bool(counted[i]) if counted is not None else None,
+                }
+            )
     return out, int(headline.sum())
 
 
@@ -602,7 +792,7 @@ def diagnostics(report: dict, config: Config) -> dict:
         if arm not in report["test"][source]["arms"]:
             return None  # an empty pool
         gates = report["test"][source]["arms"][arm]["by"]["all"]["gates"]
-        gate = f"e0_{HEADLINE_E0}" if f"e0_{HEADLINE_E0}" in gates else "bins"
+        gate = next((g for g in ("e_set", f"e0_{HEADLINE_E0}") if g in gates), "bins")
         return gates[gate]["all"]["wilson"]["certified_coverage"]
 
     fresh = report["test"]["F3"]
@@ -696,7 +886,88 @@ def stratify(pool: Pool, scorer, extra: dict | None = None) -> tuple[dict, dict]
     return labels, facts
 
 
+def rank_by_e(
+    archive: LoopArchive,
+    models: Models,
+    scorer,
+    config: Config,
+    cycle: int,
+    certified: set,
+) -> tuple[dict, dict]:
+    """E_hat on up to ``e_candidates`` uncertified eligible pairs, for the E-ranked arm.
+
+    ``models`` and ``scorer`` are the previous cycle's, so E reads the trunk it
+    was fit on.
+    """
+    eligible = sorted(
+        k
+        for k, r in archive.pairs.items()
+        if r.witness_d_cuts <= config.max_cuts and k not in certified
+    )
+    sample = stream(config, cycle, "e_rank").sample(
+        eligible, min(len(eligible), config.e_candidates)
+    )
+    sample.sort()
+    e_hat = models.e_head.predict(
+        H.pair_features(
+            scorer, [(archive.states[s], archive.states[t]) for s, t in sample]
+        )
+    )
+    ranked = dict(zip(sample, e_hat.tolist(), strict=True))
+    facts = {
+        "eligible_uncertified": len(eligible),
+        "scored": len(sample),
+        "certified_archive_pairs": len(certified),
+        "e_hat_quantiles": {
+            str(q): float(np.quantile(e_hat, q)) for q in (0.05, 0.5, 0.95)
+        }
+        if len(e_hat)
+        else {},
+    }
+    return ranked, facts
+
+
+def body_record(pool: Pool, hits: np.ndarray, n: int) -> dict:
+    """Per body stratum (diagnose.py's): pairs, pairs with a hit, walker success."""
+    strata = np.array(
+        [programs.body_stratum(programs.body_atoms(p)) for p in pool.path]
+    )
+    return {
+        str(b): {
+            "pairs": int((strata == b).sum()),
+            "solved": int((hits[strata == b] > 0).sum()),
+            "walker_success": float(hits[strata == b].mean() / n),
+        }
+        for b in sorted(set(strata.tolist()))
+    }
+
+
+def widen(level: str, levels: tuple, pool: Pool, hits, config: Config) -> dict:
+    """Whether the paired check clears ``widen_threshold`` on the level's widest body stratum."""
+    widest = programs.body_stratum(programs.Grammar.parse(level).max_body)
+    record = body_record(pool, hits, config.n).get(
+        widest, {"pairs": 0, "solved": 0, "walker_success": None}
+    )
+    at = levels.index(level)
+    clears = (
+        record["pairs"] > 0
+        and record["pairs"] >= config.widen_min_pairs
+        and record["walker_success"] >= config.widen_threshold
+    )
+    following = levels[at + 1] if clears and at + 1 < len(levels) else level
+    return {
+        "level": level,
+        "widest_stratum": widest,
+        **record,
+        "threshold": config.widen_threshold,
+        "min_pairs": config.widen_min_pairs,
+        "cleared": bool(clears),
+        "next_level": following,
+    }
+
+
 def run(config: Config, run_dir: Path, log=print) -> list[dict]:
+    check_config(config)
     run_dir.mkdir(parents=True, exist_ok=True)
     torch.set_num_threads(config.threads)
     seed_everything(config.seed)
@@ -717,6 +988,11 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
     last_error: dict = {}
     rnd_seen: list = []
     previous_paths: dict = {}
+    # M3 state: the grammar level, E-ranked selection, archive certification
+    levels = tuple(config.widen_levels) or (config.grammar_level,)
+    level = levels[0]
+    previous_models: Models | None = None
+    certified_keys: set = set()
     cohort_rng = stream(config, -1, "rnd_cohort")
     cohort = [
         p.t for p in programs.fresh_pairs(config.rnd_cohort, cohort_rng, behaviours)
@@ -744,14 +1020,20 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
         "started": now_pdt(),
     }
     boot["propose"], boot_log = propose_phase(
-        archive, config, 0, behaviours, config.bootstrap_proposals, archived_share=0.0
+        archive,
+        config,
+        0,
+        behaviours,
+        config.bootstrap_proposals,
+        archived_share=0.0,
+        level=level,
     )
     rows, boot["rows"], previous_paths = policy_rows(archive, config, 0, {})
     check = programs.fresh_pairs(
         config.bootstrap_check,
         stream(config, 0, "bootcheck"),
         behaviours,
-        grammar=programs.Grammar.parse(config.grammar_level),
+        grammar=programs.Grammar.parse(level),
     )
     check_pool = fresh_pool(check, "bootcheck")
     blocks = []
@@ -838,7 +1120,9 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             behaviours,
             config.proposals,
             archived_share=config.start_archived_share,
+            level=level,
         )
+        report["grammar_level"] = level
         clock.mark("propose")
         if report["propose"].get("pairs", 0) == 0:
             report["stop"] = "no new proposal pairs"
@@ -847,9 +1131,19 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             log(f"cycle {cycle} stop: {report['stop']}")
             break
 
-        # 2. policy phase
+        # 2. policy phase; the E-ranked arm ranks by the previous cycle's E
+        ranked = None
+        if config.selector == "e_ranked" and previous_models is not None:
+            ranked, report["e_ranking"] = rank_by_e(
+                archive, previous_models, previous_scorer, config, cycle, certified_keys
+            )
+            clock.mark("e_ranking")
         rows, report["rows"], previous_paths = policy_rows(
-            archive, config, cycle, previous_paths
+            archive,
+            config,
+            cycle,
+            previous_paths,
+            **({"ranked": ranked} if ranked else {}),
         )
         clock.mark("rows")
         model.to(config.train_device)
@@ -866,7 +1160,7 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
                 stream(config, cycle, "paired"),
                 behaviours,
                 max_cuts=config.max_cuts,
-                grammar=programs.Grammar.parse(config.grammar_level),
+                grammar=programs.Grammar.parse(level),
             ),
             "paired",
         )
@@ -878,18 +1172,24 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             "previous": success(before, config.n),
             "current": success(after, config.n),
         }
+        if config.widen_levels:
+            report["widening"] = widen(level, levels, paired, after, config)
+            report["paired_check"]["by_body"] = body_record(paired, after, config.n)
         clock.mark("paired_check")
         prior = report["paired_check"]["previous"]["walker_success"] or 0.0
         current = report["paired_check"]["current"]["walker_success"] or 0.0
         previous_scorer = scorer
 
         # 4. calibration
-        picks = selector.select(
-            archive,
-            cycle,
-            stream(config, cycle, "select"),
-            selector.Selector(size=config.calibration, max_cuts=config.max_cuts),
-        )
+        rule = selector.Selector(size=config.calibration, max_cuts=config.max_cuts)
+        if ranked:
+            picks = selector.select_ranked(
+                archive, cycle, stream(config, cycle, "select"), ranked, rule
+            )
+        else:
+            picks = selector.select(
+                archive, cycle, stream(config, cycle, "select"), rule
+            )
         keys = [key for key, _ in picks]
         frozen_d_ops = [
             archive.pairs[k].d_ops for k in keys
@@ -956,10 +1256,35 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
         )
         clock.mark("rnd")
         models, features = fit_models(
-            scorer, cal, hits, config.n, parts, config.seed + cycle, threshold["n0"]
+            scorer,
+            cal,
+            hits,
+            config.n,
+            parts,
+            config.seed + cycle,
+            threshold["n0"],
+            config=config,
         )
         report["calibration"]["heads"] = models.facts
         report["calibration"]["gate_bins"] = models.bins
+        report["calibration"]["by_body"] = body_record(cal, hits, config.n)
+        if config.gate == "e_set":
+            # archive pairs certified on this calibration's own rollouts
+            open_cal = (
+                models.e_head.predict(features) < models.e0_set
+                if models.e0_set is not None
+                else np.zeros(len(keys), dtype=bool)
+            )
+            now = open_cal & scoring.hit_wilson(
+                models.p_head.predict(features), hits, config.n
+            )
+            before_certified = len(certified_keys)
+            certified_keys |= {k for k, c in zip(keys, now, strict=True) if c}
+            report["calibration"]["certified"] = {
+                "this_phase": int(now.sum()),
+                "new_archive_pairs": len(certified_keys) - before_certified,
+                "archive_pairs_total": len(certified_keys),
+            }
         # Measured progress: |P_hat - P_emp| on re-attempted pairs, P_hat from a
         # head that did not see them (partitions 1-2 were not P's).
         p_cal = models.p_head.predict(features)
@@ -1011,7 +1336,7 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             stream(config, cycle, "F3"),
             behaviours,
             max_cuts=config.max_cuts,
-            grammar=programs.Grammar.parse(config.grammar_level),
+            grammar=programs.Grammar.parse(config.test_level or level),
         )
         fresh = fresh_pool(fresh_pairs, "F3")
         deadline = time.perf_counter() + config.final_eval_seconds if final else None
@@ -1045,11 +1370,29 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             ],
             dtype=bool,
         )
+        test_rows: list[dict] = []
+        per_pair = (
+            {
+                "gate": config.gate,
+                "count": probes.count_novelty(archive, fresh.s, fresh.t),
+                "rows_out": test_rows,
+            }
+            if config.gate == "e_set"
+            else {}
+        )
         fresh_scores, certified = score_pool(
-            models, scorer, rnd, fresh, f_hits, config.n, f_labels
+            models, scorer, rnd, fresh, f_hits, config.n, f_labels, **per_pair
         )
         archive_scores, _ = score_pool(
-            models, scorer, rnd, held, a_hits, config.n, a_labels, counted
+            models,
+            scorer,
+            rnd,
+            held,
+            a_hits,
+            config.n,
+            a_labels,
+            counted,
+            **({"gate": config.gate} if config.gate == "e_set" else {}),
         )
         rollouts_total += rollouts
         certified_total += certified
@@ -1063,6 +1406,7 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
                     "novelty_class": dict(Counter(f_labels["novelty_class"])),
                 },
                 **success(f_hits, config.n),
+                "by_body": body_record(fresh, f_hits, config.n),
                 "arms": fresh_scores,
             },
             "archive": {
@@ -1072,6 +1416,10 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             },
         }
         report["executions"] = {
+            "selector": config.selector,
+            "certified_gate": "e_set"
+            if config.gate == "e_set"
+            else f"e0_{HEADLINE_E0}",
             "rollouts_this_cycle": rollouts,
             "certified_fresh_this_cycle": certified,
             "rollouts_per_certified": rollouts / certified if certified else None,
@@ -1117,14 +1465,17 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             }
             for i, (k, rule) in enumerate(picks)
         ]
-        save(
-            report,
-            f"cycle-{cycle}",
-            {
-                "proposals.jsonl.gz": proposal_log,
-                "calibration.jsonl.gz": calibration_rows,
-            },
-        )
+        extra = {
+            "proposals.jsonl.gz": proposal_log,
+            "calibration.jsonl.gz": calibration_rows,
+        }
+        if test_rows:
+            extra["test_rows.jsonl.gz"] = test_rows
+        save(report, f"cycle-{cycle}", extra)
+        if models.plain is not None:
+            (run_dir / f"cycle-{cycle}" / "models.json").write_text(
+                json.dumps(models.plain, indent=1, default=str)
+            )
         save_policy(
             run_dir / f"cycle-{cycle}" / "policy",
             scorer.model,
@@ -1136,6 +1487,9 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
             wandb_url=None,
         )
         reports.append(report)
+        previous_models = models
+        if config.widen_levels:
+            level = report["widening"]["next_level"]
         log(
             f"cycle {cycle}: archive {report['archive']}, cal success "
             f"{report['calibration']['walker_success']}, F3 success "
@@ -1150,7 +1504,7 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--run-dir", type=Path, required=True)
-    skip = ("architecture", "behaviours")
+    skip = ("architecture", "behaviours", "ridge_lambdas", "widen_levels")
     for field in dataclasses.fields(Config):
         if field.name in skip:
             continue
@@ -1159,12 +1513,19 @@ def main(argv: list[str] | None = None) -> int:
             type=type(field.default),
             default=field.default,
         )
+    # levels contain commas, so they are space-separated: --widen-levels 2,1,none 4,3,none
+    parser.add_argument("--widen-levels", nargs="*", default=[])
+    parser.add_argument(
+        "--ridge-lambdas", nargs="*", type=float, default=list(probes.LAMBDAS)
+    )
     args = parser.parse_args(argv)
     values = {
         f.name: getattr(args, f.name)
         for f in dataclasses.fields(Config)
         if f.name not in skip
     }
+    values["widen_levels"] = tuple(args.widen_levels)
+    values["ridge_lambdas"] = tuple(args.ridge_lambdas)
     run(Config(**values), args.run_dir, log=lambda line: print(line, flush=True))
     return 0
 
