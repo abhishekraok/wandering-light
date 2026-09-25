@@ -31,7 +31,7 @@ Every segment task that hit the 120 s CPU clock was rerun alone on GPU under an 
 | capped / difference, local K=64 | 98 | 93 max_segments, 5 shown fits | 114 | 0 | 13 -> 13 |
 
 - **The five shown fits fail the held-out examples.** They are `capped_sum`, `shared_value_occurrences`, `largest_inside_interval`, `axis_point_count` and `nondecreasing_indicator`.
-- **The clock cost nothing on the cohort.** Uncapped, every task ends at 12 segments without a solve.
+- **The clock cost the segment cells nothing.** At the longer clock there are no new solves: 141 tasks ended at `max_segments`, and five stopped at shown fits that failed held-out. This covers the segment cells only; `BEST`'s widening cell still has 21 tasks capped at its 300 s clock.
 - The local arm's 98 were run as three parts (`checkpoints/short-segment-search/lanes-rerun.sh`).
 
 ## Segment-capped yardstick, raw nats per op (registered)
