@@ -793,6 +793,9 @@ def test_m3_baseline_and_branches_on_a_tiny_source(tmp_path):
         )
         < 1e-9
     )
+    bounds = verdict["post_hoc_reach_bounds"]["control"]
+    assert set(bounds) == {"reachable_gate", "reachable_u_0.5", "p_emp_reachable"}
+    assert "one_sided_lower" in bounds["p_emp_reachable"]
     lines = verdict["by_cycle"]["adaptive"]
     assert [line["cycle"] for line in lines] == [1, 2]
     assert lines[1]["ever_certified"] >= lines[0]["ever_certified"]

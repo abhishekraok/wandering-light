@@ -1137,6 +1137,18 @@ def reach_split(rows: list[dict], n: int = 8, seed: int = 0) -> dict:
     }
 
 
+def reach_flags(rows: list[dict], n: int = 8, seed: int = 0) -> dict:
+    """Per panel pair: certified-reachable under the gate and at u@0.5, and P_emp >= 0.5."""
+    hit = np.array([r["wilson_hit"] for r in rows])
+    high = np.array([r["p_hat"] >= 0.5 for r in rows])
+    at_half = m2b.accepted(-np.array([r["u"] for r in rows]), 0.5, seed) & hit
+    return {
+        "reachable_gate": np.array([r["certified"] for r in rows]) & high,
+        "reachable_u_0.5": at_half & high,
+        "p_emp_reachable": np.array([r["hits"] / n >= 0.5 for r in rows]),
+    }
+
+
 def compare(
     baseline: Path,
     adaptive: Path,
@@ -1207,6 +1219,29 @@ def compare(
                     n,
                 )
                 for line in cycle_record(baseline, path)
+            }
+            for name, path in (
+                ("adaptive", adaptive),
+                ("control", control),
+                ("solved", solved),
+            )
+            if path is not None
+        },
+    }
+    base_flags = reach_flags(base, n)
+    out["post_hoc_reach_bounds"] = {
+        "label": "post-hoc, unregistered: final minus baseline, paired, lineage-clustered",
+        **{
+            name: {
+                key: m2b.clustered(
+                    final[key].astype(float) - base_flags[key].astype(float),
+                    lineage,
+                    reps,
+                    seed,
+                    0.10,
+                )
+                for key in base_flags
+                for final in [reach_flags(final_rows(path)[1], n)]
             }
             for name, path in (
                 ("adaptive", adaptive),
