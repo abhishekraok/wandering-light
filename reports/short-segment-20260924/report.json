@@ -79,7 +79,7 @@
           "fuel": 43122538,
           "seconds": 373.44122388988035,
           "median_seconds": 0.02569800899073016,
-          "tasks_per_hour": null,
+          "tasks_per_hour": 2861.010395541245,
           "capped": 0,
           "budget_use": null
         }
@@ -165,7 +165,7 @@
           "fuel": 879303035,
           "seconds": 8113.104037909012,
           "median_seconds": 0.0013816499849781394,
-          "tasks_per_hour": null,
+          "tasks_per_hour": 132.72411024288286,
           "capped": 6,
           "budget_use": null
         }
@@ -537,7 +537,7 @@
           "fuel": 43087457,
           "seconds": 337.3577016341442,
           "median_seconds": 0.0032171344937523827,
-          "tasks_per_hour": null,
+          "tasks_per_hour": 3165.0087301576295,
           "capped": 0,
           "budget_use": null
         }
@@ -623,7 +623,7 @@
           "fuel": 891957422,
           "seconds": 7670.485580559674,
           "median_seconds": 0.0013821884931530803,
-          "tasks_per_hour": null,
+          "tasks_per_hour": 140.29266566824754,
           "capped": 6,
           "budget_use": null
         }
@@ -813,7 +813,7 @@
           "fuel": 38054943,
           "seconds": 247.7519389980589,
           "median_seconds": 0.001508921995991841,
-          "tasks_per_hour": null,
+          "tasks_per_hour": 4307.3023395318,
           "capped": 0,
           "budget_use": null
         }

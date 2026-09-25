@@ -21,7 +21,18 @@
 
 ## The clock-capped tasks
 
-RERUN_LINES
+Every segment task that hit the 120 s CPU clock was rerun alone on GPU under an 1800 s clock. **None was solved, so no verified count moves.**
+
+| cell | capped tasks | rerun ended | median s | solved | verified |
+|---|---:|---|---:|---:|---|
+| capped / difference, K=16 | 6 | 6 max_segments | 37 | 0 | 14 -> 14 |
+| capped / machine, K=16 | 6 | 6 max_segments | 46 | 0 | 14 -> 14 |
+| staged / machine (`BEST`), K=16 | 36 | 36 max_segments | 66 | 0 | 15 -> 15 |
+| capped / difference, local K=64 | 98 | 93 max_segments, 5 shown fits | 114 | 0 | 13 -> 13 |
+
+- **The five shown fits fail the held-out examples.** They are `capped_sum`, `shared_value_occurrences`, `largest_inside_interval`, `axis_point_count` and `nondecreasing_indicator`.
+- **The clock cost nothing on the cohort.** Uncapped, every task ends at 12 segments without a solve.
+- The local arm's 98 were run as three parts (`checkpoints/short-segment-search/lanes-rerun.sh`).
 
 ## Segment-capped yardstick, raw nats per op (registered)
 
@@ -56,7 +67,7 @@ Top-K share of segments with the witness's closed state among the merged closed 
 - **This replaces the earlier local top-16 figures of 0.46 and 0.27** (the K diagnostic comment on #168), which were ranked on cumulatively chosen roots. The same top-16 shares under a true reset are 0.32 and 0.13.
 - **The registered K criterion was missed.** The registration asked K to cover the witness's rank in most segments, and predicted 60-80% (mine) or at least 80% (the advisor's) in the top 16 for capped / comparing. Cumulative measured 19% on train and 3% on the yardstick. K=16 was kept as registered.
 - **Production and ranking both leak.** Of 268 train segments, the witness's closed state is produced in 235. Of those, 134 rank in the top 64 locally and 101 fall below. On the yardstick, 171 of 230 are produced, 77 rank in the top 64 and 94 fall below. These are forced-root diagnostics, not a decomposition of the solver's failures.
-- **The tested ranking change did not help on the cohort.** The local K=64 arm verifies 13 against K=16's 14, so the advisor's trigger (3 or more over K=16) is not met. It changes K and scoring together, and it hit the 120 s clock on 98 of 300 tasks, against 6 for K=16; the uncapped reruns are below. A learned value was outside the registration, and this does not rule it out.
+- **The tested ranking change did not help on the cohort.** The local K=64 arm verifies 13 against K=16's 14, so the advisor's trigger (3 or more over K=16) is not met. It changes K and scoring together, and it hit the 120 s clock on 98 of 300 tasks, against 6 for K=16. Rerun uncapped, none of the 98 is solved. A learned value was outside the registration, and this does not rule it out.
 
 ## Flat-widening control: width at a longer horizon
 

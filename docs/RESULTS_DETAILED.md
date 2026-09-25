@@ -616,7 +616,7 @@ Predictions were registered on #168 before training. [report](../reports/short-s
 - **Raw nats per op on the segment-capped yardstick,** seeds 0-2: capped 0.60-0.73, staged 2.7-3.1, fused 5.1-5.6, under either encoder. Segmented clears: 2-4 of 25 for capped, 0 otherwise.
 - **The local K diagnostic** (capped / difference, depth 8), top 64: train 0.50 against 0.32 cumulative, yardstick 0.33 against 0.10. Top 16: 0.32 and 0.13, replacing the 0.46 / 0.27 local figures that ranked cumulatively chosen roots. The registered top-16 prediction (60-80%, or at least 80%) missed: cumulative 19% / 3%.
 - **Ranking and proposal both leak.** Of 268 train segments the witness state is produced in 235, and 101 of those rank below 64 locally. On the yardstick, 94 of 171 produced rank below 64.
-- **Clock-capped segment tasks, rerun uncapped on GPU:** capped / difference and capped / machine 0 of 6 solved, all `max_segments`. RERUN_DOCS
+- **Clock-capped segment tasks, rerun uncapped on GPU:** none of the 146 was solved, at an 1800 s clock. Capped / difference and capped / machine: 0 of 6 each. `BEST`: 0 of 36. Local K=64: 0 of 98, with 5 shown fits that fail held-out. No verified count moves.
 - **Scope:** seeds 1-2 and the fused and staged / difference cohort searches were cut by the owner.
 
 ## Inner frames campaign 2: oracle BETWEEN, ranker target met, stacking UNCLEAR (#160)
