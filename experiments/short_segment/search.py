@@ -803,7 +803,13 @@ def cell_facts(cell: dict[str, Any], verdicts: dict[str, Any]) -> dict[str, Any]
         "fuel": sum(r.get("fuel", 0) for r in rows),
         "seconds": sum(r["seconds"] for r in rows),
         "median_seconds": statistics.median(r["seconds"] for r in rows) if rows else 0,
-        "tasks_per_hour": cell.get("tasks_per_hour"),
+        # The first wave's cells predate the field; their cell clock gives it.
+        "tasks_per_hour": cell.get("tasks_per_hour")
+        or (
+            len(rows) / cell["cell_seconds"] * 3600
+            if cell.get("cell_seconds")
+            else None
+        ),
         "capped": sum(r["termination"] == "wall_clock_cap" for r in rows),
         "budget_use": cell.get("budget_use") if cell["search"] != "flat" else None,
     }
@@ -878,15 +884,71 @@ def paired(
     return out
 
 
+def rerun_lines(
+    cells: list[dict[str, Any]], again: list[dict[str, Any]], verdicts: dict[str, Any]
+) -> list[str]:
+    """Each segment cell's clock-capped tasks rerun on their own under a longer clock.
+
+    A rerun holds only the capped positions, so its library starts empty; these
+    tasks reached search in the full cell, so replay had not fitted them there.
+    """
+    if not again:
+        return []
+    lines = [
+        "",
+        "## The capped tasks without the clock",
+        "",
+        "Each segment cell's `wall_clock_cap` tasks rerun alone, in cohort order, "
+        "under the rerun's clock (GPU, 1 thread; the library starts empty).",
+        "",
+    ]
+    for cell in cells:
+        if cell["search"] != "segment" or cell["cohort_positions"] is not None:
+            continue
+        capped = [
+            (p, r)
+            for p, r in enumerate(cell["rows"])
+            if r["termination"] == "wall_clock_cap"
+        ]
+        match = [
+            c
+            for c in again
+            if (c["run"], c["arm"], c["seed"])
+            == (cell["run"], cell["arm"], cell["seed"])
+            and c["search_tag"].split("-cap")[0] == cell["search_tag"]
+            and c["cohort_positions"] == [p for p, _ in capped]
+        ]
+        if not capped or not match:
+            continue
+        rows = match[0]["rows"]
+        base = {r["behaviour"] for r in verified_rows(cell, verdicts)}
+        new = {r["behaviour"] for r in verified_rows(match[0], verdicts)} - base
+        ended = defaultdict(int)
+        for r in rows:
+            ended[r["termination"]] += 1
+        lines.append(
+            f"- {cell['arm']} / {cell['encoding']} {cell['search_tag']} s{cell['seed']}: "
+            f"{len(rows)}/{len(capped)} rerun at {match[0]['task_seconds_cap']:.0f} s, "
+            + ", ".join(f"{n} {t}" for t, n in sorted(ended.items()))
+            + f"; median {statistics.median(r['seconds'] for r in rows):.0f} s; "
+            f"{sum(r['solved'] for r in rows)} solved; verified "
+            f"{len(base)} -> {len(base | new)}"
+            + (f" (+{', '.join(sorted(new))})" if new else "")
+        )
+    return lines
+
+
 def report(
     out_dir: Path,
     out: Path,
     log=print,
     unit: str = BUDGET_UNIT,
     reference: Path = BEST_REFERENCE,
+    reruns: Path | None = None,
 ) -> Path:
     cells = load_cells(out_dir)
-    verdicts = bsc.verified_programs(out_dir, cells, log)
+    again = load_cells(reruns) if reruns is not None and reruns.exists() else []
+    verdicts = bsc.verified_programs(out_dir, cells + again, log)
     groups: dict[tuple, list[dict[str, Any]]] = defaultdict(list)
     for cell in cells:
         # Different subsets never average as seeds: the ordered positions' hash
@@ -1055,11 +1117,12 @@ def report(
         "",
     ]
     lines += [
-        f"- {cell['arm']} / {cell['encoding']} ({cell['run']}) s{cell['seed']}: task "
-        f"{r['task_index']} {r['behaviour']}, {r['seconds']:.0f} s, "
+        f"- {cell['arm']} / {cell['encoding']} {cell['search_tag']} ({cell['run']}) "
+        f"s{cell['seed']}: task {r['task_index']} {r['behaviour']}, {r['seconds']:.0f} s, "
         f"{r['executions']:,} executions"
         for cell, r in truncated
     ] or ["- none"]
+    lines += rerun_lines(cells, again, verdicts)
     lines += ["", NOTES]
     out.mkdir(parents=True, exist_ok=True)
     (out / "report.json").write_text(
@@ -1122,10 +1185,18 @@ def main(argv: list[str] | None = None) -> int:
         help="comma-separated cohort positions (0-299), for a smoke test",
     )
     parser.add_argument("--out", type=Path, default=None, help="report directory")
+    parser.add_argument(
+        "--reruns", type=Path, default=None, help="capped tasks rerun, a report input"
+    )
     args = parser.parse_args(argv)
 
     if args.stage == "report":
-        report(args.out_dir, args.out or args.out_dir, unit=args.budget_unit)
+        report(
+            args.out_dir,
+            args.out or args.out_dir,
+            unit=args.budget_unit,
+            reruns=args.reruns,
+        )
         return 0
     if args.run_dir is None or args.arm is None or args.seed is None or not args.search:
         parser.error("run needs --run-dir, --arm, --seed and --search")
