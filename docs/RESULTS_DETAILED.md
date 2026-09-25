@@ -594,6 +594,30 @@ All deficits here are raw log-probabilities, the beam as it runs.
 
   Each policy is fluent in its own style. A 13-op segment needs 0.32 or less.
 
+## Short-segment campaign: capped data, a comparing encoder and a segment-reset beam, NEITHER (#168)
+
+The #101 cohort: 300 tasks, 43 behaviours, seed 0, CPU. Verified behaviours are draw-tested. The searches:
+- flat-48 is `BEST`'s search;
+- segment-reset uses K=16 roots, per-arm depth and 12 segments;
+- flat-widening is widths 64, 128, ... at 12 x depth, within max(segment, flat-48) fuel per task.
+
+Predictions were registered on #168 before training. [report](../reports/short-segment-20260924/README.md)
+
+| arm / encoding | flat-48 | segment-reset | flat-widening | predicted flat / segment |
+|---|---:|---:|---:|---|
+| staged / current (`BEST`) | **16** | 15 | 17 | 16-18 / 17-21 |
+| capped / current | 13 | 14 | 12 | 16-18 / 18-23 |
+| capped / difference | 13 | 14 | 12 | 17-19 / 21-27 |
+| capped / difference, local scoring, K=64 (exploratory) | | 13 | 14 | within +2 of K=16 |
+
+- **No segment-reset cell verifies a behaviour outside `BEST`'s flat-48 set.** Its one gain in the capped cells is `all_positive`, whose genuine program and shortcut trade places with cohort order (#158).
+- **Only the widening control found new behaviours:** `prefix_sums`, `pair_floor_averages` and `shared_value_occurrences`, three of #167's 25.
+- **Segment-reset costs about 20x flat-48's fuel:** 879M against 43M on capped / difference.
+- **Raw nats per op on the segment-capped yardstick,** seeds 0-2: capped 0.60-0.73, staged 2.7-3.1, fused 5.1-5.6, under either encoder. Segmented clears: 2-4 of 25 for capped, 0 otherwise.
+- **The local K diagnostic** (capped / difference, depth 8), top 64: train 0.50 against 0.32 cumulative, yardstick 0.33 against 0.10. It replaces the 0.46 / 0.27 figures, which ranked cumulatively chosen roots.
+- **Clock-capped segment tasks, rerun uncapped on GPU:** capped / difference and capped / machine 0 of 6 solved, all `max_segments`. RERUN_DOCS
+- **Scope:** seeds 1-2 and the fused and staged / difference cohort searches were cut by the owner.
+
 ## Inner frames campaign 2: oracle BETWEEN, ranker target met, stacking UNCLEAR (#160)
 
 The world arm's recipe, trained on GPU.

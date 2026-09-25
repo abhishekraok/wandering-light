@@ -1,0 +1,1370 @@
+{
+  "table": [
+    {
+      "run": "short-segment-difference-20260923",
+      "arm": "capped",
+      "encoding": "difference",
+      "search": "flat-w64",
+      "subset": "",
+      "is_best": false,
+      "seeds": [
+        0
+      ],
+      "verified_per_seed": [
+        13
+      ],
+      "verified_mean": 13,
+      "union": [
+        "count_in_range",
+        "drop_last",
+        "increment_each",
+        "keep_below",
+        "keep_negative",
+        "keep_zeros",
+        "min_pair",
+        "n_minus_each",
+        "negate_each",
+        "push_back",
+        "reverse",
+        "rotate_left",
+        "sum_negative"
+      ],
+      "cells": [
+        {
+          "seed": 0,
+          "tasks": 300,
+          "graded_tasks": 161,
+          "graded": [
+            "all_positive",
+            "bounds_cover_list_flag",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "verified": [
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "heldout_fail_tasks": 21,
+          "unverified_solve_tasks": 10,
+          "unverified_behaviours": [
+            "all_positive",
+            "bounds_cover_list_flag",
+            "largest_inside_interval"
+          ],
+          "executions": 38592336,
+          "median_executions": 1191.0,
+          "fuel": 43122538,
+          "seconds": 373.44122388988035,
+          "median_seconds": 0.02569800899073016,
+          "tasks_per_hour": null,
+          "capped": 0,
+          "budget_use": null
+        }
+      ]
+    },
+    {
+      "run": "short-segment-difference-20260923",
+      "arm": "capped",
+      "encoding": "difference",
+      "search": "segment-k16-d8",
+      "subset": "",
+      "is_best": false,
+      "seeds": [
+        0
+      ],
+      "verified_per_seed": [
+        14
+      ],
+      "verified_mean": 14,
+      "union": [
+        "all_positive",
+        "count_in_range",
+        "drop_last",
+        "increment_each",
+        "keep_below",
+        "keep_negative",
+        "keep_zeros",
+        "min_pair",
+        "n_minus_each",
+        "negate_each",
+        "push_back",
+        "reverse",
+        "rotate_left",
+        "sum_negative"
+      ],
+      "cells": [
+        {
+          "seed": 0,
+          "tasks": 300,
+          "graded_tasks": 167,
+          "graded": [
+            "aligned_matches",
+            "all_positive",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "verified": [
+            "all_positive",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "heldout_fail_tasks": 26,
+          "unverified_solve_tasks": 6,
+          "unverified_behaviours": [
+            "aligned_matches",
+            "largest_inside_interval"
+          ],
+          "executions": 816426371,
+          "median_executions": 378.0,
+          "fuel": 879303035,
+          "seconds": 8113.104037909012,
+          "median_seconds": 0.0013816499849781394,
+          "tasks_per_hour": null,
+          "capped": 6,
+          "budget_use": null
+        }
+      ]
+    },
+    {
+      "run": "short-segment-difference-20260923",
+      "arm": "capped",
+      "encoding": "difference",
+      "search": "segment-local-k64-d8",
+      "subset": "",
+      "is_best": false,
+      "seeds": [
+        0
+      ],
+      "verified_per_seed": [
+        13
+      ],
+      "verified_mean": 13,
+      "union": [
+        "count_in_range",
+        "drop_last",
+        "increment_each",
+        "keep_below",
+        "keep_negative",
+        "keep_zeros",
+        "min_pair",
+        "n_minus_each",
+        "negate_each",
+        "push_back",
+        "reverse",
+        "rotate_left",
+        "sum_negative"
+      ],
+      "cells": [
+        {
+          "seed": 0,
+          "tasks": 300,
+          "graded_tasks": 163,
+          "graded": [
+            "aligned_matches",
+            "all_positive",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "verified": [
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "heldout_fail_tasks": 39,
+          "unverified_solve_tasks": 12,
+          "unverified_behaviours": [
+            "aligned_matches",
+            "all_positive",
+            "largest_inside_interval"
+          ],
+          "executions": 1354736908,
+          "median_executions": 457.0,
+          "fuel": 1476125173,
+          "seconds": 13148.89151358392,
+          "median_seconds": 0.0015146129881031811,
+          "tasks_per_hour": 80.57741017334759,
+          "capped": 98,
+          "budget_use": null
+        }
+      ]
+    },
+    {
+      "run": "short-segment-difference-20260923",
+      "arm": "capped",
+      "encoding": "difference",
+      "search": "flat-widening-k16-d8-h96-fuel",
+      "subset": "",
+      "is_best": false,
+      "seeds": [
+        0
+      ],
+      "verified_per_seed": [
+        12
+      ],
+      "verified_mean": 12,
+      "union": [
+        "count_in_range",
+        "drop_last",
+        "increment_each",
+        "keep_below",
+        "keep_negative",
+        "keep_zeros",
+        "min_pair",
+        "n_minus_each",
+        "negate_each",
+        "push_back",
+        "shared_value_occurrences",
+        "sum_negative"
+      ],
+      "cells": [
+        {
+          "seed": 0,
+          "tasks": 300,
+          "graded_tasks": 136,
+          "graded": [
+            "all_positive",
+            "bounds_cover_list_flag",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "shared_value_occurrences",
+            "sum_negative"
+          ],
+          "verified": [
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "shared_value_occurrences",
+            "sum_negative"
+          ],
+          "heldout_fail_tasks": 21,
+          "unverified_solve_tasks": 10,
+          "unverified_behaviours": [
+            "all_positive",
+            "bounds_cover_list_flag",
+            "largest_inside_interval"
+          ],
+          "executions": 686265917,
+          "median_executions": 838.0,
+          "fuel": 764299347,
+          "seconds": 10863.435106855031,
+          "median_seconds": 0.003379236499313265,
+          "tasks_per_hour": 99.40858287327165,
+          "capped": 0,
+          "budget_use": {
+            "budget": 881888492,
+            "ended_by": {
+              "budget": 143,
+              "fit": 157
+            },
+            "max_largest_width_completed": 512,
+            "median_largest_width_completed": 0.0,
+            "overshoot": 395,
+            "overshoot_tasks": 94,
+            "saturated": 0,
+            "set_by_flat": 26,
+            "spent": 764299347,
+            "spent_fraction": 0.8666621165071287,
+            "tasks": 300,
+            "unit": "fuel"
+          }
+        }
+      ]
+    },
+    {
+      "run": "short-segment-difference-20260923",
+      "arm": "capped",
+      "encoding": "difference",
+      "search": "flat-widening-local-k64-d8-h96-fuel",
+      "subset": "",
+      "is_best": false,
+      "seeds": [
+        0
+      ],
+      "verified_per_seed": [
+        14
+      ],
+      "verified_mean": 14,
+      "union": [
+        "count_in_range",
+        "drop_last",
+        "increment_each",
+        "keep_below",
+        "keep_negative",
+        "keep_zeros",
+        "min_pair",
+        "n_minus_each",
+        "negate_each",
+        "prefix_sums",
+        "push_back",
+        "reverse",
+        "rotate_left",
+        "shared_value_occurrences"
+      ],
+      "cells": [
+        {
+          "seed": 0,
+          "tasks": 300,
+          "graded_tasks": 145,
+          "graded": [
+            "all_positive",
+            "bounds_cover_list_flag",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "prefix_sums",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "shared_value_occurrences"
+          ],
+          "verified": [
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "prefix_sums",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "shared_value_occurrences"
+          ],
+          "heldout_fail_tasks": 23,
+          "unverified_solve_tasks": 10,
+          "unverified_behaviours": [
+            "all_positive",
+            "bounds_cover_list_flag",
+            "largest_inside_interval"
+          ],
+          "executions": 1066676232,
+          "median_executions": 458.0,
+          "fuel": 1183139532,
+          "seconds": 15087.382320138073,
+          "median_seconds": 0.0018604334618430585,
+          "tasks_per_hour": 71.57843352461218,
+          "capped": 0,
+          "budget_use": {
+            "budget": 1478877255,
+            "ended_by": {
+              "budget": 132,
+              "fit": 168
+            },
+            "max_largest_width_completed": 1024,
+            "median_largest_width_completed": 0.0,
+            "overshoot": 576,
+            "overshoot_tasks": 96,
+            "saturated": 0,
+            "set_by_flat": 96,
+            "spent": 1183139532,
+            "spent_fraction": 0.8000255112450154,
+            "tasks": 300,
+            "unit": "fuel"
+          }
+        }
+      ]
+    },
+    {
+      "run": "short-segment-machine-20260923",
+      "arm": "capped",
+      "encoding": "machine",
+      "search": "flat-w64",
+      "subset": "",
+      "is_best": false,
+      "seeds": [
+        0
+      ],
+      "verified_per_seed": [
+        13
+      ],
+      "verified_mean": 13,
+      "union": [
+        "count_in_range",
+        "drop_last",
+        "increment_each",
+        "keep_below",
+        "keep_negative",
+        "keep_zeros",
+        "min_pair",
+        "n_minus_each",
+        "negate_each",
+        "push_back",
+        "reverse",
+        "rotate_left",
+        "sum_negative"
+      ],
+      "cells": [
+        {
+          "seed": 0,
+          "tasks": 300,
+          "graded_tasks": 159,
+          "graded": [
+            "aligned_matches",
+            "bounds_cover_list_flag",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "verified": [
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "heldout_fail_tasks": 27,
+          "unverified_solve_tasks": 5,
+          "unverified_behaviours": [
+            "aligned_matches",
+            "bounds_cover_list_flag",
+            "largest_inside_interval"
+          ],
+          "executions": 38756817,
+          "median_executions": 792.0,
+          "fuel": 43087457,
+          "seconds": 337.3577016341442,
+          "median_seconds": 0.0032171344937523827,
+          "tasks_per_hour": null,
+          "capped": 0,
+          "budget_use": null
+        }
+      ]
+    },
+    {
+      "run": "short-segment-machine-20260923",
+      "arm": "capped",
+      "encoding": "machine",
+      "search": "segment-k16-d8",
+      "subset": "",
+      "is_best": false,
+      "seeds": [
+        0
+      ],
+      "verified_per_seed": [
+        14
+      ],
+      "verified_mean": 14,
+      "union": [
+        "all_positive",
+        "count_in_range",
+        "drop_last",
+        "increment_each",
+        "keep_below",
+        "keep_negative",
+        "keep_zeros",
+        "min_pair",
+        "n_minus_each",
+        "negate_each",
+        "push_back",
+        "reverse",
+        "rotate_left",
+        "sum_negative"
+      ],
+      "cells": [
+        {
+          "seed": 0,
+          "tasks": 300,
+          "graded_tasks": 167,
+          "graded": [
+            "aligned_matches",
+            "all_positive",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "verified": [
+            "all_positive",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "heldout_fail_tasks": 25,
+          "unverified_solve_tasks": 5,
+          "unverified_behaviours": [
+            "aligned_matches",
+            "largest_inside_interval"
+          ],
+          "executions": 829475763,
+          "median_executions": 378.0,
+          "fuel": 891957422,
+          "seconds": 7670.485580559674,
+          "median_seconds": 0.0013821884931530803,
+          "tasks_per_hour": null,
+          "capped": 6,
+          "budget_use": null
+        }
+      ]
+    },
+    {
+      "run": "short-segment-machine-20260923",
+      "arm": "capped",
+      "encoding": "machine",
+      "search": "flat-widening-k16-d8-h96-fuel",
+      "subset": "",
+      "is_best": false,
+      "seeds": [
+        0
+      ],
+      "verified_per_seed": [
+        12
+      ],
+      "verified_mean": 12,
+      "union": [
+        "count_in_range",
+        "drop_last",
+        "increment_each",
+        "keep_below",
+        "keep_negative",
+        "min_pair",
+        "n_minus_each",
+        "negate_each",
+        "push_back",
+        "reverse",
+        "rotate_left",
+        "sum_negative"
+      ],
+      "cells": [
+        {
+          "seed": 0,
+          "tasks": 300,
+          "graded_tasks": 149,
+          "graded": [
+            "aligned_matches",
+            "bounds_cover_list_flag",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "verified": [
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "heldout_fail_tasks": 34,
+          "unverified_solve_tasks": 5,
+          "unverified_behaviours": [
+            "aligned_matches",
+            "bounds_cover_list_flag",
+            "largest_inside_interval"
+          ],
+          "executions": 713231329,
+          "median_executions": 673.0,
+          "fuel": 789266257,
+          "seconds": 10662.146300254884,
+          "median_seconds": 0.0030152840045047924,
+          "tasks_per_hour": 101.28745700928948,
+          "capped": 0,
+          "budget_use": {
+            "budget": 894326906,
+            "ended_by": {
+              "budget": 117,
+              "fit": 183
+            },
+            "max_largest_width_completed": 512,
+            "median_largest_width_completed": 0.0,
+            "overshoot": 499,
+            "overshoot_tasks": 79,
+            "saturated": 0,
+            "set_by_flat": 29,
+            "spent": 789266257,
+            "spent_fraction": 0.8825254520520933,
+            "tasks": 300,
+            "unit": "fuel"
+          }
+        }
+      ]
+    },
+    {
+      "run": "staged-arms-20260920",
+      "arm": "staged",
+      "encoding": "machine",
+      "search": "flat-w64",
+      "subset": "",
+      "is_best": true,
+      "seeds": [
+        0
+      ],
+      "verified_per_seed": [
+        16
+      ],
+      "verified_mean": 16,
+      "union": [
+        "all_positive",
+        "capped_sum",
+        "count_in_range",
+        "drop_last",
+        "increment_each",
+        "keep_below",
+        "keep_negative",
+        "keep_zeros",
+        "largest_inside_interval",
+        "min_pair",
+        "n_minus_each",
+        "negate_each",
+        "push_back",
+        "reverse",
+        "rotate_left",
+        "sum_negative"
+      ],
+      "cells": [
+        {
+          "seed": 0,
+          "tasks": 300,
+          "graded_tasks": 180,
+          "graded": [
+            "all_positive",
+            "bounds_cover_list_flag",
+            "capped_sum",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "nondecreasing_indicator",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "verified": [
+            "all_positive",
+            "capped_sum",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "heldout_fail_tasks": 12,
+          "unverified_solve_tasks": 4,
+          "unverified_behaviours": [
+            "bounds_cover_list_flag",
+            "nondecreasing_indicator"
+          ],
+          "executions": 34785672,
+          "median_executions": 492.0,
+          "fuel": 38054943,
+          "seconds": 247.7519389980589,
+          "median_seconds": 0.001508921995991841,
+          "tasks_per_hour": null,
+          "capped": 0,
+          "budget_use": null
+        }
+      ]
+    },
+    {
+      "run": "staged-arms-20260920",
+      "arm": "staged",
+      "encoding": "machine",
+      "search": "segment-k16-d16",
+      "subset": "",
+      "is_best": true,
+      "seeds": [
+        0
+      ],
+      "verified_per_seed": [
+        15
+      ],
+      "verified_mean": 15,
+      "union": [
+        "capped_sum",
+        "count_in_range",
+        "drop_last",
+        "increment_each",
+        "keep_below",
+        "keep_negative",
+        "keep_zeros",
+        "largest_inside_interval",
+        "min_pair",
+        "n_minus_each",
+        "negate_each",
+        "push_back",
+        "reverse",
+        "rotate_left",
+        "sum_negative"
+      ],
+      "cells": [
+        {
+          "seed": 0,
+          "tasks": 300,
+          "graded_tasks": 183,
+          "graded": [
+            "aligned_matches",
+            "all_positive",
+            "bounds_cover_list_flag",
+            "capped_sum",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "positive_majority_three",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "verified": [
+            "capped_sum",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "keep_zeros",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "heldout_fail_tasks": 25,
+          "unverified_solve_tasks": 14,
+          "unverified_behaviours": [
+            "aligned_matches",
+            "all_positive",
+            "bounds_cover_list_flag",
+            "positive_majority_three"
+          ],
+          "executions": 1438015529,
+          "median_executions": 425.0,
+          "fuel": 1538328174,
+          "seconds": 10077.189727311023,
+          "median_seconds": 0.0011062005069106817,
+          "tasks_per_hour": 105.02468336953211,
+          "capped": 36,
+          "budget_use": null
+        }
+      ]
+    },
+    {
+      "run": "staged-arms-20260920",
+      "arm": "staged",
+      "encoding": "machine",
+      "search": "flat-widening-k16-d16-h192-fuel",
+      "subset": "",
+      "is_best": true,
+      "seeds": [
+        0
+      ],
+      "verified_per_seed": [
+        17
+      ],
+      "verified_mean": 17,
+      "union": [
+        "all_positive",
+        "capped_sum",
+        "count_in_range",
+        "drop_last",
+        "increment_each",
+        "keep_below",
+        "keep_negative",
+        "largest_inside_interval",
+        "min_pair",
+        "n_minus_each",
+        "negate_each",
+        "pair_floor_averages",
+        "prefix_sums",
+        "push_back",
+        "reverse",
+        "rotate_left",
+        "sum_negative"
+      ],
+      "cells": [
+        {
+          "seed": 0,
+          "tasks": 300,
+          "graded_tasks": 178,
+          "graded": [
+            "all_positive",
+            "bounds_cover_list_flag",
+            "capped_sum",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "nondecreasing_indicator",
+            "pair_floor_averages",
+            "prefix_sums",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "stable_distinct_shared_values",
+            "sum_negative"
+          ],
+          "verified": [
+            "all_positive",
+            "capped_sum",
+            "count_in_range",
+            "drop_last",
+            "increment_each",
+            "keep_below",
+            "keep_negative",
+            "largest_inside_interval",
+            "min_pair",
+            "n_minus_each",
+            "negate_each",
+            "pair_floor_averages",
+            "prefix_sums",
+            "push_back",
+            "reverse",
+            "rotate_left",
+            "sum_negative"
+          ],
+          "heldout_fail_tasks": 18,
+          "unverified_solve_tasks": 3,
+          "unverified_behaviours": [
+            "bounds_cover_list_flag",
+            "nondecreasing_indicator",
+            "stable_distinct_shared_values"
+          ],
+          "executions": 1021731975,
+          "median_executions": 396.0,
+          "fuel": 1208743986,
+          "seconds": 19747.86888619521,
+          "median_seconds": 0.0012569164973683655,
+          "tasks_per_hour": 54.687351339136406,
+          "capped": 21,
+          "budget_use": {
+            "budget": 1541145240,
+            "ended_by": {
+              "budget": 83,
+              "fit": 196,
+              "wall_clock_cap": 21
+            },
+            "max_largest_width_completed": 512,
+            "median_largest_width_completed": 0.0,
+            "overshoot": 1556,
+            "overshoot_tasks": 61,
+            "saturated": 0,
+            "set_by_flat": 43,
+            "spent": 1208743986,
+            "spent_fraction": 0.7843154263643575,
+            "tasks": 300,
+            "unit": "fuel"
+          }
+        }
+      ]
+    }
+  ],
+  "paired": [
+    {
+      "run": "short-segment-difference-20260923",
+      "arm": "capped",
+      "encoding": "difference",
+      "seed": 0,
+      "search": "flat-w64",
+      "verified": 13,
+      "gains": [],
+      "losses": [],
+      "curve": {
+        "1": {
+          "tasks": 161,
+          "verified_behaviours": 13
+        },
+        "4": {
+          "tasks": 161,
+          "verified_behaviours": 13
+        },
+        "16": {
+          "tasks": 161,
+          "verified_behaviours": 13
+        },
+        "45": {
+          "tasks": 161,
+          "verified_behaviours": 13
+        }
+      }
+    },
+    {
+      "run": "short-segment-difference-20260923",
+      "arm": "capped",
+      "encoding": "difference",
+      "seed": 0,
+      "search": "flat-widening-k16-d8-h96-fuel",
+      "verified": 12,
+      "gains": [
+        "shared_value_occurrences"
+      ],
+      "losses": [
+        "reverse",
+        "rotate_left"
+      ],
+      "curve": {
+        "1": {
+          "tasks": 128,
+          "verified_behaviours": 11
+        },
+        "4": {
+          "tasks": 135,
+          "verified_behaviours": 12
+        },
+        "16": {
+          "tasks": 136,
+          "verified_behaviours": 12
+        },
+        "45": {
+          "tasks": 136,
+          "verified_behaviours": 12
+        }
+      }
+    },
+    {
+      "run": "short-segment-difference-20260923",
+      "arm": "capped",
+      "encoding": "difference",
+      "seed": 0,
+      "search": "flat-widening-local-k64-d8-h96-fuel",
+      "verified": 14,
+      "gains": [
+        "prefix_sums",
+        "shared_value_occurrences"
+      ],
+      "losses": [
+        "sum_negative"
+      ],
+      "curve": {
+        "1": {
+          "tasks": 129,
+          "verified_behaviours": 12
+        },
+        "4": {
+          "tasks": 143,
+          "verified_behaviours": 14
+        },
+        "16": {
+          "tasks": 144,
+          "verified_behaviours": 14
+        },
+        "45": {
+          "tasks": 145,
+          "verified_behaviours": 14
+        }
+      }
+    },
+    {
+      "run": "short-segment-difference-20260923",
+      "arm": "capped",
+      "encoding": "difference",
+      "seed": 0,
+      "search": "segment-k16-d8",
+      "verified": 14,
+      "gains": [
+        "all_positive"
+      ],
+      "losses": [],
+      "curve": {
+        "1": {
+          "tasks": 156,
+          "verified_behaviours": 14
+        },
+        "4": {
+          "tasks": 161,
+          "verified_behaviours": 14
+        },
+        "16": {
+          "tasks": 166,
+          "verified_behaviours": 14
+        },
+        "45": {
+          "tasks": 166,
+          "verified_behaviours": 14
+        }
+      }
+    },
+    {
+      "run": "short-segment-difference-20260923",
+      "arm": "capped",
+      "encoding": "difference",
+      "seed": 0,
+      "search": "segment-local-k64-d8",
+      "verified": 13,
+      "gains": [],
+      "losses": [],
+      "curve": {
+        "1": {
+          "tasks": 125,
+          "verified_behaviours": 11
+        },
+        "4": {
+          "tasks": 157,
+          "verified_behaviours": 12
+        },
+        "16": {
+          "tasks": 159,
+          "verified_behaviours": 12
+        },
+        "45": {
+          "tasks": 162,
+          "verified_behaviours": 12
+        }
+      }
+    },
+    {
+      "run": "short-segment-machine-20260923",
+      "arm": "capped",
+      "encoding": "machine",
+      "seed": 0,
+      "search": "flat-w64",
+      "verified": 13,
+      "gains": [],
+      "losses": [],
+      "curve": {
+        "1": {
+          "tasks": 159,
+          "verified_behaviours": 13
+        },
+        "4": {
+          "tasks": 159,
+          "verified_behaviours": 13
+        },
+        "16": {
+          "tasks": 159,
+          "verified_behaviours": 13
+        },
+        "45": {
+          "tasks": 159,
+          "verified_behaviours": 13
+        }
+      }
+    },
+    {
+      "run": "short-segment-machine-20260923",
+      "arm": "capped",
+      "encoding": "machine",
+      "seed": 0,
+      "search": "flat-widening-k16-d8-h96-fuel",
+      "verified": 12,
+      "gains": [],
+      "losses": [
+        "keep_zeros"
+      ],
+      "curve": {
+        "1": {
+          "tasks": 145,
+          "verified_behaviours": 12
+        },
+        "4": {
+          "tasks": 149,
+          "verified_behaviours": 12
+        },
+        "16": {
+          "tasks": 149,
+          "verified_behaviours": 12
+        },
+        "45": {
+          "tasks": 149,
+          "verified_behaviours": 12
+        }
+      }
+    },
+    {
+      "run": "short-segment-machine-20260923",
+      "arm": "capped",
+      "encoding": "machine",
+      "seed": 0,
+      "search": "segment-k16-d8",
+      "verified": 14,
+      "gains": [
+        "all_positive"
+      ],
+      "losses": [],
+      "curve": {
+        "1": {
+          "tasks": 152,
+          "verified_behaviours": 12
+        },
+        "4": {
+          "tasks": 161,
+          "verified_behaviours": 14
+        },
+        "16": {
+          "tasks": 166,
+          "verified_behaviours": 14
+        },
+        "45": {
+          "tasks": 166,
+          "verified_behaviours": 14
+        }
+      }
+    },
+    {
+      "run": "staged-arms-20260920",
+      "arm": "staged",
+      "encoding": "machine",
+      "seed": 0,
+      "search": "flat-w64",
+      "verified": 16,
+      "gains": [],
+      "losses": [],
+      "curve": {
+        "1": {
+          "tasks": 180,
+          "verified_behaviours": 16
+        },
+        "4": {
+          "tasks": 180,
+          "verified_behaviours": 16
+        },
+        "16": {
+          "tasks": 180,
+          "verified_behaviours": 16
+        },
+        "45": {
+          "tasks": 180,
+          "verified_behaviours": 16
+        }
+      }
+    },
+    {
+      "run": "staged-arms-20260920",
+      "arm": "staged",
+      "encoding": "machine",
+      "seed": 0,
+      "search": "flat-widening-k16-d16-h192-fuel",
+      "verified": 17,
+      "gains": [
+        "pair_floor_averages",
+        "prefix_sums"
+      ],
+      "losses": [
+        "keep_zeros"
+      ],
+      "curve": {
+        "1": {
+          "tasks": 165,
+          "verified_behaviours": 16
+        },
+        "4": {
+          "tasks": 174,
+          "verified_behaviours": 17
+        },
+        "16": {
+          "tasks": 175,
+          "verified_behaviours": 17
+        },
+        "45": {
+          "tasks": 178,
+          "verified_behaviours": 17
+        }
+      }
+    },
+    {
+      "run": "staged-arms-20260920",
+      "arm": "staged",
+      "encoding": "machine",
+      "seed": 0,
+      "search": "segment-k16-d16",
+      "verified": 15,
+      "gains": [],
+      "losses": [
+        "all_positive"
+      ],
+      "curve": {
+        "1": {
+          "tasks": 148,
+          "verified_behaviours": 11
+        },
+        "4": {
+          "tasks": 177,
+          "verified_behaviours": 15
+        },
+        "16": {
+          "tasks": 182,
+          "verified_behaviours": 15
+        },
+        "45": {
+          "tasks": 183,
+          "verified_behaviours": 15
+        }
+      }
+    }
+  ],
+  "best_check": {
+    "reference": "/home/abhishekrao/repos/wandering-light/checkpoints/best-system-20260922/timing/b64.json",
+    "tasks": 300,
+    "identical": 300,
+    "differ": [],
+    "capped": 0
+  }
+}
