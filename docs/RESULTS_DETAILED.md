@@ -594,7 +594,7 @@ Seed 0, code `9480d9c`. Run dirs are `m3-*` under `checkpoints/novelty-reduction
   - Fixed u@0.5 certified: 0.415 against 0.419.
   - Fixed Ê@0.5 certified: 0.398 against 0.406.
   - The registered readout's replicate spread is about ±0.05; the fixed-share spread is under 0.01. The bootstrap bounds above leave this spread out.
-- **Gate-partition failures:** two ladders are non-monotone. The stopped control run's q0.4 fails at 0.2007 while q0.5 passes, and control cycle 3's q0.4 fails at 0.204 while q0.3 passes. Control cycle 2 qualified q0.6, but its panel conditional miss was 0.209.
+- **Gate-partition failures:** the ladder is non-monotone in two runs. The stopped control run's q0.4 fails at 0.2007 while q0.5 passes, and control cycle 3's q0.4 fails at 0.204 while q0.3 passes. Control cycle 2 qualified q0.6, but its panel conditional miss was 0.209.
 
 ## Inverse dynamics: the encoder can compare states, and a comparison feature makes it data-efficient (#166)
 
