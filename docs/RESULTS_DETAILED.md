@@ -639,6 +639,20 @@ Deficits are calibrated. Ratios are medians over 18 paired cells, v4 eval unless
 - The search checks the visited set only for the ~5% of allowed successors the ranking reaches before the beam fills; judged the same way, the successors below the cut are duplicates at the same rate (2.8 / 4.5 / 6.3 / 7.8%, against 2.9 / 4.2 / 5.7 / 7.3% among the ranked ones the guards allowed), so the censoring changes nothing.
 - Under a depth-synchronous beam the second route is never shorter; the visited set discarded evidence, not path length or width.
 
+## Meeting pairs through the 10-draw gate (#169, steps 1-2)
+
+The 5,127 closed cross-path meetings of the world-arm cohort cell above, each walked back to the state where the two programs part, replayed on 10 fresh draws from the behaviour's sampler (`experiments/meeting_pairs_gate.py`): a pair passes when both programs agree on every draw both accept. CPU, 4 threads, 09:49-10:08 PDT 2026-09-24, code `d6771c5`. [report](../reports/meeting-pairs-20260924/README.md)
+
+| pairs | n | pass rate of judged | by length of the second program at the meeting |
+|---|---:|---:|---|
+| all | 5,127 | **86.6%** | 1-5 ops 98.4%, 6-9 89.0%, 10-19 82.5%, 20-47 68.7%, 48 84.0% |
+| same-layer (equal length) | 1,172 | 92.7% | |
+| earlier-layer (second longer) | 3,955 | **84.8%** (predicted >= 80%) | insertion 75.0%, other 89.7% |
+
+- Passing earlier-layer pairs save a median of 2 ops (predicted 2-4; mean 7.5, 5.2% save 40 or more), diverge at 1,224 states in 288 tasks and give 2,767 distinct next-op labels, 2,147 of the pairs at the task root; 75 states (6%) carry contradictory labels, a over b to one met state and b over a to another.
+- Failing insertions insert a median of 18 ops against 6 for passing ones: a long inserted chunk agrees on the shown inputs by aliasing (`dup div` vs `drop 1`), not by being a no-op.
+- The gate draws from the task's own sampler, so aliasing over the sampler's whole support passes it. Step 3 (training on the pairs) is not run.
+
 ## Inner frames E2, first gate: WEAK (#160)
 
 `experiments/frame_gate.py`, the world arm's recipe (v4 + world-v3 train, `1m`, LR 1.25e-4, 3 seeds x 6 epochs, GPU). **tags** adds a label (consumer, `ifte` role, captures) at body steps with a defined frame. **frames** adds the label and the frame after the body prefix. Calibrated deficits; ratios are medians over the 18 matched cells. Predictions were registered on #160 before training. [report](../reports/frame-gate-20260922/README.md)
