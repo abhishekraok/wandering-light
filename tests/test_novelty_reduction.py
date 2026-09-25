@@ -14,7 +14,15 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from experiments.certified_coverage import pairs as sampler
-from experiments.novelty_reduction import canon, evaluate, heads, m2b, probes, programs
+from experiments.novelty_reduction import (
+    canon,
+    evaluate,
+    heads,
+    m2b,
+    m3,
+    probes,
+    programs,
+)
 from experiments.novelty_reduction import cycle as runner
 from experiments.novelty_reduction import select as selector
 from experiments.novelty_reduction.archive import PROPOSAL, ROLLOUT, LoopArchive
@@ -633,3 +641,153 @@ def test_select_ranked_takes_reattempts_then_highest_e():
         key=lambda k: -ranked[k],
     )
     assert e_picks == left[:9]
+
+
+# ---------------------------------------------------------------------------
+# M3 runner
+# ---------------------------------------------------------------------------
+
+
+def test_binomial_upper_matches_the_closed_form_at_zero():
+    # zero misses in m: the upper bound solves (1 - p)^m = level
+    got = m3.binomial_upper(0, 10, 0.1)
+    assert abs(got - (1 - 0.1 ** (1 / 10))) < 1e-6
+    assert m3.binomial_upper(5, 5, 0.1) == 1.0
+    assert m3.binomial_upper(10, 100, 0.01) > m3.binomial_upper(10, 100, 0.1)
+
+
+def test_ladder_takes_the_widest_rung_under_the_bound():
+    config = m3.Config(ladder=4, alpha=0.1, miss_bound=0.2)
+    fit = np.linspace(0, 1, 400)
+    gate = np.linspace(0, 1, 400)
+    hit = gate < 0.5  # misses only past the median
+    got = m3.ladder(fit, gate, hit, config)
+    assert [r["quantile"] for r in got["rungs"]] == [0.25, 0.5, 0.75, 1.0]
+    assert got["rungs"][1]["qualifies"] and not got["rungs"][2]["qualifies"]
+    assert got["threshold"] == got["rungs"][1]["threshold"]
+    closed = m3.ladder(fit, gate, np.zeros(400, dtype=bool), config)
+    assert closed["threshold"] is None
+
+
+def test_imitate_solved_trains_only_rollout_written_paths():
+    archive = LoopArchive()
+    start = inputs_of("sum", 3)
+    for seed in range(12):
+        proposal = programs.propose(start, random.Random(seed))
+        if proposal.cuts:
+            archive.add_path(proposal.states, proposal.ops, PROPOSAL, 1)
+    walked = programs.propose(start, random.Random(99))
+    archive.add_path(walked.states, walked.ops, ROLLOUT, 1)
+    solver = runner.solver_found(archive)
+    last = {(r["s"], r["t"]): r["by"] for r in archive.relaxations}
+    assert solver
+    for key in solver:
+        assert last.get(key, archive.pairs[key].origin) == ROLLOUT
+    _rows, facts, paths = runner.policy_rows(
+        archive, runner.Config(), 1, {}, imitate="solved"
+    )
+    assert facts["proposal_pairs"] == 0
+    assert set(paths) <= solver
+
+
+def tiny_m3(source, **changes):
+    config = m3.Config(
+        source=str(source),
+        source_cycle=1,
+        labels=(20, 10, 10),
+        panel=20,
+        attempts=10,
+        e_candidates=30,
+        folds=2,
+        ladder=4,
+        miss_bound=1.0,  # the tiny gate opens, so certification is exercised
+        reps=50,
+        proposals=10,
+        budget=4,
+        n=2,
+        train_device="cpu",
+        behaviours=SMALL,
+        uninformative_zero_share=1.1,
+        collapse_ratio=0.0,
+    )
+    return dataclasses.replace(config, **changes)
+
+
+def test_m3_baseline_and_branches_on_a_tiny_source(tmp_path):
+    source = tmp_path / "source"
+    runner.run(tiny_config(cycles=1), source, log=lambda line: None)
+    base_dir = tmp_path / "baseline"
+    [base] = m3.run(tiny_m3(source), base_dir, log=lambda line: None)
+    assert base["panel_draws"]["kept"] == 20
+    assert base["heads"]["gate_e"]["threshold"] is not None
+    assert {"E", "P_confidence", "E_point_rule"} == set(base["panel"]["gates"])
+    with gzip.open(base_dir / "panel.pkl.gz", "rb") as handle:
+        saved = pickle.load(handle)
+    panel, quarantine = saved["panel"], saved["quarantine"]
+    # the panel shares no lineage with the source archive
+    archive = LoopArchive.load(source / "cycle-1" / "archive.pkl.gz")
+    assert not set(panel.lineage) & m3.archive_lineages(archive)
+    out = {}
+    for branch in ("adaptive", "control", "solved"):
+        ranking, imitate = m3.BRANCHES[branch]
+        config = tiny_m3(
+            source,
+            baseline=str(base_dir),
+            branch=branch,
+            ranking=ranking,
+            imitate=imitate,
+            cycles=2 if branch == "adaptive" else 1,
+        )
+        reports = m3.run(config, tmp_path / branch, log=lambda line: None)
+        assert all("stop" not in r for r in reports), reports[-1].get("stop")
+        out[branch] = reports
+        for report in reports:
+            attempt = report["attempt"]
+            assert attempt["pairs"] == 10
+            assert set(attempt["rules"]) <= {m3.REATTEMPT, m3.RANKED}
+            assert attempt["ranking"] == ranking
+            assert report["executions"]["attempt_rollouts"] == 10 * 2
+            assert "trained_by_body" in report["rows"]
+            assert "by_body" in report["propose"]
+        # the quarantine held: no archived state is a panel endpoint
+        final = LoopArchive.load(
+            tmp_path / branch / f"cycle-{len(reports)}" / "archive.pkl.gz"
+        )
+        assert not any(
+            canon.state_key(x) in quarantine.endpoints
+            for x in final.states[len(archive.states) :]
+        )
+        rows = m3.read_rows(tmp_path / branch / "cycle-1" / "attempt_rows.jsonl.gz")
+        ranked = [r for r in rows if r["rule"] == m3.RANKED]
+        assert ranked == sorted(ranked, key=lambda r: -r["rank_sum"])
+    assert out["solved"][0]["rows"]["proposal_pairs"] == 0
+    assert out["adaptive"][1]["attempt"]["rules"].get(m3.REATTEMPT, 0) >= 1
+    verdict = m3.compare(
+        base_dir,
+        tmp_path / "adaptive",
+        tmp_path / "control",
+        tmp_path / "solved",
+        reps=50,
+        n=2,
+    )
+    assert verdict["cycles"] == {"adaptive": 2, "control": 1}
+    assert isinstance(verdict["met"], bool)
+    assert "solved_minus_adaptive_success" in verdict["solved"]
+
+
+def test_m3_label_draws_avoid_panel_endpoints_and_lineages():
+    config = m3.Config(behaviours=SMALL)
+    canonical = runner.Canonical()
+    panel, _ = m3.draw_fresh(
+        30, random.Random(0), SMALL, canonical, set(), None, config
+    )
+    quarantine = m3.Quarantine(
+        {canon.state_key(x) for x in (*panel.s, *panel.t)}, set(panel.lineage)
+    )
+    labels, facts = m3.draw_fresh(
+        60, random.Random(1), SMALL, canonical, set(), quarantine, config
+    )
+    ends = {canon.state_key(x) for x in (*labels.s, *labels.t)}
+    assert not ends & quarantine.endpoints
+    assert not set(labels.lineage) & quarantine.lineages
+    assert facts["rejected"].get("quarantine", 0) >= 1

@@ -218,8 +218,13 @@ def propose_phase(
     *,
     archived_share: float,
     level: str | None = None,
+    admit=None,
 ) -> tuple[dict, list[dict]]:
-    """Counts, and one log row per proposal (start kind, body atoms, segments)."""
+    """Counts, and one log row per proposal (start kind, body atoms, segments).
+
+    ``admit(states, lineage)``, when given, can refuse a proposal before it is
+    archived (M3's test-panel quarantine); refusals are counted.
+    """
     rng = stream(config, cycle, "propose")
     grammar = programs.Grammar.parse(level or config.grammar_level)
     made = Counter()
@@ -249,6 +254,10 @@ def propose_phase(
         if not proposal.cuts:
             made["empty"] += 1
             continue
+        if admit is not None and not admit(proposal.states, route[0]):
+            made["quarantined"] += 1
+            entry["quarantined"] = True
+            continue
         added, relaxed = archive.add_path(
             proposal.states, proposal.ops, PROPOSAL, cycle, start_origin=route
         )
@@ -269,6 +278,7 @@ def policy_rows(
     cycle: int,
     previous_paths: dict,
     ranked: dict | None = None,
+    imitate: str = "all",
 ) -> tuple[list[Row], dict, dict]:
     """Imitation rows on shortest known paths (F10).
 
@@ -277,8 +287,11 @@ def policy_rows(
     strata and, within a stratum, a lineage at a time, ties broken by key.
     With ``ranked`` (E_hat per uncertified pair, the M3 E-ranked selector),
     rollout-made pairs in it go first, highest E_hat first, and the
-    round-robin fills what budget is left. Also returns the paths used, for
-    the next cycle's turnover.
+    round-robin fills what budget is left. With ``imitate="solved"`` (M3's
+    adaptive-solved branch) no proposal-made path is imitated: the pairs are
+    those whose shortest known path a rollout wrote (``solver_found``), and
+    they fill twice the proposal-row budget, the most the default can train.
+    Also returns the paths used, for the next cycle's turnover.
     """
     eligible = sorted(
         (r for r in archive.pairs.values() if r.witness_d_cuts <= config.max_cuts),
@@ -287,6 +300,12 @@ def policy_rows(
     made = [r for r in eligible if r.origin == PROPOSAL]
     walked = [r for r in eligible if r.origin == ROLLOUT]
     budget = sum(r.d_ops for r in made)
+    if imitate == "solved":
+        solver = solver_found(archive)
+        walked = [r for r in eligible if (r.s, r.t) in solver]
+        made, budget = [], 2 * budget
+    elif imitate != "all":
+        raise ValueError(f"imitate {imitate!r}")
     rng = stream(config, cycle, "rows")
     available = len(walked)
     kept = []
@@ -358,6 +377,17 @@ def policy_rows(
         "path_turnover": turnover,
     }
     return rows, facts, paths
+
+
+def solver_found(archive: LoopArchive) -> set:
+    """Pairs whose current shortest path a rollout wrote: first archived by one
+    and not since relaxed by a proposal, or last relaxed by one."""
+    last = {(r["s"], r["t"]): r["by"] for r in archive.relaxations}
+    return {
+        key
+        for key, record in archive.pairs.items()
+        if last.get(key, record.origin) == ROLLOUT
+    }
 
 
 def train_epochs(
@@ -479,12 +509,21 @@ def roll(
     return hits[:done], steps[:done] / procedure.n, dict(ends), walks_all, done
 
 
-def archive_walks(archive: LoopArchive, keys, walks, cycle: int) -> tuple[dict, set]:
-    """Archive calibration walks (hindsight), count visits; the start is not "through"."""
+def archive_walks(
+    archive: LoopArchive, keys, walks, cycle: int, admit=None
+) -> tuple[dict, set]:
+    """Archive calibration walks (hindsight), count visits; the start is not "through".
+
+    ``admit(states, lineage)`` as in ``propose_phase``: a refused walk is not
+    archived and its visits are not counted.
+    """
     made = Counter()
     touched: set[int] = set()
     for walker in walks:
         s, _t = keys[walker.owner]
+        if admit is not None and not admit(walker.states, archive.lineage(s)):
+            made["quarantined"] += 1
+            continue
         added, relaxed = archive.add_path(
             walker.states, walker.ops, ROLLOUT, cycle, start_origin=archive.origins[s]
         )
