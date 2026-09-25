@@ -10,6 +10,8 @@ from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
+import pytest
+import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -29,6 +31,7 @@ from experiments.novelty_reduction.archive import PROPOSAL, ROLLOUT, LoopArchive
 from wandering_light.rollout_policy import PolicyArchitecture
 from wandering_light.stack_beam import closed_cuts, has_mark
 from wandering_light.stack_pbe import BY_NAME, build_task, draw_task
+from wandering_light.stack_policy import DIFFERENCE, StackPairPolicy
 
 SMALL = ("sum", "reverse", "negate_each", "keep_evens")
 TINY = PolicyArchitecture(8, 16, 16)
@@ -791,3 +794,43 @@ def test_m3_label_draws_avoid_panel_endpoints_and_lineages():
     assert not ends & quarantine.endpoints
     assert not set(labels.lineage) & quarantine.lineages
     assert facts["rejected"].get("quarantine", 0) >= 1
+
+
+def test_m3_training_order_is_the_same_in_every_branch():
+    archive = LoopArchive()
+    start = inputs_of("sum", 3)
+    for seed in range(12):
+        proposal = programs.propose(start, random.Random(seed))
+        if proposal.cuts:
+            archive.add_path(proposal.states, proposal.ops, PROPOSAL, 1)
+    config = tiny_config()
+    rows, _, _ = runner.policy_rows(archive, config, 1, {})
+    weights = []
+    for _branch in ("adaptive", "control"):
+        torch.manual_seed(0)
+        model = StackPairPolicy(TINY, encoding=DIFFERENCE)
+        optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+        m3.train_policy(model, optimizer, rows, config, 1, 1)
+        weights.append(model.state_dict())
+    for key, value in weights[0].items():
+        assert torch.equal(value, weights[1][key]), key
+
+
+def test_m3_uninformative_baseline_stops_and_branches_refuse(tmp_path):
+    source = tmp_path / "source"
+    runner.run(tiny_config(cycles=1), source, log=lambda line: None)
+    base_dir = tmp_path / "baseline"
+    [base] = m3.run(
+        tiny_m3(source, uninformative_zero_share=0.0), base_dir, log=lambda line: None
+    )
+    assert base["stop"].startswith("uninformative")
+    assert not (base_dir / "cycle-0" / "heads.json").exists()
+    branch = tiny_m3(
+        source,
+        baseline=str(base_dir),
+        branch="adaptive",
+        ranking="adaptive",
+        cycles=1,
+    )
+    with pytest.raises(ValueError, match="baseline stopped"):
+        m3.run(branch, tmp_path / "adaptive", log=lambda line: None)

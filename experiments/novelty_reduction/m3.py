@@ -611,6 +611,14 @@ def attempt_phase(
 # ---------------------------------------------------------------------------
 
 
+def train_policy(model, optimizer, rows, loop_config, epochs: int, cycle: int) -> dict:
+    """M2's recipe; the shuffle is seeded by the cycle alone, so every branch
+    trains identical rows in the identical order."""
+    return loop.train_epochs(
+        model, optimizer, rows, loop_config, epochs or loop_config.epochs, f"m3:{cycle}"
+    )
+
+
 def write_rows(path: Path, rows) -> None:
     with gzip.open(path, "wt") as handle:
         handle.writelines(json.dumps(row, default=str) + "\n" for row in rows)
@@ -742,6 +750,9 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
         if fitted_all is None:
             return stop(report, "cycle-0", "wall stop during labels")
         head_set, fitted, width = fitted_all
+        if report.get("uninformative"):
+            # before the panel and heads.json exist, so no branch can start
+            return stop(report, "cycle-0", "uninformative: label hits almost all zero")
         panel_report, rows, _ = measure_panel(
             head_set,
             fitted,
@@ -769,11 +780,13 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
 
     # ---- branches
     base = Path(config.baseline)
+    base_report = json.loads((base / "cycle-0" / "report.json").read_text())
+    if base_report.get("stop"):
+        raise ValueError(f"baseline stopped: {base_report['stop']}")
     with gzip.open(base / "panel.pkl.gz", "rb") as handle:
         saved = pickle.load(handle)
     panel, quarantine = saved["panel"], saved["quarantine"]
     head_set = HeadSet.load(base / "cycle-0" / "heads.json")
-    base_report = json.loads((base / "cycle-0" / "report.json").read_text())
     previous_success = base_report["panel"]["walker_success"]
     previous_certified = np.array(
         [r["certified"] for r in read_rows(base / "cycle-0" / "panel_rows.jsonl.gz")]
@@ -847,14 +860,10 @@ def run(config: Config, run_dir: Path, log=print) -> list[dict]:
         )
         report["rows"]["trained_by_body"] = strata_counts(previous_paths.values())
         model.to(config.train_device)
-        report["policy"] = loop.train_epochs(
-            model,
-            optimizer,
-            rows,
-            loop_config,
-            config.epochs or loop_config.epochs,
-            f"m3:{config.branch}:{cycle}",
-        )
+        report["policy"] = {
+            **train_policy(model, optimizer, rows, loop_config, config.epochs, cycle),
+            "branch": config.branch,
+        }
         scorer = loop.frozen_scorer(model, architecture)
         clock.mark("policy")
 
