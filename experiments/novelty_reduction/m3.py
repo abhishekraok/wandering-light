@@ -1111,6 +1111,32 @@ def gate_free(rows: list[dict], seed: int = 0) -> dict:
     return out
 
 
+def reach_split(rows: list[dict], n: int = 8, seed: int = 0) -> dict:
+    """Post-hoc: certified pairs split by predicted reachability, as panel shares.
+
+    Under the registered gate (``certified``) and at the fixed 0.5 open share
+    by u: certified with P_hat >= 0.5 ("reachable") and < 0.5 ("unreachable"),
+    beside the share with P_emp >= 0.5.
+    """
+    hit = np.array([r["wilson_hit"] for r in rows])
+    high = np.array([r["p_hat"] >= 0.5 for r in rows])
+    size = len(rows)
+
+    def split(certified):
+        return {
+            "certified": float(certified.mean()) if size else None,
+            "certified_reachable": float((certified & high).sum() / size),
+            "certified_unreachable": float((certified & ~high).sum() / size),
+        }
+
+    at_half = m2b.accepted(-np.array([r["u"] for r in rows]), 0.5, seed) & hit
+    return {
+        "registered_gate": split(np.array([r["certified"] for r in rows])),
+        "u_share_0.5": split(at_half),
+        "p_emp_reachable": float(np.mean([r["hits"] / n >= 0.5 for r in rows])),
+    }
+
+
 def compare(
     baseline: Path,
     adaptive: Path,
@@ -1161,6 +1187,24 @@ def compare(
             name: {
                 str(line["cycle"]): gate_free(
                     read_rows(path / f"cycle-{line['cycle']}" / "panel_rows.jsonl.gz")
+                )
+                for line in cycle_record(baseline, path)
+            }
+            for name, path in (
+                ("adaptive", adaptive),
+                ("control", control),
+                ("solved", solved),
+            )
+            if path is not None
+        },
+    }
+    out["post_hoc_reach_split"] = {
+        "baseline": reach_split(base, n),
+        **{
+            name: {
+                str(line["cycle"]): reach_split(
+                    read_rows(path / f"cycle-{line['cycle']}" / "panel_rows.jsonl.gz"),
+                    n,
                 )
                 for line in cycle_record(baseline, path)
             }
