@@ -594,7 +594,7 @@ All deficits here are raw log-probabilities, the beam as it runs.
 
   Each policy is fluent in its own style. A 13-op segment needs 0.32 or less.
 
-## Short-segment campaign: capped data, a comparing encoder and a segment-reset beam, NEITHER (#168)
+## Short-segment campaign: capped data, a comparing encoder and a segment-reset beam, NEITHER on the cells searched (#168)
 
 The #101 cohort: 300 tasks, 43 behaviours, seed 0, CPU. Verified behaviours are draw-tested. The searches:
 - flat-48 is `BEST`'s search;
@@ -612,9 +612,10 @@ Predictions were registered on #168 before training. [report](../reports/short-s
 
 - **No segment-reset cell verifies a behaviour outside `BEST`'s flat-48 set.** Its one gain in the capped cells is `all_positive`, whose genuine program and shortcut trade places with cohort order (#158).
 - **Only the widening control found new behaviours:** `prefix_sums`, `pair_floor_averages` and `shared_value_occurrences`, three of #167's 25.
-- **Segment-reset costs about 20x flat-48's fuel:** 879M against 43M on capped / difference.
+- **Segment-reset costs 20-40x flat-48's fuel:** 879M against 43M on capped / difference, 1.54B against 38M for `BEST`.
 - **Raw nats per op on the segment-capped yardstick,** seeds 0-2: capped 0.60-0.73, staged 2.7-3.1, fused 5.1-5.6, under either encoder. Segmented clears: 2-4 of 25 for capped, 0 otherwise.
-- **The local K diagnostic** (capped / difference, depth 8), top 64: train 0.50 against 0.32 cumulative, yardstick 0.33 against 0.10. It replaces the 0.46 / 0.27 figures, which ranked cumulatively chosen roots.
+- **The local K diagnostic** (capped / difference, depth 8), top 64: train 0.50 against 0.32 cumulative, yardstick 0.33 against 0.10. Top 16: 0.32 and 0.13, replacing the 0.46 / 0.27 local figures that ranked cumulatively chosen roots. The registered top-16 prediction (60-80%, or at least 80%) missed: cumulative 19% / 3%.
+- **Ranking and proposal both leak.** Of 268 train segments the witness state is produced in 235, and 101 of those rank below 64 locally. On the yardstick, 94 of 171 produced rank below 64.
 - **Clock-capped segment tasks, rerun uncapped on GPU:** capped / difference and capped / machine 0 of 6 solved, all `max_segments`. RERUN_DOCS
 - **Scope:** seeds 1-2 and the fused and staged / difference cohort searches were cut by the owner.
 

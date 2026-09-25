@@ -1,6 +1,6 @@
 # short-segment-campaign (#168): the cohort searches
 
-**Reading: NEITHER.** No cell exceeds `BEST`'s 16 verified behaviours by more than 2 under any search. The capped arms verify 12-14 of 43, below `BEST`. The segment-reset beam adds at most 1 over flat-48 in any cell. No segment-reset cell verifies a behaviour outside `BEST`'s flat-48 set. Every new behaviour in the campaign came from the flat-widening control, which is a wider beam, not a reset. Seed 0 only; the owner cut seeds 1-2.
+**Reading: NEITHER, on the cells searched (seed 0; the fused and staged / difference families were not searched).** No cell exceeds `BEST`'s 16 verified behaviours by more than 2 under any search. The capped arms verify 12-14 of 43, below `BEST`. The segment-reset beam adds at most 1 over flat-48 in any cell. No segment-reset cell verifies a behaviour outside `BEST`'s flat-48 set. Every new behaviour in the campaign came from the flat-widening control, a wider beam at a longer horizon, not a reset. Seed 0 only; the owner cut seeds 1-2.
 
 `search.py report --reruns ../short-segment-rerun` over `checkpoints/short-segment-search`, `report.md` and `report.json` here. Registration: [#168](https://github.com/abhishekraok/wandering-light/issues/168).
 
@@ -16,8 +16,8 @@
 - **Fused and staged / comparing were not searched.** The owner cut those families at 13:25 PDT on 2026-09-24.
 - **Graded is not verified.** Graded behaviours run 2-4 above verified in every cell. `bounds_cover_list_flag`, `largest_inside_interval` and `aligned_matches` are the usual shortcuts. `all_positive` flips between its genuine program and its 22-op shortcut with cohort order, as in #158.
 - **Task level is not the registered measure.** capped / difference segment-reset solves 167 tasks against flat-48's 161. That is the same 16 graded behaviours.
-- **Cost.** Segment-reset spends about 20x flat-48's fuel (879M against 43M on capped / difference; 1.54B against 38M for `BEST`). Its 1x-cost curve point is at or below flat-48 in every cell (`report.md`, per-checkpoint table).
-- **max_segments.** capped / difference segment-reset ends 101 of 300 tasks on `max_segments`: the ranker kept roots that led nowhere in 12 segments.
+- **Cost.** Segment-reset spends 20x flat-48's fuel on capped / difference (879M against 43M), 40x for `BEST` (1.54B against 38M), and 34x for the local K=64 arm. Within flat-48's own per-task fuel (the 1x curve point), segment-reset solves fewer graded tasks in every cell, though capped / difference keeps its 14 verified behaviours there (`report.md`, per-checkpoint table).
+- **max_segments.** capped / difference segment-reset ends 101 of 300 tasks on `max_segments`, with no shown fit after 12 segments.
 
 ## The clock-capped tasks
 
@@ -29,7 +29,7 @@ Median per program over the 25 yardstick programs (`per_op_segment_capped.json`)
 
 | policy | registered (advisor / mine) | measured | segmented clears of 25 |
 |---|---|---|---|
-| capped / current | 0.6-0.8 / 1.0-1.5 | 0.73 / 0.70 / 0.60 | 2 / 3 / 2 |
+| capped / current | 0.6-0.8 / 1.0-1.5 | 0.73 / 0.69 / 0.60 | 2 / 3 / 2 |
 | capped / difference | 0.45-0.6 / 0.8-1.2 | 0.69 / 0.65 / 0.60 | 2 / 4 / 4 |
 | staged / current | 2.3 | 3.05 / 2.72 / 2.88 | 0 |
 | staged / difference | 1.9 | 2.89 / 2.68 / 2.93 | 0 |
@@ -37,8 +37,9 @@ Median per program over the 25 yardstick programs (`per_op_segment_capped.json`)
 | fused / difference | 4.0 | 5.60 / 5.49 / 5.42 | 0 |
 
 - **The style is learned; it does not solve.** The capped policies pay 0.6-0.7 nats per op on held-out capped programs, near the advisor's prediction. That is about a quarter of `staged`'s cost and an eighth of `fused`'s. On the v4 authored witnesses they pay 6.9-8.3. Even so, raw segment-reset clears only 2-4 of the 25 programs, and the cohort shows it: no capped cell reaches `BEST`.
-- **The comparing encoder adds nothing here.** capped / difference and capped / current are within 0.05 per op, and 13 = 13, 14 = 14 on the cohort.
-- `per_op_body_capped.json` is the same scoring on #167's body-capped programs: capped 0.81-0.88, staged 2.1-2.6, fused 4.6-4.9.
+- **Where the cost sits.** Pooled over programs, capped / difference s0 pays 1.35 nats per content op against 0.18 per structural op (`[`, `]` and the consumers).
+- **The comparing encoder adds nothing here.** It has 659,932 parameters against the current encoder's 655,836. capped / difference and capped / current are within 0.05 per op, and 13 = 13, 14 = 14 on the cohort.
+- `per_op_body_capped.json` is the same scoring on #167's 22 genuine body-capped programs: capped 0.81-0.88, staged 2.1-2.6, fused 4.6-4.9.
 - The yardstick programs are `check.py`-verified (500 fresh samples), not 10,000-draw verified.
 
 ## Ranking: the local K diagnostic
@@ -52,14 +53,16 @@ Top-K share of segments with the witness's closed state among the merged closed 
 | cumulative | yardstick (25) | 0.03 | 0.10 |
 | local, scored from local roots | yardstick | 0.13 | 0.33 |
 
-- **This replaces the 0.46 / 0.27 local figures.** Those ranked cumulatively chosen roots.
-- **Local scoring ranks the witness far higher and solves nothing more.** On the cohort the local K=64 arm verifies 13 against K=16's 14. The advisor's rule for this arm (3 or more over K=16 means the ranker is the bottleneck) is not met. The loss is in what the policy produces, not how the roots are ranked.
+- **This replaces the earlier local top-16 figures of 0.46 and 0.27** (the K diagnostic comment on #168), which were ranked on cumulatively chosen roots. The same top-16 shares under a true reset are 0.32 and 0.13.
+- **The registered K criterion was missed.** The registration asked K to cover the witness's rank in most segments, and predicted 60-80% (mine) or at least 80% (the advisor's) in the top 16 for capped / comparing. Cumulative measured 19% on train and 3% on the yardstick. K=16 was kept as registered.
+- **Production and ranking both leak.** Of 268 train segments, the witness's closed state is produced in 235. Of those, 134 rank in the top 64 locally and 101 fall below. On the yardstick, 171 of 230 are produced, 77 rank in the top 64 and 94 fall below. These are forced-root diagnostics, not a decomposition of the solver's failures.
+- **The tested ranking change did not help on the cohort.** The local K=64 arm verifies 13 against K=16's 14, so the advisor's trigger (3 or more over K=16) is not met. It changes K and scoring together, and it hit the 120 s clock on 98 of 300 tasks, against 6 for K=16; the uncapped reruns are below. A learned value was outside the registration, and this does not rule it out.
 
-## Flat-widening control: a limit
+## Flat-widening control: width at a longer horizon
 
 The control runs at the segment beam's horizon, 12 x depth: 96 for capped, 192 for staged. That is 2-4x flat-48's depth.
 - On capped it is worse than flat-48 (12 against 13). It spends its budget at depth, not width. Of the 143 capped / difference tasks it ends by budget, 95 completed width 256 and 47 never completed width 64. It loses short behaviours flat-48 keeps: `reverse`, `rotate_left` and `keep_zeros`.
-- It is still the only search that verified behaviours `BEST` does not: `prefix_sums`, `pair_floor_averages` and `shared_value_occurrences`, three of #167's 25.
+- It is still the only search that verified behaviours `BEST` does not: `prefix_sums`, `pair_floor_averages` and `shared_value_occurrences`, three of #167's 25. The gain belongs to width at 2-4x the depth, not to width alone; a widening at depth 48 would separate the two.
 
 ## Scope cuts and conditions
 
