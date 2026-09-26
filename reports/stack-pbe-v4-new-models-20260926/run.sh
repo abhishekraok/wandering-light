@@ -4,7 +4,8 @@
 # eval sample of stack_pbe_v4. Same protocol, prompt, parser and grader as
 # ../stack-pbe-v4-codex-exec-20260910 and ../stack-pbe-v4-claude-exec-20260913.
 # Arms run concurrently, each sequential over its 40 tasks. Output goes to $R
-# (default: this directory).
+# (default: this directory). SWEEP=1 runs the effort sweep of the two GPT-6
+# models instead (low / medium / xhigh / max; high is in the first batch).
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 R=${R:-reports/stack-pbe-v4-new-models-20260926}
@@ -23,12 +24,20 @@ arm() {  # provider model effort tag
 }
 
 pids=()
-arm codex  gpt-6-sol       high   sol6_high_v4_sample40 &     pids+=($!)
-arm codex  gpt-6-luna      high   luna6_high_v4_sample40 &    pids+=($!)
-arm claude claude-opus-5-5 low    opus55_low_v4_sample40 &    pids+=($!)
-arm claude claude-opus-5-5 medium opus55_medium_v4_sample40 & pids+=($!)
-arm claude claude-opus-5-5 high   opus55_high_v4_sample40 &   pids+=($!)
-arm claude claude-opus-5-5 xhigh  opus55_xhigh_v4_sample40 &  pids+=($!)
+if [ "${SWEEP:-0}" = 1 ]; then
+  for model in sol luna; do
+    for effort in low medium xhigh max; do
+      arm codex "gpt-6-$model" "$effort" "${model}6_${effort}_v4_sample40" & pids+=($!)
+    done
+  done
+else
+  arm codex  gpt-6-sol       high   sol6_high_v4_sample40 &     pids+=($!)
+  arm codex  gpt-6-luna      high   luna6_high_v4_sample40 &    pids+=($!)
+  arm claude claude-opus-5-5 low    opus55_low_v4_sample40 &    pids+=($!)
+  arm claude claude-opus-5-5 medium opus55_medium_v4_sample40 & pids+=($!)
+  arm claude claude-opus-5-5 high   opus55_high_v4_sample40 &   pids+=($!)
+  arm claude claude-opus-5-5 xhigh  opus55_xhigh_v4_sample40 &  pids+=($!)
+fi
 
 failed=0
 for pid in "${pids[@]}"; do wait "$pid" || failed=1; done

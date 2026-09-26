@@ -88,7 +88,15 @@ Guard `body` alone: 1.30x / 1.71x / 2.30x at depths 4/5/6. Authored witnesses pr
 | `claude-opus-5-5` | effort high, via `claude -p` | sample 40 | 24 (60.0%) | 13 | 1,070 | shown-only 92.5%; 1 is the shortcut → 23 real; 748 thinking tok/task; ~$0.049/task | `…/opus55_high_v4_sample40.json` |
 | `claude-opus-5-5` | effort xhigh, via `claude -p` | sample 40 | 22 (55.0%) | 17 | 1,585 | shown-only 97.5%; 1 is the shortcut → 21 real; 0 do not run; 1,021 thinking tok/task; effort flat above medium, memorised 8 → 17 low → xhigh; ~$0.078/task | `…/opus55_xhigh_v4_sample40.json` |
 | `gpt-6-sol` | effort high, via `codex exec` (#173) | sample 40 | 19 (47.5%) | 12 | 1,342 | shown-only 77.5%; 1 is the shortcut → 18 real; 3 do not run; 894 reasoning tok/task; ~$0.015/task | `…/sol6_high_v4_sample40.json` |
+| `gpt-6-sol` | effort low, via `codex exec` (#173 sweep) | sample 40 | 17 (42.5%) | 8 | 781 | shown-only 62.5%; 1 is the shortcut; 5 do not run; ~$0.009/task | `…/sol6_low_v4_sample40.json` |
+| `gpt-6-sol` | effort medium, via `codex exec` (#173 sweep) | sample 40 | 18 (45.0%) | 14 | 986 | shown-only 80%; 1 is the shortcut; 5 do not run; ~$0.013/task | `…/sol6_medium_v4_sample40.json` |
+| `gpt-6-sol` | effort xhigh, via `codex exec` (#173 sweep) | sample 40 | 24 (60.0%) | 13 | 1,566 | shown-only 92.5%; 1 is the shortcut; 4/12 past 40 ops; top cluster at ~$0.021/task | `…/sol6_xhigh_v4_sample40.json` |
+| `gpt-6-sol` | effort max, via `codex exec` (#173 sweep) | sample 40 | 26 (65.0%) | 13 | 1,672 | shown-only 97.5%; 1 is the shortcut; 3/12 past 40 ops; 0 do not run; ~$0.022/task | `…/sol6_max_v4_sample40.json` |
 | `gpt-6-luna` | effort high, via `codex exec` (#173) | sample 40 | 10 (25.0%) | 1 | 2,184 | shown-only 27.5%; 20 do not run; 1,973 reasoning tok/task; ~$0.0013/task; luna cluster, not astra's | `…/luna6_high_v4_sample40.json` |
+| `gpt-6-luna` | effort low, via `codex exec` (#173 sweep) | sample 40 | 0 (0.0%) | 0 | 3,929 | 37 do not run; median 20 output tok (barely reasons); 4 calls hit the 900 s deadline | `…/luna6_low_v4_sample40.json` |
+| `gpt-6-luna` | effort medium, via `codex exec` (#173 sweep) | sample 40 | 4 (10.0%) | 2 | 912 | 27 do not run; ~$0.0005/task | `…/luna6_medium_v4_sample40.json` |
+| `gpt-6-luna` | effort xhigh, via `codex exec` (#173 sweep) | sample 40 | 9 (22.5%) | 4 | 3,570 | 21 do not run; ~$0.002/task | `…/luna6_xhigh_v4_sample40.json` |
+| `gpt-6-luna` | effort max, via `codex exec` (#173 sweep) | sample 40 | 15 (37.5%) | 6 | 6,040 | shown-only 52.5%; 1 is the shortcut; 14 do not run; luna-5.6 level at ~$0.003/task | `…/luna6_max_v4_sample40.json` |
 | beam 64 × depth 48, 1m policy, seed 0 | trained on v4 train, LR 1.25e-4, cpu (8 threads) | sample 40 | 7 (17.5%) | 0 | 131 |  | `compute-optimal-mark28-20260903/timing/1m-s0-cpu.json` |
 | beam 64 × depth 48, 1m policy, seed 0 | trained on v4 train, LR 1.25e-4, cuda | sample 40 | 7 (17.5%) | 0 | 120 | same program on both devices | `…/timing/1m-s0-cuda.json` |
 | beam 64 × depth 48, 1m policy, seed 1 | trained on v4 train, LR 1.25e-4, cpu (8 threads) | sample 40 | 10 (25.0%) | 1 | 126 |  | `…/timing/1m-s1-cpu.json` |

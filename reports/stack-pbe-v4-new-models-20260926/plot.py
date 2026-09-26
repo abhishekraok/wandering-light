@@ -18,13 +18,13 @@ ORDER = (  # model, colour (fixed categorical slots), new in #173
     ("gpt-5.6-terra", "#eda100", False),
     ("gpt-5.6-luna", "#008300", False),
 )
-EFFORT = {"low": "L", "medium": "M", "high": "H", "xhigh": "X"}
+EFFORT = {"low": "L", "medium": "M", "high": "H", "xhigh": "X", "max": "Mx"}
 
 rows = json.loads((HERE / "summary.json").read_text())
-fig, ax = plt.subplots(figsize=(8, 5.2), dpi=150)
+fig, ax = plt.subplots(figsize=(8.5, 6), dpi=150)
 ax.axhspan(22, 26, color="#e8e7e1", zorder=0)
 ax.text(
-    0.00105, 25.6, "top cluster, ±3-task noise", color="#6b6a64", fontsize=8, va="top"
+    0.00013, 25.6, "top cluster, ±3-task noise", color="#6b6a64", fontsize=8, va="top"
 )
 for model, colour, new in ORDER:
     pts = sorted(
@@ -32,6 +32,7 @@ for model, colour, new in ORDER:
         for r in rows
         if r["model"] == model
     )
+    pts.sort(key=lambda p: list(EFFORT).index(p[2]))  # joined in effort order
     xs, ys, _ = zip(*pts, strict=True)
     marker = "o" if model.startswith("claude") else "s"
     ax.plot(
@@ -59,7 +60,7 @@ for model, colour, new in ORDER:
             color="#6b6a64",
         )
     anchor, offset, ha = (
-        ((xs[0], ys[0]), (-8, 3), "right")
+        ((xs[0], ys[0]), (4, -24), "center")
         if above
         else ((xs[-1], ys[-1]), (8, 3), "left")
     )
@@ -74,15 +75,15 @@ for model, colour, new in ORDER:
         weight="bold" if new else "normal",
     )
 ax.set_xscale("log")
-ax.set_xlim(0.001, 0.4)
-ax.set_ylim(8, 27)
+ax.set_xlim(0.00012, 0.4)
+ax.set_ylim(-1.5, 28)
 ax.set_xlabel(
     "$ per task at API list price (recorded output tokens, 1.3k-token prompt)"
 )
 ax.set_ylabel("solved, of 40 (held-out graded)")
 ax.set_title(
     "stack_pbe_v4 seed-17 sample: accuracy against cost, effort joined per model\n"
-    "L/M/H/X = effort low/medium/high/xhigh",
+    "L/M/H/X/Mx = effort low/medium/high/xhigh/max",
     fontsize=10,
     loc="left",
 )

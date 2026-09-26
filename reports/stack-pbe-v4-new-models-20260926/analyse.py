@@ -33,8 +33,16 @@ ARMS = (
     ("stack-pbe-v4-claude-exec-20260913/opus_low", "claude-opus-5", "low"),
     ("stack-pbe-v4-claude-exec-20260913/opus_high", "claude-opus-5", "high"),
     ("stack-pbe-v4-claude-exec-20260913/opus_xhigh", "claude-opus-5", "xhigh"),
+    ("stack-pbe-v4-new-models-20260926/sol6_low", "gpt-6-sol", "low"),
+    ("stack-pbe-v4-new-models-20260926/sol6_medium", "gpt-6-sol", "medium"),
     ("stack-pbe-v4-new-models-20260926/sol6_high", "gpt-6-sol", "high"),
+    ("stack-pbe-v4-new-models-20260926/sol6_xhigh", "gpt-6-sol", "xhigh"),
+    ("stack-pbe-v4-new-models-20260926/sol6_max", "gpt-6-sol", "max"),
+    ("stack-pbe-v4-new-models-20260926/luna6_low", "gpt-6-luna", "low"),
+    ("stack-pbe-v4-new-models-20260926/luna6_medium", "gpt-6-luna", "medium"),
     ("stack-pbe-v4-new-models-20260926/luna6_high", "gpt-6-luna", "high"),
+    ("stack-pbe-v4-new-models-20260926/luna6_xhigh", "gpt-6-luna", "xhigh"),
+    ("stack-pbe-v4-new-models-20260926/luna6_max", "gpt-6-luna", "max"),
     ("stack-pbe-v4-new-models-20260926/opus55_low", "claude-opus-5-5", "low"),
     ("stack-pbe-v4-new-models-20260926/opus55_medium", "claude-opus-5-5", "medium"),
     ("stack-pbe-v4-new-models-20260926/opus55_high", "claude-opus-5-5", "high"),
@@ -51,7 +59,11 @@ def main() -> None:
         (REPORTS / "stack-pbe-v4-baseline-20260901/luna_v4_sample40.json").read_text()
     )
     length = [len(c["witness"].split()) for c in api["candidates"]]
-    runs = {(m, e): load(stem) for stem, m, e in ARMS}
+    runs = {
+        (m, e): load(stem)
+        for stem, m, e in ARMS
+        if (REPORTS / f"{stem}_v4_sample40.json").exists()
+    }
     solved = {
         k: [c["verdict"] == "solved" for c in d["candidates"]] for k, d in runs.items()
     }
@@ -68,7 +80,9 @@ def main() -> None:
     for (m, e), d in runs.items():
         cands = d["candidates"]
         gens = [c["generation"][-1] for c in cands]
-        out = [g["usage"]["output_tokens"] for g in gens]
+        # a call killed at the 900 s deadline reports no usage; it is left out
+        # of the token and cost figures, not counted as zero
+        out = [g["usage"]["output_tokens"] for g in gens if "usage" in g]
         pi, po = PRICE[m]
         cost = statistics.mean(PROMPT_TOKENS * pi / 1e6 + o * po / 1e6 for o in out)
         buckets = []
