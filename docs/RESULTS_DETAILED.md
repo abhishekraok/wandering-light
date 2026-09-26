@@ -638,6 +638,31 @@ All deficits here are raw log-probabilities, the beam as it runs.
 
   Each policy is fluent in its own style. A 13-op segment needs 0.32 or less.
 
+## Short-segment campaign: capped data, a comparing encoder and a segment-reset beam, NEITHER on the cells searched (#168)
+
+The #101 cohort: 300 tasks, 43 behaviours, seed 0, CPU. Verified behaviours are draw-tested. The searches:
+- flat-48 is `BEST`'s search;
+- segment-reset uses K=16 roots, per-arm depth and 12 segments;
+- flat-widening is widths 64, 128, ... at 12 x depth, within max(segment, flat-48) fuel per task.
+
+Predictions were registered on #168 before training. [report](../reports/short-segment-20260924/README.md)
+
+| arm / encoding | flat-48 | segment-reset | flat-widening | predicted flat / segment |
+|---|---:|---:|---:|---|
+| staged / current (`BEST`) | **16** | 15 | 17 | 16-18 / 17-21 |
+| capped / current | 13 | 14 | 12 | 16-18 / 18-23 |
+| capped / difference | 13 | 14 | 12 | 17-19 / 21-27 |
+| capped / difference, local scoring, K=64 (exploratory) | | 13 | 14 | within +2 of K=16 |
+
+- **No segment-reset cell verifies a behaviour outside `BEST`'s flat-48 set.** Its one gain in the capped cells is `all_positive`, whose genuine program and shortcut trade places with cohort order (#158).
+- **Only the widening control found new behaviours:** `prefix_sums`, `pair_floor_averages` and `shared_value_occurrences`, three of #167's 25.
+- **Segment-reset costs 20-40x flat-48's fuel:** 879M against 43M on capped / difference, 1.54B against 38M for `BEST`.
+- **Raw nats per op on the segment-capped yardstick,** seeds 0-2: capped 0.60-0.73, staged 2.7-3.1, fused 5.1-5.6, under either encoder. Segmented clears: 2-4 of 25 for capped, 0 otherwise.
+- **The local K diagnostic** (capped / difference, depth 8), top 64: train 0.50 against 0.32 cumulative, yardstick 0.33 against 0.10. Top 16: 0.32 and 0.13, replacing the 0.46 / 0.27 local figures that ranked cumulatively chosen roots. The registered top-16 prediction (60-80%, or at least 80%) missed: cumulative 19% / 3%.
+- **Ranking and proposal both leak.** Of 268 train segments the witness state is produced in 235, and 101 of those rank below 64 locally. On the yardstick, 94 of 171 produced rank below 64.
+- **Clock-capped segment tasks, rerun uncapped on GPU:** none of the 146 was solved, at an 1800 s clock. Capped / difference and capped / machine: 0 of 6 each. `BEST`: 0 of 36. Local K=64: 0 of 98, with 5 shown fits that fail held-out. No verified count moves.
+- **Scope:** seeds 1-2 and the fused and staged / difference cohort searches were cut by the owner.
+
 ## Inner frames campaign 2: oracle BETWEEN, ranker target met, stacking UNCLEAR (#160)
 
 The world arm's recipe, trained on GPU.
@@ -682,6 +707,20 @@ Deficits are calibrated. Ratios are medians over 18 paired cells, v4 eval unless
 - The meetings are inserted no-op cycles, commuted independent cycles, long detours to small states, and bodies that differ but agree on the shown examples.
 - The search checks the visited set only for the ~5% of allowed successors the ranking reaches before the beam fills; judged the same way, the successors below the cut are duplicates at the same rate (2.8 / 4.5 / 6.3 / 7.8%, against 2.9 / 4.2 / 5.7 / 7.3% among the ranked ones the guards allowed), so the censoring changes nothing.
 - Under a depth-synchronous beam the second route is never shorter; the visited set discarded evidence, not path length or width.
+
+## Meeting pairs through the 10-draw gate (#169, steps 1-2)
+
+The 5,127 closed cross-path meetings of the world-arm cohort cell above, each walked back to the state where the two programs part, replayed on 10 fresh draws from the behaviour's sampler (`experiments/meeting_pairs_gate.py`): a pair passes when both programs agree on every draw both accept. CPU, 4 threads, 09:49-10:08 PDT 2026-09-24, code `d6771c5`. [report](../reports/meeting-pairs-20260924/README.md)
+
+| pairs | n | pass rate of judged | by length of the second program at the meeting |
+|---|---:|---:|---|
+| all | 5,127 | **86.6%** | 1-5 ops 98.4%, 6-9 89.0%, 10-19 82.5%, 20-47 68.7%, 48 84.0% |
+| same-layer (equal length) | 1,172 | 92.7% | |
+| earlier-layer (second longer) | 3,955 | **84.8%** (predicted >= 80%) | insertion 75.0%, other 89.7% |
+
+- Passing earlier-layer pairs save a median of 2 ops (predicted 2-4; mean 7.5, 5.2% save 40 or more), diverge at 1,224 states in 288 tasks and give 2,767 distinct next-op labels, 2,147 of the pairs at the task root; 75 states (6%) carry contradictory labels, a over b to one met state and b over a to another.
+- Failing insertions insert a median of 18 ops against 6 for passing ones: a long inserted chunk agrees on the shown inputs by aliasing (`dup div` vs `drop 1`), not by being a no-op.
+- The gate draws from the task's own sampler, so aliasing over the sampler's whole support passes it. Step 3 (training on the pairs) is not run.
 
 ## Inner frames E2, first gate: WEAK (#160)
 

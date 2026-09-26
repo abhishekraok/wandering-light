@@ -1179,3 +1179,54 @@ def test_an_archive_is_final_only_with_its_cell(tmp_path, tiny_run, monkeypatch)
         driver.run_cell(tmp_path, tiny_run, "staged", 0, "segment", **kwargs)
     assert not list(tmp_path.rglob("*.jsonl.gz"))
     assert list(tmp_path.rglob("*.jsonl.gz.partial"))
+
+
+def test_the_report_reads_a_capped_tasks_rerun_against_its_cell():
+    def row(behaviour, termination, solved, program=("id",)):
+        return {
+            "behaviour": behaviour,
+            "termination": termination,
+            "solved": solved,
+            "program": list(program),
+            "seconds": 50.0,
+        }
+
+    key = {"run": "r", "arm": "capped", "seed": 0, "search": "segment"}
+    cell = {
+        **key,
+        "encoding": "difference",
+        "search_tag": "segment-k16-d8",
+        "cohort_positions": None,
+        "rows": [
+            row("a", "fit", True),
+            row("b", "wall_clock_cap", False),
+            row("c", "wall_clock_cap", False),
+        ],
+    }
+    rerun = {
+        **key,
+        "search_tag": "segment-k16-d8-cap1800-cuda-t1",
+        "cohort_positions": [1, 2],
+        "task_seconds_cap": 1800.0,
+        "rows": [row("b", "fit", True), row("c", "max_segments", False)],
+    }
+    verdicts = {f"{b} :: id": {"verdict": "genuine"} for b in "abc"}
+    lines = driver.rerun_lines([cell], [rerun], verdicts)
+    assert lines[-1] == (
+        "- capped / difference segment-k16-d8 s0: 2/2 rerun at 1800 s, 1 fit, "
+        "1 max_segments; median 50 s; 1 solved; verified 1 -> 2 (+b)"
+    )
+    # Split over two reruns, the positions are read together.
+    halves = [
+        {**rerun, "cohort_positions": [1], "rows": rerun["rows"][:1]},
+        {**rerun, "cohort_positions": [2], "rows": rerun["rows"][1:]},
+    ]
+    assert driver.rerun_lines([cell], halves, verdicts)[-1] == (
+        "- capped / difference segment-k16-d8 s0: 2/2 rerun at 1800 s in 2 parts, "
+        "1 fit, 1 max_segments; median 50 s; 1 solved; verified 1 -> 2 (+b)"
+    )
+    # A rerun of other positions is not this cell's, and a part is not reported.
+    other = {**rerun, "cohort_positions": [0, 1, 2]}
+    assert not driver.rerun_lines([cell], [other], verdicts)[-1].startswith("- ")
+    other = halves[1]
+    assert not driver.rerun_lines([cell], [other], verdicts)[-1].startswith("- ")
