@@ -1,0 +1,1299 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "guard": "off",
+  "partial": false,
+  "tasks_planned": 40,
+  "tasks": 40,
+  "solved": 24,
+  "memorised": 13,
+  "shown_fit": 37,
+  "illegal": 3,
+  "solve_rate": 0.6,
+  "shown_rate": 0.925,
+  "by_behaviour": {
+    "sum_negative": {
+      "witness_length": 16,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "min_pair": {
+      "witness_length": 12,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "keep_negative": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "drop_last": {
+      "witness_length": 12,
+      "tasks": 3,
+      "solved": 3,
+      "memorised": 0
+    },
+    "aligned_matches": {
+      "witness_length": 39,
+      "tasks": 2,
+      "solved": 1,
+      "memorised": 0
+    },
+    "widest_pair": {
+      "witness_length": 84,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 2
+    },
+    "replace_value": {
+      "witness_length": 22,
+      "tasks": 3,
+      "solved": 3,
+      "memorised": 0
+    },
+    "positive_balance_prefix_count": {
+      "witness_length": 49,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "positive_majority_three": {
+      "witness_length": 39,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 2
+    },
+    "adjacent_sign_change_count": {
+      "witness_length": 47,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "nearest_interval_endpoint_each": {
+      "witness_length": 39,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "axis_point_count": {
+      "witness_length": 86,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 2
+    },
+    "median_floor": {
+      "witness_length": 253,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "keep_ascending_pairs": {
+      "witness_length": 80,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "keep_zeros": {
+      "witness_length": 5,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "largest_inside_interval": {
+      "witness_length": 40,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "bounds_cover_list_flag": {
+      "witness_length": 92,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 2
+    },
+    "concatenate_shorter_first": {
+      "witness_length": 26,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_below": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "n_minus_each": {
+      "witness_length": 7,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "negate_each": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "cartesian_pair_sums": {
+      "witness_length": 15,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "rotate_left": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "farther_choice_from_target": {
+      "witness_length": 54,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "farthest_from_target_last_tie": {
+      "witness_length": 59,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "prefix_sums": {
+      "witness_length": 25,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "reverse": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      3
+    ],
+    [
+      "[ 0 lt? ] filter 0 [ add ] fold",
+      2
+    ],
+    [
+      "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      2
+    ],
+    [
+      "[ 0 eq? ] filter",
+      2
+    ],
+    [
+      "swap drop quote [ lt? ] cat filter uncons [ [ over over lt? ] [ swap drop ] [ drop ] ifte ] fold",
+      2
+    ],
+    [
+      "[ 0 lt? ] filter",
+      1
+    ],
+    [
+      "quote [ drop ] swap cat swap quote [ eq? ] cat quote swap quote cat [ [ ] ifte ] cat map",
+      1
+    ],
+    [
+      "nil 0 cons [ over uncons swap drop add cons ] fold [ 0 swap lt? ] filter 0 [ drop 1 add ] fold",
+      1
+    ],
+    [
+      "quote [ drop ] swap cat swap quote [ dup ] swap cat [ eq? ] cat swap [ ] quote swap quote swap cat swap quote swap cat [ ifte ] cat map",
+      1
+    ],
+    [
+      "quote [ lt? ] cat filter",
+      1
+    ],
+    [
+      "quote [ swap sub ] cat map",
+      1
+    ],
+    [
+      "[ 0 swap sub ] map",
+      1
+    ],
+    [
+      "drop uncons swap drop nil swap cons",
+      1
+    ],
+    [
+      "quote [ quote [ add cons ] cat ] swap cat [ swap [ swap ] dip fold ] cat nil swap fold nil [ cons ] fold",
+      1
+    ],
+    [
+      "quote [ drop ] swap cat swap quote [ dup ] swap cat [ eq? ] cat swap [ ] quote [ ifte ] cat swap quote swap cat swap quote swap cat map",
+      1
+    ],
+    [
+      "uncons swap nil [ cons ] fold swap cons nil [ cons ] fold",
+      1
+    ],
+    [
+      "uncons nil swap cons [ over uncons swap drop add cons ] fold nil [ cons ] fold",
+      1
+    ],
+    [
+      "nil [ cons ] fold",
+      1
+    ]
+  ],
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "model": "claude-opus-5-5",
+  "provider": "claude",
+  "effort": "high",
+  "candidates": [
+    {
+      "task_index": 361,
+      "behaviour": "sum_negative",
+      "candidate": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1153,
+            "cache_creation_input_tokens": 1151,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 183,
+            "reasoning_output_tokens": 159
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 2722,
+          "seconds": 5.4
+        }
+      ]
+    },
+    {
+      "task_index": 359,
+      "behaviour": "min_pair",
+      "candidate": "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1118,
+            "cache_creation_input_tokens": 1116,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 472,
+            "reasoning_output_tokens": 444
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 5542,
+          "seconds": 7.8
+        }
+      ]
+    },
+    {
+      "task_index": 234,
+      "behaviour": "keep_negative",
+      "candidate": "[ 0 lt? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1221,
+            "cache_creation_input_tokens": 1219,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 81,
+            "reasoning_output_tokens": 0
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 1860,
+          "seconds": 4.7
+        }
+      ]
+    },
+    {
+      "task_index": 595,
+      "behaviour": "drop_last",
+      "candidate": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1106,
+            "cache_creation_input_tokens": 1104,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 762,
+            "reasoning_output_tokens": 735
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 9495,
+          "seconds": 12.9
+        }
+      ]
+    },
+    {
+      "task_index": 1603,
+      "behaviour": "aligned_matches",
+      "candidate": "B quote [ swap quote [ eq? ] cat filter null? false eq? ] cat filter",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1249,
+            "cache_creation_input_tokens": 1247,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1020,
+            "reasoning_output_tokens": 986
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 11864,
+          "seconds": 13.9
+        }
+      ]
+    },
+    {
+      "task_index": 1156,
+      "behaviour": "widest_pair",
+      "candidate": "dup 0 [ swap drop ] fold nil 0 cons swap cons [ swap uncons [ over ] dip sub swap uncons swap drop [ over over lt? ] [ swap drop ] [ drop ] ifte nil swap cons swap cons ] fold uncons drop uncons swap drop",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1121,
+            "cache_creation_input_tokens": 1119,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 9919,
+            "reasoning_output_tokens": 9814
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 107523,
+          "seconds": 111.9
+        }
+      ]
+    },
+    {
+      "task_index": 479,
+      "behaviour": "replace_value",
+      "candidate": "quote [ drop ] swap cat swap quote [ eq? ] cat quote swap quote cat [ [ ] ifte ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1298,
+            "cache_creation_input_tokens": 1296,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1143,
+            "reasoning_output_tokens": 1094
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 11692,
+          "seconds": 14.1
+        }
+      ]
+    },
+    {
+      "task_index": 1408,
+      "behaviour": "positive_balance_prefix_count",
+      "candidate": "nil 0 cons [ over uncons swap drop add cons ] fold [ 0 swap lt? ] filter 0 [ drop 1 add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1176,
+            "cache_creation_input_tokens": 1174,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 17477,
+            "reasoning_output_tokens": 17422
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 184986,
+          "seconds": 191.1
+        }
+      ]
+    },
+    {
+      "task_index": 967,
+      "behaviour": "positive_majority_three",
+      "candidate": "swap drop swap drop [ 0 lt? ] [ drop 0 ] [ drop 1 ] ifte",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1152,
+            "cache_creation_input_tokens": 1150,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 800,
+            "reasoning_output_tokens": 759
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 8625,
+          "seconds": 10.7
+        }
+      ]
+    },
+    {
+      "task_index": 1499,
+      "behaviour": "adjacent_sign_change_count",
+      "candidate": "filter [ 0 1 sub lt? ] 0 [ drop 1 add ] fold",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1150,
+            "cache_creation_input_tokens": 1148,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 470,
+            "reasoning_output_tokens": 437
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 4814,
+          "seconds": 7.0
+        }
+      ]
+    },
+    {
+      "task_index": 815,
+      "behaviour": "nearest_interval_endpoint_each",
+      "candidate": "quote [ drop ] swap cat swap quote [ drop ] swap cat swap quote [ ifte ] cat swap quote swap cat [ [ dup 0 lt? ] ] swap cat map",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1126,
+            "cache_creation_input_tokens": 1124,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1614,
+            "reasoning_output_tokens": 1544
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 16271,
+          "seconds": 19.1
+        }
+      ]
+    },
+    {
+      "task_index": 341,
+      "behaviour": "min_pair",
+      "candidate": "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1140,
+            "cache_creation_input_tokens": 1138,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 327,
+            "reasoning_output_tokens": 299
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 4604,
+          "seconds": 7.0
+        }
+      ]
+    },
+    {
+      "task_index": 456,
+      "behaviour": "replace_value",
+      "candidate": "quote [ drop ] swap cat swap quote [ dup ] swap cat [ eq? ] cat swap [ ] quote swap quote swap cat swap quote swap cat [ ifte ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1228,
+            "cache_creation_input_tokens": 1226,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 939,
+            "reasoning_output_tokens": 868
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 10600,
+          "seconds": 13.4
+        }
+      ]
+    },
+    {
+      "task_index": 1266,
+      "behaviour": "axis_point_count",
+      "candidate": "dup 0 [ drop 1 add ] fold 1 1 add dup add dup add swap div swap [ 0 eq? ] filter 0 [ drop 1 add ] fold swap sub",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1179,
+            "cache_creation_input_tokens": 1177,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 20598,
+            "reasoning_output_tokens": 20531
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 214922,
+          "seconds": 221.4
+        }
+      ]
+    },
+    {
+      "task_index": 1241,
+      "behaviour": "axis_point_count",
+      "candidate": "[ 0 eq? ] filter 0 [ drop 1 add ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1213,
+            "cache_creation_input_tokens": 1211,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 269,
+            "reasoning_output_tokens": 240
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 3377,
+          "seconds": 6.1
+        }
+      ]
+    },
+    {
+      "task_index": 992,
+      "behaviour": "positive_majority_three",
+      "candidate": "mul mul [ dup 0 eq? ] [ drop 0 ] [ drop 1 ] ifte",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1125,
+            "cache_creation_input_tokens": 1123,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 994,
+            "reasoning_output_tokens": 955
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 11494,
+          "seconds": 14.4
+        }
+      ]
+    },
+    {
+      "task_index": 1466,
+      "behaviour": "median_floor",
+      "candidate": "dup quote [ dup 0 [ drop 1 add ] fold [ over quote [ lt? ] cat filter 0 [ drop 1 add ] fold ] dip swap dup add sub 1 sub dup mul 1 1 add lt? swap drop ] cat filter dup 0 [ add ] fold swap 0 [ drop 1 add ] fold div",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1146,
+            "cache_creation_input_tokens": 1144,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 11403,
+            "reasoning_output_tokens": 11278
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 121796,
+          "seconds": 128.1
+        }
+      ]
+    },
+    {
+      "task_index": 1347,
+      "behaviour": "keep_ascending_pairs",
+      "candidate": "nil [ [ 0 lt? ] [ [ over null? ] [ cons ] [ [ over uncons swap drop 0 lt? ] [ cons ] [ [ over uncons swap drop add 0 eq? ] [ drop uncons drop ] [ [ over uncons swap drop add 0 lt? ] [ swap uncons drop swap cons ] [ drop ] ifte ] ifte ] ifte ] ifte ] [ cons ] ifte ] fold nil [ cons ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1121,
+            "cache_creation_input_tokens": 1119,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 3590,
+            "reasoning_output_tokens": 3416
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 37146,
+          "seconds": 40.1
+        }
+      ]
+    },
+    {
+      "task_index": 160,
+      "behaviour": "keep_zeros",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1106,
+            "cache_creation_input_tokens": 1104,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 130,
+            "reasoning_output_tokens": 116
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 2219,
+          "seconds": 4.8
+        }
+      ]
+    },
+    {
+      "task_index": 1729,
+      "behaviour": "largest_inside_interval",
+      "candidate": "swap drop quote [ lt? ] cat filter uncons [ [ over over lt? ] [ swap drop ] [ drop ] ifte ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1168,
+            "cache_creation_input_tokens": 1166,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 980,
+            "reasoning_output_tokens": 926
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 10607,
+          "seconds": 13.5
+        }
+      ]
+    },
+    {
+      "task_index": 1087,
+      "behaviour": "bounds_cover_list_flag",
+      "candidate": "drop quote [ eq? ] cat filter 0 [ drop drop 1 ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1189,
+            "cache_creation_input_tokens": 1187,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 922,
+            "reasoning_output_tokens": 889
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 10006,
+          "seconds": 12.1
+        }
+      ]
+    },
+    {
+      "task_index": 1019,
+      "behaviour": "concatenate_shorter_first",
+      "candidate": "nil [ cons ] fold swap [ cons ] fold",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1241,
+            "cache_creation_input_tokens": 1239,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 449,
+            "reasoning_output_tokens": 427
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 5533,
+          "seconds": 7.6
+        }
+      ]
+    },
+    {
+      "task_index": 176,
+      "behaviour": "keep_zeros",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1189,
+            "cache_creation_input_tokens": 1187,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 163,
+            "reasoning_output_tokens": 149
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 2378,
+          "seconds": 4.6
+        }
+      ]
+    },
+    {
+      "task_index": 1159,
+      "behaviour": "widest_pair",
+      "candidate": "nil [ cons ] fold uncons swap uncons swap drop sub [ 0 lt? ] [ 0 swap sub ] [ ] ifte",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1106,
+            "cache_creation_input_tokens": 1104,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1982,
+            "reasoning_output_tokens": 1928
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 22728,
+          "seconds": 25.8
+        }
+      ]
+    },
+    {
+      "task_index": 570,
+      "behaviour": "drop_last",
+      "candidate": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1142,
+            "cache_creation_input_tokens": 1140,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 341,
+            "reasoning_output_tokens": 314
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 4411,
+          "seconds": 6.8
+        }
+      ]
+    },
+    {
+      "task_index": 317,
+      "behaviour": "keep_below",
+      "candidate": "quote [ lt? ] cat filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1217,
+            "cache_creation_input_tokens": 1215,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 245,
+            "reasoning_output_tokens": 230
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 3224,
+          "seconds": 5.7
+        }
+      ]
+    },
+    {
+      "task_index": 399,
+      "behaviour": "sum_negative",
+      "candidate": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1188,
+            "cache_creation_input_tokens": 1186,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 163,
+            "reasoning_output_tokens": 139
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 2744,
+          "seconds": 5.9
+        }
+      ]
+    },
+    {
+      "task_index": 241,
+      "behaviour": "n_minus_each",
+      "candidate": "quote [ swap sub ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1159,
+            "cache_creation_input_tokens": 1157,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 268,
+            "reasoning_output_tokens": 253
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 3550,
+          "seconds": 6.0
+        }
+      ]
+    },
+    {
+      "task_index": 1097,
+      "behaviour": "bounds_cover_list_flag",
+      "candidate": "swap drop quote [ eq? ] cat filter 0 [ drop 1 add ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1117,
+            "cache_creation_input_tokens": 1115,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 771,
+            "reasoning_output_tokens": 737
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 8399,
+          "seconds": 10.6
+        }
+      ]
+    },
+    {
+      "task_index": 47,
+      "behaviour": "negate_each",
+      "candidate": "[ 0 swap sub ] map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1153,
+            "cache_creation_input_tokens": 1151,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 91,
+            "reasoning_output_tokens": 77
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 2248,
+          "seconds": 4.5
+        }
+      ]
+    },
+    {
+      "task_index": 1634,
+      "behaviour": "aligned_matches",
+      "candidate": "drop uncons swap drop nil swap cons",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1219,
+            "cache_creation_input_tokens": 1217,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 298,
+            "reasoning_output_tokens": 281
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 3956,
+          "seconds": 6.1
+        }
+      ]
+    },
+    {
+      "task_index": 1579,
+      "behaviour": "cartesian_pair_sums",
+      "candidate": "quote [ quote [ add cons ] cat ] swap cat [ swap [ swap ] dip fold ] cat nil swap fold nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1260,
+            "cache_creation_input_tokens": 1258,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 2023,
+            "reasoning_output_tokens": 1966
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 21280,
+          "seconds": 24.0
+        }
+      ]
+    },
+    {
+      "task_index": 574,
+      "behaviour": "drop_last",
+      "candidate": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1129,
+            "cache_creation_input_tokens": 1127,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 274,
+            "reasoning_output_tokens": 247
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 3945,
+          "seconds": 10.1
+        }
+      ]
+    },
+    {
+      "task_index": 470,
+      "behaviour": "replace_value",
+      "candidate": "quote [ drop ] swap cat swap quote [ dup ] swap cat [ eq? ] cat swap [ ] quote [ ifte ] cat swap quote swap cat swap quote swap cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1272,
+            "cache_creation_input_tokens": 1270,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1206,
+            "reasoning_output_tokens": 1135
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 12570,
+          "seconds": 15.5
+        }
+      ]
+    },
+    {
+      "task_index": 521,
+      "behaviour": "rotate_left",
+      "candidate": "uncons swap nil [ cons ] fold swap cons nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1195,
+            "cache_creation_input_tokens": 1193,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 424,
+            "reasoning_output_tokens": 393
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 5067,
+          "seconds": 7.7
+        }
+      ]
+    },
+    {
+      "task_index": 897,
+      "behaviour": "farther_choice_from_target",
+      "candidate": "[ [ over ] dip swap 0 lt? ] [ swap drop swap drop ] [ [ over over lt? ] [ drop ] [ swap drop ] ifte swap drop ] ifte",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1153,
+            "cache_creation_input_tokens": 1151,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1782,
+            "reasoning_output_tokens": 1712
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 21000,
+          "seconds": 23.7
+        }
+      ]
+    },
+    {
+      "task_index": 1772,
+      "behaviour": "farthest_from_target_last_tie",
+      "candidate": "drop 0 [ [ over dup mul over dup mul lt? ] [ swap drop ] [ drop ] ifte ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1190,
+            "cache_creation_input_tokens": 1188,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1052,
+            "reasoning_output_tokens": 1005
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 11449,
+          "seconds": 13.7
+        }
+      ]
+    },
+    {
+      "task_index": 1735,
+      "behaviour": "largest_inside_interval",
+      "candidate": "swap drop quote [ lt? ] cat filter uncons [ [ over over lt? ] [ swap drop ] [ drop ] ifte ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1120,
+            "cache_creation_input_tokens": 1118,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1181,
+            "reasoning_output_tokens": 1127
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 13127,
+          "seconds": 16.1
+        }
+      ]
+    },
+    {
+      "task_index": 128,
+      "behaviour": "prefix_sums",
+      "candidate": "uncons nil swap cons [ over uncons swap drop add cons ] fold nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1173,
+            "cache_creation_input_tokens": 1171,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 834,
+            "reasoning_output_tokens": 796
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 9186,
+          "seconds": 11.5
+        }
+      ]
+    },
+    {
+      "task_index": 95,
+      "behaviour": "reverse",
+      "candidate": "nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1149,
+            "cache_creation_input_tokens": 1147,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 149,
+            "reasoning_output_tokens": 137
+          },
+          "model": [
+            "claude-opus-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 2424,
+          "seconds": 4.8
+        }
+      ]
+    }
+  ]
+}

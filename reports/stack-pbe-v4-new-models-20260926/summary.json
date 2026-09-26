@@ -1,0 +1,114 @@
+[
+ {
+  "model": "gpt-6-astra",
+  "effort": "low",
+  "solved": 24,
+  "cost_per_task": 0.03104625,
+  "median_out": 280.0,
+  "mean_out": 360.925
+ },
+ {
+  "model": "gpt-6-astra",
+  "effort": "medium",
+  "solved": 24,
+  "cost_per_task": 0.03369375,
+  "median_out": 307.0,
+  "mean_out": 413.875
+ },
+ {
+  "model": "gpt-6-astra",
+  "effort": "high",
+  "solved": 23,
+  "cost_per_task": 0.0411,
+  "median_out": 429.5,
+  "mean_out": 562
+ },
+ {
+  "model": "gpt-5.6-terra",
+  "effort": "high",
+  "solved": 16,
+  "cost_per_task": 0.0217961,
+  "median_out": 862.5,
+  "mean_out": 1599.675
+ },
+ {
+  "model": "gpt-5.6-luna",
+  "effort": "high",
+  "solved": 12,
+  "cost_per_task": 0.004903879999999999,
+  "median_out": 2601.0,
+  "mean_out": 3869.9
+ },
+ {
+  "model": "claude-opus-5",
+  "effort": "low",
+  "solved": 17,
+  "cost_per_task": 0.06591875,
+  "median_out": 564.5,
+  "mean_out": 2376.75
+ },
+ {
+  "model": "claude-opus-5",
+  "effort": "high",
+  "solved": 20,
+  "cost_per_task": 0.1089075,
+  "median_out": 1433.0,
+  "mean_out": 4096.3
+ },
+ {
+  "model": "claude-opus-5",
+  "effort": "xhigh",
+  "solved": 25,
+  "cost_per_task": 0.1818725,
+  "median_out": 1997.5,
+  "mean_out": 7014.9
+ },
+ {
+  "model": "gpt-6-sol",
+  "effort": "high",
+  "solved": 19,
+  "cost_per_task": 0.0153625,
+  "median_out": 927.5,
+  "mean_out": 1276.25
+ },
+ {
+  "model": "gpt-6-luna",
+  "effort": "high",
+  "solved": 10,
+  "cost_per_task": 0.0013311,
+  "median_out": 2003.5,
+  "mean_out": 2402.2
+ },
+ {
+  "model": "claude-opus-5-5",
+  "effort": "low",
+  "solved": 21,
+  "cost_per_task": 0.019389,
+  "median_out": 444.5,
+  "mean_out": 709.45
+ },
+ {
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "solved": 24,
+  "cost_per_task": 0.037332,
+  "median_out": 620.0,
+  "mean_out": 1606.6
+ },
+ {
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "solved": 24,
+  "cost_per_task": 0.0490945,
+  "median_out": 785.5,
+  "mean_out": 2194.725
+ },
+ {
+  "model": "claude-opus-5-5",
+  "effort": "xhigh",
+  "solved": 22,
+  "cost_per_task": 0.077595,
+  "median_out": 1058.0,
+  "mean_out": 3619.75
+ }
+]
