@@ -5,9 +5,9 @@
 [`RESULTS_DETAILED.md`](RESULTS_DETAILED.md). `STATUS.md` says what these
 mean; issues say why.
 
-## Certified coverage — M3, synthetic stack pairs, one seed
+## Certified coverage — M3, synthetic stack pairs, three seeds
 
-Certified coverage, as registered, did not move over three cycles. Walker success rose in every branch over the frozen start policy: adaptive +0.039, control +0.061 and solved +0.062, as paired panel differences on one seed. The readout measures how well the refit P head is calibrated, not capability. A same-seed replicate moves it by 0.05.
+Certified coverage, as registered, did not move over three cycles. Walker success rose in every branch over the frozen start policy: adaptive +0.039 to +0.052, control +0.061 to +0.065 and solved +0.062 to +0.070, as paired panel differences over seeds 0–2. The readout measures how well the refit P head is calibrated, not capability. A same-seed replicate moves it by 0.05.
 [STATUS row](STATUS.md) · [novelty-reduction (#171)](../../issues/171) · [numbers](RESULTS_DETAILED.md#certified-coverage-m3-an-adaptive-attempt-selector-against-a-u-ranked-control-171)
 
 ## Stack PBE v4 — 220 behaviours, eval split 1,800 tasks

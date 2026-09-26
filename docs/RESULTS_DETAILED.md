@@ -595,6 +595,12 @@ Seed 0, code `9480d9c`. Run dirs are `m3-*` under `checkpoints/novelty-reduction
   - Fixed Ê@0.5 certified: 0.398 against 0.406.
   - The registered readout's replicate spread is about ±0.05; the fixed-share spread is under 0.01. The bootstrap bounds above leave this spread out.
 - **Gate-partition failures:** the ladder is non-monotone in two runs. The stopped control run's q0.4 fails at 0.2007 while q0.5 passes, and control cycle 3's q0.4 fails at 0.204 while q0.3 passes. Control cycle 2 qualified q0.6, but its panel conditional miss was 0.209.
+- **Seeds 1 and 2** (unregistered extension, b9a4cf9, [summary](https://github.com/abhishekraok/wandering-light/issues/171#issuecomment-5847087003)): seed 1's registered verdict is not met (adaptive − baseline certified −0.014, lower 90 −0.033). Seed 2's is not evaluable, because its baseline gate was closed at an upper bound of 0.206. Across seeds 0–2, final − baseline post-hoc gains are:
+  - walker success: adaptive +0.039 to +0.052, control +0.061 to +0.065, solved +0.062 to +0.070;
+  - certified-reachable at u@0.5: +0.024 to +0.080;
+  - certified at fixed u@0.5: −0.030 to +0.004, with no lower bound above 0.
+  
+  Control − adaptive success is +0.010 to +0.023, with every lower bound above 0. Gates closed on both ladders in 7 of the 27 gates computed, and E opened none. Seed 2's solved branch was not run: it was killed by stack-machine-quotation-growth (#172). Seeds 3 and 4 were stopped unreported.
 
 ## Inverse dynamics: the encoder can compare states, and a comparison feature makes it data-efficient (#166)
 
