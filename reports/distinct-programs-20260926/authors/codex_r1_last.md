@@ -1,0 +1,1 @@
+Wrote [refs_r1.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/refs_r1.jsonl) with all 47 assigned references. Each passed `check.py --reference`; the JSONL has exactly the assigned IDs in order.

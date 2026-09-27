@@ -1,0 +1,1 @@
+Wrote [refs_r7.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/refs_r7.jsonl) with all 47 assigned references. Every row passed `--reference`; sampled empty, negative, duplicate, and out-of-range inputs returned the required types.

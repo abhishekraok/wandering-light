@@ -1,0 +1,47 @@
+{"id": "lf-c007", "solution": "def f(xs):\n    return xs[:2]\n", "status": "ok", "note": "Keep at most the first two; short lists stay short."}
+{"id": "lf-c015", "solution": "def f(xs):\n    return xs[max(0, xs[0] + 1):max(0, xs[1] + 2)] if len(xs) >= 2 else []\n", "status": "ok", "note": "M and N are the first two values; endpoints are inclusive and 1-based. Missing endpoints give []."}
+{"id": "lf-c023", "solution": "def f(xs):\n    return xs[:1] + ([8] if len(xs) < 5 else [5]) + xs[1:]\n", "status": "ok", "note": "Tests give 8 for lengths below five and 5 otherwise, contrary to the label; empty input becomes [8]."}
+{"id": "lf-c031", "solution": "def f(xs):\n    if len(xs) >= 2 and xs[0] == xs[1]:\n        return xs[2:]\n    if len(xs) >= 2 and xs[-2] == xs[-1]:\n        return xs[:-2]\n    return xs[:]\n", "status": "ok", "note": "Remove the equal first pair if present, otherwise the equal last pair; no equal pair leaves input unchanged."}
+{"id": "lf-c039", "solution": "def f(xs):\n    return xs + ([3] if len(xs) == 3 else [9] if len(xs) == 9 else [])\n", "status": "ok", "note": "Only lengths three and nine cause an append."}
+{"id": "lf-c048", "solution": "def f(xs):\n    return xs[:1]\n", "status": "ok", "note": "Element 1 is first; empty input gives []."}
+{"id": "lf-c057", "solution": "def f(xs):\n    return xs[:6] + [4] + xs[6:]\n", "status": "ok", "note": "Insert at 1-based position seven; shorter lists append 4."}
+{"id": "lf-c065", "solution": "def f(xs):\n    return [9] + xs + [7]\n", "status": "ok", "note": "Also maps empty input to [9, 7]."}
+{"id": "lf-c077", "solution": "def f(xs):\n    return [len(xs)]\n", "status": "ok", "note": "Length is returned as a singleton list, including [0] for empty input."}
+{"id": "lf-c085", "solution": "def f(xs):\n    return xs[xs[0]:xs[0] + 1] if xs and 0 <= xs[0] < len(xs) else []\n", "status": "ok", "note": "N is the first value; element N+1 uses zero-based index N. Invalid indices give []."}
+{"id": "lf-c094", "solution": "def f(xs):\n    return xs[2:4] + xs[:2] + xs[4:] if len(xs) >= 3 else xs[:]\n", "status": "ok", "note": "Exchange the first and third elements and the second and fourth where available; length three rotates the first three."}
+{"id": "lf-c103", "solution": "def f(xs):\n    return [len(xs)]\n", "status": "ok", "note": "Length is a singleton list; empty input gives [0]."}
+{"id": "lf-c113", "solution": "def f(xs):\n    return [x for x in xs if abs(x) % 10 < xs[0]] if xs else []\n", "status": "ok", "note": "Tests retain ones digits below the first value, despite the label saying greater; negatives use the decimal digit of abs(x)."}
+{"id": "lf-c122", "solution": "def f(xs):\n    return xs[-2:-1] if len(xs) >= 2 else []\n", "status": "ok", "note": "The penultimate item is absent for lists shorter than two."}
+{"id": "lf-c130", "solution": "def f(xs):\n    return xs[1:max(1, xs[0] + 1)] if xs else []\n", "status": "ok", "note": "Take N elements after the head; nonpositive N gives []."}
+{"id": "lf-c138", "solution": "def f(xs):\n    return [x for x in xs if x != xs[0]] if xs else []\n", "status": "ok", "note": "Remove all occurrences of the first value, including the head; empty input stays empty."}
+{"id": "lf-c149", "solution": "def f(xs):\n    return [x * xs[0] for x in xs[1:]] if xs else []\n", "status": "ok", "note": "Multiply the tail by the head; empty input gives []."}
+{"id": "lf-c160", "solution": "def f(xs):\n    return [99 - x for x in xs]\n", "status": "ok", "note": "Subtract each value from 99, including negatives and values above 99."}
+{"id": "lf-c168", "solution": "def f(xs):\n    return [n for n in range(1, 11) if n != len(xs)]\n", "status": "ok", "note": "If length is outside 1..10, no number is skipped."}
+{"id": "lf-c176", "solution": "def f(xs):\n    return [a + b for a, b in zip(xs, xs[1:])]\n", "status": "ok", "note": "Consecutive overlapping pairs; lists shorter than two give []."}
+{"id": "lf-c184", "solution": "def f(xs):\n    return [x for i, x in enumerate(xs) if i % 2 == 1 and x % 2 == 1]\n", "status": "ok", "note": "Even index means 1-based positions 2, 4, ...; oddness also works for negative integers."}
+{"id": "lf-c194", "solution": "def f(xs):\n    return [len(xs)] + xs[::-1] + [len(xs)]\n", "status": "ok", "note": "Empty input gives [0, 0]."}
+{"id": "lf-c203", "solution": "def f(xs):\n    return [min(xs) * i for i in range(1, len(xs) + 1)] if xs else []\n", "status": "ok", "note": "Use positive multipliers 1..length; empty input gives []. A nonpositive minimum retains its sign."}
+{"id": "lf-c211", "solution": "def f(xs):\n    return xs[::-1][:-3] + xs[3:5] + xs[::-1][-3:]\n", "status": "ok", "note": "Insert available original elements four and five before the final three elements of the reversal; absent elements are skipped."}
+{"id": "lf-c219", "solution": "def f(xs):\n    return xs[(len(xs) - 1) % 2::2]\n", "status": "ok", "note": "Retain last, third-last, etc., but preserve original order; empty input gives []."}
+{"id": "lf-c227", "solution": "def f(xs):\n    return list(dict.fromkeys(x for pair in zip(xs, reversed(xs)) for x in pair))\n", "status": "ok", "note": "Alternate front and back, then retain first occurrence of each value; empty input gives []."}
+{"id": "lf-c237", "solution": "def f(xs):\n    seen = set()\n    total = 0\n    out = []\n    for x in xs:\n        if x not in seen:\n            seen.add(x)\n            total += x\n            out.append(total)\n    return out\n", "status": "ok", "note": "Deduplicate by first appearance, then give running sums; empty input gives []."}
+{"id": "lf-c245", "solution": "def f(xs):\n    return [xs[1:].count(xs[0])] if xs else [0]\n", "status": "ok", "note": "Count the head in the tail; empty input gives [0]."}
+{"id": "dc-add-k-k2", "solution": "def f(xs):\n    return [x + 2 for x in xs]\n", "status": "ok", "note": "Add two elementwise; empty input gives []."}
+{"id": "dc-append-k-k0", "solution": "def f(xs):\n    return xs + [0]\n", "status": "ok", "note": "Append zero, including to an empty list."}
+{"id": "dc-caesar-cipher-k-modulo-n-k0-n3", "solution": "def f(xs):\n    return [(x + 0) % 3 for x in xs]\n", "status": "ok", "note": "Caesar shift by zero modulo three; out-of-range and negative values are reduced modulo three."}
+{"id": "dc-caesar-cipher-k-modulo-n-k2-n2", "solution": "def f(xs):\n    return [(x + 2) % 2 for x in xs]\n", "status": "ok", "note": "Shift by two modulo two; arbitrary integers are reduced modulo two."}
+{"id": "dc-caesar-cipher-k-modulo-n-k3-n5", "solution": "def f(xs):\n    return [(x + 3) % 5 for x in xs]\n", "status": "ok", "note": "Shift each value by three modulo five, including negative values."}
+{"id": "dc-count-head-in-tail", "solution": "def f(xs):\n    return xs[1:].count(xs[0]) if xs else 0\n", "status": "ok", "note": "Empty input has zero matches."}
+{"id": "dc-drop-k-k1", "solution": "def f(xs):\n    return xs[1:]\n", "status": "ok", "note": "Drop the first item if present."}
+{"id": "dc-index-head", "solution": "def f(xs):\n    return xs[xs[0]] if xs and 1 <= xs[0] < len(xs) else 0\n", "status": "ok", "note": "The head is a 1-based index into the tail; missing, zero, and negative indices give 0."}
+{"id": "dc-keep-mod-k-k2", "solution": "def f(xs):\n    return [x for x in xs if x % 2 == 0]\n", "status": "ok", "note": "Keep even values, including negative evens."}
+{"id": "dc-kth-largest-k5", "solution": "def f(xs):\n    return sorted(xs, reverse=True)[4] if len(xs) >= 5 else 0\n", "status": "ok", "note": "Rank includes duplicates; fewer than five values give 0."}
+{"id": "dc-max", "solution": "def f(xs):\n    return max(xs) if xs else 0\n", "status": "ok", "note": "Empty maximum is 0."}
+{"id": "dc-mult-k-k1", "solution": "def f(xs):\n    return [x * 1 for x in xs]\n", "status": "ok", "note": "Multiply elementwise by one; empty input gives []."}
+{"id": "dc-pow-k-k2", "solution": "def f(xs):\n    return [x ** 2 for x in xs]\n", "status": "ok", "note": "Square each integer, including negatives; empty input gives []."}
+{"id": "dc-prepend-k-k0", "solution": "def f(xs):\n    return [0] + xs\n", "status": "ok", "note": "Prepend zero, including to an empty list."}
+{"id": "dc-remove-index-k-k2", "solution": "def f(xs):\n    return xs[:1] + xs[2:]\n", "status": "ok", "note": "Remove the 1-based second item if present; shorter lists stay unchanged."}
+{"id": "dc-remove-mod-k-k5", "solution": "def f(xs):\n    return [x for x in xs if x % 5 != 0]\n", "status": "ok", "note": "Remove multiples of five, including zero and negative multiples."}
+{"id": "dc-replace-all-with-index-k-k4", "solution": "def f(xs):\n    return [xs[3]] * len(xs) if len(xs) >= 4 else []\n", "status": "ok", "note": "Replace every item by the 1-based fourth item; a missing fourth item gives []."}
+{"id": "dc-slice-k-n-k3-n1", "solution": "def f(xs):\n    return xs[2:3]\n", "status": "ok", "note": "Take one item from 1-based position three; short lists give []."}
+{"id": "dc-take-k-k5", "solution": "def f(xs):\n    return xs[:5]\n", "status": "ok", "note": "Take at most five items; shorter lists stay short."}

@@ -1,0 +1,532 @@
+{"id": "mbpp-122", "verdict": "keep", "closest_v4": "sign", "agreement": 0.0, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "mbpp-133", "verdict": "duplicate", "closest_v4": "sum_negative", "agreement": 1.0, "closest_eval": "sum_negative", "eval_agreement": 1.0}
+{"id": "mbpp-17", "verdict": "keep", "closest_v4": "positive_part", "agreement": 0.068, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "mbpp-177", "verdict": "keep", "closest_v4": "quotient_remainder", "agreement": 0.076, "closest_eval": "min_pair", "eval_agreement": 0.0}
+{"id": "mbpp-197", "verdict": "keep", "closest_v4": "cartesian_pair_sums", "agreement": 0.047, "closest_eval": "cartesian_pair_sums", "eval_agreement": 0.047}
+{"id": "mbpp-227", "verdict": "keep", "closest_v4": "farther_choice_from_target", "agreement": 0.507, "closest_eval": "farther_choice_from_target", "eval_agreement": 0.507}
+{"id": "mbpp-244", "verdict": "keep", "closest_v4": "sign", "agreement": 0.0, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "mbpp-258", "verdict": "keep", "closest_v4": "longest_strictly_increasing_run", "agreement": 0.373, "closest_eval": "adjacent_sign_change_count", "eval_agreement": 0.299}
+{"id": "mbpp-261", "verdict": "keep", "closest_v4": "stable_distinct_shared_values", "agreement": 0.067, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.067}
+{"id": "mbpp-270", "verdict": "keep", "closest_v4": "count_equal", "agreement": 0.273, "closest_eval": "farthest_from_target_last_tie", "eval_agreement": 0.109}
+{"id": "mbpp-291", "verdict": "keep", "closest_v4": "min_pair", "agreement": 0.073, "closest_eval": "min_pair", "eval_agreement": 0.073}
+{"id": "mbpp-369", "verdict": "keep", "closest_v4": "smallest_pair_gap_three", "agreement": 0.06, "closest_eval": "positive_majority_three", "eval_agreement": 0.03}
+{"id": "mbpp-372", "verdict": "duplicate", "closest_v4": "sort_ascending", "agreement": 1.0, "closest_eval": "rotate_left", "eval_agreement": 0.212}
+{"id": "mbpp-399", "verdict": "keep", "closest_v4": "add_aligned_entries", "agreement": 0.119, "closest_eval": "cartesian_pair_sums", "eval_agreement": 0.06}
+{"id": "mbpp-415", "verdict": "keep", "closest_v4": "keep_negative", "agreement": 0.313, "closest_eval": "keep_negative", "eval_agreement": 0.313}
+{"id": "mbpp-430", "verdict": "keep", "closest_v4": "three_number_range", "agreement": 0.06, "closest_eval": "farther_choice_from_target", "eval_agreement": 0.03}
+{"id": "mbpp-441", "verdict": "keep", "closest_v4": "positive_part", "agreement": 0.068, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "mbpp-45", "verdict": "keep", "closest_v4": "nondecreasing_indicator", "agreement": 0.385, "closest_eval": "nondecreasing_indicator", "eval_agreement": 0.385}
+{"id": "mbpp-47", "verdict": "keep", "closest_v4": "max_pair", "agreement": 0.206, "closest_eval": "min_pair", "eval_agreement": 0.095}
+{"id": "mbpp-476", "verdict": "keep", "closest_v4": "largest_adjacent_sum", "agreement": 0.254, "closest_eval": "positive_balance_prefix_count", "eval_agreement": 0.134}
+{"id": "mbpp-505", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.403, "closest_eval": "rotate_left", "eval_agreement": 0.106}
+{"id": "mbpp-52", "verdict": "keep", "closest_v4": "min_pair", "agreement": 0.104, "closest_eval": "min_pair", "eval_agreement": 0.104}
+{"id": "mbpp-540", "verdict": "keep", "closest_v4": "count_equal", "agreement": 0.212, "closest_eval": "capped_sum", "eval_agreement": 0.055}
+{"id": "mbpp-554", "verdict": "keep", "closest_v4": "sorted_within_pairs", "agreement": 0.093, "closest_eval": "keep_negative", "eval_agreement": 0.06}
+{"id": "mbpp-556", "verdict": "keep", "closest_v4": "count_equal", "agreement": 0.288, "closest_eval": "capped_sum", "eval_agreement": 0.036}
+{"id": "mbpp-571", "verdict": "keep", "closest_v4": "bounds_cover_list_flag", "agreement": 0.359, "closest_eval": "bounds_cover_list_flag", "eval_agreement": 0.359}
+{"id": "mbpp-625", "verdict": "keep", "closest_v4": "reverse", "agreement": 0.373, "closest_eval": "reverse", "eval_agreement": 0.373}
+{"id": "mbpp-654", "verdict": "keep", "closest_v4": "abs_diff_pair", "agreement": 0.06, "closest_eval": "min_pair", "eval_agreement": 0.03}
+{"id": "mbpp-657", "verdict": "keep", "closest_v4": "sign", "agreement": 0.115, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "mbpp-673", "verdict": "keep", "closest_v4": "maximum_running_mean", "agreement": 0.205, "closest_eval": "median_floor", "eval_agreement": 0.105}
+{"id": "mbpp-689", "verdict": "keep", "closest_v4": "count_equal", "agreement": 0.066, "closest_eval": "farthest_from_target_last_tie", "eval_agreement": 0.021}
+{"id": "mbpp-701", "verdict": "keep", "closest_v4": "adjacent_repetition_count", "agreement": 0.283, "closest_eval": "adjacent_sign_change_count", "eval_agreement": 0.233}
+{"id": "mbpp-716", "verdict": "same_as mbpp-17", "closest_v4": "positive_part", "agreement": 0.068, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "mbpp-729", "verdict": "duplicate", "closest_v4": "add_aligned_entries", "agreement": 1.0, "closest_eval": "cartesian_pair_sums", "eval_agreement": 0.075}
+{"id": "mbpp-793", "verdict": "keep", "closest_v4": "interval_side_balance", "agreement": 0.17, "closest_eval": "largest_inside_interval", "eval_agreement": 0.083}
+{"id": "mbpp-844", "verdict": "keep", "closest_v4": "max_pair", "agreement": 0.297, "closest_eval": "min_pair", "eval_agreement": 0.194}
+{"id": "mbpp-863", "verdict": "keep", "closest_v4": "count_equal", "agreement": 0.192, "closest_eval": "push_back", "eval_agreement": 0.0}
+{"id": "mbpp-870", "verdict": "duplicate", "closest_v4": "sum_positive", "agreement": 1.0, "closest_eval": "adjacent_sign_change_count", "eval_agreement": 0.104}
+{"id": "mbpp-876", "verdict": "keep", "closest_v4": "max_pair", "agreement": 0.391, "closest_eval": "min_pair", "eval_agreement": 0.016}
+{"id": "mbpp-883", "verdict": "keep", "closest_v4": "keep_inside_closed_interval", "agreement": 0.125, "closest_eval": "nearest_interval_endpoint_each", "eval_agreement": 0.016}
+{"id": "mbpp-898", "verdict": "keep", "closest_v4": "keep_above", "agreement": 0.239, "closest_eval": "keep_below", "eval_agreement": 0.104}
+{"id": "mbpp-901", "verdict": "keep", "closest_v4": "positive_part", "agreement": 0.161, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "mbpp-918", "verdict": "keep", "closest_v4": "span_inside_interval", "agreement": 0.192, "closest_eval": "span_inside_interval", "eval_agreement": 0.192}
+{"id": "mbpp-919", "verdict": "duplicate", "closest_v4": "product", "agreement": 1.0, "closest_eval": "all_positive", "eval_agreement": 0.179}
+{"id": "mbpp-922", "verdict": "keep", "closest_v4": "keep_negative", "agreement": 0.239, "closest_eval": "keep_negative", "eval_agreement": 0.239}
+{"id": "mbpp-952", "verdict": "keep", "closest_v4": "triangle_feasibility_flag", "agreement": 0.3, "closest_eval": "positive_majority_three", "eval_agreement": 0.229}
+{"id": "codearc-308", "verdict": "keep", "closest_v4": "add_pair", "agreement": 0.038, "closest_eval": "min_pair", "eval_agreement": 0.0}
+{"id": "codearc-334", "verdict": "keep", "closest_v4": "", "agreement": 0.0, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "codearc-35", "verdict": "keep", "closest_v4": "count_negative", "agreement": 0.459, "closest_eval": "adjacent_sign_change_count", "eval_agreement": 0.459}
+{"id": "codearc-354", "verdict": "keep", "closest_v4": "sum_after_last_zero", "agreement": 0.23, "closest_eval": "all_positive", "eval_agreement": 0.041}
+{"id": "codearc-372", "verdict": "keep", "closest_v4": "maximum_prefix_sum", "agreement": 0.203, "closest_eval": "median_floor", "eval_agreement": 0.068}
+{"id": "codearc-386", "verdict": "keep", "closest_v4": "maximum", "agreement": 0.284, "closest_eval": "second_largest", "eval_agreement": 0.243}
+{"id": "codearc-414", "verdict": "keep", "closest_v4": "sum_negative", "agreement": 0.378, "closest_eval": "sum_negative", "eval_agreement": 0.378}
+{"id": "codearc-645", "verdict": "keep", "closest_v4": "min_pair", "agreement": 0.217, "closest_eval": "min_pair", "eval_agreement": 0.217}
+{"id": "codearc-653", "verdict": "keep", "closest_v4": "triangle_perimeter_or_zero", "agreement": 0.338, "closest_eval": "positive_majority_three", "eval_agreement": 0.135}
+{"id": "codearc-688", "verdict": "keep", "closest_v4": "sign", "agreement": 0.18, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "codearc-857", "verdict": "keep", "closest_v4": "median_floor", "agreement": 0.392, "closest_eval": "median_floor", "eval_agreement": 0.392}
+{"id": "lb-000", "verdict": "keep", "closest_v4": "", "agreement": 0.0, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "lb-001", "verdict": "keep", "closest_v4": "sign", "agreement": 0.13, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "lb-002", "verdict": "keep", "closest_v4": "abs_diff_pair", "agreement": 0.072, "closest_eval": "min_pair", "eval_agreement": 0.029}
+{"id": "lb-003", "verdict": "keep", "closest_v4": "add_pair", "agreement": 0.382, "closest_eval": "min_pair", "eval_agreement": 0.06}
+{"id": "lb-004", "verdict": "keep", "closest_v4": "keep_above", "agreement": 0.313, "closest_eval": "n_minus_each", "eval_agreement": 0.015}
+{"id": "lb-005", "verdict": "keep", "closest_v4": "take_prefix_count", "agreement": 0.104, "closest_eval": "keep_below", "eval_agreement": 0.104}
+{"id": "lb-006", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.149, "closest_eval": "drop_last", "eval_agreement": 0.149}
+{"id": "lb-007", "verdict": "keep", "closest_v4": "keep_inside_closed_interval", "agreement": 0.164, "closest_eval": "replace_value", "eval_agreement": 0.015}
+{"id": "lb-008", "verdict": "keep", "closest_v4": "take_prefix_count", "agreement": 0.164, "closest_eval": "keep_below", "eval_agreement": 0.104}
+{"id": "lb-009", "verdict": "keep", "closest_v4": "farthest_from_target_last_tie", "agreement": 0.286, "closest_eval": "farthest_from_target_last_tie", "eval_agreement": 0.286}
+{"id": "lb-010", "verdict": "keep", "closest_v4": "mode_first_tie", "agreement": 0.232, "closest_eval": "median_floor", "eval_agreement": 0.159}
+{"id": "lb-011", "verdict": "keep", "closest_v4": "median_floor", "agreement": 0.4, "closest_eval": "median_floor", "eval_agreement": 0.4}
+{"id": "lb-012", "verdict": "duplicate", "closest_v4": "span", "agreement": 1.0, "closest_eval": "widest_pair", "eval_agreement": 0.293}
+{"id": "lb-013", "verdict": "duplicate", "closest_v4": "combined_value_span", "agreement": 1.0, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.0}
+{"id": "lb-014", "verdict": "keep", "closest_v4": "shared_value_occurrences", "agreement": 0.238, "closest_eval": "shared_value_occurrences", "eval_agreement": 0.238}
+{"id": "lb-015", "verdict": "keep", "closest_v4": "sorted_within_pairs", "agreement": 0.075, "closest_eval": "reverse", "eval_agreement": 0.06}
+{"id": "lb-016", "verdict": "duplicate", "closest_v4": "abs_each", "agreement": 1.0, "closest_eval": "negate_each", "eval_agreement": 0.134}
+{"id": "lb-017", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.045, "closest_eval": "keep_zeros", "eval_agreement": 0.045}
+{"id": "lb-018", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.045, "closest_eval": "keep_zeros", "eval_agreement": 0.045}
+{"id": "lb-019", "verdict": "keep", "closest_v4": "clamp_each", "agreement": 0.045, "closest_eval": "replace_value", "eval_agreement": 0.03}
+{"id": "lb-020", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.03, "closest_eval": "reverse", "eval_agreement": 0.03}
+{"id": "lb-021", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.045, "closest_eval": "keep_zeros", "eval_agreement": 0.045}
+{"id": "lb-022", "verdict": "keep", "closest_v4": "clamp_each", "agreement": 0.881, "closest_eval": "nearest_interval_endpoint_each", "eval_agreement": 0.313}
+{"id": "lb-023", "verdict": "keep", "closest_v4": "square_each", "agreement": 0.06, "closest_eval": "keep_zeros", "eval_agreement": 0.045}
+{"id": "lb-024", "verdict": "keep", "closest_v4": "square_each", "agreement": 0.119, "closest_eval": "keep_zeros", "eval_agreement": 0.045}
+{"id": "lb-025", "verdict": "duplicate", "closest_v4": "zero_base_by_minimum", "agreement": 1.0, "closest_eval": "keep_zeros", "eval_agreement": 0.045}
+{"id": "lb-026", "verdict": "keep", "closest_v4": "rotate_left_count", "agreement": 0.051, "closest_eval": "n_minus_each", "eval_agreement": 0.024}
+{"id": "lb-027", "verdict": "keep", "closest_v4": "replace_zeros", "agreement": 0.075, "closest_eval": "n_minus_each", "eval_agreement": 0.03}
+{"id": "lb-028", "verdict": "keep", "closest_v4": "add_aligned_entries", "agreement": 0.091, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.061}
+{"id": "lb-029", "verdict": "keep", "closest_v4": "truncated_dot_product", "agreement": 0.0, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.0}
+{"id": "lb-030", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.09, "closest_eval": "rotate_left", "eval_agreement": 0.076}
+{"id": "lb-031", "verdict": "duplicate", "closest_v4": "replace_value", "agreement": 1.0, "closest_eval": "replace_value", "eval_agreement": 1.0}
+{"id": "lb-032", "verdict": "keep", "closest_v4": "raise_to_floor", "agreement": 0.418, "closest_eval": "n_minus_each", "eval_agreement": 0.03}
+{"id": "lb-033", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.194, "closest_eval": "drop_last", "eval_agreement": 0.194}
+{"id": "lb-034", "verdict": "keep", "closest_v4": "running_minima", "agreement": 0.269, "closest_eval": "rotate_left", "eval_agreement": 0.076}
+{"id": "lb-035", "verdict": "duplicate", "closest_v4": "length", "agreement": 1.0, "closest_eval": "positive_balance_prefix_count", "eval_agreement": 0.246}
+{"id": "lb-036", "verdict": "keep", "closest_v4": "median_floor", "agreement": 0.609, "closest_eval": "median_floor", "eval_agreement": 0.609}
+{"id": "lb-037", "verdict": "keep", "closest_v4": "take_prefix_count", "agreement": 0.03, "closest_eval": "n_minus_each", "eval_agreement": 0.03}
+{"id": "lb-038", "verdict": "keep", "closest_v4": "sorted_within_pairs", "agreement": 0.113, "closest_eval": "keep_zeros", "eval_agreement": 0.045}
+{"id": "lb-039", "verdict": "keep", "closest_v4": "scale_by", "agreement": 0.254, "closest_eval": "keep_below", "eval_agreement": 0.06}
+{"id": "lb-040", "verdict": "duplicate", "closest_v4": "keep_above", "agreement": 1.0, "closest_eval": "n_minus_each", "eval_agreement": 0.03}
+{"id": "lb-041", "verdict": "keep", "closest_v4": "keep_evens", "agreement": 0.403, "closest_eval": "drop_last", "eval_agreement": 0.164}
+{"id": "lb-042", "verdict": "keep", "closest_v4": "maximum", "agreement": 0.468, "closest_eval": "second_largest", "eval_agreement": 0.288}
+{"id": "lb-043", "verdict": "keep", "closest_v4": "keep_negative", "agreement": 0.239, "closest_eval": "keep_negative", "eval_agreement": 0.239}
+{"id": "lb-044", "verdict": "duplicate", "closest_v4": "sum_positive", "agreement": 1.0, "closest_eval": "adjacent_sign_change_count", "eval_agreement": 0.101}
+{"id": "lb-045", "verdict": "keep", "closest_v4": "keep_negative", "agreement": 0.463, "closest_eval": "keep_negative", "eval_agreement": 0.463}
+{"id": "lb-046", "verdict": "keep", "closest_v4": "keep_inside_closed_interval", "agreement": 0.582, "closest_eval": "replace_value", "eval_agreement": 0.015}
+{"id": "lb-047", "verdict": "keep", "closest_v4": "scale_by", "agreement": 0.179, "closest_eval": "keep_below", "eval_agreement": 0.061}
+{"id": "lb-048", "verdict": "keep", "closest_v4": "drop_prefix_count", "agreement": 0.204, "closest_eval": "keep_below", "eval_agreement": 0.049}
+{"id": "lb-049", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.2, "closest_eval": "keep_zeros", "eval_agreement": 0.2}
+{"id": "lb-050", "verdict": "keep", "closest_v4": "", "agreement": 0.0, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "lb-051", "verdict": "duplicate", "closest_v4": "count_equal", "agreement": 1.0, "closest_eval": "farthest_from_target_last_tie", "eval_agreement": 0.036}
+{"id": "lb-052", "verdict": "keep", "closest_v4": "count_equal", "agreement": 0.232, "closest_eval": "capped_sum", "eval_agreement": 0.058}
+{"id": "lb-053", "verdict": "keep", "closest_v4": "adjacent_repetition_count", "agreement": 0.362, "closest_eval": "adjacent_sign_change_count", "eval_agreement": 0.246}
+{"id": "lb-054", "verdict": "duplicate", "closest_v4": "count_negative", "agreement": 1.0, "closest_eval": "adjacent_sign_change_count", "eval_agreement": 0.246}
+{"id": "lb-055", "verdict": "keep", "closest_v4": "count_zeros", "agreement": 0.56, "closest_eval": "axis_point_count", "eval_agreement": 0.467}
+{"id": "lb-056", "verdict": "keep", "closest_v4": "count_equal", "agreement": 0.38, "closest_eval": "capped_sum", "eval_agreement": 0.034}
+{"id": "lb-057", "verdict": "keep", "closest_v4": "record_extreme_count", "agreement": 0.324, "closest_eval": "positive_balance_prefix_count", "eval_agreement": 0.188}
+{"id": "lb-058", "verdict": "keep", "closest_v4": "aligned_match_count", "agreement": 0.549, "closest_eval": "shared_value_occurrences", "eval_agreement": 0.451}
+{"id": "lb-059", "verdict": "keep", "closest_v4": "stable_distinct_shared_values", "agreement": 0.075, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.075}
+{"id": "lb-060", "verdict": "keep", "closest_v4": "maximum_aligned_gap", "agreement": 0.061, "closest_eval": "shared_value_occurrences", "eval_agreement": 0.029}
+{"id": "lb-061", "verdict": "keep", "closest_v4": "dot_product", "agreement": 0.304, "closest_eval": "shared_value_occurrences", "eval_agreement": 0.058}
+{"id": "lb-062", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.106, "closest_eval": "rotate_left", "eval_agreement": 0.076}
+{"id": "lb-063", "verdict": "keep", "closest_v4": "lexicographic_order", "agreement": 0.034, "closest_eval": "lexicographic_order", "eval_agreement": 0.034}
+{"id": "lb-064", "verdict": "keep", "closest_v4": "pair_gap_total", "agreement": 0.431, "closest_eval": "adjacent_sign_change_count", "eval_agreement": 0.145}
+{"id": "lb-065", "verdict": "duplicate", "closest_v4": "truncated_dot_product", "agreement": 1.0, "closest_eval": "shared_value_occurrences", "eval_agreement": 0.043}
+{"id": "lb-066", "verdict": "keep", "closest_v4": "choose_larger_total", "agreement": 0.045, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.03}
+{"id": "lb-067", "verdict": "keep", "closest_v4": "choose_largest_total_three", "agreement": 0.03, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "lb-068", "verdict": "keep", "closest_v4": "stable_distinct_shared_values", "agreement": 0.067, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.067}
+{"id": "lb-069", "verdict": "duplicate", "closest_v4": "adjacent_differences", "agreement": 1.0, "closest_eval": "drop_last", "eval_agreement": 0.149}
+{"id": "lb-070", "verdict": "duplicate", "closest_v4": "truncated_dot_product", "agreement": 1.0, "closest_eval": "shared_value_occurrences", "eval_agreement": 0.058}
+{"id": "lb-071", "verdict": "duplicate", "closest_v4": "aligned_absolute_gaps", "agreement": 1.0, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.03}
+{"id": "lb-072", "verdict": "keep", "closest_v4": "common_prefix_length", "agreement": 0.072, "closest_eval": "shared_value_occurrences", "eval_agreement": 0.029}
+{"id": "lb-073", "verdict": "keep", "closest_v4": "choose_larger_total", "agreement": 0.06, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.045}
+{"id": "lb-074", "verdict": "keep", "closest_v4": "remove_values_seen_in_second", "agreement": 0.045, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.03}
+{"id": "lb-075", "verdict": "keep", "closest_v4": "double_each", "agreement": 0.254, "closest_eval": "keep_zeros", "eval_agreement": 0.045}
+{"id": "lb-076", "verdict": "keep", "closest_v4": "mode_first_tie", "agreement": 0.232, "closest_eval": "all_positive", "eval_agreement": 0.072}
+{"id": "lb-077", "verdict": "keep", "closest_v4": "add_aligned_entries", "agreement": 0.09, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.045}
+{"id": "lb-078", "verdict": "keep", "closest_v4": "positive_step_total", "agreement": 0.319, "closest_eval": "adjacent_sign_change_count", "eval_agreement": 0.145}
+{"id": "lb-079", "verdict": "duplicate", "closest_v4": "running_maxima", "agreement": 1.0, "closest_eval": "rotate_left", "eval_agreement": 0.075}
+{"id": "lb-080", "verdict": "duplicate", "closest_v4": "maximum_prefix_sum", "agreement": 1.0, "closest_eval": "second_largest", "eval_agreement": 0.101}
+{"id": "lb-081", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.104, "closest_eval": "rotate_left", "eval_agreement": 0.075}
+{"id": "lb-082", "verdict": "keep", "closest_v4": "prefix_sums", "agreement": 0.687, "closest_eval": "prefix_sums", "eval_agreement": 0.687}
+{"id": "lb-083", "verdict": "keep", "closest_v4": "raise_to_floor", "agreement": 0.015, "closest_eval": "push_back", "eval_agreement": 0.0}
+{"id": "lb-084", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.104, "closest_eval": "rotate_left", "eval_agreement": 0.075}
+{"id": "lb-085", "verdict": "keep", "closest_v4": "take_prefix_count", "agreement": 0.18, "closest_eval": "push_back", "eval_agreement": 0.0}
+{"id": "lb-086", "verdict": "duplicate", "closest_v4": "product", "agreement": 1.0, "closest_eval": "all_positive", "eval_agreement": 0.274}
+{"id": "lb-087", "verdict": "keep", "closest_v4": "keep_negative", "agreement": 0.033, "closest_eval": "keep_negative", "eval_agreement": 0.033}
+{"id": "lb-088", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.179, "closest_eval": "rotate_left", "eval_agreement": 0.075}
+{"id": "lb-089", "verdict": "keep", "closest_v4": "running_minima", "agreement": 0.189, "closest_eval": "rotate_left", "eval_agreement": 0.128}
+{"id": "lb-090", "verdict": "keep", "closest_v4": "sort_ascending", "agreement": 0.119, "closest_eval": "rotate_left", "eval_agreement": 0.075}
+{"id": "lb-091", "verdict": "keep", "closest_v4": "running_maxima", "agreement": 0.164, "closest_eval": "rotate_left", "eval_agreement": 0.075}
+{"id": "lb-092", "verdict": "duplicate", "closest_v4": "first_list_position_wins", "agreement": 1.0, "closest_eval": "shared_value_occurrences", "eval_agreement": 0.261}
+{"id": "lb-093", "verdict": "keep", "closest_v4": "truncated_dot_product", "agreement": 0.232, "closest_eval": "shared_value_occurrences", "eval_agreement": 0.029}
+{"id": "lb-094", "verdict": "keep", "closest_v4": "running_ranges", "agreement": 0.075, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.019}
+{"id": "lb-095", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.17, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.17}
+{"id": "lb-096", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.088, "closest_eval": "reverse", "eval_agreement": 0.018}
+{"id": "lb-097", "verdict": "keep", "closest_v4": "add_aligned_entries", "agreement": 0.224, "closest_eval": "cartesian_pair_sums", "eval_agreement": 0.045}
+{"id": "lb-098", "verdict": "keep", "closest_v4": "choose_largest_total_three", "agreement": 0.0, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "lb-099", "verdict": "keep", "closest_v4": "aligned_absolute_gaps", "agreement": 0.178, "closest_eval": "stable_distinct_shared_values", "eval_agreement": 0.06}
+{"id": "lf-c001", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.104, "closest_eval": "drop_last", "eval_agreement": 0.104}
+{"id": "lf-c009", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.469, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.176}
+{"id": "lf-c017", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.095, "closest_eval": "rotate_left", "eval_agreement": 0.074}
+{"id": "lf-c025", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.156, "closest_eval": "drop_last", "eval_agreement": 0.156}
+{"id": "lf-c033", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.156, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.074}
+{"id": "lf-c041", "verdict": "keep", "closest_v4": "manhattan_point_radii", "agreement": 0.035, "closest_eval": "manhattan_point_radii", "eval_agreement": 0.035}
+{"id": "lf-c050", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.095, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c059", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.26, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.063}
+{"id": "lf-c067", "verdict": "keep", "closest_v4": "reverse", "agreement": 0.333, "closest_eval": "reverse", "eval_agreement": 0.333}
+{"id": "lf-c079", "verdict": "keep", "closest_v4": "pair_sums", "agreement": 0.437, "closest_eval": "manhattan_point_radii", "eval_agreement": 0.338}
+{"id": "lf-c087", "verdict": "keep", "closest_v4": "sort_ascending", "agreement": 0.156, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.075}
+{"id": "lf-c096", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c105", "verdict": "keep", "closest_v4": "nearest_point_to_origin", "agreement": 0.123, "closest_eval": "drop_last", "eval_agreement": 0.104}
+{"id": "lf-c115", "verdict": "keep", "closest_v4": "reverse", "agreement": 0.01, "closest_eval": "reverse", "eval_agreement": 0.01}
+{"id": "lf-c124", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.167, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.167}
+{"id": "lf-c132", "verdict": "keep", "closest_v4": "nearest_point_to_origin", "agreement": 0.125, "closest_eval": "keep_negative", "eval_agreement": 0.083}
+{"id": "lf-c140", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.074, "closest_eval": "rotate_left", "eval_agreement": 0.053}
+{"id": "lf-c153", "verdict": "keep", "closest_v4": "run_length_encoding", "agreement": 0.635, "closest_eval": "pair_floor_averages", "eval_agreement": 0.015}
+{"id": "lf-c162", "verdict": "keep", "closest_v4": "swap_coordinates", "agreement": 0.014, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c170", "verdict": "duplicate", "closest_v4": "endpoints", "agreement": 1.0, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.068}
+{"id": "lf-c178", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.156, "closest_eval": "drop_last", "eval_agreement": 0.156}
+{"id": "lf-c186", "verdict": "keep", "closest_v4": "tail", "agreement": 0.146, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.13}
+{"id": "lf-c196", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c205", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.156, "closest_eval": "keep_zeros", "eval_agreement": 0.156}
+{"id": "lf-c213", "verdict": "keep", "closest_v4": "sort_ascending", "agreement": 0.25, "closest_eval": "rotate_left", "eval_agreement": 0.158}
+{"id": "lf-c221", "verdict": "keep", "closest_v4": "keep_evens", "agreement": 0.115, "closest_eval": "rotate_left", "eval_agreement": 0.053}
+{"id": "lf-c229", "verdict": "keep", "closest_v4": "reverse", "agreement": 0.365, "closest_eval": "reverse", "eval_agreement": 0.365}
+{"id": "lf-c239", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.171, "closest_eval": "keep_zeros", "eval_agreement": 0.171}
+{"id": "lf-c247", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.302, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.119}
+{"id": "dc-add-k-k4", "verdict": "keep", "closest_v4": "zero_base_by_minimum", "agreement": 0.089, "closest_eval": "pair_floor_averages", "eval_agreement": 0.054}
+{"id": "dc-append-k-k2", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.013, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-caesar-cipher-k-modulo-n-k0-n5", "verdict": "keep", "closest_v4": "abs_each", "agreement": 0.266, "closest_eval": "reverse", "eval_agreement": 0.101}
+{"id": "dc-caesar-cipher-k-modulo-n-k2-n4", "verdict": "keep", "closest_v4": "parity_each", "agreement": 0.127, "closest_eval": "pair_floor_averages", "eval_agreement": 0.051}
+{"id": "dc-caesar-cipher-k-modulo-n-k4-n5", "verdict": "keep", "closest_v4": "zero_base_by_minimum", "agreement": 0.139, "closest_eval": "negate_each", "eval_agreement": 0.051}
+{"id": "dc-count-k-k1", "verdict": "keep", "closest_v4": "points_above_parabola", "agreement": 0.667, "closest_eval": "all_positive", "eval_agreement": 0.603}
+{"id": "dc-drop-k-k3", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.127, "closest_eval": "drop_last", "eval_agreement": 0.127}
+{"id": "dc-index-k-k2", "verdict": "keep", "closest_v4": "maximum", "agreement": 0.346, "closest_eval": "second_largest", "eval_agreement": 0.231}
+{"id": "dc-keep-mod-k-k4", "verdict": "keep", "closest_v4": "keep_evens", "agreement": 0.481, "closest_eval": "keep_zeros", "eval_agreement": 0.316}
+{"id": "dc-kth-smallest-k2", "verdict": "keep", "closest_v4": "mode_first_tie", "agreement": 0.462, "closest_eval": "median_floor", "eval_agreement": 0.256}
+{"id": "dc-modulo-k-k1", "verdict": "keep", "closest_v4": "running_positive_streaks", "agreement": 0.127, "closest_eval": "keep_zeros", "eval_agreement": 0.051}
+{"id": "dc-mult-k-k3", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.038, "closest_eval": "keep_zeros", "eval_agreement": 0.038}
+{"id": "dc-pow-k-k4", "verdict": "keep", "closest_v4": "sorted_within_pairs", "agreement": 0.067, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.067}
+{"id": "dc-prepend-k-k2", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.014, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-remove-index-k-k4", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.266, "closest_eval": "drop_last", "eval_agreement": 0.139}
+{"id": "dc-repeat-k-k1", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.684, "closest_eval": "reverse", "eval_agreement": 0.19}
+{"id": "dc-reverse", "verdict": "duplicate", "closest_v4": "reverse", "agreement": 1.0, "closest_eval": "reverse", "eval_agreement": 1.0}
+{"id": "dc-sum", "verdict": "duplicate", "closest_v4": "sum", "agreement": 1.0, "closest_eval": "median_floor", "eval_agreement": 0.167}
+{"id": "lf-c002", "verdict": "same_as lf-c001", "closest_v4": "keep_negative", "agreement": 0.24, "closest_eval": "keep_negative", "eval_agreement": 0.24}
+{"id": "lf-c010", "verdict": "keep", "closest_v4": "tail", "agreement": 0.552, "closest_eval": "drop_last", "eval_agreement": 0.156}
+{"id": "lf-c018", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.417, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.113}
+{"id": "lf-c026", "verdict": "same_as lf-c132", "closest_v4": "stable_unique", "agreement": 0.188, "closest_eval": "drop_last", "eval_agreement": 0.146}
+{"id": "lf-c034", "verdict": "same_as lf-c087", "closest_v4": "sort_ascending", "agreement": 0.156, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.077}
+{"id": "lf-c042", "verdict": "keep", "closest_v4": "nearest_point_to_origin", "agreement": 0.035, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c052", "verdict": "keep", "closest_v4": "swap_coordinates", "agreement": 0.015, "closest_eval": "pair_floor_averages", "eval_agreement": 0.015}
+{"id": "lf-c060", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.011, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c071", "verdict": "keep", "closest_v4": "zero_base_by_minimum", "agreement": 0.042, "closest_eval": "pair_floor_averages", "eval_agreement": 0.016}
+{"id": "lf-c080", "verdict": "duplicate", "closest_v4": "reverse", "agreement": 1.0, "closest_eval": "reverse", "eval_agreement": 1.0}
+{"id": "lf-c088", "verdict": "keep", "closest_v4": "sort_ascending", "agreement": 0.135, "closest_eval": "reverse", "eval_agreement": 0.115}
+{"id": "lf-c098", "verdict": "keep", "closest_v4": "increment_each", "agreement": 0.062, "closest_eval": "increment_each", "eval_agreement": 0.062}
+{"id": "lf-c106", "verdict": "duplicate", "closest_v4": "sort_ascending", "agreement": 1.0, "closest_eval": "rotate_left", "eval_agreement": 0.147}
+{"id": "lf-c117", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.337, "closest_eval": "rotate_left", "eval_agreement": 0.179}
+{"id": "lf-c125", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.24, "closest_eval": "drop_last", "eval_agreement": 0.073}
+{"id": "lf-c133", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.137, "closest_eval": "drop_last", "eval_agreement": 0.073}
+{"id": "lf-c141", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.139, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.139}
+{"id": "lf-c154", "verdict": "keep", "closest_v4": "sorted_within_pairs", "agreement": 0.081, "closest_eval": "keep_zeros", "eval_agreement": 0.031}
+{"id": "lf-c163", "verdict": "keep", "closest_v4": "zero_base_by_minimum", "agreement": 0.031, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c171", "verdict": "duplicate", "closest_v4": "prefix_sums", "agreement": 1.0, "closest_eval": "prefix_sums", "eval_agreement": 1.0}
+{"id": "lf-c179", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.147, "closest_eval": "rotate_left", "eval_agreement": 0.147}
+{"id": "lf-c187", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c197", "verdict": "keep", "closest_v4": "prefix_sum_signs", "agreement": 0.312, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c206", "verdict": "keep", "closest_v4": "keep_positive_sum_pairs", "agreement": 0.118, "closest_eval": "keep_zeros", "eval_agreement": 0.115}
+{"id": "lf-c214", "verdict": "keep", "closest_v4": "tail", "agreement": 0.594, "closest_eval": "drop_last", "eval_agreement": 0.115}
+{"id": "lf-c222", "verdict": "keep", "closest_v4": "running_positive_streaks", "agreement": 0.052, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c231", "verdict": "keep", "closest_v4": "prefix_sum_signs", "agreement": 0.24, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c240", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.165, "closest_eval": "keep_zeros", "eval_agreement": 0.165}
+{"id": "lf-c248", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.281, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.116}
+{"id": "dc-add-k-k5", "verdict": "keep", "closest_v4": "zero_base_by_minimum", "agreement": 0.063, "closest_eval": "pair_floor_averages", "eval_agreement": 0.017}
+{"id": "dc-append-k-k3", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-caesar-cipher-k-modulo-n-k1-n1", "verdict": "same_as dc-modulo-k-k1", "closest_v4": "running_ranges", "agreement": 0.299, "closest_eval": "keep_zeros", "eval_agreement": 0.215}
+{"id": "dc-caesar-cipher-k-modulo-n-k2-n5", "verdict": "keep", "closest_v4": "zero_base_by_minimum", "agreement": 0.076, "closest_eval": "pair_floor_averages", "eval_agreement": 0.052}
+{"id": "dc-caesar-cipher-k-modulo-n-k5-n1", "verdict": "same_as dc-modulo-k-k1", "closest_v4": "running_minima", "agreement": 0.316, "closest_eval": "keep_zeros", "eval_agreement": 0.228}
+{"id": "dc-count-k-k2", "verdict": "keep", "closest_v4": "points_above_parabola", "agreement": 0.673, "closest_eval": "all_positive", "eval_agreement": 0.524}
+{"id": "dc-drop-k-k4", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.185, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.185}
+{"id": "dc-index-k-k3", "verdict": "keep", "closest_v4": "mode_first_tie", "agreement": 0.359, "closest_eval": "adjacent_sign_change_count", "eval_agreement": 0.253}
+{"id": "dc-keep-mod-k-k5", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.608, "closest_eval": "keep_zeros", "eval_agreement": 0.608}
+{"id": "dc-kth-smallest-k3", "verdict": "keep", "closest_v4": "mode_first_tie", "agreement": 0.41, "closest_eval": "median_floor", "eval_agreement": 0.308}
+{"id": "dc-modulo-k-k2", "verdict": "duplicate", "closest_v4": "parity_each", "agreement": 1.0, "closest_eval": "reverse", "eval_agreement": 0.063}
+{"id": "dc-mult-k-k4", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.038, "closest_eval": "keep_zeros", "eval_agreement": 0.038}
+{"id": "dc-pow-k-k5", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.051, "closest_eval": "keep_zeros", "eval_agreement": 0.051}
+{"id": "dc-prepend-k-k3", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-remove-index-k-k5", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.354, "closest_eval": "drop_last", "eval_agreement": 0.139}
+{"id": "dc-repeat-k-k2", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.143, "closest_eval": "pair_floor_averages", "eval_agreement": 0.035}
+{"id": "dc-slice-k-n-k1-n1", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.09, "closest_eval": "drop_last", "eval_agreement": 0.089}
+{"id": "dc-tail", "verdict": "duplicate", "closest_v4": "tail", "agreement": 1.0, "closest_eval": "drop_last", "eval_agreement": 0.165}
+{"id": "lf-c003", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.164, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.164}
+{"id": "lf-c011", "verdict": "keep", "closest_v4": "tail", "agreement": 0.542, "closest_eval": "drop_last", "eval_agreement": 0.188}
+{"id": "lf-c019", "verdict": "same_as lf-c018", "closest_v4": "collapse_runs", "agreement": 0.406, "closest_eval": "rotate_left", "eval_agreement": 0.126}
+{"id": "lf-c027", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.344, "closest_eval": "drop_last", "eval_agreement": 0.094}
+{"id": "lf-c035", "verdict": "same_as lf-c088", "closest_v4": "sort_ascending", "agreement": 0.125, "closest_eval": "reverse", "eval_agreement": 0.115}
+{"id": "lf-c043", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c053", "verdict": "keep", "closest_v4": "running_minima", "agreement": 0.125, "closest_eval": "reverse", "eval_agreement": 0.042}
+{"id": "lf-c061", "verdict": "keep", "closest_v4": "tail", "agreement": 0.146, "closest_eval": "keep_zeros", "eval_agreement": 0.083}
+{"id": "lf-c073", "verdict": "same_as lf-c098", "closest_v4": "increment_each", "agreement": 0.073, "closest_eval": "increment_each", "eval_agreement": 0.073}
+{"id": "lf-c081", "verdict": "same_as lf-c001", "closest_v4": "keep_evens", "agreement": 0.104, "closest_eval": "drop_last", "eval_agreement": 0.104}
+{"id": "lf-c089", "verdict": "keep", "closest_v4": "sort_ascending", "agreement": 0.135, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.075}
+{"id": "lf-c099", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.191, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.191}
+{"id": "lf-c107", "verdict": "duplicate", "closest_v4": "stable_unique", "agreement": 1.0, "closest_eval": "drop_last", "eval_agreement": 0.104}
+{"id": "lf-c118", "verdict": "keep", "closest_v4": "rotate_left", "agreement": 0.347, "closest_eval": "rotate_left", "eval_agreement": 0.347}
+{"id": "lf-c126", "verdict": "duplicate", "closest_v4": "tail", "agreement": 1.0, "closest_eval": "drop_last", "eval_agreement": 0.167}
+{"id": "lf-c134", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.354, "closest_eval": "keep_negative", "eval_agreement": 0.083}
+{"id": "lf-c143", "verdict": "keep", "closest_v4": "running_minima", "agreement": 0.135, "closest_eval": "rotate_left", "eval_agreement": 0.095}
+{"id": "lf-c155", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.074, "closest_eval": "rotate_left", "eval_agreement": 0.053}
+{"id": "lf-c164", "verdict": "keep", "closest_v4": "swap_coordinates", "agreement": 0.014, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c172", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.168, "closest_eval": "rotate_left", "eval_agreement": 0.147}
+{"id": "lf-c180", "verdict": "keep", "closest_v4": "sorted_within_pairs", "agreement": 0.162, "closest_eval": "rotate_left", "eval_agreement": 0.105}
+{"id": "lf-c188", "verdict": "keep", "closest_v4": "parity_each", "agreement": 0.083, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c198", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.219, "closest_eval": "rotate_left", "eval_agreement": 0.189}
+{"id": "lf-c207", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.031, "closest_eval": "keep_zeros", "eval_agreement": 0.031}
+{"id": "lf-c215", "verdict": "keep", "closest_v4": "tail", "agreement": 0.583, "closest_eval": "drop_last", "eval_agreement": 0.115}
+{"id": "lf-c223", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.031, "closest_eval": "keep_zeros", "eval_agreement": 0.031}
+{"id": "lf-c232", "verdict": "keep", "closest_v4": "pair_floor_averages", "agreement": 0.15, "closest_eval": "pair_floor_averages", "eval_agreement": 0.15}
+{"id": "lf-c241", "verdict": "keep", "closest_v4": "keep_positive", "agreement": 0.052, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c249", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.074, "closest_eval": "drop_last", "eval_agreement": 0.073}
+{"id": "dc-append-index-k-k1", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.115, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-append-k-k4", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.013, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-caesar-cipher-k-modulo-n-k1-n2", "verdict": "keep", "closest_v4": "running_ranges", "agreement": 0.091, "closest_eval": "reverse", "eval_agreement": 0.038}
+{"id": "dc-caesar-cipher-k-modulo-n-k3-n1", "verdict": "same_as dc-modulo-k-k1", "closest_v4": "running_minima", "agreement": 0.316, "closest_eval": "keep_zeros", "eval_agreement": 0.215}
+{"id": "dc-caesar-cipher-k-modulo-n-k5-n2", "verdict": "same_as dc-caesar-cipher-k-modulo-n-k1-n2", "closest_v4": "running_positive_streaks", "agreement": 0.089, "closest_eval": "pair_floor_averages", "eval_agreement": 0.051}
+{"id": "dc-count-k-k3", "verdict": "keep", "closest_v4": "points_above_parabola", "agreement": 0.623, "closest_eval": "all_positive", "eval_agreement": 0.516}
+{"id": "dc-drop-k-k5", "verdict": "keep", "closest_v4": "keep_positive_sum_pairs", "agreement": 0.145, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.127}
+{"id": "dc-index-k-k4", "verdict": "keep", "closest_v4": "mode_first_tie", "agreement": 0.372, "closest_eval": "all_positive", "eval_agreement": 0.253}
+{"id": "dc-kth-largest-k1", "verdict": "duplicate", "closest_v4": "maximum", "agreement": 1.0, "closest_eval": "median_floor", "eval_agreement": 0.141}
+{"id": "dc-kth-smallest-k4", "verdict": "keep", "closest_v4": "mode_first_tie", "agreement": 0.359, "closest_eval": "all_positive", "eval_agreement": 0.241}
+{"id": "dc-modulo-k-k3", "verdict": "keep", "closest_v4": "zero_base_by_minimum", "agreement": 0.101, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.068}
+{"id": "dc-mult-k-k5", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.038, "closest_eval": "keep_zeros", "eval_agreement": 0.038}
+{"id": "dc-prepend-index-k-k1", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.064, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-prepend-k-k4", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.013, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-remove-mod-head", "verdict": "keep", "closest_v4": "tail", "agreement": 0.418, "closest_eval": "keep_negative", "eval_agreement": 0.127}
+{"id": "dc-repeat-many", "verdict": "keep", "closest_v4": "tail", "agreement": 0.165, "closest_eval": "drop_last", "eval_agreement": 0.127}
+{"id": "dc-slice-k-n-k1-n2", "verdict": "keep", "closest_v4": "nearest_point_to_origin", "agreement": 0.453, "closest_eval": "keep_negative", "eval_agreement": 0.114}
+{"id": "dc-take-k-k1", "verdict": "same_as dc-slice-k-n-k1-n1", "closest_v4": "drop_last", "agreement": 0.139, "closest_eval": "drop_last", "eval_agreement": 0.139}
+{"id": "lf-c004", "verdict": "same_as lf-c003", "closest_v4": "keep_zeros", "agreement": 0.24, "closest_eval": "keep_zeros", "eval_agreement": 0.24}
+{"id": "lf-c012", "verdict": "same_as lf-c011", "closest_v4": "tail", "agreement": 0.552, "closest_eval": "drop_last", "eval_agreement": 0.188}
+{"id": "lf-c020", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.105, "closest_eval": "rotate_left", "eval_agreement": 0.084}
+{"id": "lf-c028", "verdict": "keep", "closest_v4": "keep_positive", "agreement": 0.177, "closest_eval": "drop_last", "eval_agreement": 0.135}
+{"id": "lf-c036", "verdict": "same_as lf-c089", "closest_v4": "sort_ascending", "agreement": 0.146, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.068}
+{"id": "lf-c044", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c054", "verdict": "keep", "closest_v4": "nearest_point_to_origin", "agreement": 0.125, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.077}
+{"id": "lf-c062", "verdict": "duplicate", "closest_v4": "drop_last", "agreement": 1.0, "closest_eval": "drop_last", "eval_agreement": 1.0}
+{"id": "lf-c074", "verdict": "keep", "closest_v4": "keep_negative", "agreement": 0.188, "closest_eval": "keep_negative", "eval_agreement": 0.188}
+{"id": "lf-c082", "verdict": "same_as lf-c001", "closest_v4": "keep_zeros", "agreement": 0.208, "closest_eval": "keep_zeros", "eval_agreement": 0.208}
+{"id": "lf-c090", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c100", "verdict": "duplicate", "closest_v4": "reverse", "agreement": 1.0, "closest_eval": "reverse", "eval_agreement": 1.0}
+{"id": "lf-c108", "verdict": "same_as lf-c079", "closest_v4": "pair_sums", "agreement": 0.278, "closest_eval": "manhattan_point_radii", "eval_agreement": 0.181}
+{"id": "lf-c119", "verdict": "keep", "closest_v4": "keep_positive", "agreement": 0.062, "closest_eval": "reverse", "eval_agreement": 0.052}
+{"id": "lf-c127", "verdict": "duplicate", "closest_v4": "drop_last", "agreement": 1.0, "closest_eval": "drop_last", "eval_agreement": 1.0}
+{"id": "lf-c135", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.479, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.113}
+{"id": "lf-c144", "verdict": "keep", "closest_v4": "running_ranges", "agreement": 0.116, "closest_eval": "keep_zeros", "eval_agreement": 0.031}
+{"id": "lf-c156", "verdict": "keep", "closest_v4": "swap_coordinates", "agreement": 0.013, "closest_eval": "pair_floor_averages", "eval_agreement": 0.013}
+{"id": "lf-c165", "verdict": "keep", "closest_v4": "keep_evens", "agreement": 0.229, "closest_eval": "drop_last", "eval_agreement": 0.104}
+{"id": "lf-c173", "verdict": "duplicate", "closest_v4": "running_maxima", "agreement": 1.0, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.065}
+{"id": "lf-c181", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.156, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.056}
+{"id": "lf-c190", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.2, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.2}
+{"id": "lf-c200", "verdict": "keep", "closest_v4": "running_positive_streaks", "agreement": 0.083, "closest_eval": "keep_zeros", "eval_agreement": 0.031}
+{"id": "lf-c208", "verdict": "keep", "closest_v4": "keep_positive_sum_pairs", "agreement": 0.347, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.173}
+{"id": "lf-c216", "verdict": "keep", "closest_v4": "sort_ascending", "agreement": 0.323, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.075}
+{"id": "lf-c224", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.211, "closest_eval": "rotate_left", "eval_agreement": 0.179}
+{"id": "lf-c233", "verdict": "keep", "closest_v4": "prefix_sum_signs", "agreement": 0.219, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c242", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.24, "closest_eval": "rotate_left", "eval_agreement": 0.189}
+{"id": "lf-c250", "verdict": "keep", "closest_v4": "reverse", "agreement": 0.677, "closest_eval": "reverse", "eval_agreement": 0.677}
+{"id": "dc-append-index-k-k2", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.09, "closest_eval": "rotate_left", "eval_agreement": 0.064}
+{"id": "dc-append-k-k5", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.026, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-caesar-cipher-k-modulo-n-k1-n3", "verdict": "keep", "closest_v4": "increment_each", "agreement": 0.114, "closest_eval": "increment_each", "eval_agreement": 0.114}
+{"id": "dc-caesar-cipher-k-modulo-n-k3-n2", "verdict": "same_as dc-caesar-cipher-k-modulo-n-k1-n2", "closest_v4": "prefix_sum_signs", "agreement": 0.139, "closest_eval": "increment_each", "eval_agreement": 0.089}
+{"id": "dc-caesar-cipher-k-modulo-n-k5-n3", "verdict": "keep", "closest_v4": "halve_each", "agreement": 0.089, "closest_eval": "pair_floor_averages", "eval_agreement": 0.017}
+{"id": "dc-count-k-k4", "verdict": "keep", "closest_v4": "points_above_parabola", "agreement": 0.54, "closest_eval": "all_positive", "eval_agreement": 0.515}
+{"id": "dc-evens", "verdict": "duplicate", "closest_v4": "keep_evens", "agreement": 1.0, "closest_eval": "drop_last", "eval_agreement": 0.266}
+{"id": "dc-index-k-k5", "verdict": "keep", "closest_v4": "adjacent_repetition_count", "agreement": 0.367, "closest_eval": "all_positive", "eval_agreement": 0.354}
+{"id": "dc-kth-largest-k2", "verdict": "duplicate", "closest_v4": "second_largest", "agreement": 1.0, "closest_eval": "second_largest", "eval_agreement": 1.0}
+{"id": "dc-kth-smallest-k5", "verdict": "keep", "closest_v4": "maximum", "agreement": 0.551, "closest_eval": "median_floor", "eval_agreement": 0.282}
+{"id": "dc-modulo-k-k4", "verdict": "keep", "closest_v4": "parity_each", "agreement": 0.127, "closest_eval": "reverse", "eval_agreement": 0.051}
+{"id": "dc-odds", "verdict": "same_as mbpp-554", "closest_v4": "keep_positive", "agreement": 0.139, "closest_eval": "keep_negative", "eval_agreement": 0.114}
+{"id": "dc-prepend-index-k-k2", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.09, "closest_eval": "rotate_left", "eval_agreement": 0.064}
+{"id": "dc-prepend-k-k5", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-remove-mod-k-k2", "verdict": "same_as mbpp-554", "closest_v4": "drop_last", "agreement": 0.139, "closest_eval": "drop_last", "eval_agreement": 0.139}
+{"id": "dc-replace-all-with-index-k-k1", "verdict": "same_as lb-034", "closest_v4": "running_minima", "agreement": 0.392, "closest_eval": "rotate_left", "eval_agreement": 0.141}
+{"id": "dc-slice-k-n-k1-n3", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.228, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.089}
+{"id": "dc-take-k-k2", "verdict": "same_as dc-slice-k-n-k1-n2", "closest_v4": "nearest_point_to_origin", "agreement": 0.433, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.164}
+{"id": "lf-c005", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.156, "closest_eval": "keep_zeros", "eval_agreement": 0.156}
+{"id": "lf-c013", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.227, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.227}
+{"id": "lf-c021", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.011, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c029", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.194, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.194}
+{"id": "lf-c037", "verdict": "same_as dc-append-k-k3", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c045", "verdict": "same_as dc-repeat-k-k1", "closest_v4": "collapse_runs", "agreement": 0.781, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.149}
+{"id": "lf-c055", "verdict": "keep", "closest_v4": "stable_sort_flat_pairs", "agreement": 0.406, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.099}
+{"id": "lf-c063", "verdict": "keep", "closest_v4": "tail", "agreement": 0.26, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.174}
+{"id": "lf-c075", "verdict": "keep", "closest_v4": "flat_pair_maxima", "agreement": 0.312, "closest_eval": "drop_last", "eval_agreement": 0.146}
+{"id": "lf-c083", "verdict": "same_as lf-c003", "closest_v4": "keep_ascending_pairs", "agreement": 0.172, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.172}
+{"id": "lf-c091", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c101", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c109", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.211, "closest_eval": "rotate_left", "eval_agreement": 0.189}
+{"id": "lf-c120", "verdict": "same_as dc-slice-k-n-k1-n1", "closest_v4": "drop_last", "agreement": 0.115, "closest_eval": "drop_last", "eval_agreement": 0.115}
+{"id": "lf-c128", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.116, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.116}
+{"id": "lf-c136", "verdict": "keep", "closest_v4": "tail", "agreement": 0.354, "closest_eval": "drop_last", "eval_agreement": 0.26}
+{"id": "lf-c145", "verdict": "same_as lb-034", "closest_v4": "running_maxima", "agreement": 0.312, "closest_eval": "rotate_left", "eval_agreement": 0.084}
+{"id": "lf-c158", "verdict": "keep", "closest_v4": "running_positive_streaks", "agreement": 0.083, "closest_eval": "keep_zeros", "eval_agreement": 0.031}
+{"id": "lf-c166", "verdict": "keep", "closest_v4": "rotate_left", "agreement": 0.158, "closest_eval": "rotate_left", "eval_agreement": 0.158}
+{"id": "lf-c174", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.688, "closest_eval": "drop_last", "eval_agreement": 0.25}
+{"id": "lf-c182", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.104, "closest_eval": "drop_last", "eval_agreement": 0.104}
+{"id": "lf-c192", "verdict": "keep", "closest_v4": "running_positive_streaks", "agreement": 0.083, "closest_eval": "keep_zeros", "eval_agreement": 0.031}
+{"id": "lf-c201", "verdict": "keep", "closest_v4": "tail", "agreement": 0.531, "closest_eval": "drop_last", "eval_agreement": 0.167}
+{"id": "lf-c209", "verdict": "keep", "closest_v4": "swap_coordinates", "agreement": 0.016, "closest_eval": "pair_floor_averages", "eval_agreement": 0.016}
+{"id": "lf-c217", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.179, "closest_eval": "rotate_left", "eval_agreement": 0.179}
+{"id": "lf-c225", "verdict": "keep", "closest_v4": "keep_positive_sum_pairs", "agreement": 0.157, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.129}
+{"id": "lf-c234", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.208, "closest_eval": "drop_last", "eval_agreement": 0.208}
+{"id": "lf-c243", "verdict": "keep", "closest_v4": "running_ranges", "agreement": 0.042, "closest_eval": "keep_zeros", "eval_agreement": 0.021}
+{"id": "dc-add-k-k0", "verdict": "same_as dc-repeat-k-k1", "closest_v4": "collapse_runs", "agreement": 0.658, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.233}
+{"id": "dc-append-index-k-k3", "verdict": "keep", "closest_v4": "nearest_point_to_origin", "agreement": 0.131, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.081}
+{"id": "dc-caesar-cipher-k-modulo-n-k0-n1", "verdict": "same_as dc-modulo-k-k1", "closest_v4": "running_positive_streaks", "agreement": 0.278, "closest_eval": "keep_zeros", "eval_agreement": 0.215}
+{"id": "dc-caesar-cipher-k-modulo-n-k1-n4", "verdict": "keep", "closest_v4": "increment_each", "agreement": 0.139, "closest_eval": "increment_each", "eval_agreement": 0.139}
+{"id": "dc-caesar-cipher-k-modulo-n-k3-n3", "verdict": "same_as dc-modulo-k-k3", "closest_v4": "abs_each", "agreement": 0.203, "closest_eval": "reverse", "eval_agreement": 0.114}
+{"id": "dc-caesar-cipher-k-modulo-n-k5-n4", "verdict": "same_as dc-caesar-cipher-k-modulo-n-k1-n4", "closest_v4": "increment_each", "agreement": 0.114, "closest_eval": "increment_each", "eval_agreement": 0.114}
+{"id": "dc-count-k-k5", "verdict": "keep", "closest_v4": "adjacent_repetition_count", "agreement": 0.643, "closest_eval": "all_positive", "eval_agreement": 0.514}
+{"id": "dc-fibonacci", "verdict": "keep", "closest_v4": "positive_part", "agreement": 0.484, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "dc-keep-mod-head", "verdict": "keep", "closest_v4": "tail", "agreement": 0.228, "closest_eval": "keep_zeros", "eval_agreement": 0.203}
+{"id": "dc-kth-largest-k3", "verdict": "keep", "closest_v4": "mode_first_tie", "agreement": 0.397, "closest_eval": "median_floor", "eval_agreement": 0.308}
+{"id": "dc-last", "verdict": "duplicate", "closest_v4": "last", "agreement": 1.0, "closest_eval": "median_floor", "eval_agreement": 0.333}
+{"id": "dc-modulo-k-k5", "verdict": "same_as dc-caesar-cipher-k-modulo-n-k0-n5", "closest_v4": "zero_base_by_minimum", "agreement": 0.089, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.069}
+{"id": "dc-pop", "verdict": "duplicate", "closest_v4": "drop_last", "agreement": 1.0, "closest_eval": "drop_last", "eval_agreement": 1.0}
+{"id": "dc-prepend-index-k-k3", "verdict": "keep", "closest_v4": "nearest_point_to_origin", "agreement": 0.136, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.083}
+{"id": "dc-range", "verdict": "keep", "closest_v4": "sign", "agreement": 0.0, "closest_eval": "", "eval_agreement": 0.0}
+{"id": "dc-remove-mod-k-k3", "verdict": "keep", "closest_v4": "tail", "agreement": 0.19, "closest_eval": "keep_negative", "eval_agreement": 0.19}
+{"id": "dc-replace-all-with-index-k-k2", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.127, "closest_eval": "drop_last", "eval_agreement": 0.127}
+{"id": "dc-slice-k-n-k2-n1", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.139, "closest_eval": "drop_last", "eval_agreement": 0.139}
+{"id": "dc-take-k-k3", "verdict": "same_as dc-slice-k-n-k1-n3", "closest_v4": "stable_unique", "agreement": 0.253, "closest_eval": "drop_last", "eval_agreement": 0.127}
+{"id": "lf-c006", "verdict": "same_as dc-slice-k-n-k1-n2", "closest_v4": "nearest_point_to_origin", "agreement": 0.373, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.191}
+{"id": "lf-c014", "verdict": "same_as lf-c013", "closest_v4": "keep_ascending_pairs", "agreement": 0.215, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.215}
+{"id": "lf-c022", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c030", "verdict": "keep", "closest_v4": "nearest_point_to_origin", "agreement": 0.159, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.141}
+{"id": "lf-c038", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c046", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c056", "verdict": "same_as dc-remove-index-k-k5", "closest_v4": "stable_unique", "agreement": 0.375, "closest_eval": "drop_last", "eval_agreement": 0.135}
+{"id": "lf-c064", "verdict": "same_as lb-006", "closest_v4": "drop_last", "agreement": 0.104, "closest_eval": "drop_last", "eval_agreement": 0.104}
+{"id": "lf-c076", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c084", "verdict": "same_as lf-c003", "closest_v4": "keep_negative", "agreement": 0.229, "closest_eval": "keep_negative", "eval_agreement": 0.229}
+{"id": "lf-c093", "verdict": "same_as lf-c052", "closest_v4": "swap_coordinates", "agreement": 0.014, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c102", "verdict": "same_as dc-repeat-k-k1", "closest_v4": "collapse_runs", "agreement": 0.76, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.139}
+{"id": "lf-c110", "verdict": "keep", "closest_v4": "sort_ascending", "agreement": 0.417, "closest_eval": "rotate_left", "eval_agreement": 0.295}
+{"id": "lf-c121", "verdict": "same_as lf-c061", "closest_v4": "tail", "agreement": 0.156, "closest_eval": "rotate_left", "eval_agreement": 0.095}
+{"id": "lf-c129", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.176, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.176}
+{"id": "lf-c137", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.406, "closest_eval": "keep_negative", "eval_agreement": 0.146}
+{"id": "lf-c146", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.156, "closest_eval": "drop_last", "eval_agreement": 0.156}
+{"id": "lf-c159", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.094, "closest_eval": "drop_last", "eval_agreement": 0.094}
+{"id": "lf-c167", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.281, "closest_eval": "keep_zeros", "eval_agreement": 0.281}
+{"id": "lf-c175", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.146, "closest_eval": "drop_last", "eval_agreement": 0.146}
+{"id": "lf-c183", "verdict": "keep", "closest_v4": "keep_ascending_pairs", "agreement": 0.159, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.159}
+{"id": "lf-c193", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.104, "closest_eval": "drop_last", "eval_agreement": 0.104}
+{"id": "lf-c202", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.083, "closest_eval": "drop_last", "eval_agreement": 0.083}
+{"id": "lf-c210", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.053, "closest_eval": "reverse", "eval_agreement": 0.031}
+{"id": "lf-c218", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.238, "closest_eval": "drop_last", "eval_agreement": 0.238}
+{"id": "lf-c226", "verdict": "keep", "closest_v4": "keep_negative", "agreement": 0.277, "closest_eval": "keep_negative", "eval_agreement": 0.277}
+{"id": "lf-c236", "verdict": "keep", "closest_v4": "keep_evens", "agreement": 0.083, "closest_eval": "drop_last", "eval_agreement": 0.083}
+{"id": "lf-c244", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.167, "closest_eval": "keep_zeros", "eval_agreement": 0.167}
+{"id": "dc-add-k-k1", "verdict": "duplicate", "closest_v4": "increment_each", "agreement": 1.0, "closest_eval": "increment_each", "eval_agreement": 1.0}
+{"id": "dc-append-index-k-k4", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.19, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.093}
+{"id": "dc-caesar-cipher-k-modulo-n-k0-n2", "verdict": "duplicate", "closest_v4": "parity_each", "agreement": 1.0, "closest_eval": "reverse", "eval_agreement": 0.114}
+{"id": "dc-caesar-cipher-k-modulo-n-k1-n5", "verdict": "keep", "closest_v4": "increment_each", "agreement": 0.177, "closest_eval": "increment_each", "eval_agreement": 0.177}
+{"id": "dc-caesar-cipher-k-modulo-n-k3-n4", "verdict": "keep", "closest_v4": "zero_base_by_minimum", "agreement": 0.101, "closest_eval": "pair_floor_averages", "eval_agreement": 0.031}
+{"id": "dc-caesar-cipher-k-modulo-n-k5-n5", "verdict": "same_as dc-caesar-cipher-k-modulo-n-k0-n5", "closest_v4": "abs_each", "agreement": 0.253, "closest_eval": "reverse", "eval_agreement": 0.114}
+{"id": "dc-drop-k-k0", "verdict": "same_as dc-repeat-k-k1", "closest_v4": "collapse_runs", "agreement": 0.658, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.153}
+{"id": "dc-head", "verdict": "duplicate", "closest_v4": "head", "agreement": 1.0, "closest_eval": "median_floor", "eval_agreement": 0.346}
+{"id": "dc-keep-mod-k-k1", "verdict": "same_as dc-repeat-k-k1", "closest_v4": "collapse_runs", "agreement": 0.684, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.138}
+{"id": "dc-kth-largest-k4", "verdict": "keep", "closest_v4": "mode_first_tie", "agreement": 0.372, "closest_eval": "all_positive", "eval_agreement": 0.278}
+{"id": "dc-len", "verdict": "duplicate", "closest_v4": "length", "agreement": 1.0, "closest_eval": "positive_balance_prefix_count", "eval_agreement": 0.468}
+{"id": "dc-mult-k-k0", "verdict": "same_as dc-modulo-k-k1", "closest_v4": "running_ranges", "agreement": 0.143, "closest_eval": "keep_zeros", "eval_agreement": 0.051}
+{"id": "dc-pow-k-k1", "verdict": "same_as dc-repeat-k-k1", "closest_v4": "collapse_runs", "agreement": 0.684, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.177}
+{"id": "dc-prepend-index-k-k4", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.19, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.083}
+{"id": "dc-remove-index-k-k1", "verdict": "duplicate", "closest_v4": "tail", "agreement": 1.0, "closest_eval": "drop_last", "eval_agreement": 0.203}
+{"id": "dc-remove-mod-k-k4", "verdict": "keep", "closest_v4": "tail", "agreement": 0.177, "closest_eval": "keep_negative", "eval_agreement": 0.139}
+{"id": "dc-replace-all-with-index-k-k3", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.127, "closest_eval": "drop_last", "eval_agreement": 0.127}
+{"id": "dc-slice-k-n-k2-n2", "verdict": "keep", "closest_v4": "tail", "agreement": 0.253, "closest_eval": "drop_last", "eval_agreement": 0.139}
+{"id": "dc-take-k-k4", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.291, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.145}
+{"id": "lf-c007", "verdict": "same_as dc-slice-k-n-k1-n2", "closest_v4": "nearest_point_to_origin", "agreement": 0.394, "closest_eval": "drop_last", "eval_agreement": 0.146}
+{"id": "lf-c015", "verdict": "same_as lf-c129", "closest_v4": "keep_ascending_pairs", "agreement": 0.167, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.167}
+{"id": "lf-c023", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.011, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c031", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.438, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.116}
+{"id": "lf-c039", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.427, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.105}
+{"id": "lf-c048", "verdict": "same_as dc-slice-k-n-k1-n1", "closest_v4": "drop_last", "agreement": 0.115, "closest_eval": "drop_last", "eval_agreement": 0.115}
+{"id": "lf-c057", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.011, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c065", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c077", "verdict": "keep", "closest_v4": "running_positive_streaks", "agreement": 0.042, "closest_eval": "drop_last", "eval_agreement": 0.031}
+{"id": "lf-c085", "verdict": "same_as lf-c005", "closest_v4": "keep_zeros", "agreement": 0.198, "closest_eval": "keep_zeros", "eval_agreement": 0.198}
+{"id": "lf-c094", "verdict": "same_as lf-c055", "closest_v4": "stable_sort_flat_pairs", "agreement": 0.427, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.118}
+{"id": "lf-c103", "verdict": "same_as lf-c077", "closest_v4": "running_positive_streaks", "agreement": 0.052, "closest_eval": "drop_last", "eval_agreement": 0.021}
+{"id": "lf-c113", "verdict": "keep", "closest_v4": "keep_positive_sum_pairs", "agreement": 0.294, "closest_eval": "keep_zeros", "eval_agreement": 0.135}
+{"id": "lf-c122", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.229, "closest_eval": "drop_last", "eval_agreement": 0.229}
+{"id": "lf-c130", "verdict": "same_as lf-c010", "closest_v4": "tail", "agreement": 0.406, "closest_eval": "drop_last", "eval_agreement": 0.104}
+{"id": "lf-c138", "verdict": "keep", "closest_v4": "tail", "agreement": 0.677, "closest_eval": "keep_zeros", "eval_agreement": 0.104}
+{"id": "lf-c149", "verdict": "keep", "closest_v4": "tail", "agreement": 0.219, "closest_eval": "keep_zeros", "eval_agreement": 0.188}
+{"id": "lf-c160", "verdict": "keep", "closest_v4": "swap_coordinates", "agreement": 0.014, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c168", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c176", "verdict": "keep", "closest_v4": "pair_sums", "agreement": 0.127, "closest_eval": "drop_last", "eval_agreement": 0.115}
+{"id": "lf-c184", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.115, "closest_eval": "drop_last", "eval_agreement": 0.115}
+{"id": "lf-c194", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c203", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.2, "closest_eval": "rotate_left", "eval_agreement": 0.179}
+{"id": "lf-c211", "verdict": "keep", "closest_v4": "rotate_left", "agreement": 0.179, "closest_eval": "rotate_left", "eval_agreement": 0.179}
+{"id": "lf-c219", "verdict": "keep", "closest_v4": "flat_pair_maxima", "agreement": 0.177, "closest_eval": "rotate_left", "eval_agreement": 0.053}
+{"id": "lf-c227", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.292, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.087}
+{"id": "lf-c237", "verdict": "keep", "closest_v4": "prefix_sums", "agreement": 0.438, "closest_eval": "prefix_sums", "eval_agreement": 0.438}
+{"id": "lf-c245", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.247, "closest_eval": "keep_zeros", "eval_agreement": 0.247}
+{"id": "dc-add-k-k2", "verdict": "same_as lf-c071", "closest_v4": "zero_base_by_minimum", "agreement": 0.063, "closest_eval": "pair_floor_averages", "eval_agreement": 0.032}
+{"id": "dc-append-k-k0", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-caesar-cipher-k-modulo-n-k0-n3", "verdict": "same_as dc-modulo-k-k3", "closest_v4": "abs_each", "agreement": 0.215, "closest_eval": "reverse", "eval_agreement": 0.114}
+{"id": "dc-caesar-cipher-k-modulo-n-k2-n2", "verdict": "duplicate", "closest_v4": "parity_each", "agreement": 1.0, "closest_eval": "reverse", "eval_agreement": 0.089}
+{"id": "dc-caesar-cipher-k-modulo-n-k3-n5", "verdict": "keep", "closest_v4": "running_ranges", "agreement": 0.079, "closest_eval": "pair_floor_averages", "eval_agreement": 0.046}
+{"id": "dc-count-head-in-tail", "verdict": "keep", "closest_v4": "palindrome_indicator", "agreement": 0.738, "closest_eval": "all_positive", "eval_agreement": 0.615}
+{"id": "dc-drop-k-k1", "verdict": "duplicate", "closest_v4": "tail", "agreement": 1.0, "closest_eval": "drop_last", "eval_agreement": 0.165}
+{"id": "dc-index-head", "verdict": "keep", "closest_v4": "adjacent_repetition_count", "agreement": 0.507, "closest_eval": "all_positive", "eval_agreement": 0.467}
+{"id": "dc-keep-mod-k-k2", "verdict": "duplicate", "closest_v4": "keep_evens", "agreement": 1.0, "closest_eval": "keep_negative", "eval_agreement": 0.177}
+{"id": "dc-kth-largest-k5", "verdict": "keep", "closest_v4": "mode_first_tie", "agreement": 0.385, "closest_eval": "all_positive", "eval_agreement": 0.316}
+{"id": "dc-max", "verdict": "duplicate", "closest_v4": "maximum", "agreement": 1.0, "closest_eval": "median_floor", "eval_agreement": 0.167}
+{"id": "dc-mult-k-k1", "verdict": "same_as dc-repeat-k-k1", "closest_v4": "collapse_runs", "agreement": 0.671, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.138}
+{"id": "dc-pow-k-k2", "verdict": "duplicate", "closest_v4": "square_each", "agreement": 1.0, "closest_eval": "keep_zeros", "eval_agreement": 0.063}
+{"id": "dc-prepend-k-k0", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-remove-index-k-k2", "verdict": "same_as lf-c025", "closest_v4": "endpoints", "agreement": 0.179, "closest_eval": "drop_last", "eval_agreement": 0.165}
+{"id": "dc-remove-mod-k-k5", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.19, "closest_eval": "keep_negative", "eval_agreement": 0.152}
+{"id": "dc-replace-all-with-index-k-k4", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.127, "closest_eval": "drop_last", "eval_agreement": 0.127}
+{"id": "dc-slice-k-n-k3-n1", "verdict": "same_as lf-c001", "closest_v4": "drop_last", "agreement": 0.127, "closest_eval": "drop_last", "eval_agreement": 0.127}
+{"id": "dc-take-k-k5", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.266, "closest_eval": "drop_last", "eval_agreement": 0.165}
+{"id": "lf-c008", "verdict": "same_as lf-c009", "closest_v4": "collapse_runs", "agreement": 0.427, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.119}
+{"id": "lf-c016", "verdict": "same_as lf-c017", "closest_v4": "rotate_right", "agreement": 0.074, "closest_eval": "rotate_left", "eval_agreement": 0.053}
+{"id": "lf-c024", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c032", "verdict": "keep", "closest_v4": "nearest_point_to_origin", "agreement": 0.145, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.143}
+{"id": "lf-c040", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.312, "closest_eval": "rotate_left", "eval_agreement": 0.105}
+{"id": "lf-c049", "verdict": "duplicate", "closest_v4": "tail", "agreement": 1.0, "closest_eval": "drop_last", "eval_agreement": 0.177}
+{"id": "lf-c058", "verdict": "keep", "closest_v4": "keep_negative", "agreement": 0.229, "closest_eval": "keep_negative", "eval_agreement": 0.229}
+{"id": "lf-c066", "verdict": "duplicate", "closest_v4": "rotate_left", "agreement": 1.0, "closest_eval": "rotate_left", "eval_agreement": 1.0}
+{"id": "lf-c078", "verdict": "keep", "closest_v4": "flat_pair_maxima", "agreement": 0.219, "closest_eval": "drop_last", "eval_agreement": 0.125}
+{"id": "lf-c086", "verdict": "same_as lf-c033", "closest_v4": "stable_unique", "agreement": 0.156, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.072}
+{"id": "lf-c095", "verdict": "same_as lb-006", "closest_v4": "keep_ascending_pairs", "agreement": 0.116, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.116}
+{"id": "lf-c104", "verdict": "same_as lf-c078", "closest_v4": "flat_pair_maxima", "agreement": 0.188, "closest_eval": "drop_last", "eval_agreement": 0.104}
+{"id": "lf-c114", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.074, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c123", "verdict": "keep", "closest_v4": "keep_positive_sum_pairs", "agreement": 0.18, "closest_eval": "drop_last", "eval_agreement": 0.148}
+{"id": "lf-c131", "verdict": "keep", "closest_v4": "collapse_runs", "agreement": 0.24, "closest_eval": "keep_negative", "eval_agreement": 0.104}
+{"id": "lf-c139", "verdict": "keep", "closest_v4": "keep_zeros", "agreement": 0.156, "closest_eval": "keep_zeros", "eval_agreement": 0.156}
+{"id": "lf-c152", "verdict": "keep", "closest_v4": "running_ranges", "agreement": 0.074, "closest_eval": "keep_zeros", "eval_agreement": 0.031}
+{"id": "lf-c161", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.074, "closest_eval": "rotate_left", "eval_agreement": 0.053}
+{"id": "lf-c169", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.104, "closest_eval": "drop_last", "eval_agreement": 0.104}
+{"id": "lf-c177", "verdict": "keep", "closest_v4": "endpoints", "agreement": 0.105, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c185", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.074, "closest_eval": "rotate_left", "eval_agreement": 0.053}
+{"id": "lf-c195", "verdict": "keep", "closest_v4": "swap_coordinates", "agreement": 0.014, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c204", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.192, "closest_eval": "drop_last", "eval_agreement": 0.192}
+{"id": "lf-c212", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "lf-c220", "verdict": "keep", "closest_v4": "double_each", "agreement": 0.562, "closest_eval": "keep_zeros", "eval_agreement": 0.031}
+{"id": "lf-c228", "verdict": "keep", "closest_v4": "prefix_sum_signs", "agreement": 0.229, "closest_eval": "pair_floor_averages", "eval_agreement": 0.014}
+{"id": "lf-c238", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.365, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.127}
+{"id": "lf-c246", "verdict": "keep", "closest_v4": "rotate_right", "agreement": 0.021, "closest_eval": "rotate_left", "eval_agreement": 0.011}
+{"id": "dc-add-k-k3", "verdict": "keep", "closest_v4": "zero_base_by_minimum", "agreement": 0.051, "closest_eval": "pair_floor_averages", "eval_agreement": 0.05}
+{"id": "dc-append-k-k1", "verdict": "keep", "closest_v4": "run_length_encoding", "agreement": 0.089, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-caesar-cipher-k-modulo-n-k0-n4", "verdict": "same_as dc-modulo-k-k4", "closest_v4": "abs_each", "agreement": 0.215, "closest_eval": "reverse", "eval_agreement": 0.101}
+{"id": "dc-caesar-cipher-k-modulo-n-k2-n3", "verdict": "same_as dc-caesar-cipher-k-modulo-n-k5-n3", "closest_v4": "zero_base_by_minimum", "agreement": 0.101, "closest_eval": "pair_floor_averages", "eval_agreement": 0.033}
+{"id": "dc-caesar-cipher-k-modulo-n-k4-n4", "verdict": "same_as dc-modulo-k-k4", "closest_v4": "abs_each", "agreement": 0.203, "closest_eval": "reverse", "eval_agreement": 0.114}
+{"id": "dc-count-k-k0", "verdict": "duplicate", "closest_v4": "count_zeros", "agreement": 1.0, "closest_eval": "axis_point_count", "eval_agreement": 0.765}
+{"id": "dc-drop-k-k2", "verdict": "same_as lf-c029", "closest_v4": "keep_ascending_pairs", "agreement": 0.241, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.241}
+{"id": "dc-index-k-k1", "verdict": "duplicate", "closest_v4": "head", "agreement": 1.0, "closest_eval": "second_largest", "eval_agreement": 0.385}
+{"id": "dc-keep-mod-k-k3", "verdict": "same_as lf-c167", "closest_v4": "keep_zeros", "agreement": 0.367, "closest_eval": "keep_zeros", "eval_agreement": 0.367}
+{"id": "dc-kth-smallest-k1", "verdict": "duplicate", "closest_v4": "minimum", "agreement": 1.0, "closest_eval": "sum_negative", "eval_agreement": 0.291}
+{"id": "dc-min", "verdict": "duplicate", "closest_v4": "minimum", "agreement": 1.0, "closest_eval": "sum_negative", "eval_agreement": 0.291}
+{"id": "dc-mult-k-k2", "verdict": "duplicate", "closest_v4": "double_each", "agreement": 1.0, "closest_eval": "keep_zeros", "eval_agreement": 0.051}
+{"id": "dc-pow-k-k3", "verdict": "same_as lb-015", "closest_v4": "stable_unique", "agreement": 0.063, "closest_eval": "reverse", "eval_agreement": 0.063}
+{"id": "dc-prepend-k-k1", "verdict": "keep", "closest_v4": "zero_straddling_pair_count", "agreement": 0.0, "closest_eval": "widest_pair", "eval_agreement": 0.0}
+{"id": "dc-remove-index-k-k3", "verdict": "same_as lf-c132", "closest_v4": "nearest_point_to_origin", "agreement": 0.145, "closest_eval": "drop_last", "eval_agreement": 0.139}
+{"id": "dc-repeat", "verdict": "keep", "closest_v4": "drop_last", "agreement": 0.139, "closest_eval": "drop_last", "eval_agreement": 0.139}
+{"id": "dc-replace-all-with-index-k-k5", "verdict": "keep", "closest_v4": "stable_unique", "agreement": 0.203, "closest_eval": "keep_ascending_pairs", "eval_agreement": 0.083}
+{"id": "dc-sort", "verdict": "duplicate", "closest_v4": "sort_ascending", "agreement": 1.0, "closest_eval": "rotate_left", "eval_agreement": 0.338}

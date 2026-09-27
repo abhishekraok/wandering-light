@@ -1,0 +1,1 @@
+Wrote [refs_r3.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/refs_r3.jsonl) with all 47 assigned references. Every reference passed `--reference`; empty and negative inputs also passed type and totality checks.

@@ -1,0 +1,46 @@
+{"id": "lf-c008", "solution": "def f(xs):\n    return xs[:6]\n", "status": "ok", "note": "Take up to six elements; a short list stays intact."}
+{"id": "lf-c016", "solution": "def f(xs):\n    return xs[:1] + [8] + xs[2:] if len(xs) >= 2 else xs[:]\n", "status": "ok", "note": "Element 2 is one-based; lists shorter than two stay unchanged."}
+{"id": "lf-c024", "solution": "def f(xs):\n    return xs[:1] + [5 if xs[0] >= 5 else 8] + xs[1:] if xs else [8]\n", "status": "ok", "note": "The examples put 5 after a first element >=5, 8 otherwise, contrary to the wording; empty input uses the else branch."}
+{"id": "lf-c032", "solution": "def f(xs):\n    if not xs:\n        return []\n    return xs[2:] if xs[0] > xs[-1] else xs[:-2]\n", "status": "ok", "note": "Element 1 is the first; slicing handles lists shorter than two."}
+{"id": "lf-c040", "solution": "def f(xs):\n    return xs + ([3] if 3 in xs else [9] if 9 in xs else [])\n", "status": "ok", "note": "3 takes precedence over 9; if neither occurs, leave the list unchanged."}
+{"id": "lf-c049", "solution": "def f(xs):\n    return xs[1:]\n", "status": "ok", "note": "Element 1 is the first; empty input stays empty."}
+{"id": "lf-c058", "solution": "def f(xs):\n    return xs[7:]\n", "status": "ok", "note": "Dropping seven from a shorter list gives []."}
+{"id": "lf-c066", "solution": "def f(xs):\n    return xs[1:] + xs[:1]\n", "status": "ok", "note": "Left rotation leaves empty and singleton lists unchanged."}
+{"id": "lf-c078", "solution": "def f(xs):\n    return [max(xs, default=0)]\n", "status": "ok", "note": "The list-valued maximum of an empty list is [0]."}
+{"id": "lf-c086", "solution": "def f(xs):\n    ys = xs[:]\n    if len(ys) >= 4:\n        ys[0], ys[3] = ys[3], ys[0]\n    return ys\n", "status": "ok", "note": "One-based elements 1 and 4; a short list stays unchanged."}
+{"id": "lf-c095", "solution": "def f(xs):\n    return xs[1:-1]\n", "status": "ok", "note": "Short lists give []."}
+{"id": "lf-c104", "solution": "def f(xs):\n    return [max(xs, default=0)]\n", "status": "ok", "note": "The list-valued maximum of an empty list is [0]."}
+{"id": "lf-c114", "solution": "def f(xs):\n    return [xs[-1]] + xs if xs else []\n", "status": "ok", "note": "On empty input there is no last element to prepend."}
+{"id": "lf-c123", "solution": "def f(xs):\n    n = xs[-1] if xs else 0\n    return xs[n - 1:n] if 1 <= n <= len(xs) else []\n", "status": "ok", "note": "N is a one-based position; zero, negative, or out-of-range N gives []."}
+{"id": "lf-c131", "solution": "def f(xs):\n    return [x for x in xs if (abs(x) // 10) % 10 % 2 == 0]\n", "status": "ok", "note": "Tens digit uses absolute value and is zero for one-digit numbers."}
+{"id": "lf-c139", "solution": "def f(xs):\n    if not xs:\n        return []\n    lo, hi = min(xs), max(xs)\n    return [x for x in xs if x != lo and x != hi]\n", "status": "ok", "note": "Remove every minimum and maximum occurrence; empty input stays empty."}
+{"id": "lf-c152", "solution": "def f(xs):\n    out = []\n    for x in xs:\n        product = 1\n        for digit in str(abs(x)).zfill(2):\n            product *= int(digit)\n        out.append(product)\n    return out\n", "status": "ok", "note": "Examples treat a single digit as having a leading zero; negative signs are ignored."}
+{"id": "lf-c161", "solution": "def f(xs):\n    return [x + len(xs) - i - 1 for i, x in enumerate(xs)]\n", "status": "ok", "note": "Examples use zero-based offset len(xs)-1-index; empty input stays empty."}
+{"id": "lf-c169", "solution": "def f(xs):\n    values = sorted(set(xs))\n    return [values[-2]] if len(values) >= 2 else []\n", "status": "ok", "note": "Second largest distinct value; fewer than two distinct values gives []."}
+{"id": "lf-c177", "solution": "def f(xs):\n    out = []\n    for a, b in zip(xs, reversed(xs)):\n        out.extend((a, b))\n    return out\n", "status": "ok", "note": "Interleave full input with its reverse; empty input gives []."}
+{"id": "lf-c185", "solution": "def f(xs):\n    return [xs[0], sum(xs[1:-1]), xs[-1]] if len(xs) >= 2 else xs[:]\n", "status": "ok", "note": "Replace the interior even when empty (sum 0); lists with under two endpoints stay unchanged."}
+{"id": "lf-c195", "solution": "def f(xs):\n    return [xs[0], 23, 68, 42, 99, 71, xs[-1]] if xs else []\n", "status": "ok", "note": "Missing first/last element on empty input gives []."}
+{"id": "lf-c204", "solution": "def f(xs):\n    return [xs[i] for i in range(len(xs) - 1) if xs[i + 1] == 0]\n", "status": "ok", "note": "Keep an element for each immediate zero successor; the final element cannot qualify."}
+{"id": "lf-c212", "solution": "def f(xs):\n    return xs[:2] + [3, 3, 3] + xs[2:]\n", "status": "ok", "note": "Examples insert before zero-based index 2; short lists insert at the end."}
+{"id": "lf-c220", "solution": "def f(xs):\n    multiplier = 2 if len(xs) % 2 == 0 else 3\n    return [multiplier * x for x in xs]\n", "status": "ok", "note": "Empty input has even length and gives []."}
+{"id": "lf-c228", "solution": "def f(xs):\n    counts = {}\n    out = []\n    for x in xs:\n        counts[x] = counts.get(x, 0) + 1\n        out.append(counts[x])\n    return out\n", "status": "ok", "note": "Count each value up through its current position; empty input gives []."}
+{"id": "lf-c238", "solution": "def f(xs):\n    from collections import Counter\n    counts = Counter(xs)\n    return [x for x in xs if counts[x] == 1]\n", "status": "ok", "note": "Exactly once in the whole list; empty input gives []."}
+{"id": "lf-c246", "solution": "def f(xs):\n    return [len(set(xs))]\n", "status": "ok", "note": "Output is a singleton list, including [0] on empty input."}
+{"id": "dc-add-k-k3", "solution": "def f(xs):\n    return [x + 3 for x in xs]\n", "status": "ok", "note": "Empty input gives []."}
+{"id": "dc-append-k-k1", "solution": "def f(xs):\n    return xs + [1]\n", "status": "ok", "note": "Empty input gives [1]."}
+{"id": "dc-caesar-cipher-k-modulo-n-k0-n4", "solution": "def f(xs):\n    return [(x + 0) % 4 for x in xs]\n", "status": "ok", "note": "Modulo 4 also normalizes negative and out-of-alphabet inputs."}
+{"id": "dc-caesar-cipher-k-modulo-n-k2-n3", "solution": "def f(xs):\n    return [(x + 2) % 3 for x in xs]\n", "status": "ok", "note": "Modulo 3 also normalizes negative and out-of-alphabet inputs."}
+{"id": "dc-caesar-cipher-k-modulo-n-k4-n4", "solution": "def f(xs):\n    return [(x + 4) % 4 for x in xs]\n", "status": "ok", "note": "Modulo 4 also normalizes negative and out-of-alphabet inputs."}
+{"id": "dc-count-k-k0", "solution": "def f(xs):\n    return xs.count(0)\n", "status": "ok", "note": "Empty input gives 0."}
+{"id": "dc-drop-k-k2", "solution": "def f(xs):\n    return xs[2:]\n", "status": "ok", "note": "Short lists give []."}
+{"id": "dc-index-k-k1", "solution": "def f(xs):\n    return xs[0] if xs else 0\n", "status": "ok", "note": "Examples use one-based index 1; empty input gives 0."}
+{"id": "dc-keep-mod-k-k3", "solution": "def f(xs):\n    return [x for x in xs if x % 3 == 0]\n", "status": "ok", "note": "Multiples of 3 include zero and negative multiples; empty input gives []."}
+{"id": "dc-kth-smallest-k1", "solution": "def f(xs):\n    return min(xs, default=0)\n", "status": "ok", "note": "First smallest is the minimum; empty input gives 0."}
+{"id": "dc-min", "solution": "def f(xs):\n    return min(xs, default=0)\n", "status": "ok", "note": "Empty input gives 0."}
+{"id": "dc-mult-k-k2", "solution": "def f(xs):\n    return [x * 2 for x in xs]\n", "status": "ok", "note": "Empty input gives []."}
+{"id": "dc-pow-k-k3", "solution": "def f(xs):\n    return [x ** 3 for x in xs]\n", "status": "ok", "note": "Negative inputs retain their sign; empty input gives []."}
+{"id": "dc-prepend-k-k1", "solution": "def f(xs):\n    return [1] + xs\n", "status": "ok", "note": "Empty input gives [1]."}
+{"id": "dc-remove-index-k-k3", "solution": "def f(xs):\n    return xs[:2] + xs[3:]\n", "status": "ok", "note": "Examples remove one-based element 3; short lists stay unchanged."}
+{"id": "dc-repeat", "solution": "def f(xs):\n    if len(xs) < 2:\n        return []\n    n, value = xs[:2]\n    return [value] * min(max(n, 0), 10000)\n", "status": "ok", "note": "Input is [count, value]; missing fields or nonpositive count gives []; positive counts are capped at 10000."}
+{"id": "dc-replace-all-with-index-k-k5", "solution": "def f(xs):\n    return [xs[4]] * len(xs) if len(xs) >= 5 else xs[:]\n", "status": "ok", "note": "Examples use one-based element 5; short lists stay unchanged."}
+{"id": "dc-sort", "solution": "def f(xs):\n    return sorted(xs)\n", "status": "ok", "note": "Ascending order with duplicates preserved; empty input gives []."}

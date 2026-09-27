@@ -1,0 +1,47 @@
+{"id": "lf-c004", "solution": "def f(xs):\n    return xs[6:7]\n", "status": "ok", "note": "element 7 is position 6; short lists give []"}
+{"id": "lf-c012", "solution": "def f(xs):\n    return xs[1:4]\n", "status": "ok", "note": "positions 2 through 4 inclusive; short lists truncate"}
+{"id": "lf-c020", "solution": "def f(xs):\n    return [xs[-1]] + xs[1:] if xs else []\n", "status": "ok", "note": "empty list remains empty"}
+{"id": "lf-c028", "solution": "def f(xs):\n    if len(xs) < 2:\n        return xs[:]\n    i = 1 if xs[0] > xs[1] else 2\n    return xs[:i] + xs[i + 1:]\n", "status": "ok", "note": "one-based positions; missing removal position leaves list unchanged"}
+{"id": "lf-c036", "solution": "def f(xs):\n    ys = xs[:]\n    if len(ys) >= 3 and ys[1] > ys[2]:\n        ys[1], ys[2] = ys[2], ys[1]\n    elif len(ys) >= 4:\n        ys[0], ys[3] = ys[3], ys[0]\n    return ys\n", "status": "ok", "note": "one-based positions; unavailable swap leaves list unchanged"}
+{"id": "lf-c044", "solution": "def f(xs):\n    return [1, 9, 4, 3, 2, 5, 8, 0, 4, 9]\n", "status": "ok", "note": "constant list, including for empty input"}
+{"id": "lf-c054", "solution": "def f(xs):\n    return [xs[2], xs[2]] + xs[2:] if len(xs) >= 3 else xs[:]\n", "status": "ok", "note": "without element 3, leave list unchanged"}
+{"id": "lf-c062", "solution": "def f(xs):\n    return xs[:-1]\n", "status": "ok", "note": "empty list remains empty"}
+{"id": "lf-c074", "solution": "def f(xs):\n    return [x for x in xs if x >= 8]\n", "status": "ok", "note": "preserves order and duplicates; empty list gives []"}
+{"id": "lf-c082", "solution": "def f(xs):\n    return xs[2:3]\n", "status": "ok", "note": "element 3 is position 2; short lists give []"}
+{"id": "lf-c090", "solution": "def f(xs):\n    return [18, 42, 77, 20, 36]\n", "status": "ok", "note": "constant list, including for empty input"}
+{"id": "lf-c100", "solution": "def f(xs):\n    return xs[::-1]\n", "status": "ok", "note": "empty list remains empty"}
+{"id": "lf-c108", "solution": "def f(xs):\n    return [sum(xs)]\n", "status": "ok", "note": "output is a singleton list; empty sum gives [0]"}
+{"id": "lf-c119", "solution": "def f(xs):\n    ys = xs[:]\n    if not ys or ys[0] != 8:\n        ys.insert(0, 8)\n    if ys[-1] != 8:\n        ys.append(8)\n    return ys\n", "status": "ok", "note": "empty list becomes [8], which both begins and ends with 8"}
+{"id": "lf-c127", "solution": "def f(xs):\n    return xs[:-1]\n", "status": "ok", "note": "empty list remains empty"}
+{"id": "lf-c135", "solution": "def f(xs):\n    ys = xs[:]\n    if 7 in ys:\n        ys.remove(7)\n    return ys\n", "status": "ok", "note": "remove only first occurrence; absent 7 leaves list unchanged"}
+{"id": "lf-c144", "solution": "def f(xs):\n    if not xs:\n        return []\n    lo, hi = min(xs), max(xs)\n    d = abs(hi - lo)\n    return [d if x == lo or x == hi else x for x in xs]\n", "status": "ok", "note": "empty list gives []; singleton becomes [0]"}
+{"id": "lf-c156", "solution": "def f(xs):\n    return [x + i for i, x in enumerate(reversed(xs), 1)]\n", "status": "ok", "note": "new indices start at 1; empty list gives []"}
+{"id": "lf-c165", "solution": "def f(xs):\n    return [x for x in reversed(xs) if x % 2 == 0]\n", "status": "ok", "note": "negative even numbers are retained; empty list gives []"}
+{"id": "lf-c173", "solution": "def f(xs):\n    out = []\n    for x in xs:\n        out.append(max(out[-1], x) if out else x)\n    return out\n", "status": "ok", "note": "running prefix maximum; empty list gives []"}
+{"id": "lf-c181", "solution": "def f(xs):\n    ys = xs[:]\n    ys[1::2] = ys[1::2][::-1]\n    return ys\n", "status": "ok", "note": "even indices are one-based positions 2, 4, etc.; empty list gives []"}
+{"id": "lf-c190", "solution": "def f(xs):\n    if not xs or xs[-1] < xs[0]:\n        return []\n    n = min((xs[-1] - xs[0]) // 2 + 1, 10000)\n    return [xs[0] + 2 * i for i in range(n)]\n", "status": "ok", "note": "empty or descending bounds give []; cap at 10000 terms"}
+{"id": "lf-c200", "solution": "def f(xs):\n    return sorted((abs(x) // 10) % 10 for x in xs)\n", "status": "ok", "note": "tens digit uses magnitude; empty list gives []"}
+{"id": "lf-c208", "solution": "def f(xs):\n    if not xs or xs[-1] <= 0:\n        return []\n    return xs[-xs[-1]:]\n", "status": "ok", "note": "zero or negative N gives []; N beyond length keeps all"}
+{"id": "lf-c216", "solution": "def f(xs):\n    return sorted(xs, key=lambda x: (abs(x) // 10) % 10)\n", "status": "ok", "note": "stable sort by magnitude tens digit; ties retain input order"}
+{"id": "lf-c224", "solution": "def f(xs):\n    return xs[::-2] + xs[len(xs) % 2::2]\n", "status": "ok", "note": "given examples order last, third-last, etc., then remaining positions forward; empty gives []"}
+{"id": "lf-c233", "solution": "def f(xs):\n    counts = {}\n    for x in xs:\n        counts[x] = counts.get(x, 0) + 1\n    return list(counts.values())\n", "status": "ok", "note": "unique values follow first appearance; empty gives []"}
+{"id": "lf-c242", "solution": "def f(xs):\n    ys = sorted(set(xs), reverse=True)\n    return ys[-2::-2] + ys[(len(ys) + 1) % 2::2]\n", "status": "ok", "note": "largest starts in center; alternate smaller ranks left and right; empty gives []"}
+{"id": "lf-c250", "solution": "def f(xs):\n    out, part = [], []\n    for x in xs:\n        if x == 0:\n            out.extend(reversed(part))\n            part = []\n        else:\n            part.append(x)\n    out.extend(reversed(part))\n    return out\n", "status": "ok", "note": "zeros are delimiters and omitted; empty sublists contribute nothing"}
+{"id": "dc-append-index-k-k2", "solution": "def f(xs):\n    return xs + xs[1:2]\n", "status": "ok", "note": "k=2 is one-based; short lists remain unchanged"}
+{"id": "dc-append-k-k5", "solution": "def f(xs):\n    return xs + [5]\n", "status": "ok", "note": "empty list becomes [5]"}
+{"id": "dc-caesar-cipher-k-modulo-n-k1-n3", "solution": "def f(xs):\n    return [(x + 1) % 3 for x in xs]\n", "status": "ok", "note": "Python modulo handles negative values; empty gives []"}
+{"id": "dc-caesar-cipher-k-modulo-n-k3-n2", "solution": "def f(xs):\n    return [(x + 3) % 2 for x in xs]\n", "status": "ok", "note": "Python modulo handles negative values; empty gives []"}
+{"id": "dc-caesar-cipher-k-modulo-n-k5-n3", "solution": "def f(xs):\n    return [(x + 5) % 3 for x in xs]\n", "status": "ok", "note": "Python modulo handles negative values; empty gives []"}
+{"id": "dc-count-k-k4", "solution": "def f(xs):\n    return xs.count(4)\n", "status": "ok", "note": "empty list counts 0"}
+{"id": "dc-evens", "solution": "def f(xs):\n    return [x for x in xs if x % 2 == 0]\n", "status": "ok", "note": "negative even numbers retained; empty gives []"}
+{"id": "dc-index-k-k5", "solution": "def f(xs):\n    return xs[4] if len(xs) >= 5 else 0\n", "status": "ok", "note": "k=5 is one-based; missing element gives 0"}
+{"id": "dc-kth-largest-k2", "solution": "def f(xs):\n    return sorted(xs, reverse=True)[1] if len(xs) >= 2 else (xs[0] if xs else 0)\n", "status": "ok", "note": "duplicates count toward rank; short list uses its extreme or 0"}
+{"id": "dc-kth-smallest-k5", "solution": "def f(xs):\n    ys = sorted(xs)\n    return ys[4] if len(ys) >= 5 else (ys[-1] if ys else 0)\n", "status": "ok", "note": "duplicates count toward rank; short list uses its extreme or 0"}
+{"id": "dc-modulo-k-k4", "solution": "def f(xs):\n    return [x % 4 for x in xs]\n", "status": "ok", "note": "Python modulo handles negative values; empty gives []"}
+{"id": "dc-odds", "solution": "def f(xs):\n    return [x for x in xs if x % 2 != 0]\n", "status": "ok", "note": "negative odd numbers retained; empty gives []"}
+{"id": "dc-prepend-index-k-k2", "solution": "def f(xs):\n    return xs[1:2] + xs\n", "status": "ok", "note": "k=2 is one-based; short lists remain unchanged"}
+{"id": "dc-prepend-k-k5", "solution": "def f(xs):\n    return [5] + xs\n", "status": "ok", "note": "empty list becomes [5]"}
+{"id": "dc-remove-mod-k-k2", "solution": "def f(xs):\n    return [x for x in xs if x % 2 != 0]\n", "status": "ok", "note": "remove multiples of 2, including negative evens; empty gives []"}
+{"id": "dc-replace-all-with-index-k-k1", "solution": "def f(xs):\n    return [xs[0]] * len(xs) if xs else []\n", "status": "ok", "note": "k=1 is one-based; empty gives []"}
+{"id": "dc-slice-k-n-k1-n3", "solution": "def f(xs):\n    return xs[:3]\n", "status": "ok", "note": "slice starts at one-based position 1; short lists truncate"}
+{"id": "dc-take-k-k2", "solution": "def f(xs):\n    return xs[:2]\n", "status": "ok", "note": "short lists truncate"}

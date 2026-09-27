@@ -1,0 +1,1 @@
+Wrote [refs_r6.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/refs_r6.jsonl) with all 47 assigned references. Every reference passed `--reference`; edge-input checks also returned valid int or flat-list outputs.

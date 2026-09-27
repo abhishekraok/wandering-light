@@ -1,0 +1,1 @@
+Wrote [refs_r8.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/refs_r8.jsonl) with one reference for each of the 46 assigned IDs. Every reference passed its `--reference` check; schema and sampled edge-input checks also passed.
