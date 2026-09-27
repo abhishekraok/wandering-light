@@ -923,6 +923,11 @@ Per-step deficit by step kind, fused → staged: `body` (under an open mark) 0.1
 | Policy scoring, beam 64, CPU | ~80x from 90K to 125M | same |
 | CPU/CUDA crossover | ~1M–10M params | same |
 | Unsolved task, beam 64 × depth 48 on `mark-28` (2,957 expansions) | 1m / 2m / 10m: 4.0 / 5.5 / 8.9 s CPU (8 threads), 3.0 / 3.1 / 3.6 s CUDA | [report](../reports/compute-optimal-mark28-20260903/README.md) |
+| Authoring witnesses, `gpt-6-sol` xhigh via `codex exec`, 16 authors | 395 / 401 verified (96 staged / 78 plain / 221 over the #155 caps); $16.47 at list price ($2 / $10 per 1M, cached input at 10%), ~$0.042 per behaviour; **5% of the Codex Pro 5x weekly limit** (3% → 8%, read from `~/.codex/sessions` rate-limit events); ~20 min wall | [distinct-programs (#174)](../../issues/174) |
+| Authoring Python references for pool behaviours, same model, 8 authors | 532 attempted, $2.32, ~$0.004 each; 1% of the Codex weekly limit (2% → 3%) | same |
+| Authoring witnesses, `claude-opus-5-5` medium via `claude -p`, 16 authors | 399 / 401 verified (207 staged / 91 plain / 101 over the caps); $49.32 from `claude -p` `total_cost_usd`, ~$0.124 per behaviour; **~4% of the Claude Max 20x weekly limit** (83% → 87%, `agent-pace`); ~15 min wall | same |
+| **Per 1,000 new behaviours** (references + witnesses, extrapolated) | Sol: ~$50, ~15% of the Codex weekly limit. Opus 5.5: ~$125-130, ~10% of the Claude weekly limit | same |
+| 40-task v4 sample, 13 `codex exec` arms (gpt-5.6 sol / terra / luna sweep) plus 10 `claude -p` Fable arms (2 stopped early), 2026-09-27 | Codex weekly 21% → 46% over the window (includes one Codex branch review); Fable meter 16% of its weekly limit | [effort-sweep report](../reports/stack-pbe-v4-effort-sweep-20260927/README.md) |
 
 ## Legacy typed-list line (2026-08-10)
 
