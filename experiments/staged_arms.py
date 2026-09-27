@@ -101,15 +101,9 @@ CAPPED_FILE = REPO / "reports" / "short-segment-20260923" / "train_capped.jsonl"
 # distinct-programs (#174): v4-layout tasks for the new behaviours, written by
 # experiments/distinct_programs/build_tasks.py when authoring ends.
 NEW_TASKS_FILE = REPO / "reports" / "distinct-programs-20260926" / "tasks.jsonl"
-ARMS = (
-    "fused",
-    "refused",
-    "staged",
-    "both",
-    "capped",
-    "staged_new",
-    "staged_new_fixed",
-)
+DEFAULT_ARMS = ("fused", "refused", "staged", "both", "capped")
+# Opt-in only: they need the gitignored NEW_TASKS_FILE.
+ARMS = (*DEFAULT_ARMS, "staged_new", "staged_new_fixed")
 SEEDS = (0, 1, 2)
 # epoch-selection-in-behaviours (#154): the best fixed epoch of the fused arm in
 # verified behaviours. Fixed in advance for every arm; validation CE is not used.
@@ -649,7 +643,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--device", default="cuda" if torch.cuda.is_available() else "cpu"
     )
-    parser.add_argument("--arms", default=",".join(ARMS))
+    parser.add_argument("--arms", default=",".join(DEFAULT_ARMS))
     parser.add_argument("--seeds", default=",".join(str(s) for s in SEEDS))
     parser.add_argument("--beam", type=int, default=co.BEAM_WIDTH)
     parser.add_argument("--depth", type=int, default=co.MAX_DEPTH)
