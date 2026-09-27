@@ -28,8 +28,8 @@ import experiments.staged_arms as sa
 from wandering_light.stack_policy import validation_skeleton
 
 
-def train_text(arm: str, tasks) -> set[str]:
-    side = sa.treated(keep_contrived=False)
+def train_text(arm: str, tasks, keep_contrived: bool = False) -> set[str]:
+    side = sa.capped_programs() if arm == "capped" else sa.treated(keep_contrived)
     fit = [t for t in tasks if t.split == "train" and not validation_skeleton(t)]
     fused = {" ".join(t.program) for t in fit}
     key = "refused_program" if arm == "refused" else "program"
@@ -58,13 +58,16 @@ def main(argv: list[str] | None = None) -> int:
         for row in json.loads(args.verdicts.read_text())["programs"]
     }
     tasks = co.corpus()
-    texts: dict[str, set[str]] = {}
+    texts: dict[tuple[str, bool], set[str]] = {}
     per_arm: dict[str, list[dict]] = defaultdict(list)
     for path in sorted((args.run_dir / "timing").glob("*.json")):
         cell = json.loads(path.read_text())
         arm = cell["arm"]
-        if arm not in texts:
-            texts[arm] = train_text(arm, tasks)
+        policy = f"{arm}-s{cell['seed']}-e{cell['policy_epoch']}"
+        manifest = args.run_dir / "policies" / policy / "training_manifest.json"
+        keep = json.loads(manifest.read_text())["keep_contrived"]
+        if (arm, keep) not in texts:
+            texts[arm, keep] = train_text(arm, tasks, keep)
         solving: dict[str, set[str]] = defaultdict(set)
         for r in cell["rows"]:
             text = " ".join(r["program"] or ())
@@ -73,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
         novel = {
             b
             for b, ps in solving.items()
-            if any(not contained(p, texts[arm]) for p in ps)
+            if any(not contained(p, texts[arm, keep]) for p in ps)
         }
         per_arm[arm].append(
             {
