@@ -393,6 +393,16 @@ Per-cycle diagnostic, oracle sub-goal (next closed state as the search target), 
 | fused | 500 | 0.445 | 0.308 | 0.152 | 45 of 110, 0.86 | 65 rows / 13 distinct, 0.16 |
 | staged | 750 | 0.914 | 1.000 | 0.795 | 275 of 305, 0.99 | 30 rows / 6 distinct, 0.20 |
 
+## More distinct programs on top of staged witnesses (#174)
+
+395 new behaviours from public pools (list_functions, DreamCoder, LambdaBeam, MBPP/CodeARC), references and `mark-28` witnesses by `gpt-6-sol` xhigh, audited against v4 (duplicates and ≥0.8 matches to eval-cohort behaviours dropped), 40 tasks each. Recipe and cohort as #155 below. `staged_new` scales rows with task count (3.5x, exposure-matched); `_fixed` keeps 313,560 rows (compute-matched). Registered falsifier: verified ≥ staged + 2 and novel ≥ staged + 3 — **not met**. [report](../reports/distinct-programs-20260926/README.md), [distinct-programs (#174)](../../issues/174)
+
+| arm | graded tasks /300 | verified tasks | verified behaviours /43 | union over seeds | by a program found nowhere in the arm's train text | only by a contained program |
+|---|---|---|---|---:|---|---|
+| staged | 139.7 (143 / 128 / 148) | 137.7 | 15.67 (16 / 16 / 15) | 16 | 4.33 | 11.33 |
+| staged_new | 115.7 (116 / 113 / 118) | 112.3 | 15.67 (16 / 15 / 16) | 17 | 5.00 | 10.67 |
+| staged_new_fixed | 142.0 (126 / 140 / 160) | 136.0 | 14.67 (14 / 15 / 15) | 16 | 2.00 | 12.67 |
+
 ## Staged and re-fused witnesses for the v4 train behaviours (#155)
 
 153 train behaviours of 12+ fused ops rewritten by Claude Opus 5 authors under three rules (no quotation over 8 atoms, no write run over 12 steps, at most 4 top-level non-write steps between a quotation's `]` and the combinator that runs it); every program and its re-fused twin verified against the Python reference and all 40 tasks' pairs. Staged = within the rules and (2+ more post-execution closed states, or the fused witness broke a rule). Side file `experiments/staged_witnesses/v4.jsonl`. [report](../reports/staged-full-20260920/README.md), [pilot](../reports/staged-pilot-20260920/README.md), [staged-witness-reauthoring (#155)](../../issues/155)

@@ -1,0 +1,105 @@
+{
+ "staged": [
+  {
+   "seed": 0,
+   "verified": 16,
+   "novel": 4,
+   "novel_behaviours": [
+    "all_positive",
+    "count_in_range",
+    "largest_inside_interval",
+    "negate_each"
+   ]
+  },
+  {
+   "seed": 1,
+   "verified": 16,
+   "novel": 6,
+   "novel_behaviours": [
+    "all_positive",
+    "count_in_range",
+    "keep_zeros",
+    "largest_inside_interval",
+    "negate_each",
+    "sum_negative"
+   ]
+  },
+  {
+   "seed": 2,
+   "verified": 15,
+   "novel": 3,
+   "novel_behaviours": [
+    "all_positive",
+    "count_in_range",
+    "negate_each"
+   ]
+  }
+ ],
+ "staged_new": [
+  {
+   "seed": 0,
+   "verified": 16,
+   "novel": 3,
+   "novel_behaviours": [
+    "all_positive",
+    "largest_inside_interval",
+    "min_pair"
+   ]
+  },
+  {
+   "seed": 1,
+   "verified": 15,
+   "novel": 7,
+   "novel_behaviours": [
+    "all_positive",
+    "drop_last",
+    "keep_negative",
+    "largest_inside_interval",
+    "min_pair",
+    "negate_each",
+    "sum_negative"
+   ]
+  },
+  {
+   "seed": 2,
+   "verified": 16,
+   "novel": 5,
+   "novel_behaviours": [
+    "all_positive",
+    "count_in_range",
+    "increment_each",
+    "largest_inside_interval",
+    "sum_negative"
+   ]
+  }
+ ],
+ "staged_new_fixed": [
+  {
+   "seed": 0,
+   "verified": 14,
+   "novel": 1,
+   "novel_behaviours": [
+    "largest_inside_interval"
+   ]
+  },
+  {
+   "seed": 1,
+   "verified": 15,
+   "novel": 3,
+   "novel_behaviours": [
+    "count_in_range",
+    "largest_inside_interval",
+    "min_pair"
+   ]
+  },
+  {
+   "seed": 2,
+   "verified": 15,
+   "novel": 2,
+   "novel_behaviours": [
+    "largest_inside_interval",
+    "n_minus_each"
+   ]
+  }
+ ]
+}
