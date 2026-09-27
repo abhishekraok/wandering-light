@@ -395,7 +395,7 @@ Per-cycle diagnostic, oracle sub-goal (next closed state as the search target), 
 
 ## More distinct programs on top of staged witnesses (#174)
 
-395 new behaviours from public pools (list_functions, DreamCoder, LambdaBeam, MBPP/CodeARC), references and `mark-28` witnesses by `gpt-6-sol` xhigh, audited against v4 (duplicates and ≥0.8 matches to eval-cohort behaviours dropped), 40 tasks each. Recipe and cohort as #155 below. `staged_new` scales rows with task count (3.5x, exposure-matched); `_fixed` keeps 313,560 rows (compute-matched). Registered falsifier: verified ≥ staged + 2 and novel ≥ staged + 3 — **not met**. [report](../reports/distinct-programs-20260926/README.md), [distinct-programs (#174)](../../issues/174)
+395 new behaviours from public pools (list_functions, DreamCoder, LambdaBeam, MBPP/CodeARC), references and `mark-28` witnesses by `gpt-6-sol` xhigh, audited against v4 (duplicates and ≥0.8 matches to eval-cohort behaviours dropped), 40 tasks each. Recipe and cohort as #155 below. `staged_new` scales rows with task count (3.5x, exposure-matched); `_fixed` keeps 313,560 rows (compute-matched). Registered falsifier: verified ≥ staged + 2 and novel ≥ staged + 3 — **not met**. One eval behaviour leaked through the audit (`prefix_sums`, a stage of a new witness, verified in `staged_new` s0 and `_fixed` s2, contained); without it `staged_new` is 15.33 and `_fixed` 14.33. [report](../reports/distinct-programs-20260926/README.md), [distinct-programs (#174)](../../issues/174)
 
 | arm | graded tasks /300 | verified tasks | verified behaviours /43 | union over seeds | by a program found nowhere in the arm's train text | only by a contained program |
 |---|---|---|---|---:|---|---|

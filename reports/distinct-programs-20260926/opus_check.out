@@ -1,0 +1,417 @@
+{"id": "dc-count-k-k5", "verified": true, "passed": "30/30", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c061", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c187", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "dc-append-index-k-k3", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c221", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-remove-mod-k-k4", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lb-047", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "dc-drop-k-k3", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c017", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c123", "verified": true, "passed": "41/41", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c184", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c219", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c060", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c211", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c125", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-037", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lb-066", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lb-060", "verified": true, "passed": "29/29", "verdict": "staged", "broken_rules": []}
+{"id": "lb-068", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 28 atoms (max 8)", "a write run of 34 steps (max 12)"]}
+{"id": "lf-c216", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 41 atoms (max 8)", "a write run of 47 steps (max 12)"]}
+{"id": "lf-c110", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 28 atoms (max 8)", "a write run of 34 steps (max 12)"]}
+{"id": "lf-c175", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 19 atoms (max 8)", "a write run of 27 steps (max 12)"]}
+{"id": "mbpp-922", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 32 atoms (max 8)", "a write run of 39 steps (max 12)"]}
+{"id": "lf-c141", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c152", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c234", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 15 atoms (max 8)", "a write run of 19 steps (max 12)"]}
+26 of 26 rows verify or are declared unsolved
+{"id": "lb-019", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-701", "verified": true, "passed": "20/20", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c223", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c078", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-876", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lb-090", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 14 atoms (max 8)", "a write run of 19 steps (max 12)"]}
+{"id": "lf-c137", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lb-007", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "dc-prepend-index-k-k2", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c222", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-index-k-k4", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lb-018", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "lb-064", "verified": true, "passed": "29/29", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-17", "verified": true, "passed": "19/19", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c245", "verified": true, "passed": "37/37", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c165", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c226", "verified": true, "passed": "43/43", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-244", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "dc-prepend-index-k-k4", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c181", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c099", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "dc-index-head", "verified": true, "passed": "35/35", "verdict": "staged", "broken_rules": []}
+{"id": "dc-repeat-k-k2", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c005", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-026", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+25 of 25 rows verify or are declared unsolved
+{"id": "dc-pow-k-k4", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lb-015", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c029", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-227", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "dc-prepend-index-k-k1", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c194", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c075", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c240", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c207", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-022", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c229", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-004", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lb-097", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lb-084", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c055", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-556", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "dc-fibonacci", "verified": true, "passed": "22/22", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c197", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 17 atoms (max 8)"]}
+{"id": "lb-011", "verified": true, "passed": "29/29", "verdict": "rule_break", "broken_rules": ["a quotation of 28 atoms (max 8)", "a write run of 34 steps (max 12)"]}
+{"id": "dc-kth-largest-k5", "verified": true, "passed": "39/39", "verdict": "rule_break", "broken_rules": ["a quotation of 28 atoms (max 8)", "a write run of 34 steps (max 12)"]}
+{"id": "dc-kth-smallest-k5", "verified": true, "passed": "39/39", "verdict": "rule_break", "broken_rules": ["a quotation of 28 atoms (max 8)", "a write run of 34 steps (max 12)"]}
+{"id": "lf-c213", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 28 atoms (max 8)", "a write run of 34 steps (max 12)"]}
+{"id": "lb-005", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 28 atoms (max 8)", "a write run of 34 steps (max 12)"]}
+{"id": "lf-c033", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 20 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "mbpp-415", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 29 atoms (max 8)", "a write run of 34 steps (max 12)"]}
+25 of 25 rows verify or are declared unsolved
+{"id": "dc-modulo-k-k4", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lb-045", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 26 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "lb-043", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "dc-keep-mod-k-k5", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c052", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "dc-caesar-cipher-k-modulo-n-k3-n5", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-291", "verified": true, "passed": "25/25", "verdict": "rule_break", "broken_rules": ["a quotation of 20 atoms (max 8)", "a write run of 27 steps (max 12)"]}
+{"id": "lf-c242", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 26 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "mbpp-430", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "dc-append-index-k-k4", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "dc-add-k-k4", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lb-081", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c133", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-kth-smallest-k2", "verified": true, "passed": "39/39", "verdict": "rule_break", "broken_rules": ["a quotation of 26 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "lf-c185", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-571", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 26 atoms (max 8)", "a write run of 33 steps (max 12)"]}
+{"id": "dc-prepend-k-k3", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lb-057", "verified": true, "passed": "29/29", "verdict": "staged", "broken_rules": []}
+{"id": "lb-085", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c154", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 16 atoms (max 8)", "a write run of 21 steps (max 12)"]}
+{"id": "dc-kth-largest-k4", "verified": true, "passed": "39/39", "verdict": "rule_break", "broken_rules": ["a quotation of 26 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "mbpp-177", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "lb-009", "verified": true, "passed": "29/29", "verdict": "rule_break", "broken_rules": ["a quotation of 26 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "lf-c231", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 26 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "lf-c183", "verified": true, "passed": "44/44", "verdict": "staged", "broken_rules": []}
+25 of 25 rows verify or are declared unsolved
+{"id": "lb-024", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 24 atoms (max 8)", "a write run of 28 steps (max 12)"]}
+{"id": "mbpp-554", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "dc-drop-k-k4", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "codearc-645", "verified": true, "passed": "34/34", "verdict": "plain", "broken_rules": []}
+{"id": "dc-pow-k-k5", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c158", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-673", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-918", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 29 atoms (max 8)", "a write run of 37 steps (max 12)"]}
+{"id": "dc-remove-index-k-k4", "verified": true, "passed": "39/39", "verdict": "rule_break", "broken_rules": ["a quotation of 20 atoms (max 8)", "a write run of 26 steps (max 12)"]}
+{"id": "mbpp-122", "status": "unsolved"}
+{"id": "lb-048", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "mbpp-540", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 24 atoms (max 8)", "a write run of 28 steps (max 12)"]}
+{"id": "lb-000", "verified": true, "passed": "29/29", "verdict": "rule_break", "broken_rules": ["a quotation of 24 atoms (max 8)", "a write run of 28 steps (max 12)"]}
+{"id": "lb-014", "verified": true, "passed": "29/29", "verdict": "staged", "broken_rules": []}
+{"id": "lb-093", "verified": true, "passed": "29/29", "verdict": "staged", "broken_rules": []}
+{"id": "dc-count-k-k1", "verified": true, "passed": "23/23", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c098", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c225", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-kth-smallest-k4", "verified": true, "passed": "39/39", "verdict": "rule_break", "broken_rules": ["a quotation of 24 atoms (max 8)", "a write run of 28 steps (max 12)"]}
+{"id": "codearc-688", "verified": true, "passed": "24/24", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c224", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lb-010", "verified": true, "passed": "29/29", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c122", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "codearc-35", "verified": true, "passed": "34/34", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c144", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 22 atoms (max 8)", "a write run of 27 steps (max 12)"]}
+25 of 25 rows verify or are declared unsolved
+{"id": "lf-c114", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "dc-take-k-k5", "verified": true, "passed": "39/39", "verdict": "rule_break", "broken_rules": ["a write run of 14 steps (max 12)"]}
+{"id": "lf-c228", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c117", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c054", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c209", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 26 atoms (max 8)", "a write run of 38 steps (max 12)"]}
+{"id": "lf-c206", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-append-k-k2", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "dc-append-k-k4", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lb-087", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 13 atoms (max 8)", "a write run of 18 steps (max 12)"]}
+{"id": "dc-append-index-k-k2", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "dc-keep-mod-k-k4", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "dc-caesar-cipher-k-modulo-n-k4-n5", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c179", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 25 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "dc-prepend-index-k-k3", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lb-074", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 29 atoms (max 8)", "a write run of 40 steps (max 12)"]}
+{"id": "lf-c129", "verified": true, "passed": "53/53", "verdict": "rule_break", "broken_rules": ["a quotation of 20 atoms (max 8)", "a write run of 26 steps (max 12)"]}
+{"id": "lf-c203", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a write run of 13 steps (max 12)"]}
+{"id": "dc-repeat-k-k1", "status": "solved"}
+{"id": "dc-index-k-k2", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lb-063", "verified": true, "passed": "29/29", "verdict": "rule_break", "broken_rules": ["a quotation of 22 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "lf-c143", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 14 atoms (max 8)", "a write run of 17 steps (max 12)"]}
+{"id": "lf-c018", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a write run of 15 steps (max 12)"]}
+{"id": "codearc-414", "verified": true, "passed": "34/34", "verdict": "rule_break", "broken_rules": ["a quotation of 25 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "mbpp-952", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a write run of 13 steps (max 12)"]}
+25 of 25 rows verify or are declared unsolved
+{"id": "lf-c166", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 36 atoms (max 8)", "a write run of 41 steps (max 12)"]}
+{"id": "lf-c172", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-059", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 22 atoms (max 8)", "a write run of 27 steps (max 12)"]}
+{"id": "lf-c053", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-add-k-k3", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "dc-caesar-cipher-k-modulo-n-k1-n3", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c001", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c096", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c153", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 13 atoms (max 8)", "a write run of 18 steps (max 12)"]}
+{"id": "lf-c022", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "codearc-386", "verified": true, "passed": "34/34", "verdict": "staged", "broken_rules": []}
+{"id": "dc-prepend-k-k4", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lb-006", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c200", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 22 atoms (max 8)", "a write run of 27 steps (max 12)"]}
+{"id": "dc-slice-k-n-k2-n1", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c132", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-055", "verified": true, "passed": "10/10", "verdict": "staged", "broken_rules": []}
+{"id": "dc-drop-k-k5", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lb-049", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 15 atoms (max 8)"]}
+{"id": "lb-075", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c013", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c024", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c239", "verified": true, "passed": "42/42", "verdict": "rule_break", "broken_rules": ["a quotation of 12 atoms (max 8)", "a write run of 18 steps (max 12)"]}
+{"id": "lf-c109", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lb-073", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a write run of 13 steps (max 12)"]}
+25 of 25 rows verify or are declared unsolved
+{"id": "lf-c236", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c065", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "dc-slice-k-n-k1-n3", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lb-099", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "dc-range", "verified": true, "passed": "18/18", "verdict": "staged", "broken_rules": []}
+{"id": "lb-061", "verified": true, "passed": "29/29", "verdict": "rule_break", "broken_rules": ["a write run of 28 steps (max 12)"]}
+{"id": "dc-append-k-k5", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c043", "verified": true, "passed": "36/36", "verdict": "plain", "broken_rules": []}
+{"id": "lb-003", "verified": true, "passed": "29/29", "verdict": "plain", "broken_rules": []}
+{"id": "lb-053", "verified": true, "passed": "29/29", "verdict": "staged", "broken_rules": []}
+{"id": "lb-027", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "lb-046", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-883", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c155", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c020", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c039", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-505", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c201", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c246", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-kth-smallest-k3", "verified": true, "passed": "39/39", "verdict": "rule_break", "broken_rules": ["a quotation of 22 atoms (max 8)", "a write run of 28 steps (max 12)"]}
+{"id": "lf-c128", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 22 atoms (max 8)", "a write run of 28 steps (max 12)"]}
+{"id": "lf-c182", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c131", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 9 atoms (max 8)", "a write run of 14 steps (max 12)"]}
+{"id": "lf-c113", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 9 atoms (max 8)", "a write run of 14 steps (max 12)"]}
+{"id": "dc-repeat", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+25 of 25 rows verify or are declared unsolved
+{"id": "dc-caesar-cipher-k-modulo-n-k2-n4", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-399", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "dc-mult-k-k3", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c046", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c041", "verified": true, "passed": "36/36", "verdict": "plain", "broken_rules": []}
+{"id": "lb-050", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-625", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c090", "verified": true, "passed": "36/36", "verdict": "plain", "broken_rules": []}
+{"id": "mbpp-654", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "lb-082", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c115", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c058", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-append-index-k-k1", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c177", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-089", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 55 atoms (max 8)", "a write run of 27 steps (max 12)"]}
+{"id": "lf-c067", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-caesar-cipher-k-modulo-n-k1-n5", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lb-094", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "mbpp-901", "verified": true, "passed": "22/22", "verdict": "rule_break", "broken_rules": ["a quotation of 39 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "lf-c063", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c027", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-261", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lb-091", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 18 atoms (max 8)", "a write run of 23 steps (max 12)"]}
+{"id": "mbpp-258", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "dc-slice-k-n-k1-n2", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+25 of 25 rows verify or are declared unsolved
+{"id": "mbpp-793", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 107 atoms (max 8)", "a write run of 55 steps (max 12)"]}
+{"id": "lf-c190", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-096", "verified": true, "passed": "25/25", "verdict": "staged", "broken_rules": []}
+{"id": "dc-append-k-k1", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c124", "verified": true, "passed": "36/36", "verdict": "staged", "broken_rules": []}
+{"id": "dc-count-k-k4", "verified": true, "passed": "26/26", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c118", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-098", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 34 atoms (max 8)", "a write run of 21 steps (max 12)"]}
+{"id": "lb-088", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 16 atoms (max 8)", "a write run of 21 steps (max 12)"]}
+{"id": "lf-c105", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c038", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "dc-slice-k-n-k1-n1", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c050", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lb-039", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "dc-prepend-k-k0", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c138", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c149", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-mult-k-k4", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "dc-append-k-k0", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c101", "verified": true, "passed": "36/36", "verdict": "plain", "broken_rules": []}
+{"id": "dc-keep-mod-head", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "dc-count-k-k3", "verified": true, "passed": "24/24", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c248", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 11 atoms (max 8)", "a write run of 16 steps (max 12)"]}
+{"id": "dc-caesar-cipher-k-modulo-n-k0-n5", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c059", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 46 atoms (max 8)", "a write run of 57 steps (max 12)"]}
+25 of 25 rows verify or are declared unsolved
+{"id": "lb-041", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 24 atoms (max 8)", "a write run of 29 steps (max 12)"]}
+{"id": "dc-caesar-cipher-k-modulo-n-k2-n5", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "dc-prepend-k-k5", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c163", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c210", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 17 atoms (max 8)", "a write run of 23 steps (max 12)"]}
+{"id": "mbpp-441", "verified": true, "passed": "19/19", "verdict": "plain", "broken_rules": []}
+{"id": "dc-remove-mod-k-k3", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "dc-slice-k-n-k2-n2", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "dc-replace-all-with-index-k-k4", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c232", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-067", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "codearc-334", "verified": true, "passed": "34/34", "verdict": "rule_break", "broken_rules": ["a quotation of 26 atoms (max 8)", "a write run of 27 steps (max 12)"]}
+{"id": "lb-017", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "dc-replace-all-with-index-k-k2", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "dc-caesar-cipher-k-modulo-n-k1-n4", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c162", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-689", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 42 atoms (max 8)", "a write run of 49 steps (max 12)"]}
+{"id": "lb-034", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "codearc-354", "verified": true, "passed": "34/34", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-197", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 42 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "lb-008", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 24 atoms (max 8)", "a write run of 29 steps (max 12)"]}
+{"id": "dc-index-k-k5", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "dc-replace-all-with-index-k-k3", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c161", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c021", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+25 of 25 rows verify or are declared unsolved
+{"id": "lf-c193", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 21 atoms (max 8)", "a write run of 26 steps (max 12)"]}
+{"id": "lb-036", "verified": true, "passed": "29/29", "verdict": "rule_break", "broken_rules": ["a quotation of 21 atoms (max 8)", "a write run of 26 steps (max 12)"]}
+{"id": "lb-001", "verified": true, "passed": "29/29", "verdict": "rule_break", "broken_rules": ["a write run of 17 steps (max 12)"]}
+{"id": "lf-c180", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 21 atoms (max 8)", "a write run of 26 steps (max 12)"]}
+{"id": "lf-c192", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 9 atoms (max 8)", "a write run of 14 steps (max 12)"]}
+{"id": "codearc-372", "verified": true, "passed": "34/34", "verdict": "rule_break", "broken_rules": ["a quotation of 15 atoms (max 8)", "a write run of 19 steps (max 12)"]}
+{"id": "lf-c159", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 17 atoms (max 8)", "a write run of 15 steps (max 12)"]}
+{"id": "dc-index-k-k3", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c227", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 11 atoms (max 8)", "a write run of 14 steps (max 12)"]}
+{"id": "dc-remove-index-k-k5", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c204", "verified": true, "passed": "38/38", "verdict": "staged", "broken_rules": []}
+{"id": "lb-029", "verified": true, "passed": "29/29", "verdict": "rule_break", "broken_rules": ["a quotation of 29 atoms (max 8)", "a write run of 15 steps (max 12)"]}
+{"id": "lf-c134", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c220", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c164", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c140", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c188", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-032", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 11 atoms (max 8)", "a write run of 15 steps (max 12)"]}
+{"id": "lf-c243", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c040", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c028", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c003", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c208", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-369", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "lb-028", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 23 atoms (max 8)", "a write run of 13 steps (max 12)"]}
+25 of 25 rows verify or are declared unsolved
+{"id": "lf-c160", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c031", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-033", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lb-038", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "dc-caesar-cipher-k-modulo-n-k1-n2", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c215", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c168", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c249", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c176", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c238", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-844", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c010", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-remove-mod-k-k5", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "dc-caesar-cipher-k-modulo-n-k5-n3", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lb-020", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c196", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c032", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-062", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a write run of 13 steps (max 12)"]}
+{"id": "dc-modulo-k-k1", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c030", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c135", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 16 atoms (max 8)", "a write run of 21 steps (max 12)"]}
+{"id": "dc-kth-largest-k3", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-657", "verified": true, "passed": "12/12", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c250", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 14 atoms (max 8)", "a write run of 20 steps (max 12)"]}
+{"id": "lf-c139", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+25 of 25 rows verify or are declared unsolved
+{"id": "lf-c174", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 11 atoms (max 8)", "a write run of 14 steps (max 12)"]}
+{"id": "lf-c087", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-52", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "lb-056", "verified": true, "passed": "12/12", "verdict": "staged", "broken_rules": []}
+{"id": "dc-prepend-k-k2", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c057", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c088", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c079", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c076", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-repeat-many", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-898", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 22 atoms (max 8)", "a write run of 28 steps (max 12)"]}
+{"id": "codearc-653", "verified": true, "passed": "34/34", "verdict": "staged", "broken_rules": []}
+{"id": "lb-058", "verified": true, "passed": "11/11", "verdict": "staged", "broken_rules": []}
+{"id": "dc-take-k-k4", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c178", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-prepend-k-k1", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c089", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c202", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c195", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-caesar-cipher-k-modulo-n-k3-n4", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "dc-mult-k-k5", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c198", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 23 atoms (max 8)", "a write run of 28 steps (max 12)"]}
+{"id": "codearc-857", "verified": true, "passed": "34/34", "verdict": "rule_break", "broken_rules": ["a quotation of 23 atoms (max 8)", "a write run of 28 steps (max 12)"]}
+{"id": "lb-030", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c091", "verified": true, "passed": "36/36", "verdict": "plain", "broken_rules": []}
+25 of 25 rows verify or are declared unsolved
+{"id": "dc-append-k-k3", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "mbpp-270", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 10 atoms (max 8)", "a write run of 14 steps (max 12)"]}
+{"id": "lb-002", "verified": true, "passed": "29/29", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c217", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 35 atoms (max 8)", "a write run of 23 steps (max 12)"]}
+{"id": "lb-078", "verified": true, "passed": "29/29", "verdict": "rule_break", "broken_rules": ["a quotation of 10 atoms (max 8)", "a write run of 16 steps (max 12)"]}
+{"id": "lf-c247", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-count-k-k2", "verified": true, "passed": "23/23", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-45", "verified": true, "passed": "12/12", "verdict": "rule_break", "broken_rules": ["a quotation of 51 atoms (max 8)", "a write run of 66 steps (max 12)"]}
+{"id": "lf-c218", "verified": true, "passed": "44/44", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c233", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 15 atoms (max 8)", "a write run of 14 steps (max 12)"]}
+{"id": "lf-c136", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-083", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c071", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c167", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c025", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c169", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c074", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "dc-replace-all-with-index-k-k5", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-476", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "mbpp-47", "verified": true, "passed": "23/23", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c009", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c186", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c023", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a write run of 16 steps (max 12)"]}
+{"id": "lf-c042", "verified": true, "passed": "36/36", "verdict": "plain", "broken_rules": []}
+{"id": "lb-052", "verified": true, "passed": "29/29", "verdict": "staged", "broken_rules": []}
+25 of 25 rows verify or are declared unsolved
+{"id": "dc-modulo-k-k3", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c077", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "dc-add-k-k5", "verified": true, "passed": "39/39", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c156", "verified": true, "passed": "56/56", "verdict": "plain", "broken_rules": []}
+{"id": "lb-072", "verified": true, "passed": "29/29", "verdict": "rule_break", "broken_rules": ["a quotation of 21 atoms (max 8)", "a write run of 28 steps (max 12)"]}
+{"id": "lf-c119", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-076", "verified": true, "passed": "29/29", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c205", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "dc-count-head-in-tail", "verified": true, "passed": "25/25", "verdict": "staged", "broken_rules": []}
+{"id": "lb-042", "verified": true, "passed": "29/29", "verdict": "staged", "broken_rules": []}
+{"id": "dc-remove-mod-head", "verified": true, "passed": "39/39", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c237", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 14 atoms (max 8)", "a write run of 17 steps (max 12)"]}
+{"id": "lf-c044", "verified": true, "passed": "36/36", "verdict": "plain", "broken_rules": []}
+{"id": "mbpp-863", "verified": true, "passed": "13/13", "verdict": "rule_break", "broken_rules": ["a quotation of 26 atoms (max 8)", "a write run of 30 steps (max 12)"]}
+{"id": "lf-c244", "verified": true, "passed": "38/38", "verdict": "staged", "broken_rules": []}
+{"id": "lb-023", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 11 atoms (max 8)", "a write run of 16 steps (max 12)"]}
+{"id": "lf-c011", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lb-077", "verified": true, "passed": "27/27", "verdict": "rule_break", "broken_rules": ["a quotation of 21 atoms (max 8)", "a write run of 28 steps (max 12)"]}
+{"id": "lf-c214", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 19 atoms (max 8)", "a write run of 26 steps (max 12)"]}
+{"id": "codearc-308", "verified": true, "passed": "34/34", "verdict": "rule_break", "broken_rules": ["a quotation of 62 atoms (max 8)", "a write run of 70 steps (max 12)"]}
+{"id": "lf-c146", "verified": true, "passed": "56/56", "verdict": "rule_break", "broken_rules": ["a quotation of 9 atoms (max 8)", "a write run of 14 steps (max 12)"]}
+{"id": "lb-095", "verified": true, "passed": "27/27", "verdict": "staged", "broken_rules": []}
+{"id": "lb-021", "verified": true, "passed": "27/27", "verdict": "plain", "broken_rules": []}
+{"id": "lf-c241", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+{"id": "lf-c212", "verified": true, "passed": "56/56", "verdict": "staged", "broken_rules": []}
+25 of 25 rows verify or are declared unsolved
