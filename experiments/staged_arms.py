@@ -324,7 +324,7 @@ def check_arms(arms: Sequence[str]) -> None:
         raise ValueError(f"unknown arms {unknown}; choose from {ARMS}")
     if "capped" in arms:
         capped_programs()
-    if set(NEW_ARMS) & set(arms):
+    if {"staged_new", "staged_new_fixed", "all"} & set(arms):
         new_tasks()
     if {"staged_opus", "all"} & set(arms):
         new_tasks(OPUS_TASKS_FILE)
