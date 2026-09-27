@@ -1,0 +1,46 @@
+system  fused-s0-e3 = abhishekraok/wandering-light-stack-policy@e5a0b1391c52; beam 64 x depth 48, guard both, library on, state cap 16384
+policy  /home/abhishekrao/repos/wandering-light/checkpoints/staged-arms-20260920/policies/fused-s0-e3  (local, not BEST)
+host    UltraDesk cpu, torch 2.8.0+cu128, 8 threads, commit d2579fd
+tasks   40 from reports/stack-pbe-v4-effort-sweep-20260927/local/sample40_seed17_v4_eval.jsonl.gz
+    #  behaviour                       verdict     seconds  source
+    0  sum_negative                    unsolved      1.430  search
+    1  min_pair                        solved        0.151  search
+    2  keep_negative                   unsolved      1.977  search
+    3  drop_last                       solved        0.138  search
+    4  aligned_matches                 unsolved      2.098  search
+    5  widest_pair                     unsolved      1.104  search
+    6  replace_value                   unsolved      2.164  search
+    7  positive_balance_prefix_count   unsolved      1.704  search
+    8  positive_majority_three         unsolved      1.376  search
+    9  adjacent_sign_change_count      unsolved      1.427  search
+   10  nearest_interval_endpoint_each  unsolved      1.014  search
+   11  min_pair                        solved        0.000  library
+   12  replace_value                   unsolved      1.870  search
+   13  axis_point_count                unsolved      1.504  search
+   14  axis_point_count                memorised     0.343  search
+   15  positive_majority_three         unsolved      1.137  search
+   16  median_floor                    unsolved      1.277  search
+   17  keep_ascending_pairs            unsolved      1.089  search
+   18  keep_zeros                      solved        0.040  search
+   19  largest_inside_interval         unsolved      1.241  search
+   20  bounds_cover_list_flag          unsolved      1.487  search
+   21  concatenate_shorter_first       unsolved      1.715  search
+   22  keep_zeros                      solved        0.000  library
+   23  widest_pair                     unsolved      1.075  search
+   24  drop_last                       solved        0.000  library
+   25  keep_below                      unsolved      1.956  search
+   26  sum_negative                    unsolved      1.669  search
+   27  n_minus_each                    unsolved      1.731  search
+   28  bounds_cover_list_flag          unsolved      1.068  search
+   29  negate_each                     unsolved      1.508  search
+   30  aligned_matches                 unsolved      1.769  search
+   31  cartesian_pair_sums             unsolved      1.331  search
+   32  drop_last                       solved        0.000  library
+   33  replace_value                   unsolved      1.908  search
+   34  rotate_left                     solved        0.011  search
+   35  farther_choice_from_target      solved        0.706  search
+   36  farthest_from_target_last_tie   unsolved      1.426  search
+   37  largest_inside_interval         unsolved      1.057  search
+   38  prefix_sums                     unsolved      1.370  search
+   39  reverse                         solved        0.047  search
+solved 10/40 (coverage 0.250); wall clock 44.9 s over every task attempted; executions 9,768,613; 4 solved from the library; 1 memorised

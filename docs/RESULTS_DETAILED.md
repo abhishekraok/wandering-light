@@ -109,6 +109,31 @@ Guard `body` alone: 1.30x / 1.71x / 2.30x at depths 4/5/6. Authored witnesses pr
 | beam 64 × depth 48, 10m policy, seed 0 | trained on v4 train, LR 3.1e-5, cuda | sample 40 | 6 (15.0%) | 0 | 146 | same program on both devices | `…/timing/10m-s0-cuda.json` |
 | beam 64 × depth 48, 10m policy, seed 1 | trained on v4 train, LR 3.1e-5, cpu (8 threads) | sample 40 | 8 (20.0%) | 0 | 290 |  | `…/timing/10m-s1-cpu.json` |
 | beam 64 × depth 48, 10m policy, seed 1 | trained on v4 train, LR 3.1e-5, cuda | sample 40 | 8 (20.0%) | 0 | 146 | same program on both devices | `…/timing/10m-s1-cuda.json` |
+| `gpt-5.6-sol` | effort low, via `codex exec` (effort-sweep-5x) | sample 40 | 21 (52.5%) | 12 | | ~$0.0232/task at list price | `stack-pbe-v4-effort-sweep-20260927/sol56_low_v4_sample40.json` |
+| `gpt-5.6-sol` | effort medium, via `codex exec` (effort-sweep-5x) | sample 40 | 20 (50.0%) | 13 | | ~$0.0288/task at list price | `stack-pbe-v4-effort-sweep-20260927/sol56_medium_v4_sample40.json` |
+| `gpt-5.6-sol` | effort high, via `codex exec` (effort-sweep-5x) | sample 40 | 22 (55.0%) | 14 | | ~$0.0363/task at list price | `stack-pbe-v4-effort-sweep-20260927/sol56_high_v4_sample40.json` |
+| `gpt-5.6-sol` | effort xhigh, via `codex exec` (effort-sweep-5x) | sample 40 | 23 (57.5%) | 13 | | ~$0.0319/task at list price | `stack-pbe-v4-effort-sweep-20260927/sol56_xhigh_v4_sample40.json` |
+| `gpt-5.6-sol` | effort max, via `codex exec` (effort-sweep-5x) | sample 40 | 25 (62.5%) | 15 | | ~$0.0575/task at list price | `stack-pbe-v4-effort-sweep-20260927/sol56_max_v4_sample40.json` |
+| `gpt-5.6-terra` | effort low, via `codex exec` (effort-sweep-5x) | sample 40 | 15 (37.5%) | 3 | | ~$0.0176/task at list price | `stack-pbe-v4-effort-sweep-20260927/terra56_low_v4_sample40.json` |
+| `gpt-5.6-terra` | effort medium, via `codex exec` (effort-sweep-5x) | sample 40 | 13 (32.5%) | 6 | | ~$0.0182/task at list price | `stack-pbe-v4-effort-sweep-20260927/terra56_medium_v4_sample40.json` |
+| `gpt-5.6-terra` | effort xhigh, via `codex exec` (effort-sweep-5x) | sample 40 | 14 (35.0%) | 5 | | ~$0.0239/task at list price | `stack-pbe-v4-effort-sweep-20260927/terra56_xhigh_v4_sample40.json` |
+| `gpt-5.6-terra` | effort max, via `codex exec` (effort-sweep-5x) | sample 40 | 19 (47.5%) | 10 | | ~$0.0633/task at list price | `stack-pbe-v4-effort-sweep-20260927/terra56_max_v4_sample40.json` |
+| `gpt-5.6-luna` | effort low, via `codex exec` (effort-sweep-5x) | sample 40 | 11 (27.5%) | 1 | | ~$0.0021/task at list price | `stack-pbe-v4-effort-sweep-20260927/luna56_low_v4_sample40.json` |
+| `gpt-5.6-luna` | effort medium, via `codex exec` (effort-sweep-5x) | sample 40 | 10 (25.0%) | 1 | | ~$0.0038/task at list price | `stack-pbe-v4-effort-sweep-20260927/luna56_medium_v4_sample40.json` |
+| `gpt-5.6-luna` | effort xhigh, via `codex exec` (effort-sweep-5x) | sample 40 | 17 (42.5%) | 5 | | ~$0.0076/task at list price | `stack-pbe-v4-effort-sweep-20260927/luna56_xhigh_v4_sample40.json` |
+| `gpt-5.6-luna` | effort max, via `codex exec` (effort-sweep-5x) | sample 40 | 18 (45.0%) | 6 | | ~$0.0101/task at list price | `stack-pbe-v4-effort-sweep-20260927/luna56_max_v4_sample40.json` |
+| `claude-fable-5` | effort low, via `claude -p` (effort-sweep-5x) | sample 40 | 20 (50.0%) | 10 | | ~$0.1627/task at list price | `stack-pbe-v4-effort-sweep-20260927/fable5_low_v4_sample40.json` |
+| `claude-fable-5` | effort medium, via `claude -p` (effort-sweep-5x) | sample 40 | 27 (67.5%) | 10 | | ~$0.1399/task at list price | `stack-pbe-v4-effort-sweep-20260927/fable5_medium_v4_sample40.json` |
+| `claude-fable-5` | effort high, via `claude -p` (effort-sweep-5x) | sample 40 | 24 (60.0%) | 14 | | ~$0.2289/task at list price | `stack-pbe-v4-effort-sweep-20260927/fable5_high_v4_sample40.json` |
+| `claude-fable-5` | effort xhigh, via `claude -p` (effort-sweep-5x) | sample 40 | 26 (65.0%) | 13 | | ~$0.2155/task at list price | `stack-pbe-v4-effort-sweep-20260927/fable5_xhigh_v4_sample40.json` |
+| `claude-fable-5-1` | effort low, via `claude -p` (effort-sweep-5x) | sample 40 | 22 (55.0%) | 16 | | ~$0.1280/task at list price | `stack-pbe-v4-effort-sweep-20260927/fable51_low_v4_sample40.json` |
+| `claude-fable-5-1` | effort medium, via `claude -p` (effort-sweep-5x) | sample 40 | 24 (60.0%) | 13 | | ~$0.1518/task at list price | `stack-pbe-v4-effort-sweep-20260927/fable51_medium_v4_sample40.json` |
+| `claude-fable-5-1` | effort high, via `claude -p` (effort-sweep-5x) | sample 40 | 22 (55.0%) | 17 | | ~$0.1956/task at list price | `stack-pbe-v4-effort-sweep-20260927/fable51_high_v4_sample40.json` |
+| `claude-fable-5-1` | effort xhigh, via `claude -p` (effort-sweep-5x) | sample 40 | 23 (57.5%) | 17 | | ~$0.7121/task at list price | `stack-pbe-v4-effort-sweep-20260927/fable51_xhigh_v4_sample40.json` |
+| staged-s0-e3 (solve.BEST) | 1m-param next-op policy; beam 64 x depth 48, guard both, library on, cpu (8 threads) (effort-sweep-5x) | sample 40 | 14 (35.0%) | | 34 | ~$0.00009/task at c7i rate | `stack-pbe-v4-effort-sweep-20260927/local/best_staged_s0_e3_sample40.json` |
+| staged-s0-e3, library off | 1m-param next-op policy; beam 64 x depth 48, guard both, library off, cpu (8 threads) (effort-sweep-5x) | sample 40 | 12 (30.0%) | | 35 | ~$0.00009/task at c7i rate | `stack-pbe-v4-effort-sweep-20260927/local/best_staged_s0_e3_nolib_sample40.json` |
+| fused-s0-e3 | 1m-param next-op policy; beam 64 x depth 48, guard both, library on, cpu (8 threads) (effort-sweep-5x) | sample 40 | 10 (25.0%) | | 45 | ~$0.00011/task at c7i rate | `stack-pbe-v4-effort-sweep-20260927/local/fused_s0_e3_lib_sample40.json` |
+| fused-s0-e3, library off | 1m-param next-op policy; beam 64 x depth 48, guard both, library off, cpu (8 threads) (effort-sweep-5x) | sample 40 | 9 (22.5%) | | 52 | ~$0.00013/task at c7i rate | `stack-pbe-v4-effort-sweep-20260927/local/fused_s0_e3_nolib_sample40.json` |
 
 Depth-5 states per task (`#70` probe, 3 tasks, seed 17): v4 roots **1,166,586** unpruned, **157,931** guarded (7.39x); v3 roots 980,688 / 105,549 (9.29x). `states-depth5-v4.json`.
 

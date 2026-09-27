@@ -1,0 +1,1123 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "guard": "off",
+  "partial": false,
+  "tasks_planned": 40,
+  "tasks": 40,
+  "solved": 18,
+  "memorised": 6,
+  "shown_fit": 24,
+  "illegal": 9,
+  "solve_rate": 0.45,
+  "shown_rate": 0.6,
+  "by_behaviour": {
+    "sum_negative": {
+      "witness_length": 16,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "min_pair": {
+      "witness_length": 12,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "keep_negative": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "drop_last": {
+      "witness_length": 12,
+      "tasks": 3,
+      "solved": 3,
+      "memorised": 0
+    },
+    "aligned_matches": {
+      "witness_length": 39,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "widest_pair": {
+      "witness_length": 84,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "replace_value": {
+      "witness_length": 22,
+      "tasks": 3,
+      "solved": 2,
+      "memorised": 0
+    },
+    "positive_balance_prefix_count": {
+      "witness_length": 49,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "positive_majority_three": {
+      "witness_length": 39,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "adjacent_sign_change_count": {
+      "witness_length": 47,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "nearest_interval_endpoint_each": {
+      "witness_length": 39,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "axis_point_count": {
+      "witness_length": 86,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 1
+    },
+    "median_floor": {
+      "witness_length": 253,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "keep_ascending_pairs": {
+      "witness_length": 80,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "keep_zeros": {
+      "witness_length": 5,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "largest_inside_interval": {
+      "witness_length": 40,
+      "tasks": 2,
+      "solved": 1,
+      "memorised": 0
+    },
+    "bounds_cover_list_flag": {
+      "witness_length": 92,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 1
+    },
+    "concatenate_shorter_first": {
+      "witness_length": 26,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "keep_below": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "n_minus_each": {
+      "witness_length": 7,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "negate_each": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "cartesian_pair_sums": {
+      "witness_length": 15,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "rotate_left": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "farther_choice_from_target": {
+      "witness_length": 54,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "farthest_from_target_last_tie": {
+      "witness_length": 59,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "prefix_sums": {
+      "witness_length": 25,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "reverse": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "[ 0 lt? ] filter 0 [ add ] fold",
+      2
+    ],
+    [
+      "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      2
+    ],
+    [
+      "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      2
+    ],
+    [
+      "[ 0 eq? ] filter",
+      2
+    ],
+    [
+      "[ 0 lt? ] filter",
+      1
+    ],
+    [
+      "swap quote [ dup ] swap cat [ eq? ] cat swap quote [ drop ] swap cat [ ] quote [ quote ] dip [ swap quote swap ] dip cat cat [ ifte ] cat map",
+      1
+    ],
+    [
+      "quote swap quote swap [ lt? ] cat swap [ dup ] swap cat [ swap lt? ] cat [ quote ] cat swap quote cat [ [ drop false ] ] cat [ ifte ] cat filter uncons [ over over lt? quote [ swap drop ] [ drop ] ifte ] fold",
+      1
+    ],
+    [
+      "[ over over 0 [ drop 1 add ] fold swap 0 [ drop 1 add ] fold swap lt? ] [ swap nil [ cons ] fold swap [ cons ] fold ] [ nil [ cons ] fold swap [ cons ] fold ] ifte",
+      1
+    ],
+    [
+      "uncons nil swap cons [ swap uncons cons swap cons ] fold uncons drop nil [ cons ] fold",
+      1
+    ],
+    [
+      "quote [ swap sub ] cat map",
+      1
+    ],
+    [
+      "[ 0 swap sub ] map",
+      1
+    ],
+    [
+      "quote swap quote swap cat [ [ swap ] dip swap [ dup [ [ swap ] dip over swap eq? [ swap ] dip ] dip swap ] [ drop dup ] [ dup drop ] ifte swap drop swap drop ] cat map",
+      1
+    ],
+    [
+      "uncons quote cat",
+      1
+    ],
+    [
+      "nil [ cons ] fold",
+      1
+    ]
+  ],
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "model": "gpt-5.6-luna",
+  "provider": "codex",
+  "effort": "max",
+  "candidates": [
+    {
+      "task_index": 361,
+      "behaviour": "sum_negative",
+      "candidate": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5309,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 985,
+            "reasoning_output_tokens": 966
+          },
+          "seconds": 21.0
+        }
+      ]
+    },
+    {
+      "task_index": 359,
+      "behaviour": "min_pair",
+      "candidate": "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5282,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1573,
+            "reasoning_output_tokens": 1552
+          },
+          "seconds": 31.5
+        }
+      ]
+    },
+    {
+      "task_index": 234,
+      "behaviour": "keep_negative",
+      "candidate": "[ 0 lt? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5362,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 914,
+            "reasoning_output_tokens": 901
+          },
+          "seconds": 20.4
+        }
+      ]
+    },
+    {
+      "task_index": 595,
+      "behaviour": "drop_last",
+      "candidate": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5282,
+            "cached_input_tokens": 3840,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1673,
+            "reasoning_output_tokens": 1654
+          },
+          "seconds": 33.7
+        }
+      ]
+    },
+    {
+      "task_index": 1603,
+      "behaviour": "aligned_matches",
+      "candidate": "[ over [ over eq? ] filter null? quote [ false ] [ true ] ifte swap [ swap ] dip drop swap ] filter swap drop",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5386,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 17112,
+            "reasoning_output_tokens": 17076
+          },
+          "seconds": 311.6
+        }
+      ]
+    },
+    {
+      "task_index": 1156,
+      "behaviour": "widest_pair",
+      "candidate": "[ drop 1 ] map 0 [ add ] fold dup [ 1 1 add 1 add 1 add 1 add dup add eq? ] [ drop 1 1 add 1 add 1 add dup mul 1 add ] [ [ 1 1 add 1 add 1 add eq? ] [ 1 1 add 1 add 1 add 1 add dup add 1 add ] [ 1 1 add ] ifte ] ifte",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5291,
+            "cached_input_tokens": 3840,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 19548,
+            "reasoning_output_tokens": 19441
+          },
+          "seconds": 354.0
+        }
+      ]
+    },
+    {
+      "task_index": 479,
+      "behaviour": "replace_value",
+      "candidate": "quote swap quote swap cat [ [ [ over swap eq? ] dip swap ] [ swap drop ] [ drop ] ifte ] cat cat map",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5422,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 8321,
+            "reasoning_output_tokens": 8286
+          },
+          "seconds": 152.6
+        }
+      ]
+    },
+    {
+      "task_index": 1408,
+      "behaviour": "positive_balance_prefix_count",
+      "candidate": "0 [ add ] fold [ dup 1 1 add dup add dup add dup add 1 add eq? ] [ drop 1 1 add dup add ] [ [ dup 1 eq? ] [ drop 1 1 add dup add ] [ [ dup 0 1 1 add dup add dup add 1 add sub eq? ] [ drop 0 ] [ [ dup 1 1 add dup add 1 add eq? ] [ drop 1 1 add dup add 1 add 1 add ] [ drop 1 1 add 1 add ] ifte ] ifte ] ifte ] ifte",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5331,
+            "cached_input_tokens": 3840,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 7352,
+            "reasoning_output_tokens": 7214
+          },
+          "seconds": 135.7
+        }
+      ]
+    },
+    {
+      "task_index": 967,
+      "behaviour": "positive_majority_three",
+      "candidate": "add add 0 swap lt?",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5306,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 924,
+            "reasoning_output_tokens": 911
+          },
+          "seconds": 19.8
+        }
+      ]
+    },
+    {
+      "task_index": 1499,
+      "behaviour": "adjacent_sign_change_count",
+      "candidate": "nil 0 cons 0 cons [ swap uncons swap uncons swap drop swap [ swap ] dip swap [ swap ] dip dup [ swap [ mul 0 lt? ] dip ] dip [ swap [ ] [ 1 add ] [ ] ifte ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 18377,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 17252,
+            "reasoning_output_tokens": 17134
+          },
+          "seconds": 314.9
+        }
+      ]
+    },
+    {
+      "task_index": 815,
+      "behaviour": "nearest_interval_endpoint_each",
+      "candidate": "quote swap quote swap quote swap quote swap [ 0 lt? ] quote swap [ swap ] dip [ ifte ] cat cat cat map",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5296,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 10502,
+            "reasoning_output_tokens": 10468
+          },
+          "seconds": 192.4
+        }
+      ]
+    },
+    {
+      "task_index": 341,
+      "behaviour": "min_pair",
+      "candidate": "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5296,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1770,
+            "reasoning_output_tokens": 1749
+          },
+          "seconds": 35.2
+        }
+      ]
+    },
+    {
+      "task_index": 456,
+      "behaviour": "replace_value",
+      "candidate": "swap quote [ dup ] swap cat [ eq? ] cat swap quote [ drop ] swap cat [ ] quote [ quote ] dip [ swap quote swap ] dip cat cat [ ifte ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5372,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 8916,
+            "reasoning_output_tokens": 8870
+          },
+          "seconds": 163.2
+        }
+      ]
+    },
+    {
+      "task_index": 1266,
+      "behaviour": "axis_point_count",
+      "candidate": "[ [ 0 eq? ] [ false ] [ true ] ifte ] filter [ [ 0 lt? ] [ 0 1 sub ] [ 1 ] ifte ] map nil 0 cons 0 1 sub cons [ swap uncons swap uncons drop [ swap ] dip swap dup [ eq? ] dip swap quote [ ] [ swap 1 add swap ] ifte nil swap [ swap ] dip cons cons ] fold uncons swap drop",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 17118,
+            "cached_input_tokens": 9728,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 12224,
+            "reasoning_output_tokens": 12080
+          },
+          "seconds": 224.2
+        }
+      ]
+    },
+    {
+      "task_index": 1241,
+      "behaviour": "axis_point_count",
+      "candidate": "[ 0 eq? ] filter 0 [ drop 1 add ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5360,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1295,
+            "reasoning_output_tokens": 1273
+          },
+          "seconds": 29.9
+        }
+      ]
+    },
+    {
+      "task_index": 992,
+      "behaviour": "positive_majority_three",
+      "candidate": "[ add add 1 1 add 1 add sub dup mul 0 swap lt? ] [ 1 ] [ 0 ] ifte",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5290,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 7286,
+            "reasoning_output_tokens": 7250
+          },
+          "seconds": 134.9
+        }
+      ]
+    },
+    {
+      "task_index": 1466,
+      "behaviour": "median_floor",
+      "candidate": "0 [ drop 1 add ] fold [ dup 1 1 add eq? ] [ drop 0 ] [ [ dup 1 1 add 1 add 1 add 1 add 1 add eq? ] [ drop 0 1 1 add sub ] [ [ dup 1 1 add 1 add 1 add 1 add eq? ] [ drop 0 1 1 add 1 add 1 add 1 add 1 add sub ] [ drop 0 1 1 add 1 add 1 add sub ] ifte ] ifte ] ifte",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5304,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5309,
+            "reasoning_output_tokens": 5178
+          },
+          "seconds": 98.5
+        }
+      ]
+    },
+    {
+      "task_index": 1347,
+      "behaviour": "keep_ascending_pairs",
+      "candidate": "[ dup uncons swap drop 0 1 sub eq? ] [ drop nil 1 1 add dup mul 1 add 1 add 1 add cons 1 1 add dup mul 1 add cons 1 1 add dup mul 1 add cons 0 1 sub cons ] [ [ dup uncons swap drop 1 1 add 1 add dup mul eq? ] [ drop nil ] [ dup drop ] ifte ] ifte",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5292,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 22749,
+            "reasoning_output_tokens": 22647
+          },
+          "seconds": 412.3
+        }
+      ]
+    },
+    {
+      "task_index": 160,
+      "behaviour": "keep_zeros",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5284,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1359,
+            "reasoning_output_tokens": 1346
+          },
+          "seconds": 28.2
+        }
+      ]
+    },
+    {
+      "task_index": 1729,
+      "behaviour": "largest_inside_interval",
+      "candidate": "quote swap quote swap [ lt? ] cat swap [ dup ] swap cat [ swap lt? ] cat [ quote ] cat swap quote cat [ [ drop false ] ] cat [ ifte ] cat filter uncons [ over over lt? quote [ swap drop ] [ drop ] ifte ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 11530,
+            "cached_input_tokens": 8704,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 14395,
+            "reasoning_output_tokens": 14284
+          },
+          "seconds": 263.3
+        }
+      ]
+    },
+    {
+      "task_index": 1087,
+      "behaviour": "bounds_cover_list_flag",
+      "candidate": "[ over ] dip [ swap ] dip swap [ quote ] dip [ [ eq? ] cat ] dip [ filter ] dip [ null? ] dip swap [ quote ] dip [ [ eq? ] cat ] dip [ filter ] dip [ null? ] dip swap [ ] [ drop 0 ] [ [ ] [ 0 ] [ 1 ] ifte ] ifte",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 21413,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 20463,
+            "reasoning_output_tokens": 20338
+          },
+          "seconds": 374.1
+        }
+      ]
+    },
+    {
+      "task_index": 1019,
+      "behaviour": "concatenate_shorter_first",
+      "candidate": "[ over over 0 [ drop 1 add ] fold swap 0 [ drop 1 add ] fold swap lt? ] [ swap nil [ cons ] fold swap [ cons ] fold ] [ nil [ cons ] fold swap [ cons ] fold ] ifte",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5390,
+            "cached_input_tokens": 3840,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 10935,
+            "reasoning_output_tokens": 10876
+          },
+          "seconds": 204.4
+        }
+      ]
+    },
+    {
+      "task_index": 176,
+      "behaviour": "keep_zeros",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5344,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 847,
+            "reasoning_output_tokens": 834
+          },
+          "seconds": 18.6
+        }
+      ]
+    },
+    {
+      "task_index": 1159,
+      "behaviour": "widest_pair",
+      "candidate": "0 [ add ] fold dup [ 0 1 1 add dup add 1 1 add add sub eq? ] [ drop 1 1 add dup add dup add 1 1 add add ] [ [ 1 1 add 1 add eq? ] [ drop 1 1 add dup add dup add dup add 1 add ] [ drop 1 ] ifte ] ifte",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5279,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 5772,
+            "reasoning_output_tokens": 5682
+          },
+          "seconds": 106.9
+        }
+      ]
+    },
+    {
+      "task_index": 570,
+      "behaviour": "drop_last",
+      "candidate": "uncons nil swap cons [ swap uncons cons swap cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5306,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 8023,
+            "reasoning_output_tokens": 7995
+          },
+          "seconds": 147.3
+        }
+      ]
+    },
+    {
+      "task_index": 317,
+      "behaviour": "keep_below",
+      "candidate": "swap [ swap lt? ] filter drop",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5358,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 2591,
+            "reasoning_output_tokens": 2577
+          },
+          "seconds": 49.5
+        }
+      ]
+    },
+    {
+      "task_index": 399,
+      "behaviour": "sum_negative",
+      "candidate": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5336,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1053,
+            "reasoning_output_tokens": 1034
+          },
+          "seconds": 22.5
+        }
+      ]
+    },
+    {
+      "task_index": 241,
+      "behaviour": "n_minus_each",
+      "candidate": "quote [ swap sub ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5318,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 3392,
+            "reasoning_output_tokens": 3379
+          },
+          "seconds": 64.1
+        }
+      ]
+    },
+    {
+      "task_index": 1097,
+      "behaviour": "bounds_cover_list_flag",
+      "candidate": "drop swap drop 1 1 add eq? quote [ 1 ] [ 0 ] ifte",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5289,
+            "cached_input_tokens": 3840,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 4687,
+            "reasoning_output_tokens": 4660
+          },
+          "seconds": 88.9
+        }
+      ]
+    },
+    {
+      "task_index": 47,
+      "behaviour": "negate_each",
+      "candidate": "[ 0 swap sub ] map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5318,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 377,
+            "reasoning_output_tokens": 364
+          },
+          "seconds": 10.8
+        }
+      ]
+    },
+    {
+      "task_index": 1634,
+      "behaviour": "aligned_matches",
+      "candidate": "uncons swap drop drop nil swap cons",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5363,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 4674,
+            "reasoning_output_tokens": 4660
+          },
+          "seconds": 86.8
+        }
+      ]
+    },
+    {
+      "task_index": 1579,
+      "behaviour": "cartesian_pair_sums",
+      "candidate": "swap [ over [ swap add ] map ] map nil [ cat ] fold",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5405,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 3127,
+            "reasoning_output_tokens": 3106
+          },
+          "seconds": 59.7
+        }
+      ]
+    },
+    {
+      "task_index": 574,
+      "behaviour": "drop_last",
+      "candidate": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5302,
+            "cached_input_tokens": 0,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 2607,
+            "reasoning_output_tokens": 2588
+          },
+          "seconds": 50.1
+        }
+      ]
+    },
+    {
+      "task_index": 470,
+      "behaviour": "replace_value",
+      "candidate": "quote swap quote swap cat [ [ swap ] dip swap [ dup [ [ swap ] dip over swap eq? [ swap ] dip ] dip swap ] [ drop dup ] [ dup drop ] ifte swap drop swap drop ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5414,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 30487,
+            "reasoning_output_tokens": 30434
+          },
+          "seconds": 551.7
+        }
+      ]
+    },
+    {
+      "task_index": 521,
+      "behaviour": "rotate_left",
+      "candidate": "uncons quote cat",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5348,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 7482,
+            "reasoning_output_tokens": 7472
+          },
+          "seconds": 137.8
+        }
+      ]
+    },
+    {
+      "task_index": 897,
+      "behaviour": "farther_choice_from_target",
+      "candidate": "[ swap over mul 1 lt? ] dip [ swap ] [ drop ] [ swap drop ] ifte",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5306,
+            "cached_input_tokens": 3840,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 6443,
+            "reasoning_output_tokens": 6415
+          },
+          "seconds": 119.0
+        }
+      ]
+    },
+    {
+      "task_index": 1772,
+      "behaviour": "farthest_from_target_last_tie",
+      "candidate": "drop 0 [ [ over dup mul over dup mul lt? ] [ swap drop ] [ drop ] ifte ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5337,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 10638,
+            "reasoning_output_tokens": 10607
+          },
+          "seconds": 194.3
+        }
+      ]
+    },
+    {
+      "task_index": 1735,
+      "behaviour": "largest_inside_interval",
+      "candidate": "dup quote swap quote swap cat dup quote [ dip [ dup [ [ swap ] dip [ dup ] dip lt? [ swap ] dip ] dip swap ] [ [ dup ] dip swap lt? ] [ drop false ] ifte swap drop swap drop ] cat [ swap ] dip filter swap i drop [ [ lt? ] [ swap drop ] [ drop ] ifte ] fold",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 40497,
+            "cached_input_tokens": 9728,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 32570,
+            "reasoning_output_tokens": 32449
+          },
+          "seconds": 591.3
+        }
+      ]
+    },
+    {
+      "task_index": 128,
+      "behaviour": "prefix_sums",
+      "candidate": "nil 0 cons nil swap cons [ swap uncons swap uncons swap drop swap [ add ] dip over cons swap nil swap cons swap cons ] fold uncons swap drop nil [ cons ] fold",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5326,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 10355,
+            "reasoning_output_tokens": 10309
+          },
+          "seconds": 190.1
+        }
+      ]
+    },
+    {
+      "task_index": 95,
+      "behaviour": "reverse",
+      "candidate": "nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "errors": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "usage": {
+            "input_tokens": 5314,
+            "cached_input_tokens": 4864,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 527,
+            "reasoning_output_tokens": 516
+          },
+          "seconds": 12.5
+        }
+      ]
+    }
+  ]
+}

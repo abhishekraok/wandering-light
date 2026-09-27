@@ -1,0 +1,169 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "guard": "off",
+  "partial": true,
+  "tasks_planned": 40,
+  "tasks": 4,
+  "solved": 4,
+  "memorised": 0,
+  "shown_fit": 4,
+  "illegal": 0,
+  "solve_rate": 1.0,
+  "shown_rate": 1.0,
+  "by_behaviour": {
+    "sum_negative": {
+      "witness_length": 16,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "min_pair": {
+      "witness_length": 12,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "keep_negative": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "drop_last": {
+      "witness_length": 12,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "[ 0 lt? ] filter 0 [ add ] fold",
+      1
+    ],
+    [
+      "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      1
+    ],
+    [
+      "[ 0 lt? ] filter",
+      1
+    ],
+    [
+      "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      1
+    ]
+  ],
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "model": "claude-fable-5-1",
+  "provider": "claude",
+  "effort": "max",
+  "candidates": [
+    {
+      "task_index": 361,
+      "behaviour": "sum_negative",
+      "candidate": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1155,
+            "cache_creation_input_tokens": 1153,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 786,
+            "reasoning_output_tokens": 762
+          },
+          "model": [
+            "claude-fable-5-1"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 10769,
+          "seconds": 13.5
+        }
+      ]
+    },
+    {
+      "task_index": 359,
+      "behaviour": "min_pair",
+      "candidate": "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1120,
+            "cache_creation_input_tokens": 1118,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 5012,
+            "reasoning_output_tokens": 4984
+          },
+          "model": [
+            "claude-fable-5-1"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 62763,
+          "seconds": 65.9
+        }
+      ]
+    },
+    {
+      "task_index": 234,
+      "behaviour": "keep_negative",
+      "candidate": "[ 0 lt? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1223,
+            "cache_creation_input_tokens": 1221,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 313,
+            "reasoning_output_tokens": 299
+          },
+          "model": [
+            "claude-fable-5-1"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 5411,
+          "seconds": 7.8
+        }
+      ]
+    },
+    {
+      "task_index": 595,
+      "behaviour": "drop_last",
+      "candidate": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1108,
+            "cache_creation_input_tokens": 1106,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 34979,
+            "reasoning_output_tokens": 34952
+          },
+          "model": [
+            "claude-fable-5-1"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 432530,
+          "seconds": 441.5
+        }
+      ]
+    }
+  ]
+}

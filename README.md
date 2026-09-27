@@ -85,6 +85,10 @@ carries a certified distance or an authored witness rather than an estimate.
 
 ## Results
 
+![Accuracy against cost on the stack_pbe_v4 40-task sample](reports/stack-pbe-v4-effort-sweep-20260927/accuracy_vs_cost.png)
+
+Solved of 40 on a fixed `stack_pbe_v4` eval sample against dollars per task, for hosted LLMs at each reasoning effort, local LLMs, BFS and this repo's 1m-parameter learned policy ([details](reports/stack-pbe-v4-effort-sweep-20260927/README.md)).
+
 [`docs/RESULTS.md`](docs/RESULTS.md) has the headline numbers for language
 models, search and the learned policies on both substrates, and
 [`docs/RESULTS_DETAILED.md`](docs/RESULTS_DETAILED.md) every run, including the
