@@ -1,0 +1,1 @@
+Wrote [programs_w16.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w16.jsonl) with all 25 assigned IDs. The requested `--file` check verified every row: 10 staged, 5 plain, and 10 verified rule breaks with reasons in their notes.

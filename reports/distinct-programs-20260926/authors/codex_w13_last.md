@@ -1,0 +1,1 @@
+Wrote [programs_w13.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w13.jsonl) for all 25 assigned IDs. Every program verifies. Four are `staged`, five are `plain`, and 16 are verified `rule_break` cases with the exceeded caps explained in their notes.

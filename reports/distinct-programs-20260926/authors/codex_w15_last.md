@@ -1,0 +1,1 @@
+Wrote [programs_w15.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w15.jsonl) with all 25 assigned IDs. The `--file` check verified 23 programs; `mbpp-793` and `mbpp-415` are marked unsolved with reasons. Of the verified programs, 19 exceed the brief’s shape caps, as noted in their records.

@@ -1,0 +1,1 @@
+Wrote [programs_w07.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w07.jsonl) with all 25 assigned IDs. The required `--file` check verified all 25 programs. Eleven verified witnesses exceed the stage rules, with the blocking limits recorded in their notes.

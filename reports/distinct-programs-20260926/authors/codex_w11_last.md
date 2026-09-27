@@ -1,0 +1,1 @@
+Wrote [programs_w11.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w11.jsonl). All 25 assigned programs passed the final `--file` check. Fourteen verify but exceed at least one staged-program shape cap; their notes explain why.

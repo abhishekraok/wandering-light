@@ -1,0 +1,1 @@
+Wrote [programs_w01.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w01.jsonl) with all 26 assigned IDs. The required `--file` check passes: **26/26 verified**. Ten programs meet the shape rules; the other 16 include notes explaining their rule breaks.

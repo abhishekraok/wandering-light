@@ -1,0 +1,1 @@
+Wrote [programs_w03.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w03.jsonl). All 25 assigned programs passed the full verifier: 5 plain, 4 staged, and 16 verified with rule breaks documented in their notes.

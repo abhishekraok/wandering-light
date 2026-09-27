@@ -1,0 +1,1 @@
+Wrote [programs_w12.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w12.jsonl) with all 25 assigned IDs. The required `--file` check passed: 23 programs verified, including 7 staged witnesses; 2 are marked unsolved with reasons.

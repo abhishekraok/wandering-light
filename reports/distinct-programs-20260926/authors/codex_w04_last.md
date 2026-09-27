@@ -1,0 +1,1 @@
+Wrote [programs_w04.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w04.jsonl). All 25 assigned programs verify with `--file`: 8 staged, 3 plain, and 14 documented rule breaks.

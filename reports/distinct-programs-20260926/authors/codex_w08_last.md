@@ -1,0 +1,1 @@
+Wrote [programs_w08.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w08.jsonl) with all 25 assigned programs. Each passed `--try`; the final `--file` check verified 25/25. Thirteen verified programs exceed a shape limit, with the blocking limit recorded in each note.

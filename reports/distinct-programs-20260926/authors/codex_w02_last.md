@@ -1,0 +1,1 @@
+Wrote [programs_w02.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w02.jsonl). All 25 assigned programs passed `--try` and the required `--file` check. Twelve verified programs exceed the stage caps; their notes identify the limiting operations.

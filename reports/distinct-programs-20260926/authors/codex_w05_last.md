@@ -1,0 +1,1 @@
+Wrote [programs_w05.jsonl](/home/abhishekrao/repos/wandering-light/.claude/worktrees/codex-dp/reports/distinct-programs-20260926/programs_w05.jsonl). All 25 assigned programs passed the file-level verification. Fourteen exceed a shape limit; each has the reason in its note.
