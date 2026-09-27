@@ -427,6 +427,10 @@ Per-cycle diagnostic, oracle sub-goal (next closed state as the search target), 
 | staged | 139.7 (143 / 128 / 148) | 137.7 | 15.67 (16 / 16 / 15) | 16 | 4.33 | 11.33 |
 | staged_new | 115.7 (116 / 113 / 118) | 112.3 | 15.67 (16 / 15 / 16) | 17 | 5.00 | 10.67 |
 | staged_new_fixed | 142.0 (126 / 140 / 160) | 136.0 | 14.67 (14 / 15 / 15) | 16 | 2.00 | 12.67 |
+| staged_opus (#175) | 119.7 (120 / 118 / 121) | 113.3 | 15.33 (15 / 16 / 15) | 16 | 4.00 | 11.33 |
+| all (#175) | 139.7 (138 / 148 / 133) | 132.7 | 15.67 (15 / 17 / 15) | 17 | 4.00 | 11.67 |
+
+teacher-variety (#175): the same 399 behaviours witnessed by Opus 5.5 medium (207 staged / 91 plain / 101 rule_break), exposure-matched. `staged_opus` = staged v4 + Opus witnesses; `all` = staged v4 + each new task with its Sol and its Opus witness (1,102,390 rows/epoch). Same falsifier as #174 — **not met**; the teacher does not matter (15.33 vs Sol's 15.67). Without `prefix_sums` (verified in `all` s0, s1): `all` 15.00. [report](../reports/teacher-variety-20260927/README.md), [teacher-variety (#175)](../../issues/175)
 
 ## Staged and re-fused witnesses for the v4 train behaviours (#155)
 

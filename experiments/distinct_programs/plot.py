@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 ARMS = [
     ("staged", "staged\n(#155 baseline)"),
-    ("staged_new", "+ new programs\n(exposure-matched)"),
+    ("staged_new", "+ new programs,\nSol witnesses"),
     ("staged_new_fixed", "+ new programs\n(compute-matched)"),
     ("staged_opus", "+ new programs,\nOpus witnesses"),
     ("all", "+ new programs,\nSol and Opus\nwitnesses"),
