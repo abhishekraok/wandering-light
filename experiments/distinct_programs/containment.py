@@ -6,8 +6,8 @@ ops, inside that arm's own training text; otherwise it was only ever solved by
 a **contained** program. This is the split staged-arms (#155) reported (staged:
 4 / 6 / 3 novel). An arm's training text is the programs its fit tasks are
 replayed along: the staged witness where a behaviour was treated, the fused
-witness otherwise, plus the new behaviours' witnesses in the ``staged_new``
-arms.
+witness otherwise, plus the new behaviours' witnesses in the new-behaviour
+arms (Sol's, Opus's, or both in ``all``).
 
     uv run python experiments/distinct_programs/containment.py \
         --run-dir checkpoints/distinct-programs-20260926 \
@@ -38,8 +38,12 @@ def train_text(arm: str, tasks, keep_contrived: bool = False) -> set[str]:
         for t in fit
     }
     programs = {"fused": fused, "both": fused | rewritten}.get(arm, rewritten)
-    if arm in ("staged_new", "staged_new_fixed"):
-        programs |= {" ".join(t.program) for t in sa.new_tasks()}
+    files = {
+        "staged_opus": [sa.OPUS_TASKS_FILE],
+        "all": [sa.NEW_TASKS_FILE, sa.OPUS_TASKS_FILE],
+    }.get(arm, [sa.NEW_TASKS_FILE] if arm in sa.NEW_ARMS else [])
+    for path in files:
+        programs |= {" ".join(t.program) for t in sa.new_tasks(path)}
     return {f" {p} " for p in programs}
 
 

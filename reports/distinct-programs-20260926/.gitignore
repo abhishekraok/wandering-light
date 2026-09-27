@@ -3,3 +3,4 @@ behaviours_all.jsonl
 ref_extended.jsonl
 *.pid
 codex_review*.out
+tasks_opus.jsonl

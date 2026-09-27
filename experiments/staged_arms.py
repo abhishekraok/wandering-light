@@ -15,6 +15,13 @@ what differs is which program each train task is replayed along:
               as in ``staged`` (exposure-matched; more updates)
     staged_new_fixed  the same tasks at ``staged``'s rows per epoch
               (compute-matched; each v4 task is drawn less often)
+    staged_opus  teacher-variety: ``staged_new`` with the Opus 5.5 witnesses of the
+              same behaviours (``OPUS_TASKS_FILE``) in place of gpt-6-sol's
+    all       teacher-variety: v4 tasks as in ``staged``, each new task with its
+              Sol and its Opus witness (same examples: a behaviour's tasks are
+              drawn from its id). Exposure-matched like ``staged_new``. The fused
+              v4 witnesses stay out: adding them (``both``) cost #155 1.67
+              verified behaviours
 
 `experiments/staged_witnesses/v4.jsonl` supplies the programs of the first four.
 A behaviour gets its staged / re-fused program only when its verdict is
@@ -101,9 +108,12 @@ CAPPED_FILE = REPO / "reports" / "short-segment-20260923" / "train_capped.jsonl"
 # distinct-programs (#174): v4-layout tasks for the new behaviours, written by
 # experiments/distinct_programs/build_tasks.py when authoring ends.
 NEW_TASKS_FILE = REPO / "reports" / "distinct-programs-20260926" / "tasks.jsonl"
+# teacher-variety: the same behaviours' witnesses by Opus 5.5 (medium).
+OPUS_TASKS_FILE = NEW_TASKS_FILE.with_name("tasks_opus.jsonl")
+NEW_ARMS = ("staged_new", "staged_new_fixed", "staged_opus", "all")
 DEFAULT_ARMS = ("fused", "refused", "staged", "both", "capped")
-# Opt-in only: they need the gitignored NEW_TASKS_FILE.
-ARMS = (*DEFAULT_ARMS, "staged_new", "staged_new_fixed")
+# Opt-in only: they need the gitignored task files.
+ARMS = (*DEFAULT_ARMS, *NEW_ARMS)
 SEEDS = (0, 1, 2)
 # epoch-selection-in-behaviours (#154): the best fixed epoch of the fused arm in
 # verified behaviours. Fixed in advance for every arm; validation CE is not used.
@@ -162,13 +172,13 @@ def capped_programs(path: Path | None = None) -> dict[str, dict[str, Any]]:
 
 
 def new_tasks(path: Path | None = None) -> list[Task]:
-    """The ``staged_new`` arm's extra train tasks, one v4-schema ``Task`` per line."""
+    """The new arms' extra train tasks, one v4-schema ``Task`` per line."""
     from wandering_light.stack_pbe import Task
 
     path = NEW_TASKS_FILE if path is None else path
     if not path.exists():
         raise FileNotFoundError(
-            f"the staged_new arm needs {path}: build it with "
+            f"the new-behaviour arms need {path}: build it with "
             "experiments/distinct_programs/build_tasks.py (#174)"
         )
     tasks = []
@@ -258,18 +268,36 @@ def arm_rows(
             for rows in rewritten("refused_program" if arm == "refused" else "program")
         ]
     extra: dict[str, Any] = {}
-    if arm in ("staged_new", "staged_new_fixed"):
-        added = new_tasks()
+    if arm in NEW_ARMS:
+        files = {
+            "staged_opus": [OPUS_TASKS_FILE],
+            "all": [NEW_TASKS_FILE, OPUS_TASKS_FILE],
+        }.get(arm, [NEW_TASKS_FILE])
         v4_groups = len(groups)
-        groups += [
-            [rows] for rows in by_task(witness_rows(added, encoding), len(added))
-        ]
-        if arm == "staged_new":
+        # A new task's witnesses, keyed by (behaviour, its index in that behaviour).
+        witnesses: dict[tuple[str, int], list[list[Row]]] = defaultdict(list)
+        added = []
+        for path in files:
+            loaded = new_tasks(path)
+            seen: dict[str, int] = defaultdict(int)
+            keys = []
+            for t in loaded:
+                keys.append((t.behaviour, seen[t.behaviour]))
+                seen[t.behaviour] += 1
+            rows = by_task(witness_rows(loaded, encoding), len(loaded))
+            for key, r in zip(keys, rows, strict=True):
+                witnesses[key].append(r)
+            added += loaded
+        groups += list(witnesses.values())
+        if arm != "staged_new_fixed":
             size = round(size * len(groups) / v4_groups)
         extra = {
-            "new_tasks_file": _repo_path(NEW_TASKS_FILE),
-            "new_tasks_sha256": hashlib.sha256(NEW_TASKS_FILE.read_bytes()).hexdigest(),
-            "new_tasks": len(added),
+            "new_tasks_files": [_repo_path(f) for f in files],
+            "new_tasks_sha256": [
+                hashlib.sha256(f.read_bytes()).hexdigest() for f in files
+            ],
+            "new_tasks": len(witnesses),
+            "new_witness_tasks": len(added),
             "new_behaviours": len({t.behaviour for t in added}),
         }
     path = side_file(arm)
@@ -296,8 +324,10 @@ def check_arms(arms: Sequence[str]) -> None:
         raise ValueError(f"unknown arms {unknown}; choose from {ARMS}")
     if "capped" in arms:
         capped_programs()
-    if {"staged_new", "staged_new_fixed"} & set(arms):
+    if set(NEW_ARMS) & set(arms):
         new_tasks()
+    if {"staged_opus", "all"} & set(arms):
+        new_tasks(OPUS_TASKS_FILE)
 
 
 def recorded_encodings(run_dir: Path) -> dict[str, list[str]]:
