@@ -21,4 +21,13 @@
 
 **Reading.** Across #174 and #175, 220 → 615 training behaviours and one → two teachers leave verified behaviours at 15–16 of 43, and ~11 of those are solved only by programs contained in training. At this recipe the binding constraint is neither behaviour count nor teacher; model/recipe capacity or the train–eval distance are what is left.
 
+**Train–eval gap check (CPU, after the verdict).** Every training program (1,017: v4 fit witnesses fused and staged, plus the Sol and Opus witnesses) is run on each eval behaviour's cohort examples (up to 40). **Nearest** is the best fraction any one program gets right. Solve count is over the 12 cells above. `gap.md`, `gap.json`, `experiments/teacher_variety/gap.py`.
+
+| eval behaviours | n | nearest, v4 programs | nearest, all programs | witness ops, median (range) |
+|---|---:|---:|---:|---|
+| solved in ≥ 6 of 12 cells | 16 | 0.29 | 0.46 | 7 (4–40) |
+| never solved | 25 | 0.33 | 0.39 | 59 (15–253) |
+
+Output closeness to training does not predict a solve; length does. Five behaviours solved in every cell (`n_minus_each`, `push_back`, `increment_each`, `capped_sum`, `negate_each`) have no training program above 0.17. Three that are never solved have one at 0.76–0.84 (`positive_balance_prefix_count`, `positive_majority_three`, `nondecreasing_indicator`; two are boolean flags, so chance agreement is high). The new behaviours did pull `keep_zeros`, `reverse` and `min_pair` to ≥ 0.78, but staged already solved all three in every seed. Every never-solved behaviour's witness is ≥ 15 ops, and 21 of 25 are ≥ 30. The ceiling is how long a program the policy and beam can write. That is the #156 / #160 question, not data coverage. Caveat: agreement on examples is a behavioural proxy and says nothing about how similar the programs are.
+
 Files: `graded.md`, `verified.md`, `verified_solves.json`, `containment.json` / `.md`, `arms.png`. Run dir `checkpoints/teacher-variety-20260927` (main checkout).
