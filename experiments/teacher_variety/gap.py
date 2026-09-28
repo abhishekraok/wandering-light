@@ -3,8 +3,8 @@ that some training program already computes?
 
 For each of the cohort's 43 eval behaviours, every training program (the v4 fit
 witnesses, fused and staged, and the Sol and Opus witnesses of the #174
-behaviours) is run on that behaviour's cohort examples (shown and held-out,
-deduplicated). **Agreement** is the fraction it gets right; **nearest** is the
+behaviours) is run on that behaviour's cohort examples (all of them, shown and
+held-out, deduplicated). **Agreement** is the fraction it gets right; **nearest** is the
 best agreement over programs, reported for v4 programs alone and with the new
 ones, beside the shortest cohort witness. A behaviour's **solve count** is how many of the 12 #174/#175 cells
 (4 arms x 3 seeds) verified it.
@@ -23,14 +23,13 @@ import sys
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-from statistics import mean
+from statistics import mean, median
 
 import experiments.compute_optimal_mark28 as co
 import experiments.staged_arms as sa
 from wandering_light.stack_pbe_eval import _matches
 from wandering_light.stack_policy import validation_skeleton
 
-PAIRS = 40  # examples per eval behaviour
 PROGRAMS: list[tuple[str, tuple[str, ...]]] = []
 
 
@@ -55,7 +54,7 @@ def examples(tasks) -> dict[str, list[tuple[str, str]]]:
         ):
             for given, wanted in zip(ins, outs, strict=True):
                 pairs[t.behaviour].setdefault(given, wanted)
-    return {b: sorted(p.items())[:PAIRS] for b, p in pairs.items()}
+    return {b: sorted(p.items()) for b, p in pairs.items()}
 
 
 def _init(programs):
@@ -140,7 +139,7 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"{name}: n={len(group)} nearest v4 {mean(r['nearest_v4'] for r in group):.2f} "
             f"nearest all {mean(r['nearest_all'] for r in group):.2f} "
-            f"witness ops median {ops[len(ops) // 2]} range {ops[0]}-{ops[-1]}"
+            f"witness ops median {median(ops)} range {ops[0]}-{ops[-1]}"
         )
     return 0
 
