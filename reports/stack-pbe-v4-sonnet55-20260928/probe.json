@@ -1,0 +1,19 @@
+{
+  "answer": "OK",
+  "tool_calls": 0,
+  "text_tool_call": false,
+  "errors": [],
+  "usage": {
+    "input_tokens": 418,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 4,
+    "reasoning_output_tokens": 0
+  },
+  "model": [
+    "claude-sonnet-5-5"
+  ],
+  "stop_reason": "end_turn",
+  "api_ms": 784,
+  "seconds": 3.2
+}

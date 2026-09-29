@@ -4,7 +4,9 @@ Extends new-models-sample40 (#173) with gpt-5.6-sol (all efforts), gpt-5.6-terra
 
 ![accuracy vs cost](accuracy_vs_cost.png)
 
-- **Top of the sample:** fable-5 medium 27, gpt-6-sol max 26, fable-5 xhigh 26, gpt-5.6-sol max 25, opus-5 xhigh 25 -- all within the ±3-task noise of a 40-task sample. gpt-6-sol reaches that band at ~$0.02/task, Fable at ~$0.14-0.23.
+Updated 2026-09-29 with [Sonnet 5.5 at five efforts](../stack-pbe-v4-sonnet55-20260928/README.md), under the same protocol and cost estimate ($2/$10 per million input/output tokens). Max includes four refusals, scored as unsolved with their output tokens priced. The table's tool/turn column is a CLI turn/permission proxy for Claude; max reports eight on those refusal calls, with tools disabled in the command.
+
+- **Top of the sample:** fable-5 medium 27, gpt-6-sol max 26, sonnet-5.5 xhigh 26, fable-5 xhigh 26, gpt-5.6-sol max 25, opus-5 xhigh 25 -- all within the ±3-task noise of a 40-task sample. gpt-6-sol reaches that band at ~$0.02/task, Sonnet at ~$0.06, Fable at ~$0.14-0.23.
 - **Fable 5.1 is not better than Fable 5 here** (22 / 24 / 22 / 23 against 20 / 27 / 24 / 26), and xhigh costs $0.71/task.
 - **Local solvers** (`local/`): the 1m next-op policy (`solve.BEST`, CPU) solves 14 at ~$0.0001/task, above every local LLM (gpt-oss-20b 9, qwen3-30b-a3b 6) and BFS (1 / 2 / 6 at 1k / 10k / 100k nodes). It is trained on the v4 train split, so its solves are mostly retrieval (#155), unlike the zero-shot LLMs.
 

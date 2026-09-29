@@ -342,5 +342,55 @@
   "cost_per_task": 0.712134375,
   "median_out": 2214.5,
   "mean_out": 9235.125
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "effort": "low",
+  "solved": 17,
+  "cost_per_task": 0.01372225,
+  "median_out": 873.5,
+  "mean_out": 1112.225,
+  "usage_calls": 40,
+  "refusals": 0
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "effort": "medium",
+  "solved": 18,
+  "cost_per_task": 0.01632225,
+  "median_out": 830.5,
+  "mean_out": 1372.225,
+  "usage_calls": 40,
+  "refusals": 0
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "effort": "high",
+  "solved": 23,
+  "cost_per_task": 0.03800225,
+  "median_out": 988.0,
+  "mean_out": 3540.225,
+  "usage_calls": 40,
+  "refusals": 0
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "effort": "xhigh",
+  "solved": 26,
+  "cost_per_task": 0.0587025,
+  "median_out": 2049.5,
+  "mean_out": 5610.25,
+  "usage_calls": 40,
+  "refusals": 0
+ },
+ {
+  "model": "claude-sonnet-5-5",
+  "effort": "max",
+  "solved": 24,
+  "cost_per_task": 0.402957,
+  "median_out": 29943.0,
+  "mean_out": 40035.7,
+  "usage_calls": 40,
+  "refusals": 4
  }
 ]

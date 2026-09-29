@@ -1,0 +1,1327 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "guard": "off",
+  "partial": false,
+  "tasks_planned": 40,
+  "tasks": 40,
+  "solved": 24,
+  "memorised": 11,
+  "shown_fit": 35,
+  "illegal": 5,
+  "solve_rate": 0.6,
+  "shown_rate": 0.875,
+  "by_behaviour": {
+    "sum_negative": {
+      "witness_length": 16,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "min_pair": {
+      "witness_length": 12,
+      "tasks": 2,
+      "solved": 1,
+      "memorised": 0
+    },
+    "keep_negative": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "drop_last": {
+      "witness_length": 12,
+      "tasks": 3,
+      "solved": 3,
+      "memorised": 0
+    },
+    "aligned_matches": {
+      "witness_length": 39,
+      "tasks": 2,
+      "solved": 1,
+      "memorised": 1
+    },
+    "widest_pair": {
+      "witness_length": 84,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 2
+    },
+    "replace_value": {
+      "witness_length": 22,
+      "tasks": 3,
+      "solved": 3,
+      "memorised": 0
+    },
+    "positive_balance_prefix_count": {
+      "witness_length": 49,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "positive_majority_three": {
+      "witness_length": 39,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 2
+    },
+    "adjacent_sign_change_count": {
+      "witness_length": 47,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "nearest_interval_endpoint_each": {
+      "witness_length": 39,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "axis_point_count": {
+      "witness_length": 86,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 2
+    },
+    "median_floor": {
+      "witness_length": 253,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_ascending_pairs": {
+      "witness_length": 80,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_zeros": {
+      "witness_length": 5,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "largest_inside_interval": {
+      "witness_length": 40,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 1
+    },
+    "bounds_cover_list_flag": {
+      "witness_length": 92,
+      "tasks": 2,
+      "solved": 1,
+      "memorised": 1
+    },
+    "concatenate_shorter_first": {
+      "witness_length": 26,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "keep_below": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "n_minus_each": {
+      "witness_length": 7,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "negate_each": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "cartesian_pair_sums": {
+      "witness_length": 15,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "rotate_left": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "farther_choice_from_target": {
+      "witness_length": 54,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "farthest_from_target_last_tie": {
+      "witness_length": 59,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "prefix_sums": {
+      "witness_length": 25,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "reverse": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      3
+    ],
+    [
+      "[ 0 lt? ] filter 0 [ add ] fold",
+      2
+    ],
+    [
+      "[ 0 eq? ] filter",
+      2
+    ],
+    [
+      "[ 0 lt? ] filter",
+      1
+    ],
+    [
+      "quote [ swap dup ] cat swap quote cat [ eq? quote [ drop ] [ swap drop ] ifte ] cat map",
+      1
+    ],
+    [
+      "nil 0 cons [ over uncons swap drop add cons ] fold [ 0 swap lt? ] filter 0 [ drop 1 add ] fold",
+      1
+    ],
+    [
+      "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      1
+    ],
+    [
+      "quote [ swap ] cat swap quote cat [ [ over over eq? ] [ drop drop ] [ drop swap drop ] ifte ] cat map",
+      1
+    ],
+    [
+      "quote [ sub mul 0 lt? ] cat [ over sub swap ] swap cat swap quote swap cat filter 1 [ drop drop 0 ] fold",
+      1
+    ],
+    [
+      "over 0 [ drop 1 add ] fold over 0 [ drop 1 add ] fold [ over over lt? ] [ drop drop cat ] [ drop drop swap cat ] ifte",
+      1
+    ],
+    [
+      "quote [ lt? ] cat filter",
+      1
+    ],
+    [
+      "quote [ swap sub ] cat map",
+      1
+    ],
+    [
+      "[ 0 swap sub ] map",
+      1
+    ],
+    [
+      "drop uncons swap drop nil swap cons",
+      1
+    ],
+    [
+      "quote [ swap quote [ add ] cat map swap [ cons ] fold ] cat nil swap fold nil [ cons ] fold",
+      1
+    ],
+    [
+      "quote [ drop ] swap cat quote swap quote [ dup ] swap cat [ eq? ] cat quote swap cat [ ] quote cat [ ifte ] cat map",
+      1
+    ],
+    [
+      "uncons swap nil [ cons ] fold swap cons nil [ cons ] fold",
+      1
+    ],
+    [
+      "swap over quote [ sub [ over dup mul over dup mul lt? ] [ swap drop ] [ drop ] ifte ] cat 0 swap fold add",
+      1
+    ],
+    [
+      "nil 0 cons [ over uncons swap drop add cons ] fold nil [ cons ] fold uncons drop",
+      1
+    ],
+    [
+      "nil [ cons ] fold",
+      1
+    ]
+  ],
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "model": "claude-sonnet-5-5",
+  "provider": "claude",
+  "effort": "max",
+  "candidates": [
+    {
+      "task_index": 361,
+      "behaviour": "sum_negative",
+      "candidate": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1123,
+            "cache_creation_input_tokens": 1121,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1328,
+            "reasoning_output_tokens": 1304
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 11067,
+          "seconds": 12.8
+        }
+      ]
+    },
+    {
+      "task_index": 359,
+      "behaviour": "min_pair",
+      "candidate": "uncons [ [ over over lt? ] [ drop ] [ swap drop ] ifte ] fold nil swap cons",
+      "verdict": "failed",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1088,
+            "cache_creation_input_tokens": 1086,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 12480,
+            "reasoning_output_tokens": 12437
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 90633,
+          "seconds": 96.2
+        }
+      ]
+    },
+    {
+      "task_index": 234,
+      "behaviour": "keep_negative",
+      "candidate": "[ 0 lt? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1191,
+            "cache_creation_input_tokens": 1189,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 736,
+            "reasoning_output_tokens": 722
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 5304,
+          "seconds": 7.5
+        }
+      ]
+    },
+    {
+      "task_index": 595,
+      "behaviour": "drop_last",
+      "candidate": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1076,
+            "cache_creation_input_tokens": 1074,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 2436,
+            "reasoning_output_tokens": 2409
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 18195,
+          "seconds": 21.2
+        }
+      ]
+    },
+    {
+      "task_index": 1603,
+      "behaviour": "aligned_matches",
+      "candidate": "swap quote [ swap quote [ sub ] cat map 1 [ mul ] fold 0 eq? ] cat filter",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1219,
+            "cache_creation_input_tokens": 1217,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 63950,
+            "reasoning_output_tokens": 63906
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 492126,
+          "seconds": 517.3
+        }
+      ]
+    },
+    {
+      "task_index": 1156,
+      "behaviour": "widest_pair",
+      "candidate": "[ 0 swap lt? ] filter 1 dup add [ add 1 sub ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1091,
+            "cache_creation_input_tokens": 1089,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 117035,
+            "reasoning_output_tokens": 117001
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 850654,
+          "seconds": 900.1
+        }
+      ]
+    },
+    {
+      "task_index": 479,
+      "behaviour": "replace_value",
+      "candidate": "quote [ swap dup ] cat swap quote cat [ eq? quote [ drop ] [ swap drop ] ifte ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1268,
+            "cache_creation_input_tokens": 1266,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 34053,
+            "reasoning_output_tokens": 34004
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 258091,
+          "seconds": 277.0
+        }
+      ]
+    },
+    {
+      "task_index": 1408,
+      "behaviour": "positive_balance_prefix_count",
+      "candidate": "nil 0 cons [ over uncons swap drop add cons ] fold [ 0 swap lt? ] filter 0 [ drop 1 add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1146,
+            "cache_creation_input_tokens": 1144,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 62522,
+            "reasoning_output_tokens": 62467
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 422947,
+          "seconds": 451.1
+        }
+      ]
+    },
+    {
+      "task_index": 967,
+      "behaviour": "positive_majority_three",
+      "candidate": "add add [ 0 over lt? ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1122,
+            "cache_creation_input_tokens": 1120,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 25833,
+            "reasoning_output_tokens": 25797
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 179966,
+          "seconds": 191.1
+        }
+      ]
+    },
+    {
+      "task_index": 1499,
+      "behaviour": "adjacent_sign_change_count",
+      "candidate": "[ 0 1 sub lt? ] filter 0 [ drop 1 add ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1120,
+            "cache_creation_input_tokens": 1118,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 13526,
+            "reasoning_output_tokens": 13493
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 92686,
+          "seconds": 97.6
+        }
+      ]
+    },
+    {
+      "task_index": 815,
+      "behaviour": "nearest_interval_endpoint_each",
+      "candidate": "quote quote [ quote quote ] dip cat [ [ dup 0 lt? ] ] swap cat [ ifte swap drop ] cat map",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1096,
+            "cache_creation_input_tokens": 1094,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 47037,
+            "reasoning_output_tokens": 46985
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 342317,
+          "seconds": 359.1
+        }
+      ]
+    },
+    {
+      "task_index": 341,
+      "behaviour": "min_pair",
+      "candidate": "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1110,
+            "cache_creation_input_tokens": 1108,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 15861,
+            "reasoning_output_tokens": 15833
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 117575,
+          "seconds": 124.4
+        }
+      ]
+    },
+    {
+      "task_index": 456,
+      "behaviour": "replace_value",
+      "candidate": "quote [ swap ] cat swap quote cat [ [ over over eq? ] [ drop drop ] [ drop swap drop ] ifte ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1198,
+            "cache_creation_input_tokens": 1196,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 42724,
+            "reasoning_output_tokens": 42669
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 314409,
+          "seconds": 330.6
+        }
+      ]
+    },
+    {
+      "task_index": 1266,
+      "behaviour": "axis_point_count",
+      "candidate": "[ dup mul 0 swap lt? ] filter nil 0 cons [ [ uncons ] dip dup [ mul ] dip [ cons ] dip cons ] fold uncons drop [ 0 lt? ] filter 0 [ drop 1 add ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1149,
+            "cache_creation_input_tokens": 1147,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 78492,
+            "reasoning_output_tokens": 78398
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 547608,
+          "seconds": 575.3
+        }
+      ]
+    },
+    {
+      "task_index": 1241,
+      "behaviour": "axis_point_count",
+      "candidate": "[ 0 eq? ] filter 0 [ drop 1 add ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1183,
+            "cache_creation_input_tokens": 1181,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1279,
+            "reasoning_output_tokens": 1250
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 9138,
+          "seconds": 10.7
+        }
+      ]
+    },
+    {
+      "task_index": 992,
+      "behaviour": "positive_majority_three",
+      "candidate": "mul mul [ dup 0 eq? ] [ drop 0 ] [ drop 1 ] ifte",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1095,
+            "cache_creation_input_tokens": 1093,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 35209,
+            "reasoning_output_tokens": 35170
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 253051,
+          "seconds": 268.5
+        }
+      ]
+    },
+    {
+      "task_index": 1466,
+      "behaviour": "median_floor",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "RuntimeError"
+      ],
+      "generation": [
+        {
+          "tool_calls": 2,
+          "text_tool_call": false,
+          "errors": [
+            "API Error: Sonnet 5.5 can't help with this. Start a new session to continue.\n\nLearn more: https://www.anthropic.com/lega"
+          ],
+          "usage": {
+            "input_tokens": 3539,
+            "cache_creation_input_tokens": 3533,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 130903,
+            "reasoning_output_tokens": 130903
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "refusal",
+          "api_ms": 908265,
+          "seconds": 959.2
+        }
+      ]
+    },
+    {
+      "task_index": 1347,
+      "behaviour": "keep_ascending_pairs",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "RuntimeError"
+      ],
+      "generation": [
+        {
+          "tool_calls": 2,
+          "text_tool_call": false,
+          "errors": [
+            "API Error: Sonnet 5.5 can't help with this. Start a new session to continue.\n\nLearn more: https://www.anthropic.com/lega"
+          ],
+          "usage": {
+            "input_tokens": 3464,
+            "cache_creation_input_tokens": 3458,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 129865,
+            "reasoning_output_tokens": 129865
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "refusal",
+          "api_ms": 933609,
+          "seconds": 991.2
+        }
+      ]
+    },
+    {
+      "task_index": 160,
+      "behaviour": "keep_zeros",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1076,
+            "cache_creation_input_tokens": 1074,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 703,
+            "reasoning_output_tokens": 689
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 5631,
+          "seconds": 7.8
+        }
+      ]
+    },
+    {
+      "task_index": 1729,
+      "behaviour": "largest_inside_interval",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "RuntimeError"
+      ],
+      "generation": [
+        {
+          "tool_calls": 2,
+          "text_tool_call": false,
+          "errors": [
+            "API Error: Sonnet 5.5 can't help with this. Start a new session to continue.\n\nLearn more: https://www.anthropic.com/lega"
+          ],
+          "usage": {
+            "input_tokens": 3605,
+            "cache_creation_input_tokens": 3599,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 129229,
+            "reasoning_output_tokens": 129228
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "refusal",
+          "api_ms": 950643,
+          "seconds": 1010.7
+        }
+      ]
+    },
+    {
+      "task_index": 1087,
+      "behaviour": "bounds_cover_list_flag",
+      "candidate": "quote [ sub mul 0 lt? ] cat [ over sub swap ] swap cat swap quote swap cat filter 1 [ drop drop 0 ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1159,
+            "cache_creation_input_tokens": 1157,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 81570,
+            "reasoning_output_tokens": 81511
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 572936,
+          "seconds": 609.5
+        }
+      ]
+    },
+    {
+      "task_index": 1019,
+      "behaviour": "concatenate_shorter_first",
+      "candidate": "over 0 [ drop 1 add ] fold over 0 [ drop 1 add ] fold [ over over lt? ] [ drop drop cat ] [ drop drop swap cat ] ifte",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1211,
+            "cache_creation_input_tokens": 1209,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 77828,
+            "reasoning_output_tokens": 77760
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 541907,
+          "seconds": 574.6
+        }
+      ]
+    },
+    {
+      "task_index": 176,
+      "behaviour": "keep_zeros",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1159,
+            "cache_creation_input_tokens": 1157,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 720,
+            "reasoning_output_tokens": 706
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 5335,
+          "seconds": 9.0
+        }
+      ]
+    },
+    {
+      "task_index": 1159,
+      "behaviour": "widest_pair",
+      "candidate": "nil [ cons ] fold uncons swap uncons swap drop [ over over lt? ] [ swap ] [ ] ifte sub",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1076,
+            "cache_creation_input_tokens": 1074,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 73397,
+            "reasoning_output_tokens": 73349
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 515054,
+          "seconds": 547.5
+        }
+      ]
+    },
+    {
+      "task_index": 570,
+      "behaviour": "drop_last",
+      "candidate": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1112,
+            "cache_creation_input_tokens": 1110,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 3479,
+            "reasoning_output_tokens": 3452
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 24553,
+          "seconds": 28.2
+        }
+      ]
+    },
+    {
+      "task_index": 317,
+      "behaviour": "keep_below",
+      "candidate": "quote [ lt? ] cat filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1187,
+            "cache_creation_input_tokens": 1185,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 2203,
+            "reasoning_output_tokens": 2188
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 15184,
+          "seconds": 16.8
+        }
+      ]
+    },
+    {
+      "task_index": 399,
+      "behaviour": "sum_negative",
+      "candidate": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1158,
+            "cache_creation_input_tokens": 1156,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1512,
+            "reasoning_output_tokens": 1488
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 9926,
+          "seconds": 11.5
+        }
+      ]
+    },
+    {
+      "task_index": 241,
+      "behaviour": "n_minus_each",
+      "candidate": "quote [ swap sub ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1129,
+            "cache_creation_input_tokens": 1127,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1341,
+            "reasoning_output_tokens": 1326
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 9889,
+          "seconds": 13.5
+        }
+      ]
+    },
+    {
+      "task_index": 1097,
+      "behaviour": "bounds_cover_list_flag",
+      "candidate": "swap drop quote [ eq? ] cat filter [ drop 1 ] map 0 [ add ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1087,
+            "cache_creation_input_tokens": 1085,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 36378,
+            "reasoning_output_tokens": 36339
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 268856,
+          "seconds": 285.6
+        }
+      ]
+    },
+    {
+      "task_index": 47,
+      "behaviour": "negate_each",
+      "candidate": "[ 0 swap sub ] map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1123,
+            "cache_creation_input_tokens": 1121,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 334,
+            "reasoning_output_tokens": 320
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 3809,
+          "seconds": 5.8
+        }
+      ]
+    },
+    {
+      "task_index": 1634,
+      "behaviour": "aligned_matches",
+      "candidate": "drop uncons swap drop nil swap cons",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1189,
+            "cache_creation_input_tokens": 1187,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 12126,
+            "reasoning_output_tokens": 12109
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 90428,
+          "seconds": 97.7
+        }
+      ]
+    },
+    {
+      "task_index": 1579,
+      "behaviour": "cartesian_pair_sums",
+      "candidate": "quote [ swap quote [ add ] cat map swap [ cons ] fold ] cat nil swap fold nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1230,
+            "cache_creation_input_tokens": 1228,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 38439,
+            "reasoning_output_tokens": 38391
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 282441,
+          "seconds": 301.6
+        }
+      ]
+    },
+    {
+      "task_index": 574,
+      "behaviour": "drop_last",
+      "candidate": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1099,
+            "cache_creation_input_tokens": 1097,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 10382,
+            "reasoning_output_tokens": 10355
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 77976,
+          "seconds": 83.3
+        }
+      ]
+    },
+    {
+      "task_index": 470,
+      "behaviour": "replace_value",
+      "candidate": "quote [ drop ] swap cat quote swap quote [ dup ] swap cat [ eq? ] cat quote swap cat [ ] quote cat [ ifte ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1242,
+            "cache_creation_input_tokens": 1240,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 43401,
+            "reasoning_output_tokens": 43338
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 331628,
+          "seconds": 354.2
+        }
+      ]
+    },
+    {
+      "task_index": 521,
+      "behaviour": "rotate_left",
+      "candidate": "uncons swap nil [ cons ] fold swap cons nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1165,
+            "cache_creation_input_tokens": 1163,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 12916,
+            "reasoning_output_tokens": 12885
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 96888,
+          "seconds": 104.3
+        }
+      ]
+    },
+    {
+      "task_index": 897,
+      "behaviour": "farther_choice_from_target",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "RuntimeError"
+      ],
+      "generation": [
+        {
+          "tool_calls": 2,
+          "text_tool_call": false,
+          "errors": [
+            "API Error: Sonnet 5.5 can't help with this. Start a new session to continue.\n\nLearn more: https://www.anthropic.com/lega"
+          ],
+          "usage": {
+            "input_tokens": 3560,
+            "cache_creation_input_tokens": 3554,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 130311,
+            "reasoning_output_tokens": 130311
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "refusal",
+          "api_ms": 902344,
+          "seconds": 958.0
+        }
+      ]
+    },
+    {
+      "task_index": 1772,
+      "behaviour": "farthest_from_target_last_tie",
+      "candidate": "swap over quote [ sub [ over dup mul over dup mul lt? ] [ swap drop ] [ drop ] ifte ] cat 0 swap fold add",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1160,
+            "cache_creation_input_tokens": 1158,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 54469,
+            "reasoning_output_tokens": 54412
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 394198,
+          "seconds": 419.3
+        }
+      ]
+    },
+    {
+      "task_index": 1735,
+      "behaviour": "largest_inside_interval",
+      "candidate": "swap drop swap drop 1 sub",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1090,
+            "cache_creation_input_tokens": 1088,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 49765,
+            "reasoning_output_tokens": 49750
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 362670,
+          "seconds": 385.8
+        }
+      ]
+    },
+    {
+      "task_index": 128,
+      "behaviour": "prefix_sums",
+      "candidate": "nil 0 cons [ over uncons swap drop add cons ] fold nil [ cons ] fold uncons drop",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1143,
+            "cache_creation_input_tokens": 1141,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 24542,
+            "reasoning_output_tokens": 24501
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 187248,
+          "seconds": 200.3
+        }
+      ]
+    },
+    {
+      "task_index": 95,
+      "behaviour": "reverse",
+      "candidate": "nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "tool_calls": 0,
+          "text_tool_call": false,
+          "errors": [],
+          "usage": {
+            "input_tokens": 1119,
+            "cache_creation_input_tokens": 1117,
+            "cache_read_input_tokens": 0,
+            "output_tokens": 1114,
+            "reasoning_output_tokens": 1102
+          },
+          "model": [
+            "claude-sonnet-5-5"
+          ],
+          "stop_reason": "end_turn",
+          "api_ms": 9276,
+          "seconds": 12.7
+        }
+      ]
+    }
+  ]
+}

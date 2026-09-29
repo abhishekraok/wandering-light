@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 HERE = Path(__file__).parent
 ORDER = (  # model, colour, latest generation of its line (solid) or earlier (dashed)
+    ("claude-sonnet-5-5", "#006d77", True),
     ("claude-fable-5-1", "#7a3db8", True),
     ("claude-fable-5", "#b58ae0", False),
     ("claude-opus-5-5", "#2a78d6", True),
@@ -24,6 +25,7 @@ ORDER = (  # model, colour, latest generation of its line (solid) or earlier (da
 EFFORT = {"low": "L", "medium": "M", "high": "H", "xhigh": "X", "max": "Mx"}
 
 rows = json.loads((HERE / "summary.json").read_text())
+refusals = {(r["model"], r["effort"]): r.get("refusals", 0) for r in rows}
 fig, ax = plt.subplots(figsize=(12, 6.5), dpi=150)
 ax.axhspan(22, 27.3, color="#e8e7e1", zorder=0)
 ax.text(1e-5, 26.9, "top cluster, ±3-task noise", color="#6b6a64", fontsize=8, va="top")
@@ -31,7 +33,7 @@ for model, colour, new in ORDER:
     pts = sorted(
         (r["cost_per_task"], r["solved"], r["effort"])
         for r in rows
-        if r["model"] == model
+        if r["model"] == model and r["cost_per_task"] is not None
     )
     if not pts:
         continue
@@ -54,7 +56,7 @@ for model, colour, new in ORDER:
     above = model == "gpt-6-astra"  # sits on Opus 5.5's medium/high points
     for x, y, e in pts:
         ax.annotate(
-            EFFORT[e],
+            EFFORT[e] + ("*" if refusals[(model, e)] else ""),
             (x, y),
             xytext=(0, 7 if above else -13),
             textcoords="offset points",
@@ -62,11 +64,12 @@ for model, colour, new in ORDER:
             fontsize=7,
             color="#6b6a64",
         )
-    anchor, offset, ha = (
-        ((xs[0], ys[0]), (4, -24), "center")
-        if above
-        else ((xs[-1], ys[-1]), (8, 3), "left")
-    )
+    if model == "claude-sonnet-5-5":
+        anchor, offset, ha = (xs[0], ys[0]), (-8, -47), "right"
+    elif above:
+        anchor, offset, ha = (xs[0], ys[0]), (4, -24), "center"
+    else:
+        anchor, offset, ha = (xs[-1], ys[-1]), (8, 3), "left"
     ax.annotate(
         model,
         anchor,
@@ -75,6 +78,9 @@ for model, colour, new in ORDER:
         ha=ha,
         fontsize=8,
         color="#2b2b29",
+        arrowprops={"arrowstyle": "-", "color": colour, "lw": 0.7}
+        if model == "claude-sonnet-5-5"
+        else None,
     )
 # Local solvers (local/local_rows.json): $ from wall clock at cloud rental rates
 # (c7i vCPU-hour for CPU, $0.40/h for an RTX 4090), not API list prices.
@@ -131,7 +137,7 @@ for label, name, colour, marker in (
     )
 ax.set_xscale("log")
 ax.set_xlim(8e-6, 3)
-ax.set_ylim(-1.5, 28)
+ax.set_ylim(-1.5, max(28, max(r["solved"] for r in rows) + 1))
 ax.set_xlabel(
     "$ per task: API list price for hosted models (1.3k-token prompt + recorded output);\n"
     "wall clock x cloud rental rate for local solvers"
@@ -147,5 +153,29 @@ ax.grid(True, which="major", color="#e8e7e1", lw=0.8)
 for side in ("top", "right"):
     ax.spines[side].set_visible(False)
 ax.legend(fontsize=8, frameon=False, loc="upper left", bbox_to_anchor=(1.01, 1))
+notes = []
+for r in rows:
+    if r["model"] != "claude-sonnet-5-5":
+        continue
+    if r["cost_per_task"] is None:
+        notes.append(
+            f"Sonnet {r['effort']}: {r['solved']}/40\n"
+            f"not plotted: incomplete\npricing metadata for\n{40 - r['usage_calls']}/40 calls"
+        )
+    elif r.get("refusals"):
+        notes.append(
+            f"*Sonnet {r['effort']}: {r['refusals']} refusals\n"
+            "(unsolved; output tokens priced)."
+        )
+if notes:
+    ax.text(
+        1.01,
+        0.1,
+        "\n\n".join(notes),
+        transform=ax.transAxes,
+        fontsize=8,
+        color="#6b6a64",
+        va="bottom",
+    )
 fig.tight_layout()
 fig.savefig(HERE / "accuracy_vs_cost.png")
