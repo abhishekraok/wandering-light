@@ -1,0 +1,18 @@
+{
+  "tool_calls": 0,
+  "text_tool_call": false,
+  "errors": [],
+  "usage": {
+    "input_tokens": 169353,
+    "cache_creation_input_tokens": 169351,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 10821,
+    "reasoning_output_tokens": 8605
+  },
+  "model": [
+    "claude-opus-5-5"
+  ],
+  "stop_reason": "end_turn",
+  "api_ms": 110436,
+  "seconds": 112.5
+}

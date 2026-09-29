@@ -13,7 +13,9 @@ Xhigh reached 26/40 at $0.05870/task. The existing GPT-6 sol max run scores
 
 [Results](table.md). Raw candidates and per-call usage are in
 `sonnet55_*_v4_sample40.json`; `validation.json` records sample indices,
-source hashes, runtime versions and an independent re-grade of all candidates.
+the original benchmark base and an independent re-grade of all candidates.
+Its `analysis_*` source hashes and tool versions are captured during analysis;
+per-call runtime versions were not recorded. Analysis always audits all five arms.
 Generation failures count as unsolved without retry; their recorded output
 tokens remain in the cost estimate. A cost point requires model identity and
 nonzero output usage for all 40 calls; unusable metadata is recorded, not

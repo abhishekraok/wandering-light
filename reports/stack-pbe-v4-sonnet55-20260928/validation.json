@@ -1,7 +1,7 @@
 {
-  "source_commit": "52131dd",
-  "python": "3.12.8",
-  "claude": "2.1.283 (Claude Code)",
+  "benchmark_base_commit": "52131dd",
+  "analysis_python": "3.12.8",
+  "analysis_claude": "2.1.283 (Claude Code)",
   "pricing_source": "https://www.anthropic.com/claude-sonnet-5-5",
   "input_usd_per_million": 2,
   "output_usd_per_million": 10,
@@ -48,7 +48,7 @@
     128,
     95
   ],
-  "source_sha256": {
+  "analysis_source_sha256": {
     "experiments/stack_pbe_baseline.py": "1dac4ddb9e617ca138326bfc001494b2f5bad1dd084435472909e7b4154e3c7e",
     "wandering_light/solver.py": "45da7e9d3417a3d70ae9b803bd9d28f75fe45b834a7ccfdb00e0c7b461656845",
     "wandering_light/stack_machine.py": "61d6cc70629a04701c0b49ac3dac5ce57cf5692a896fc0c4026f00c6f9a733f3",

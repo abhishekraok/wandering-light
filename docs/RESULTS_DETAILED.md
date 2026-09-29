@@ -61,6 +61,8 @@ Guard `body` alone: 1.30x / 1.71x / 2.30x at depths 4/5/6. Authored witnesses pr
 
 `stack_pbe_v4`, `mark-28`, witness median 43 ops. [report](../reports/stack-pbe-v4-baseline-20260901/README.md), [local-arm report](../reports/stack-pbe-v4-local-arm-20260902/README.md), [codex-exec report](../reports/stack-pbe-v4-codex-exec-20260910/README.md), [claude-exec report](../reports/stack-pbe-v4-claude-exec-20260913/README.md), [rerun-baselines-v4 (#85)](../../issues/85), [codex-exec-frontier-effort-curve (#123)](../../issues/123), [opus-effort-curve (#137)](../../issues/137), [new-models report](../reports/stack-pbe-v4-new-models-20260926/README.md), [new-models-sample40 (#173)](../../issues/173). **The `codex exec` rows were run with the invoking user's `~/.codex` in context** (a generator bug, fixed after the runs); a post-fix replicate of one arm agrees 37/40, see the report's correction section. A paired, per-example regrade of the luna API row against the astra high row, with per-op traces of every candidate, is in [run-comparison](../reports/stack-pbe-v4-run-comparison-20260913/README.md).
 
+Sonnet 5.5 timings below are sums of call seconds; tasks ran sequentially within each arm.
+
 | solver | config | tasks | solved | memorised | wall (s) | notes | artifact |
 |---|---|---:|---:|---:|---:|---|---|
 | BFS | 1,000 nodes | full 1,800 | 80 (4.4%) | 8 | 2,116 | | `bfs_v4_1k_full.json` |

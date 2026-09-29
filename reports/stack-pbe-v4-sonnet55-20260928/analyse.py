@@ -5,6 +5,7 @@ import hashlib
 import json
 import platform
 import random
+import shutil
 import statistics
 import subprocess
 from pathlib import Path
@@ -20,9 +21,7 @@ PRICE_URL = "https://www.anthropic.com/claude-sonnet-5-5"
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--efforts", nargs="+", choices=EFFORTS, default=EFFORTS)
-    efforts = parser.parse_args().efforts
+    argparse.ArgumentParser(description=__doc__).parse_args()
     tasks = load(ROOT / "wandering_light/evals/data/stack_pbe_v4")
     selected = [i for i, t in enumerate(tasks) if t.split == "eval"]
     random.Random(17).shuffle(selected)
@@ -32,7 +31,7 @@ def main():
         "| effort | solved /40 | memorised | illegal | generation failures | shown-only | usage calls /40 | median / mean recorded output tokens | $/task | call seconds |"
     )
     print("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
-    for effort in efforts:
+    for effort in EFFORTS:
         name = f"sonnet55_{effort}_v4_sample40.json"
         d = json.loads((HERE / name).read_text())
         assert d["tasks"] == d["tasks_planned"] == 40 and not d["partial"]
@@ -124,15 +123,19 @@ def main():
             f"{len(outputs)} | {token_text} | {cost_text} | {seconds:.0f} |"
         )
     provenance = {
-        "source_commit": "52131dd",  # benchmark base; Windows Git worktree, WSL runtime
-        "python": platform.python_version(),
-        "claude": subprocess.check_output(["claude", "--version"], text=True).strip(),
+        "benchmark_base_commit": "52131dd",  # recorded original run base
+        "analysis_python": platform.python_version(),
+        "analysis_claude": (
+            subprocess.check_output(["claude", "--version"], text=True).strip()
+            if shutil.which("claude")
+            else None
+        ),
         "pricing_source": PRICE_URL,
         "input_usd_per_million": 2,
         "output_usd_per_million": 10,
         "plot_prompt_tokens": 1300,
         "task_indices": selected,
-        "source_sha256": {
+        "analysis_source_sha256": {
             p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest()
             for p in (
                 "experiments/stack_pbe_baseline.py",
