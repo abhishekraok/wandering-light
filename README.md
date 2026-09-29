@@ -87,7 +87,7 @@ carries a certified distance or an authored witness rather than an estimate.
 
 ![Accuracy against cost on the stack_pbe_v4 40-task sample](reports/stack-pbe-v4-effort-sweep-20260927/accuracy_vs_cost.png)
 
-Solved of 40 on a fixed `stack_pbe_v4` eval sample against dollars per task, for hosted LLMs at each reasoning effort, local LLMs, BFS and this repo's 1m-parameter learned policy ([details](reports/stack-pbe-v4-effort-sweep-20260927/README.md)). Includes [Sonnet 5.5 at five efforts](reports/stack-pbe-v4-sonnet55-20260928/README.md).
+Solved of 40 on a fixed `stack_pbe_v4` eval sample against dollars per task, for hosted LLMs at each reasoning effort, local LLMs, BFS and this repo's 1m-parameter learned policy ([details](reports/stack-pbe-v4-effort-sweep-20260927/README.md)). Includes [Sonnet 5.5 at five efforts](reports/stack-pbe-v4-sonnet55-20260928/README.md) and [GPT-6.1 Sol at four](reports/stack-pbe-v4-sol61-20260929/README.md).
 
 [`docs/RESULTS.md`](docs/RESULTS.md) has the headline numbers for language
 models, search and the learned policies on both substrates, and

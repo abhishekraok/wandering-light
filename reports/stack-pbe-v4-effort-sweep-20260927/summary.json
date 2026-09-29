@@ -392,5 +392,37 @@
   "mean_out": 40035.7,
   "usage_calls": 40,
   "refusals": 4
+ },
+ {
+  "model": "gpt-6.1-sol",
+  "effort": "low",
+  "solved": 23,
+  "cost_per_task": 0.006024,
+  "median_out": 321.5,
+  "mean_out": 342.4
+ },
+ {
+  "model": "gpt-6.1-sol",
+  "effort": "medium",
+  "solved": 25,
+  "cost_per_task": 0.0069755,
+  "median_out": 382.0,
+  "mean_out": 437.55
+ },
+ {
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "solved": 24,
+  "cost_per_task": 0.0101605,
+  "median_out": 499.5,
+  "mean_out": 756.05
+ },
+ {
+  "model": "gpt-6.1-sol",
+  "effort": "xhigh",
+  "solved": 24,
+  "cost_per_task": 0.0139285,
+  "median_out": 860.0,
+  "mean_out": 1132.85
  }
 ]

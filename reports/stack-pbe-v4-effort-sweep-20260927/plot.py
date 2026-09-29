@@ -16,7 +16,8 @@ ORDER = (  # model, colour, latest generation of its line (solid) or earlier (da
     ("claude-opus-5-5", "#2a78d6", True),
     ("claude-opus-5", "#8fb8ea", False),
     ("gpt-6-astra", "#c2185b", True),
-    ("gpt-6-sol", "#eb6834", True),
+    ("gpt-6.1-sol", "#b83a0b", True),
+    ("gpt-6-sol", "#eb6834", False),
     ("gpt-6-luna", "#1baf7a", True),
     ("gpt-5.6-sol", "#f2a57f", False),
     ("gpt-5.6-terra", "#eda100", False),
@@ -66,6 +67,8 @@ for model, colour, new in ORDER:
         )
     if model == "claude-sonnet-5-5":
         anchor, offset, ha = (xs[0], ys[0]), (-8, -47), "right"
+    elif model == "gpt-6.1-sol":  # clear of gpt-6-sol's xhigh/max points
+        anchor, offset, ha = (xs[0], ys[0]), (-8, -3), "right"
     elif above:
         anchor, offset, ha = (xs[0], ys[0]), (4, -24), "center"
     else:

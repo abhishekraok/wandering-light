@@ -15,7 +15,8 @@ HERE = Path(__file__).parent
 REPORTS = HERE.parent
 BUCKETS = ((1, 10), (11, 20), (21, 40), (41, 1000))
 PROMPT_TOKENS = 1300
-PRICE = {  # $ per 1M input, output; Sonnet 5.5 verified 2026-09-28
+PRICE = {  # $ per 1M input, output; Sonnet 5.5 verified 2026-09-28, 6.1 Sol 2026-09-29
+    "gpt-6.1-sol": (2, 10),
     "gpt-6-astra": (10, 50),
     "gpt-6-sol": (2, 10),
     "gpt-6-luna": (0.1, 0.5),
@@ -79,6 +80,11 @@ ARMS = (
     ("stack-pbe-v4-sonnet55-20260928/sonnet55_high", "claude-sonnet-5-5", "high"),
     ("stack-pbe-v4-sonnet55-20260928/sonnet55_xhigh", "claude-sonnet-5-5", "xhigh"),
     ("stack-pbe-v4-sonnet55-20260928/sonnet55_max", "claude-sonnet-5-5", "max"),
+    ("stack-pbe-v4-sol61-20260929/sol61_low", "gpt-6.1-sol", "low"),
+    ("stack-pbe-v4-sol61-20260929/sol61_medium", "gpt-6.1-sol", "medium"),
+    ("stack-pbe-v4-sol61-20260929/sol61_high", "gpt-6.1-sol", "high"),
+    ("stack-pbe-v4-sol61-20260929/sol61_xhigh", "gpt-6.1-sol", "xhigh"),
+    ("stack-pbe-v4-sol61-20260929/sol61_max", "gpt-6.1-sol", "max"),
 )
 
 
