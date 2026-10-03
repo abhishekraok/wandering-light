@@ -25,6 +25,7 @@ import numpy as np
 
 from experiments.score_band_checks import (
     check_semantic_expectation,
+    manual_typed_expectation,
     result_key,
     verify_attempts,
     verify_layers,
@@ -42,7 +43,7 @@ from experiments.score_band_fixtures import (
 )
 from experiments.score_band_search import _retain, band_beam_solve
 from wandering_light.stack_beam import beam_solve, replay_program
-from wandering_light.stack_machine import Bool, Int, Lst, Mark, parse_stack
+from wandering_light.stack_machine import Int, parse_stack
 from wandering_light.stack_pbe import BASIS, OPS
 from wandering_light.stack_policy import PolicyScorer
 
@@ -271,8 +272,9 @@ def run_search_case(case, category):
                 raise AssertionError("unexpected ValueError") from error
         else:
             raise AssertionError("invalid executable score was accepted")
-        assert any(e[0] == "scored" for e in own.events)
+        assert sum(e[0] == "scored" for e in own.events) == 1
         assert not any(e[0] == "retained" for e in own.events)
+        assert len(own.layers) == 0
         replay = verify_attempts(own)
         try:
             band_beam_solve(
@@ -400,31 +402,28 @@ def check_input(name):
     task = manual_task(name)
     inputs = tuple(parse_stack(x, basis=BASIS) for x in task.inputs)
     outputs = tuple(parse_stack(x, basis=BASIS) for x in task.outputs)
-    if task.program:
-        assert replay_program(task.program, inputs, outputs)[0]
-    if name == "T-empty":
-        assert inputs == ((),)
-    elif name == "T-open":
-        assert inputs == ((Mark(), Int(0)),)
-    elif name == "T-typed":
-        assert inputs[0] == (Lst((Bool(True), Int(1))), Bool(False))
-    elif name == "T-long":
-        assert inputs == ((Int(0),) * 163,)
+    expected_inputs, expected_outputs, expected_program = manual_typed_expectation(name)
+    assert inputs == expected_inputs and outputs == expected_outputs
+    assert task.program == expected_program
+    witness_fits = (
+        replay_program(task.program, inputs, outputs)[0] if task.program else None
+    )
+    assert witness_fits is (True if expected_program else None)
     return {
         "id": f"input/{name}",
         "task": asdict(task),
         "typed_inputs": inputs,
         "typed_outputs": outputs,
         "expected": {
-            "inputs": inputs,
-            "outputs": outputs,
-            "witness_program": task.program,
-            "witness_fits": True if task.program else None,
+            "inputs": expected_inputs,
+            "outputs": expected_outputs,
+            "witness_program": expected_program,
+            "witness_fits": True if expected_program else None,
         },
         "actual": {
             "inputs": inputs,
             "outputs": outputs,
-            "witness_fits": True if task.program else None,
+            "witness_fits": witness_fits,
         },
         "check": "PASS",
     }
@@ -507,6 +506,13 @@ def check_arithmetic(kind):
     assert layer.stop == stop and layer.width_pruned == (stop == "width")
     assert layer.band_pruned == (stop == "score_band")
     assert len(layer.verdicts) == (1 if stop == "width" else 2)
+    expected_retained = tuple(
+        (p, (OPS[i].name,), scores[i])
+        for i, p in enumerate(products)
+        if (kind != "last-row-band" and i < width)
+        or (kind == "last-row-band" and i == 0)
+    )
+    assert layer.retained == expected_retained
     return {
         "id": f"unit/{kind}",
         "scope": "arithmetic-only/no-solver-outcome",
@@ -515,12 +521,7 @@ def check_arithmetic(kind):
             "stop": stop,
             "width_pruned": stop == "width",
             "band_pruned": stop == "score_band",
-            "retained": tuple(
-                (p, (OPS[i].name,), scores[i])
-                for i, p in enumerate(products)
-                if (kind != "last-row-band" and i < width)
-                or (kind == "last-row-band" and i == 0)
-            ),
+            "retained": expected_retained,
             "read_verdict_count": 1 if stop == "width" else 2,
         },
         "actual": layer,

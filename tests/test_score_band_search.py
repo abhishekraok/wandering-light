@@ -277,7 +277,21 @@ def test_independent_expansion_charging_at_node_boundaries(budget):
     verify_layers(candidate_observer, case)
 
 
-@pytest.mark.parametrize("tamper", ["initial-seen", "next-beam", "retained-event"])
+@pytest.mark.parametrize(
+    "tamper",
+    [
+        "initial-seen",
+        "next-beam",
+        "retained-event",
+        "drop-final-layer",
+        "drop-all-layers",
+        "duplicate-layer",
+        "reverse-layers",
+        "wrong-layer-depth",
+        "duplicate-retained-event",
+        "reverse-retained-events",
+    ],
+)
 def test_independent_layer_check_rejects_inconsistent_observation(tamper):
     from dataclasses import replace
 
@@ -292,6 +306,25 @@ def test_independent_layer_check_rejects_inconsistent_observation(tamper):
     )
     if tamper == "initial-seen":
         observer.layers[0] = replace(observer.layers[0], old_seen=frozenset())
+    elif tamper == "drop-final-layer":
+        observer.layers.pop()
+    elif tamper == "drop-all-layers":
+        observer.layers.clear()
+    elif tamper == "duplicate-layer":
+        observer.layers.append(observer.layers[-1])
+    elif tamper == "reverse-layers":
+        observer.layers.reverse()
+    elif tamper == "wrong-layer-depth":
+        observer.layers[-1] = replace(observer.layers[-1], depth=99)
+    elif tamper == "duplicate-retained-event":
+        event = next(e for e in observer.events if e[0] == "retained")
+        observer.events.append(event)
+    elif tamper == "reverse-retained-events":
+        positions = [i for i, e in enumerate(observer.events) if e[0] == "retained"]
+        events = [observer.events[i] for i in positions]
+        assert len(events) > 1
+        for i, event in zip(positions, reversed(events), strict=True):
+            observer.events[i] = event
     else:
         kind, depth = ("started", 1) if tamper == "next-beam" else ("retained", 0)
         at = next(
@@ -299,5 +332,23 @@ def test_independent_layer_check_rejects_inconsistent_observation(tamper):
         )
         event = observer.events[at]
         observer.events[at] = (*event[:2], (), *event[3:])
+    with pytest.raises(AssertionError):
+        verify_layers(observer, case)
+
+
+def test_layer_check_requires_final_unexpanded_retention_callback():
+    case = next(c for c in semantic_cases() if c.id == "boundary/included")
+    observer = Capture()
+    band_beam_solve(
+        manual_task(case.task),
+        ScriptedScorer(case.script),
+        observer=observer,
+        score_band_nats=case.band,
+        **case.settings(),
+    )
+    assert len(observer.layers) == 1
+    assert not any(e[0] == "started" and e[1] == 1 for e in observer.events)
+    verify_layers(observer, case)
+    observer.layers.clear()
     with pytest.raises(AssertionError):
         verify_layers(observer, case)

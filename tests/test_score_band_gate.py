@@ -277,3 +277,97 @@ def test_origin_and_bytes_are_both_required(tmp_path, mismatch):
     ).hexdigest()
     with pytest.raises(ValueError, match="origin/hash"):
         validate_module_origin("synthetic.module", actual, expected, target_hash)
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "T-pair",
+        "T-list",
+        "T-typed",
+        "T-single",
+        "T-same",
+        "T-probe",
+        "T-equal-probe",
+        "T-empty",
+        "T-open",
+        "T-long",
+    ],
+)
+@pytest.mark.parametrize("field", ["inputs", "outputs", "program"])
+def test_input_check_rejects_changed_manual_definition(monkeypatch, name, field):
+    from dataclasses import replace
+
+    import experiments.score_band_gate as gate
+
+    task = gate.manual_task(name)
+    # Identity still fits a substituted input/output pair; witness replay alone
+    # cannot prove that this is the registered manually typed Task.
+    updates = {field: ("0",)} if field != "program" else {field: ("dup", "drop")}
+    changed = replace(task, **updates)
+    monkeypatch.setattr(gate, "manual_task", lambda _name: changed)
+    with pytest.raises(AssertionError):
+        gate.check_input(name)
+
+
+def test_input_check_rejects_substitution_even_when_witness_still_fits(monkeypatch):
+    from dataclasses import replace
+
+    import experiments.score_band_gate as gate
+    from wandering_light.stack_beam import replay_program
+    from wandering_light.stack_machine import parse_stack
+    from wandering_light.stack_pbe import BASIS
+
+    task = replace(
+        gate.manual_task("T-pair"), inputs=("1 2", "2 4"), outputs=("4", "16")
+    )
+    inputs = tuple(parse_stack(x, basis=BASIS) for x in task.inputs)
+    outputs = tuple(parse_stack(x, basis=BASIS) for x in task.outputs)
+    assert replay_program(task.program, inputs, outputs)[0]
+    monkeypatch.setattr(gate, "manual_task", lambda _name: task)
+    with pytest.raises(AssertionError):
+        gate.check_input("T-pair")
+
+
+@pytest.mark.parametrize("tamper", ["extra-scored", "extra-band-callback"])
+def test_value_error_check_asserts_exact_callback_counts(monkeypatch, tamper):
+    import experiments.score_band_gate as gate
+
+    original = gate.Capture.layer_scored
+
+    def corrupt(self, *args):
+        original(self, *args)
+        if tamper == "extra-scored":
+            original(self, *args)
+        else:
+            self.layers.append(object())
+
+    monkeypatch.setattr(gate.Capture, "layer_scored", corrupt)
+    case = next(c for c in gate.semantic_cases() if c.expectation == "ValueError")
+    with pytest.raises(AssertionError):
+        gate.run_search_case(case, "semantic")
+
+
+@pytest.mark.parametrize(
+    "kind",
+    [
+        "last-ranked-width",
+        "last-ranked-width-all-inf",
+        "width-before-band",
+        "last-row-band",
+    ],
+)
+def test_arithmetic_check_rejects_wrong_retained_rows(monkeypatch, kind):
+    from dataclasses import replace
+
+    import experiments.score_band_gate as gate
+
+    original = gate._retain
+
+    def corrupt(*args, **kwargs):
+        layer = original(*args, **kwargs)
+        return replace(layer, retained=())
+
+    monkeypatch.setattr(gate, "_retain", corrupt)
+    with pytest.raises(AssertionError):
+        gate.check_arithmetic(kind)

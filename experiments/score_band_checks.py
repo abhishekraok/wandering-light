@@ -14,7 +14,10 @@ from experiments.score_band_fixtures import OP_INDEX, manual_task
 from wandering_light.quotation_guard import blocked
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
+    Bool,
+    Int,
     Lst,
+    Mark,
     parse_stack,
     step_raw,
     value_key,
@@ -40,6 +43,46 @@ def atom_count(product):
         if isinstance(v, Lst):
             todo.extend(v.items)
     return count
+
+
+def manual_typed_expectation(name):
+    """Independent literal products and witnesses; never derive from parsing.
+
+    Keep this table separate from TASK_TABLE: checking a parsed object against
+    itself cannot detect a substituted manual input, output or witness.
+    """
+    probe = ((Int(9999),),)
+    table = {
+        "T-pair": (
+            ((Int(2), Int(3)), (Int(4), Int(5))),
+            ((Int(12),), (Int(40),)),
+            ("mul", "dup", "add"),
+        ),
+        "T-list": (
+            ((Lst((Int(1), Int(2))),), (Lst((Int(3), Int(4))),)),
+            ((Lst((Int(2), Int(1))),), (Lst((Int(4), Int(3))),)),
+            ("nil", "[", "cons", "]", "fold"),
+        ),
+        "T-typed": (
+            (
+                (Lst((Bool(True), Int(1))), Bool(False)),
+                (Lst((Bool(False), Int(2))), Bool(True)),
+            ),
+            (
+                (Lst((Int(1), Bool(True))), Bool(False)),
+                (Lst((Int(2), Bool(False))), Bool(True)),
+            ),
+            ("swap", "nil", "[", "cons", "]", "fold", "swap"),
+        ),
+        "T-single": (((Int(2), Int(3)),), ((Int(12),),), ("mul", "dup", "add")),
+        "T-same": (((Int(2), Int(2)),), ((Int(4),),), ("add",)),
+        "T-probe": (((Int(2), Int(3)),), probe, ()),
+        "T-equal-probe": (((Int(2), Int(2)),), probe, ()),
+        "T-empty": (((),), probe, ()),
+        "T-open": (((Mark(), Int(0)),), probe, ()),
+        "T-long": (((Int(0),) * 163,), probe, ()),
+    }
+    return table[name]
 
 
 def verify_attempts(capture, result=None):
@@ -124,6 +167,11 @@ def verify_layers(capture, case):
     than trusting the candidate's persisted ranked list. Unread eligibility is
     never emitted as a verdict, even though the oracle can compute ordinary C.
     """
+    # Match the entire callback stream, including a final retained layer that
+    # never becomes an expanded beam. Per-layer lookup misses omitted tails.
+    retained_depths = [e[1] for e in capture.events if e[0] == "retained"]
+    assert [layer.depth for layer in capture.layers] == retained_depths
+    assert len(retained_depths) == len(set(retained_depths))
     starts = {e[1]: e[2] for e in capture.events if e[0] == "started"}
     initial = tuple(
         parse_stack(text, basis=BASIS) for text in manual_task(case.task).inputs
