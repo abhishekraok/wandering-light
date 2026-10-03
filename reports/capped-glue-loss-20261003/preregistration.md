@@ -1,6 +1,9 @@
 # Capped-policy loss: top-level versus quoted emissions
 
-D1, 2026-10-03, before new model inference or loss analysis.
+D1 + Amendment A, 2026-10-03, before selection or model inference/loss analysis.
+[Initial independent review](design-review.md) requested three text fixes;
+Amendment A below addresses them. Independent pre-trial code/design review
+must still validate the amended implementation before any trial.
 [capped-policy-glue-loss (#178)](https://github.com/abhishekraok/wandering-light/issues/178). Independent design and pre-trial code review must pass
 before this bounded diagnostic runs. Source audit only has occurred.
 
@@ -8,7 +11,9 @@ before this bounded diagnostic runs. Source audit only has occurred.
 
 Within a capped policy's own capped training style, are top-level content
 emissions harder to predict than the same op names emitted inside quotations,
-matching behaviour and position in a combinator-delimited span?
+matching behaviour/op among mid-span tokens? The primary does not test
+first/last/only boundary glue and cannot falsify a broad glue-between-cycles
+hypothesis. Those omitted tokens remain descriptive.
 
 `short_body/transfer.py` pools `frame_gate.walk` into content/structural and
 span-position marginals, discarding the traces required here. Its committed
@@ -72,8 +77,16 @@ and capped program. All occurrences contribute to their side's mean; do not
 multiply Cartesian pairs, trim difficult occurrences or choose a favourable
 depth. Report body depth separately without using it to change this panel.
 
-Support gate: at least 20 independent original-skeleton groups contribute at
-least 40 such cells. Gate failure is INSUFFICIENT_SUPPORT for this construction,
+A span begins with no open Mark; its first token is top content or an opener,
+and its last token is a top combinator or the final top token/closer. Thus body
+content is never first/last/only: common support can only be middle, and the
+position label adds no independent control. Keep the registered cell/selection
+rule unchanged but explicitly interpret it as exact-op matched mid-span only.
+Record occurrence index/span length and, for top tokens, whether before an
+opener or between a closer and its top-level combinator, descriptively.
+
+Support gate: at least 20 independent original-skeleton groups AND at least
+40 such cells IN TOTAL. Gate failure is INSUFFICIENT_SUPPORT for this construction,
 without scoring the models or changing selection.
 
 ## Primary, controls and falsifier
@@ -92,7 +105,8 @@ is at least +0.25 nats; at least two seed deltas are positive; and median over
 seeds of the fraction of contributing behaviours with delta_b > 0 is at least
 0.60. This is a practical diagnostic threshold, not a significance test or
 solver-improvement criterion. If support passes and either encoding misses
-any requirement, the prediction is falsified: NO_MATCHED_TOP_EXCESS. Retain
+any requirement, the prediction is falsified: NO_MATCHED_MIDSPAN_TOP_EXCESS (the original negative name is narrowed, not
+a changed numerical gate). Retain
 exact/null/reversed deltas and encoder disagreement, not only the label.
 Any provenance, replay, ownership or logit error gives INVALID, not a negative.
 
@@ -100,8 +114,14 @@ Secondary diagnostics: best-legal-logit minus witness logit, legal-masked NLL
 and rank; totals/counts by level x content/structural x span position and exact
 op; per-behaviour top share of loss/deficit alongside top share of tokens.
 Show common-support and all-row totals and each side's omitted exposure.
-Record legal-set size and encoder truncation indicators where recoverable
-without changing the scorer. No calibration, oracle scaling, predicted-clears
+Record legal-set size, negative log legal probability mass, and mandatory
+pre-cap state/target width/truncation indicators using the existing encoder
+convention. Flag quote/cons/cat cells and show the primary with/without them
+descriptively, never as a new gate. Report duplicate selected capped-program
+texts. Selected examples come from the training task pool, not necessarily
+from its with-replacement row sample; do not claim every scored row was seen.
+Training-row multiplicity is a covariate only if exactly reproducible without
+changing the registered population; otherwise label it unavailable. No calibration, oracle scaling, predicted-clears
 headline, metric substitution or added interpretation gate.
 
 ## Bounded execution and verification
@@ -119,6 +139,18 @@ witness ends at the original shown target. Refusal, illegal witness op,
 incorrect Mark depth, nonfinite logits and missing/hash-mismatched input are
 errors, never skipped rows or zero losses. Resource refusals are distinct.
 
+Stage A completes all model-independent work: selection/ownership/spans, shown
+replay, support and (if supported) legal masks and censor counts. Seal its
+complete rows/hash before loading any checkpoint. If support fails, skip legal
+enumeration and all models, seal a support-only complete result.
+
+A refused WITNESS op for any reason is INVALID. Alternative op refusal is
+normal: ordinary and resource refusals are illegal under the existing bounded
+search mask, but distinguish them using step_all_explained/reason-bearing raw
+execution. Count per row, flag affected secondaries; reason is only the first
+refusing shown example, with example/op prefixes. Test prefixed fuel/depth
+reason classification. Resource refusal is not semantic impossibility.
+
 Global deadline 900 seconds includes selection/support, replay and scoring.
 If any task fails or the deadline hits, save partial INVALID output; no partial
 task/checkpoint contributes to a reading. Persistent RuntimeMaxSec=1800 and
@@ -126,6 +158,29 @@ MemoryMax=4G include import/serialization overhead. Kill is no result, and only
 exit 0 plus complete valid output supplies a reading. Record exact unit/command/
 commit in work/runs.md; inspect others' jobs and disk before launch; no launch
 below 100 GB free. This is not comparative search timing or cost to clear.
+
+## Amendment A: terminal states and no rerun
+
+| state | exit | complete marker | required artifact |
+|---|---|---|---|
+| TOP_LOSS_ROUTE | 0 | true | sealed Stage A and every sealed row x six checkpoints |
+| NO_MATCHED_MIDSPAN_TOP_EXCESS | 0 | true | same, regardless of sign/encoder agreement |
+| INSUFFICIENT_SUPPORT | 0 | true | sealed support-only Stage A, zero models loaded/logit rows |
+| INVALID | 2 | false | explicit error/stage/progress, no effect interpretation |
+
+Write final manifest last and atomically; successful scored completeness requires
+exact sealed-row count times six, every identity and finite logit vector checked.
+A hard kill/OOM with no final manifest/exit line is NO RESULT, never a scored
+negative or a successfully written INVALID result. A cooperative deadline/error
+writes INVALID with exit 2 and is not included in primary aggregates.
+
+There is NO rerun in this campaign after INVALID, deadline, kill or OOM. A future
+attempt requires a new issue preregistration/review before reading partial logits;
+no limit/selection changes in reaction to partial losses. Thus there is no open
+retry loophole. Single calls may exceed the cooperative deadline or memory:
+Stage A finishes before model loading, so that failure exposes no partial logits.
+Stage B incompleteness likewise yields no effect reading. Amendment A changes
+no selection, hashes, cell membership, numeric threshold or resource limit.
 
 Independent result verification re-derives selection and lexical ownership from
 pinned inputs and recomputes metrics from stored raw logits. Passing other-family
