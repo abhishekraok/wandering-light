@@ -605,8 +605,10 @@ def closed_cuts(states: Sequence[Product], program: Sequence[str]) -> list[int]:
     """Op counts after each top-level combinator application along ``program``.
 
     ``states[t]`` is the product before ``program[t]``. A cut at ``t + 1``
-    means ``states[t + 1]`` is closed, as `staged_transfer.step_kinds` labels
-    ``program[t]`` ``run``.
+    records a ``run`` event under `staged_transfer.step_kinds`, with no mark
+    before the op. The resulting state can still contain executable symbols
+    inside lists. Consumers needing data-only states must check every example
+    for genuine closure separately.
     """
     return [
         step + 1
