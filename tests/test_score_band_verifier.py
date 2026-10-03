@@ -313,7 +313,7 @@ def test_provenance_links_actual_tree_paths_bytes_and_review(monkeypatch):
         "wrong-tree-revision",
     ],
 )
-def test_provenance_rejects_substitutions(monkeypatch, tamper):
+def test_provenance_rejects_substitutions(monkeypatch, tmp_path, tamper):
     manifest, attempt, receipt, review_log, tree = synthetic_provenance(monkeypatch)
     if tamper == "source":
         manifest["source_revision"] = "other"
@@ -359,12 +359,10 @@ def test_provenance_rejects_substitutions(monkeypatch, tamper):
     elif tamper == "attempt":
         attempt["expected_ids"].pop()
     elif tamper == "primitive-origin":
-        # The main checkout has byte-identical primitives today. Equal bytes
-        # alone still cannot satisfy this verifier's intended-tree contract.
-        other = Path(
-            "/home/abhishekrao/repos/wandering-light/wandering_light/stack_machine.py"
-        )
-        assert other.exists() and other != Path(V.stack_machine.__file__).resolve()
+        # An alternate file can have the same bytes and still violate the
+        # verifier's intended-tree contract. This fixture is portable.
+        other = tmp_path / "other-machine.py"
+        other.write_bytes(Path(V.stack_machine.__file__).read_bytes())
         assert (
             V.sha(other.read_bytes())
             == manifest["source_hashes"]["wandering_light/stack_machine.py"]
