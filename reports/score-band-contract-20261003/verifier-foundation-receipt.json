@@ -1,0 +1,22 @@
+{
+  "scope": "foundation only; search replay/control verification and final review pending",
+  "verifier_source_revision": "d80446c8cbda597c09291527b66a93bdcf3f96c8",
+  "verifier_sha256": "eba59a61cd79b8ebd5aa97ca5934b6f4e651495f8ef4a8c39cd0c6f2e313fc24",
+  "stdout_sha256": "5f39c3e54dcb6d0bbfeff90c934e9a223c8b60f94904e966f2143d41fc5f51e0",
+  "foreground_exit_code": 0,
+  "original_source_revision": "826a8bbe3c0059032ca6c190a766cbc09226efc4",
+  "original_final_sha256": "a9d9fffbda6401673593506dfda0d13f5510e5b0a76c79f72bbcd95ef29da70a",
+  "independent_gate_verdict": "PENDING_SEARCH_REPLAY_AND_CONTROLS",
+  "completed_phase": "TERMINAL_PROVENANCE_DEFINITIONS_INPUTS_VERIFIED",
+  "later_change": "08867b4 modifies only the portable origin regression; verifier code is identical to d80446c",
+  "verification_paths": {
+    "wandering_light.stack_machine": {
+      "path": "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/score-band-contract-20261003/wandering_light/stack_machine.py",
+      "sha256": "1cae29b19e1fcdb2ed452ba6a36577da889082e21916d18948a7a42d417e27c1"
+    },
+    "wandering_light.stack_pbe": {
+      "path": "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/score-band-contract-20261003/wandering_light/stack_pbe.py",
+      "sha256": "36071a844c291a9546a715de4e5c7d78ba3e6ba6b1c18a68fb0ba71c68d74f95"
+    }
+  }
+}
