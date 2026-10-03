@@ -53,7 +53,7 @@ full lint/format passed before real verification. Independent high-effort Claude
 The reviewer independently recomputed the entire selection/replay/mask/exposure
 and raw-logit result, reproduced 153 relevant tests and obtained byte-identical
 no-model reverification. It found no blocker; its scoped nonblocking limitations
-remain recorded. Evidence is not yet on main; this branch is ready for landing.
+remain recorded. The complete code, evidence and reporting are landed on main.
 
 Final development validation including both verifier suites completed exit 0
 at 2026-10-03 14:15 PDT: 2892 passed, 40 skipped, 7 deselected, 1 xfailed and
