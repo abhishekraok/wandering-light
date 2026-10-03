@@ -142,15 +142,15 @@ class Case:
     expectation: str = "retention-oracle"
 
     def settings(self) -> dict:
-        return dict(
-            beam_width=self.width,
-            max_depth=self.horizon,
-            guard=self.guard,
-            max_state_atoms=self.cap,
-            budget=self.budget,
-            budget_unit=self.unit,
-            deadline=self.deadline,
-        )
+        return {
+            "beam_width": self.width,
+            "max_depth": self.horizon,
+            "guard": self.guard,
+            "max_state_atoms": self.cap,
+            "budget": self.budget,
+            "budget_unit": self.unit,
+            "deadline": self.deadline,
+        }
 
 
 def scores(root: dict[str, float], later=()) -> Script:
@@ -184,7 +184,7 @@ def semantic_cases() -> tuple[Case, ...]:
         Case(
             "A-safe",
             "T-single",
-            scores(dict(mul=0, drop=-2, quote=-3, dup=-4), [(1, 0, "dup", 0)]),
+            scores({"mul": 0, "drop": -2, "quote": -3, "dup": -4}, [(1, 0, "dup", 0)]),
             horizon=3,
             band=1,
             expectation="safe-6-vs-3",
@@ -193,7 +193,7 @@ def semantic_cases() -> tuple[Case, ...]:
             "B-only-solution-cut",
             "T-single",
             scores(
-                dict(drop=0, mul=-2, quote=-3, dup=-4),
+                {"drop": 0, "mul": -2, "quote": -3, "dup": -4},
                 [(1, 0, "dup", -10), (1, 1, "dup", 0)],
             ),
             horizon=3,
@@ -204,7 +204,7 @@ def semantic_cases() -> tuple[Case, ...]:
             "C-later-first-fit",
             "T-single",
             scores(
-                dict(mul=0, dup=-2, drop=-3, quote=-4),
+                {"mul": 0, "dup": -2, "drop": -3, "quote": -4},
                 [(1, 0, "dup", -10), (1, 1, "add", 0)],
             ),
             horizon=3,
@@ -224,32 +224,36 @@ def semantic_cases() -> tuple[Case, ...]:
             cap=0,
             expectation="add-no-scorer",
         ),
-        Case("anchor/seen", "T-equal-probe", scores(dict(swap=0, add=-2, mul=-3))),
+        Case("anchor/seen", "T-equal-probe", scores({"swap": 0, "add": -2, "mul": -3})),
         Case("anchor/close", "T-empty", scores({"[": 0, "0": -2}), guard="close"),
         Case("anchor/type", "T-open", scores({"null?": 0, "]": -2}), guard="body"),
-        Case("anchor/size", script=scores(dict(dup=0, mul=-2)), cap=2),
-        Case("duplicate/same-layer", "T-equal-probe", scores(dict(add=0, mul=0))),
+        Case("anchor/size", script=scores({"dup": 0, "mul": -2}), cap=2),
+        Case("duplicate/same-layer", "T-equal-probe", scores({"add": 0, "mul": 0})),
         Case(
             "seen/reentry",
-            script=scores(dict(swap=0, mul=-2, drop=-3, quote=-4), [(1, 0, "mul", 0)]),
+            script=scores(
+                {"swap": 0, "mul": -2, "drop": -3, "quote": -4}, [(1, 0, "mul", 0)]
+            ),
             horizon=2,
             band=1,
         ),
-        Case("identity/encoding", "T-long", scores(dict(dup=0, drop=0)), cap=200),
+        Case("identity/encoding", "T-long", scores({"dup": 0, "drop": 0}), cap=200),
         Case(
-            "boundary/included", script=scores(dict(mul=0, drop=-1, quote=-2)), band=1
+            "boundary/included",
+            script=scores({"mul": 0, "drop": -1, "quote": -2}),
+            band=1,
         ),
-        Case("boundary/top-ties", script=scores(dict(mul=0, drop=0, quote=-1))),
+        Case("boundary/top-ties", script=scores({"mul": 0, "drop": 0, "quote": -1})),
         Case(
             "boundary/top-ties-w1",
-            script=scores(dict(mul=0, drop=0, quote=-1)),
+            script=scores({"mul": 0, "drop": 0, "quote": -1}),
             width=1,
         ),
         Case(
             "ordering/cumulative",
             "T-single",
             scores(
-                dict(mul=0, dup=-2, drop=-3, quote=-4),
+                {"mul": 0, "dup": -2, "drop": -3, "quote": -4},
                 [(1, 0, "dup", -10), (1, 1, "add", 0)],
             ),
             horizon=3,
