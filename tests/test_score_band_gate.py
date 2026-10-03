@@ -60,3 +60,32 @@ def test_expired_deadline_prevents_final_publication(tmp_path):
     with pytest.raises(TimeoutError, match="before atomic"):
         atomic_json(path, {"complete": True}, 1000, deadline=0)
     assert not path.exists()
+
+
+@pytest.mark.parametrize(
+    "case_id",
+    [
+        "A-safe",
+        "B-only-solution-cut",
+        "C-later-first-fit",
+        "score/executable-nan/late",
+        "score/all-inf",
+    ],
+)
+def test_runner_records_fixed_case_and_legal_mask_bytes(case_id):
+    from experiments.score_band_fixtures import semantic_cases
+    from experiments.score_band_gate import run_search_case
+
+    case = next(c for c in semantic_cases() if c.id == case_id)
+    result, observation = run_search_case(case, "semantic")
+    payload = json.dumps(json_value((result, observation)), allow_nan=False)
+    assert result["check"] == observation["check"] == "PASS"
+    assert result["id"] == case_id and observation["id"] == f"observation/{case_id}"
+    assert len(payload) < 1_000_000
+
+
+def test_mask_digest_is_structurally_distinct_from_plain_string():
+    from experiments.score_band_gate import digest
+
+    assert digest(b"\x00\x01") != digest("0001")
+    assert json_value(b"\x00\x01") == {"type": "bytes", "hex": "0001"}
