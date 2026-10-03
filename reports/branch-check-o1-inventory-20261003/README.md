@@ -1,9 +1,9 @@
 # branch-and-check (#164), O1-B continuation inventory
 
-This is an implemented, preregistered diagnostic awaiting independent code
-review before archive trials. No inventory result, model or solver change is
-claimed. [Definition and Amendment A](preregistration.md),
-[initial design review](design-review.md).
+The preregistered diagnostic passed independent high-effort code review on
+`c664a7c` and started its bounded CPU run on 2026-10-03 at 11:00 PDT from that
+clean revision. No inventory result, model or solver change is claimed yet. [Definition and Amendment A](preregistration.md),
+[initial design review](design-review.md), [pre-trial code review](code-review.md).
 
 Run once from a committed worktree, with outputs under main checkpoints:
 
