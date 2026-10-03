@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import gc
 import hashlib
+import importlib
 import json
 import math
 import os
@@ -40,7 +41,6 @@ from experiments.score_band_fixtures import (
     semantic_cases,
 )
 from experiments.score_band_search import _retain, band_beam_solve
-from wandering_light import stack_beam
 from wandering_light.stack_beam import beam_solve, replay_program
 from wandering_light.stack_machine import Bool, Int, Lst, Mark, parse_stack
 from wandering_light.stack_pbe import BASIS, OPS
@@ -70,6 +70,7 @@ SOURCE_PATHS = (
     "tests/test_score_band_gate.py",
     "reports/score-band-contract-20261003/DESIGN.md",
     "reports/score-band-contract-20261003/AMENDMENT_A.md",
+    "reports/score-band-contract-20261003/AMENDMENT_B.md",
     "reports/score-band-contract-20261003/FIXTURES.md",
     "wandering_light/stack_beam.py",
     "wandering_light/stack_machine.py",
@@ -77,6 +78,63 @@ SOURCE_PATHS = (
     "wandering_light/stack_policy.py",
     "wandering_light/quotation_guard.py",
 )
+
+SOURCE_MODULES = tuple(
+    p[:-3].replace("/", ".")
+    for p in SOURCE_PATHS
+    if p.endswith(".py") and p.startswith(("experiments/", "wandering_light/"))
+)
+
+
+def validate_module_origin(name, actual_path, expected_path, expected_sha256):
+    actual = Path(actual_path).resolve()
+    expected = expected_path.resolve()
+    if actual != expected or digest_bytes(actual) != expected_sha256:
+        raise ValueError(f"module origin/hash mismatch: {name}")
+    return {"path": str(actual), "sha256": expected_sha256}
+
+
+def validate_imports(repo, hashes):
+    origins = {}
+    for name in SOURCE_MODULES:
+        module = importlib.import_module(name)
+        relative = name.replace(".", "/") + ".py"
+        origins[name] = validate_module_origin(
+            name, module.__file__, repo / relative, hashes[relative]
+        )
+    return origins
+
+
+def validate_review_receipt(receipt_path, source):
+    receipt = json.loads(receipt_path.read_text())
+    if (
+        receipt.get("verdict") != "PRE-GATE CODE PASS"
+        or receipt.get("source_revision") != source
+        or receipt.get("reviewer_family") != "claude"
+        or receipt.get("effort") != "high"
+        or receipt.get("pre_gate_code") is not True
+    ):
+        raise ValueError("exact-source high-effort pre-gate CODE PASS required")
+    review_log = Path(receipt["run_log"])
+    log = review_log.read_text()
+    if (
+        not log.endswith("exit 0\n")
+        or digest_bytes(review_log) != receipt["run_log_sha256"]
+    ):
+        raise ValueError("pre-gate review log incomplete or changed")
+    review = json.loads(log.rsplit("\nexit 0", 1)[0])
+    report = review.get("result", "").strip()
+    # Only a standalone first verdict line grants permission. Quoted PASS prose
+    # elsewhere in a CHANGES_REQUIRED report cannot grant it.
+    if (
+        review.get("is_error")
+        or not report
+        or report.splitlines()[0] != "VERDICT: PRE-GATE CODE PASS"
+    ):
+        raise ValueError("review did not explicitly grant pre-gate CODE PASS")
+    if hashlib.sha256((report + "\n").encode()).hexdigest() != receipt["report_sha256"]:
+        raise ValueError("review report hash mismatch")
+    return receipt
 
 
 def json_value(value):
@@ -153,6 +211,44 @@ def capture_summary(capture):
     }
 
 
+def expected_search_result(case, category, reference, replay, layers):
+    """Numeric result from production reference or frozen hand expectations.
+
+    Counters and retention order come from independently recomputed low-level
+    attempts/table oracle, not copied from the candidate result object.
+    """
+    equal_reference = category != "semantic" or case.expectation in (
+        "reference-equivalence",
+        "all-inf",
+        "exhausted-at-width",
+        "add-no-scorer",
+    )
+    if equal_reference:
+        expected = result_key(reference)
+    else:
+        program = None
+        termination = (
+            "frontier_exhausted"
+            if case.expectation == "frontier-exhausted"
+            else "max_depth"
+        )
+        depth = case.horizon
+        if case.id in ("A-safe", "C-later-first-fit", "ordering/cumulative"):
+            program = ("mul", "dup", "add")
+            termination = "fit"
+            depth = 3
+        expected = {
+            "program": program,
+            "termination": termination,
+            "depth": depth,
+            **replay,
+            "pruned": any(layer["width_pruned"] for layer in layers),
+        }
+    if case.id == "A-safe":
+        assert expected["expansions"] == 3 and reference.expansions == 6
+    return expected
+
+
 def run_search_case(case, category):
     task = manual_task(case.task)
     own = Capture()
@@ -162,7 +258,7 @@ def run_search_case(case, category):
         "scope": "real-machine-software-QA",
         "definition": asdict(case),
         "task": asdict(task),
-        "expected": case.expectation,
+        "expectation_id": case.expectation,
         "check": "PASS",
     }
     if case.expectation == "ValueError":
@@ -177,7 +273,7 @@ def run_search_case(case, category):
             raise AssertionError("invalid executable score was accepted")
         assert any(e[0] == "scored" for e in own.events)
         assert not any(e[0] == "retained" for e in own.events)
-        verify_attempts(own)
+        replay = verify_attempts(own)
         try:
             band_beam_solve(
                 task,
@@ -191,13 +287,23 @@ def run_search_case(case, category):
         else:
             raise AssertionError("unobserved invalid score was accepted")
         common.update(
-            actual="ValueError after scored/before retained",
+            expected={
+                "exception": "ValueError",
+                "scored_layers": 1,
+                "retained_layers": 0,
+                "counters_from_replay": replay,
+            },
+            actual={
+                "exception": "ValueError",
+                "scored_layers": sum(e[0] == "scored" for e in own.events),
+                "retained_layers": len(own.layers),
+            },
             candidate_trace=capture_summary(own),
         )
         observation = {
             "id": f"observation/{case.id}",
-            "expected": "same ValueError",
-            "actual": "ValueError",
+            "expected": {"exception": "ValueError"},
+            "actual": {"exception": "ValueError"},
             "check": "PASS",
         }
         return common, observation
@@ -240,9 +346,22 @@ def run_search_case(case, category):
             )
             assert root_i[6] > root_i[7] > 0
     verify_attempts(ref, reference)
-    verify_attempts(own, result)
-    verify_layers(own, case)
+    replay = verify_attempts(own, result)
+    expected_layers = verify_layers(own, case)
+    expected_result = expected_search_result(
+        case, category, reference, replay, expected_layers
+    )
+    assert result_key(result) == expected_result
+    expected_band_pruned = any(layer["band_pruned"] for layer in expected_layers)
+    assert candidate.band_pruned == expected_band_pruned
     common.update(
+        expected={
+            "reference": result_key(reference),
+            "candidate": expected_result,
+            "candidate_layers": expected_layers,
+            "band_pruned": expected_band_pruned,
+            "reference_trace_sha256": digest(ref.events),
+        },
         reference=result_key(reference),
         candidate=result_key(result),
         band_pruned=candidate.band_pruned,
@@ -263,8 +382,14 @@ def run_search_case(case, category):
         assert quiet.band_pruned == candidate.band_pruned
         observation = {
             "id": f"observation/{case.id}",
-            "expected": "equal observed/unobserved result excluding seconds",
-            "actual": result_key(quiet.beam_result),
+            "expected": {
+                "result": expected_result,
+                "band_pruned": expected_band_pruned,
+            },
+            "actual": {
+                "result": result_key(quiet.beam_result),
+                "band_pruned": quiet.band_pruned,
+            },
             "band_pruned": quiet.band_pruned,
             "check": "PASS",
         }
@@ -290,8 +415,17 @@ def check_input(name):
         "task": asdict(task),
         "typed_inputs": inputs,
         "typed_outputs": outputs,
-        "expected": "typed states and explicit manual witness replay",
-        "actual": "PASS",
+        "expected": {
+            "inputs": inputs,
+            "outputs": outputs,
+            "witness_program": task.program,
+            "witness_fits": True if task.program else None,
+        },
+        "actual": {
+            "inputs": inputs,
+            "outputs": outputs,
+            "witness_fits": True if task.program else None,
+        },
         "check": "PASS",
     }
 
@@ -326,8 +460,14 @@ def check_gc(name, collecting, tau=None):
         assert gc.isenabled() == collecting
         return {
             "id": id,
-            "expected": "exception and GC restoration",
-            "actual": "exception and unchanged GC",
+            "expected": {
+                "exception": "RuntimeError" if name == "scorer" else "ValueError",
+                "gc_enabled": collecting,
+            },
+            "actual": {
+                "exception": "RuntimeError" if name == "scorer" else "ValueError",
+                "gc_enabled": gc.isenabled(),
+            },
             "collecting": collecting,
             "tau": tau,
             "check": "PASS",
@@ -371,7 +511,18 @@ def check_arithmetic(kind):
         "id": f"unit/{kind}",
         "scope": "arithmetic-only/no-solver-outcome",
         "input": {"scores": scores, "width": width, "tau": 1, "typed_rows": products},
-        "expected": stop,
+        "expected": {
+            "stop": stop,
+            "width_pruned": stop == "width",
+            "band_pruned": stop == "score_band",
+            "retained": tuple(
+                (p, (OPS[i].name,), scores[i])
+                for i, p in enumerate(products)
+                if (kind != "last-row-band" and i < width)
+                or (kind == "last-row-band" and i == 0)
+            ),
+            "read_verdict_count": 1 if stop == "width" else 2,
+        },
         "actual": layer,
         "check": "PASS",
     }
@@ -393,13 +544,17 @@ def check_api():
     }
     assert np.isnan(values[0]).all() and values[1, OP_INDEX["0"]] == 0
     assert np.isneginf(values[1, ~mask[1]]).all()
+    expected_values = np.full(values.shape, -np.inf)
+    expected_values[0] = np.nan
+    expected_values[1, OP_INDEX["0"]] = 0
+    np.testing.assert_array_equal(values, expected_values)
     return {
         "id": "unit/scorer-dead-and-live",
         "scope": "scorer-API-only/no-model/no-solver-outcome",
         "mask": mask.tolist(),
         "actual": values.tolist(),
         "warnings": sorted(messages),
-        "expected": "all-NaN dead row and live literal0 normalized0",
+        "expected": {"values": expected_values.tolist(), "warnings": sorted(messages)},
         "check": "PASS",
     }
 
@@ -414,13 +569,21 @@ def atomic_json(path, value, limit, *, deadline=None):
     if len(raw) > limit:
         raise ValueError("output byte bound exceeded")
     temporary = path.with_suffix(path.suffix + ".tmp")
-    with temporary.open("xb") as stream:
-        stream.write(raw)
-        stream.flush()
-        os.fsync(stream.fileno())
-    if deadline is not None and time.perf_counter() > deadline:
-        raise TimeoutError("NO_GATE_RESULT: cooperative300s before atomic publication")
-    os.replace(temporary, path)
+    created = False
+    try:
+        with temporary.open("xb") as stream:
+            created = True
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if deadline is not None and time.perf_counter() > deadline:
+            raise TimeoutError(
+                "NO_GATE_RESULT: cooperative300s before atomic publication"
+            )
+        os.replace(temporary, path)
+    finally:
+        if created:
+            temporary.unlink(missing_ok=True)
 
 
 def run_gate(out: Path, receipt_path: Path):
@@ -432,38 +595,12 @@ def run_gate(out: Path, receipt_path: Path):
         ["git", "status", "--porcelain"], cwd=repo, text=True
     ).strip():
         raise ValueError("gate source tree must be clean")
-    receipt = json.loads(receipt_path.read_text())
-    if (
-        receipt.get("verdict") != "PRE-GATE CODE PASS"
-        or receipt.get("source_revision") != source
-    ):
-        raise ValueError("exact-source pre-gate CODE PASS required")
-    review_log = Path(receipt["run_log"])
-    log = review_log.read_text()
-    if (
-        not log.endswith("exit 0\n")
-        or digest_bytes(review_log) != receipt["run_log_sha256"]
-    ):
-        raise ValueError("pre-gate review log incomplete or changed")
-    review = json.loads(log.rsplit("\nexit 0", 1)[0])
-    if review.get("is_error") or "PRE-GATE CODE PASS" not in review.get("result", ""):
-        raise ValueError("review did not grant pre-gate CODE PASS")
-    if (
-        hashlib.sha256(review["result"].strip().encode() + b"\n").hexdigest()
-        != receipt["report_sha256"]
-    ):
-        raise ValueError("review report hash mismatch")
+    validate_review_receipt(receipt_path, source)
     for key in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
         if os.environ.get(key) != "1":
             raise ValueError("CPU/thread1 environment required")
-    for module in (stack_beam,):
-        if not Path(module.__file__).resolve().is_relative_to(repo):
-            raise ValueError("production module resolved outside source tree")
-    import experiments.score_band_search as candidate_module
-
-    if not Path(candidate_module.__file__).resolve().is_relative_to(repo):
-        raise ValueError("candidate module resolved outside source tree")
     hashes = {p: digest_bytes(repo / p) for p in SOURCE_PATHS}
+    origins = validate_imports(repo, hashes)
     if hashes["wandering_light/stack_beam.py"] != REFERENCE_SHA256:
         raise ValueError("production reference changed")
     ids = catalog_ids()
@@ -538,6 +675,7 @@ def run_gate(out: Path, receipt_path: Path):
             "scope": "software QA only; no real coverage/clock/allocation claim",
             "source_revision": source,
             "source_hashes": hashes,
+            "module_origins": origins,
             "ops_order": [op.name for op in OPS],
             "expected_ids": ids,
             "actual_ids": actual,

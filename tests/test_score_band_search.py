@@ -247,3 +247,57 @@ def test_frozen_production_reference_hash():
         hashlib.sha256(Path(stack_beam.__file__).read_bytes()).hexdigest()
         == "dcf4558a6cfa11d8b8dde9aaa02ff21c9837ec16279a692f9b7e723c94ec616b"
     )
+
+
+@pytest.mark.parametrize("budget", [193, 194, 339, 340, 395, 396])
+def test_independent_expansion_charging_at_node_boundaries(budget):
+    from dataclasses import replace
+
+    case = replace(
+        next(c for c in resource_cases() if c.id == "resource/body/executions/None"),
+        budget=budget,
+    )
+    task = manual_task(case.task)
+    reference_observer, candidate_observer = Capture(), Capture()
+    reference = beam_solve(
+        task,
+        ScriptedScorer(case.script),
+        observer=reference_observer,
+        **case.settings(),
+    )
+    candidate = band_beam_solve(
+        task,
+        ScriptedScorer(case.script),
+        observer=candidate_observer,
+        **case.settings(),
+    )
+    assert result_key(candidate.beam_result) == result_key(reference)
+    verify_attempts(reference_observer, reference)
+    verify_attempts(candidate_observer, candidate.beam_result)
+    verify_layers(candidate_observer, case)
+
+
+@pytest.mark.parametrize("tamper", ["initial-seen", "next-beam", "retained-event"])
+def test_independent_layer_check_rejects_inconsistent_observation(tamper):
+    from dataclasses import replace
+
+    case = next(c for c in semantic_cases() if c.id == "A-safe")
+    observer = Capture()
+    band_beam_solve(
+        manual_task(case.task),
+        ScriptedScorer(case.script),
+        observer=observer,
+        score_band_nats=case.band,
+        **case.settings(),
+    )
+    if tamper == "initial-seen":
+        observer.layers[0] = replace(observer.layers[0], old_seen=frozenset())
+    else:
+        kind, depth = ("started", 1) if tamper == "next-beam" else ("retained", 0)
+        at = next(
+            i for i, e in enumerate(observer.events) if e[0] == kind and e[1] == depth
+        )
+        event = observer.events[at]
+        observer.events[at] = (*event[:2], (), *event[3:])
+    with pytest.raises(AssertionError):
+        verify_layers(observer, case)

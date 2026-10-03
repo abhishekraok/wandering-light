@@ -81,17 +81,40 @@ def verify_attempts(capture, result=None):
                 ]
             )
             np.testing.assert_array_equal(mask, rebuilt)
+    expanded = None
     if result is not None:
         assert result.executions == charged_executions
         assert result.fuel == charged_fuel
-        assert result.expansions == sum(
-            1 for event in capture.events if event[0] == "attempt" and event[3] == 0
-        ) + sum(
-            1
-            for event in capture.events
-            if event[0] == "started"
-            and not any(e[0] == "attempt" and e[1] == event[1] for e in capture.events)
-        )
+        expanded = 0
+        terminal = next(e for e in reversed(capture.events) if e[0] == "terminated")
+        for depth, beam in beams.items():
+            attempts = [
+                e for e in capture.events if e[0] == "attempt" and e[1] == depth
+            ]
+            # A budget/deadline check may enter a new parent without trying op0.
+            if not attempts:
+                assert terminal[1] in ("budget", "wall_clock_cap")
+                expanded += 1
+                continue
+            expected_order = [
+                (node, index) for node in range(len(beam)) for index in range(len(OPS))
+            ]
+            assert [(e[2], e[3]) for e in attempts] == expected_order[: len(attempts)]
+            last = attempts[-1]
+            expanded += last[2] + 1
+            if (
+                terminal[1] in ("budget", "wall_clock_cap")
+                and depth == max(beams)
+                and last[3] == len(OPS) - 1
+                and last[2] + 1 < len(beam)
+            ):
+                expanded += 1
+        assert result.expansions == expanded
+    return {
+        "executions": charged_executions,
+        "fuel": charged_fuel,
+        "expansions": expanded,
+    }
 
 
 def verify_layers(capture, case):
@@ -102,6 +125,15 @@ def verify_layers(capture, case):
     never emitted as a verdict, even though the oracle can compute ordinary C.
     """
     starts = {e[1]: e[2] for e in capture.events if e[0] == "started"}
+    initial = tuple(
+        parse_stack(text, basis=BASIS) for text in manual_task(case.task).inputs
+    )
+    if starts:
+        assert starts[0] == ((initial, (), 0.0),)
+    else:
+        assert case.horizon <= 0 and not capture.layers
+    expected_seen = {identity(initial)}
+    expected_layers = []
     scored = {}
     for e in capture.events:
         if e[0] == "scored":
@@ -129,6 +161,7 @@ def verify_layers(capture, case):
         table.sort(key=lambda row: row[4], reverse=True)
         assert tuple(table) == layer.ranked
         old_seen = {identity(p) for p in layer.old_seen}
+        assert old_seen == expected_seen
         ordinary = []
         filters = {}
         ordinary_seen = set(old_seen)
@@ -200,10 +233,32 @@ def verify_layers(capture, case):
         assert bool(layer.all_inf_fallback) == (
             case.band is not None and anchor is not None and np.isneginf(anchor)
         )
-        # Verify the persistent set for later layers independently.
-        later = next((x for x in capture.layers if x.depth == layer.depth + 1), None)
-        if later is not None:
-            assert {identity(p) for p in later.old_seen} == own_seen
+        retained_events = [
+            e for e in capture.events if e[0] == "retained" and e[1] == layer.depth
+        ]
+        assert len(retained_events) == 1
+        assert retained_events[0][2:] == (retained, read, parents)
+        if layer.depth + 1 in starts:
+            assert starts[layer.depth + 1] == retained
+        expected_seen = own_seen
+        expected_layers.append(
+            {
+                "depth": layer.depth,
+                "retained": retained,
+                "parents": parents,
+                "verdicts_read_only": read,
+                "anchor": anchor,
+                "tau": case.band,
+                "stop": stop,
+                "first_band_rejected": rejected,
+                "width_pruned": stop == "width",
+                "band_pruned": stop == "score_band",
+                "all_inf_fallback": case.band is not None
+                and anchor is not None
+                and np.isneginf(anchor),
+            }
+        )
+    return expected_layers
 
 
 def check_semantic_expectation(case, reference, candidate, own, scorer, ref):
