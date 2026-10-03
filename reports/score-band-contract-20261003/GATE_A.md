@@ -21,10 +21,11 @@ compact structural seal is not independent result/replay verification.
 Software-QA pair numbers and scope are in RESULTS_DETAILED. The issue stays
 open until independently verified, final-code/result reviewed evidence lands.
 
-Next repair the review's nonblocking last-layer completeness check and
-exception/arithmetic expected-value assertions, add full hand-typed input
-assertions, and implement independent completed-result verification using the
-plan in the janthu work folder. Do not alter the frozen gate source or rerun
+The review's nonblocking last-layer completeness, exception/arithmetic
+expected-value and full hand-typed input checks were repaired separately on
+development `219a655`, with572 focused tests passing; see FINAL_CHECKS.md.
+Next implement independent completed-result verification using the plan in
+the janthu work folder. Do not alter the frozen gate source or rerun
 the declared entry point. Future verifier/check amendments need their own
 tests and final review. Keep original output and all failure/provenance files.
 
