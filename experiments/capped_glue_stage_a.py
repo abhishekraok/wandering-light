@@ -1,7 +1,7 @@
 """Synthetic-tested selection, provenance and Stage A for #178, D1 + A.
 
-No command entry point and no checkpoint loading. The final diagnostic must
-still add batched scoring, raw-logit capture and terminal completeness before review.
+No checkpoint loading here. The one-shot runner composes these primitives;
+independent pre-trial code/design PASS is required before its real campaign.
 """
 
 from __future__ import annotations
@@ -299,21 +299,37 @@ def build_stage_a(
     *,
     source_revision: str,
     deadline: float | None = None,
+    progress: dict | None = None,
 ) -> dict:
     """Selection/replay/support first; only supported panels enumerate alternatives.
 
     Supported panels also seal model-independent encoder widths/truncation.
     This builder currently has synthetic callers only.
     """
+    if progress is not None:
+        progress.update(
+            stage_a_phase="selection", stage_a_tasks_replayed=0, stage_a_legal_rows=0
+        )
     panel, selection = select_panel(tasks, programs, deadline=deadline)
+    if progress is not None:
+        progress.update(stage_a_phase="shown_replay", stage_a_selected_tasks=len(panel))
     all_rows, replays = [], []
     for item in panel:
         core.check_deadline(deadline)
         replay = core.replay_shown(item.task, deadline=deadline)
         all_rows.extend(core.occurrences(item.task, replay))
         replays.append((item, replay))
+        if progress is not None:
+            progress["stage_a_tasks_replayed"] += 1
     cells = core.matched_cells(all_rows)
     gate = core.support(cells)
+    if progress is not None:
+        progress.update(
+            stage_a_phase="legality_and_encoding"
+            if gate["passes"]
+            else "support_only_rows",
+            stage_a_replay_rows=len(all_rows),
+        )
     matched = {key for cell in cells for key in (*cell.top, *cell.body)}
     by_key = {row.key: row for row in all_rows}
     sealed_rows = []
@@ -343,8 +359,12 @@ def build_stage_a(
                     product, replay.states[-1]
                 )
                 refusal_counts.update(legality["first_refusal_counts"])
+                if progress is not None:
+                    progress["stage_a_legal_rows"] += 1
             sealed_rows.append(row)
     core.check_deadline(deadline)
+    if progress is not None:
+        progress["stage_a_phase"] = "complete"
     return {
         "schema": "capped-glue-D1-A-stage-a",
         "source_revision": source_revision,

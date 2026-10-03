@@ -1,0 +1,73 @@
+# D1 + Amendment A implementation
+
+Implementation and tests are synthetic only. Independent pre-trial code/design
+PASS is still required; no real panel or existing checkpoint has been used.
+The original preregistration and Amendment A govern population, thresholds,
+resource limits, interpretation and the no-rerun rule.
+
+The model-independent pieces are `experiments/capped_glue_loss.py` and
+`capped_glue_stage_a.py`; `capped_glue_metrics.py` supplies pure encoder/loss
+diagnostics, and `capped_glue_run.py` supplies the bounded one-shot controller.
+The latter is invoked from a clean frozen reviewed source tree:
+
+```sh
+UV_PROJECT_ENVIRONMENT=/home/abhishekrao/repos/wandering-light/.venv UV_NO_SYNC=1 uv run python -m experiments.capped_glue_run
+```
+
+The CLI accepts no data, checkpoint, output, selection or limit overrides. It
+uses this tree's committed `inputs.json`, the six checkpoint order there and
+main `checkpoints/capped-glue-loss-20261003/trial/`. The launch is an external
+user unit with RuntimeMaxSec1800 and MemoryMax4G; its log directory must exist
+before shell redirection. The diagnostic uses CPU, one torch thread, batches32
+and a900-second cooperative deadline, including all staging/scoring and checks.
+A single call may overrun it; the external bound still applies.
+
+Before launch, retain the independent high-effort Claude report and inspect its
+verdict. Only an actual PASS permits writing the fixed
+`checkpoints/capped-glue-loss-20261003/pretrial-review/receipt.json`, with:
+
+```json
+{
+  "verdict": "PASS",
+  "source_revision": "exact frozen reviewed commit",
+  "issue": 178,
+  "design": "D1+AmendmentA",
+  "reviewer_family": "claude",
+  "effort": "high",
+  "report": {"path": "absolute retained report path", "sha256": "report bytes hash"}
+}
+```
+
+This records reviewed evidence; a receipt is not a substitute for receiving the
+review. A wrong/missing receipt refuses before reserving a trial or reading data.
+The CLI checks clean source and exact receipt revision; no source edits/merges
+are made in that execution tree after review.
+
+`attempt.json` reserves the campaign before input/model work. An existing
+attempt or diagnostic artifact forbids retry, including after a hard kill. All
+selected shown replays finish before support, and support failure skips encoder,
+alternative and model work. Supported Stage A includes encoder diagnostics and
+reason-bearing legal masks, then is atomically sealed before any checkpoint
+load. Input hashes are checked around reading; checkpoint pins around loading.
+
+Each checkpoint is loaded once in fixed order. Raw rows are written in sealed
+order with descriptor, ordinal, identity, full28 logits and recomputable
+diagnostics. Each summary is recomputed from complete saved raw vectors. The
+final check covers exact sealed rows times six, hashes, identities, finite
+vectors, summaries and the registered both-encoding gate. `final.json` is
+published atomically last.
+
+Supported positive/negative or complete support-only states exit0 with
+`complete=true`. Cooperative errors exit2 with `INVALID`, `complete=false`,
+explicit phase/progress/error and no effect reading. A hard kill/OOM without a
+final manifest and an `exit` log line is NO RESULT. Only exit0 plus the complete
+validated manifest supplies a reading; partial artifacts supply none. No rerun
+after INVALID/deadline/kill/OOM; a future attempt needs new preregistration and
+review before any partial-logit inspection.
+
+`validate_complete_manifest` rechecks persisted artifacts without loading a
+model. This is the implementation's completeness check, not the independent
+result verification/review still required before landing. Loss/deficit/token
+shares and truncation/censor records are descriptive. The primary only concerns
+exact-op matched mid-span emissions; boundary glue and causal runtime/frame
+claims remain outside it. Training-row sample multiplicity is unavailable.
