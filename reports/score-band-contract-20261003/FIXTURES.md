@@ -199,3 +199,25 @@ Actual amended-design review passed on e8213de. Its N1–N4 are pinned above:
 last-row band precedence, a real last-ranked-width fixture, exact budget100
 body script with scope narrowed to root i, and local warning expectations.
 No fixture/code has yet executed; no changed empirical expectation is hidden.
+
+## Fixed expanded manifest catalog (A.1, before declared Gate A)
+
+The gate records455 unique ordered IDs:324 disabled pairs;29 semantic cases
+(including the six late/size/seen invalid-score cases and None/1 last-width);
+43 resource cases;29 separately identified observation repeats;10 explicit
+typed-input/witness checks;12 invalid-parameter/GC cases;2 scorer-exception/GC
+cases;4 arithmetic units;1 scorer API unit;1 frozen-reference hash check.
+`catalog_ids()` is the executable list, with no data-dependent selection.
+Development tests executed the frozen cases; the declared gate has not run.
+The two declared C/order cases intentionally use the same fixed construction.
+The manifest retains per-case expected/actual result/counters, typed retained
+order/parents and read-only verdicts plus hashes of every recomputed attempt
+trace/ranked table. No unread eligibility is labelled. Full raw model logits
+do not exist. Output is strict JSON; NaN/infinity support is explicitly named.
+
+Gate command (only after exact-source PRE-GATE CODE PASS):
+`UV_PROJECT_ENVIRONMENT=/home/abhishekrao/repos/wandering-light/.venv UV_NO_SYNC=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 uv run python -m experiments.score_band_gate --out /home/abhishekrao/repos/wandering-light/checkpoints/score-band-contract-20261003/gate-a --pre-gate-receipt /home/abhishekrao/repos/wandering-light/checkpoints/score-band-contract-20261003/pre-gate-review/receipt.json`.
+The output path is exclusive; attempt reservation precedes fixtures. Both exit0
+and the atomic complete manifest are required. Deadline/incomplete/failure gives
+NO_GATE_RESULT; a final cannot be published after the cooperative300s deadline.
+No declared complete gate invocation has occurred.

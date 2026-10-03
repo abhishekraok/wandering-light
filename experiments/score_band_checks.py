@@ -10,9 +10,17 @@ from dataclasses import asdict
 
 import numpy as np
 
+from experiments.score_band_fixtures import OP_INDEX, manual_task
 from wandering_light.quotation_guard import blocked
-from wandering_light.stack_machine import DEFAULT_FUEL_LIMIT, Lst, step_raw, value_key
-from wandering_light.stack_pbe import OPS
+from wandering_light.stack_machine import (
+    DEFAULT_FUEL_LIMIT,
+    Lst,
+    parse_stack,
+    step_raw,
+    value_key,
+)
+from wandering_light.stack_pbe import BASIS, OPS
+from wandering_light.stack_policy import encode_node
 
 
 def result_key(result):
@@ -196,3 +204,78 @@ def verify_layers(capture, case):
         later = next((x for x in capture.layers if x.depth == layer.depth + 1), None)
         if later is not None:
             assert {identity(p) for p in later.old_seen} == own_seen
+
+
+def check_semantic_expectation(case, reference, candidate, own, scorer, ref):
+    result = candidate.beam_result
+    id = case.id
+    retained_names = (
+        [OPS[i].name for _n, i in own.layers[0].parents] if own.layers else []
+    )
+    if id == "A-safe":
+        assert reference.program == result.program == ("mul", "dup", "add")
+        assert reference.expansions == 6 and result.expansions == 3
+        assert result.executions < reference.executions and result.fuel < reference.fuel
+    elif id == "B-only-solution-cut":
+        assert reference.program == ("mul", "dup", "add")
+        assert result.program is None and result.termination == "max_depth"
+    elif id in ("C-later-first-fit", "ordering/cumulative"):
+        assert reference.program == ("dup", "add", "mul")
+        assert result.program == ("mul", "dup", "add")
+    elif id.startswith("fit/"):
+        assert result.program == reference.program == ("add",) and scorer.calls == 0
+    elif id == "anchor/seen":
+        assert retained_names == ["add"] and own.layers[0].anchor == -2
+        assert own.layers[0].verdicts[0, OP_INDEX["swap"]] == "duplicate"
+    elif id == "anchor/close":
+        assert retained_names == ["0"] and own.layers[0].anchor == -2
+        assert own.layers[0].verdicts[0, OP_INDEX["["]] == "guard:close"
+    elif id == "anchor/type":
+        assert retained_names == ["]"] and own.layers[0].anchor == -2
+        assert own.layers[0].verdicts[0, OP_INDEX["null?"]] == "guard:type"
+    elif id == "anchor/size":
+        assert retained_names == ["mul"] and own.layers[0].anchor == -2
+        assert own.layers[0].verdicts[0, OP_INDEX["dup"]] == "guard:size"
+    elif id == "duplicate/same-layer":
+        assert retained_names == ["add"]
+        assert own.layers[0].verdicts[0, OP_INDEX["mul"]] == "duplicate"
+    elif id == "seen/reentry":
+        assert own.layers[1].retained[0][1] == ("swap", "mul")
+        event = next(e for e in ref.events if e[0] == "retained" and e[1] == 1)
+        assert event[3][0, OP_INDEX["mul"]] == "duplicate"
+    elif id == "identity/encoding":
+        assert retained_names == ["dup", "drop"]
+        left, right = [n[0] for n in own.layers[0].retained]
+        target = tuple(
+            parse_stack(x, basis=BASIS) for x in manual_task(case.task).outputs
+        )
+        assert left != right
+        np.testing.assert_array_equal(
+            encode_node(left, target), encode_node(right, target)
+        )
+    elif id == "boundary/included":
+        assert retained_names == ["mul", "drop"] and own.layers[0].stop == "score_band"
+    elif id == "boundary/top-ties":
+        assert retained_names == ["drop", "mul"]
+    elif id == "boundary/top-ties-w1":
+        assert retained_names == ["drop"] and own.layers[0].stop == "width"
+    elif case.expectation == "reference-equivalence":
+        assert result_key(result) == result_key(reference) and own.events == ref.events
+        assert not candidate.band_pruned
+    elif id == "score/all-inf":
+        assert bool(own.layers[0].all_inf_fallback) and not candidate.band_pruned
+        assert result_key(result) == result_key(reference) and own.events == ref.events
+    elif case.expectation == "frontier-exhausted":
+        assert (
+            result.termination == "frontier_exhausted" and own.layers[0].anchor is None
+        )
+        assert not candidate.band_pruned and not candidate.width_pruned
+    elif case.expectation == "width":
+        assert own.layers[0].stop == "width" and candidate.width_pruned
+        assert (0, OP_INDEX["["]) not in own.layers[0].verdicts
+    elif case.expectation == "exhausted-at-width":
+        assert len(own.layers[0].retained) == 6 and own.layers[0].stop == "exhausted"
+        assert not candidate.width_pruned and not candidate.band_pruned
+        assert not reference.pruned and own.events == ref.events
+    else:
+        raise AssertionError(f"missing hand expectation: {id}")
