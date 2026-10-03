@@ -1,7 +1,8 @@
 # Score-band retention: synthetic semantics gate A
 
 The program-synthesis janthu (e-den, Codex) wrote this, 2026-10-03 PDT.
-Design only: no implementation, synthetic gate execution, corpus selection,
+Design only, Amendment A after actual CHANGES_REQUIRED on69e53c8:
+no implementation, synthetic gate execution, corpus selection,
 checkpoint loading, inference, timing or coverage measurement has occurred.
 
 ## Question and choice
@@ -55,7 +56,12 @@ arm; disabled equivalence is independently tested against the frozen ordinary
 beam, not against a second copy of the candidate. Preserve the acyclic-GC
 wrapper behaviour and restore collection on normal and exceptional exits.
 
-Inputs are manually constructed typed stack tasks and finite toy state graphs;
+All end-to-end search fixtures are hand-written mark-28 Tasks on the real machine;
+"graph" means states reached on that machine under a scripted scorer. The
+candidate has no injectable transition, OPS table or parser. All reference
+outcomes/traces come from imported production beam_solve plus BeamObserver,
+with the reference stack_beam.py SHA256 retained. Separate arithmetic/scorer-API
+unit fixtures are identified as such, with no solver/reference outcome claim;
 scripted scorers only. No v4/world/capped files, archive rows, saved checkpoint,
 Hub/W&B data, held-out grading, training or model creation is permitted. The
 word "seed" below means a fixed synthetic scorer permutation, not a trained
@@ -72,8 +78,16 @@ uses tau in {0, 1, 2} and None; values illustrate boundary/tie cases only.
 Each layer executes the ordinary beam in parent order and OPS order, with the
 same per-attempt budget/deadline checks, counters, early refusal scope, legal
 mask, pre-ranking shown-fit return and one batched score call. Score is parent
-cumulative log probability plus its current legal-normalized op log probability;
-no length normalization, temperature fitting, entropy or local-only score.
+cumulative score plus its current op score. Real PolicyScorer supplies legal-
+normalized log probabilities; scripted scores need not be normalized.
+No length normalization, temperature fitting, entropy or local-only score.
+Scripted fixtures address scores by (zero-based scorer call, row, actual op name),
+never by capped block content; fixed row-dependent rules are disclosed even when
+reference and finite runs have different rows. The disabled grid uses a fixed
+formula in call/row/op index/synthetic seed. Ranking/accumulation preserve the
+reference scalar arithmetic; only the band comparison converts the already
+computed cumulative scores and tau to float64, so no new float32 subtraction
+rounding or ranking precision change is introduced.
 
 For a layer that did not return a fit, stable-sort executable successors in
 nonincreasing score, preserving enumeration order on ties. Eligibility is the
@@ -100,19 +114,37 @@ any savings start with a later layer, not with the cutoff layer's attempts.
 
 None must follow the ordinary path: result fields except wall clock, ordered
 frontiers, retained parents, masks, normalized scores, counters, termination,
-and collector restoration match the reference. Finite mode rejects NaN/+inf
-successor cumulative scores before retention/seen mutation; -inf is permitted
+and collector restoration match the reference. Invalid band parameters raise
+ValueError before parsing, scoring or executing anything, next to spent_in.
+Finite mode raises ValueError after scoring and BEFORE SORTING or any retention/
+seen mutation iff any non-fit executable successor cumulative score is NaN or
++inf. Check every successor, including ones later guarded/deduplicated/cut;
+illegal score positions are never inspected. The spent expansion attempts
+remain charged/observable and GC is restored on the exception. Trace comparison
+uses legal entries (NaN-aware for diagnostic matrices), never naive full-matrix
+equality. -inf is permitted
 only as zero-probability support. A finite anchor excludes -inf; if every
 otherwise eligible score is -inf, the band is uninformative and retains the
-ordinary C unchanged, avoiding -inf-minus-minus-inf arithmetic. This convention
+ordinary C unchanged. With finite tau, IEEE -inf >= -inf already satisfies this
+rule; the explicit convention makes its uninformative fallback visible. This convention
 must be visible in telemetry. The disabled path keeps reference scorer behaviour.
 
 Use experiment-local diagnostic recording; do not reuse a recorder that labels
 all unread successors as width cuts. Record ordered retained identities and
 parents, anchor, tau, per-layer stop cause (`width`, `score_band`, `exhausted`),
-the first band-rejected eligible candidate, all-inf fallback, and `pruned`.
-`pruned` stays conservative for width exactly as reference and is true on an
-eligible band exclusion; no-pruning is not a probability-mass certificate.
+the first band-rejected eligible candidate and all-inf fallback. Exact stop:
+`exhausted` iff every ranked successor was read (also when W fills on the last
+one); `width` iff W fills with ranked successors unread, even when an unread
+row would have been below-band; `score_band` iff an eligible below-band row is
+read before W. Unread rows have NO verdict, eligibility or cut count; their
+eligibility is unknown. Keep `width_pruned` and `band_pruned` separately, per
+layer and overall. The wrapped BeamResult.pruned means WIDTH pruning only,
+exactly as reference; separate BandSearchResult.band_pruned means eligible band
+exclusion. None compares reference pruned too and has band_pruned=false. Do not
+wire the experimental arm into widening/its saturation rule. Within a fixed
+banded arm, a band-only stop before W can be independent of larger W; an
+all-pruning boolean would conceal that distinction. Neither flag certifies
+probability mass or retained solutions.
 Untimed diagnostic recording is separate from any future primary clock run.
 
 ## Gate A prediction, falsifier and fixtures (registered before execution)
@@ -125,10 +157,14 @@ attempt, incomplete fixture manifest, or no constructed reduction. A passing
 fixture is software feasibility, never evidence for real coverage or clock.
 
 1. **Disabled equivalence.** Fixed synthetic scorer permutations s0/s1/s2,
-W in {1, 4, 16}, H in {1, 4, 8}, guards off/close/both on manually typed tasks.
+W in {1, 4, 16}, H in {1, 4, 8}, guards off/body/close/both on the three fixed
+manual tasks in FIXTURES.md. Budget units executions/fuel/executions+fuel and
+state cap on/off are explicit additional resource fixtures, not a larger ladder.
 Compare reference and candidate result/counter/order/mask/score traces, excluding
-seconds; include ordinary refusal, no legal successor and no remaining eligible
-successor. Width/horizon choices are fixture coverage, not a performance ladder.
+seconds; include ordinary refusal and no remaining eligible
+successor. A fully expanded mark-28 parent always has legal literal successors,
+so do not fabricate a no-legal-op parent by changing the machine. Pre-attempt
+zero budget/deadline can still terminate with no successors attempted. Width/horizon choices are fixture coverage, not a performance ladder.
 2. **Fit before score/guards.** Two one-step shown fits (Int(2),Int(2))->Int(4)
 using add/mul: return the first op in actual OPS order even if the scripted scorer
 prefers the other, and do not call the scorer. Also preserve a shown fit whose
@@ -139,16 +175,23 @@ frontier. Same-layer duplicates use the first ranked occurrence only.
 4. **Ties and arithmetic.** Exact boundary retained, next below boundary dropped,
 tau=0 top ties retain enumeration order up to W; negative parents use cumulative
 rather than local ordering. None/effectively inactive finite band agree when no
-candidate is excluded. All -inf fallback and NaN/+inf/parameter failure are explicit.
+candidate is excluded, preserving ranking/accumulation precision. All -inf
+fallback and NaN/+inf/parameter failure are explicit. Add a scorer-API-only
+all-illegal-row plus live-row normalization fixture: call existing PolicyScorer.
+log_probs with scripted logits/masks, no model. It demonstrates the all-NaN
+illegal row but is not claimed reachable in mark-28 beam expansion; literal0/1
+always succeed at each fresh per-op allocation. End-to-end fixtures instead
+place NaN only at illegal matrix positions and must still agree/succeed. A
+NaN/+inf at ANY executable successor (even later ineligible) must raise.
 5. **Seen-state consequences.** A band-excluded state reached later is still
 eligible. A previously retained state is rejected across depths. Include two
 prefixes producing equal typed states and distinct typed states whose capped
 encoder blocks agree, establishing state identity independent of encoding.
-6. **Useful and adverse constructions.** Fixed toy graph A prunes dead branches,
+6. **Useful and adverse constructions.** Fixed real-machine task/score table A prunes irrelevant branches,
 retains the exact reference first fit, and strictly lowers total expanded nodes
-by the next layer (all spent attempts retained in counters). Fixed graph B has
+by the next layer (all spent attempts retained in counters). Fixed real-machine task/score table B has
 its only successful continuation outside the band: reference fits, finite arm
-fails. Fixed graph C diverges in first-fit program via later seen-state/path
+fails. Fixed real-machine task/score table C diverges in first-fit program via later path
 changes. These cases demonstrate both possible savings and explicit risk;
 none may be dropped because it is adverse.
 7. **Boundaries and observation.** Budget0, overshoot at one multi-example attempt,
@@ -158,14 +201,20 @@ must identify a band cutoff rather than silently call it a width cutoff.
 
 An independent expected-retention function uses plain fixture tables and typed
 identity keys, without importing the candidate's retention code. Complete fixed
-fixture table and expected outcomes must be committed before the first gate
-execution. The table may specify logical outcomes/order rather than precomputed
+fixture table and expected outcomes are documented in FIXTURES.md and must be
+committed before any solver fixture or declared gate execution. After DESIGN
+PASS, ordinary development unit tests may execute these fixed manual fixtures;
+that validation is distinct from the single declared complete Gate A invocation. The table is
+hand-reasoned, not a claimed result; if a case cannot realize its expectation,
+report that engineering failure visibly and version any repaired fixture before
+new execution, not quietly search for a favourable replacement. The table may specify logical outcomes/order rather than precomputed
 policy-model values; use exactly representable toy scores for boundary tests.
 Report every fixture identity and outcome, with source hashes and expected versus
 actual counts/order. All-or-none gate; no subset result or tuning after a failure.
 Bug fixes to the synthetic implementation remain development, with a new explicit
 version/result and review before claiming gate PASS; they authorize no real-data
-retry. No real task/model invocation is in Gate A.
+retry. No corpus-task/model invocation is in Gate A; the manually typed mark-28
+fixtures do invoke the real interpreter and production reference, as stated.
 
 Run CPU/thread1, <=300 seconds whole synthetic gate, <=1 GB outputs, one foreground
 command once code/fixture table/tests pass independent high-effort pre-gate review.
@@ -178,12 +227,21 @@ implementation on synthetic fixtures, not Gate A execution or a cohort trial.
 
 ## Later work, explicitly unregistered
 
-Only after Gate A passes and is reviewed: select a train-only disjoint design /
+Only after Gate A passes and is reviewed: preregister a train-only feasibility
+read of score gaps by rank/depth (and observable authored-prefix ranks, with
+off-path/refusal censoring explicit), which may reject the allocation arm before
+threshold selection. The synthetic gate is only software QA. Then select a
+train-only disjoint design /
 validation panel by original skeleton, choose/freeze one threshold and resource
 policy without eval/hidden data, then preregister three paired trained seeds,
 all attempted tasks and verified coverage plus total CPU wall clock. Hold the
 checkpoint/horizon/caps/guard/library/order/host/threads fixed across the paired
-arms, and price failure, scoring, restart and library overhead. Shared-library
+arms, and price failure, scoring, restart and library overhead. Include a
+narrower fixed-width arm chosen on the separate train-design panel and locked
+before validation; share horizon and upfront task-local individual/total caps
+with the banded/max-width arms. Actual spent clock is reported, never forced to
+match retrospectively or allocated using held-out spend/solve outcomes. This
+control distinguishes adaptivity from merely doing less search. Shared-library
 effects require full ordered runs, not successful-task-only rescoring. Register
 coverage gain at no extra clock separately from equal coverage at less clock.
 No current Gate A result licenses these predictions, real-task calls or BEST.
