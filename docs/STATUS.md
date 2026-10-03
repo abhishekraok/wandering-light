@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-09-22
+Last updated: 2026-10-02 (In flight refreshed)
 
 ## What is true now
 
@@ -96,7 +96,7 @@ claim a number supports.
 
 ## In flight
 
-**Pursuing `goals/g1.md`** (Claude, from 2026-09-22). **Measurement on the current recipe is finished**, by the owner's decision of 2026-09-22: width (best-system-command (#158)), policy size (#159), search depth and data volume (clear-world-v3 (#161)) are all settled flat, and a new ladder on them needs new evidence first. That work is on `main`, with #157's state cap and inner-frames (#160) E1. The one command, `uv run python -m wandering_light.solve TASKS`, runs `BEST` (`wandering_light/solve.py`): `staged-s0-e3` of staged-witness-reauthoring (#155) at Hub revision `e5a0b139`, beam 64 x depth 48, guard `both`, solved-program library on. It solves 1 of 44 world-v3 eval tasks.
+**Pursuing `goals/g1.md`** (program-synthesis janthu, e-den / Codex, from 2026-10-02; continuing the earlier Claude campaigns). **Measurement on the current recipe is finished**, by the owner's decision of 2026-09-22: width (best-system-command (#158)), policy size (#159), search depth and data volume (clear-world-v3 (#161)) are all settled flat, and a new ladder on them needs new evidence first. That work is on `main`, with #157's state cap and inner-frames (#160) E1. The one command, `uv run python -m wandering_light.solve TASKS`, runs `BEST` (`wandering_light/solve.py`): `staged-s0-e3` of staged-witness-reauthoring (#155) at Hub revision `e5a0b139`, beam 64 x depth 48, guard `both`, solved-program library on. It solves 1 of 44 world-v3 eval tasks.
 
 **The build has started: a search that decomposes the witness.** The first registered prediction ([segment composite](../reports/segment-composite-20260922/README.md)) put the lever inside quotation bodies, not between them. On the lowest-deficit policy we have, the world arm `1m-s0-e5`, bodies carry 79-82% of the deficit. Resetting the beam's budget at closed states is predicted to add +1 of 45 v4 witnesses and +0 of 44 world-v3, so it was **not run**. So stage 1 was **inner-frames (#160) E2's first gate**, and it came back **WEAK, as registered** ([report](../reports/frame-gate-20260922/README.md)).
 - Showing a policy the frame its combinator feeds a body cuts calibrated defined-body deficit 14% on v4 (0.862) but moves clears only from 12 to 13.
@@ -115,7 +115,11 @@ claim a number supports.
   - **The encoder can name the op between two states, given enough one-step data** (inverse-dynamics-probe #166, INCONCLUSIVE at 0.962 for 1M triples). An explicit comparison feature makes it data-efficient and reaches 0.994. Campaign 2's last-op miss was mostly training data.
 - **Short-segment-campaign (#168), approved by the owner 2026-09-23, is done and reads NEITHER** (see the row above).
   - It re-authored the train data to short segments, trained a comparing encoder, and searched with a segment-reset beam.
-  - The owner stopped after it. The next campaign starts in a new session from [the handoff](../goals/g1-handoff-20260925.md).
+  - The campaign stopped at the owner’s request; [the handoff](../goals/g1-handoff-20260925.md) records its remaining questions. Subsequent campaigns have also landed; see below.
+
+**Since the handoff:** distinct-programs (#174) and teacher-variety (#175) are finished and their registered falsifiers were not met ([distinct-programs report](../reports/distinct-programs-20260926/README.md), [teacher-variety report](../reports/teacher-variety-20260927/README.md)). The hosted-model comparisons new-models-sample40 (#173), sonnet55-sample40 (#176) and sol61-sample40 (#177) have also landed; they do not change the local `BEST` recipe.
+
+**Current work, 2026-10-02:** day-1 onboarding is complete; the existing CI lint failure is repaired and local lint/format checks and the offline test suite pass. No research job is running. Next is branch-and-check (#164) O1: design and test a target-conditioned pair-ordering ranker against goal-blind controls before integrating it into search. The train-task archive is available; eval-cohort archives remain analysis only. The later novelty-reduction (#171) success/error heads are distinct from this still-unbuilt value ranker. No hosted-model or authoring run is scheduled.
 
 Also open, none started: world-v3 staged the way #155 staged v4; what training-data-sources (#118) does after step 3, with world-plus-v4-policy (#134) and keep-below-ablation (#136); the ~127 behaviours left in the sampler-passing pool; the highways programme (#94, #96, #98, goal #99); and the unrun `mixed` arm of hindsight-subtargets (#152).
 
