@@ -42,3 +42,9 @@ the declared complete all455-ID Gate A remains forbidden until a fresh exact-
 source high-effort PRE-GATE CODE PASS. That pass permits software Gate A only,
 not landing, any real threshold/panel/model/campaign or BEST promotion. Separate
 independent final code/result PASS remains required before landing the evidence.
+
+Post-repair development validation on747307e:527 new/existing beam/resource/
+observer/control tests passed,22.31s; whole lint/format/diff checks passed.
+No complete Gate A command or attempt/manifest exists. Fresh review follows.
+The inactive-band script remains exactly executable0/illegal-inf; this clarifies
+the older wording "every returned score0" without changing any script/input.

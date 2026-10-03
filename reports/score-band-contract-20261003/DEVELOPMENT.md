@@ -91,3 +91,13 @@ actual review/source hashes, and publishes one atomic complete manifest. A
 failed/incomplete/deadline invocation is NO_GATE_RESULT; no partial PASS.
 After an actual complete PASS, separate independent code/result review remains
 required before candidate/evidence landing. No real campaign is registered here.
+
+## Amendment B implementation validation
+
+Visible control/verifier repair747307e addresses B1 coverage and N1–N6;
+AMENDMENT_B.md describes exact changes and extra development-only budget
+boundary regressions. No Gate A fixture inputs, scripts, IDs or expected
+outcomes changed. Post-repair focused source747307e:527 passed22.31s, log
+`work/score-band-amendment-b-tests.log`; whole lint/format/diff passed.
+The earlier full3324 suite predates these repairs; no newer full-suite claim.
+A fresh exact-source high-effort pre-gate review is required before Gate A.
