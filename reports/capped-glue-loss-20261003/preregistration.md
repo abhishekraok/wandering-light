@@ -113,8 +113,8 @@ with exact revision, hashes, sealed panel, limits and complete per-step records.
 
 CPU, one torch thread, fixed batches of 32, six checkpoints once in inputs.json
 order. Use existing `hindsight_subtargets.replay_states` and
-`stack_beam.step_all_quiet` semantics; pin their fuel/depth constants from the
-run source in the implementation/provenance before review. Check rewritten
+`stack_beam.step_all_quiet` semantics: DEFAULT_FUEL_LIMIT=100,000 per example/op, initial depth 0 and
+MAX_QUOTATION_DEPTH=32 (refusal above 32). Pin these in run provenance. Check rewritten
 witness ends at the original shown target. Refusal, illegal witness op,
 incorrect Mark depth, nonfinite logits and missing/hash-mismatched input are
 errors, never skipped rows or zero losses. Resource refusals are distinct.
