@@ -1010,3 +1010,13 @@ Independent high-effort [result review](../reports/branch-check-o1-inventory-202
 | 1,024 | 494 | 73 | 558 | 466 | 2 | 4,512 | 3,705 / 796 / 11 |
 
 Completion is cost-selected, not a random subset: 18 of 52 processed tasks hit the per-task call cap, and another hit the run cap. The largest complete task used 49,745 calls against the frozen 50,000-call task cap. The portable verifier recomputes minima from recorded outcome flags; the separate result review independently checked those flags, catalogue construction and exclusions.
+
+
+### Capped-policy-glue-loss (#178), D1 + Amendment A — 2026-10-03
+
+| paired diagnostic | machine | difference | scope |
+|---|---:|---:|---|
+| median3 matched top-minus-body unmasked NLL | +0.640927 nats | +0.477030 nats | 45 original groups,108 mid-span exact-op cells; no causal/held-out/solver claim |
+| median3 positive-behaviour fraction | 26/45 (0.577778) | 26/45 (0.577778) | both below frozen0.60 requirement; all3 seed mean deltas positive |
+
+Registered TOP_LOSS_ROUTE fails the breadth criterion, not the positive-average criterion: terminal NO_MATCHED_MIDSPAN_TOP_EXCESS. Support and all4112 sealed steps x6 checkpoints independently reconstructed and verified; single trial exit0/complete, no rerun. High-effort other-family result/code review pending. Paired top/body values, complete cell/behaviour/seed data and raw hashes: [report](../reports/capped-glue-loss-20261003/RESULT.md), [measurement](../reports/capped-glue-loss-20261003/measurement.json), [independent verification](../reports/capped-glue-loss-20261003/independent-verification.json).

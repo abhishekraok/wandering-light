@@ -1,0 +1,56 @@
+{
+  "final_sha256": "46708065ea0e0e3b7d8a933aa2f79a9ef439410d9e2f3cc1ab4efb163f1bdd82",
+  "models_deserialized": 0,
+  "numeric_tolerance": {
+    "absolute": 1e-10,
+    "relative": 1e-10
+  },
+  "reading": "NO_MATCHED_MIDSPAN_TOP_EXCESS",
+  "reconstruction": {
+    "cells": 108,
+    "groups": 45,
+    "independent_shown_replay": true,
+    "rows": 4112,
+    "support_passes": true
+  },
+  "result": {
+    "encodings": {
+      "difference": {
+        "median_delta": 0.4770303780335447,
+        "median_positive_behaviour_fraction": 0.5777777777777777,
+        "passes": false,
+        "positive_seeds": 3,
+        "seed_deltas": [
+          0.5945088107442946,
+          0.4770303780335447,
+          0.315498587708092
+        ],
+        "seed_positive_behaviour_fractions": [
+          0.6,
+          0.5777777777777777,
+          0.4222222222222222
+        ]
+      },
+      "machine": {
+        "median_delta": 0.6409271888518953,
+        "median_positive_behaviour_fraction": 0.5777777777777777,
+        "passes": false,
+        "positive_seeds": 3,
+        "seed_deltas": [
+          0.7901765303540683,
+          0.6409271888518953,
+          0.4206298297092075
+        ],
+        "seed_positive_behaviour_fractions": [
+          0.5777777777777777,
+          0.6444444444444445,
+          0.5111111111111111
+        ]
+      }
+    },
+    "reading": "NO_MATCHED_MIDSPAN_TOP_EXCESS"
+  },
+  "source_revision": "62f40764bbe7b4ccf52fc3708a0eda22d850828a",
+  "stage_sha256": "473e455e446df25af026613899968d9852a408e5a125f4f362344bdc6721b09f",
+  "verified": true
+}
