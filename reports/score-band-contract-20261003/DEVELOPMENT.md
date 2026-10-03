@@ -68,10 +68,22 @@ claim. A dedicated declared complete Gate A has NOT executed.
 Independent pre-gate Opus/high review runs from frozen clean **e36b89f**,
 `wl-score-band-pre-gate-review-20261003`, launched15:47 PDT/expected15:57 PDT.
 It reviews the original source and cannot authorize the later f05364c repair.
-Actual verdict/usage remain pending. Retain its report and address all blockers;
-then obtain a fresh exact-source PRE-GATE CODE PASS covering the byte repair
-before any declared gate invocation. Neither a design PASS nor a PASS on an old
-runner permits running the repaired source.
+Actual review completed exit0/**CHANGES_REQUIRED**, inspected15:54 PDT:
+B1 independently reproduced the same byte serialization defect already repaired
+on development. It independently reproduced486 tests, line-by-line semantics,
+360 additional fuzz runs and the mandatory useful/adverse cases. Full report
+and actual receipt are retained beside this file. No pre-gate PASS was granted.
+
+Next repair in one visible revision: extend strict serialization tests to each
+non-search helper; reject CHANGES_REQUIRED/ambiguous PASS receipts; unlink final
+temps on deadline; validate all actual imported module origins; fix the independent
+expansion count at a pre-attempt node-boundary budget stop; assert initial seen
+and next-beam/retained consistency; persist explicit numeric/order expectations
+in the manifest. The reviewer's N7 stale STATUS concerned its frozen historical
+tree; current main/development STATUS has already been updated. Its illegal-score
+wording caveat does not affect search; keep scripts/scopes explicit. Obtain a
+fresh exact-source PRE-GATE CODE PASS covering all repairs before any declared
+gate invocation. Design PASS or an old runner review cannot authorize it.
 
 The runner reserves a new exclusive attempt, retains all455 frozen IDs and
 complete expected/actual definitions, counters and typed retained order, links
