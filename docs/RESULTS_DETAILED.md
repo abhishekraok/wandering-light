@@ -1002,3 +1002,11 @@ all complete eligible matrices, and replayed every recorded positive. Incomplete
 tasks supply no primary pairs. This negative is scoped to the exact sampled
 archive records, target-selected witness catalogue and caps; it does not rule out
 a useful goal-conditioned ranker or turn unsuccessful trials into distance labels.
+
+Independent high-effort [result review](../reports/branch-check-o1-inventory-20261003/result-review.md) passed on `90e66ee`. It rebuilt all 52 processed catalogues, replayed all complete-task candidates and all complete-matrix trials, including recorded failures. The complete-task breakdown is below; exclusions overlap.
+
+| selected candidates | code-bearing | expanded | excluded union | eligible | eligible and on-witness | complete-matrix trials | ordinary refusals / executed misses / successes |
+|---|---|---|---|---|---|---|---|
+| 1,024 | 494 | 73 | 558 | 466 | 2 | 4,512 | 3,705 / 796 / 11 |
+
+Completion is cost-selected, not a random subset: 18 of 52 processed tasks hit the per-task call cap, and another hit the run cap. The largest complete task used 49,745 calls against the frozen 50,000-call task cap. The portable verifier recomputes minima from recorded outcome flags; the separate result review independently checked those flags, catalogue construction and exclusions.

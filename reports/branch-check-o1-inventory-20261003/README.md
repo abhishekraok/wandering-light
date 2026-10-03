@@ -8,7 +8,8 @@ No trainer, architecture, solver change or BEST promotion follows.
 
 [Compact telemetry and independently checked counts](inventory_summary.json),
 [registered definition and Amendment A](preregistration.md),
-[initial design review](design-review.md), [pre-trial code PASS](code-review.md).
+[initial design review](design-review.md), [pre-trial code PASS](code-review.md),
+[independent result/landing PASS](result-review.md).
 The numerical ledger is `docs/RESULTS_DETAILED.md`; issue argument is on
 [branch-and-check (#164)](https://github.com/abhishekraok/wandering-light/issues/164).
 
@@ -21,17 +22,23 @@ runtime/memory kill. Raw telemetry (~140 MB) stays under main
 compact telemetry. It is not copied into git.
 
 Independent verification re-derived the task/record digest selections and
-transitive all-row groups, recomputed catalogue minima on every complete
-eligible matrix and enumerated primary pairs without the measured builder's
-helpers. It replayed every successful sequence and checked its source closure,
+transitive all-row groups, recomputed minima from recorded trial outcomes on
+every complete eligible matrix and enumerated primary pairs without the
+measured builder's helpers. It replayed every successful sequence and checked its source closure,
 non-goal status, cut membership, witness membership and unexpanded eligibility.
+The result reviewer independently rebuilt every processed catalogue, checked
+all complete-task eligibility flags and replayed every trial in the complete
+matrices, including recorded failures. That additional check agreed with the
+output and closes the portable verifier's reliance on recorded negative flags.
 The one labelled candidate in a censored task remains a partial observation.
 
 Interpretation: positive continuations are sparse in this retained-record
 sample, and full-path replay consumed the registered call budget. A failed or
 unlabelled candidate is censored for distance, never adverse distance evidence.
 Target-selected witness suffixes and archived policy/witness retention bias
-this panel; equal-prefix matching cannot establish goal dependence. We will
+this panel; equal-prefix matching cannot establish goal dependence. Complete
+tasks are also cost-selected by the per-task call cap, rather than a random
+subset; the registered eligibility breakdown is in the numerical ledger. We will
 not silently increase caps, change selection or train on the surviving bounds.
 The next queued research question is top-level glue versus quotation-body loss
 under the capped policies, beginning with the existing #168 diagnostics.
@@ -51,7 +58,8 @@ uv run python experiments/branch_check/o1_inventory.py --archive /home/abhishekr
 
 Use the prescribed persistent CPU unit with RuntimeMaxSec=1800 and MemoryMax=4G;
 commit before launch and log the exact unit, revision, command and timing.
-The CLI rejects an existing output and any source hash mismatch. The bounded
+The CLI rejects an existing output. A source hash mismatch is recorded as an
+error in a failed output. The bounded
 run preserves resource censoring and unprocessed keys; only a final `exit 0`
 is a result. An unequal minimum successful continuation in this fixed catalogue
 is not an unequal optimal distance or evidence of goal-dependent ranking.
