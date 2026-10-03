@@ -1,0 +1,1081 @@
+{
+  "source_sha256": "e358fca13e69880a48f0b3794d36769b1815f3dd249c765bc08b52fc7c1fca78",
+  "raw_output_sha256": "b42f26d3006a4b4a47d138457e57c1247456e1461c3a6056945b757df8cf5ff2",
+  "code_revision": "c664a7cd4dc9397e4960555ecf01d5c7ce473bf1",
+  "verification": "PASS",
+  "manifest_keys": 64,
+  "processed": 52,
+  "unprocessed": 12,
+  "complete": false,
+  "stop": "run_calls",
+  "statuses": {
+    "complete": 33,
+    "censored": 19
+  },
+  "censoring": [
+    {
+      "phase": "candidates",
+      "reason": "task_calls",
+      "tasks": 9
+    },
+    {
+      "phase": "matrix",
+      "reason": "run_calls",
+      "tasks": 1
+    },
+    {
+      "phase": "matrix",
+      "reason": "task_calls",
+      "tasks": 8
+    },
+    {
+      "phase": "roots",
+      "reason": "task_calls",
+      "tasks": 1
+    }
+  ],
+  "counters": {
+    "calls": 2000000,
+    "charged_fuel": 10817925,
+    "task_calls": 32839,
+    "task_charged_fuel": 93665
+  },
+  "elapsed_internal_seconds": 16.984434908998082,
+  "gate": {
+    "pairs": 0,
+    "groups": [],
+    "both_off_witness_pairs": 0,
+    "passed": false
+  },
+  "errors": [],
+  "completed_eligible_candidates": 466,
+  "positive_candidates_checked": 11,
+  "positive_sequences_checked": 12,
+  "completed_labelled_candidates": 10,
+  "positives": [
+    {
+      "behaviour": "first_maximum_index",
+      "digest": "0083975453f5eec639c1688dc694a439ac1d1d9fce083d73d6f30dc45814f62b",
+      "task_status": "censored",
+      "successful_sequences": 1,
+      "label": 69,
+      "on_witness": false
+    },
+    {
+      "behaviour": "point_centroid_floor",
+      "digest": "03c5ace52c5e68a87e7f021fb3986177171b48b91ce68f36a7e29162dfdff41e",
+      "task_status": "complete",
+      "successful_sequences": 1,
+      "label": 63,
+      "on_witness": false
+    },
+    {
+      "behaviour": "point_centroid_floor",
+      "digest": "057777080c62e4c0d02145d38a6725989c896f1c8eb804455aaca9f753df589f",
+      "task_status": "complete",
+      "successful_sequences": 1,
+      "label": 63,
+      "on_witness": false
+    },
+    {
+      "behaviour": "point_centroid_floor",
+      "digest": "05fd5732837ea802bd3b434900c61b118d96d6770dd0dcf85f229736671695ff",
+      "task_status": "complete",
+      "successful_sequences": 1,
+      "label": 63,
+      "on_witness": false
+    },
+    {
+      "behaviour": "remove_values_seen_in_second",
+      "digest": "317730446c731ef9883892cf35c0ce9789b39fc4c671ded252392da18373311f",
+      "task_status": "complete",
+      "successful_sequences": 1,
+      "label": 21,
+      "on_witness": false
+    },
+    {
+      "behaviour": "sign_balance",
+      "digest": "2f51b699235d5fc5981a02ccafc513c2488cd1e59f088314cc76ed2530bc6e53",
+      "task_status": "complete",
+      "successful_sequences": 2,
+      "label": 21,
+      "on_witness": true
+    },
+    {
+      "behaviour": "squared_deviation_total",
+      "digest": "003a63c5cfdd8dd161cba514171641a1ed1b71a9623cf10dace525ac024b79da",
+      "task_status": "complete",
+      "successful_sequences": 1,
+      "label": 34,
+      "on_witness": false
+    },
+    {
+      "behaviour": "squared_deviation_total",
+      "digest": "01fad8bef46a83e2dd639c803c403971a09a1c47402939e9028ea0c2f4dbe582",
+      "task_status": "complete",
+      "successful_sequences": 1,
+      "label": 24,
+      "on_witness": true
+    },
+    {
+      "behaviour": "squared_deviation_total",
+      "digest": "0779da5fdff20b5ffd591581d2f568e7fdf6d7c169ef7b9cf599a165362c2c66",
+      "task_status": "complete",
+      "successful_sequences": 1,
+      "label": 34,
+      "on_witness": false
+    },
+    {
+      "behaviour": "squared_deviation_total",
+      "digest": "097cd8ab18c74e2788bebb7021ed667764f0b5ea510e2db5321f53f730d2a494",
+      "task_status": "complete",
+      "successful_sequences": 1,
+      "label": 34,
+      "on_witness": false
+    },
+    {
+      "behaviour": "total_variation",
+      "digest": "03019a5b828746722171ae0dd6d8095bb137a46b6ce12b570c85d4fd4e901656",
+      "task_status": "complete",
+      "successful_sequences": 1,
+      "label": 50,
+      "on_witness": false
+    }
+  ],
+  "tasks": [
+    {
+      "behaviour": "symmetric_value_difference",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 39359,
+        "charged_fuel": 191482,
+        "task_calls": 39359,
+        "task_charged_fuel": 191482
+      },
+      "closed_eligible_replayed": 15,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "adjacent_floor_averages",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 78006,
+        "charged_fuel": 303529,
+        "task_calls": 38647,
+        "task_charged_fuel": 112047
+      },
+      "closed_eligible_replayed": 9,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "replace_zeros",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "candidates",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 128006,
+        "charged_fuel": 424604,
+        "task_calls": 50000,
+        "task_charged_fuel": 121075
+      },
+      "closed_eligible_replayed": 0,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "sum_inside_interval",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 135446,
+        "charged_fuel": 632338,
+        "task_calls": 7440,
+        "task_charged_fuel": 207734
+      },
+      "closed_eligible_replayed": 22,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "squared_point_norms",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "matrix",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 185446,
+        "charged_fuel": 825600,
+        "task_calls": 50000,
+        "task_charged_fuel": 193262
+      },
+      "closed_eligible_replayed": 7,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "median_three",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "matrix",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 235446,
+        "charged_fuel": 1065658,
+        "task_calls": 50000,
+        "task_charged_fuel": 240058
+      },
+      "closed_eligible_replayed": 25,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "ordered_pair",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 261311,
+        "charged_fuel": 1135582,
+        "task_calls": 25865,
+        "task_charged_fuel": 69924
+      },
+      "closed_eligible_replayed": 14,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "longest_positive_run",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "roots",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 311311,
+        "charged_fuel": 1308997,
+        "task_calls": 50000,
+        "task_charged_fuel": 173415
+      },
+      "closed_eligible_replayed": 0,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "largest_flat_pair_sum",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 349560,
+        "charged_fuel": 1655353,
+        "task_calls": 38249,
+        "task_charged_fuel": 346356
+      },
+      "closed_eligible_replayed": 20,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "zero_balance_prefix_count",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "candidates",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 399560,
+        "charged_fuel": 1801761,
+        "task_calls": 50000,
+        "task_charged_fuel": 146408
+      },
+      "closed_eligible_replayed": 1,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "reverse_point_order",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 428153,
+        "charged_fuel": 1908391,
+        "task_calls": 28593,
+        "task_charged_fuel": 106630
+      },
+      "closed_eligible_replayed": 3,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "sorted_within_pairs",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 466863,
+        "charged_fuel": 2033771,
+        "task_calls": 38710,
+        "task_charged_fuel": 125380
+      },
+      "closed_eligible_replayed": 10,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "sign_balance",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 473738,
+        "charged_fuel": 2258441,
+        "task_calls": 6875,
+        "task_charged_fuel": 224670
+      },
+      "closed_eligible_replayed": 22,
+      "labelled_candidates": 1,
+      "pairs": 0
+    },
+    {
+      "behaviour": "running_minima",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "matrix",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 523738,
+        "charged_fuel": 2446998,
+        "task_calls": 50000,
+        "task_charged_fuel": 188557
+      },
+      "closed_eligible_replayed": 7,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "remove_value",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 0,
+      "counters": {
+        "calls": 523802,
+        "charged_fuel": 2447190,
+        "task_calls": 64,
+        "task_charged_fuel": 192
+      },
+      "closed_eligible_replayed": 0,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "rotate_left_count",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 569900,
+        "charged_fuel": 2633282,
+        "task_calls": 46098,
+        "task_charged_fuel": 186092
+      },
+      "closed_eligible_replayed": 9,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "clamp_each",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 611668,
+        "charged_fuel": 3097864,
+        "task_calls": 41768,
+        "task_charged_fuel": 464582
+      },
+      "closed_eligible_replayed": 18,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "sign_histogram",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 645766,
+        "charged_fuel": 3309425,
+        "task_calls": 34098,
+        "task_charged_fuel": 211561
+      },
+      "closed_eligible_replayed": 13,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "record_extreme_count",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 676567,
+        "charged_fuel": 3612683,
+        "task_calls": 30801,
+        "task_charged_fuel": 303258
+      },
+      "closed_eligible_replayed": 19,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "total_variation",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 709843,
+        "charged_fuel": 3946771,
+        "task_calls": 33276,
+        "task_charged_fuel": 334088
+      },
+      "closed_eligible_replayed": 16,
+      "labelled_candidates": 1,
+      "pairs": 0
+    },
+    {
+      "behaviour": "squared_deviation_total",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 739890,
+        "charged_fuel": 4265950,
+        "task_calls": 30047,
+        "task_charged_fuel": 319179
+      },
+      "closed_eligible_replayed": 18,
+      "labelled_candidates": 4,
+      "pairs": 0
+    },
+    {
+      "behaviour": "largest_adjacent_sum",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 785979,
+        "charged_fuel": 4586660,
+        "task_calls": 46089,
+        "task_charged_fuel": 320710
+      },
+      "closed_eligible_replayed": 23,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "point_centroid_floor",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 822039,
+        "charged_fuel": 4849272,
+        "task_calls": 36060,
+        "task_charged_fuel": 262612
+      },
+      "closed_eligible_replayed": 13,
+      "labelled_candidates": 3,
+      "pairs": 0
+    },
+    {
+      "behaviour": "first_maximum_index",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "candidates",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 872039,
+        "charged_fuel": 5092701,
+        "task_calls": 50000,
+        "task_charged_fuel": 243429
+      },
+      "closed_eligible_replayed": 6,
+      "labelled_candidates": 1,
+      "pairs": 0
+    },
+    {
+      "behaviour": "interval_region_codes",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 913441,
+        "charged_fuel": 5427936,
+        "task_calls": 41402,
+        "task_charged_fuel": 335235
+      },
+      "closed_eligible_replayed": 23,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "raise_to_floor",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 952336,
+        "charged_fuel": 5668088,
+        "task_calls": 38895,
+        "task_charged_fuel": 240152
+      },
+      "closed_eligible_replayed": 12,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "take_prefix_count",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "matrix",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 1002336,
+        "charged_fuel": 5925109,
+        "task_calls": 50000,
+        "task_charged_fuel": 257021
+      },
+      "closed_eligible_replayed": 8,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "largest_adjacent_gap",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "matrix",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 1052336,
+        "charged_fuel": 6073758,
+        "task_calls": 50000,
+        "task_charged_fuel": 148649
+      },
+      "closed_eligible_replayed": 6,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "endpoints",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1089226,
+        "charged_fuel": 6275574,
+        "task_calls": 36890,
+        "task_charged_fuel": 201816
+      },
+      "closed_eligible_replayed": 11,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "keep_evens",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1138971,
+        "charged_fuel": 6455768,
+        "task_calls": 49745,
+        "task_charged_fuel": 180194
+      },
+      "closed_eligible_replayed": 8,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "positive_quadrant_count",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1159144,
+        "charged_fuel": 6629749,
+        "task_calls": 20173,
+        "task_charged_fuel": 173981
+      },
+      "closed_eligible_replayed": 11,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "dot_product",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "candidates",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 1209144,
+        "charged_fuel": 6782529,
+        "task_calls": 50000,
+        "task_charged_fuel": 152780
+      },
+      "closed_eligible_replayed": 8,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "largest_absolute_prefix_sum",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1257001,
+        "charged_fuel": 7028246,
+        "task_calls": 47857,
+        "task_charged_fuel": 245717
+      },
+      "closed_eligible_replayed": 18,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "choose_wider_range",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1297298,
+        "charged_fuel": 7578525,
+        "task_calls": 40297,
+        "task_charged_fuel": 550279
+      },
+      "closed_eligible_replayed": 15,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "distinct_value_count",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "matrix",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 1347298,
+        "charged_fuel": 7738291,
+        "task_calls": 50000,
+        "task_charged_fuel": 159766
+      },
+      "closed_eligible_replayed": 7,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "remove_values_seen_in_second",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1353342,
+        "charged_fuel": 7758078,
+        "task_calls": 6044,
+        "task_charged_fuel": 19787
+      },
+      "closed_eligible_replayed": 18,
+      "labelled_candidates": 1,
+      "pairs": 0
+    },
+    {
+      "behaviour": "sum_after_last_zero",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1395508,
+        "charged_fuel": 7886194,
+        "task_calls": 42166,
+        "task_charged_fuel": 128116
+      },
+      "closed_eligible_replayed": 8,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "combined_value_span",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "matrix",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 1445508,
+        "charged_fuel": 8085087,
+        "task_calls": 50000,
+        "task_charged_fuel": 198893
+      },
+      "closed_eligible_replayed": 10,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "positive_step_total",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1477346,
+        "charged_fuel": 8255346,
+        "task_calls": 31838,
+        "task_charged_fuel": 170259
+      },
+      "closed_eligible_replayed": 11,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "running_ranges",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1519926,
+        "charged_fuel": 8366963,
+        "task_calls": 42580,
+        "task_charged_fuel": 111617
+      },
+      "closed_eligible_replayed": 9,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "span",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "candidates",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 1569926,
+        "charged_fuel": 8550945,
+        "task_calls": 50000,
+        "task_charged_fuel": 183982
+      },
+      "closed_eligible_replayed": 3,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "distance_from_target_total",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "candidates",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 1619926,
+        "charged_fuel": 8816326,
+        "task_calls": 50000,
+        "task_charged_fuel": 265381
+      },
+      "closed_eligible_replayed": 9,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "pair_product_total",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "candidates",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 1669926,
+        "charged_fuel": 8988540,
+        "task_calls": 50000,
+        "task_charged_fuel": 172214
+      },
+      "closed_eligible_replayed": 1,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "adjacent_differences",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1695610,
+        "charged_fuel": 9098632,
+        "task_calls": 25684,
+        "task_charged_fuel": 110092
+      },
+      "closed_eligible_replayed": 15,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "interval_side_balance",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1704969,
+        "charged_fuel": 9397250,
+        "task_calls": 9359,
+        "task_charged_fuel": 298618
+      },
+      "closed_eligible_replayed": 22,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "minimum",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1734062,
+        "charged_fuel": 9489195,
+        "task_calls": 29093,
+        "task_charged_fuel": 91945
+      },
+      "closed_eligible_replayed": 11,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "stable_unique",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "candidates",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 1784062,
+        "charged_fuel": 9644026,
+        "task_calls": 50000,
+        "task_charged_fuel": 154831
+      },
+      "closed_eligible_replayed": 9,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "choose_longer",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1830840,
+        "charged_fuel": 9850498,
+        "task_calls": 46778,
+        "task_charged_fuel": 206472
+      },
+      "closed_eligible_replayed": 12,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "longest_alternating_sign_run",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "candidates",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 1880840,
+        "charged_fuel": 10117248,
+        "task_calls": 50000,
+        "task_charged_fuel": 266750
+      },
+      "closed_eligible_replayed": 8,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "choose_largest_total_three",
+      "example_set": 0,
+      "status": "complete",
+      "phase": null,
+      "reason": null,
+      "selected_records": 32,
+      "counters": {
+        "calls": 1917161,
+        "charged_fuel": 10583226,
+        "task_calls": 36321,
+        "task_charged_fuel": 465978
+      },
+      "closed_eligible_replayed": 18,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "prefix_sum_signs",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "matrix",
+      "reason": "task_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 1967161,
+        "charged_fuel": 10724260,
+        "task_calls": 50000,
+        "task_charged_fuel": 141034
+      },
+      "closed_eligible_replayed": 1,
+      "labelled_candidates": 0,
+      "pairs": 0
+    },
+    {
+      "behaviour": "abs_diff_pair",
+      "example_set": 0,
+      "status": "censored",
+      "phase": "matrix",
+      "reason": "run_calls",
+      "selected_records": 32,
+      "counters": {
+        "calls": 2000000,
+        "charged_fuel": 10817925,
+        "task_calls": 32839,
+        "task_charged_fuel": 93665
+      },
+      "closed_eligible_replayed": 6,
+      "labelled_candidates": 0,
+      "pairs": 0
+    }
+  ],
+  "unprocessed_keys": [
+    [
+      "closer_to_lower_bound_count",
+      0
+    ],
+    [
+      "prefix_record_count",
+      0
+    ],
+    [
+      "run_length_encoding",
+      0
+    ],
+    [
+      "pair_sums",
+      0
+    ],
+    [
+      "maximum_drawdown",
+      0
+    ],
+    [
+      "magnitude_ordered_pair",
+      0
+    ],
+    [
+      "largest_zero_delimited_sum",
+      0
+    ],
+    [
+      "record_high_count",
+      0
+    ],
+    [
+      "aligned_absolute_gaps",
+      0
+    ],
+    [
+      "add_aligned_entries",
+      0
+    ],
+    [
+      "collapse_runs",
+      0
+    ],
+    [
+      "common_prefix_length",
+      0
+    ]
+  ]
+}

@@ -978,3 +978,27 @@ against three definitions it never saw.
 | 592 / 148 | 584 / 146 | 36,050 | 466,241 / 1,960 | 1,427 | 2,268 over 428 tasks | 133 | 0 | passed (at least 100 eligible behaviours and no listed errors) |
 
 This supports building a recorded-suffix ordering diagnostic; it does not establish optimal-distance labels, learned ranking performance or a coverage gain. Saved `witness_cuts` match the current combinator-cut implementation but are not equivalent to all genuinely closed states. The audit separately recomputes genuine closure and rejects goal equality / repeated-state conflicts from candidate pairs.
+
+## branch-and-check O1-B: fixed-catalogue continuation inventory (2026-10-03)
+
+`experiments/branch_check/o1_inventory.py`, reviewed run revision `c664a7c`,
+same train-archive SHA as O1-A. [Preregistration](https://github.com/abhishekraok/wandering-light/issues/164#issuecomment-5971674142),
+[Amendment A](https://github.com/abhishekraok/wandering-light/issues/164#issuecomment-5971719000),
+[compact telemetry and independent verification](../reports/branch-check-o1-inventory-20261003/inventory_summary.json).
+Train shown-example diagnostic only; not behavioural verification, ranking accuracy,
+coverage or a CPU-clock comparison. Unit `wl-o1-inventory-20261003` ended `exit 0`;
+raw output is retained under main `checkpoints/o1-inventory-20261003/` with its hash
+in compact telemetry. No hidden/eval examples, model training or solver change.
+
+| selected / processed / unprocessed tasks | complete / censored tasks | eligible candidates in complete matrices | labelled candidates complete / partial | replay-confirmed successful sequences checked | unique qualifying pairs / groups | per-example calls / charged fuel | errors | registered gate / limiting stop |
+|---|---|---|---|---|---|---|---|---|
+| 64 / 52 / 12 | 33 / 19 | 466 | 10 / 1 | 12 over 11 candidates | 0 / 0 | 2,000,000 / 10,817,925 | 0 | failed / run_calls |
+
+Censoring: task-call limit in candidate-prefix replay (9 tasks), catalogue matrix
+(8) and root reconstruction (1); run-call limit in a matrix (1). The call cap,
+not the fuel, atom or time cap, ended this run. The independent verifier re-derived
+the manifest, retained-record selection, all-row grouping and pair count, checked
+all complete eligible matrices, and replayed every recorded positive. Incomplete
+tasks supply no primary pairs. This negative is scoped to the exact sampled
+archive records, target-selected witness catalogue and caps; it does not rule out
+a useful goal-conditioned ranker or turn unsuccessful trials into distance labels.
