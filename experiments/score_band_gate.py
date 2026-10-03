@@ -81,6 +81,8 @@ SOURCE_PATHS = (
 
 def json_value(value):
     """Strict JSON preserving typed dataclasses and nonfinite support values."""
+    if isinstance(value, bytes):
+        return {"type": "bytes", "hex": value.hex()}
     if is_dataclass(value):
         return {
             "type": type(value).__name__,

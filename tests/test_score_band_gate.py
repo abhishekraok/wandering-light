@@ -89,3 +89,26 @@ def test_mask_digest_is_structurally_distinct_from_plain_string():
 
     assert digest(b"\x00\x01") != digest("0001")
     assert json_value(b"\x00\x01") == {"type": "bytes", "hex": "0001"}
+
+
+@pytest.mark.parametrize("category", ["disabled", "resource"])
+def test_runner_serializes_reference_and_body_resource_case(category):
+    from experiments.score_band_fixtures import disabled_cases, resource_cases
+    from experiments.score_band_gate import run_search_case
+
+    cases = disabled_cases() if category == "disabled" else resource_cases()
+    case = next(
+        c
+        for c in cases
+        if c.id
+        == (
+            "disabled/T-pair/s0/w16/h8/both"
+            if category == "disabled"
+            else "resource/body/fuel/64"
+        )
+    )
+    result, observation = run_search_case(case, category)
+    payload = json.dumps(json_value(result), allow_nan=False)
+    assert result["check"] == "PASS" and observation is None
+    assert result["reference"] == result["candidate"]
+    assert len(payload) < 1_000_000
