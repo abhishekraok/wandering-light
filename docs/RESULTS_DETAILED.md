@@ -968,3 +968,13 @@ against three definitions it never saw.
 |---|---|
 | Scratch solver on `deep-corpus-v2` (10M, 125M) | trained (loss 0.755 / 0.686), weights lost, validation never sealed; no solve rate | [report](../reports/deep-corpus-v2-scratch-20260827-incomplete/README.md) |
 | Compute-optimal policy size (#80) | merged (#100, `05fe25d`) with its report; rows not yet copied here | [report](../reports/compute-optimal-20260903/README.md), [#80](../../issues/80) |
+
+## branch-and-check O1-A: training archive replay audit (2026-10-02)
+
+`experiments/branch_check/o1_archive.py`, replay code `a2ef966`, training archive SHA256 `e358fca13e69880a48f0b3794d36769b1815f3dd249c765bc08b52fc7c1fca78`. [Preregistered O1-A](https://github.com/abhishekraok/wandering-light/issues/164#issuecomment-5965483510); [source telemetry](../reports/branch-check-o1-20261002/archive_audit.json). Structural audit, not a solve/timing comparison: all shown witness/flagged-prefix/returned-fit replays checked; no hidden examples read.
+
+| rows / behaviours | eligible tasks / behaviours | nonterminal recorded-suffix pairs | kept / on-witness records | genuinely closed on-witness records | saved combinator cuts that are not genuinely closed | shown-fit traces | replay/split/cut/flag errors | registered audit gate |
+|---|---|---|---|---|---|---|---|---|
+| 592 / 148 | 584 / 146 | 36,050 | 466,241 / 1,960 | 1,427 | 2,268 over 428 tasks | 133 | 0 | passed (at least 100 eligible behaviours and no listed errors) |
+
+This supports building a recorded-suffix ordering diagnostic; it does not establish optimal-distance labels, learned ranking performance or a coverage gain. Saved `witness_cuts` match the current combinator-cut implementation but are not equivalent to all genuinely closed states. The audit separately recomputes genuine closure and rejects goal equality / repeated-state conflicts from candidate pairs.

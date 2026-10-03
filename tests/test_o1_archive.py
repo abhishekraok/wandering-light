@@ -84,6 +84,30 @@ def test_missing_or_false_witness_flags_do_not_remove_replayed_positives():
     assert result["kept_records"] == 1
 
 
+def test_combinator_cuts_can_leave_code_parked_and_are_not_training_states():
+    result = audit_row(
+        row(
+            witness="[ add ] [ ] dip i",
+            witness_cuts=[6, 7],
+            segments=[
+                {
+                    "states": [
+                        {
+                            "program": "[ add ] [ ] dip",
+                            "on_path": False,
+                            "on_witness": True,
+                        }
+                    ]
+                }
+            ],
+        )
+    )
+    assert result["saved_cuts_not_closed"] == 1
+    assert result["candidate_indices"] == [0]
+    assert result["on_witness_records"] == 1
+    assert result["on_witness_closed_records"] == 0
+
+
 def test_flagged_prefix_must_reach_a_saved_witness_cut_state():
     with pytest.raises(ValueError, match="on_witness"):
         audit_row(
