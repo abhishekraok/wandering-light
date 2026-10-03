@@ -1,0 +1,51 @@
+{
+  "verdict": "PRE-GATE CODE PASS",
+  "source_revision": "826a8bbe3c0059032ca6c190a766cbc09226efc4",
+  "reviewer_family": "claude",
+  "model": "opus",
+  "effort": "high",
+  "issue": 179,
+  "pre_gate_code": true,
+  "run_log": "/home/abhishekrao/repos/wandering-light/checkpoints/score-band-contract-20261003/amended-pre-gate-review/run.log",
+  "run_log_sha256": "5e19db44c3fce8d414469d45f7f2f4d05baf48fdd5bc8a22379f05e0e694aded",
+  "report_sha256": "bc9e00af52ae04dc7a114aa5c5477f4b58e0ae0d33e1644f285c182531039aab",
+  "prompt_sha256": "9174d43872dd87c89ccd211e65a72fb90c0ec1835ae0ae9c2bada01eaa672398",
+  "duration_ms": 294551,
+  "num_turns": 16,
+  "usage": {
+    "input_tokens": 20,
+    "cache_creation_input_tokens": 137512,
+    "cache_read_input_tokens": 911956,
+    "output_tokens": 27489,
+    "output_tokens_details": {
+      "thinking_tokens": 10079
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 137512,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 4689,
+        "cache_read_input_tokens": 146952,
+        "cache_creation_input_tokens": 5478,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 5478
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "accounting_estimate_usd": 1.8323472,
+  "paid_api": false
+}
