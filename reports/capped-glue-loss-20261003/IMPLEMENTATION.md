@@ -1,7 +1,9 @@
 # D1 + Amendment A implementation
 
-Implementation and tests are synthetic only. Independent pre-trial code/design
-PASS is still required; no real panel or existing checkpoint has been used.
+Implementation and tests are synthetic only. Independent high-effort Claude
+[pre-trial code/design review](pretrial-review.md) passed on exact frozen
+`62f40764bbe7b4ccf52fc3708a0eda22d850828a`; no real panel or existing checkpoint
+has been used by the diagnostic. The reviewed execution source stays frozen.
 The original preregistration and Amendment A govern population, thresholds,
 resource limits, interpretation and the no-rerun rule.
 
@@ -12,7 +14,16 @@ from frozen review source `62f4076` was `docs/STATUS.md`; source and tests are
 identical. Full Ruff lint and formatting checks also passed. This supersedes
 the earlier full-suite count obtained before the last source/zero-work guards,
 but supplies no independent eligibility or measured-effect verdict. The
-high-effort Claude pre-trial review is still running on exact `62f4076`.
+high-effort Claude pre-trial review subsequently passed on exact `62f4076`.
+
+`verify_stage.py` independently reconstructs original-skeleton selection,
+shown interpreter replay, lexical owners/spans, exact common support and counts,
+and supported-only legal masks/refusal scope and typed encoder exposure. It uses
+interpreter/encoder primitives but imports none of the diagnostic modules.
+Tests challenge it with corrupted serialized synthetic artifacts. It has not
+read real inputs, seals or logits; it is one part of independent verification,
+with input/terminal provenance and raw-logit/summary verification still to build.
+Neither its synthetic passage nor pre-trial PASS is a result/landing review.
 
 The model-independent pieces are `experiments/capped_glue_loss.py` and
 `capped_glue_stage_a.py`; `capped_glue_metrics.py` supplies pure encoder/loss
