@@ -26,7 +26,7 @@ examples of the Boolean/Int list task are checked. Parsing cannot supply its
 own expected value; witness replay alone cannot establish the registered
 definition. Tests substitute inputs, outputs and witnesses, including a
 different pair of input/output examples whose original witness still fits.
-The four nonempty registered witnesses are replayed by the existing low-level
+The five nonempty registered witnesses are replayed by the existing low-level
 production replay primitive.
 
 Before repair, the targeted corruption regressions produced **17 failed,
