@@ -748,9 +748,11 @@ def verify_provenance(manifest, attempt, receipt, review_log, frozen_tree):
     # This verifier runs from separate development source. Its established
     # low-level primitives must be byte-identical to the frozen production ones.
     used = {}
+    verifier_tree = Path(__file__).resolve().parents[2]
     for module in (stack_machine, stack_pbe):
         name = module.__name__.replace(".", "/") + ".py"
         path = Path(module.__file__).resolve()
+        require(path == verifier_tree / name, f"verifier primitive origin: {name}")
         require(
             sha(path.read_bytes()) == hashes[name], f"verifier primitive hash: {name}"
         )

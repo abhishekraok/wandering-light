@@ -307,6 +307,7 @@ def test_provenance_links_actual_tree_paths_bytes_and_review(monkeypatch):
         "review-hash",
         "module-origin",
         "source-hash",
+        "primitive-origin",
         "attempt",
         "dirty-tree",
         "wrong-tree-revision",
@@ -357,6 +358,18 @@ def test_provenance_rejects_substitutions(monkeypatch, tamper):
         attempt["source_hashes"]["experiments/score_band_search.py"] = "0" * 64
     elif tamper == "attempt":
         attempt["expected_ids"].pop()
+    elif tamper == "primitive-origin":
+        # The main checkout has byte-identical primitives today. Equal bytes
+        # alone still cannot satisfy this verifier's intended-tree contract.
+        other = Path(
+            "/home/abhishekrao/repos/wandering-light/wandering_light/stack_machine.py"
+        )
+        assert other.exists() and other != Path(V.stack_machine.__file__).resolve()
+        assert (
+            V.sha(other.read_bytes())
+            == manifest["source_hashes"]["wandering_light/stack_machine.py"]
+        )
+        monkeypatch.setattr(V.stack_machine, "__file__", str(other))
     else:
 
         def fake_git(command, **_kwargs):
