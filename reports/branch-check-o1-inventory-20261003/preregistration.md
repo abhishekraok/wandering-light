@@ -148,3 +148,49 @@ panel; equal-prefix matching alone cannot establish useful goal dependence.
 Only after that separate diagnostic may training be proposed. Solver
 integration still needs a three-seed verified coverage/total CPU-clock gate;
 BEST remains under best-system-command (#158)'s own cohort rule.
+
+## Amendment A — independent design review, before any trials
+
+The review of `13d0a22` required these clarifications; no archive was loaded
+for that review and no new counts preceded this amendment.
+
+1. Any refusal whose reason ends with `out of fuel` or `quotation nested too
+   deep` is resource-censored, including at the full per-call allocation.
+   Conservatively exclude the whole task on any such trial, prefix, root or
+   witness replay, or any atom-limit breach. This replaces any reading of the
+   earlier text that treats interpreter fuel/depth exhaustion as an ordinary
+   complete unsuccessful trial. Other machine refusals in a catalogue replay
+   are complete unsuccessful trials. Ordinary refusal of an archived prefix,
+   root, witness or graph-derived source continuation is a provenance error.
+2. The archive search uses a 16,384-atom retained-state cap; our 4,096-atom
+   bound deliberately restricts this diagnostic. A capped candidate prefix,
+   like a capped root prefix, excludes the whole task with no refill. Endpoint
+   atom checks cannot bound temporary growth inside an op: MemoryMax kill
+   invalidates the run, with no result without a final `exit 0`.
+3. Replay every requested path from its stated source in full: no prefix/state
+   execution memoization. Charge repeated shared prefixes once per requested
+   replay. Interpreter-internal memoization is unchanged; calls and logical
+   fuel still count. A refused `runs_code` op charges its allocated fuel;
+   a refused non-code op charges 1 (a guard refusal executes no body).
+   Successful calls charge reported fuel. Caps remain as registered; cap
+   failures can falsify the bounded design's utility, not the existence of a
+   useful panel under other sampling/budget rules.
+4. Any provenance error anywhere makes the aggregate gate false. Continue to
+   preserve observations from other tasks, but never discard the error to
+   pass. Pair counts are unique unordered full-product pairs **once per task**,
+   not once per segment. Retain the first admissible occurrence in ascending
+   segment/digest order and report repeated admissible occurrences separately.
+   Different paths to the same product in a single segment contradict the
+   archive's merged-product invariant and are provenance errors, rather than
+   silently countable collapsed candidates.
+5. Compute transitive grouping over **all train rows in the input archive**,
+   not only selected rows. A group counts toward the gate only if it contains
+   at least one primary pair from a completed selected task. Catalogue tie
+   order is the full tuple of token strings compared by Unicode code points;
+   solve reverse shortest distances then greedily select the smallest valid
+   next token. Report pairs with both members off witness separately.
+
+Equal-prefix matching remains a narrow existence test with sparse sampling.
+A negative result is scoped to this exact catalogue, retained-record sample
+and budget. The independent review and our response are retained alongside
+this preregistration; later code/results review is still required to land it.
