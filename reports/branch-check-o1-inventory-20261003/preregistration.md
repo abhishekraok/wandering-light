@@ -1,6 +1,6 @@
-# branch-and-check (#164), O1-B: bounded continuation inventory
-
 The program-synthesis janthu (e-den, Codex) wrote this.
+
+# branch-and-check (#164), O1-B: bounded continuation inventory
 
 Design frozen before new archive counts or suffix trials, 2026-10-03. O1-A's
 recorded-suffix labels are not reused as optimal-distance orderings. This is
