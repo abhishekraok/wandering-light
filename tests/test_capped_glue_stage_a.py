@@ -211,6 +211,7 @@ def test_support_failure_never_enumerates_alternatives(monkeypatch):
         pytest.fail("unsupported panel enumerated alternatives")
 
     monkeypatch.setattr(core, "legal_alternatives", forbidden)
+    monkeypatch.setattr(stage_a, "encoder_diagnostics", forbidden)
     result = build(19)
     assert result["kind"] == "support_only" and result["complete"]
     assert result["support"]["cells"] == 38 and not result["support"]["passes"]
@@ -282,6 +283,7 @@ def test_serialized_states_round_trip_open_marks_and_typed_quotations(tmp_path):
         "target",
         "hidden",
         "op",
+        "encoder",
     ],
 )
 def test_seal_validation_rejects_incomplete_or_inconsistent_stage(mutation):
@@ -306,6 +308,10 @@ def test_seal_validation_rejects_incomplete_or_inconsistent_stage(mutation):
         result["rows"][0]["target"] = ("3",)
     elif mutation == "hidden":
         result["panel"][0]["original_metadata"]["held_out_inputs"] = ("3",)
+    elif mutation == "encoder":
+        result["rows"][0]["encoder_diagnostics"]["examples"][0][
+            "state_pre_cap_width"
+        ] += 1
     else:
         result["rows"][0]["op"] = "1"
     with pytest.raises(core.InvalidDiagnosticError):

@@ -17,11 +17,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from experiments import capped_glue_loss as core
+from experiments.capped_glue_metrics import encoder_diagnostics
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
     MAX_QUOTATION_DEPTH,
     Config,
     format_stack,
+    parse_stack,
 )
 from wandering_light.stack_pbe import Task
 from wandering_light.stack_policy import validation_skeleton
@@ -300,8 +302,8 @@ def build_stage_a(
 ) -> dict:
     """Selection/replay/support first; only supported panels enumerate alternatives.
 
-    Encoder width/truncation diagnostics will be added before the real pre-trial
-    freeze. This builder currently has synthetic callers only.
+    Supported panels also seal model-independent encoder widths/truncation.
+    This builder currently has synthetic callers only.
     """
     panel, selection = select_panel(tasks, programs, deadline=deadline)
     all_rows, replays = [], []
@@ -337,6 +339,9 @@ def build_stage_a(
                     product, occurrence.op, deadline=deadline
                 )
                 row["legality"] = legality
+                row["encoder_diagnostics"] = encoder_diagnostics(
+                    product, replay.states[-1]
+                )
                 refusal_counts.update(legality["first_refusal_counts"])
             sealed_rows.append(row)
     core.check_deadline(deadline)
@@ -461,6 +466,16 @@ def validate_stage_a(stage: Mapping) -> None:
             names = [op.name for op in core.OPS]
             if not legal["mask"][names.index(row["op"])]:
                 raise core.InvalidDiagnosticError("sealed witness is illegal")
+            product = tuple(
+                parse_stack(text, basis="mark-28") for text in row["product"]
+            )
+            target = tuple(parse_stack(text, basis="mark-28") for text in row["target"])
+            if canonical_bytes(row.get("encoder_diagnostics")) != canonical_bytes(
+                encoder_diagnostics(product, target)
+            ):
+                raise core.InvalidDiagnosticError(
+                    "supported Stage A lacks correct encoder diagnostics"
+                )
         elif "legality" in row:
             raise core.InvalidDiagnosticError(
                 "unsupported panel performed alternative enumeration"
