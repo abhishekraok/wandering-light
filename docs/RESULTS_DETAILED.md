@@ -1020,3 +1020,16 @@ Completion is cost-selected, not a random subset: 18 of 52 processed tasks hit t
 | median3 positive-behaviour fraction | 26/45 (0.577778) | 26/45 (0.577778) | both below frozen0.60 requirement; all3 seed mean deltas positive |
 
 Registered TOP_LOSS_ROUTE fails the breadth criterion, not the positive-average criterion: terminal NO_MATCHED_MIDSPAN_TOP_EXCESS. Support and all4112 sealed steps x6 checkpoints independently reconstructed and verified; single trial exit0/complete, no rerun. High-effort other-family final-code/result [review](../reports/capped-glue-loss-20261003/result-review.md) passed on frozen `bcd20fe`; complete code, evidence and reporting landed on main. Paired top/body values, complete cell/behaviour/seed data and raw hashes: [report](../reports/capped-glue-loss-20261003/RESULT.md), [measurement](../reports/capped-glue-loss-20261003/measurement.json), [independent verification](../reports/capped-glue-loss-20261003/independent-verification.json).
+
+
+### score-band-retention (#179), Gate A software QA (2026-10-03)
+
+Single complete bounded synthetic Gate A on reviewed826a8bb: actual exit0/SYNTHETIC_GATE_A_PASS,455/455 fixed IDs, independent result verification and final code/result review PENDING. No real tasks/models/cohort or clock comparison.
+
+| Fixed manual construction | Imported production reference | Finite band candidate | Scope |
+|---|---|---|---|
+| A-safe | mul dup add;6 expansions;78 executions | mul dup add;3 expansions;36 executions | constructed shown-fit software saving only |
+| B-only-solution-cut | mul dup add, shown fit | no program,max_depth | mandatory adverse solution loss |
+| C-later-first-fit | dup add mul, shown fit | mul dup add, shown fit | mandatory adverse first-fit change |
+
+Pair numbers come from the complete raw final manifest, not a selected subset. All324 disabled production-reference pairs and all remaining controls passed the runner. Complete raw output/source hashes and structural receipt: reports/score-band-contract-20261003/GATE_A.md and gate-a-summary.json; main checkpoints/score-band-contract-20261003/gate-a/final.json. This is provisional software-QA evidence until independent verification/review; not useful real allocation, verified held-out coverage, speed or BEST promotion. Declared gate is spent; no favourable subset/threshold/retry follows.

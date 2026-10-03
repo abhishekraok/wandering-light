@@ -1,0 +1,14 @@
+{
+  "source_revision": "826a8bbe3c0059032ca6c190a766cbc09226efc4",
+  "runner_verdict": "SYNTHETIC_GATE_A_PASS",
+  "complete": true,
+  "count": 455,
+  "final_path": "/home/abhishekrao/repos/wandering-light/checkpoints/score-band-contract-20261003/gate-a/final.json",
+  "final_sha256": "a9d9fffbda6401673593506dfda0d13f5510e5b0a76c79f72bbcd95ef29da70a",
+  "final_bytes": 37674832,
+  "log_sha256": "a21ac9931f687940a3e542381f7412e6c32c6c6d85d698994446fd869b96c952",
+  "attempt_sha256": "b30933347e9cebba24879a88fb7a515cb594cbe55fb1cf11638bf10bda856102",
+  "pre_gate_receipt_sha256": "d6c437c743d0414c2afd3e33270eb292e4cf4c88d99200aba1df2a2782f847ee",
+  "independent_result_verification": "PENDING",
+  "final_code_result_review": "PENDING"
+}
