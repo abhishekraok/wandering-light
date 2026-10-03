@@ -1,7 +1,7 @@
 """Synthetic-tested selection, provenance and Stage A for #178, D1 + A.
 
 No command entry point and no checkpoint loading. The final diagnostic must
-still add encoder diagnostics and terminal/scoring completeness before review.
+still add batched scoring, raw-logit capture and terminal completeness before review.
 """
 
 from __future__ import annotations
