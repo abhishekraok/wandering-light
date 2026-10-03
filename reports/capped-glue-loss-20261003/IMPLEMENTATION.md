@@ -5,6 +5,15 @@ PASS is still required; no real panel or existing checkpoint has been used.
 The original preregistration and Amendment A govern population, thresholds,
 resource limits, interpretation and the no-rerun rule.
 
+Final-source validation, 2026-10-03 13:28 PDT: the full repository suite passed
+2858 tests, with40 skipped,7 deselected,1 xfailed and8 existing fork warnings,
+in162.40 seconds. This ran from development `e0a3752`, whose only difference
+from frozen review source `62f4076` was `docs/STATUS.md`; source and tests are
+identical. Full Ruff lint and formatting checks also passed. This supersedes
+the earlier full-suite count obtained before the last source/zero-work guards,
+but supplies no independent eligibility or measured-effect verdict. The
+high-effort Claude pre-trial review is still running on exact `62f4076`.
+
 The model-independent pieces are `experiments/capped_glue_loss.py` and
 `capped_glue_stage_a.py`; `capped_glue_metrics.py` supplies pure encoder/loss
 diagnostics, and `capped_glue_run.py` supplies the bounded one-shot controller.
