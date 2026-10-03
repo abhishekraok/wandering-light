@@ -1,0 +1,50 @@
+{
+  "verdict": "AMENDED DESIGN PASS",
+  "source_revision": "e8213dec2f4fe28f18b5e2269c5ead3f52ddcf5f",
+  "reviewer_family": "claude",
+  "model": "opus",
+  "effort": "high",
+  "issue": 179,
+  "design_only": true,
+  "run_log_sha256": "c425c202bacb88e6fd1d975fec78d67f19a4fb3054ab0c7b87aaba06893322f4",
+  "report_sha256": "6e02ff65bcf681b54a0de5b070ec03f2796ca474f4bd856c095699f9d5be7f16",
+  "prompt_sha256": "05a006bb0d62881f0963cb1a2824478d973a5efd733a39df98f177084e3b57ed",
+  "duration_ms": 181000,
+  "num_turns": 18,
+  "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 110757,
+    "cache_read_input_tokens": 495502,
+    "output_tokens": 19700,
+    "output_tokens_details": {
+      "thinking_tokens": 13901
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 110757,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 3436,
+        "cache_read_input_tokens": 124129,
+        "cache_creation_input_tokens": 1546,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1546
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "accounting_estimate_usd": 1.3792124000000001,
+  "paid_api": false
+}

@@ -1,4 +1,4 @@
-# Gate A fixed manual fixtures — version A, before execution
+# Gate A fixed manual fixtures — version A.1, before execution
 
 The program-synthesis janthu (e-den, Codex) wrote this, 2026-10-03 PDT.
 These are hand-reasoned expectations, NOT observed solver/test results. No
@@ -136,9 +136,11 @@ anchor null, band_pruned false, width_pruned false, stop exhausted.
 Five literals alone are admissible. Open Mark is guard-refused; it is read after
 fifth literal unless an earlier width break stops. EXPECTATION follows reference
 scanner: with W5 on the fifth literal and unread Mark, stop width/pruned true.
-This is intentionally NOT exhausted-at-width. For genuine last-ranked width
-completion use a separate exact table arithmetic unit, described below, because
-mark-28's unread guard rows make the real case different. The manifest keeps these as separate real-search versus arithmetic-unit IDs.
+This case stops before the unread guard row. Separately,
+**stop/last-ranked-width** uses T-empty, guard off, capNone, W6/H1, all scores0,
+bandNone and1: exactly six eligible successors fill W on the last ranked row,
+so stop exhausted and width_pruned false, matching production. The arithmetic
+unit remains a separate check, without a production-outcome claim.
 
 ## Resource/exception fixture IDs
 
@@ -148,9 +150,12 @@ Stop budget. Budget0: executions0/fuel0/expansions1. Budget1: first literal
 executes both examples, executions2/fuel2. Budget7: executions/fuel units stop
 at4 literals, executions8/fuel8; combined unit stops at2 literals, executions4/
 fuel4. All stop before scoring. A single op's overshoot is retained/charged.
-- `resource/body/{unit}/{cap}`: T-list with H6/W4 and scripts favouring successive
-nil/[ /cons/]/fold, budgets100, units all3/capNone or64. Compare disabled reference
-trace/counters and low-level replay, covering combinator costs or cap interruption.
+- `resource/body/{unit}/{cap}`: T-list, guard off, H6/W4, budget100,
+units all3/capNone or64, bandNone. Call0 row0 nil0; call1 row0 [0;
+call2 row0 cons0; call3 row0 ]0; call4 row0 fold0; every other score -100.
+Compare disabled reference trace/counters and low-level replay. The root i
+attempt executes the integer-list body and charges inner fuel; the budget can
+stop at layer2 and does NOT claim to reach the later fold quotation.
 - `resource/past-deadline`: T-same deadline0; no attempt/scoring, executions0/fuel0,
 expansions1. Parameter/H exhaustion and collector behaviour remain explicit.
 - `parameter/{negative,nan,posinf,neginf,bool,string}`: band values -1/NaN/+inf/-inf/
@@ -169,13 +174,17 @@ arithmetic/diagnostic behaviour, not state graphs labelled as production solves.
 
 - `unit/last-ranked-width`: table of exactly W distinct eligible rows, including
 all-inf table, expected stop exhausted/width_pruned false on final-row completion.
+- `unit/last-row-band`: two distinct eligible rows with scores0/-2, W4/tau1;
+the second is the last ranked row and is excluded. Score-band stop has precedence
+over exhaustion, band_pruned true, width_pruned false.
 - `unit/width-before-band`: W retained while more rows are unread, expected width/
 width_pruned true, no claim about unread eligibility and band_pruned false.
 - `unit/scorer-dead-and-live`: existing PolicyScorer.log_probs unbound method on
 an object returning scripted zero logits, legal mask with one all-false row and
 one literal0-only row. Expected all-NaN first row, finite0 at live legal position,
 -inf at live illegal positions; use NaN-aware comparison. No model is made/run.
-This validates the API caveat; it is NOT a reachable mark-28 parent. Every fresh
+Expect NumPy divide/invalid RuntimeWarnings locally in this unit; no
+production warning suppression. This validates the API caveat; it is NOT a reachable mark-28 parent. Every fresh
 per-op expansion allocation has fuel100000 and literal0/1 have no type guard,
 so a fully expanded real parent always contributes legal literal successors.
 
@@ -183,3 +192,10 @@ A complete manifest lists the fixed expanded IDs, actual OPS order, source hashe
 all Task/scorer/setting definitions and every outcome; summarize no selected subset.
 Scorer call/row addressing, the empty witness placeholders, arithmetic/API unit
 scope and absence of real coverage/clock remain explicit limitations.
+
+## A.1 provenance, before implementation/execution
+
+Actual amended-design review passed on e8213de. Its N1–N4 are pinned above:
+last-row band precedence, a real last-ranked-width fixture, exact budget100
+body script with scope narrowed to root i, and local warning expectations.
+No fixture/code has yet executed; no changed empirical expectation is hidden.

@@ -133,8 +133,9 @@ Use experiment-local diagnostic recording; do not reuse a recorder that labels
 all unread successors as width cuts. Record ordered retained identities and
 parents, anchor, tau, per-layer stop cause (`width`, `score_band`, `exhausted`),
 the first band-rejected eligible candidate and all-inf fallback. Exact stop:
-`exhausted` iff every ranked successor was read (also when W fills on the last
-one); `width` iff W fills with ranked successors unread, even when an unread
+`score_band` takes precedence when the last ranked row is an eligible
+band rejection; otherwise `exhausted` iff every ranked successor was read
+(also when W fills on the last one); `width` iff W fills with ranked successors unread, even when an unread
 row would have been below-band; `score_band` iff an eligible below-band row is
 read before W. Unread rows have NO verdict, eligibility or cut count; their
 eligibility is unknown. Keep `width_pruned` and `band_pruned` separately, per
