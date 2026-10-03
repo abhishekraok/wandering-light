@@ -48,8 +48,12 @@ separate original-skeleton/hash selection, every shown replay/target/Mark/owner/
 cell membership/support, every alternative mask/reason scope, typed encoder
 exposure, all raw metrics and full summaries, exact row/checkpoint ordering and
 both-encoding reading were rederived. Thirty-four synthetic verifier tests and
-full lint/format passed before real verification. High-effort independent
-other-family result/code review is still pending; this is not landing approval.
+full lint/format passed before real verification. Independent high-effort Claude Opus result/code review **PASS** on frozen
+`bcd20fe456271a16cf0756654e13d3294da2b6a5` is retained in [result-review.md](result-review.md).
+The reviewer independently recomputed the entire selection/replay/mask/exposure
+and raw-logit result, reproduced 153 relevant tests and obtained byte-identical
+no-model reverification. It found no blocker; its scoped nonblocking limitations
+remain recorded. Evidence is not yet on main; this branch is ready for landing.
 
 Final development validation including both verifier suites completed exit 0
 at 2026-10-03 14:15 PDT: 2892 passed, 40 skipped, 7 deselected, 1 xfailed and

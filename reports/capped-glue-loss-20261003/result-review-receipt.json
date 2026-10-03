@@ -1,0 +1,16 @@
+{
+  "verdict": "PASS",
+  "source_revision": "bcd20fe456271a16cf0756654e13d3294da2b6a5",
+  "reviewer_family": "claude",
+  "model": "opus",
+  "effort": "high",
+  "issue": 178,
+  "design": "D1+AmendmentA",
+  "report": {
+    "path": "/home/abhishekrao/repos/wandering-light/checkpoints/capped-glue-loss-20261003/result-review/report.md",
+    "sha256": "4b9eef01aee170f9b33b8bd217dd5c9d4694507831f47134ccacccf1b4fdad99"
+  },
+  "prompt_sha256": "a8fa87e4a96067c844c01c07f346e73f2cd63b45d8dbb8e548e3b127307e9283",
+  "run_log_sha256": "ab8189adbba2211e6c820353bfd36b74d28fd5cdc31942335a1dbe974f2bbaf8",
+  "reverification_sha256": "14e64bf94c58bbaade45b12ae9929bc2a666dcca160a7bce9fc44694d5b6446a"
+}

@@ -5,7 +5,8 @@ Implementation validation used synthetic tests. Independent high-effort Claude
 `62f40764bbe7b4ccf52fc3708a0eda22d850828a`. The single real diagnostic has now
 completed exit0 with a complete six-checkpoint manifest; its recorded negative
 mid-span terminal passed separate independent complete-result verification;
-other-family high-effort result/code review remains pending.
+other-family high-effort result/code review subsequently passed on frozen
+`bcd20fe`; [full result/code review](result-review.md) retains its checks and limitations.
 The reviewed execution source stayed frozen throughout the run.
 The original preregistration and Amendment A govern population, thresholds,
 resource limits, interpretation and the no-rerun rule.
