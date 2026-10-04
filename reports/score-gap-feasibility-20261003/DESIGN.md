@@ -49,7 +49,7 @@ INSUFFICIENT_SELECTION; do not refill/change hashes. This metadata-selected pane
 were published. Disclose overlap; those outcomes are not used to select or
 change representatives. No outcome, program length,
 score, eval archive or hidden-example access informs selection. Whitelist only
-identity/skeleton/program/shown input/output fields from the train payload;
+split/identity/skeleton/shown input/output fields from the train payload;
 hidden fields are discarded without inspection or grading.
 
 Reserve a unique attempt BEFORE reading payloads. Check full source bytes and
@@ -82,12 +82,19 @@ Global deadline2700seconds includes hashing/selection/replay/model loading/searc
 recording/analysis/serialization. At most2GiB serialized trace payload and4GiB
 process memory; external RuntimeMaxSec5400. Limit12,000,000 attempted-op observer records over the run. The fixed worst
 case is144 * (28 + 28*28 + 46*64*28) =11,987,136, below the cap.
-Store attempted-op records as20-byte little-endian fixed fields: depth/node/op/
-reason-code uint8, fuel and stepped uint64; reconstruct successors from recorded
-parent states and established step_raw. Raw attempts therefore use at most
-239,742,720 bytes; scores/parent legal masks have at most11,987,136 scalar
+Store attempted-op records as19-byte little-endian fixed fields: zero-based
+depth/node/op uint8, fuel and stepped uint64 (format <BBBQQ). No reason string
+or reason dictionary is stored. Reconstruct every successor AND exact refusal
+string from recorded typed parent states, op and established step_raw at the
+pinned default fuel/depth allocation. The refusing example index comes from
+stepped, not string parsing; full success has stepped=len(parent product).
+Reasons are open strings and cannot overflow or alias a dictionary. Distinguish
+ordinary refusal, fuel exhaustion and quotation-depth exhaustion from replayed
+reasons, including nested prefixes. Reject out-of-range integers and truncated
+records rather than wrap, truncate or widen after data. Raw attempts use at most
+227,755,584 bytes; scores/parent legal masks have at most11,987,136 scalar
 positions and under60MB combined (float32 plus uint8). Typed retained/start
-beam state records, exact dtype/score bytes, reason dictionary, layer metadata
+beam state records, exact dtype/score bytes, layer metadata
 and framing consume the remaining payload budget. There is no theorem that
 those variable state bytes fit2GiB: enforce the bound before every complete
 record write, report resource-incomplete if exceeded, never truncate/sample.
@@ -135,7 +142,11 @@ not counted as zero-loss evidence. Other complete bounded outcomes have no
 lineage label. Keep all fixed selected groups in the denominator reports.
 Require at least12 informative groups per half in EACH seed. The same groups
 are selected upfront; do not intersect/filter to an outcome-favourable shared
-support or pool seeds as tasks. Support failure is INSUFFICIENT_LINEAGE_SUPPORT. Publish all recorded rank/gap/
+support or pool seeds as tasks. Support failure is INSUFFICIENT_LINEAGE_SUPPORT. Runner terminal precedence is completeness/provenance/resource validity first,
+then lineage support in EITHER half/any seed, then selection headroom, then
+selection profile choice. Confirmation support is checked without confirmation
+band metrics before locking tau; pure helpers alone do not enforce this order.
+Publish all recorded rank/gap/
 stop/support descriptives even on support/headroom failure; never select a
 confirmation band when no selection band was locked. Also publish the same-
 snapshot fixed-prefix width1–64 curve and slot fractions on informative cells,
@@ -190,7 +201,8 @@ opening confirmation-profile summaries. Then evaluate exactly that tau on the
 confirmation half against the identical conjunction in each seed; no second
 choice. PASS_PROFILE_FEASIBILITY iff all pass and all prerequisites complete.
 Selected tau is a train diagnostic proposal, not a deployed solver threshold.
-Confirmation failure is NO_CONFIRMATION_PROFILE, with exact failed components.
+Confirmation failure is NO_CONFIRMATION_PROFILE, with exact failed components
+and confirmation prefix protection, including any >9/10 headroom ceiling.
 This is deterministic descriptive selection, not a p-value/inferential claim.
 
 ## Why a pass is insufficient

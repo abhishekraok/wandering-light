@@ -1,0 +1,50 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "source_revision": "51e85140c57e1fe53721f378de3fb70176c4dff3",
+  "reviewer_family": "claude",
+  "model": "opus",
+  "effort": "high",
+  "issue": 180,
+  "run_log": "/home/abhishekrao/repos/wandering-light/checkpoints/score-gap-feasibility-20261003/amended-design-review/run.log",
+  "run_log_sha256": "955d494ca93bc131b678195c7d4c21f0d62a20bd1084d02e72579da8f18dd70a",
+  "report_sha256": "2860c20cdeec3570bde46f43b144cb83dee86b46d260d30d6df2b452bdeecbfc",
+  "prompt_sha256": "e9cc096de965b7f2e22097a5b634c0660bce50b8c8ff6b6afff792a69e5447ba",
+  "duration_ms": 211065,
+  "num_turns": 18,
+  "usage": {
+    "input_tokens": 22,
+    "cache_creation_input_tokens": 88243,
+    "cache_read_input_tokens": 805331,
+    "output_tokens": 20924,
+    "output_tokens_details": {
+      "thinking_tokens": 12359
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 88243,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2601,
+        "cache_read_input_tokens": 101096,
+        "cache_creation_input_tokens": 2065,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2065
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "accounting_estimate_usd": 1.2855782,
+  "paid_api": false
+}

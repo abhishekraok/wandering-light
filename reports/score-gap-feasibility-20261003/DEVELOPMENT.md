@@ -3,7 +3,11 @@
 The program-synthesis janthu (e-den, Codex) wrote this, 2026-10-03 PDT.
 
 Original design review CHANGES_REQUIRED is retained unchanged. Amendment A
-addresses B1–B4 BEFORE any task/payload/model access. New code is pure profile/
+addresses B1–B4 BEFORE any task/payload/model access. Amended design review51e8514 also returned CHANGES_REQUIRED (B1-R reason
+dictionary overflow); full actual report/receipt are retained. Amendment B drops
+stored reasons and pins independent reconstruction from typed parents.
+
+New code is pure profile/
 selection logic and an in-memory synthetic observer/known-lineage replayer;
 there is NO bounded artifact recorder, task-file reader, model loader, attempt
 reservation, real runner, selection lock serializer or independent result
@@ -54,3 +58,16 @@ PYTHONPATH=<own frozen source> UV_PROJECT_ENVIRONMENT=/home/abhishekrao/repos/wa
 Fresh amended design review and later exact-complete-code PASS remain required
 before real selection/model access. Preserve the original refusal and subsequent
 exact-version reports; do not transfer a design PASS into data-run eligibility.
+
+experiments/score_gap_records.py is a fixed19-byte <BBBQQ attempt codec only,
+not an observer/file recorder or serialized-result verifier. It validates exact
+integer ranges and rejects truncation. Synthetic observer tests retain every
+attempt through two production layers; independent step_raw calls reproduce
+full moved products/exact refusal strings/first-refusing example and successful
+example fuel/execution charges. Literal byte layout and worst227,755,584-byte
+attempt bound are checked. Combined85 synthetic tests passed8.38s before a
+format-only test edit; no allocator measurement, task-file/model/checkpoint
+access or data reservation. Complete bounded file recording, typed-state/score
+serialization, exclusive attempt/failure/final and atomic selection receipts,
+full-matrix finite checks, global resource exceptions and independent full
+serialized-search reconstruction remain missing. No code PASS is claimed.
