@@ -1024,7 +1024,7 @@ Registered TOP_LOSS_ROUTE fails the breadth criterion, not the positive-average 
 
 ### score-band-retention (#179), Gate A software QA (2026-10-03)
 
-Single complete bounded synthetic Gate A on reviewed826a8bb: actual exit0/SYNTHETIC_GATE_A_PASS,455/455 fixed IDs, independent result verification and final code/result review PENDING. No real tasks/models/cohort or clock comparison.
+Single complete bounded synthetic Gate A on reviewed826a8bb: actual exit0/SYNTHETIC_GATE_A_PASS,455/455 fixed IDs; separate frozen-c63b72a independent result verification completed exit0 across all455 IDs/396 rebuilt search rows/390 imported production comparisons, while final high-effort code/result review remains PENDING. No real tasks/models/cohort or clock comparison.
 
 | Fixed manual construction | Imported production reference | Finite band candidate | Scope |
 |---|---|---|---|
@@ -1032,4 +1032,4 @@ Single complete bounded synthetic Gate A on reviewed826a8bb: actual exit0/SYNTHE
 | B-only-solution-cut | mul dup add, shown fit | no program,max_depth | mandatory adverse solution loss |
 | C-later-first-fit | dup add mul, shown fit | mul dup add, shown fit | mandatory adverse first-fit change |
 
-Pair numbers come from the complete raw final manifest, not a selected subset. All324 disabled production-reference pairs and all remaining controls passed the runner. Complete raw output/source hashes and structural receipt: reports/score-band-contract-20261003/GATE_A.md and gate-a-summary.json; main checkpoints/score-band-contract-20261003/gate-a/final.json. This is provisional software-QA evidence until independent verification/review; not useful real allocation, verified held-out coverage, speed or BEST promotion. Declared gate is spent; no favourable subset/threshold/retry follows.
+Pair numbers come from the complete raw final manifest, not a selected subset. All324 disabled production-reference pairs and all remaining controls passed the runner. Complete raw output/source hashes and structural receipt: reports/score-band-contract-20261003/GATE_A.md and gate-a-summary.json; main checkpoints/score-band-contract-20261003/gate-a/final.json. This is independently verified software-QA evidence pending final code/result review; not useful real allocation, verified held-out coverage, speed or BEST promotion. Declared gate is spent; no favourable subset/threshold/retry follows.

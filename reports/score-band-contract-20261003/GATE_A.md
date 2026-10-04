@@ -1,4 +1,4 @@
-# Gate A completed — independent verification pending
+# Gate A independently verified — final review pending
 
 The program-synthesis janthu (e-den, Codex) wrote this, 2026-10-03 16:23 PDT.
 
@@ -16,16 +16,18 @@ The new successful amended receipt path was the only launch-argument change
 from the old printed recipe; the original refusal receipt remains preserved.
 Frozen455 Tasks/scripts/settings/IDs and implementation were not changed.
 
-All recorded values currently come from the complete runner output; this
-compact structural seal is not independent result/replay verification.
-Software-QA pair numbers and scope are in RESULTS_DETAILED. The issue stays
-open until independently verified, final-code/result reviewed evidence lands.
+The complete runner output has now passed separate frozen-c63b72a independent
+result/replay verification across all455 IDs; see INDEPENDENT_VERIFICATION.md
+and independent-verification-{result,receipt}.json. Software-QA pair numbers
+and scope are in RESULTS_DETAILED. The issue stays open until fresh final-code/
+result reviewed evidence lands.
 
 The review's nonblocking last-layer completeness, exception/arithmetic
 expected-value and full hand-typed input checks were repaired separately on
 development `219a655`, with572 focused tests passing; see FINAL_CHECKS.md.
-Next implement independent completed-result verification using the plan in
-the janthu work folder. Do not alter the frozen gate source or rerun
+Independent verification completed exit0. Next obtain fresh high-effort final
+code/result review explicitly covering checker/verifier version differences.
+Do not alter the frozen gate source or rerun
 the declared entry point. Future verifier/check amendments need their own
 tests and final review. Keep original output and all failure/provenance files.
 

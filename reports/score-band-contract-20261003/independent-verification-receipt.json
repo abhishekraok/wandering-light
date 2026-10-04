@@ -1,0 +1,13 @@
+{
+  "verifier_source_revision": "c63b72a541ad290d8f45c8582a9008d69605087f",
+  "verifier_sha256": "44525b58fd30a257945bb0e752d603b9be1acae7251b3e9470a147029699458c",
+  "original_source_revision": "826a8bbe3c0059032ca6c190a766cbc09226efc4",
+  "original_final_sha256": "a9d9fffbda6401673593506dfda0d13f5510e5b0a76c79f72bbcd95ef29da70a",
+  "verdict": "INDEPENDENT_VERIFICATION_PASS_FINAL_REVIEW_PENDING",
+  "run_log": "/home/abhishekrao/repos/wandering-light/checkpoints/score-band-contract-20261003/independent-verification/run.log",
+  "run_log_sha256": "28d3b9e880a77975493dc7e359144c0295a4f694cfe0af4f928c22307bc5c320",
+  "result_path": "/home/abhishekrao/repos/wandering-light/checkpoints/score-band-contract-20261003/independent-verification/result.json",
+  "result_sha256": "7e4d1a41bf7f6a71f40b88bb0b74f44d5f87eeac648d69b0da4e8449fc3d3e95",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "scope": "constructed software QA; no real allocation/coverage/clock claim"
+}
