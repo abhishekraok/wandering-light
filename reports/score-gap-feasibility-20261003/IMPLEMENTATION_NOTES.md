@@ -91,3 +91,14 @@ include failures/final layers. Exact equal-group/raw/per-depth/occurrence
 denominators separate. Informative-only prefix1–64 curve is descriptive. Generic
 analyze alone proves no source selection/full search provenance; complete
 runner/schema and independent verifier still must supply/verify those pins.
+
+SG-INPUT1 pre-model boundary is specified in INPUT_STAGE.md. Input/config/
+manifest/weight bytes hash before projection and again afterward; no model is
+deserialized here. Active plus on-disk reservation is required, while the future
+runner still owes exact-code/source review enforcement BEFORE reservation.
+Only behaviour identity is read from side rows; original shown pairs remain.
+All three ordered difference-seed pins validate before file access. The sealed
+typed input/target frames, whitelisted original metadata and full input-file
+checks charge the shared payload budget. A sealed insufficient-selection
+outcome has no models or profile metrics. Companion reading is structural,
+never the independent original-source selection/whole-output verifier.

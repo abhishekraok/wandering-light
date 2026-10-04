@@ -60,8 +60,16 @@ Full-default fuel/depth taxonomy tests invoke production step_all/direct observe
 callbacks and verify partial-example fuel; not whole-search compatibility.
 No real data/weights/model/source selection or attempt; no code review PASS.
 
-STILL MISSING: real shown task reader/selection seal; source/input/model/origin/
-version/host/thread pins and fixed144-cell CPU reference runner; full global
+The reserved shown-input stage is now implemented and tested with dummy files
+only; INPUT_STAGE.md specifies SG-INPUT1 and its scoped guarantees. Actual
+source/model bytes and selection remain unopened. Thirty new tests cover the
+complete pin population, before/after-read byte checks, whitelisted original
+shown pairs, fixed48 selection/parity, first occurrence, typed streams, strict
+seals, insufficient selection and imported first fit with a metadata-free task.
+Combined195 focused tests passed9.17s/full lint/format;14 actual origins match.
+
+STILL MISSING: source/review/module/version/host/thread checks and fixed144-cell
+CPU model/reference runner; full global
 final/selection schemas tying all sealed outputs/input identity/provenance;
 independently authored COMPLETE after-run input/attempt/reason/charge/ordered
 ranking/guard/seen/callback/lineage/profile verifier. Structural reader/companion
