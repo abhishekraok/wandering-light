@@ -9,8 +9,11 @@
   "log_sha256": "a21ac9931f687940a3e542381f7412e6c32c6c6d85d698994446fd869b96c952",
   "attempt_sha256": "b30933347e9cebba24879a88fb7a515cb594cbe55fb1cf11638bf10bda856102",
   "pre_gate_receipt_sha256": "d6c437c743d0414c2afd3e33270eb292e4cf4c88d99200aba1df2a2782f847ee",
-  "independent_result_verification": "PASS_FINAL_REVIEW_PENDING",
-  "final_code_result_review": "PENDING",
+  "independent_result_verification": "PASS",
+  "final_code_result_review": "FINAL CODE/RESULT PASS",
   "independent_verifier_source_revision": "c63b72a541ad290d8f45c8582a9008d69605087f",
-  "independent_verification_receipt_sha256": "d93bea7a6a06c2c4e8578ae568e0f4a0d122ba5d994dce5c7cf7c1e235336258"
+  "independent_verification_receipt_sha256": "d93bea7a6a06c2c4e8578ae568e0f4a0d122ba5d994dce5c7cf7c1e235336258",
+  "recorded_independent_verifier_verdict": "INDEPENDENT_VERIFICATION_PASS_FINAL_REVIEW_PENDING",
+  "final_review_source_revision": "21d8b134a501876a39b70bf3aa415353214d5460",
+  "final_review_receipt_sha256": "a0433bf8475b9e9e9f72c40ff0a619ba46067409f88aa4cb9967a101ded0b5d9"
 }

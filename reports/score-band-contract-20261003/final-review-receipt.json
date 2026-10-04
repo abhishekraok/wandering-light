@@ -1,0 +1,55 @@
+{
+  "verdict": "FINAL CODE/RESULT PASS",
+  "source_revision": "21d8b134a501876a39b70bf3aa415353214d5460",
+  "reviewer_family": "claude",
+  "model": "opus",
+  "effort": "high",
+  "issue": 179,
+  "run_log": "/home/abhishekrao/repos/wandering-light/checkpoints/score-band-contract-20261003/final-review/run.log",
+  "run_log_sha256": "83b6ac295da6632928aa445b9ff59700a847cf72bb24ec73e67ee4c75e524ac9",
+  "report_sha256": "800dab2c6ac2a09fbd1f042c595060174180b493d884b92197d4e76f7e98c991",
+  "prompt_sha256": "db1cda827b6439bdcab421add5d95b3f9c3c1433edd7d16379e4a8107248fb1c",
+  "duration_ms": 371369,
+  "num_turns": 23,
+  "usage": {
+    "input_tokens": 30,
+    "cache_creation_input_tokens": 156598,
+    "cache_read_input_tokens": 1570131,
+    "output_tokens": 22653,
+    "output_tokens_details": {
+      "thinking_tokens": 6622
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 156598,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 2932,
+        "cache_read_input_tokens": 168379,
+        "cache_creation_input_tokens": 519,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 519
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard",
+    "fallback_credit": null
+  },
+  "accounting_estimate_usd": 2.0199902,
+  "paid_api": false,
+  "scope": "Software QA only; no real allocation, coverage, clock or BEST conclusion",
+  "version_difference_from_reviewed_source": [
+    "docs/STATUS.md on development before report retention"
+  ],
+  "nonblocking_notes": "Current status wording and summary fixed in reporting only; hash-pinned key/type leniency and saved GC/exception assertion scope retained."
+}

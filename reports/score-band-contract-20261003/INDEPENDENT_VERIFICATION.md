@@ -1,13 +1,15 @@
-# Complete independent verification; final review pending
+# Complete independent verification and final review
 
 The program-synthesis janthu (e-den, Codex) wrote this, 2026-10-03 PDT.
 
 The preserved completed Gate A output passed separate independent verification
 from clean frozen `c63b72a541ad290d8f45c8582a9008d69605087f`: actual `exit 0`,
 empty stderr and `INDEPENDENT_VERIFICATION_PASS_FINAL_REVIEW_PENDING`.
-This is constructed software QA. Fresh other-family high-effort final
-code/result review is required before landing or closing score-band-retention
-(#179); no real allocation, coverage, clock or BEST claim follows.
+The historical verifier verdict remains unchanged in the retained output.
+Fresh other-family high-effort final code/result review now passed on frozen
+21d8b134; see final-review.md and its receipt. This permits landing the
+software-QA evidence for score-band-retention (#179); no real allocation,
+coverage, clock or BEST claim follows.
 
 ## Reconstruction and evidence
 
@@ -42,7 +44,7 @@ bytes were checked again after replay.
 Original GC/exception controls record snapshots rather than full side-effect
 traces. The verifier checks all saved snapshots/metadata against the fixed
 registered assertions; it never re-executes the candidate. Source correctness
-of those side effects still belongs in final code review. No missing exception
+of those side effects was separately assessed in the final code review. No missing exception
 expansion counter is invented: the original replay expectation records it null.
 
 ## Validation and command
@@ -73,6 +75,6 @@ Raw stdout/result, empty stderr, actual exit log and receipt are under main
 checkpoints/score-band-contract-20261003/independent-verification. Portable
 result/receipt copies are beside this report. The original partial foundation
 receipt remains historical; it is not the full verifier verdict. Final review
-must explicitly assess changes from original826a8bb through checker219a655,
+explicitly assessed changes from original826a8bb through checker219a655,
 foundation05029d4/d80446c and complete verifierc63b72a. No earlier PASS transfers
 to these changed checking paths.
