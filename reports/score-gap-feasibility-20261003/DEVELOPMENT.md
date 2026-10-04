@@ -83,3 +83,12 @@ after-run independent verification and final review before landing.
 Cycle3 final165 focused tests passed11.15s; full lint/format/diff passed.
 Earlier24reader/control passed9.18s and162combined7.23s predate final taxonomy/
 malformed-object additions. No data/model/real selection or attempt.
+
+Day14: independent verifier authorship is active in a separate own tree from
+9c27131 (personal-plan Claude Opus/high, synthetic only). No deliverable/verdict
+is accepted yet; exact-source complete-code review is still separately required.
+A new whole144 scored driver fixture uses literal two-example mul/dup/add tasks
+and scripted float32 mock CPU scores. It exercises support24 per half/seed,
+17/64 scored beams, null headroom lock and complete retained/prefix reports;
+one focused integration test passed9.96s. See RUNNER.md for scoped guarantees.
+No real input/checkpoint/model/attempt/measurement or production change.

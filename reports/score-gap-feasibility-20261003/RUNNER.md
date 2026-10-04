@@ -66,3 +66,17 @@ missing verifier, external-limit contract, native/closed schemas, resealed
 controls and the default CPU wrapper. Independent verifier, fresh COMPLETE
 exact-code review, ONE real attempt, after-run full verification and final
 review remain mandatory before landing.
+
+Day14 adds tests/test_score_gap_run_scored.py: a complete144-cell fixture of
+fresh dummy inputs and a scripted CPU mock policy, two shown examples per
+group. Imported ordinary width64 returns mul/dup/add after scored C sizes17
+and64; support is24 in every half/seed. The fixed-prefix rank1 lineage ceiling
+therefore produces null NO_HEADROOM_OVER_PREFIX32, all24 selection-profile
+rows, no confirmation band, all288 retained-layer descriptives and384 prefix
+curves. One new integration test passed9.96s; ruff check/format/diff passed.
+This is deeper driver composition evidence than immediate one-op fits, still
+NOT independent attempted-op/search verification, model inference, real input
+selection, runtime qualification, profile feasibility or a clock comparison.
+Independent personal-plan Claude Opus/high verifier authorship launched20:32
+PDT in a separate dedicated worktree from9c27131; completion and integration
+remain pending, and authorship is not a COMPLETE CODE review PASS.
