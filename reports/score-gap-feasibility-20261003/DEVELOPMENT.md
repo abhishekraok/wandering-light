@@ -68,13 +68,17 @@ shown pairs, fixed48 selection/parity, first occurrence, typed streams, strict
 seals, insufficient selection and imported first fit with a metadata-free task.
 Combined195 focused tests passed9.17s/full lint/format;14 actual origins match.
 
-STILL MISSING: source/review/module/version/host/thread checks and fixed144-cell
-CPU model/reference runner; full global
-final/selection schemas tying all sealed outputs/input identity/provenance;
-independently authored COMPLETE after-run input/attempt/reason/charge/ordered
-ranking/guard/seen/callback/lineage/profile verifier. Structural reader/companion
-codecs are NOT that verifier. Finish implementation synthetically, get complete
-exact-version review before ONE real attempt, and final result review afterward.
+Fixed reference driver/global publication and source/review/runtime provenance
+now exist, tested with dummy inputs/mock scorers only. RUNNER.md specifies the
+fixed144-cell/all-seals-before-replay phases, actual systemd/thread controls,
+exact ordered provenance linkage and structural final checks. Source preflight
+requires tracked independent score_gap_verify.py, which does not exist yet.
+Actual source/weights/model inference/reservation remain untouched.
+
+STILL MISSING: independently authored COMPLETE original-input/attempt/reason/
+charge/guard/rank/seen/callback/lineage/profile serialized verifier, integration
+and reviewer repairs, fresh COMPLETE code PASS before ONE real attempt, full
+after-run independent verification and final review before landing.
 
 Cycle3 final165 focused tests passed11.15s; full lint/format/diff passed.
 Earlier24reader/control passed9.18s and162combined7.23s predate final taxonomy/
