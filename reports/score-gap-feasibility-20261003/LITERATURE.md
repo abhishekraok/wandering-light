@@ -30,7 +30,7 @@ Source observations: variable_stream.py:13 selects all minimum-progress inputs;
 :200ff refills against source-token occupancy. :339ff takes a per-parent top-mc
 before global top-k; :385 uses max(best active,best already finished) as its
 absolute-band anchor and strict greater-than retention. :361ff records scored
-EOS-completed candidates with length normalization; :464ff sorts them before
+EOS-completed candidates with length normalization; :459 sorts them before
 return. sequence_generator.py:295/304 route one_batch and streaming through the
 same implementation. These contracts differ from guard-filtered first eligible
 anchors, fit-before-score, cross-depth typed seen and first shown-fit return in

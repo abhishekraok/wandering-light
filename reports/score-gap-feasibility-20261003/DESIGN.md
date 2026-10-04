@@ -12,8 +12,9 @@ Can one preregistered absolute band retain known positive reference-search
 lineages better than a width32 prefix, with no more retained frontier slots on
 those SAME fixed width64 snapshots? Rank/depth/gap profiles only motivate a later
 allocator test. Positive continuation labels are shown-fit upper bounds; no
-other row becomes a negative or a shortest-distance label. A failed construction
-kills this route for this panel/limits, not all adaptive search.
+other row becomes a negative or a shortest-distance label. A non-pass settles only the registered protection-plus-slot conjunction for
+this panel/limits. In particular, absent gain headroom does not test an
+equal-protection/fewer-slots route or all adaptive search.
 
 D1 predicts a common band from the frozen grid will retain at least95% of the
 informative successful reference lineages, improve on the width32 snapshot
@@ -36,13 +37,17 @@ behaviour generalization. No BEST/staged arm, checkpoint tuning or retraining.
 Eligible original TRAIN tasks have a behaviour present in the capped side file
 and are outside validation_skeleton computed from their ORIGINAL skeleton,
 fallback behaviour. Group by that same original key. Within group choose one
-behaviour by SHA256('score-gap-D1-behaviour:' + name), lexical tie-break; use the
+behaviour with the SMALLEST ascending lowercase hexadecimal SHA256 of UTF-8
+('score-gap-D1-behaviour:' + name), lexical tie-break; use the
 first original-file task for it, all shown examples and original targets. No
 capped-program substitution into the search Task. The side file only determines
 eligibility; its witness is not a label. Select first48 groups ordered by
-SHA256('score-gap-D1-group:' + group_key), lexical tie-break. Alternating positions
-in that order form24 selection and24 confirmation groups. Fewer than48 yields
-INSUFFICIENT_SELECTION; do not refill/change hashes. No outcome, program length,
+ascending lowercase hexadecimal SHA256 of UTF-8
+('score-gap-D1-group:' + group_key), lexical tie-break. Zero-based EVEN positions
+are selection; ODD positions confirmation,24 groups each. Fewer than48 yields
+INSUFFICIENT_SELECTION; do not refill/change hashes. This metadata-selected panel may overlap #178 groups whose loss diagnostics
+were published. Disclose overlap; those outcomes are not used to select or
+change representatives. No outcome, program length,
 score, eval archive or hidden-example access informs selection. Whitelist only
 identity/skeleton/program/shown input/output fields from the train payload;
 hidden fields are discarded without inspection or grading.
@@ -66,15 +71,31 @@ once, then reuse their independent scorer instances in the fixed cell order.
 Each task-seed solve has200000 successful per-example executions and10seconds
 from immediately before beam_solve. These caps are fixed upfront, never matched
 to observed spend; ordinary budget/wall-clock/max-depth/exhausted returns are
-completed bounded reference outcomes, not successful lineages. Default machine
+completed bounded reference outcomes, not successful lineages. Host load and
+observer overhead can change wall-clock-capped support: count such outcomes
+separately; the verifier checks their sealed callback prefix/terminal/counters
+but does not claim to reproduce the deadline or a counterfactual timeout. Default machine
 fuel/depth per op remains unchanged. Interpreter refusal is not a negative
 continuation. Record every stop/counter, partial last layer, shown fit and calls.
 
 Global deadline2700seconds includes hashing/selection/replay/model loading/search/
 recording/analysis/serialization. At most2GiB serialized trace payload and4GiB
-process memory; external RuntimeMaxSec5400. Limit1,000,000 attempted-op observer
-records over the run: reaching it stops the diagnostic as resource-incomplete,
-without synthesizing a solver terminal or silently sampling rows. Production
+process memory; external RuntimeMaxSec5400. Limit12,000,000 attempted-op observer records over the run. The fixed worst
+case is144 * (28 + 28*28 + 46*64*28) =11,987,136, below the cap.
+Store attempted-op records as20-byte little-endian fixed fields: depth/node/op/
+reason-code uint8, fuel and stepped uint64; reconstruct successors from recorded
+parent states and established step_raw. Raw attempts therefore use at most
+239,742,720 bytes; scores/parent legal masks have at most11,987,136 scalar
+positions and under60MB combined (float32 plus uint8). Typed retained/start
+beam state records, exact dtype/score bytes, reason dictionary, layer metadata
+and framing consume the remaining payload budget. There is no theorem that
+those variable state bytes fit2GiB: enforce the bound before every complete
+record write, report resource-incomplete if exceeded, never truncate/sample.
+Enforce4GiB via systemd MemoryMax=4G; a kernel kill is no result.
+Global deadline/byte/attempt caps raise a dedicated DiagnosticResourceError
+from the observer/recorder and bypass normal search-return serialization. They
+MUST NOT be implemented by shortening the per-cell production deadline into
+a spurious wall_clock_cap terminal. Production
 expansions charge on parent entry even without op0 callback; retain actual
 BeamResult counters and complete callbacks, never derive expansions from
 attempts alone. Cap/completeness/provenance checks precede primary computation.
@@ -96,7 +117,12 @@ with their complete state. It is a known continuation, not a value ordering.
 
 At a completed scored layer, C is the ACTUAL ordered ordinary retained beam,
 after guard/atom/seen filtering, at most64. Record every C state's cumulative
-score, stable rank, depth, legal mask, typed key and ancestor membership. We do
+score, stable rank, depth, typed key and ancestor membership. Record its SOURCE
+parent's complete legal row at this scored layer, never claim that row belongs
+to the retained state's own future expansion. Future legal information, if
+recorded separately, is null at unexpanded layers and partial at interrupted
+ones. Copy score arrays and exact dtype/float bits; do not use the debugger's
+rounded/text TraceRecorder. We do
 not classify the unread ranked tail, change normalization, call the #179 band
 candidate, or label alternatives. First-fit terminal layers have no policy
 scores and stay explicitly unscored. Reference snapshots are immutable; pure
@@ -109,17 +135,25 @@ not counted as zero-loss evidence. Other complete bounded outcomes have no
 lineage label. Keep all fixed selected groups in the denominator reports.
 Require at least12 informative groups per half in EACH seed. The same groups
 are selected upfront; do not intersect/filter to an outcome-favourable shared
-support or pool seeds as tasks. Support failure is INSUFFICIENT_LINEAGE_SUPPORT.
+support or pool seeds as tasks. Support failure is INSUFFICIENT_LINEAGE_SUPPORT. Publish all recorded rank/gap/
+stop/support descriptives even on support/headroom failure; never select a
+confirmation band when no selection band was locked. Also publish the same-
+snapshot fixed-prefix width1–64 curve and slot fractions on informative cells,
+clearly descriptive and never a width ladder or threshold choice.
 
 ## Band profiles, rank control and weighting
 
 Frozen grid in natural-log score units:0.25,0.5,1,2,4,8,16,32. No scale fitting,
 relative band, per-depth schedule, parent cap, temperature or entropy arm.
-For C with finite best scorea, retain the initial prefix with score>=a-tau,
-the exact inclusive #179 contract. All-minus-infinity C falls back to all C.
+Keep original cumulative-score arithmetic/dtype exactly as production recorded
+it. For the band test ONLY, cast each saved score and the anchor to IEEEfloat64
+and compare score>=a-float64(tau), the inclusive #179 contract. No rounding,
+recomputed higher-precision accumulation or score-gap subtraction test. All-minus-infinity C falls back to all C.
 NaN/+infinity at any executable non-fit score invalidates the cell; illegal
-matrix entries are ignored, as in #179. Explicit minus-infinity is retained in
-profiles and yields an infinite finite-anchor gap, never an arbitrary cap.
+matrix entries are ignored, as in #179. Explicit minus-infinity is RECORDED, excluded by every finite-anchor finite
+band, and has an infinite finite-anchor gap. A labelled minus-inf ancestor
+therefore fails protection under a finite anchor; under all-minus-inf fallback
+it is protected. Never substitute a finite gap cap.
 The fixed rank control retains the first min(32,|C|) of the SAME C. Neither is
 an actual re-executed narrower beam or a deployable retrospective budget rule.
 
@@ -130,14 +164,23 @@ uses the identical ancestor population. Report each task/depth/rank/gap, plus
 all uninformative fits/nonfit stop reasons and their full denominators.
 
 For every completed cell, slot fraction is sum of profile retained sizes over
-ALL its scored C divided by sum|C|; cells with no scored layers are assigned1
-for BOTH profiles and explicitly counted. These are prospective frontier slots,
+ALL its scored C divided by sum|C|; cells with sum|C|=0 (no scored layers OR only empty retained beams) are assigned1
+for BOTH profiles, with the two reasons counted separately. These are prospective frontier slots,
 INCLUDING the last unexpanded scored layer, not expansions/executions or saved
 clock. Average cell fractions equally over ALL24 selected groups within half/
 seed. Every group contributes once; long traces do not dominate this mean.
 Also retain raw slot totals, per-depth and occurrence-weighted descriptive
 means with denominators. Positive-lineage protection is conditional; slot means
 include failures. Neither is verified behavioural coverage.
+
+Compute protection/gain/slot means and comparisons as reduced exact rational
+numbers using integer counts and Fraction; floats may display only. Compare
+protection against19/20, gain against1/10, slot fractions exactly. At12–19
+informative groups,19/20 requires zero misses;20–24 allow at most one.
+If any SELECTION seed has fixed-prefix protection>9/10, terminal
+NO_HEADROOM_OVER_PREFIX32 settles the unattainable registered gain conjunction,
+not an equal-protection/lower-slot hypothesis. Lock chosen tau=null in a
+selection receipt and do not choose a confirmation-driven alternative.
 
 On the SELECTION half only, a grid band is feasible iff in EACH seed protection
 >=0.95, protection-minus-fixedprefix>=0.10 and slotmean<=fixedprefix slotmean.
