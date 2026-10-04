@@ -1,0 +1,46 @@
+{
+  "inputs": {
+    "train": {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/capped-glue-loss-20261003/inputs/stack_pbe_v4_train.jsonl.gz",
+      "sha256": "13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b"
+    },
+    "side": {
+      "path": "reports/short-segment-20260923/train_capped.jsonl",
+      "sha256": "2ba0e30fb7ad23a7e01d6729d0808dee3d7004ddf8682ed4a742d20600076145"
+    }
+  },
+  "checkpoints": [
+    {
+      "encoding": "difference",
+      "seed": 0,
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/short-segment-difference-20260923/policies/capped-s0-e3",
+      "hashes": {
+        "model.safetensors": "a4da96ed032a6a05c686a9b45a2b7cbd9414732077b211745311c3062d573cb3",
+        "policy_config.json": "88d9aa0648acd337f8c1120e87e92294dac7ac71af7fb36ed4a7594591d2fba8",
+        "training_manifest.json": "43ee95bf899644a4a0bf90b41aee46bc3277d9722547471c8644e7c2c7fa27f4"
+      }
+    },
+    {
+      "encoding": "difference",
+      "seed": 1,
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/short-segment-difference-20260923/policies/capped-s1-e3",
+      "hashes": {
+        "model.safetensors": "f495c514a024cff335858af004c526ce90e7a6b8b1070e788f4e37321c6131f9",
+        "policy_config.json": "88d9aa0648acd337f8c1120e87e92294dac7ac71af7fb36ed4a7594591d2fba8",
+        "training_manifest.json": "c310ca08d489012477eb090ffc05ba19b9ad8feaca240ac4bb0f1f6207b94dc5"
+      }
+    },
+    {
+      "encoding": "difference",
+      "seed": 2,
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/short-segment-difference-20260923/policies/capped-s2-e3",
+      "hashes": {
+        "model.safetensors": "50f3d87ac0951a1b5476a82e332d1a0b294b3d44caad01307489254734706502",
+        "policy_config.json": "88d9aa0648acd337f8c1120e87e92294dac7ac71af7fb36ed4a7594591d2fba8",
+        "training_manifest.json": "2925188370b8505e3932b31c7085bf733a3e4e70ab12e34df194b3d463a87b77"
+      }
+    }
+  ],
+  "selection_opens_payload": false,
+  "source": "Existing committed #178 byte pins reused; no train payload or weights opened for this design."
+}

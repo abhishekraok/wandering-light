@@ -1,0 +1,12 @@
+{
+  "revision": "f6d331241935455c545f43106b5cae8cddda7f14",
+  "files": {
+    "README.md": "e567ca198fb47cdc319c9841ec43da123b9c0ca9d22a3ac26b3573bb093eedaf",
+    "SOURCE_REVISION": "54a32e0a44696d794d821a35f06885952b5254681532d425022fb8a60f436fdd",
+    "old_sequence_generator.py": "1e8e1cb88be25d30366cd34aa57b914373f466f1d7cc1908fb72eb8e508d38b6",
+    "sequence_generator.py": "caaaf44ab07267d17882da765976fddbb495b7e67a00bd7c3344133e5d917bd0",
+    "test.py": "217d29140033f6984982442a692893fd7e5b93c772e583c762280b76be24e6f6",
+    "util.py": "a7500ca82a0946431f4be1b65f1d27b580d99300287aaf6aba39779c32769f48",
+    "variable_stream.py": "cd4f03dfe820edd4c087f358e2df4dfe11800d23c7845df4049bbf6a837980a2"
+  }
+}
