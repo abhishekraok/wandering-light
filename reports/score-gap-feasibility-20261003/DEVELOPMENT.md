@@ -35,18 +35,39 @@ global-attempt and invalid-score aborts, incomplete/mismatched/duplicate seals.
 No time here is an allocator measurement. IMPLEMENTATION_NOTES pins formats,
 review obligations and which stages are inside the diagnostic deadline.
 
-STILL MISSING: real task reader/metadata selection-seal, hash/origin/version/
-host checks, trained scorer loader and fixed144-cell reference runner;
-returned-program/retained suffix replay integration; sealed cell reader and
-profile bridge; complete all-half prerequisites/eight-profile/descriptive
-outputs and immutable selection/confirmation phase handling; independently
-authored COMPLETE serialized-output input/attempt/ranking/lineage/profile
-verifier. Generic atomic receipts are NOT the full final/selection schemas.
-No complete exact-code PASS, model/checkpoint/corpus access, data reservation
-or inference. Finish implementation synthetically and obtain complete exact-
-version review before the single real data attempt.
+New score_gap_read.py is a strict sealed-cell structural reader: hashes all
+streams before array decoding, consumes contiguous frames/exact attempt prefixes,
+preserves shared start/retention and validates callback/parent/program/score/
+result charges. Reconstructs ONLY known returned-program/suffix lineage on
+shown inputs/targets, checking global deadline between steps/examples. It is
+NOT full attempt/guard/rank/seen or original-input provenance verification.
+Recorder terminal summaries now retain closed success/ordinary/fuel/depth
+counts; exact refusal classifications remain the independent verifier's job.
 
-Final combined137 focused tests passed (duration recorded in work/runs.md),
-including preservation of a pre-existing colliding temporary filename; whole
-repo lint/format and diff checks passed. Initial136-test combined pass preceded
-that single ownership-hardening regression. No data/model access.
+New score_gap_analysis.py fixes phase order/reporting:144cells in selected48-
+group/seed order; support BOTH halves/ALL seeds before selection headroom/grid;
+all8 selection profiles even on failure; flush/fsync/hash selection prefix
+before atomic tau/null lock; ONLY locked tau on confirmation, no rechoice.
+Streams exact rational equal-group/raw/per-depth/occurrence means, stop/zero-C
+populations, informative-only prefix1–64 curves and all retained rank/gap rows.
+Generic control lock references the report prefix rather than embedding it.
+
+Synthetic tests cover smallest-grid PASS, support-before-headroom/null locks,
+confirmation failure without rechoice, resealed structural mutations, hash-before-
+array access, failed seals, and actual manually typed width64 positive trace
+bridge. Repeated manual traces are explicitly synthetic, never real panels.
+Full-default fuel/depth taxonomy tests invoke production step_all/direct observer
+callbacks and verify partial-example fuel; not whole-search compatibility.
+No real data/weights/model/source selection or attempt; no code review PASS.
+
+STILL MISSING: real shown task reader/selection seal; source/input/model/origin/
+version/host/thread pins and fixed144-cell CPU reference runner; full global
+final/selection schemas tying all sealed outputs/input identity/provenance;
+independently authored COMPLETE after-run input/attempt/reason/charge/ordered
+ranking/guard/seen/callback/lineage/profile verifier. Structural reader/companion
+codecs are NOT that verifier. Finish implementation synthetically, get complete
+exact-version review before ONE real attempt, and final result review afterward.
+
+Cycle3 final165 focused tests passed11.15s; full lint/format/diff passed.
+Earlier24reader/control passed9.18s and162combined7.23s predate final taxonomy/
+malformed-object additions. No data/model/real selection or attempt.

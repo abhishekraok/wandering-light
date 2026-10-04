@@ -71,3 +71,23 @@ lineages, exact rational profiles/descriptives/terminal/lock from frozen literal
 definitions and low-level primitives, without calling diagnostic profile or
 lineage/decoder implementations. Complete-code and later final-code/result
 PASS remain prerequisites; this storage implementation has neither.
+
+Cycle3 pre-data bridge: terminal now has CLOSED success/ordinary/fuel/depth
+counts, no reason dictionary. Exact classification comes from AFTER-run raw
+primitive replay; structural reader checks totals/success flags only. Known-
+returned replay checks global deadline between steps/examples. All streams hash
+before saved array access; exact on-read contiguous payload hashes/consumed
+lengths must also match. Root/retained payloads consumed once; starts share prior
+retention. Malformed nonobject/noncanonical/duplicate-key/nonfinite JSON/count
+types are invalid. Failed seals never reach arrays. This is structural/known-
+lineage validation, NOT whole attempted-op/guard/rank/seen provenance proof.
+
+Analysis receives144sealed cells in selected group/seed order. BOTH-half support
+is first without confirmation bands. All8 selection summaries persist on any
+valid support/headroom terminal. Selection prefix flush/fsync/bytes/SHA precede
+immutable choice receipt; confirmation bands afterward ONLY chosen tau, none
+for null. Threshold-independent populations/rank-gap/prefix curves after lock
+include failures/final layers. Exact equal-group/raw/per-depth/occurrence
+denominators separate. Informative-only prefix1–64 curve is descriptive. Generic
+analyze alone proves no source selection/full search provenance; complete
+runner/schema and independent verifier still must supply/verify those pins.

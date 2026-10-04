@@ -52,12 +52,18 @@ class SyntheticCapture(BeamObserver):
         self.terminal = (termination, depth, executions, fuel, expansions)
 
 
-def replay_states(program: tuple[str, ...], initial: Product) -> tuple[Product, ...]:
+def replay_states(
+    program: tuple[str, ...], initial: Product, *, check=None
+) -> tuple[Product, ...]:
     """Full typed replay under the production per-call fuel/depth allocation."""
     states = [initial]
     for name in program:
+        if check is not None:
+            check()
         moved = []
         for stack in states[-1]:
+            if check is not None:
+                check()
             outcome = step_raw(OP_BY_NAME[name], stack, DEFAULT_FUEL_LIMIT, 0)
             if isinstance(outcome, str):
                 raise ValueError(f"known continuation refused: {outcome}")
@@ -77,7 +83,12 @@ def same_node(left: Node, right: Node) -> bool:
 
 
 def reconstruct_lineage(
-    capture: SyntheticCapture, initial: Product, outputs: Product, result: BeamResult
+    capture: SyntheticCapture,
+    initial: Product,
+    outputs: Product,
+    result: BeamResult,
+    *,
+    check=None,
 ) -> tuple[Snapshot, ...]:
     expected_terminal = (
         result.termination,
@@ -119,7 +130,7 @@ def reconstruct_lineage(
         )
     if result.termination != "fit" or result.depth != len(result.program):
         raise ValueError("program/fit depth mismatch")
-    states = replay_states(result.program, initial)
+    states = replay_states(result.program, initial, check=check)
     if key_of(states[-1]) != key_of(outputs):
         raise ValueError("returned program misses shown targets")
     if (
@@ -139,6 +150,8 @@ def reconstruct_lineage(
     child = candidates[0]
     ranks = {}
     for layer in reversed(capture.retained):
+        if check is not None:
+            check()
         if not 0 <= child < len(layer.beam):
             raise ValueError("ancestor rank outside retained beam")
         node = layer.beam[child]
@@ -168,7 +181,7 @@ def reconstruct_lineage(
         if not same_node(node, (node[0], node[1], expected_score)):
             raise ValueError("cumulative score dtype/bits mismatch")
         # Replay the known suffix from this exact product, not a string display.
-        suffix = replay_states(result.program[layer.depth + 1 :], node[0])
+        suffix = replay_states(result.program[layer.depth + 1 :], node[0], check=check)
         if key_of(suffix[-1]) != key_of(outputs):
             raise ValueError("known retained continuation misses targets")
         ranks[layer.depth] = child + 1

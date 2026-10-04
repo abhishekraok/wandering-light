@@ -23,6 +23,7 @@ from experiments.score_gap_storage import (
     array_chunks,
     beam_chunks,
     canonical_json,
+    refusal_class,
     validate_scored,
     write_chunks,
 )
@@ -54,6 +55,7 @@ class CellRecorder(BeamObserver):
         self.closed = False
         self.finished = False
         self.attempts = self.layer_attempts = self.executions = self.fuel = 0
+        self.refusals = dict.fromkeys(("success", "ordinary", "fuel", "depth"), 0)
         try:
             for name in ("events.jsonl", "attempts.bin", "beams.bin", "scores.bin"):
                 self.files[name] = (self.directory / name).open("xb")
@@ -131,6 +133,7 @@ class CellRecorder(BeamObserver):
         self.attempts += 1
         self.executions += stepped
         self.fuel += fuel
+        self.refusals[refusal_class(reason)] += 1
 
     def layer_scored(self, depth, log_probs, legal):
         self._expect("started")
@@ -241,6 +244,7 @@ class CellRecorder(BeamObserver):
                 "partial_expansion": self.layer_attempts < len(self.beam) * 28,
                 "last_layer_attempts": self.layer_attempts,
                 "total_attempts": self.attempts,
+                "refusal_counts": dict(self.refusals),
             }
         )
         self.phase = "terminal"
