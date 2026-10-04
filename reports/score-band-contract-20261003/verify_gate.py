@@ -1,9 +1,9 @@
-"""Independent completed-output verifier foundation for synthetic Gate A.
+"""Independent completed-output verifier for the one preserved synthetic gate.
 
-This revision verifies terminals, provenance, literal definitions and typed
-inputs. Search replay and remaining controls are PENDING: it cannot issue an
-independent Gate A PASS. Never imports experiments or calls candidate search,
-runner, fixture constructors or development checkers. Never writes gate files.
+Rebuilds literal definitions, machine attempts, scores and definition-form
+retention; compares imported ordinary production search independently. Never
+imports experiments or calls candidate search, runner, fixture constructors or
+development checkers. Never writes gate files or authorizes evidence landing.
 """
 
 from __future__ import annotations
@@ -13,9 +13,19 @@ import hashlib
 import json
 import math
 import subprocess
+import warnings
 from pathlib import Path
+from types import SimpleNamespace
 
-from wandering_light import stack_machine, stack_pbe
+import numpy as np
+
+from wandering_light import (
+    quotation_guard,
+    stack_beam,
+    stack_machine,
+    stack_pbe,
+    stack_policy,
+)
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
     Bool,
@@ -25,6 +35,7 @@ from wandering_light.stack_machine import (
     Sym,
     parse_stack,
     step_raw,
+    value_key,
 )
 
 REVISION = "826a8bbe3c0059032ca6c190a766cbc09226efc4"
@@ -558,6 +569,8 @@ def encode(value):
             (encode(item) for item in value),
             key=lambda item: json.dumps(item, sort_keys=True),
         )
+    if isinstance(value, np.generic):
+        return encode(value.item())
     if type(value) is float and not math.isfinite(value):
         return "NaN" if math.isnan(value) else "+inf" if value > 0 else "-inf"
     require(
@@ -749,7 +762,7 @@ def verify_provenance(manifest, attempt, receipt, review_log, frozen_tree):
     # low-level primitives must be byte-identical to the frozen production ones.
     used = {}
     verifier_tree = Path(__file__).resolve().parents[2]
-    for module in (stack_machine, stack_pbe):
+    for module in (stack_machine, stack_pbe, stack_beam, stack_policy, quotation_guard):
         name = module.__name__.replace(".", "/") + ".py"
         path = Path(module.__file__).resolve()
         require(path == verifier_tree / name, f"verifier primitive origin: {name}")
@@ -760,7 +773,806 @@ def verify_provenance(manifest, attempt, receipt, review_log, frozen_tree):
     return used
 
 
-def verify_foundation(run_root, frozen_tree):
+def trace_digest(value):
+    return sha(json.dumps(encode(value), sort_keys=True, allow_nan=False).encode())
+
+
+def product_key(product):
+    return tuple(tuple(value_key(value) for value in stack) for stack in product)
+
+
+def total_atoms(product):
+    values = [value for stack in product for value in stack]
+    count = 0
+    while values:
+        value = values.pop()
+        count += 1
+        if isinstance(value, Lst):
+            values.extend(value.items)
+    return count
+
+
+def numeric_score(value):
+    named = {"NaN": math.nan, "+inf": math.inf, "-inf": -math.inf}
+    return named[value] if isinstance(value, str) else float(value)
+
+
+def scripted_values(spec, call, legal):
+    """Independent fixed call/row/actual-op addressing; no model or encoding."""
+    require(not spec["raises"], "unexpected scorer call before a fit")
+    values = np.full(legal.shape, numeric_score(spec["default"]), dtype=np.float64)
+    if spec["seed"] is not None:
+        seed = spec["seed"]
+        for row in range(legal.shape[0]):
+            for index in range(len(OP_NAMES)):
+                values[row, index] = -(
+                    (7 * index + 11 * row + 13 * call + 17 * seed) % 29
+                )
+    for at_call, row, name, value in spec["rules"]:
+        if at_call == call and row < legal.shape[0]:
+            values[row, OP_NAMES.index(name)] = numeric_score(value)
+    return np.where(legal, values, numeric_score(spec["illegal"]))
+
+
+def attempt_product(product, op):
+    """Rebuild one attempt, including first-refusing-example partial charges."""
+    moved, fuel = [], 0
+    for example, stack in enumerate(product):
+        outcome = step_raw(op, stack, DEFAULT_FUEL_LIMIT, 0)
+        if isinstance(outcome, str):
+            return None, f"example {example}: {outcome}", fuel, example
+        moved.append(outcome[0])
+        fuel += outcome[1]
+    return tuple(moved), None, fuel, len(product)
+
+
+def retention_from_definition(ranked, old_seen, case, depth):
+    """Ordinary C followed by its band prefix, separate from candidate scan.
+
+    Each row includes its already accumulated score. Classify the ordinary
+    width-limited list first; only the prefix before its first band exclusion
+    contributes to the real retained seen set. Emit no unread-tail verdicts.
+    """
+    ordinary, classifications = [], {}
+    ordinary_seen = set(old_seen)
+    remaining = case["horizon"] - depth - 1
+    for rank, row in enumerate(ranked):
+        node, index, product, _program, _score = row
+        guard_reason = (
+            quotation_guard.blocked(product[0], remaining, case["guard"])
+            if case["guard"] != "off"
+            else None
+        )
+        key = product_key(product)
+        reason = (
+            f"guard:{guard_reason}"
+            if guard_reason is not None
+            else "guard:size"
+            if case["cap"] is not None and total_atoms(product) > case["cap"]
+            else "duplicate"
+            if key in ordinary_seen
+            else "eligible"
+        )
+        classifications[rank] = reason
+        if reason == "eligible":
+            ordinary_seen.add(key)
+            ordinary.append((rank, row))
+            if len(ordinary) == case["width"]:
+                break
+    anchor = ordinary[0][1][4] if ordinary else None
+    tau = None if case["band"] is None else float(case["band"])
+    cutoff = anchor - tau if anchor is not None and tau is not None else None
+    prefix = []
+    excluded = None
+    for rank, row in ordinary:
+        if cutoff is not None and row[4] < cutoff:
+            excluded = (rank, row)
+            break
+        prefix.append((rank, row))
+    if excluded is not None:
+        stop, last_read = "score_band", excluded[0]
+        rejected = excluded[1][:2]
+    elif len(prefix) == case["width"] and prefix[-1][0] + 1 < len(ranked):
+        stop, last_read, rejected = "width", prefix[-1][0], None
+    else:
+        stop, last_read, rejected = "exhausted", len(ranked) - 1, None
+    kept_ranks = {rank for rank, _row in prefix}
+    verdicts = {}
+    for rank in range(last_read + 1):
+        node, index = ranked[rank][:2]
+        verdicts[node, index] = (
+            "retained"
+            if rank in kept_ranks
+            else "score_band"
+            if excluded is not None and rank == excluded[0]
+            else classifications[rank]
+        )
+        require(verdicts[node, index] != "eligible", "unclassified read verdict")
+    kept_rows = [row for _rank, row in prefix]
+    retained = tuple(
+        (product, program, score) for _n, _i, product, program, score in kept_rows
+    )
+    parents = tuple((node, index) for node, index, _p, _pr, _s in kept_rows)
+    new_seen = dict(old_seen)
+    for _node, _index, product, _program, _score in kept_rows:
+        new_seen[product_key(product)] = product
+    layer = {
+        "depth": depth,
+        "retained": retained,
+        "parents": parents,
+        "verdicts_read_only": verdicts,
+        "anchor": anchor,
+        "tau": tau,
+        "stop": stop,
+        "first_band_rejected": rejected,
+        "all_inf_fallback": tau is not None and anchor == -math.inf,
+        "width_pruned": stop == "width",
+        "band_pruned": stop == "score_band",
+        "ranked_count": len(ranked),
+        "ranked_sha256": trace_digest(tuple(ranked)),
+        "old_seen_sha256": trace_digest(frozenset(old_seen.values())),
+    }
+    return retained, new_seen, layer
+
+
+def oracle_search(case):
+    """Definition-form machine replay; never calls any search implementation."""
+    initial, target = typed_products(case["task"])
+    beam = ((initial, (), 0.0),)
+    seen = {product_key(initial): initial}
+    events, layers = [], []
+    executions = fuel = expansions = calls = 0
+    width_pruned = band_pruned = False
+    require(case["deadline"] in (None, 0), "only fixed past-deadline replay supported")
+
+    def finish(program, termination, depth):
+        events.append(("terminated", termination, depth, executions, fuel, expansions))
+        return {
+            "result": {
+                "program": program,
+                "termination": termination,
+                "depth": depth,
+                "executions": executions,
+                "fuel": fuel,
+                "expansions": expansions,
+                "pruned": width_pruned,
+            },
+            "events": events,
+            "layers": layers,
+            "band_pruned": band_pruned,
+            "scorer_calls": calls,
+            "exception": None,
+        }
+
+    for depth in range(case["horizon"]):
+        events.append(("started", depth, tuple(beam)))
+        successors = []
+        legal = np.zeros((len(beam), len(OP_NAMES)), dtype=bool)
+        for node, (product, program, parent_score) in enumerate(beam):
+            # Entering a parent costs one expansion before its first cap check.
+            expansions += 1
+            for index, op in enumerate(stack_pbe.OPS):
+                spent = {
+                    "executions": executions,
+                    "fuel": fuel,
+                    "executions+fuel": executions + fuel,
+                }[case["unit"]]
+                if case["budget"] is not None and spent >= case["budget"]:
+                    return finish(None, "budget", depth + 1)
+                if case["deadline"] == 0:
+                    return finish(None, "wall_clock_cap", depth + 1)
+                moved, reason, charged, stepped = attempt_product(product, op)
+                events.append(
+                    ("attempt", depth, node, index, moved, reason, charged, stepped)
+                )
+                executions += stepped
+                fuel += charged
+                if moved is None:
+                    continue
+                legal[node, index] = True
+                extended = (*program, op.name)
+                if product_key(moved) == product_key(target):
+                    return finish(extended, "fit", depth + 1)
+                successors.append((node, index, moved, extended, parent_score))
+        if not successors:
+            return finish(None, "frontier_exhausted", depth)
+        values = scripted_values(case["script"], calls, legal)
+        calls += 1
+        observed = tuple(
+            "nan" if np.isnan(value) else float(value) for value in values[legal]
+        )
+        events.append(("scored", depth, legal.shape, legal.tobytes(), observed))
+        scored = [
+            (node, index, product, program, parent_score + float(values[node, index]))
+            for node, index, product, program, parent_score in successors
+        ]
+        # Validate every executable nonfit score before ranking or eligibility.
+        if case["band"] is not None and any(
+            math.isnan(row[4]) or row[4] == math.inf for row in scored
+        ):
+            return {
+                "result": None,
+                "events": events,
+                "layers": layers,
+                "band_pruned": band_pruned,
+                "scorer_calls": calls,
+                "exception": "ValueError",
+                "executions": executions,
+                "fuel": fuel,
+                "expansions": expansions,
+            }
+        ranked = sorted(scored, key=lambda row: row[4], reverse=True)
+        beam, seen, layer = retention_from_definition(ranked, seen, case, depth)
+        layers.append(layer)
+        events.append(
+            ("retained", depth, beam, layer["verdicts_read_only"], layer["parents"])
+        )
+        width_pruned = width_pruned or layer["width_pruned"]
+        band_pruned = band_pruned or layer["band_pruned"]
+        if not beam:
+            return finish(None, "frontier_exhausted", depth + 1)
+    return finish(None, "max_depth", case["horizon"])
+
+
+def summary_of_replay(replay, *, reference=False):
+    return encode(
+        {
+            "events": len(replay["events"]),
+            "event_sha256": trace_digest(replay["events"]),
+            "attempts": sum(event[0] == "attempt" for event in replay["events"]),
+            "layers": [] if reference else replay["layers"],
+        }
+    )
+
+
+class ReferenceCapture(stack_beam.BeamObserver):
+    """Own ordinary production observer; no experiment observer dependency."""
+
+    def __init__(self):
+        self.events = []
+
+    def layer_started(self, depth, beam):
+        self.events.append(("started", depth, tuple(beam)))
+
+    def expansion_attempted(self, depth, node, index, successor, reason, fuel, stepped):
+        self.events.append(
+            ("attempt", depth, node, index, successor, reason, fuel, stepped)
+        )
+
+    def layer_scored(self, depth, values, legal):
+        self.events.append(
+            (
+                "scored",
+                depth,
+                legal.shape,
+                legal.tobytes(),
+                tuple(
+                    "nan" if np.isnan(value) else float(value)
+                    for value in values[legal]
+                ),
+            )
+        )
+
+    def layer_retained(self, depth, beam, verdicts, parents):
+        self.events.append(
+            ("retained", depth, tuple(beam), dict(verdicts), tuple(parents))
+        )
+
+    def search_terminated(self, termination, depth, executions, fuel, expansions):
+        self.events.append(
+            ("terminated", termination, depth, executions, fuel, expansions)
+        )
+
+
+class ReferenceScorer:
+    def __init__(self, spec):
+        self.spec, self.calls = spec, 0
+
+    def log_probs(self, blocks, legal):
+        require(
+            len(blocks) == legal.shape[0] and legal.shape[1] == len(OP_NAMES),
+            "reference score shape",
+        )
+        values = scripted_values(self.spec, self.calls, legal)
+        self.calls += 1
+        return values
+
+
+def imported_reference(case):
+    task = task_definition(case["task"])
+    for key in (
+        "inputs",
+        "outputs",
+        "held_out_inputs",
+        "held_out_outputs",
+        "program",
+        "tags",
+        "alternative_programs",
+    ):
+        task[key] = tuple(task[key])
+    capture = ReferenceCapture()
+    scorer = ReferenceScorer(case["script"])
+    result = stack_beam.beam_solve(
+        stack_pbe.Task(**task),
+        scorer,
+        observer=capture,
+        beam_width=case["width"],
+        max_depth=case["horizon"],
+        guard=case["guard"],
+        max_state_atoms=case["cap"],
+        budget=case["budget"],
+        budget_unit=case["unit"],
+        deadline=case["deadline"],
+    )
+    return {
+        "result": {
+            key: getattr(result, key)
+            for key in (
+                "program",
+                "termination",
+                "depth",
+                "executions",
+                "fuel",
+                "expansions",
+                "pruned",
+            )
+        },
+        "events": capture.events,
+        "layers": [],
+        "band_pruned": False,
+        "scorer_calls": scorer.calls,
+        "exception": None,
+    }
+
+
+def verify_search_row(row, case, category):
+    name = case["id"]
+    replay = oracle_search(case)
+    same_json(
+        row.get("candidate_trace"), summary_of_replay(replay), f"{name}/candidate trace"
+    )
+    if case["expectation"] == "ValueError":
+        require(replay["exception"] == "ValueError", f"{name}/invalid score exception")
+        expected = {
+            "exception": "ValueError",
+            "scored_layers": 1,
+            "retained_layers": 0,
+            "counters_from_replay": {
+                "executions": replay["executions"],
+                "fuel": replay["fuel"],
+                "expansions": None,
+            },
+        }
+        actual = {
+            key: value
+            for key, value in expected.items()
+            if key != "counters_from_replay"
+        }
+        same_json(row.get("expected"), expected, f"{name}/expected exception")
+        same_json(row.get("actual"), actual, f"{name}/actual exception")
+        require(
+            sum(event[0] == "scored" for event in replay["events"]) == 1
+            and not replay["layers"],
+            f"{name}/exception callbacks",
+        )
+        return replay, None
+    require(replay["exception"] is None, f"{name}/successful oracle")
+    reference_case = dict(case, band=None)
+    reference_oracle = oracle_search(reference_case)
+    reference = imported_reference(reference_case)
+    same_json(
+        encode(reference["result"]),
+        encode(reference_oracle["result"]),
+        f"{name}/production versus independent result",
+    )
+    same_json(
+        encode(reference["events"]),
+        encode(reference_oracle["events"]),
+        f"{name}/production versus independent events",
+    )
+    same_json(
+        row.get("reference"),
+        encode(reference_oracle["result"]),
+        f"{name}/reference result",
+    )
+    same_json(
+        row.get("reference_trace"),
+        summary_of_replay(reference_oracle, reference=True),
+        f"{name}/reference trace",
+    )
+    same_json(
+        row.get("candidate"), encode(replay["result"]), f"{name}/candidate result"
+    )
+    same_json(row.get("band_pruned"), replay["band_pruned"], f"{name}/band pruning")
+    same_json(
+        row.get("width_pruned"), replay["result"]["pruned"], f"{name}/width pruning"
+    )
+    same_json(row.get("scorer_calls"), replay["scorer_calls"], f"{name}/scorer calls")
+    expected_layers = [
+        {
+            key: value
+            for key, value in layer.items()
+            if key not in ("ranked_count", "ranked_sha256", "old_seen_sha256")
+        }
+        for layer in replay["layers"]
+    ]
+    expected = {
+        "reference": reference_oracle["result"],
+        "candidate": replay["result"],
+        "candidate_layers": expected_layers,
+        "band_pruned": replay["band_pruned"],
+        "reference_trace_sha256": trace_digest(reference_oracle["events"]),
+    }
+    same_json(row.get("expected"), encode(expected), f"{name}/persisted expectations")
+    if category != "semantic" or case["expectation"] in (
+        "reference-equivalence",
+        "all-inf",
+        "exhausted-at-width",
+        "add-no-scorer",
+    ):
+        same_json(
+            encode(replay["result"]),
+            encode(reference_oracle["result"]),
+            f"{name}/declared equivalence",
+        )
+        same_json(
+            encode(replay["events"]),
+            encode(reference_oracle["events"]),
+            f"{name}/declared event equivalence",
+        )
+        require(not replay["band_pruned"], f"{name}/equivalence band")
+    for result in (replay["result"], reference_oracle["result"]):
+        if result["program"] is not None:
+            initial, target = typed_products(case["task"])
+            require(
+                replay_witness(result["program"], initial) == target,
+                f"{name}/returned shown fit",
+            )
+    return replay, reference_oracle
+
+
+def verify_search_rows(rows):
+    disabled, semantic, resource = registered_definitions()
+    require(len(rows) == 455, "search population")
+    by_id = {row["id"]: row for row in rows}
+    replayed = {}
+    for category, cases in (
+        ("disabled", disabled),
+        ("semantic", semantic),
+        ("resource", resource),
+    ):
+        for case in cases:
+            replayed[case["id"]] = verify_search_row(by_id[case["id"]], case, category)
+            verify_registered_predicates(case, *replayed[case["id"]])
+    # Manual mandatory useful/adverse witnesses and paired charge scope.
+    a, a_ref = replayed["A-safe"]
+    b, b_ref = replayed["B-only-solution-cut"]
+    c, c_ref = replayed["C-later-first-fit"]
+    require(
+        a["result"]["program"] == a_ref["result"]["program"] == ("mul", "dup", "add"),
+        "A unchanged first fit",
+    )
+    require(
+        (a_ref["result"]["expansions"], a["result"]["expansions"]) == (6, 3),
+        "A paired expansion construction",
+    )
+    require(
+        b_ref["result"]["program"] == ("mul", "dup", "add")
+        and b["result"]["program"] is None
+        and b["result"]["termination"] == "max_depth",
+        "B solution loss",
+    )
+    require(
+        c_ref["result"]["program"] == ("dup", "add", "mul")
+        and c["result"]["program"] == ("mul", "dup", "add"),
+        "C changed first fit",
+    )
+    return replayed
+
+
+def verify_registered_predicates(case, replay, reference):
+    """Independently check the named semantic/resource construction claims."""
+    name = case["id"]
+    if case["expectation"] == "ValueError":
+        return
+    result = replay["result"]
+    layers = replay["layers"]
+    first = layers[0] if layers else None
+    names = [OP_NAMES[index] for _node, index in first["parents"]] if first else []
+    if name.startswith("fit/"):
+        require(
+            result["program"] == ("add",) and replay["scorer_calls"] == 0,
+            f"{name}/fit before score and cap",
+        )
+    anchors = {
+        "anchor/seen": ("add", -2, "swap", "duplicate"),
+        "anchor/close": ("0", -2, "[", "guard:close"),
+        "anchor/type": ("]", -2, "null?", "guard:type"),
+        "anchor/size": ("mul", -2, "dup", "guard:size"),
+    }
+    if name in anchors:
+        kept, anchor, rejected, verdict = anchors[name]
+        require(
+            names == [kept]
+            and first["anchor"] == anchor
+            and first["verdicts_read_only"][0, OP_NAMES.index(rejected)] == verdict,
+            f"{name}/eligible anchor",
+        )
+    elif name == "duplicate/same-layer":
+        require(
+            names == ["add"]
+            and first["verdicts_read_only"][0, OP_NAMES.index("mul")] == "duplicate",
+            f"{name}/typed duplicate",
+        )
+    elif name == "seen/reentry":
+        require(
+            layers[1]["retained"][0][1] == ("swap", "mul"),
+            "rejected state later reentry",
+        )
+        event = next(
+            event
+            for event in reference["events"]
+            if event[0] == "retained" and event[1] == 1
+        )
+        require(
+            event[3][0, OP_NAMES.index("mul")] == "duplicate",
+            "reference remembered state",
+        )
+    elif name == "identity/encoding":
+        require(names == ["dup", "drop"], "full typed identity retention")
+        left, right = [node[0] for node in first["retained"]]
+        require(product_key(left) != product_key(right), "full states distinct")
+        _initial, target = typed_products(case["task"])
+        require(
+            np.array_equal(
+                stack_policy.encode_node(left, target),
+                stack_policy.encode_node(right, target),
+            ),
+            "capped encodings equal",
+        )
+    elif name == "boundary/included":
+        require(
+            names == ["mul", "drop"] and first["stop"] == "score_band",
+            "inclusive boundary",
+        )
+    elif name in ("boundary/top-ties", "boundary/top-ties-w1"):
+        require(
+            names == (["drop"] if case["width"] == 1 else ["drop", "mul"]),
+            "stable actual OPS tie order",
+        )
+    elif name == "score/all-inf":
+        require(
+            first["all_inf_fallback"] and not replay["band_pruned"], "all-inf fallback"
+        )
+    elif name == "empty/eligible":
+        require(
+            result["termination"] == "frontier_exhausted"
+            and first["anchor"] is None
+            and not result["pruned"]
+            and not replay["band_pruned"],
+            "empty eligible frontier",
+        )
+    elif name == "stop/width-before-unread-guard":
+        require(
+            first["stop"] == "width"
+            and (0, OP_NAMES.index("[")) not in first["verdicts_read_only"],
+            "unread guard remains unknown",
+        )
+    elif name.startswith("stop/last-ranked-width/"):
+        require(
+            len(first["retained"]) == 6
+            and first["stop"] == "exhausted"
+            and not result["pruned"]
+            and not replay["band_pruned"],
+            "last ranked width exhausted",
+        )
+    elif name == "ordering/cumulative":
+        require(
+            reference["result"]["program"] == ("dup", "add", "mul")
+            and result["program"] == ("mul", "dup", "add"),
+            "cumulative ordering changes later fit",
+        )
+    if case["expectation"] == "budget-before-score":
+        charged = (
+            0
+            if case["budget"] == 0
+            else 2
+            if case["budget"] == 1
+            else 4
+            if case["unit"] == "executions+fuel"
+            else 8
+        )
+        require(
+            result["termination"] == "budget"
+            and result["executions"] == result["fuel"] == charged
+            and result["expansions"] == 1
+            and replay["scorer_calls"] == 0,
+            f"{name}/before-score budget overshoot",
+        )
+    elif case["expectation"] == "past-deadline":
+        require(
+            result["termination"] == "wall_clock_cap"
+            and result["executions"] == result["fuel"] == 0
+            and result["expansions"] == 1
+            and replay["scorer_calls"] == 0,
+            "past-deadline preattempt charge",
+        )
+    elif name.startswith("resource/body/"):
+        event = next(
+            event
+            for event in replay["events"]
+            if event[0] == "attempt"
+            and event[1] == 0
+            and event[3] == OP_NAMES.index("i")
+        )
+        require(event[6] > event[7] > 0, f"{name}/root-i inner body fuel")
+
+
+def verify_control_rows(rows, replayed):
+    by_id = {row["id"]: row for row in rows}
+    checked = []
+
+    def check(name, expected):
+        same_json(by_id[name], encode({"id": name, "check": "PASS", **expected}), name)
+        checked.append(name)
+
+    for case in registered_definitions()[1]:
+        replay, _reference = replayed[case["id"]]
+        name = f"observation/{case['id']}"
+        if replay["exception"] is not None:
+            value = {"exception": "ValueError"}
+            check(name, {"expected": value, "actual": value})
+        else:
+            value = {"result": replay["result"], "band_pruned": replay["band_pruned"]}
+            check(
+                name,
+                {
+                    "expected": value,
+                    "actual": value,
+                    "band_pruned": replay["band_pruned"],
+                },
+            )
+    invalid = {
+        "negative": -1,
+        "nan": "NaN",
+        "posinf": "+inf",
+        "neginf": "-inf",
+        "bool": True,
+        "string": "1",
+    }
+    for parameter, value in invalid.items():
+        for collecting in (False, True):
+            name = f"parameter/{parameter}/gc{int(collecting)}"
+            outcome = {"exception": "ValueError", "gc_enabled": collecting}
+            check(
+                name,
+                {
+                    "expected": outcome,
+                    "actual": outcome,
+                    "collecting": collecting,
+                    "tau": value,
+                },
+            )
+    for collecting in (False, True):
+        name = f"exception/scorer/gc{int(collecting)}"
+        outcome = {"exception": "RuntimeError", "gc_enabled": collecting}
+        check(
+            name,
+            {
+                "expected": outcome,
+                "actual": outcome,
+                "collecting": collecting,
+                "tau": None,
+            },
+        )
+    root = ((Int(9),),)
+    products = [((Int(0),),), ((Int(1),),)]
+    for kind in (
+        "last-ranked-width",
+        "last-ranked-width-all-inf",
+        "width-before-band",
+        "last-row-band",
+    ):
+        scores = (
+            [0.0, -2.0]
+            if kind == "last-row-band"
+            else [-math.inf, -math.inf]
+            if kind == "last-ranked-width-all-inf"
+            else [0.0, 0.0]
+        )
+        width = (
+            1 if kind == "width-before-band" else 4 if kind == "last-row-band" else 2
+        )
+        ranked = [
+            (0, index, product, (OP_NAMES[index],), scores[index])
+            for index, product in enumerate(products)
+        ]
+        retained, _seen, layer = retention_from_definition(
+            ranked,
+            {product_key(root): root},
+            definition("arithmetic-only", width=width, band=1),
+            0,
+        )
+        actual = {
+            key: value
+            for key, value in layer.items()
+            if key
+            not in (
+                "verdicts_read_only",
+                "ranked_count",
+                "ranked_sha256",
+                "old_seen_sha256",
+            )
+        }
+        actual.update(
+            type="BandLayer",
+            verdicts=layer["verdicts_read_only"],
+            ranked=tuple(ranked),
+            old_seen=frozenset((root,)),
+        )
+        expected = {
+            "stop": layer["stop"],
+            "width_pruned": layer["width_pruned"],
+            "band_pruned": layer["band_pruned"],
+            "retained": retained,
+            "read_verdict_count": len(layer["verdicts_read_only"]),
+        }
+        check(
+            f"unit/{kind}",
+            {
+                "scope": "arithmetic-only/no-solver-outcome",
+                "input": {
+                    "scores": scores,
+                    "width": width,
+                    "tau": 1,
+                    "typed_rows": products,
+                },
+                "expected": expected,
+                "actual": actual,
+            },
+        )
+    mask = np.zeros((2, len(OP_NAMES)), dtype=bool)
+    mask[1, 0] = True
+    expected_values = [
+        [math.nan] * len(OP_NAMES),
+        [0.0] + [-math.inf] * (len(OP_NAMES) - 1),
+    ]
+    expected_warnings = [
+        "divide by zero encountered in log",
+        "invalid value encountered in subtract",
+    ]
+    stub = SimpleNamespace(logits=lambda _blocks: np.zeros((2, len(OP_NAMES))))
+    with warnings.catch_warnings(record=True) as observed:
+        warnings.simplefilter("always", RuntimeWarning)
+        values = stack_policy.PolicyScorer.log_probs(stub, [None, None], mask)
+    same_json(
+        encode(values.tolist()),
+        encode(expected_values),
+        "independent production scorer API values",
+    )
+    require(
+        sorted({str(item.message) for item in observed}) == expected_warnings,
+        "independent production scorer API warnings",
+    )
+    check(
+        "unit/scorer-dead-and-live",
+        {
+            "scope": "scorer-API-only/no-model/no-solver-outcome",
+            "mask": mask.tolist(),
+            "actual": expected_values,
+            "warnings": expected_warnings,
+            "expected": {"values": expected_values, "warnings": expected_warnings},
+        },
+    )
+    check(
+        "source/production-reference",
+        {"expected": REFERENCE_SHA, "actual": REFERENCE_SHA},
+    )
+    require(len(checked) == len(set(checked)) == 49, "noninput control population")
+    return checked
+
+
+def load_verified_evidence(run_root, frozen_tree):
     """Fixed original evidence only; no CLI bypass for hashes or source."""
     gate = run_root / "gate-a"
     require(not (gate / "failure.json").exists(), "failed terminal file")
@@ -788,6 +1600,11 @@ def verify_foundation(run_root, frozen_tree):
         review_dir / "run.log", receipt["run_log_sha256"], 10_000_000
     )
     origins = verify_provenance(manifest, attempt, receipt, review_log, frozen_tree)
+    return rows, origins
+
+
+def verify_foundation(run_root, frozen_tree):
+    rows, origins = load_verified_evidence(run_root, frozen_tree)
     definitions = verify_definitions(rows)
     inputs = verify_input_rows(rows)
     return {
@@ -802,14 +1619,87 @@ def verify_foundation(run_root, frozen_tree):
     }
 
 
+def verify_complete(run_root, frozen_tree):
+    verifier_tree = Path(__file__).resolve().parents[2]
+    revision = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=verifier_tree, text=True
+    ).strip()
+    require(
+        not subprocess.check_output(
+            ["git", "status", "--porcelain"], cwd=verifier_tree, text=True
+        ).strip(),
+        "verifier source clean before replay",
+    )
+    own_sha = sha(Path(__file__).read_bytes())
+    rows, origins = load_verified_evidence(run_root, frozen_tree)
+    definitions = verify_definitions(rows)
+    inputs = verify_input_rows(rows)
+    replayed = verify_search_rows(rows)
+    controls = verify_control_rows(rows, replayed)
+    checked = set(replayed) | {f"input/{name}" for name in TASK_TEXT} | set(controls)
+    require(checked == set(registered_ids()), "all fixed IDs independently checked")
+    require(
+        sha((run_root / "gate-a/final.json").read_bytes()) == FINAL_SHA,
+        "original final unchanged after replay",
+    )
+    require(
+        sha(Path(__file__).read_bytes()) == own_sha
+        and subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=verifier_tree, text=True
+        ).strip()
+        == revision,
+        "verifier source unchanged after replay",
+    )
+    require(
+        not subprocess.check_output(
+            ["git", "status", "--porcelain"], cwd=verifier_tree, text=True
+        ).strip(),
+        "verifier source clean after replay",
+    )
+    for module in (stack_machine, stack_pbe, stack_beam, stack_policy, quotation_guard):
+        origin = origins[module.__name__]
+        require(
+            Path(module.__file__).resolve() == Path(origin["path"])
+            and sha(Path(origin["path"]).read_bytes()) == origin["sha256"],
+            "verifier primitive unchanged after replay",
+        )
+    paired = {}
+    for name in ("A-safe", "B-only-solution-cut", "C-later-first-fit"):
+        own, reference = replayed[name]
+        paired[name] = {"reference": reference["result"], "finite": own["result"]}
+    return encode(
+        {
+            "independent_gate_verdict": "INDEPENDENT_VERIFICATION_PASS_FINAL_REVIEW_PENDING",
+            "scope": "constructed software QA; no real allocation/coverage/clock claim",
+            "original_source_revision": REVISION,
+            "original_final_sha256": FINAL_SHA,
+            "verifier_source_revision": revision,
+            "verifier_sha256": own_sha,
+            "ordered_ids_checked": len(rows),
+            "search_definitions_checked": definitions,
+            "search_rows_reconstructed": len(replayed),
+            "noninput_controls_checked": len(controls),
+            **inputs,
+            "ordinary_production_reference_comparisons": sum(
+                reference is not None for _own, reference in replayed.values()
+            ),
+            "mandatory_pairs": paired,
+            "verifier_primitive_origins": origins,
+            "gc_scope": "fixed saved GC/exception assertions checked; candidate is never re-executed",
+        }
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-root", type=Path, required=True)
     parser.add_argument("--frozen-tree", type=Path, required=True)
-    args = parser.parse_args()
-    print(
-        json.dumps(verify_foundation(args.run_root, args.frozen_tree), sort_keys=True)
+    parser.add_argument(
+        "--phase", choices=("foundation", "complete"), default="complete"
     )
+    args = parser.parse_args()
+    verify = verify_complete if args.phase == "complete" else verify_foundation
+    print(json.dumps(verify(args.run_root, args.frozen_tree), sort_keys=True))
 
 
 if __name__ == "__main__":
