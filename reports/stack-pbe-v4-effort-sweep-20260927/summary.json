@@ -315,7 +315,7 @@
   "model": "claude-fable-5-1",
   "effort": "low",
   "solved": 22,
-  "cost_per_task": 0.128025,
+  "cost_per_task": 0.08535,
   "median_out": 588.0,
   "mean_out": 1447
  },
@@ -323,7 +323,7 @@
   "model": "claude-fable-5-1",
   "effort": "medium",
   "solved": 24,
-  "cost_per_task": 0.15177374999999999,
+  "cost_per_task": 0.1011825,
   "median_out": 652.5,
   "mean_out": 1763.65
  },
@@ -331,7 +331,7 @@
   "model": "claude-fable-5-1",
   "effort": "high",
   "solved": 22,
-  "cost_per_task": 0.19559062500000002,
+  "cost_per_task": 0.13039375,
   "median_out": 836.0,
   "mean_out": 2347.875
  },
@@ -339,7 +339,7 @@
   "model": "claude-fable-5-1",
   "effort": "xhigh",
   "solved": 23,
-  "cost_per_task": 0.712134375,
+  "cost_per_task": 0.47475625,
   "median_out": 2214.5,
   "mean_out": 9235.125
  },
@@ -424,5 +424,45 @@
   "cost_per_task": 0.0139285,
   "median_out": 860.0,
   "mean_out": 1132.85
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "effort": "low",
+  "solved": 16,
+  "cost_per_task": 0.003040875,
+  "median_out": 2949.5,
+  "mean_out": 5821.75
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "effort": "medium",
+  "solved": 17,
+  "cost_per_task": 0.0045168875,
+  "median_out": 6221.0,
+  "mean_out": 8773.775
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "effort": "high",
+  "solved": 18,
+  "cost_per_task": 0.006539625,
+  "median_out": 4473.5,
+  "mean_out": 12819.25
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "effort": "xhigh",
+  "solved": 16,
+  "cost_per_task": 0.0078882,
+  "median_out": 8401.5,
+  "mean_out": 15516.4
+ },
+ {
+  "model": "claude-haiku-5-5",
+  "effort": "max",
+  "solved": 22,
+  "cost_per_task": 0.029052012500000002,
+  "median_out": 35019.0,
+  "mean_out": 57844.025
  }
 ]

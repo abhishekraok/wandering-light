@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 HERE = Path(__file__).parent
 ORDER = (  # model, colour, latest generation (coloured, labelled) or earlier (grey)
     ("claude-sonnet-5-5", "#006d77", True),
+    ("claude-haiku-5-5", "#d4a017", True),
     ("claude-fable-5-1", "#7a3db8", True),
     ("claude-fable-5", "#b58ae0", False),
     ("claude-opus-5-5", "#2a78d6", True),
@@ -32,6 +33,7 @@ ax.axhspan(22, 27.3, color="#e8e7e1", zorder=0)
 ax.text(1e-5, 26.9, "top cluster, ±3-task noise", color="#6b6a64", fontsize=8, va="top")
 LABEL = {  # current generation only: anchor effort, offset (points), alignment
     "claude-sonnet-5-5": ("xhigh", (0, 9), "center"),
+    "claude-haiku-5-5": ("low", (-8, 3), "right"),
     "claude-fable-5-1": ("xhigh", (8, 3), "left"),
     "claude-opus-5-5": ("low", (-8, -3), "right"),
     "gpt-6-astra": ("low", (0, 20), "center"),  # above Opus 5.5's medium/high
@@ -62,7 +64,7 @@ for model, colour, new in ORDER:
         mew=1.5,
         zorder=3,
     )
-    above = model == "gpt-6-astra"
+    above = model in ("gpt-6-astra", "claude-haiku-5-5")
     for x, y, e in pts:
         ax.annotate(
             EFFORT[e] + ("*" if refusals[(model, e)] else ""),
