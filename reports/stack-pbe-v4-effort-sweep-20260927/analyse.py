@@ -26,8 +26,9 @@ PRICE = {  # $ per 1M input, output; Sonnet 5.5 verified 2026-09-28, 6.1 Sol 202
     "claude-opus-5": (5, 25),
     "claude-opus-5-5": (4, 20),
     "claude-sonnet-5-5": (2, 10),
+    "claude-haiku-5-5": (0.1, 0.5),  # verified 2026-10-11
     "claude-fable-5": (10, 50),
-    "claude-fable-5-1": (15, 75),  # inferred from claude -p costUSD
+    "claude-fable-5-1": (10, 50),  # list price; was an inferred (15, 75)
 }
 ARMS = (
     ("stack-pbe-v4-codex-exec-20260910/astra_low", "gpt-6-astra", "low"),
@@ -85,6 +86,11 @@ ARMS = (
     ("stack-pbe-v4-sol61-20260929/sol61_high", "gpt-6.1-sol", "high"),
     ("stack-pbe-v4-sol61-20260929/sol61_xhigh", "gpt-6.1-sol", "xhigh"),
     ("stack-pbe-v4-sol61-20260929/sol61_max", "gpt-6.1-sol", "max"),
+    ("stack-pbe-v4-haiku55-20261011/haiku55_low", "claude-haiku-5-5", "low"),
+    ("stack-pbe-v4-haiku55-20261011/haiku55_medium", "claude-haiku-5-5", "medium"),
+    ("stack-pbe-v4-haiku55-20261011/haiku55_high", "claude-haiku-5-5", "high"),
+    ("stack-pbe-v4-haiku55-20261011/haiku55_xhigh", "claude-haiku-5-5", "xhigh"),
+    ("stack-pbe-v4-haiku55-20261011/haiku55_max", "claude-haiku-5-5", "max"),
 )
 
 
