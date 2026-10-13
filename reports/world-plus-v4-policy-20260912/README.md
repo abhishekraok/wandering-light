@@ -220,3 +220,5 @@ uv run python experiments/step3_containment.py \
 `checkpoints/step3-20260912/{v4only,mixed}/`; `study.sh` and `study_e56.sh` expect
 `lr_probe.json` under `checkpoints/step3-20260913-epochs/{v4only,mixed}/` and the drop
 list at `mixed/drop.txt` there (copies in `epochs/`).
+
+As of 2026-10-12 neither `checkpoints/step3-20260912/` nor `checkpoints/step3-20260913-epochs/` exists on UltraDesk. The v4-only seeds 0 and 1 are recoverable as #101's W&B artifacts `mark28-policy-1m-s0:v0` and `-s1:v0`; the mixed arm and the epoch snapshots need a retrain.

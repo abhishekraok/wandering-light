@@ -82,3 +82,7 @@ The control runs at the segment beam's horizon, 12 x depth: 96 for capped, 192 f
 - **Hardware.** CPU, 8 threads, 2 lanes. Other jobs' CPU windows are in `checkpoints/short-segment-search/CONTENTION.md`.
 - **Reruns.** GPU, 1 thread, 1800 s clock. Each rerun holds only the capped positions, so its library starts empty. Those tasks reached search in the full cell, so replay had not fitted them there.
 - **Frozen per cell.** K, depth, the fit check and the merge rule are in `report.md`, under "Rules, one line each".
+
+## Codex review of the flat-widening control
+
+[CONTROL_REVIEW.md](CONTROL_REVIEW.md). The fuel budget, same horizon and package-not-reset caveat were adopted. Not adopted, and open for anyone reusing `segment_beam_solve` or the control: check every complete candidate in both searches, not only at closed states; report paired solve-against-budget curves at preset budgets; freeze the merge-representative rule.
