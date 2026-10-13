@@ -83,4 +83,4 @@ Plain Adam, constant LR, 12 epochs, best-validation weights restored, 1,073,797 
 
 ## Files
 
-`protocol.json` (frozen protocol), `timing-matrix.json` (sealed), `aggregate.json.gz` (full aggregate), `oracle-labels.json.gz` (shared oracle cache: certified optimal-action sets by state/target), `campaign.log`. Raw per-cell timing rows and sampled visits live in the run root on UltraDesk: `wandering_light/.worktrees/issue-80-refreeze/checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/`.
+`protocol.json` (frozen protocol), `timing-matrix.json` (sealed), `aggregate.json.gz` (full aggregate), `oracle-labels.json.gz` (shared oracle cache: certified optimal-action sets by state/target), `campaign.log`. Raw per-cell timing rows and sampled visits live on UltraDesk: the sampled visits (`annotation/`, 7 MB) in the main checkout at `checkpoints/compute-optimal-policy-size-20260902-per-arm-lr-two-seed/`, copied 2026-10-12; the rest of the run root in the prunable worktree `.worktrees/issue-80-refreeze/checkpoints/` under the same name.

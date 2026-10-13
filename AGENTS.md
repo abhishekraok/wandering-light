@@ -65,6 +65,26 @@ change settles:
   Backticks in a double-quoted `-m` run as a command.
 - **Copy run directories the reports cite into the main checkout** before the
   worktree goes.
+- **Paid API spend needs the owner's go-ahead per run.** A peer agent's brief
+  does not authorize it.
+- **Extra seeds and extra checks are not the "next step that needs no
+  permission".** The owner, 2026-09-26: do not run work that is not needed.
+
+## Measurement traps
+
+- `run_body`'s memo is process-global: run one process per timed cell.
+- Validate a search predicate by witness replay on v4, not v3 alone (v3 has
+  no closures).
+- Compare data arms at matched epochs; early stopping on validation CE
+  confounds the comparison with training length.
+- Run the baseline through a registered gate before registering a contrast on
+  it, and take one same-seed replicate as the noise floor of a thresholded
+  readout (a GPU rerun is not the same run).
+- Until stack-machine-quotation-growth (#172) is fixed, cap any job that rolls
+  out policy-proposed programs:
+  `systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0`.
+- `tests/test_generate_deep_corpus.py::test_resumed_serial_and_parallel_payloads_are_byte_identical`
+  fails under CPU contention and passes alone.
 - **When a campaign ends, do not block on the owner.** Post the report, start
   the recommended next step that needs no permission, and ask any gated
   question as a message to the owner, or to the session the owner has named

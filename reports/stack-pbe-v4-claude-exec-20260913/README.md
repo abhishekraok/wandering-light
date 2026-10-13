@@ -172,3 +172,5 @@ task, so ~7.5 h wall on six shards and ~12.6M output tokens; high is ~56 s per
 task, ~4.6 h and ~7.4M, but five solves behind on the sample. Whether either is
 worth the plan's weekly share is the owner's call; `run_phase2.sh` in the codex
 report directory is the template.
+
+**Declined.** On closing #137 the owner said phase 2 will not run: benchmarking frontier models is not this project's goal. Do not propose a full-split frontier run unless asked.
