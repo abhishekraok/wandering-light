@@ -51,10 +51,12 @@ change settles:
   posted on the issue. No PR is needed for that; a PR is for code another
   agent should argue with before it lands. Rewriting `main`'s history or
   force-pushing still needs the owner.
-- **Review first, merge once clear.** Merge `origin/main` into the branch, do
-  not rebase (a rebase needs a force-push). Land with
-  `git push origin HEAD:main` from the worktree, which leaves the main
-  checkout alone.
+- **Merge, then review, then push.** Fetch and merge `origin/main` into the
+  branch (do not rebase; a rebase needs a force-push) before the final checks
+  and the other-family review. Review again anything substantive changed after
+  that. Land with `git push origin HEAD:main` from the worktree, which leaves
+  the main checkout alone. If the push is rejected, fetch, merge and repeat
+  the affected checks; never force.
 - **Lint with `uv run ./lint.sh ci`**, never bare `./lint.sh`: the pyenv ruff
   is older than CI's, and the bare form reformats instead of checking.
 - **New worktree: `uv sync --extra dev --extra experiments`** before
@@ -63,33 +65,39 @@ change settles:
   `wandb/` directory). CI is green; never `--fix` them.
 - **Commit messages and `gh` bodies go through a file** (`-F`, `--body-file`).
   Backticks in a double-quoted `-m` run as a command.
-- **Copy run directories the reports cite into the main checkout** before the
-  worktree goes.
+- **Write run output into a directory in the main checkout from launch**
+  (`checkpoints/<run>/`), not the worktree: closing a session can delete its
+  worktree. Before landing a report, check every path it cites exists there.
 - **Paid API spend needs the owner's go-ahead per run.** A peer agent's brief
   does not authorize it.
-- **Extra seeds and extra checks are not the "next step that needs no
-  permission".** The owner, 2026-09-26: do not run work that is not needed.
-
-## Measurement traps
-
-- `run_body`'s memo is process-global: run one process per timed cell.
-- Validate a search predicate by witness replay on v4, not v3 alone (v3 has
-  no closures).
-- Compare data arms at matched epochs; early stopping on validation CE
-  confounds the comparison with training length.
-- Run the baseline through a registered gate before registering a contrast on
-  it, and take one same-seed replicate as the noise floor of a thresholded
-  readout (a GPU rerun is not the same run).
-- Until stack-machine-quotation-growth (#172) is fixed, cap any job that rolls
-  out policy-proposed programs:
-  `systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0`.
-- `tests/test_generate_deep_corpus.py::test_resumed_serial_and_parallel_payloads_are_byte_identical`
-  fails under CPU contention and passes alone.
 - **When a campaign ends, do not block on the owner.** Post the report, start
   the recommended next step that needs no permission, and ask any gated
   question as a message to the owner, or to the session the owner has named
   to answer for them, never as a blocking prompt. Keep the ungated work going
   until the answer arrives.
+
+## Measurement traps
+
+- **Seeds.** Run extra seeds when a registered reading depends on the spread.
+  Do not run them to fill idle time once the seeds agree; the next question
+  is the better use of the GPU.
+- `run_body`'s memo is process-global: run one process per timed cell.
+- Validate a search predicate by witness replay on v4, not v3 alone (v3 has
+  no closures).
+- Compare data arms at matched epochs; early stopping on validation CE
+  confounds the comparison with training length.
+- When a readout needs an open gate at baseline, check the gate is open there
+  before registering a contrast on it. For a thresholded readout, use a
+  same-seed replicate as the noise floor, or cite an existing one (a GPU rerun
+  is not the same run).
+- Until stack-machine-quotation-growth (#172) is fixed, cap any job that
+  executes generated stack programs (policy rollouts, random walks, search):
+  `systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- <command>`.
+  A run killed by the cap is incomplete: never retry it uncapped or score its
+  missing output as zero.
+- `tests/test_generate_deep_corpus.py::test_resumed_serial_and_parallel_payloads_are_byte_identical`
+  has failed under CPU contention. Rerun it alone; if it fails alone, it is a
+  real failure.
 
 Whether the project is active, paused, or being worked in parallel with
 something else is the owner's call and is not recorded here.

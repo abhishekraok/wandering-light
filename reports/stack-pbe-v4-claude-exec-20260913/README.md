@@ -173,4 +173,4 @@ task, ~4.6 h and ~7.4M, but five solves behind on the sample. Whether either is
 worth the plan's weekly share is the owner's call; `run_phase2.sh` in the codex
 report directory is the template.
 
-**Declined.** On closing #137 the owner said phase 2 will not run: benchmarking frontier models is not this project's goal. Do not propose a full-split frontier run unless asked.
+**Declined.** See `docs/STATUS.md` for the current decision and the closing comment on opus-effort-curve (#137) for its reason.
