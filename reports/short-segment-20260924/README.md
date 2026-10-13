@@ -85,4 +85,4 @@ The control runs at the segment beam's horizon, 12 x depth: 96 for capped, 192 f
 
 ## Codex review of the flat-widening control
 
-[CONTROL_REVIEW.md](CONTROL_REVIEW.md). The fuel budget, same horizon and package-not-reset caveat were adopted. Not adopted, and open for anyone reusing `segment_beam_solve` or the control: check every complete candidate in both searches, not only at closed states; report paired solve-against-budget curves at preset budgets; freeze the merge-representative rule.
+[CONTROL_REVIEW.md](CONTROL_REVIEW.md), a design review written before the control was built. Adopted: fuel budgeting, the matched horizon, the package-not-reset caveat, fit checks on every successor before pruning, and a written merge and tie rule (`report.md`, "Rules, one line each"). Still open: solve-against-budget curves at common preset budgets; the existing curves use multiples of each task's flat-48 cost.

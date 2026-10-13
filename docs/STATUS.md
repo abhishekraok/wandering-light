@@ -119,13 +119,7 @@ claim a number supports.
 
 Also open, none started: world-v3 staged the way #155 staged v4; what training-data-sources (#118) does after step 3, with world-plus-v4-policy (#134) and keep-below-ablation (#136); the ~127 behaviours left in the sampler-passing pool; the highways programme (#94, #96, #98, goal #99); and the unrun `mixed` arm of hindsight-subtargets (#152). Also parked on the owner: M4 of novelty-reduction (#171) is unregistered, with two decisions open beyond those on the issue (re-register the readout as fixed-share certified-reachable, the only readout that tracked capability; whether the E head stays at all, given that the uncertainty score ranks misses at least as well), and the fix for stack-machine-quotation-growth (#172). Two follow-ups from codex-exec-effort-curve (#123) were raised and never filed: a held-out count scaled to output entropy, and astra on `stack_pbe_world_v1` as the matched authorship test.
 
-**Considered and dropped, 2026-09-20** (throwaway scripts, unreviewed; raw outputs in the main checkout's gitignored `.drafts/from-learning-algorithm-design-bd20f2/`, UltraDesk only):
-- **A learned landing/option model of the executor:** the exact interpreter costs 3.9 us per step, less than a forward pass. Policy inference is 73.7% of beam wall-clock.
-- **The persistent graph as retrieval memory:** 300 of 300 walks end distinct, so the graph is a forest.
-- **Training a value head on random rollouts:** chain identity gives a remaining-length shortcut.
-- **Library-first on world-v3:** the corpus was authored in that library, and 76-81% of macro-form tokens are still under an open mark.
-- **Edit/repair search:** 27 of 45 v4 eval witnesses are within 8 edits of a train witness, but only 4 of 44 on world-v3; at 2 corruptions only 38% of programs have a strictly improving single edit.
-- **Enumerating cycles:** there are 326,875 legal cycles at body length 4 or less, so they must be generated. Quotation bodies as PBE sub-tasks would multiply the data: 1,400 bodies in v4's 175 programs, 15,060 in world-v3's 482.
+Six designs were set aside after exploratory, unreviewed probes on 2026-09-20: [report](../reports/learning-algorithm-brainstorm-20260920/README.md). Revisit when new evidence or a changed design alters their premises.
 
 (Session note, 2026-09-22: `~/.claude/history.jsonl` logs only CLI prompts on this machine, so it cannot show that no owner input was lost in a Desktop session; the transcript's queue records can.)
 
