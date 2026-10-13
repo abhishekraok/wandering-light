@@ -51,6 +51,20 @@ change settles:
   posted on the issue. No PR is needed for that; a PR is for code another
   agent should argue with before it lands. Rewriting `main`'s history or
   force-pushing still needs the owner.
+- **Review first, merge once clear.** Merge `origin/main` into the branch, do
+  not rebase (a rebase needs a force-push). Land with
+  `git push origin HEAD:main` from the worktree, which leaves the main
+  checkout alone.
+- **Lint with `uv run ./lint.sh ci`**, never bare `./lint.sh`: the pyenv ruff
+  is older than CI's, and the bare form reformats instead of checking.
+- **New worktree: `uv sync --extra dev --extra experiments`** before
+  `uv run pytest`, or a global pytest runs and fails on imports.
+- **Seven `I001` hits on `wandb` imports in the main checkout are local** (its
+  `wandb/` directory). CI is green; never `--fix` them.
+- **Commit messages and `gh` bodies go through a file** (`-F`, `--body-file`).
+  Backticks in a double-quoted `-m` run as a command.
+- **Copy run directories the reports cite into the main checkout** before the
+  worktree goes.
 - **When a campaign ends, do not block on the owner.** Post the report, start
   the recommended next step that needs no permission, and ask any gated
   question as a message to the owner, or to the session the owner has named
