@@ -2,8 +2,6 @@
 
 Extends new-models-sample40 (#173) with gpt-5.6-sol (all efforts), gpt-5.6-terra / luna (low, medium, xhigh, max; high is #123), claude-fable-5 and claude-fable-5-1 (low to xhigh; max stopped by the owner as wasteful), and local solvers. Same seed-17 40-task eval sample of `stack_pbe_v4`, prompt, parser and held-out grader. Run: `run.sh`; table: `analyse.py > table.md`; figure: `plot.py`.
 
-These sample-40 sweeps are for the owner's own view of how agents are progressing, not a project result; keep them cheap. Do not run Fable at max.
-
 ![accuracy vs cost](accuracy_vs_cost.png)
 
 Updated 2026-09-29 with [Sonnet 5.5 at five efforts](../stack-pbe-v4-sonnet55-20260928/README.md), under the same protocol and cost estimate ($2/$10 per million input/output tokens). Max includes four refusals, scored as unsolved with their output tokens priced. The table's tool/turn column is a CLI turn/permission proxy for Claude; max reports eight on those refusal calls, with tools disabled in the command.

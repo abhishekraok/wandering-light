@@ -70,6 +70,11 @@ change settles:
   worktree. Before landing a report, check every path it cites exists there.
 - **Paid API spend needs the owner's go-ahead per run.** A peer agent's brief
   does not authorize it.
+- **The sample-40 model sweeps** (new-models-sample40 (#173) and its
+  extensions) are for the owner's own view of how agents are progressing, not a
+  project result: keep them cheap, and do not run Fable at max.
+- **Do not tune against the 44 world-v3 tasks** (owner, 2026-09-22); a smaller
+  world eval may replace them.
 - **When a campaign ends, do not block on the owner.** Post the report, start
   the recommended next step that needs no permission, and ask any gated
   question as a message to the owner, or to the session the owner has named
