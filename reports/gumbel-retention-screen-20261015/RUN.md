@@ -41,3 +41,11 @@ Focused tests use manually typed stacks and dummy models/files. The runner
 integration tests explicitly mock source/model/runtime acquisition. Their pass
 is software evidence, never eligibility evidence for real inputs or timings.
 No new trace codec, model or independent whole-search verifier is introduced.
+
+Before real data, the scalar draws were replaced by one vector call per layer,
+with byte-identical PCG64 draws/state checked. Source hashes now include the
+quotation guard, grader and corpus fetcher; git status is recorded. Host
+snapshots before/after timing cells include load averages, process names/CPU use,
+GPU state and own unit state. Cell load averages and explicit verified
+witness-equal/draw-tested splits are also retained. These additions change no
+selection, search parameters or registered quantitative gate.

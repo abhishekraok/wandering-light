@@ -162,6 +162,9 @@ def provenance(checkpoint):
         Path(__file__),
         ROOT / "wandering_light/stack_beam.py",
         ROOT / "wandering_light/stack_machine.py",
+        ROOT / "wandering_light/quotation_guard.py",
+        ROOT / "wandering_light/stack_pbe_eval.py",
+        ROOT / "wandering_light/corpus_hub.py",
         ROOT / "wandering_light/stack_pbe.py",
         ROOT / "wandering_light/stack_policy.py",
         ROOT / "experiments/step3_verify_solves.py",
@@ -171,6 +174,9 @@ def provenance(checkpoint):
             ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
         ).strip(),
         "host": platform.node(),
+        "git_status": subprocess.check_output(
+            ["git", "status", "--porcelain"], cwd=ROOT, text=True
+        ),
         "platform": platform.platform(),
         "source": {str(p): sha(p) for p in files},
         "checkpoint": {
@@ -204,6 +210,7 @@ def run_cell(shown_path, checkpoint, out, arm, seed):
     run_body.cache_clear()
     gc.freeze()
     rows = []
+    load_at_start = os.getloadavg()
     for entry in shown:
         if set(entry) != {"source_index", "inputs", "outputs"}:
             raise ValueError("solver input must be shown-only")
@@ -239,6 +246,8 @@ def run_cell(shown_path, checkpoint, out, arm, seed):
             "seed": seed,
             "rows": rows,
             "process_seconds": time.perf_counter() - started,
+            "load_average_start": load_at_start,
+            "load_average_end": os.getloadavg(),
             "threads": torch.get_num_threads(),
             "interop": torch.get_num_interop_threads(),
             "host": platform.node(),
@@ -322,6 +331,8 @@ def summarize(cells, identities, originals, verify_fn=None):
             "verified_count": len(good),
             "verified": sorted(good),
             "graded": sorted(graded),
+            "verified_draw_tested": sorted(good & kinds["genuine"]),
+            "verified_witness_equal": sorted(good & kinds["equals_catalogue_witness"]),
             "kinds": {k: sorted(v) for k, v in kinds.items()},
             "solve_seconds": math.fsum(r["solve_seconds"] for r in cell["rows"]),
             "executions": sum(r["executions"] for r in cell["rows"]),
@@ -339,6 +350,29 @@ def summarize(cells, identities, originals, verify_fn=None):
     return summaries, [
         {"behaviour": b, "program": list(p), **v} for (b, p), v in verdicts.items()
     ]
+
+
+def host_snapshot():
+    """Record external load outside all timing cells, without process arguments."""
+    result = {"load_average": os.getloadavg(), "host": platform.node()}
+    commands = {
+        "processes": ["ps", "-eo", "pid,comm,pcpu,pmem"],
+        "gpu": ["/usr/lib/wsl/lib/nvidia-smi"],
+        "units": ["systemctl", "--user", "list-units", "wl-*", "--no-pager"],
+    }
+    for name, command in commands.items():
+        try:
+            child = subprocess.run(
+                command, capture_output=True, text=True, timeout=10, check=False
+            )
+            result[name] = {
+                "returncode": child.returncode,
+                "stdout": child.stdout,
+                "stderr": child.stderr,
+            }
+        except (OSError, subprocess.TimeoutExpired) as error:
+            result[name] = {"error": str(error)}
+    return result
 
 
 def run_phase(args):
@@ -399,6 +433,7 @@ def run_phase(args):
         order = (
             tuple(("baseline", s) for s in SEEDS) if args.phase == "baseline" else ORDER
         )
+        save(out / "host-before.json", host_snapshot())
         cells = {}
         for arm, seed in order:
             name = f"{arm}-{seed}"
@@ -431,6 +466,7 @@ def run_phase(args):
                 elapsed = time.perf_counter() - cell_started
             cells[name] = read(out / f"{name}.json")
             cells[name]["subprocess_wall_seconds"] = elapsed
+        save(out / "host-after.json", host_snapshot())
         # Grading imports/calls start after the entire timing phase.
         summaries, verdicts = summarize(cells, identities, originals)
         if args.phase == "baseline":

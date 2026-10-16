@@ -120,9 +120,12 @@ def test_noise_is_fresh_for_every_successor_and_not_stored_in_path_scores():
         def __init__(self):
             self.calls = 0
 
-        def gumbel(self):
-            self.calls += 1
-            return 1000.0 if self.calls % 3 else -1000.0
+        def gumbel(self, *, size):
+            values = []
+            for _ in range(size):
+                self.calls += 1
+                values.append(1000.0 if self.calls % 3 else -1000.0)
+            return np.asarray(values)
 
     trace, noise = Trace(), CountingNoise()
     result = jitter_beam_solve(
@@ -299,6 +302,7 @@ def test_phase_does_all_timing_before_any_verification(tmp_path, monkeypatch, ph
     from wandering_light import corpus_hub, stack_pbe, stack_policy_hub
 
     monkeypatch.setattr(runner, "MAIN", tmp_path)
+    monkeypatch.setattr(runner, "host_snapshot", lambda: {"MOCK": True})
     tasks = [fake_task(f"s{i}", f"b{i}") for i in range(24)]
     monkeypatch.setattr(corpus_hub, "fetch_corpus", lambda *a, **k: tmp_path)
     monkeypatch.setattr(stack_pbe, "load", lambda *a: tasks)
@@ -411,6 +415,7 @@ def test_comparison_checks_baseline_counts_before_loading_checkpoint(
     from wandering_light import corpus_hub, stack_pbe, stack_policy_hub
 
     monkeypatch.setattr(runner, "MAIN", tmp_path)
+    monkeypatch.setattr(runner, "host_snapshot", lambda: {"MOCK": True})
     tasks = [fake_task(f"s{i}", f"b{i}") for i in range(24)]
     monkeypatch.setattr(corpus_hub, "fetch_corpus", lambda *a, **k: tmp_path)
     monkeypatch.setattr(stack_pbe, "load", lambda *a: tasks)
@@ -443,3 +448,28 @@ def test_comparison_checks_baseline_counts_before_loading_checkpoint(
         )
     assert not (out / "summary.json").exists()
     assert runner.read(out / "INCOMPLETE.json")["complete"] is False
+
+
+@pytest.mark.parametrize("count", [1, 17, 64, 1792])
+def test_vector_gumbels_match_scalar_draws_and_generator_state_exactly(count):
+    a = np.random.Generator(np.random.PCG64(np.random.SeedSequence([17, 123])))
+    b = np.random.Generator(np.random.PCG64(np.random.SeedSequence([17, 123])))
+    expected = np.asarray([a.gumbel() for _ in range(count)], dtype=np.float64)
+    actual = b.gumbel(size=count)
+    assert actual.tobytes() == expected.tobytes()
+    assert a.bit_generator.state == b.bit_generator.state
+
+
+def test_disabled_mode_matches_actual_quotation_close_guard():
+    a, b = Trace(), Trace()
+    task = ShownTask(("2",), ("999",))
+    kwargs = {"beam_width": 64, "max_depth": 1, "guard": "both"}
+    expected = beam_solve(task, Scorer(), observer=a, **kwargs)
+    actual = jitter_beam_solve(task, Scorer(), observer=b, **kwargs)
+    assert substantive(actual) == substantive(expected)
+    assert a.events == b.events
+    assert any(
+        verdict == "guard:close"
+        for _, _, verdicts in a.retained.values()
+        for verdict in verdicts.values()
+    )

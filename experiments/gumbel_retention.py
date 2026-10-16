@@ -138,10 +138,11 @@ def _search(
         # Keys alone receive fresh noise. Retained path scores below stay native.
         scores = [beam[s[0]][2] + log_probs[s[0], s[1]] for s in successors]
         if rng is not None:
-            if not all(np.isfinite(score) for score in scores):
+            scores64 = np.asarray(scores, dtype=np.float64)
+            if not np.isfinite(scores64).all():
                 raise ValueError("nonfinite executable cumulative score")
-            priorities = [float(score) + float(rng.gumbel()) for score in scores]
-            if not all(np.isfinite(key) for key in priorities):
+            priorities = scores64 + rng.gumbel(size=len(scores))
+            if not np.isfinite(priorities).all():
                 raise ValueError("nonfinite retention key")
         else:
             priorities = scores
