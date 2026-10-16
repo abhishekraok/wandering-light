@@ -7,7 +7,9 @@
 ## Working with other agents
 
 Several agents and sessions touch this repo. Work in a worktree so your work 
-doesn't collide. Don't put the worktree under /tmp.
+doesn't collide. Don't put the worktree under /tmp. "The main checkout" is
+UltraDesk WSL `~/repos/wandering-light`, which holds `checkpoints/`, `.drafts/`
+and `wandb/`.
 
 - **`docs/RESULTS.md` records numbers; `docs/STATUS.md` records state; issues
   record argument.** A run adds a row to `docs/RESULTS_DETAILED.md`, to `RESULTS.md`
