@@ -1,0 +1,260 @@
+{
+  "baseline_count_range": 0,
+  "baseline_counts": [
+    8,
+    8,
+    8
+  ],
+  "cells": {
+    "baseline-17": {
+      "executions": 4634305,
+      "fuel": 5060921,
+      "graded": [
+        "add_pair",
+        "aligned_match_count",
+        "evaluate_polynomial_horner",
+        "interval_violation_count",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "kinds": {
+        "equals_catalogue_witness": [
+          "add_pair",
+          "evaluate_polynomial_horner",
+          "mean",
+          "running_minima",
+          "scale_by",
+          "sum_of_squares"
+        ],
+        "genuine": [
+          "maximum",
+          "remove_values_seen_in_second"
+        ],
+        "inconclusive": [],
+        "shortcut": [
+          "aligned_match_count",
+          "closest_to",
+          "interval_violation_count",
+          "points_above_parabola"
+        ]
+      },
+      "program_lengths": {
+        "0": 1,
+        "1000": 6,
+        "1880": 7,
+        "2400": 36,
+        "3360": 23,
+        "3560": 12,
+        "3800": 36,
+        "4880": 25,
+        "6320": 13,
+        "640": 14,
+        "720": 15,
+        "800": 7
+      },
+      "solve_seconds": 54.02054682899325,
+      "terminations": {
+        "fit": 12,
+        "max_depth": 9,
+        "wall_clock_cap": 3
+      },
+      "verified": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "verified_count": 8,
+      "verified_draw_tested": [
+        "maximum",
+        "remove_values_seen_in_second"
+      ],
+      "verified_witness_equal": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "mean",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ]
+    },
+    "baseline-29": {
+      "executions": 4642102,
+      "fuel": 5069489,
+      "graded": [
+        "add_pair",
+        "aligned_match_count",
+        "evaluate_polynomial_horner",
+        "interval_violation_count",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "kinds": {
+        "equals_catalogue_witness": [
+          "add_pair",
+          "evaluate_polynomial_horner",
+          "mean",
+          "running_minima",
+          "scale_by",
+          "sum_of_squares"
+        ],
+        "genuine": [
+          "maximum",
+          "remove_values_seen_in_second"
+        ],
+        "inconclusive": [],
+        "shortcut": [
+          "aligned_match_count",
+          "closest_to",
+          "interval_violation_count",
+          "points_above_parabola"
+        ]
+      },
+      "program_lengths": {
+        "0": 1,
+        "1000": 6,
+        "1880": 7,
+        "2400": 36,
+        "3360": 23,
+        "3560": 12,
+        "3800": 36,
+        "4880": 25,
+        "6320": 13,
+        "640": 14,
+        "720": 15,
+        "800": 7
+      },
+      "solve_seconds": 56.65142681800353,
+      "terminations": {
+        "fit": 12,
+        "max_depth": 10,
+        "wall_clock_cap": 2
+      },
+      "verified": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "verified_count": 8,
+      "verified_draw_tested": [
+        "maximum",
+        "remove_values_seen_in_second"
+      ],
+      "verified_witness_equal": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "mean",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ]
+    },
+    "baseline-43": {
+      "executions": 4590003,
+      "fuel": 5012885,
+      "graded": [
+        "add_pair",
+        "aligned_match_count",
+        "evaluate_polynomial_horner",
+        "interval_violation_count",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "kinds": {
+        "equals_catalogue_witness": [
+          "add_pair",
+          "evaluate_polynomial_horner",
+          "mean",
+          "running_minima",
+          "scale_by",
+          "sum_of_squares"
+        ],
+        "genuine": [
+          "maximum",
+          "remove_values_seen_in_second"
+        ],
+        "inconclusive": [],
+        "shortcut": [
+          "aligned_match_count",
+          "closest_to",
+          "interval_violation_count",
+          "points_above_parabola"
+        ]
+      },
+      "program_lengths": {
+        "0": 1,
+        "1000": 6,
+        "1880": 7,
+        "2400": 36,
+        "3360": 23,
+        "3560": 12,
+        "3800": 36,
+        "4880": 25,
+        "6320": 13,
+        "640": 14,
+        "720": 15,
+        "800": 7
+      },
+      "solve_seconds": 55.18483057596313,
+      "terminations": {
+        "fit": 12,
+        "max_depth": 9,
+        "wall_clock_cap": 3
+      },
+      "verified": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "verified_count": 8,
+      "verified_draw_tested": [
+        "maximum",
+        "remove_values_seen_in_second"
+      ],
+      "verified_witness_equal": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "mean",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ]
+    }
+  },
+  "complete": true,
+  "phase": "baseline",
+  "phase_seconds": 270.82604606800305,
+  "reading": "READY_FOR_REGISTRATION",
+  "registration_url": null,
+  "subprocess_seconds": {
+    "baseline-17": 61.028697860005195,
+    "baseline-29": 63.263537530001486,
+    "baseline-43": 61.622372476995224
+  }
+}

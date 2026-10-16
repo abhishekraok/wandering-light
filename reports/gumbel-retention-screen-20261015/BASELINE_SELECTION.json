@@ -1,0 +1,146 @@
+[
+  {
+    "behaviour": "collapse_runs",
+    "shown_sha256": "c1b2d97b7553a37632021f95ba67de9fc81e064ec4220bb6b977f201884c6c55",
+    "skeleton": "nil [ [ over _ ] [ cons ] [ [ over uncons swap drop _ ] [ drop ] [ cons ] ifte ] ifte ] fold nil [ cons ] fold",
+    "source_index": 1800
+  },
+  {
+    "behaviour": "choose_wider_range",
+    "shown_sha256": "0d789dc2bb5ec5ef103ba9c93e9412fee995ca4a3f7f9eb48a929d28a4595d93",
+    "skeleton": "[ dup uncons [ [ over _ ] [ drop ] [ swap drop ] ifte ] fold swap uncons [ [ over _ ] [ swap drop ] [ drop ] ifte ] fold _ swap dup uncons [ [ over _ ] [ drop ] [ swap drop ] ifte ] fold swap uncons [ [ over _ ] [ swap drop ] [ drop ] ifte ] fold _ _ ] [ drop ] [ swap drop ] ifte",
+    "source_index": 3640
+  },
+  {
+    "behaviour": "interval_violation_count",
+    "shown_sha256": "f0c7f59e00084672888796f4735828e007857cab73731deb22820f68b894e253",
+    "skeleton": "[ [ drop _ ] [ drop drop drop _ _ ] [ [ [ drop ] dip swap _ ] [ drop drop drop _ _ ] [ drop drop drop ] ifte ] ifte ] swap cons swap cons _ swap fold",
+    "source_index": 3800
+  },
+  {
+    "behaviour": "choose_larger_total",
+    "shown_sha256": "49bf8bc7c0110fae2b86d5e47c0016cc8e2662d43b2aaeebda04a64dbc5481d6",
+    "skeleton": "[ _ [ _ ] fold swap _ [ _ ] fold _ ] [ drop ] [ swap drop ] ifte",
+    "source_index": 2000
+  },
+  {
+    "behaviour": "prefix_record_count",
+    "shown_sha256": "a9d8642cf08020947d06b9d68d32b6bcc6d18725940066c7d081aaf5e3d1f807",
+    "skeleton": "nil _ cons _ cons _ cons [ [ uncons swap uncons swap uncons swap drop ] dip _ [ [ drop ] dip _ ] [ swap _ _ over nil swap cons swap cons swap cons [ drop ] dip ] [ nil swap cons swap cons swap cons ] ifte ] fold uncons drop uncons swap drop",
+    "source_index": 5640
+  },
+  {
+    "behaviour": "take_prefix_count",
+    "shown_sha256": "8d2b89f7ec452eac7ee65c203012cc4b3c4052ac8b4a688d9b7ee7fa76fdf7c3",
+    "skeleton": "nil quote swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop _ swap _ ] [ cons [ _ _ ] dip quote swap cons ] [ drop quote swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold",
+    "source_index": 5760
+  },
+  {
+    "behaviour": "paired_l1_distance",
+    "shown_sha256": "be2c3abbb3fc0523d360add6ced648c15eacb0c6486e109033ae8f8034a6a936",
+    "skeleton": "_ cons [ swap uncons [ drop _ ] [ swap drop swap drop nil swap cons ] [ [ uncons ] dip swap [ swap ] dip swap [ [ swap ] dip _ [ dup _ _ ] [ _ swap _ ] [ ] ifte _ ] dip swap cons ] ifte ] fold uncons swap drop",
+    "source_index": 3320
+  },
+  {
+    "behaviour": "sum_of_squares",
+    "shown_sha256": "2fa4d4b07a704151a3719ac7bd0c45f6afd56b83a81568501c81d13e48435096",
+    "skeleton": "_ [ dup _ _ ] fold",
+    "source_index": 800
+  },
+  {
+    "behaviour": "clamp_each",
+    "shown_sha256": "b5d18faac72f2b37f6551439a9854cf888a0779b869d41ace063c9d4eb95ac6d",
+    "skeleton": "[ swap [ [ over _ ] [ swap drop ] [ drop ] ifte ] dip [ over _ ] [ drop ] [ swap drop ] ifte ] swap cons swap cons map",
+    "source_index": 1560
+  },
+  {
+    "behaviour": "evaluate_polynomial_horner",
+    "shown_sha256": "0d406e77bb01da1840f6aa85ad13f62d9a03082eac935cb37f1c6ef24fd9b688",
+    "skeleton": "[ [ swap ] dip _ _ ] swap cons _ swap fold",
+    "source_index": 6320
+  },
+  {
+    "behaviour": "running_positive_streaks",
+    "shown_sha256": "57d1ac7c7e2a0d9bf885d41fe3e6a02596a684a3f126721497b94ea4f2f2b273",
+    "skeleton": "nil nil cons _ cons [ [ uncons swap uncons swap drop ] dip [ _ swap _ ] [ drop swap _ _ dup [ swap ] dip cons nil swap cons swap cons ] [ drop swap drop _ dup [ swap ] dip cons nil swap cons swap cons ] ifte ] fold uncons drop uncons swap drop nil [ cons ] fold",
+    "source_index": 5360
+  },
+  {
+    "behaviour": "add_pair",
+    "shown_sha256": "f9d5ea5b8ea910aace19b9314e45556926bb500b67378c6c6c87c0628176a5ae",
+    "skeleton": "_",
+    "source_index": 0
+  },
+  {
+    "behaviour": "remove_values_seen_in_second",
+    "shown_sha256": "66207c0b9c4dcb677967b8d0f313efcc1207387c86b9c339b78d085c570f888d",
+    "skeleton": "[ swap [ _ ] swap cons filter _ ] swap cons filter",
+    "source_index": 3560
+  },
+  {
+    "behaviour": "maximum",
+    "shown_sha256": "a7557fcc2e8d25b9cc7857ef2976965639a99b29b1c83149e22573d33ed15049",
+    "skeleton": "uncons [ [ over _ ] [ drop ] [ swap drop ] ifte ] fold",
+    "source_index": 640
+  },
+  {
+    "behaviour": "running_minima",
+    "shown_sha256": "100cfcc9d40d6d41608e667acf0d09ed64ce02502a7d4d19b73395a2dbf469df",
+    "skeleton": "nil [ [ over _ ] [ cons ] [ over uncons swap drop [ over _ ] [ swap drop ] [ drop ] ifte cons ] ifte ] fold nil [ cons ] fold",
+    "source_index": 2400
+  },
+  {
+    "behaviour": "scale_by",
+    "shown_sha256": "e2c655f712d8bb8579305687de1477a0ae478d566ae4fd36ec951b16eb4cb71b",
+    "skeleton": "[ _ ] swap cons map",
+    "source_index": 1000
+  },
+  {
+    "behaviour": "stable_sort_flat_pairs",
+    "shown_sha256": "50f117d9ec0e9a91a8ab10af5887339581727c43b7af140b00879a8e6f7e7ec0",
+    "skeleton": "nil quote _ cons _ cons [ [ uncons swap uncons swap uncons swap drop ] dip [ drop drop drop _ _ ] [ [ swap drop swap drop ] dip swap quote swap cons _ cons ] [ [ swap ] dip quote swap cons cons swap drop quote _ cons _ cons ] ifte ] fold uncons drop uncons drop uncons swap drop nil [ cons ] fold nil [ nil quote swap cons _ cons [ [ uncons swap uncons swap uncons swap drop ] dip [ drop drop drop _ _ ] [ [ uncons swap drop [ [ uncons swap drop ] dip ] dip [ drop ] dip _ ] [ [ [ dup ] dip ] dip [ swap ] dip [ cons ] dip cons [ [ drop ] dip ] dip quote swap cons _ cons ] [ cons quote swap cons swap cons ] ifte ] [ cons quote swap cons swap cons ] ifte ] fold uncons swap uncons swap uncons swap drop [ drop drop _ _ ] [ swap cons swap drop ] [ swap drop swap drop ] ifte nil [ cons ] fold ] fold nil [ cat ] fold",
+    "source_index": 5920
+  },
+  {
+    "behaviour": "mean",
+    "shown_sha256": "2872b17f1f9e34b048f5c58a814fef389eef7cfdd31f2d25e30a87d9364d64a1",
+    "skeleton": "dup _ [ _ ] fold swap _ [ drop _ _ ] fold _",
+    "source_index": 720
+  },
+  {
+    "behaviour": "points_above_parabola",
+    "shown_sha256": "3830e418f3a151e036763b3bb29205418f98349100596ee396f8b8bd79ff814b",
+    "skeleton": "nil _ cons _ cons _ cons [ [ uncons swap uncons swap uncons swap drop ] dip [ drop _ _ ] [ swap drop [ drop ] dip _ nil swap cons swap cons swap cons ] [ swap drop [ over dup _ swap _ ] [ drop drop _ _ ] [ drop drop ] ifte _ _ nil swap cons swap cons swap cons ] ifte ] fold uncons swap drop",
+    "source_index": 4880
+  },
+  {
+    "behaviour": "distinct_value_count",
+    "shown_sha256": "8b91dad833b7e714691a8df378bdb41d87eab14e0dbbe58bb8c328ceea837aa3",
+    "skeleton": "nil [ [ [ _ ] swap cons filter _ ] [ cons ] [ drop ] ifte ] fold nil [ cons ] fold _ [ drop _ _ ] fold",
+    "source_index": 6240
+  },
+  {
+    "behaviour": "aligned_match_count",
+    "shown_sha256": "52946b67cc82194355b8a955d9aab42a4a305697f182735879eb86ca6230c967",
+    "skeleton": "_ cons [ swap uncons [ drop _ ] [ swap drop swap drop nil swap cons ] [ [ uncons ] dip swap [ swap ] dip swap [ [ [ swap ] dip _ ] [ drop swap drop _ _ ] [ drop swap drop ] ifte ] dip swap cons ] ifte ] fold uncons swap drop",
+    "source_index": 3360
+  },
+  {
+    "behaviour": "total_distance_outside_interval",
+    "shown_sha256": "6e1d7491fcd4de0346a712e7b89c8a89302d77c3794a0d0d3dc61708b7530bf6",
+    "skeleton": "[ [ drop _ ] [ drop swap _ _ ] [ [ [ drop ] dip swap _ ] [ [ drop ] dip _ _ ] [ drop drop drop ] ifte ] ifte ] swap cons swap cons _ swap fold",
+    "source_index": 3880
+  },
+  {
+    "behaviour": "closest_to",
+    "shown_sha256": "e3080759c2cc815ccd78500bb8fe77a6306a6e5b91dee7aa840c44fa4698dc8d",
+    "skeleton": "[ uncons ] dip [ [ dup [ _ [ dup _ _ ] [ _ swap _ ] [ ] ifte ] dip swap [ _ [ dup _ _ ] [ _ swap _ ] [ ] ifte ] dip swap _ ] [ drop swap drop ] [ drop drop ] ifte ] swap cons fold",
+    "source_index": 1880
+  },
+  {
+    "behaviour": "nearest_bound",
+    "shown_sha256": "91e66b796e003d5461ac6500904a407e2a465514469b6777b80cd6c8e02228cf",
+    "skeleton": "[ [ over swap _ dup _ ] dip swap [ over swap _ dup _ ] dip _ ] [ swap drop swap drop ] [ drop swap drop ] ifte",
+    "source_index": 1920
+  }
+]
