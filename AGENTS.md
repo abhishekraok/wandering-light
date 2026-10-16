@@ -2,8 +2,17 @@
 
 - Keep saved checkpoints weights-only unless training resumption is explicitly planned. Preserve model/tokenizer/config, trainer metadata, and `wandb_run.url`; optimizer, scheduler, and RNG state are normally disposable.
 - `wandb_run.url` should point to the checkpoint's run in the personal W&B entity so model lineage remains recoverable.
-- **Record provenance; do not enforce it.** Hobby project. 
-  
+- **Record provenance; do not enforce it.** Hobby project. Record commit, dirty
+  flag, config, data digests, seed and W&B URL in every artifact. Never add
+  checks that refuse to run or load on a mismatch; report it as a caveat. In
+  review, an experiment driver much larger than the module it drives is a
+  finding.
+- `README.md` is for a first-time human visitor (what, why, how to run); agent
+  conventions go here.
+- Interactive tools (debuggers, explorers) must feel instant: navigate
+  client-side over precomputed data, keep models warm in one long-lived
+  process, no page reloads.
+
 ## Working with other agents
 
 Several agents and sessions touch this repo. Work in a worktree so your work 
