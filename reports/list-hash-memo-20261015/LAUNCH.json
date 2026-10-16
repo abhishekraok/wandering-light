@@ -1,0 +1,24 @@
+{
+  "at": "2026-10-15T22:11:17.298504-07:00",
+  "unit": "wl-list-hash-pilot-20261015",
+  "argv": [
+    "systemd-run",
+    "--user",
+    "--unit=wl-list-hash-pilot-20261015",
+    "--collect",
+    "-p",
+    "RuntimeMaxSec=1200",
+    "-p",
+    "MemoryMax=12G",
+    "-p",
+    "MemorySwapMax=0",
+    "--working-directory=/home/abhishekrao/eden/janthus/program-synthesis/work/trees/list-hash-review-candidate-20261015",
+    "bash",
+    "-lc",
+    "env -u ANTHROPIC_API_KEY -u OPENAI_API_KEY PYTHONPATH=/home/abhishekrao/eden/janthus/program-synthesis/work/trees/list-hash-review-candidate-20261015 PYTHONDONTWRITEBYTECODE=1 PYTHONHASHSEED=0 XDG_CACHE_HOME=/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/cache HF_HOME=/home/abhishekrao/.cache/huggingface HF_HUB_CACHE=/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/hf-hub OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 /home/abhishekrao/repos/wandering-light/.venv/bin/python -m experiments.list_hash_memo_run phase --out /home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot --control /home/abhishekrao/eden/janthus/program-synthesis/work/trees/list-hash-control-20261015 --candidate /home/abhishekrao/eden/janthus/program-synthesis/work/trees/list-hash-review-candidate-20261015 --control-head d9645d7be1fba554fb0722a1e7300e7c7a5d7585 --candidate-head 01d8254d9a0f3d9bf984678e2997e30d78de023e > /home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot-wrapper.log 2>&1; pilot_exit=$?; echo \"exit $pilot_exit\" >> /home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot-wrapper.log; exit \"$pilot_exit\""
+  ],
+  "review_head_control": "d9645d7be1fba554fb0722a1e7300e7c7a5d7585",
+  "review_head_candidate": "01d8254d9a0f3d9bf984678e2997e30d78de023e",
+  "expected_seconds": 600,
+  "hard_seconds": 1200
+}

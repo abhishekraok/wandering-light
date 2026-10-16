@@ -1,0 +1,89 @@
+"""Independent #185 saved-output audit; no runner helpers/model/search/hidden grading."""
+from pathlib import Path
+import gzip,hashlib,inspect,json,math,subprocess,sys
+from fractions import Fraction
+BASE=Path('/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015');P=BASE/'pilot'
+def load(p):return json.loads(Path(p).read_text())
+def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+prov=load(P/'provenance.json');summary=load(P/'summary.json')
+assert summary['complete'] is True and (BASE/'pilot-wrapper.log').read_text().splitlines()[-1]=='exit 0'
+assert not (P/'INCOMPLETE.json').exists()
+group=Path('/sys/fs/cgroup')/Path('/proc/self/cgroup').read_text().split('0::',1)[1].strip().lstrip('/')
+assert (group/'memory.max').read_text().strip()=='12884901888' and (group/'memory.swap.max').read_text().strip()=='0'
+properties=subprocess.check_output(['systemctl','--user','show',group.name,'-p','MemoryMax','-p','MemorySwapMax','-p','RuntimeMaxUSec'],text=True)
+assert 'MemoryMax=12884901888' in properties and 'MemorySwapMax=0' in properties
+files=set(p for p in P.rglob('*') if p.is_file())
+files.update(p for p in (BASE/'review-code1').rglob('*') if p.is_file())
+files.update(Path(p) for arm in prov['sources'].values() for p in arm['files'])
+files.update(Path(prov['checkpoint'])/name for name in prov['model'])
+files.update([BASE/'pilot-launch.json',BASE/'pilot-preflight.json',BASE/'pilot-status-initial.txt',BASE/'pilot-wrapper.log',Path(__file__)])
+before={str(p):sha(p) for p in sorted(files)}
+for path,digest in summary['raw_sha256'].items():assert sha(path)==digest
+for arm in prov['sources'].values():
+ assert subprocess.check_output(['git','-C',arm['root'],'rev-parse','HEAD'],text=True).strip()==arm['head']
+ assert not subprocess.check_output(['git','-C',arm['root'],'status','--porcelain'],text=True)
+ for path,digest in arm['files'].items():assert sha(path)==digest
+for name,digest in prov['model'].items():assert sha(Path(prov['checkpoint'])/name)==digest
+payload=P/'inputs/stack_pbe_v4_train.jsonl.gz';assert sha(payload)=='13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b'
+with gzip.open(payload,'rt') as f: original=[json.loads(l) for l in f if l.strip()]
+first={}
+for i,r in enumerate(original):
+ assert r['split']=='train' and r['inputs'] and len(r['inputs'])==len(r['outputs']);first.setdefault(r['skeleton'],i)
+selected=sorted(first,key=lambda s:(hashlib.sha256(b'list-hash-memo-v1\0'+s.encode()).hexdigest(),s))[:24]
+shown=[];identities=[]
+for s in selected:
+ i=first[s];r=original[i];pair={'inputs':r['inputs'],'outputs':r['outputs']}
+ identities.append({'source_index':i,'skeleton':s,'behaviour':r['behaviour'],'shown_sha256':hashlib.sha256(json.dumps(pair,sort_keys=True,separators=(',',':')).encode()).hexdigest()});shown.append({'source_index':i,**pair})
+assert identities==load(P/'selection.json') and shown==load(P/'shown.json')
+order=[('control',17),('candidate',17),('candidate',29),('control',29),('control',43),('candidate',43)]
+assert prov['order']==[list(t) for t in order]
+expected_runtime={'cgroup':'0::/user.slice/user-1000.slice/user@1000.service/app.slice/wl-list-hash-pilot-20261015.service\n','memory_max':'12884901888','swap_max':'0','systemd':{'MemoryMax':'12884901888','MemorySwapMax':'0','RuntimeMaxUSec':'20min'}}
+assert prov['runtime']==expected_runtime
+cells={};stats={};replays=0
+from wandering_light import stack_machine as machine
+control=Path(prov['sources']['control']['root'])
+assert Path(machine.__file__).resolve()==control/'wandering_light/stack_machine.py'
+assert Path(inspect.getsourcefile(inspect.unwrap(machine.step_raw))).resolve()==control/'wandering_light/stack_machine.py'
+ops={op.name:op for op in machine.ops_for_basis('mark-28')}
+for arm,label in order:
+ name=f'{arm}-{label}';cell=load(P/f'{name}.json');cells[name]=cell
+ assert cell['complete'] is True and (cell['arm'],cell['label'])==(arm,label)
+ assert cell['source']==prov['sources'][arm] and cell['checkpoint']==prov['model'] and cell['runtime']==expected_runtime
+ assert (cell['device'],cell['threads'],cell['interop'],cell['hash_seed'],cell['model_parameter_dtypes'])==('cpu',1,1,'0',['torch.float32'])
+ assert cell['thread_env']==dict.fromkeys(['OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS_NUM_THREADS','NUMEXPR_NUM_THREADS','VECLIB_MAXIMUM_THREADS'],'1')
+ root=Path(prov['sources'][arm]['root'])
+ assert all(Path(v)==root/(k.replace('.','/')+'.py') for k,v in cell['module_origins'].items())
+ assert all(v in prov['sources'][arm]['files'] for v in cell['callable_origins'].values())
+ assert cell['list_hash_code']==('<string>' if arm=='control' else str(root/'wandering_light/stack_machine.py'))
+ assert [r['source_index'] for r in cell['rows']]==[r['source_index'] for r in shown]
+ assert len(cell['rows'])==24
+ clock=summary['process_seconds'][name];assert math.isfinite(clock) and clock>0
+ logrows=[json.loads(l) for l in (P/f'{name}.log').read_text().splitlines() if l.startswith('{')]
+ assert logrows==cell['rows']
+ for entry,row in zip(shown,cell['rows'],strict=True):
+  assert row['termination'] in ['fit','budget','max_depth','frontier_exhausted']
+  assert (row['program'] is not None)==(row['termination']=='fit')
+  assert set(row)=={'source_index','program','termination','seconds','solve_seconds','executions','fuel','expansions','depth','pruned'}
+  assert type(row['pruned']) is bool
+  assert all(type(row[k]) is int and row[k]>=0 for k in ['source_index','executions','fuel','expansions','depth'])
+  assert all(math.isfinite(row[k]) and row[k]>=0 for k in ['seconds','solve_seconds'])
+  if row['program'] is not None:
+   assert len(row['program'])==row['depth']
+   for text,target in zip(entry['inputs'],entry['outputs'],strict=True):
+    stack=machine.parse_stack(text,basis='mark-28')
+    for op in row['program']:
+     result=machine.step_raw(ops[op],stack,machine.DEFAULT_FUEL_LIMIT,0);assert not isinstance(result,str),result;stack,_=result
+    assert stack==machine.parse_stack(target,basis='mark-28')
+   replays+=1
+ stats[name]={'shown_fits':sum(r['program'] is not None for r in cell['rows']),'solve_seconds':sum(r['solve_seconds'] for r in cell['rows']),'process_seconds':clock,'max_rss_kib':cell['max_rss_kib'],'terminations':{t:sum(r['termination']==t for r in cell['rows']) for t in sorted(set(r['termination'] for r in cell['rows']))}}
+pairs=[]
+for label in [17,29,43]:
+ c=cells[f'control-{label}'];a=cells[f'candidate-{label}'];clean=lambda rows:[{k:v for k,v in r.items() if k not in ['seconds','solve_seconds']} for r in rows]
+ eq=clean(c['rows'])==clean(a['rows']);ratio=Fraction(summary['process_seconds'][f'candidate-{label}'])/Fraction(summary['process_seconds'][f'control-{label}'])
+ pairs.append({'label':label,'results_equal':eq,'process_ratio':float(ratio),'process_ratio_exact':[ratio.numerator,ratio.denominator],'clock_pass':ratio<=Fraction(9,10)})
+assert pairs==summary['pairs'];eq=all(p['results_equal'] for p in pairs);speed=all(p['clock_pass'] for p in pairs)
+assert summary['exact_results_equal']==eq and summary['every_process_ratio_at_most_nine_tenths']==speed
+reading='QUALIFY_RELEASE_COHORT' if eq and speed else 'PARK_FIXED_CONSTRUCTION';assert summary['reading']==reading
+assert before=={str(p):sha(p) for p in sorted(files)}
+receipt={'complete':True,'reading':reading,'original_rows':len(original),'skeletons':len(first),'shown_replayed_paths':replays,'pairs':pairs,'stats':stats,'source_heads':{a:s['head'] for a,s in prov['sources'].items()},'actual_audit_controls':properties,'primitive_origin':machine.__file__,'files_rehashed_after_replay':before,'limits':'Saved results, original selection, exact metrics and shown-only typed replay; not whole-search reconstruction, hidden grading or independent wall-clock observation.'}
+(BASE/'audit-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps({k:v for k,v in receipt.items() if k!='files_rehashed_after_replay'},indent=2))

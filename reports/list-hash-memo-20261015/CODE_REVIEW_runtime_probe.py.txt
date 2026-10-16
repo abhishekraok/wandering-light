@@ -1,0 +1,21 @@
+"""Review probe (synthetic, no data/model): actual runtime/origin readers per root."""
+
+import json
+import sys
+
+from experiments import list_hash_memo_run as run
+from wandering_light.stack_machine import Lst
+
+out = {"root": str(run.ROOT), "argv": sys.argv[1:]}
+for name, fn in (
+    ("runtime", run.runtime_limits),
+    ("origins", run.origins),
+    ("callables", run.callable_origins),
+    ("source_info", lambda: run.source_info(run.ROOT)),
+):
+    try:
+        out[name] = fn()
+    except Exception as error:  # record, do not hide
+        out[name] = {"error": repr(error)}
+out["list_hash_code"] = Lst.__hash__.__code__.co_filename
+print(json.dumps(out, sort_keys=True, indent=1))

@@ -1,0 +1,33 @@
+diff --git a/wandering_light/stack_machine.py b/wandering_light/stack_machine.py
+index e1acf6e..9cc9e6d 100644
+--- a/wandering_light/stack_machine.py
++++ b/wandering_light/stack_machine.py
+@@ -106,12 +106,27 @@ class Mark:
+     """The structural delimiter used by the optional ``mark-28`` basis."""
+ 
+ 
++class _HashMemo:
++    # Not a dataclass field: frozen/slotted pickle and field APIs omit this
++    # process-local, potentially salted integer. No global retention table.
++    __slots__ = ("_cached_hash",)
++
++
+ @dataclass(frozen=True, slots=True)
+-class Lst:
++class Lst(_HashMemo):
+     """A list of values. The empty list is `nil`; a quotation is one of these."""
+ 
+     items: tuple[Value, ...] = ()
+ 
++    def __hash__(self) -> int:
++        cached = getattr(self, "_cached_hash", None)
++        if cached is None:
++            # Exactly the generated dataclass hash of the sole `items` field.
++            # Publish only after hashing succeeds; zero is a valid memo value.
++            cached = hash((self.items,))
++            object.__setattr__(self, "_cached_hash", cached)
++        return cached
++
+ 
+ Value = Int | Bool | Sym | Mark | Lst
+ 

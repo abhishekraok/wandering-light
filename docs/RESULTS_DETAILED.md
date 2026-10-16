@@ -1077,3 +1077,16 @@ Both #183 phases passed [independent code/result review](../reports/gumbel-reten
 | 43 | 765440 / 9371269 | 8.167944% | 5.874487% | 2.293457% | 12 / 24 | 65.564694 | PROFILE.json |
 
 Within/cross contributions share the all-position denominator; both are descriptive, not alternate gates. Whole phase219.315785s; exact ratios/gates/raw hashes in JSON. One policy/TRAIN panel, deadline-dependent instrumented trajectories, not a general cache null or numerical compatibility/speed/BEST evidence.
+
+
+## Exact list-hash memo pilot — 2026-10-15
+
+[list-hash-memo (#185)](https://github.com/abhishekraok/wandering-light/issues/185), [report](../reports/list-hash-memo-20261015/RESULT.md), [JSON](../reports/list-hash-memo-20261015/summary.json). One fixed TRAIN24 panel/pinned policy/CPUfloat32/threads1/libraryoff/common100000execution budget/no solver deadline. All paired substantive results match; EVERY full-process clock ratio misses <=0.900. Fixed construction parked, no tuned retry. Five shown fits each are not hidden verified coverage. Actual12GiB/no swap/1200s and normal complete exit; independent capped selection/result/gate/shown-replay audit passed, final result review pending. Candidate production hash change is excluded; BEST unchanged.
+
+| deterministic label | control process seconds | candidate process seconds | candidate/control | exact results | timing gate |
+|---|---:|---:|---:|---|---|
+|17|26.559562|25.689479|0.967240326|match|fail|
+|29|26.452085|25.831236|0.976529299|match|fail|
+|43|25.856915|26.495372|1.024691941|match|fail|
+
+Full process clocks include imports/load/source checks/search/output/all tasks; phase166.701410s. No held-out speed/coverage, broad hash-reuse null or production/BEST claim.

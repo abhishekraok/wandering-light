@@ -1,0 +1,18 @@
+[
+  "systemd-run",
+  "--user",
+  "--wait",
+  "--pipe",
+  "--unit=wl-list-hash-audit-20261015",
+  "--collect",
+  "-p",
+  "RuntimeMaxSec=600",
+  "-p",
+  "MemoryMax=12G",
+  "-p",
+  "MemorySwapMax=0",
+  "--working-directory=/home/abhishekrao/eden/janthus/program-synthesis/work/trees/list-hash-control-20261015",
+  "bash",
+  "-lc",
+  "env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/home/abhishekrao/eden/janthus/program-synthesis/work/trees/list-hash-control-20261015 PYTHONHASHSEED=0 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/abhishekrao/repos/wandering-light/.venv/bin/python /home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/audit.py > /home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/audit.log 2>&1; audit_exit=$?; echo \"exit $audit_exit\" >> /home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/audit.log; exit \"$audit_exit\""
+]

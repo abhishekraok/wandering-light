@@ -1,0 +1,107 @@
+"""Review probe (synthetic values / untrained model only). Usage: xsource.py MODE [incoming.json]"""
+
+import base64
+import copy
+import dataclasses
+import json
+import pickle
+import random
+import sys
+
+from wandering_light.stack_machine import Bool, Int, Lst, Mark, Sym, value_key
+
+
+def gen(rng, depth):
+    r = rng.random()
+    if depth == 0 or r < 0.5:
+        k = rng.randrange(5)
+        if k == 0:
+            return Int(rng.choice([0, 1, -1, -2, 2**61 - 1, 2**61, -(2**61 - 1), 2**200, rng.randrange(-50, 50)]))
+        if k == 1:
+            return Bool(rng.random() < 0.5)
+        if k == 2:
+            return Sym(rng.choice(["add", "dup", "[", "]", "i", "cons", "", "日本", "x" * 40]))
+        if k == 3:
+            return Mark()
+        return Lst(())
+    return Lst(tuple(gen(rng, depth - 1) for _ in range(rng.randrange(0, 6))))
+
+
+rng = random.Random(185)
+vals = [gen(rng, 5) for _ in range(3000)]
+vals += [Lst((Int(0),)), Lst((Int(2**61 - 1),)), Lst((Bool(False),)), Lst((Int(-1),)), Lst((Int(-2),))]
+mode = sys.argv[1]
+out = {}
+if mode == "facts":
+    # Compute hashes twice (miss, then hit), equality partition, schema.
+    h1 = [hash(v) for v in vals]
+    h2 = [hash(v) for v in vals]
+    assert h1 == h2
+    fresh = [gen(random.Random(185), 5) for _ in range(1)]
+    keys = {}
+    part = []
+    for v in vals:
+        part.append(keys.setdefault(v, len(keys)))
+    vk = {}
+    part_vk = [vk.setdefault(value_key(v), len(vk)) for v in vals]
+    out["hashes"] = h1
+    out["partition_eq_equals_value_key"] = part == part_vk
+    out["partition"] = part
+    out["repr"] = [repr(v) for v in vals[:300]]
+    out["asdict"] = repr([dataclasses.asdict(v) for v in vals[:300]])
+    out["astuple"] = repr([dataclasses.astuple(v) for v in vals[:300]])
+    out["fields"] = [f.name for f in dataclasses.fields(Lst)]
+    out["match_args"] = Lst.__match_args__
+    out["params"] = repr(Lst.__dataclass_params__)
+    out["int_bool"] = [Int(0) == Bool(False), Int(1) == Bool(True), len({Int(0), Bool(False), Lst((Int(0),)), Lst((Bool(False),))})]
+    # unequal collision
+    a, b = Lst((Int(0),)), Lst((Int(2**61 - 1),))
+    out["collision"] = [a == b, hash(a) == hash(b), len({a, b})]
+    out["replace"] = all(dataclasses.replace(v) == v and hash(dataclasses.replace(v)) == hash(v) for v in vals if isinstance(v, Lst))
+    m = Lst((Sym("q"), Lst((Int(3),))))
+    match m:
+        case Lst(items=(Sym(name=n), Lst(items=(Int(value=k),)))):
+            out["pattern"] = [n, k]
+    try:
+        m.items = ()
+        out["frozen"] = False
+    except dataclasses.FrozenInstanceError:
+        out["frozen"] = True
+    # Pickle every protocol, AFTER hashing (memo populated in candidate).
+    out["pickles"] = {
+        str(p): base64.b64encode(pickle.dumps(vals, protocol=p)).decode() for p in range(6)
+    }
+    # copy/deepcopy of memoized objects
+    cl = [copy.copy(v) for v in vals] + [copy.deepcopy(v) for v in vals]
+    out["copy_ok"] = all(c == v and hash(c) == hash(v) for c, v in zip(cl, vals + vals))
+    out["clone_memo_absent_before_hash"] = all(
+        getattr(c, "_cached_hash", None) is None
+        for c in [copy.copy(v) for v in vals if isinstance(v, Lst)]
+        + [copy.deepcopy(v) for v in vals if isinstance(v, Lst)]
+    )
+    out["slots"] = [getattr(Lst, "__slots__", None), [c.__name__ for c in Lst.__mro__]]
+    out["sizeof"] = Lst((Int(1),)).__sizeof__()
+    out["hash_file"] = Lst.__hash__.__code__.co_filename
+    # failure / zero
+    bad = Lst((Lst(([],)),))
+    errs = []
+    for _ in range(2):
+        try:
+            hash(bad)
+        except TypeError as e:
+            errs.append(str(e))
+    out["failure"] = [errs, getattr(bad, "_cached_hash", None), getattr(bad.items[0], "_cached_hash", None)]
+    if hasattr(Lst, "_cached_hash"):
+        z = Lst((Int(5),))
+        object.__setattr__(z, "_cached_hash", 0)
+        out["zero_memo_hit"] = hash(z) == 0
+        out["memo_state_excluded"] = z.__getstate__() == [z.items] and pickle.loads(pickle.dumps(z)).__hash__() == hash((z.items,))
+    print(json.dumps(out))
+elif mode == "load":
+    incoming = json.loads(open(sys.argv[2]).read())
+    res = {}
+    for p, blob in incoming["pickles"].items():
+        loaded = pickle.loads(base64.b64decode(blob))
+        memo_absent = all(getattr(v, "_cached_hash", None) is None for v in loaded if isinstance(v, Lst))
+        res[p] = [loaded == vals, [hash(v) for v in loaded] == [hash(v) for v in vals], memo_absent]
+    print(json.dumps(res))

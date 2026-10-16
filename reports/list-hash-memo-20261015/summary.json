@@ -1,0 +1,61 @@
+{
+  "complete": true,
+  "every_process_ratio_at_most_nine_tenths": false,
+  "exact_results_equal": true,
+  "pairs": [
+    {
+      "clock_pass": false,
+      "label": 17,
+      "process_ratio": 0.9672403260125507,
+      "process_ratio_exact": [
+        882683784809,
+        912579594823
+      ],
+      "results_equal": true
+    },
+    {
+      "clock_pass": false,
+      "label": 29,
+      "process_ratio": 0.9765292987725672,
+      "process_ratio_exact": [
+        887554517141,
+        908886725935
+      ],
+      "results_equal": true
+    },
+    {
+      "clock_pass": false,
+      "label": 43,
+      "process_ratio": 1.0246919405475992,
+      "process_ratio_exact": [
+        910374054006,
+        888436824749
+      ],
+      "results_equal": true
+    }
+  ],
+  "phase_seconds": 166.70141045202035,
+  "process_seconds": {
+    "candidate-17": 25.689479219989153,
+    "candidate-29": 25.831236187979812,
+    "candidate-43": 26.495372119999956,
+    "control-17": 26.55956180600333,
+    "control-29": 26.45208517598803,
+    "control-43": 25.85691471901373
+  },
+  "raw_sha256": {
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/candidate-17.json": "6197dfd03a6476c9d4aaa7dcdca324e724285ba33260dd92ed80d32d5bf10062",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/candidate-29.json": "202caed28815d58e049d3876fdd4a421f26d8d966b5052bdfa5d2dff90f16e23",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/candidate-43.json": "8038c21286ee612a23a8aef22111a2c8b6b12d1c5c66833e90dfb3851a13cb92",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/control-17.json": "e89e5c00f509ee950f0f9f72acf3c3d919b50d72934fa68d7dcd18a354f7b44c",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/control-29.json": "7d97bb41c3cf2a0d9f08834ee47faf98932438b6fdd1976941675659c234ebf4",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/control-43.json": "7e7ec1c70bebbfa16b89b6bbee0ccfa70cf7544b3cecf9daee5ae295e73c9e0d",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/host-after.json": "bb4af50f36373ab4b7826adf3db622f045063464610cdc165ad955bcc2b7c1d9",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/host-before.json": "667f47c50eca9cc4658785a0a9aebd6875be5b1576c9d9b8e9ad3fa0998f3840",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/inputs/stack_pbe_v4_train.jsonl.gz": "13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/provenance.json": "adeca1bc9460bc3eaa99d8cd0d9314be49071574739b2e1a426743db6e5177b4",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/selection.json": "8b9d8a9286e6d14194fd14da4491faefdcaf2593b97361eef1be1c7fd1c03ade",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/pilot/shown.json": "160e7c3a1448f7ba0196a714c4a7c2fd7768a7da8a1f72080cb6fc08b58f8181"
+  },
+  "reading": "PARK_FIXED_CONSTRUCTION"
+}

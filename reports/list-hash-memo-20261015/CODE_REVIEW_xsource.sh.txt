@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+R=/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015/review-code1/claude
+T=/home/abhishekrao/eden/janthus/program-synthesis/work/trees
+PY=/home/abhishekrao/repos/wandering-light/.venv/bin/python
+C=$T/list-hash-control-20261015; N=$T/list-hash-review-candidate-20261015
+for seed in 0 17 29 4242; do
+  for arm in C N; do root=${!arm}
+    (cd $root && PYTHONPATH=$root PYTHONHASHSEED=$seed PYTHONDONTWRITEBYTECODE=1 $PY $R/xsource.py facts > $R/out/facts_${arm}_$seed.json)
+  done
+done
+# cross loads: producer arm/seed -> consumer arm/seed (different seeds)
+for pair in "C 17 N 29" "N 29 C 43" "N 0 N 4242" "C 4242 N 0" "N 17 C 17"; do set -- $pair
+  root=${!3}
+  (cd $root && PYTHONPATH=$root PYTHONHASHSEED=$4 PYTHONDONTWRITEBYTECODE=1 $PY $R/xsource.py load $R/out/facts_$1_$2.json > $R/out/load_$1$2_$3$4.json)
+done

@@ -1,0 +1,58 @@
+"""Untrained tiny model, manually typed tasks, actual production beam_solve in this source."""
+
+import dataclasses
+import gc
+import hashlib
+import json
+
+import torch
+
+from wandering_light.rollout_policy import PolicyArchitecture
+from wandering_light.stack_beam import BeamObserver, beam_solve
+from wandering_light.stack_machine import Lst, run_body
+from wandering_light.stack_policy import PolicyScorer, StackPairPolicy
+
+torch.manual_seed(0)
+torch.set_num_threads(1)
+model = StackPairPolicy(PolicyArchitecture(byte_embedding=4, conv_channels=8, hidden=8))
+scorer = PolicyScorer(model, "cpu")
+tasks = [
+    (("[ (1 2) 2 ]", "[ (3 4) 3 ]"), ("[ (1 2) 4 ]", "[ (3 4) 9 ]")),
+    (("[ 1 2 3 ]", "[ 4 5 6 ]"), ("[ 6 ]", "[ 15 ]")),
+    (("[ (1 2 3) ]", "[ (4 5) ]"), ("[ (3 2 1) ]", "[ (5 4) ]")),
+    (("[ (1 (2 3)) ]", "[ (true false) ]"), ("[ ((2 3)) ]", "[ (false) ]")),
+    (("[ 7 ]", "[ 2 ]"), ("[ true ]", "[ false ]")),
+]
+
+
+class Watch(BeamObserver):
+    def __init__(self):
+        self.h = hashlib.sha256()
+
+    def layer_scored(self, depth, probs, legal):
+        self.h.update(probs.tobytes())
+        self.h.update(legal.tobytes())
+
+
+run_body.cache_clear()
+gc.freeze()
+rows = []
+for inputs, outputs in tasks:
+    for budget in (3000, 20000):
+        w = Watch()
+        r = beam_solve(
+            type("T", (), {"inputs": inputs, "outputs": outputs})(),
+            scorer,
+            beam_width=64,
+            max_depth=48,
+            guard="both",
+            max_state_atoms=16384,
+            budget=budget,
+            budget_unit="executions",
+            deadline=None,
+            observer=w,
+        )
+        d = {k: v for k, v in dataclasses.asdict(r).items() if k != "seconds"}
+        d["scored_sha"] = w.h.hexdigest()
+        rows.append(d)
+print(json.dumps({"rows": rows, "hash_file": Lst.__hash__.__code__.co_filename}))

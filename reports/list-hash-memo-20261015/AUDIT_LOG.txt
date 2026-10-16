@@ -1,0 +1,109 @@
+{
+  "complete": true,
+  "reading": "PARK_FIXED_CONSTRUCTION",
+  "original_rows": 7000,
+  "skeletons": 171,
+  "shown_replayed_paths": 30,
+  "pairs": [
+    {
+      "label": 17,
+      "results_equal": true,
+      "process_ratio": 0.9672403260125507,
+      "process_ratio_exact": [
+        882683784809,
+        912579594823
+      ],
+      "clock_pass": false
+    },
+    {
+      "label": 29,
+      "results_equal": true,
+      "process_ratio": 0.9765292987725672,
+      "process_ratio_exact": [
+        887554517141,
+        908886725935
+      ],
+      "clock_pass": false
+    },
+    {
+      "label": 43,
+      "results_equal": true,
+      "process_ratio": 1.0246919405475992,
+      "process_ratio_exact": [
+        910374054006,
+        888436824749
+      ],
+      "clock_pass": false
+    }
+  ],
+  "stats": {
+    "control-17": {
+      "shown_fits": 5,
+      "solve_seconds": 20.078810652019456,
+      "process_seconds": 26.55956180600333,
+      "max_rss_kib": 1466492,
+      "terminations": {
+        "budget": 19,
+        "fit": 5
+      }
+    },
+    "candidate-17": {
+      "shown_fits": 5,
+      "solve_seconds": 20.02405904594343,
+      "process_seconds": 25.689479219989153,
+      "max_rss_kib": 1505684,
+      "terminations": {
+        "budget": 19,
+        "fit": 5
+      }
+    },
+    "candidate-29": {
+      "shown_fits": 5,
+      "solve_seconds": 20.15261111597647,
+      "process_seconds": 25.831236187979812,
+      "max_rss_kib": 1539720,
+      "terminations": {
+        "budget": 19,
+        "fit": 5
+      }
+    },
+    "control-29": {
+      "shown_fits": 5,
+      "solve_seconds": 20.715262450976297,
+      "process_seconds": 26.45208517598803,
+      "max_rss_kib": 1531992,
+      "terminations": {
+        "budget": 19,
+        "fit": 5
+      }
+    },
+    "control-43": {
+      "shown_fits": 5,
+      "solve_seconds": 20.19878939705086,
+      "process_seconds": 25.85691471901373,
+      "max_rss_kib": 1531760,
+      "terminations": {
+        "budget": 19,
+        "fit": 5
+      }
+    },
+    "candidate-43": {
+      "shown_fits": 5,
+      "solve_seconds": 20.749678602995118,
+      "process_seconds": 26.495372119999956,
+      "max_rss_kib": 1505352,
+      "terminations": {
+        "budget": 19,
+        "fit": 5
+      }
+    }
+  },
+  "source_heads": {
+    "candidate": "01d8254d9a0f3d9bf984678e2997e30d78de023e",
+    "control": "d9645d7be1fba554fb0722a1e7300e7c7a5d7585"
+  },
+  "actual_audit_controls": "RuntimeMaxUSec=10min\nMemoryMax=12884901888\nMemorySwapMax=0\n",
+  "primitive_origin": "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/list-hash-control-20261015/wandering_light/stack_machine.py",
+  "limits": "Saved results, original selection, exact metrics and shown-only typed replay; not whole-search reconstruction, hidden grading or independent wall-clock observation."
+}
+exit 0
