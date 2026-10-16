@@ -10,8 +10,9 @@ Several agents and sessions touch this repo. Work in a worktree so your work
 doesn't collide. Don't put the worktree under /tmp.
 
 - **`docs/RESULTS.md` records numbers; `docs/STATUS.md` records state; issues
-  record argument.** A run adds a row to `RESULTS_DETAILED.md`, to `RESULTS.md`
-  only if it is a headline, and to STATUS if it changes a claim. Never the same content in two places. If
+  record argument.** A run adds a row to `docs/RESULTS_DETAILED.md`, to `RESULTS.md`
+  only if it is a headline, and to STATUS if it changes a claim. Apart from the
+  headline copy, never the same content in two places. If
   you establish something, add a row there — a claim that lives only in a
   comment gets contradicted by the next comment. Update it as part of the
   work, not afterwards.
@@ -22,8 +23,8 @@ doesn't collide. Don't put the worktree under /tmp.
   them, do not merge or close them. Another agent may still be writing to it.
 - **Post results on the issue, not in the PR.** PRs die on merge and results
   should outlive the code review that carried them. A PR body says what the
-  code *does*; the issue accumulates what was *learned*, across runs. One PR
-  per run, one issue per question.
+  code *does*; the issue accumulates what was *learned*, across runs. One
+  issue per question.
 
 When you are wrong about something that has been acted on, correct it in
 `docs/STATUS.md` under Superseded as well as in the thread. A correction in a
