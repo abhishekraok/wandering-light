@@ -7,3 +7,5 @@ All-attempt solve clocks54.02054682899325 /56.65142681800353 /55.18483057596313s
 Parent audit reconstructed hash-selection from original train rows, replayed shown examples, recomputed hidden grading and summary arithmetic, checked saved verifier tallies/witness equality, origins/thread counts and source/data/checkpoint/raw-file hashes. It did not independently replay full search or regenerate random-input draws. Software tests/review are not scientific efficacy evidence.
 
 [Operative registration](https://github.com/abhishekraok/wandering-light/issues/183#issuecomment-6206493716) preserves all prospective parameters/gates and precedes any candidate execution. No candidate result or BEST change. This baseline report has not yet received final independent result review for landing.
+
+Resource deviation noted after completion: parent post-run replay audit ran without the mandated memory scope; no resource qualification is claimed for it. The original baseline measurement/verification unit was correctly capped12GiB/no swap. Final independent review will perform replay/verification under its own actual12GiB/no-swap unit.

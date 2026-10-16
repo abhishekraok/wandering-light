@@ -1,0 +1,511 @@
+{
+  "cells": {
+    "baseline-17": {
+      "executions": 4613533,
+      "fuel": 5038015,
+      "graded": [
+        "add_pair",
+        "aligned_match_count",
+        "evaluate_polynomial_horner",
+        "interval_violation_count",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "kinds": {
+        "equals_catalogue_witness": [
+          "add_pair",
+          "evaluate_polynomial_horner",
+          "mean",
+          "running_minima",
+          "scale_by",
+          "sum_of_squares"
+        ],
+        "genuine": [
+          "maximum",
+          "remove_values_seen_in_second"
+        ],
+        "inconclusive": [],
+        "shortcut": [
+          "aligned_match_count",
+          "closest_to",
+          "interval_violation_count",
+          "points_above_parabola"
+        ]
+      },
+      "program_lengths": {
+        "0": 1,
+        "1000": 6,
+        "1880": 7,
+        "2400": 36,
+        "3360": 23,
+        "3560": 12,
+        "3800": 36,
+        "4880": 25,
+        "6320": 13,
+        "640": 14,
+        "720": 15,
+        "800": 7
+      },
+      "solve_seconds": 54.67850980599178,
+      "terminations": {
+        "fit": 12,
+        "max_depth": 9,
+        "wall_clock_cap": 3
+      },
+      "verified": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "verified_count": 8,
+      "verified_draw_tested": [
+        "maximum",
+        "remove_values_seen_in_second"
+      ],
+      "verified_witness_equal": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "mean",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ]
+    },
+    "baseline-29": {
+      "executions": 4642339,
+      "fuel": 5069516,
+      "graded": [
+        "add_pair",
+        "aligned_match_count",
+        "evaluate_polynomial_horner",
+        "interval_violation_count",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "kinds": {
+        "equals_catalogue_witness": [
+          "add_pair",
+          "evaluate_polynomial_horner",
+          "mean",
+          "running_minima",
+          "scale_by",
+          "sum_of_squares"
+        ],
+        "genuine": [
+          "maximum",
+          "remove_values_seen_in_second"
+        ],
+        "inconclusive": [],
+        "shortcut": [
+          "aligned_match_count",
+          "closest_to",
+          "interval_violation_count",
+          "points_above_parabola"
+        ]
+      },
+      "program_lengths": {
+        "0": 1,
+        "1000": 6,
+        "1880": 7,
+        "2400": 36,
+        "3360": 23,
+        "3560": 12,
+        "3800": 36,
+        "4880": 25,
+        "6320": 13,
+        "640": 14,
+        "720": 15,
+        "800": 7
+      },
+      "solve_seconds": 54.73237713606795,
+      "terminations": {
+        "fit": 12,
+        "max_depth": 9,
+        "wall_clock_cap": 3
+      },
+      "verified": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "verified_count": 8,
+      "verified_draw_tested": [
+        "maximum",
+        "remove_values_seen_in_second"
+      ],
+      "verified_witness_equal": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "mean",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ]
+    },
+    "baseline-43": {
+      "executions": 4616881,
+      "fuel": 5041605,
+      "graded": [
+        "add_pair",
+        "aligned_match_count",
+        "evaluate_polynomial_horner",
+        "interval_violation_count",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "kinds": {
+        "equals_catalogue_witness": [
+          "add_pair",
+          "evaluate_polynomial_horner",
+          "mean",
+          "running_minima",
+          "scale_by",
+          "sum_of_squares"
+        ],
+        "genuine": [
+          "maximum",
+          "remove_values_seen_in_second"
+        ],
+        "inconclusive": [],
+        "shortcut": [
+          "aligned_match_count",
+          "closest_to",
+          "interval_violation_count",
+          "points_above_parabola"
+        ]
+      },
+      "program_lengths": {
+        "0": 1,
+        "1000": 6,
+        "1880": 7,
+        "2400": 36,
+        "3360": 23,
+        "3560": 12,
+        "3800": 36,
+        "4880": 25,
+        "6320": 13,
+        "640": 14,
+        "720": 15,
+        "800": 7
+      },
+      "solve_seconds": 55.0095840600261,
+      "terminations": {
+        "fit": 12,
+        "max_depth": 9,
+        "wall_clock_cap": 3
+      },
+      "verified": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "verified_count": 8,
+      "verified_draw_tested": [
+        "maximum",
+        "remove_values_seen_in_second"
+      ],
+      "verified_witness_equal": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "mean",
+        "running_minima",
+        "scale_by",
+        "sum_of_squares"
+      ]
+    },
+    "candidate-17": {
+      "executions": 4833849,
+      "fuel": 5194002,
+      "graded": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "interval_violation_count",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "kinds": {
+        "equals_catalogue_witness": [
+          "add_pair",
+          "evaluate_polynomial_horner",
+          "mean",
+          "scale_by",
+          "sum_of_squares"
+        ],
+        "genuine": [
+          "maximum",
+          "remove_values_seen_in_second"
+        ],
+        "inconclusive": [],
+        "shortcut": [
+          "aligned_match_count",
+          "closest_to",
+          "interval_violation_count",
+          "points_above_parabola"
+        ]
+      },
+      "program_lengths": {
+        "0": 1,
+        "1000": 6,
+        "1880": 7,
+        "3360": 35,
+        "3560": 12,
+        "3800": 37,
+        "4880": 25,
+        "6320": 13,
+        "640": 14,
+        "720": 15,
+        "800": 7
+      },
+      "solve_seconds": 54.94798950300901,
+      "terminations": {
+        "fit": 11,
+        "max_depth": 10,
+        "wall_clock_cap": 3
+      },
+      "verified": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "verified_count": 7,
+      "verified_draw_tested": [
+        "maximum",
+        "remove_values_seen_in_second"
+      ],
+      "verified_witness_equal": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "mean",
+        "scale_by",
+        "sum_of_squares"
+      ]
+    },
+    "candidate-29": {
+      "executions": 4775039,
+      "fuel": 5126613,
+      "graded": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "interval_violation_count",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "kinds": {
+        "equals_catalogue_witness": [
+          "add_pair",
+          "evaluate_polynomial_horner",
+          "mean",
+          "scale_by",
+          "sum_of_squares"
+        ],
+        "genuine": [
+          "maximum",
+          "remove_values_seen_in_second"
+        ],
+        "inconclusive": [],
+        "shortcut": [
+          "aligned_match_count",
+          "closest_to",
+          "interval_violation_count",
+          "points_above_parabola"
+        ]
+      },
+      "program_lengths": {
+        "0": 1,
+        "1000": 6,
+        "1880": 7,
+        "3360": 35,
+        "3560": 12,
+        "3800": 42,
+        "4880": 20,
+        "6320": 13,
+        "640": 14,
+        "720": 15,
+        "800": 7
+      },
+      "solve_seconds": 56.16230645199539,
+      "terminations": {
+        "fit": 11,
+        "max_depth": 10,
+        "wall_clock_cap": 3
+      },
+      "verified": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "verified_count": 7,
+      "verified_draw_tested": [
+        "maximum",
+        "remove_values_seen_in_second"
+      ],
+      "verified_witness_equal": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "mean",
+        "scale_by",
+        "sum_of_squares"
+      ]
+    },
+    "candidate-43": {
+      "executions": 4729900,
+      "fuel": 5083060,
+      "graded": [
+        "add_pair",
+        "aligned_match_count",
+        "evaluate_polynomial_horner",
+        "interval_violation_count",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "kinds": {
+        "equals_catalogue_witness": [
+          "add_pair",
+          "evaluate_polynomial_horner",
+          "mean",
+          "scale_by",
+          "sum_of_squares"
+        ],
+        "genuine": [
+          "maximum",
+          "remove_values_seen_in_second"
+        ],
+        "inconclusive": [],
+        "shortcut": [
+          "aligned_match_count",
+          "closest_to",
+          "interval_violation_count",
+          "points_above_parabola"
+        ]
+      },
+      "program_lengths": {
+        "0": 1,
+        "1000": 6,
+        "1880": 7,
+        "3360": 23,
+        "3560": 12,
+        "3800": 37,
+        "4880": 25,
+        "6320": 13,
+        "640": 14,
+        "720": 15,
+        "800": 7
+      },
+      "solve_seconds": 53.961482725979295,
+      "terminations": {
+        "fit": 11,
+        "max_depth": 10,
+        "wall_clock_cap": 3
+      },
+      "verified": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "maximum",
+        "mean",
+        "remove_values_seen_in_second",
+        "scale_by",
+        "sum_of_squares"
+      ],
+      "verified_count": 7,
+      "verified_draw_tested": [
+        "maximum",
+        "remove_values_seen_in_second"
+      ],
+      "verified_witness_equal": [
+        "add_pair",
+        "evaluate_polynomial_horner",
+        "mean",
+        "scale_by",
+        "sum_of_squares"
+      ]
+    }
+  },
+  "complete": true,
+  "median_clock_ratio": 1.004928438941979,
+  "median_gain": -1,
+  "pairs": [
+    {
+      "lost": [
+        "running_minima"
+      ],
+      "net_gain": -1,
+      "new": [],
+      "ratio": 1.004928438941979,
+      "seed": 17
+    },
+    {
+      "lost": [
+        "running_minima"
+      ],
+      "net_gain": -1,
+      "new": [],
+      "ratio": 1.0261258397816808,
+      "seed": 29
+    },
+    {
+      "lost": [
+        "running_minima"
+      ],
+      "net_gain": -1,
+      "new": [],
+      "ratio": 0.9809469322127009,
+      "seed": 43
+    }
+  ],
+  "phase": "comparison",
+  "phase_seconds": 525.307655882003,
+  "reading": "NEGATIVE_TRAIN_SCREEN",
+  "registration_url": "https://github.com/abhishekraok/wandering-light/issues/183#issuecomment-6206493716",
+  "subprocess_seconds": {
+    "baseline-17": 61.695663524005795,
+    "baseline-29": 60.837873461001436,
+    "baseline-43": 61.218572846992174,
+    "candidate-17": 61.129284681010176,
+    "candidate-29": 62.49701582499256,
+    "candidate-43": 60.01481437499751
+  }
+}

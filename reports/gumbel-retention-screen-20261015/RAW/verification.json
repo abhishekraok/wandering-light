@@ -1,0 +1,1031 @@
+[
+  {
+    "behaviour": "interval_violation_count",
+    "draws": {
+      "dense": {
+        "counterexample": {
+          "args": [
+            [
+              2,
+              1,
+              1,
+              -2,
+              0,
+              1,
+              0,
+              0
+            ],
+            2,
+            0
+          ],
+          "reference": 8
+        },
+        "failed": 1669,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "perturbed": {
+        "counterexample": {
+          "args": [
+            [
+              18,
+              0,
+              -15,
+              11,
+              -18,
+              -1,
+              -7,
+              -13,
+              1
+            ],
+            9,
+            -16
+          ],
+          "reference": 9
+        },
+        "failed": 2887,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "sampler": {
+        "counterexample": null,
+        "failed": 0,
+        "skipped": 0,
+        "tested": 10000
+      }
+    },
+    "program": [
+      "[",
+      "over",
+      "]",
+      "dip",
+      "[",
+      "swap",
+      "lt?",
+      "]",
+      "swap",
+      "cons",
+      "filter",
+      "0",
+      "[",
+      "drop",
+      "1",
+      "add",
+      "]",
+      "fold",
+      "[",
+      "[",
+      "lt?",
+      "]",
+      "swap",
+      "cons",
+      "filter",
+      "]",
+      "dip",
+      "swap",
+      "0",
+      "[",
+      "drop",
+      "1",
+      "add",
+      "]",
+      "fold",
+      "add"
+    ],
+    "verdict": "shortcut"
+  },
+  {
+    "behaviour": "sum_of_squares",
+    "program": [
+      "0",
+      "[",
+      "dup",
+      "mul",
+      "add",
+      "]",
+      "fold"
+    ],
+    "verdict": "equals_catalogue_witness",
+    "why": "equals a catalogue witness"
+  },
+  {
+    "behaviour": "evaluate_polynomial_horner",
+    "program": [
+      "[",
+      "[",
+      "swap",
+      "]",
+      "dip",
+      "mul",
+      "add",
+      "]",
+      "swap",
+      "cons",
+      "0",
+      "swap",
+      "fold"
+    ],
+    "verdict": "equals_catalogue_witness",
+    "why": "equals a catalogue witness"
+  },
+  {
+    "behaviour": "add_pair",
+    "program": [
+      "add"
+    ],
+    "verdict": "equals_catalogue_witness",
+    "why": "equals a catalogue witness"
+  },
+  {
+    "behaviour": "remove_values_seen_in_second",
+    "draws": {
+      "dense": {
+        "counterexample": null,
+        "failed": 0,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "perturbed": {
+        "counterexample": null,
+        "failed": 0,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "sampler": {
+        "counterexample": null,
+        "failed": 0,
+        "skipped": 0,
+        "tested": 10000
+      }
+    },
+    "program": [
+      "swap",
+      "[",
+      "[",
+      "eq?",
+      "false",
+      "eq?",
+      "]",
+      "swap",
+      "cons",
+      "filter",
+      "]",
+      "fold"
+    ],
+    "verdict": "genuine"
+  },
+  {
+    "behaviour": "maximum",
+    "draws": {
+      "dense": {
+        "counterexample": null,
+        "failed": 0,
+        "skipped": 899,
+        "tested": 9101
+      },
+      "perturbed": {
+        "counterexample": null,
+        "failed": 0,
+        "skipped": 921,
+        "tested": 9079
+      },
+      "sampler": {
+        "counterexample": null,
+        "failed": 0,
+        "skipped": 0,
+        "tested": 10000
+      }
+    },
+    "program": [
+      "uncons",
+      "[",
+      "[",
+      "lt?",
+      "]",
+      "[",
+      "swap",
+      "]",
+      "[",
+      "]",
+      "ifte",
+      "drop",
+      "]",
+      "fold"
+    ],
+    "verdict": "genuine"
+  },
+  {
+    "behaviour": "running_minima",
+    "program": [
+      "nil",
+      "[",
+      "[",
+      "over",
+      "null?",
+      "]",
+      "[",
+      "cons",
+      "]",
+      "[",
+      "over",
+      "uncons",
+      "swap",
+      "drop",
+      "[",
+      "over",
+      "lt?",
+      "]",
+      "[",
+      "swap",
+      "drop",
+      "]",
+      "[",
+      "drop",
+      "]",
+      "ifte",
+      "cons",
+      "]",
+      "ifte",
+      "]",
+      "fold",
+      "nil",
+      "[",
+      "cons",
+      "]",
+      "fold"
+    ],
+    "verdict": "equals_catalogue_witness",
+    "why": "equals a catalogue witness"
+  },
+  {
+    "behaviour": "scale_by",
+    "program": [
+      "[",
+      "mul",
+      "]",
+      "swap",
+      "cons",
+      "map"
+    ],
+    "verdict": "equals_catalogue_witness",
+    "why": "equals a catalogue witness"
+  },
+  {
+    "behaviour": "mean",
+    "program": [
+      "dup",
+      "0",
+      "[",
+      "add",
+      "]",
+      "fold",
+      "swap",
+      "0",
+      "[",
+      "drop",
+      "1",
+      "add",
+      "]",
+      "fold",
+      "div"
+    ],
+    "verdict": "equals_catalogue_witness",
+    "why": "equals a catalogue witness"
+  },
+  {
+    "behaviour": "points_above_parabola",
+    "draws": {
+      "dense": {
+        "counterexample": {
+          "args": [
+            [
+              2,
+              1,
+              1,
+              -2,
+              0,
+              1,
+              0,
+              0
+            ]
+          ],
+          "reference": 1
+        },
+        "failed": 2763,
+        "skipped": 4528,
+        "tested": 5472
+      },
+      "perturbed": {
+        "counterexample": {
+          "args": [
+            [
+              -3,
+              5,
+              -8,
+              -12,
+              7,
+              -16,
+              2,
+              7
+            ]
+          ],
+          "reference": 1
+        },
+        "failed": 2361,
+        "skipped": 4564,
+        "tested": 5436
+      },
+      "sampler": {
+        "counterexample": {
+          "args": [
+            [
+              -8,
+              -1,
+              7,
+              6,
+              3,
+              0,
+              6,
+              2
+            ]
+          ],
+          "reference": 0
+        },
+        "failed": 3530,
+        "skipped": 0,
+        "tested": 10000
+      }
+    },
+    "program": [
+      "uncons",
+      "[",
+      "swap",
+      "lt?",
+      "]",
+      "swap",
+      "cons",
+      "map",
+      "[",
+      "false",
+      "eq?",
+      "]",
+      "filter",
+      "[",
+      "null?",
+      "]",
+      "[",
+      "drop",
+      "1",
+      "]",
+      "[",
+      "drop",
+      "0",
+      "]",
+      "ifte"
+    ],
+    "verdict": "shortcut"
+  },
+  {
+    "behaviour": "aligned_match_count",
+    "draws": {
+      "dense": {
+        "counterexample": {
+          "args": [
+            [
+              -1,
+              0,
+              2
+            ],
+            [
+              -2,
+              2,
+              2,
+              -2,
+              1,
+              -2,
+              1
+            ]
+          ],
+          "reference": 1
+        },
+        "failed": 2197,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "perturbed": {
+        "counterexample": {
+          "args": [
+            [
+              14,
+              10,
+              0
+            ],
+            [
+              14,
+              -11,
+              -11,
+              18,
+              10
+            ]
+          ],
+          "reference": 1
+        },
+        "failed": 993,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "sampler": {
+        "counterexample": {
+          "args": [
+            [
+              -3,
+              -8,
+              -3,
+              -5
+            ],
+            [
+              -3,
+              5,
+              3,
+              2,
+              8
+            ]
+          ],
+          "reference": 1
+        },
+        "failed": 435,
+        "skipped": 0,
+        "tested": 10000
+      }
+    },
+    "program": [
+      "swap",
+      "[",
+      "[",
+      "uncons",
+      "]",
+      "dip",
+      "eq?",
+      "quote",
+      "cat",
+      "]",
+      "fold",
+      "[",
+      "true",
+      "eq?",
+      "]",
+      "filter",
+      "0",
+      "[",
+      "drop",
+      "1",
+      "add",
+      "]",
+      "fold"
+    ],
+    "verdict": "shortcut"
+  },
+  {
+    "behaviour": "closest_to",
+    "draws": {
+      "dense": {
+        "counterexample": {
+          "args": [
+            [
+              1,
+              -2,
+              -2
+            ],
+            1
+          ],
+          "reference": 1
+        },
+        "failed": 5570,
+        "skipped": 854,
+        "tested": 9146
+      },
+      "perturbed": {
+        "counterexample": {
+          "args": [
+            [
+              -12,
+              11,
+              -2,
+              -16,
+              14,
+              0,
+              -14,
+              18,
+              14
+            ],
+            -16
+          ],
+          "reference": -16
+        },
+        "failed": 6431,
+        "skipped": 867,
+        "tested": 9133
+      },
+      "sampler": {
+        "counterexample": {
+          "args": [
+            [
+              0,
+              6,
+              2,
+              9
+            ],
+            -3
+          ],
+          "reference": 0
+        },
+        "failed": 5828,
+        "skipped": 0,
+        "tested": 10000
+      }
+    },
+    "program": [
+      "drop",
+      "0",
+      "[",
+      "swap",
+      "drop",
+      "]",
+      "fold"
+    ],
+    "verdict": "shortcut"
+  },
+  {
+    "behaviour": "interval_violation_count",
+    "draws": {
+      "dense": {
+        "counterexample": {
+          "args": [
+            [
+              2,
+              1,
+              1,
+              -2,
+              0,
+              1,
+              0,
+              0
+            ],
+            2,
+            0
+          ],
+          "reference": 8
+        },
+        "failed": 1669,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "perturbed": {
+        "counterexample": {
+          "args": [
+            [
+              18,
+              0,
+              -15,
+              11,
+              -18,
+              -1,
+              -7,
+              -13,
+              1
+            ],
+            9,
+            -16
+          ],
+          "reference": 9
+        },
+        "failed": 2887,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "sampler": {
+        "counterexample": null,
+        "failed": 0,
+        "skipped": 0,
+        "tested": 10000
+      }
+    },
+    "program": [
+      "[",
+      "over",
+      "]",
+      "dip",
+      "[",
+      "swap",
+      "lt?",
+      "]",
+      "swap",
+      "cons",
+      "filter",
+      "0",
+      "[",
+      "drop",
+      "1",
+      "add",
+      "]",
+      "fold",
+      "swap",
+      "[",
+      "lt?",
+      "]",
+      "swap",
+      "cons",
+      "[",
+      "swap",
+      "]",
+      "dip",
+      "filter",
+      "0",
+      "[",
+      "drop",
+      "1",
+      "add",
+      "]",
+      "fold",
+      "add"
+    ],
+    "verdict": "shortcut"
+  },
+  {
+    "behaviour": "aligned_match_count",
+    "draws": {
+      "dense": {
+        "counterexample": {
+          "args": [
+            [
+              -2,
+              0,
+              1,
+              0,
+              0,
+              2,
+              0
+            ],
+            [
+              -2,
+              0,
+              1
+            ]
+          ],
+          "reference": 3
+        },
+        "failed": 5095,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "perturbed": {
+        "counterexample": {
+          "args": [
+            [
+              16,
+              13,
+              10,
+              -19
+            ],
+            [
+              -7,
+              12,
+              3,
+              -15,
+              -18,
+              9,
+              13,
+              -12
+            ]
+          ],
+          "reference": 0
+        },
+        "failed": 5201,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "sampler": {
+        "counterexample": {
+          "args": [
+            [
+              -8,
+              -1,
+              7,
+              6,
+              3,
+              0,
+              6
+            ],
+            [
+              9,
+              -3,
+              7,
+              -5
+            ]
+          ],
+          "reference": 1
+        },
+        "failed": 3688,
+        "skipped": 0,
+        "tested": 10000
+      }
+    },
+    "program": [
+      "0",
+      "[",
+      "drop",
+      "1",
+      "add",
+      "]",
+      "fold",
+      "[",
+      "swap",
+      "lt?",
+      "]",
+      "swap",
+      "cons",
+      "filter",
+      "0",
+      "[",
+      "drop",
+      "1",
+      "add",
+      "]",
+      "fold",
+      "1",
+      "sub",
+      "[",
+      "dup",
+      "0",
+      "lt?",
+      "]",
+      "[",
+      "drop",
+      "0",
+      "]",
+      "[",
+      "]",
+      "ifte"
+    ],
+    "verdict": "shortcut"
+  },
+  {
+    "behaviour": "interval_violation_count",
+    "draws": {
+      "dense": {
+        "counterexample": {
+          "args": [
+            [
+              2,
+              1,
+              1,
+              -2,
+              0,
+              1,
+              0,
+              0
+            ],
+            2,
+            0
+          ],
+          "reference": 8
+        },
+        "failed": 1669,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "perturbed": {
+        "counterexample": {
+          "args": [
+            [
+              18,
+              0,
+              -15,
+              11,
+              -18,
+              -1,
+              -7,
+              -13,
+              1
+            ],
+            9,
+            -16
+          ],
+          "reference": 9
+        },
+        "failed": 2887,
+        "skipped": 0,
+        "tested": 10000
+      },
+      "sampler": {
+        "counterexample": null,
+        "failed": 0,
+        "skipped": 0,
+        "tested": 10000
+      }
+    },
+    "program": [
+      "[",
+      "over",
+      "]",
+      "dip",
+      "[",
+      "swap",
+      "lt?",
+      "]",
+      "swap",
+      "cons",
+      "filter",
+      "0",
+      "[",
+      "drop",
+      "1",
+      "add",
+      "]",
+      "fold",
+      "swap",
+      "[",
+      "swap",
+      "]",
+      "dip",
+      "[",
+      "sub",
+      "]",
+      "swap",
+      "cons",
+      "map",
+      "[",
+      "0",
+      "lt?",
+      "]",
+      "filter",
+      "0",
+      "[",
+      "drop",
+      "1",
+      "add",
+      "]",
+      "fold",
+      "add"
+    ],
+    "verdict": "shortcut"
+  },
+  {
+    "behaviour": "points_above_parabola",
+    "draws": {
+      "dense": {
+        "counterexample": {
+          "args": [
+            [
+              1,
+              -1,
+              0,
+              1,
+              -1,
+              0,
+              2,
+              -1
+            ]
+          ],
+          "reference": 1
+        },
+        "failed": 4014,
+        "skipped": 4528,
+        "tested": 5472
+      },
+      "perturbed": {
+        "counterexample": {
+          "args": [
+            [
+              -10,
+              -14,
+              -9,
+              -11,
+              19,
+              5,
+              9,
+              11
+            ]
+          ],
+          "reference": 0
+        },
+        "failed": 4347,
+        "skipped": 4564,
+        "tested": 5436
+      },
+      "sampler": {
+        "counterexample": {
+          "args": [
+            [
+              -8,
+              -1,
+              7,
+              6,
+              3,
+              0,
+              6,
+              2
+            ]
+          ],
+          "reference": 0
+        },
+        "failed": 6875,
+        "skipped": 0,
+        "tested": 10000
+      }
+    },
+    "program": [
+      "uncons",
+      "[",
+      "eq?",
+      "]",
+      "swap",
+      "cons",
+      "map",
+      "[",
+      "]",
+      "filter",
+      "0",
+      "[",
+      "drop",
+      "1",
+      "add",
+      "]",
+      "fold",
+      "1",
+      "swap",
+      "sub"
+    ],
+    "verdict": "shortcut"
+  },
+  {
+    "behaviour": "closest_to",
+    "draws": {
+      "dense": {
+        "counterexample": {
+          "args": [
+            [
+              1,
+              -2,
+              -2
+            ],
+            1
+          ],
+          "reference": 1
+        },
+        "failed": 5570,
+        "skipped": 854,
+        "tested": 9146
+      },
+      "perturbed": {
+        "counterexample": {
+          "args": [
+            [
+              -12,
+              11,
+              -2,
+              -16,
+              14,
+              0,
+              -14,
+              18,
+              14
+            ],
+            -16
+          ],
+          "reference": -16
+        },
+        "failed": 6431,
+        "skipped": 867,
+        "tested": 9133
+      },
+      "sampler": {
+        "counterexample": {
+          "args": [
+            [
+              0,
+              6,
+              2,
+              9
+            ],
+            -3
+          ],
+          "reference": 0
+        },
+        "failed": 5828,
+        "skipped": 0,
+        "tested": 10000
+      }
+    },
+    "program": [
+      "cons",
+      "0",
+      "[",
+      "swap",
+      "drop",
+      "]",
+      "fold"
+    ],
+    "verdict": "shortcut"
+  }
+]

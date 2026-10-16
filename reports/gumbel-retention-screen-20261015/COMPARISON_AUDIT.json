@@ -1,0 +1,69 @@
+{
+  "audit": "reconstructed selection, typed shown replay, hidden grade, regenerated registered random-input verification, summary arithmetic, exact ratio conjunction and rehashed source/data/checkpoint/raw output; no independent search replay",
+  "contention": "before/after process snapshots show no other process above2% lifetime CPU, cell loadavg approximately0.25to1.09; point samples do not establish continuous exclusive-host execution",
+  "files_sha256": {
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/baseline-17.json": "8a9ea98593dac2596bf96f8518c60cd27d4ff104c69b0677c0da2d7b72fa925d",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/baseline-17.log": "95173c472b15c8d23968787fdf48cb3740f5ff55fdff97a941f01fdb3b9123ad",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/baseline-29.json": "1c20eb6ad0647262e0316817932448879aae5a87717c7fea8d42ff62ff5d32b1",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/baseline-29.log": "343e5e980b4be23afca2366a1214dddc5d37a3e1a90d8ccc119b07d33f81bc16",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/baseline-43.json": "771036a7aba6fd25f14e046ab0d29373382e3abda3af8ba7e65073db5d2ffbe6",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/baseline-43.log": "1b431552fa71b029dfe4285e249b75804290528814f85191d8310f5ee089494e",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/candidate-17.json": "a3bde54988d11ac6602672e480f600dd7d11321f3ffcfd5967dcc02696face2a",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/candidate-17.log": "cffeba33af663663c501efa6e8329f4d1c94ce1d387079ad879e0da3ac34c860",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/candidate-29.json": "bfede66c79d83eea1a10cf8b149c5055d9f5c5d1a6a21799804ca2d1d2da92a9",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/candidate-29.log": "0ae91f9f1b916fb80f81317aa7faefb42b3f50eb21a2510bb4d059ac4ab3047f",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/candidate-43.json": "935fd98fea73403452b69aa86fb2a4dd77c0b1dcb19fcf4dc3a330bda9aa903c",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/candidate-43.log": "38b3dbfa53628254ad3c1691714fe5a66320369d291ebec14349d297f69f5878",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/host-after.json": "50818e384265cb2592786b6ee8d285437874678b9f8da445710032319d6925d9",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/host-before.json": "f433fc69d326be884fb913153ffa3e56ed36f9ea6cb187e7fa7d1360b7595b4a",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/inputs/manifest.json": "26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/inputs/stack_pbe_v4_train.jsonl.gz": "13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/provenance.json": "9a778dbbf4af5254a79bdf9b4a50a16372bd58d8e0ee7c5e9e439f6bc7bcdd42",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/selection.json": "52d68f0296c4535746dfe2c4414c00de1b07a6cef6ed28420aa19e9168be32e3",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/shown.json": "23768651e5ccebbdefe43570adf3e881349701a95dc9aad9507d7cabe1bf4c0b",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/summary.json": "972b2e043bf435ee3e4217e335105456dee5900e4d36d5b34ee45db39cf9f371",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/comparison/verification.json": "16477392fadd70ed80988e2105a9aa941db820e22215fdad767d938f911c54fc"
+  },
+  "gate_components": {
+    "every_net_gain_nonnegative": false,
+    "median_clock_at_most_11_over_10": true,
+    "median_gain_at_least_two": false
+  },
+  "median_clock_ratio": 1.004928438941979,
+  "median_gain": -1,
+  "median_ratio_exact": [
+    145230657167,
+    144518407022
+  ],
+  "pairs": [
+    {
+      "lost": [
+        "running_minima"
+      ],
+      "net_gain": -1,
+      "new": [],
+      "ratio": 1.004928438941979,
+      "seed": 17
+    },
+    {
+      "lost": [
+        "running_minima"
+      ],
+      "net_gain": -1,
+      "new": [],
+      "ratio": 1.0261258397816808,
+      "seed": 29
+    },
+    {
+      "lost": [
+        "running_minima"
+      ],
+      "net_gain": -1,
+      "new": [],
+      "ratio": 0.9809469322127009,
+      "seed": 43
+    }
+  ],
+  "reading": "NEGATIVE_TRAIN_SCREEN",
+  "source": "0212640d68e39e5d0ddf7024ad0efc55264d8809"
+}

@@ -1,0 +1,27 @@
+{
+  "checkpoint": {
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/cache/wandering-light/stack-policy/abhishekraok__wandering-light-stack-policy/e5a0b1391c5268c3ae04a49e6862f19a30779bb2/model.safetensors": "2113f001e8c8edfb58382545375b881c5dc10cae033aa8f0da56881b8312fd2d",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/cache/wandering-light/stack-policy/abhishekraok__wandering-light-stack-policy/e5a0b1391c5268c3ae04a49e6862f19a30779bb2/policy_config.json": "d0f27ec19dd900ae5e6d78f617df11ddaf9d8b7003cbb3ec305a63b6eb391f18",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/cache/wandering-light/stack-policy/abhishekraok__wandering-light-stack-policy/e5a0b1391c5268c3ae04a49e6862f19a30779bb2/trainer_state.json": "a291e267474b5efa8952fe1f4be17a1fed4b95e9d58d08bb48c59cfc6fece249",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/gumbel-retention-screen-20261015/cache/wandering-light/stack-policy/abhishekraok__wandering-light-stack-policy/e5a0b1391c5268c3ae04a49e6862f19a30779bb2/training_manifest.json": "0f2d2e4175d7972c5ccfb537c9b2a908e1f0a76ff6367cd59c29597bf2fb537c"
+  },
+  "git_status": "",
+  "head": "0212640d68e39e5d0ddf7024ad0efc55264d8809",
+  "host": "UltraDesk",
+  "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "policy_repo": "abhishekraok/wandering-light-stack-policy",
+  "policy_revision": "e5a0b1391c5268c3ae04a49e6862f19a30779bb2",
+  "python": "3.12.8 (main, Oct  6 2025, 16:42:40) [GCC 11.4.0]",
+  "source": {
+    "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/gumbel-retention-review2-20261015/experiments/gumbel_retention.py": "4e67112b14e82108a64b48ee7ea401cebbb3657da2dd2678dac602b94646afc7",
+    "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/gumbel-retention-review2-20261015/experiments/gumbel_retention_run.py": "7e27233d15a5ff9d9b9883251058dd7d5c26c8a9a89cde4dab1ec710d2aa01c5",
+    "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/gumbel-retention-review2-20261015/experiments/step3_verify_solves.py": "ad6fbe911f2012604b9cc8ff2176daf9f3316437fcb24914b007213c73a80ca6",
+    "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/gumbel-retention-review2-20261015/wandering_light/corpus_hub.py": "56b74fb5f446bf5a574e02de803e0d11fdd3e88e1984dcab22aa6b9100938465",
+    "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/gumbel-retention-review2-20261015/wandering_light/quotation_guard.py": "ca2cd141ceaae2da4fac034ff896ae667334ff5e1e6c0957b44c3626a1d030d2",
+    "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/gumbel-retention-review2-20261015/wandering_light/stack_beam.py": "dcf4558a6cfa11d8b8dde9aaa02ff21c9837ec16279a692f9b7e723c94ec616b",
+    "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/gumbel-retention-review2-20261015/wandering_light/stack_machine.py": "1cae29b19e1fcdb2ed452ba6a36577da889082e21916d18948a7a42d417e27c1",
+    "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/gumbel-retention-review2-20261015/wandering_light/stack_pbe.py": "36071a844c291a9546a715de4e5c7d78ba3e6ba6b1c18a68fb0ba71c68d74f95",
+    "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/gumbel-retention-review2-20261015/wandering_light/stack_pbe_eval.py": "a9834f52f7b2b4ab2b607eb745b54b0d35b8f82144b9179fb00eda90311bc2bf",
+    "/home/abhishekrao/eden/janthus/program-synthesis/work/trees/gumbel-retention-review2-20261015/wandering_light/stack_policy.py": "93c6a1046fd08913b35da2fe58e4fab8d8ccdbfb25dd9a7e52bd079561263362"
+  }
+}

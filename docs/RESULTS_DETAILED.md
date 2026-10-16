@@ -1050,3 +1050,15 @@ TRAIN-only hash-selected24skeletons, fixed BEST staged-s0-e3, libraryoff, CPU1th
 |43|12|10|8|2 /6|55.18483057596313|
 
 Same verified set in every repeat; count range0. Full phase270.82604606800305seconds includes post-timing verification/acquisition. After-cell host snapshot includes another CLI at13.8% lifetime CPU: no quiet-host timing claim. Six new comparison cells will use prospective paired control timings; candidate unexecuted at registration. [Report](../reports/gumbel-retention-screen-20261015/BASELINE.md), [complete summary](../reports/gumbel-retention-screen-20261015/BASELINE.json), [audit receipt](../reports/gumbel-retention-screen-20261015/BASELINE_AUDIT.json), [registration](https://github.com/abhishekraok/wandering-light/issues/183#issuecomment-6206493716).
+
+### gumbel-retention-screen (#183), fixed comparison (2026-10-15)
+
+TRAIN-only 24 skeletons, fixed staged-s0-e3 policy, library off; fresh paired cells, source0212640. Complete wrapper `exit 0`; final independent result review pending.
+
+| Pair seed | Control verified /24 | Candidate verified /24 | Control solve seconds | Candidate solve seconds | Ratio | Net gain |
+|---|---:|---:|---:|---:|---:|---:|
+| 17 | 8 | 7 | 54.67850980599178 | 54.94798950300901 | 1.004928438941979 | -1 |
+| 29 | 8 | 7 | 54.73237713606795 | 56.16230645199539 | 1.0261258397816808 | -1 |
+| 43 | 8 | 7 | 55.0095840600261 | 53.961482725979295 | 0.9809469322127009 | -1 |
+
+Candidate loses `running_minima` and gains nothing in every pair. Median gain −1 and every gain <0 fail both coverage gates; median all-attempt clock ratio 1.004928438941979 passes ≤11/10. NEGATIVE_TRAIN_SCREEN; no tuning, retry or BEST promotion. Whole phase 525.307655882003 seconds includes setup, processes and verification. Point host snapshots do not establish continuous exclusivity. [Report](../reports/gumbel-retention-screen-20261015/RESULT.md), [full cells/sets](../reports/gumbel-retention-screen-20261015/COMPARISON.json), [audit](../reports/gumbel-retention-screen-20261015/COMPARISON_AUDIT.json).
