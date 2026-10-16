@@ -68,8 +68,8 @@ url = "https://download.pytorch.org/whl/cu128"
 explicit = true
 
 [project.urls]
-Homepage = "https://github.com/abhishekraok/wandering_light"
-Repository = "https://github.com/abhishekraok/wandering_light"
+Homepage = "https://github.com/abhishekraok/wandering-light"
+Repository = "https://github.com/abhishekraok/wandering-light"
 
 [project.scripts]
 wandering-light-graph = "wandering_light.evals.trajectory_graph_app:main"
