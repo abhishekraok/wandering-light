@@ -1,6 +1,6 @@
 # Running the fixed hash pilot
 
-The one registered pilot completed with wrapper exit0 and all six cells; every fixed timing gate failed. The construction is parked, not a rerun recipe. Code/design review passed BOTH exact genuine source revisions before real panel/checkpoint access; final result review is pending. Production hash is excluded from this result branch. DESIGN.md and issue list-hash-memo (#185) define the spent attempt.
+The one registered pilot completed with wrapper exit0 and all six cells; every fixed timing gate failed. The construction is parked, not a rerun recipe. Code/design review passed BOTH exact genuine source revisions before real panel/checkpoint access; final result review passed. Production hash is excluded from this result branch. DESIGN.md and issue list-hash-memo (#185) define the spent attempt.
 
 Run `python -m experiments.list_hash_memo_run phase` from the accepted frozen candidate source, with `--control` and `--candidate` naming distinct frozen own source roots, `--control-head` and `--candidate-head` naming their accepted full40hex revisions, and `--out` naming the fresh main `checkpoints/list-hash-memo-20261015/pilot/` directory. The control is production ce7662d plus the common experiment runner/tests; the candidate differs in production only at the reviewed Lst hash mechanism. The driver verifies clean heads, genuine baseline production, same driver bytes, own module/callable origins and exact accepted policy bytes. Never patch a candidate class into a timing control.
 

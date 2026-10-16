@@ -1,0 +1,177 @@
+"""Independent final result review of list-hash-memo (#185).
+
+Reads original raw TRAIN rows (skeleton/split/inputs/outputs/behaviour only), raw cell
+JSON/logs, summary, provenance and archives. Replays returned programs on shown pairs with
+low-level step_raw from the reviewer's own tree. No search, model load, hidden grading.
+usage: python independent_review.py <reviewer_tree> <receipt_out>
+"""
+import gzip, hashlib, inspect, json, subprocess, sys
+from fractions import Fraction
+from pathlib import Path
+
+BASE = Path("/home/abhishekrao/repos/wandering-light/checkpoints/list-hash-memo-20261015")
+P = BASE / "pilot"
+TREE = Path(sys.argv[1]).resolve()
+REP = TREE / "reports/list-hash-memo-20261015"
+CONTROL = Path("/home/abhishekrao/eden/janthus/program-synthesis/work/trees/list-hash-control-20261015")
+CANDIDATE = Path("/home/abhishekrao/eden/janthus/program-synthesis/work/trees/list-hash-review-candidate-20261015")
+CH, CA = "d9645d7be1fba554fb0722a1e7300e7c7a5d7585", "01d8254d9a0f3d9bf984678e2997e30d78de023e"
+TRAIN_SHA = "13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b"
+NAMES = ["control-17", "candidate-17", "candidate-29", "control-29", "control-43", "candidate-43"]
+SUB = ("source_index", "program", "termination", "executions", "fuel", "expansions", "depth", "pruned")
+issues, notes = [], {}
+sha = lambda p: hashlib.sha256(Path(p).read_bytes()).hexdigest()
+git = lambda root, *a: subprocess.check_output(["git", "-C", str(root), *a], text=True)
+read = lambda p: json.loads(Path(p).read_text())
+def check(cond, msg):
+    if not cond: issues.append(msg)
+
+cg = Path("/proc/self/cgroup").read_text().split("0::", 1)[1].strip()
+grp = Path("/sys/fs/cgroup") / cg.lstrip("/")
+mem, swp = (grp / "memory.max").read_text().strip(), (grp / "memory.swap.max").read_text().strip()
+check(mem == str(12 * 1024**3) and swp == "0", f"review controls {mem}/{swp}")
+notes["review_cgroup"] = {"cgroup": cg, "memory_max": mem, "swap_max": swp}
+
+prov = read(P / "provenance.json")
+evidence = {p for p in P.rglob("*") if p.is_file()}
+evidence |= {p for p in (BASE / "review-code1").rglob("*") if p.is_file() and "pytest-tmp" not in p.parts}
+evidence |= {p for p in REP.iterdir() if p.is_file()}
+evidence |= {BASE / n for n in ("pilot-launch.json", "pilot-preflight.json", "pilot-status-initial.txt", "pilot-wrapper.log",
+                                "pilot-launch.py", "audit.py", "audit-receipt.json", "audit-launch.json", "audit.log")}
+for arm in prov["sources"].values(): evidence |= {Path(f) for f in arm["files"]}
+evidence |= {Path(prov["checkpoint"]) / n for n in prov["model"]}
+evidence = sorted(evidence)
+before = {str(p): sha(p) for p in evidence}
+
+for root, head in ((CONTROL, CH), (CANDIDATE, CA)):
+    check(git(root, "rev-parse", "HEAD").strip() == head, f"{root} head")
+    check(git(root, "status", "--porcelain") == "", f"{root} dirty")
+check(git(TREE, "diff", "--name-only", "ce7662d", CH, "--", "wandering_light", "pyproject.toml", "uv.lock") == "", "control prod != ce7662d")
+check(git(TREE, "diff", "--name-only", CH, CA, "--", "wandering_light", "experiments", "tests", "pyproject.toml", "uv.lock").split()
+      == ["wandering_light/stack_machine.py"], "candidate changes beyond stack_machine")
+check(git(TREE, "diff", "--name-only", "ce7662d", "HEAD", "--", "wandering_light", "pyproject.toml", "uv.lock") == "", "HEAD prod != ce7662d")
+check(git(TREE, "diff", "--name-only", CH, "HEAD", "--", "experiments", "tests", "wandering_light") == "", "HEAD code != control")
+notes["candidate_patch_equals_git_diff"] = (REP / "CANDIDATE.patch.txt").read_text().strip() == git(TREE, "diff", CH, CA, "--", "wandering_light").strip()
+for arm, root, head in (("control", CONTROL, CH), ("candidate", CANDIDATE, CA)):
+    s = prov["sources"][arm]
+    check(s["head"] == head and Path(s["root"]) == root, f"prov {arm} head/root")
+    for f, d in s["files"].items():
+        rel = Path(f).relative_to(root)
+        blob = subprocess.check_output(["git", "-C", str(TREE), "show", f"{head}:{rel}"])
+        check(hashlib.sha256(blob).hexdigest() == d, f"pin {arm}:{rel} != committed blob")
+        if arm == "control": check(sha(TREE / rel) == d, f"reviewer tree {rel} != control pin")
+for f, d in prov["sources"]["control"]["files"].items():
+    rel = Path(f).relative_to(CONTROL)
+    same = d == prov["sources"]["candidate"]["files"][str(CANDIDATE / rel)]
+    check(same == (str(rel) != "wandering_light/stack_machine.py"), f"arm pin difference at {rel}")
+for n, d in prov["model"].items(): check(sha(Path(prov["checkpoint"]) / n) == d, f"checkpoint {n}")
+notes["checkpoint"], notes["policy_revision"] = prov["checkpoint"], prov.get("policy_revision")
+
+payload = P / "inputs/stack_pbe_v4_train.jsonl.gz"
+check(sha(payload) == TRAIN_SHA, "payload sha")
+rows = []
+with gzip.open(payload, "rt") as fh:
+    for line in fh:
+        if line.strip():
+            r = json.loads(line); rows.append({k: r[k] for k in ("split", "skeleton", "inputs", "outputs", "behaviour")})
+first = {}
+for i, r in enumerate(rows):
+    check(r["split"] == "train" and isinstance(r["skeleton"], str) and r["skeleton"] and r["inputs"] and len(r["inputs"]) == len(r["outputs"]), f"row {i}")
+    first.setdefault(r["skeleton"], i)
+keys = sorted(first, key=lambda s: (hashlib.sha256("list-hash-memo-v1".encode() + b"\x00" + s.encode("utf-8")).digest(), s))[:24]
+my_shown = [{"source_index": first[s], "inputs": rows[first[s]]["inputs"], "outputs": rows[first[s]]["outputs"]} for s in keys]
+sel, shown = read(P / "selection.json"), read(P / "shown.json")
+check(my_shown == shown, "shown projection mismatch")
+check([(e["source_index"], e["skeleton"], e["behaviour"]) for e in sel] == [(first[s], s, rows[first[s]]["behaviour"]) for s in keys], "selection mismatch")
+for e, s in zip(sel, my_shown, strict=True):
+    check(e["shown_sha256"] == hashlib.sha256(json.dumps({"inputs": s["inputs"], "outputs": s["outputs"]}, sort_keys=True, separators=(",", ":")).encode()).hexdigest(), "shown sha")
+check(all(set(e) == {"source_index", "inputs", "outputs"} for e in shown), "shown exposes extra fields")
+notes["rows"], notes["skeletons"] = len(rows), len(first)
+
+summary = read(P / "summary.json")
+check(summary["complete"] is True and not (P / "INCOMPLETE.json").exists(), "incomplete")
+check(prov["order"] == [[n.split("-")[0], int(n.split("-")[1])] for n in NAMES], "order")
+cells, stats = {}, {}
+for n in NAMES:
+    arm, lab = n.split("-"); c = read(P / f"{n}.json"); cells[n] = c
+    root = CONTROL if arm == "control" else CANDIDATE
+    check(c["complete"] is True and c["arm"] == arm and c["label"] == int(lab), f"{n} id")
+    check(c["source"] == prov["sources"][arm] and c["checkpoint"] == prov["model"], f"{n} pins")
+    check((c["device"], c["threads"], c["interop"], c["hash_seed"], c["model_parameter_dtypes"], c["host"]) == ("cpu", 1, 1, "0", ["torch.float32"], "UltraDesk"), f"{n} ctl")
+    check(set(c["thread_env"].values()) == {"1"} and len(c["thread_env"]) == 5, f"{n} thread env")
+    rt = c["runtime"]
+    check(rt["memory_max"] == "12884901888" and rt["swap_max"] == "0" and rt["systemd"]["RuntimeMaxUSec"] == "20min"
+          and rt["cgroup"].strip().endswith("wl-list-hash-pilot-20261015.service") and rt == prov["runtime"], f"{n} cgroup")
+    check(all(Path(v).is_relative_to(root) for v in [*c["module_origins"].values(), *c["callable_origins"].values()]), f"{n} origins")
+    check(c["list_hash_code"] == ("<string>" if arm == "control" else str(root / "wandering_light/stack_machine.py")), f"{n} hash code")
+    check(c["shown_sha256"] == sha(P / "shown.json"), f"{n} shown pin")
+    check([r["source_index"] for r in c["rows"]] == [s["source_index"] for s in shown], f"{n} row order")
+    lines = (P / f"{n}.log").read_text().splitlines()
+    check([json.loads(l) for l in lines if l.startswith("{")] == c["rows"], f"{n} log rows != cell rows")
+    notes.setdefault("non_json_log_lines", {})[n] = [l for l in lines if not l.startswith("{")][:5]
+    for r in c["rows"]:
+        check((r["program"] is not None) == (r["termination"] == "fit"), f"{n} fit/program")
+        if r["program"] is not None: check(len(r["program"]) == r["depth"], f"{n} depth")
+        if r["termination"] == "budget": check(r["executions"] >= 100000, f"{n} budget terminal below cap")
+    stats[n] = {"fits": sum(r["termination"] == "fit" for r in c["rows"]),
+                "terms": {t: sum(r["termination"] == t for r in c["rows"]) for t in sorted({r["termination"] for r in c["rows"]})},
+                "max_rss_kib": c["max_rss_kib"], "solve_seconds_sum": sum(r["solve_seconds"] for r in c["rows"]),
+                "max_executions": max(r["executions"] for r in c["rows"])}
+for k, v in summary["raw_sha256"].items(): check(sha(k) == v, f"raw pin {k}")
+
+pairs, mism = [], 0
+for lab in (17, 29, 43):
+    a, b = cells[f"control-{lab}"]["rows"], cells[f"candidate-{lab}"]["rows"]
+    for x, y in zip(a, b, strict=True):
+        check(set(x) == set(y), "field sets"); mism += sum(x[k] != y[k] for k in set(x) - {"seconds", "solve_seconds"})
+    eq = all({k: x[k] for k in SUB} == {k: y[k] for k in SUB} for x, y in zip(a, b, strict=True))
+    tc, tk = summary["process_seconds"][f"control-{lab}"], summary["process_seconds"][f"candidate-{lab}"]
+    ratio = Fraction.from_float(tk) / Fraction.from_float(tc)
+    pairs.append({"label": lab, "results_equal": eq, "ratio": [ratio.numerator, ratio.denominator], "ratio_float": float(ratio),
+                  "le_9_10": ratio <= Fraction(9, 10), "control_bits": tc.hex(), "candidate_bits": tk.hex()})
+for p, s in zip(pairs, summary["pairs"], strict=True):
+    check(p["results_equal"] == s["results_equal"] and p["ratio"] == s["process_ratio_exact"] and p["le_9_10"] == s["clock_pass"]
+          and p["ratio_float"] == s["process_ratio"] and s["label"] == p["label"], f"pair {p['label']} != summary")
+eq_all, fast_all = all(p["results_equal"] for p in pairs), all(p["le_9_10"] for p in pairs)
+reading = "QUALIFY_RELEASE_COHORT" if eq_all and fast_all else "PARK_FIXED_CONSTRUCTION"
+check(reading == summary["reading"] and summary["exact_results_equal"] == eq_all and summary["every_process_ratio_at_most_nine_tenths"] == fast_all, "reading")
+base = [{k: r[k] for k in SUB} for r in cells["control-17"]["rows"]]
+notes["all_six_cells_substantively_identical"] = all([{k: r[k] for k in SUB} for r in cells[n]["rows"]] == base for n in NAMES)
+
+for n in NAMES + ["summary", "selection", "shown", "provenance", "host-before", "host-after"]:
+    check(sha(REP / f"{n}.json") == sha(P / f"{n}.json"), f"report copy {n}.json differs")
+notes["archive_identical"] = {a: sha(REP / a) == sha(BASE / b) for a, b in (
+    ("LAUNCH.json", "pilot-launch.json"), ("PREFLIGHT.json", "pilot-preflight.json"), ("STATUS_INITIAL.txt", "pilot-status-initial.txt"),
+    ("AUDIT_SCRIPT.py.txt", "audit.py"), ("AUDIT.json", "audit-receipt.json"), ("AUDIT_LAUNCH.json", "audit-launch.json"), ("AUDIT_LOG.txt", "audit.log"))}
+wrapper = (BASE / "pilot-wrapper.log").read_text().splitlines()
+check(wrapper[-1].strip() == "exit 0", "wrapper exit"); notes["wrapper_tail"] = wrapper[-2:]
+notes["result_md_links_missing"] = [l for l in ("WRAPPER.log",) if not (REP / l).exists()]
+
+from wandering_light import stack_machine as M
+origin = Path(inspect.getsourcefile(M.step_raw)).resolve()
+check(origin == TREE / "wandering_light/stack_machine.py", f"primitive origin {origin}")
+check(sha(origin) == prov["sources"]["control"]["files"][str(CONTROL / "wandering_light/stack_machine.py")], "primitive bytes != control pin")
+check(M.Lst.__hash__.__code__.co_filename == "<string>", "reviewer Lst hash not dataclass-generated")
+ops = {op.name: op for op in M.ops_for_basis("mark-28")}
+replays, fits = 0, set()
+for n in NAMES:
+    for entry, r in zip(shown, cells[n]["rows"], strict=True):
+        if r["program"] is None: continue
+        for i, o in zip(entry["inputs"], entry["outputs"], strict=True):
+            st = M.parse_stack(i, basis="mark-28")
+            for name in r["program"]:
+                out = M.step_raw(ops[name], st, M.DEFAULT_FUEL_LIMIT, 0)
+                if isinstance(out, str): check(False, f"{n} {r['source_index']} refused {out}"); break
+                st = out[0]
+            check(st == M.parse_stack(o, basis="mark-28"), f"{n} {r['source_index']} shown mismatch")
+        replays += 1; fits.add((r["source_index"], tuple(r["program"])))
+
+after = {str(p): sha(p) for p in evidence}
+check(after == before, "evidence changed during review")
+receipt = {"ok": not issues, "issues": issues, "reading": reading, "pairs": pairs, "compatibility_all": eq_all,
+           "nonclock_field_mismatches": mism, "replayed_paths": replays, "distinct_fits": sorted(fits), "stats": stats,
+           "process_seconds": summary["process_seconds"], "phase_seconds": summary["phase_seconds"],
+           "result_head": git(TREE, "rev-parse", "HEAD").strip(), "notes": notes, "primitive_origin": str(origin),
+           "evidence_files_rehashed_after_replay": len(after), "evidence_sha256": after}
+Path(sys.argv[2]).write_text(json.dumps(receipt, indent=1, default=str) + "\n")
+print(json.dumps({k: v for k, v in receipt.items() if k != "evidence_sha256"}, indent=1, default=str))

@@ -1081,7 +1081,7 @@ Within/cross contributions share the all-position denominator; both are descript
 
 ## Exact list-hash memo pilot — 2026-10-15
 
-[list-hash-memo (#185)](https://github.com/abhishekraok/wandering-light/issues/185), [report](../reports/list-hash-memo-20261015/RESULT.md), [JSON](../reports/list-hash-memo-20261015/summary.json). One fixed TRAIN24 panel/pinned policy/CPUfloat32/threads1/libraryoff/common100000execution budget/no solver deadline. All paired substantive results match; EVERY full-process clock ratio misses <=0.900. Fixed construction parked, no tuned retry. Five shown fits each are not hidden verified coverage. Actual12GiB/no swap/1200s and normal complete exit; independent capped selection/result/gate/shown-replay audit passed, final result review pending. Candidate production hash change is excluded; BEST unchanged.
+[list-hash-memo (#185)](https://github.com/abhishekraok/wandering-light/issues/185), [report](../reports/list-hash-memo-20261015/RESULT.md), [JSON](../reports/list-hash-memo-20261015/summary.json). One fixed TRAIN24 panel/pinned policy/CPUfloat32/threads1/libraryoff/common100000execution budget/no solver deadline. All paired substantive results match; EVERY full-process clock ratio misses <=0.900. Fixed construction parked, no tuned retry. Five shown fits each are not hidden verified coverage. Actual12GiB/no swap/1200s and normal complete exit; independent capped selection/result/gate/shown-replay audit passed, final result review passed at2743368 (faithful review/script/receipt in report). Candidate production hash change is excluded; BEST unchanged.
 
 | deterministic label | control process seconds | candidate process seconds | candidate/control | exact results | timing gate |
 |---|---:|---:|---:|---|---|
