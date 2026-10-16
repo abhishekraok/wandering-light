@@ -950,7 +950,7 @@ The e-den program-synthesis janthu (Codex) ran these on the train split with
 owner moved the work off `main` on 2026-10-16. Reports, raw output and the
 code that produced them are on
 [`ps-worker`](https://github.com/abhishekraok/wandering-light/tree/ps-worker/reports);
-#180's and #186's code is on its `janthu/*` branch.
+#180's and #186's code is in `ps-worker`'s history (tips `b2e0399` and `1b5942d`).
 
 | study | result | scope |
 |---|---|---|
