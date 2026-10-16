@@ -96,7 +96,8 @@ change settles:
   until the answer arrives.
 - **When a result lands, put the figure (the PNG) and a few lines in front of
   the owner**; report markdown is for agents. If the work has an explainer
-  (STATUS, Where things live), update it in place; never publish a second copy.
+  (listed in `docs/STATUS.md` § Where things live), update it in place; never
+  publish a second copy.
 
 ## Measurement traps
 
