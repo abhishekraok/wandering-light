@@ -1064,3 +1064,16 @@ TRAIN-only 24 skeletons, fixed staged-s0-e3 policy, library off; fresh paired ce
 Candidate loses `running_minima` and gains nothing in every pair. Median gain −1 and every gain <0 fail both coverage gates; median all-attempt clock ratio 1.004928438941979 passes ≤11/10. NEGATIVE_TRAIN_SCREEN; no tuning, retry or BEST promotion. Whole phase 525.307655882003 seconds includes setup, processes and verification. Point host snapshots do not establish continuous exclusivity. [Report](../reports/gumbel-retention-screen-20261015/RESULT.md), [full cells/sets](../reports/gumbel-retention-screen-20261015/COMPARISON.json), [audit](../reports/gumbel-retention-screen-20261015/COMPARISON_AUDIT.json).
 
 Both #183 phases passed [independent code/result review](../reports/gumbel-retention-screen-20261015/FINAL_REVIEW.md), with [independent replay/checker/arithmetic receipt](../reports/gumbel-retention-screen-20261015/INDEPENDENT_CHECK.json) under actual 12 GiB/no-swap controls. Parent post-run audits lacked their required memory scope; measured phases were correctly capped, and the reviewer redid all correctness-relevant checks within its capped unit.
+
+
+## Policy item reuse screen — 2026-10-15
+
+[policy-item-reuse-screen (#184)](https://github.com/abhishekraok/wandering-light/issues/184), [report](../reports/policy-item-reuse-screen-20261015/RESULT.md), [JSON](../reports/policy-item-reuse-screen-20261015/PROFILE.json). Fixed TRAIN24 skeleton panel, one staged-s0-e3 policy, CPU float32/threads1, beam64/depth48/guardboth/atom16384/libraryoff/5s prospective cap. Instrumented unchanged scorer, task-local width-aware LRU4096 simulation; no cache served. No hidden/reference grading: shown fits below are not verified coverage. All-attempt clocks descriptive, no speed comparison. Exact all-repeat >=25% gate fails; strict <5ppt range passes; NOT_JUSTIFIED, fixed scheme parked. Independent final result review pending.
+
+| deterministic repeat label | hit positions / positions | hit fraction | within-call contribution | cross-call contribution | shown fits / tasks | solve seconds | artifact |
+|---|---:|---:|---:|---:|---:|---:|---|
+| 17 | 758653 / 9321733 | 8.138540% | 5.862268% | 2.276272% | 12 / 24 | 65.501650 | PROFILE.json |
+| 29 | 762584 / 9351685 | 8.154509% | 5.856795% | 2.297714% | 12 / 24 | 65.925566 | PROFILE.json |
+| 43 | 765440 / 9371269 | 8.167944% | 5.874487% | 2.293457% | 12 / 24 | 65.564694 | PROFILE.json |
+
+Within/cross contributions share the all-position denominator; both are descriptive, not alternate gates. Whole phase219.315785s; exact ratios/gates/raw hashes in JSON. One policy/TRAIN panel, deadline-dependent instrumented trajectories, not a general cache null or numerical compatibility/speed/BEST evidence.

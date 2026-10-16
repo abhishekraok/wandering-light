@@ -1,0 +1,115 @@
+"""Independent bounded result audit: counters, selection, shown replay, pins only."""
+import gzip
+import hashlib
+import importlib
+import json
+import math
+import pathlib
+import platform
+import subprocess
+from collections import OrderedDict
+from fractions import Fraction
+
+ROOT = pathlib.Path('/home/abhishekrao/eden/janthus/program-synthesis/work/trees/policy-item-reuse-profile-20261015')
+BASE = pathlib.Path('/home/abhishekrao/repos/wandering-light/checkpoints/policy-item-reuse-screen-20261015')
+RUN = BASE / 'profile'
+read = lambda p: json.loads(pathlib.Path(p).read_text())
+sha = lambda p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+summary = read(RUN/'summary.json')
+prov = read(RUN/'provenance.json')
+assert summary['complete'] is True and not (RUN/'INCOMPLETE.json').exists()
+assert (BASE/'profile-wrapper.log').read_text().rstrip().endswith('exit 0')
+assert prov['head'] == '23c260752070d0401f16b4848586701bb2083178' and prov['git_status'] == ''
+assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip() == prov['head']
+assert not subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip()
+review_text = (BASE/'review-code1/run.log').read_text()
+assert review_text.rstrip().endswith('exit 0')
+review = json.loads(review_text.rsplit('\nexit ',1)[0])
+assert review['subtype']=='success' and review['is_error'] is False
+assert review['result'].splitlines()[0] == 'CODE REVIEW PASS'
+assert prov['policy_revision']=='e5a0b1391c5268c3ae04a49e6862f19a30779bb2'
+payload = RUN/'inputs/stack_pbe_v4_train.jsonl.gz'
+assert sha(payload)=='13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b'
+pins = {**prov['source'], **prov['checkpoint'], **summary['raw_sha256']}
+for p in [RUN/'summary.json',RUN/'provenance.json',RUN/'host-before.json',RUN/'host-after.json',payload,BASE/'profile-launch.json',BASE/'profile-status-initial.txt',BASE/'review-code1/run.log',BASE/'review-code1/prompt.md']:
+    pins[str(p)] = sha(p)
+for p,h in pins.items(): assert sha(p)==h, p
+prior=read(BASE.parent/'gumbel-retention-screen-20261015/baseline/provenance.json')
+assert prov['checkpoint']==prior['checkpoint']
+with gzip.open(payload,'rt') as f: rows=[json.loads(line) for line in f]
+first={}
+for i,row in enumerate(rows):
+    assert row['split']=='train' and isinstance(row['skeleton'],str) and row['skeleton']
+    assert row['inputs'] and len(row['inputs'])==len(row['outputs'])
+    first.setdefault(row['skeleton'],i)
+selected=sorted(first,key=lambda s:(hashlib.sha256(b'policy-item-reuse-v1\0'+s.encode()).hexdigest(),s))[:24]
+identities=[]; shown=[]
+for s in selected:
+    i=first[s];row=rows[i];pairs={k:row[k] for k in ('inputs','outputs')}
+    identities.append({'source_index':i,'skeleton':s,'behaviour':row['behaviour'],'shown_sha256':hashlib.sha256(json.dumps(pairs,sort_keys=True,separators=(',',':')).encode()).hexdigest()})
+    shown.append({'source_index':i,**pairs})
+assert identities==read(RUN/'selection.json') and shown==read(RUN/'shown.json')
+# Import only low machine primitives; never diagnostic counter/selection helpers.
+from wandering_light.stack_machine import parse_stack,step_raw,ops_for_basis,DEFAULT_FUEL_LIMIT
+OP_BY_NAME={op.name:op for op in ops_for_basis('mark-28')}
+machine=importlib.import_module('wandering_light.stack_machine')
+assert pathlib.Path(machine.__file__).resolve().is_relative_to(ROOT)
+fields=('calls','items','positions','hits','hit_positions','within_call_hits','cross_call_hits')
+computed_cells={};splits={}; fits_replayed=0
+for label in (17,29,43):
+    cell=read(RUN/f'cell-{label}.json')
+    assert cell['complete'] is True and cell['label']==label and cell['host']==platform.node()
+    assert cell['threads']==cell['interop']==1 and cell['device']=='cpu' and cell['model_parameter_dtypes']==['torch.float32']
+    assert all(x=='1' for x in cell['thread_env'].values()) and len(cell['thread_env'])==5
+    assert 'wl-item-reuse-profile-20261015.service' in cell['cgroup']
+    assert cell['shown_sha256']==sha(RUN/'shown.json')
+    for name,p in cell['module_origins'].items():
+        assert pathlib.Path(p).resolve().is_relative_to(ROOT)
+        assert str(pathlib.Path(importlib.import_module(name).__file__).resolve())==p
+    assert [x['source_index'] for x in cell['rows']]==[x['source_index'] for x in shown]
+    totals=dict.fromkeys(fields,0);fits=0;within_positions=cross_positions=0
+    for task,row in zip(shown,cell['rows'],strict=True):
+        counters=dict.fromkeys(fields,0);lru=OrderedDict()
+        for call_index,call in enumerate(row['calls']):
+            n,w,keys=call['n'],call['width'],call['keys']
+            assert type(n) is int and n>0 and type(w) is int and w>0 and len(keys)==n
+            counters['calls']+=1;counters['items']+=n;counters['positions']+=n*w
+            for key in keys:
+                assert isinstance(key,str) and len(key)==64 and all(c in '0123456789abcdef' for c in key)
+                if key in lru:
+                    old_call,old_width=lru.pop(key);assert old_width==w
+                    kind='within_call_hits' if old_call==call_index else 'cross_call_hits'
+                    counters[kind]+=1;counters['hits']+=1;counters['hit_positions']+=w
+                    if kind=='within_call_hits':within_positions+=w
+                    else:cross_positions+=w
+                elif len(lru)==4096:lru.popitem(last=False)
+                lru[key]=(call_index,w)
+        assert counters==row['observed']
+        for k,v in counters.items():totals[k]+=v
+        assert (row['program'] is not None)==(row['termination']=='fit')
+        assert math.isfinite(row['solve_seconds']) and row['solve_seconds']>=0
+        if row['program'] is not None:
+            for inp,out in zip(task['inputs'],task['outputs'],strict=True):
+                state=parse_stack(inp,basis='mark-28')
+                for op in row['program']:
+                    answer=step_raw(OP_BY_NAME[op],state,DEFAULT_FUEL_LIMIT,0)
+                    assert not isinstance(answer,str),(label,row['source_index'],answer)
+                    state=answer[0]
+                assert state==parse_stack(out,basis='mark-28')
+            fits+=1;fits_replayed+=1
+    computed={**totals,'shown_fits':fits,'solve_seconds':math.fsum(r['solve_seconds'] for r in cell['rows']),'executions':sum(r['executions'] for r in cell['rows']),'fuel':sum(r['fuel'] for r in cell['rows'])}
+    assert computed==summary['cells'][str(label)]
+    assert within_positions+cross_positions==totals['hit_positions']
+    computed_cells[str(label)]=computed
+    splits[str(label)]={'within_hit_positions':within_positions,'cross_hit_positions':cross_positions,'within_fraction':float(Fraction(within_positions,totals['positions'])),'cross_fraction':float(Fraction(cross_positions,totals['positions']))}
+ratios=[Fraction(c['hit_positions'],c['positions']) for c in computed_cells.values()]
+every=all(r>=Fraction(1,4) for r in ratios);span=max(ratios)-min(ratios);stable=span<Fraction(1,20)
+assert summary['every_fraction_at_least_quarter']==every and summary['range_below_five_points']==stable
+assert [list((r.numerator,r.denominator)) for r in ratios]==summary['fractions_exact']
+assert [float(r) for r in ratios]==summary['fractions']
+assert [span.numerator,span.denominator]==summary['range_exact']
+assert summary['reading']==('WORTH_COMPATIBILITY_STUDY' if every and stable else 'NOT_JUSTIFIED')
+for p,h in pins.items():assert sha(p)==h,('changed after audit',p)
+receipt={'complete':True,'scope':'independent selection/counter/gate/shown-only replay/pins, not whole-search or true encoded-key reconstruction','head':prov['head'],'original_rows':len(rows),'skeletons':len(first),'shown_fits_replayed':fits_replayed,'cells':computed_cells,'position_splits':splits,'reading':summary['reading'],'exact_gate':{'every_ge_quarter':every,'range_lt_five_points':stable},'rehash_count':len(pins),'audit_script_sha256':sha(__file__)}
+with (BASE/'audit-receipt.json').open('x') as f:json.dump(receipt,f,indent=2,sort_keys=True);f.write('\n')
+print(json.dumps(receipt,sort_keys=True))

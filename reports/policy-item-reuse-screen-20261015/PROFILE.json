@@ -1,0 +1,83 @@
+{
+  "cells": {
+    "17": {
+      "calls": 788,
+      "cross_call_hits": 6456,
+      "executions": 5640562,
+      "fuel": 6117660,
+      "hit_positions": 758653,
+      "hits": 20927,
+      "items": 249012,
+      "positions": 9321733,
+      "shown_fits": 12,
+      "solve_seconds": 65.50164971800405,
+      "within_call_hits": 14471
+    },
+    "29": {
+      "calls": 789,
+      "cross_call_hits": 6492,
+      "executions": 5644900,
+      "fuel": 6120997,
+      "hit_positions": 762584,
+      "hits": 20964,
+      "items": 249396,
+      "positions": 9351685,
+      "shown_fits": 12,
+      "solve_seconds": 65.92556623196288,
+      "within_call_hits": 14472
+    },
+    "43": {
+      "calls": 790,
+      "cross_call_hits": 6493,
+      "executions": 5653546,
+      "fuel": 6131465,
+      "hit_positions": 765440,
+      "hits": 21020,
+      "items": 249780,
+      "positions": 9371269,
+      "shown_fits": 12,
+      "solve_seconds": 65.56469389397535,
+      "within_call_hits": 14527
+    }
+  },
+  "complete": true,
+  "every_fraction_at_least_quarter": false,
+  "fractions": [
+    0.0813854033364826,
+    0.08154509053715989,
+    0.08167943957216467
+  ],
+  "fractions_exact": [
+    [
+      758653,
+      9321733
+    ],
+    [
+      762584,
+      9351685
+    ],
+    [
+      765440,
+      9371269
+    ]
+  ],
+  "phase_seconds": 219.31578450200323,
+  "range_below_five_points": true,
+  "range_exact": [
+    25685966863,
+    87356467489177
+  ],
+  "raw_sha256": {
+    "/home/abhishekrao/repos/wandering-light/checkpoints/policy-item-reuse-screen-20261015/profile/cell-17.json": "8b8c1e45c88e2605b7475b316e8ca32a1a802b5e6d2c06b65ea08ab44898690c",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/policy-item-reuse-screen-20261015/profile/cell-29.json": "9db4c609e3eeca1d7a1e560cfe9d003c2a257ebbc0ae1e7b1c0b34e9c36367c5",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/policy-item-reuse-screen-20261015/profile/cell-43.json": "cb525c1c2e63adaa576673bc9f141224ed771b0e49c0fe6b368200111bad3680",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/policy-item-reuse-screen-20261015/profile/selection.json": "5c293c2ed9a1f6fb7dd41077a8018ff505df02d9978d2bd60a8f28956fbaeb5e",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/policy-item-reuse-screen-20261015/profile/shown.json": "a6fa3ded0988f5406eab563e4a8a4ececabca32423bd655506591ec42842cdbd"
+  },
+  "reading": "NOT_JUSTIFIED",
+  "subprocess_seconds": {
+    "17": 72.44365993399697,
+    "29": 72.06476797199866,
+    "43": 71.81685917700815
+  }
+}
