@@ -943,6 +943,26 @@ Per-step deficit by step kind, fused → staged: `body` (under an open mark) 0.1
 | policy, aligned example pairs (90,374 params) | — | **back 1.79 rank / 71.0% top-1 / 1.35 bits/step** | +0.25–0.61 rank over widened encoder at all six probes; bits saved over mask: front 1.29–1.79, back 3.08–3.25 |
 | value, distance-to-go | MAE 1.232 | conv **0.978** | off by 1.66 / 2.08 / 2.51 at remaining 6/7/8; as orderer rank 3.35 (worse than policy lookup 3.18) |
 
+## Codex janthu campaigns, 2026-10-02 to 2026-10-15 (evidence on branch `ps-worker`)
+
+The e-den program-synthesis janthu (Codex) ran these on the train split with
+`staged-s0-e3`, CPU only, about 30 CPU-minutes of measurement in all. The
+owner moved the work off `main` on 2026-10-16. Reports, raw output and the
+code that produced them are on
+[`ps-worker`](https://github.com/abhishekraok/wandering-light/tree/ps-worker/reports);
+#180's and #186's code is on its `janthu/*` branch.
+
+| study | result | scope |
+|---|---|---|
+| O1-A, train archive replay audit (#164) | 584 of 592 rows (146 behaviours) eligible; **2,268 saved `witness_cuts` over 428 tasks are not genuinely closed** (lists still hold code) | train archive only |
+| O1-B, continuation inventory (#164) | 4,512 complete-matrix trials, 11 successes; 10 of 466 eligible candidates labelled; **0 ranking pairs** | ended at its call cap after 31 s of a 900 s deadline; 19 of 52 tasks censored |
+| capped-policy-glue-loss (#178) | matched top-level minus in-quotation loss **+0.32 to +0.79 nats, positive in all 6 checkpoints** (median +0.64 machine, +0.48 difference); top-level ops are 43% of tokens and 44-49% of loss | train only; boundary glue excluded; the registered "falsified" verdict is a breadth bar (27 of 45 behaviours), missed at 19-29 |
+| score-band-retention (#179) | synthetic fixtures only: a score band can save expansions, lose a solution or change the first fit | software QA, true by construction |
+| gumbel-retention-screen (#183) | noisy retention verifies **7 of 24 vs 8 of 24**, losing `running_minima`, gaining nothing, in all 3 pairs | one noise scale, 24 hash-picked train skeletons |
+| policy-item-reuse-screen (#184) | 8.1% of padded encoder positions repeat (gate 25%) | speed only; not tied to wall-clock share |
+| list-hash-memo (#185) | exact results; process-time ratio 0.967 / 0.977 / 1.025 (gate 0.90) | whole-process clock incl. imports and model load; no profile first |
+| root-map-first (#186), pre-data | template eligibility on shown examples: **0 of the 24 registered panel tasks**; 4 of 171 v4 train skeletons, 2 of 44 v4 eval, 0 of 44 world-v3 | recomputed 2026-10-16 with the branch's own `derive` and `select_panel`; the pilot as registered cannot pass |
+
 ## Substrates and bases
 
 | measurement | value | source |

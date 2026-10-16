@@ -1,18 +1,18 @@
-"""short-segment-campaign (#168): the closed-state archive on train tasks, for a learned ranker.
+"""short-segment-campaign (#168): the segment-cut archive on train tasks, for a learned ranker.
 
 Runs the segment search (`search.py`'s segment cell: width 64, K roots, 12
 segments of the arm's depth, guard both, the #157 state cap, 120 s a task) on
 capped train tasks, the first ``--sets`` example sets of each of the 148
 capped train behaviours, and writes `search.archive_record` per task with each
-kept closed state flagged ``on_witness`` when it equals a closed state along
-the behaviour's authored capped witness (`train_capped.jsonl`). Train tasks give
-positives on every task from the witness, where eval searches mostly fail:
-``witness_cuts`` are the op counts at which the witness is closed, so its
-closed states (positives even where the search never recorded them, and the
-final one, which a fit never records) are its prefixes replayed on
-``inputs``;
-branch-and-check (#164) step 2 trains on this, never on the eval-cohort
-archive. The library is off, so every task is its own search. Appends one gzip
+kept cut state flagged ``on_witness`` when it equals a saved cut state along
+the behaviour's authored capped witness (`train_capped.jsonl`).
+``witness_cuts`` record top-level combinator events, not genuine closure:
+lists can still hold executable symbols. Ranker consumers must replay witness
+prefixes on every shown input and independently check closure, deduplicate
+states and exclude the goal. Recorded suffixes give continuation upper bounds,
+not optimal-distance labels; unflagged states are not negative labels.
+branch-and-check (#164) step 2 may use this training archive, never the
+eval-cohort archive. The library is off, so every task is its own search. Appends one gzip
 member per task and resumes from what the file holds::
 
     uv run python experiments/short_segment/archive_train.py \\

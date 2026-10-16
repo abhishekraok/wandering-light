@@ -100,6 +100,9 @@ change settles:
   `systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- <command>`.
   A run killed by the cap is incomplete: never retry it uncapped or score its
   missing output as zero.
+- The beam and the grader charge fuel differently: `stack_beam` gives every op a
+  fresh `DEFAULT_FUEL_LIMIT`, while `stack_pbe.run_program` charges the whole
+  program against one. A program the beam accepts can fail grading on fuel.
 - `tests/test_generate_deep_corpus.py::test_resumed_serial_and_parallel_payloads_are_byte_identical`
   has failed under CPU contention. Rerun it alone; if it fails alone, it is a
   real failure.

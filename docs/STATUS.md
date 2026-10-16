@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-10-16 (overstated claims re-derived from committed artifacts)
+Last updated: 2026-10-16 (overstated claims re-derived; Codex janthu campaigns moved to `ps-worker`)
 
 ## What is true now
 
@@ -118,6 +118,8 @@ claim a number supports.
   - It re-authored the train data to short segments, trained a comparing encoder, and searched with a segment-reset beam.
   - The owner stopped after it. The next campaign starts in a new session from [the handoff](../goals/g1-handoff-20260925.md).
 
+**The Codex janthu campaigns of 2026-10-02 to 2026-10-15 are off `main`,** on branch `ps-worker`, by the owner's decision of 2026-10-16; their numbers are one section of RESULTS_DETAILED and none changes a claim above. Two are pre-data and parked: score-gap-feasibility (#180), whose verifier-authoring job timed out on 2026-10-03 with no result, and root-map-first (#186), which cannot pass as registered because none of its 24 panel tasks fits the template.
+
 Also open, none started: world-v3 staged the way #155 staged v4; what training-data-sources (#118) does after step 3, with world-plus-v4-policy (#134) and keep-below-ablation (#136); the ~127 behaviours left in the sampler-passing pool; the highways programme (#94, #96, #98, goal #99); and the unrun `mixed` arm of hindsight-subtargets (#152). Also parked on the owner: M4 of novelty-reduction (#171) is unregistered, with two decisions open beyond those on the issue (re-register the readout as fixed-share certified-reachable, the only readout that tracked capability; whether the E head stays at all, given that the uncertainty score ranks misses at least as well), and the fix for stack-machine-quotation-growth (#172). Two follow-ups from codex-exec-effort-curve (#123) were raised and never filed: a held-out count scaled to output entropy, and astra on `stack_pbe_world_v1` as the matched authorship test.
 
 Six designs were set aside after exploratory, unreviewed probes on 2026-09-20: [report](../reports/learning-algorithm-brainstorm-20260920/README.md). Revisit when new evidence or a changed design alters their premises.
@@ -136,6 +138,8 @@ correction lands in one place instead of being chased across comment threads.
 - **2026-10-16, "six of the nine epoch-4-to-6 cells lose behaviours to shortcuts and none gains any, so the graded-verified gap is all shortcut-finding"** (the late-epoch row, epoch-selection-in-behaviours (#154)). Shortcuts already appear at epochs 1-3 (3 of 9 cells), so late training adds shortcuts rather than starting them; and "none gains any" holds by construction, since every verified behaviour is also graded. Also qualified there: the CE-selection penalty shrinks with training data, 0.61 / 0.72 / 0.85 of the best fixed epoch at 314k / 358k / 429k fit rows (0.65 / 0.87 / 0.92 of epoch 3).
 
 - **2026-10-16, "RND and count novelty rank at the base rate" and "on archive rollout-origin pairs the ridge P is no better than distance"** (the M2/M2b row, novelty-reduction (#171), 2026-09-24). Count novelty is 1.0 on every test pair in all three seeds by construction, so it was never a ranking. The rollout-origin caveat was seed 0's: in all three seeds the cheap logistic beats the ridge P on those pairs (0.528 / 0.551 / 0.582 against 0.561 / 0.560 / 0.599 log loss), so the probe's win does not hold on rollout-origin pairs. From `reports/novelty-reduction-20260924/m2b-s*/report.json`.
+
+- **Saved `witness_cuts` are genuinely closed states** (the archive guidance in [the September handoff](../goals/g1-handoff-20260925.md) and the old `closed_cuts` / `archive_train` docstrings). A cut is a top-level combinator event and can leave code inside lists: 2,268 cuts over 428 train tasks are not closed (O1-A, branch-and-check (#164), 2026-10-02). Replay the prefix and check closure on every shown example.
 
 - **"E's training target is noise, and E's mid-bin miss rate comes from a
   narrow Wilson interval"** (my M2 read on novelty-reduction (#171),
