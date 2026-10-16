@@ -49,6 +49,7 @@ change settles:
 
 ## Landing work and asking the owner
 
+- **Pushing a branch needs no confirmation.**
 - **Fast-forwarding a branch to `main` is pre-authorized** once it has a
   passing high-effort review from the other agent family and its results are
   posted on the issue. No PR is needed for that; a PR is for code another
@@ -71,8 +72,9 @@ change settles:
 - **Write run output into a directory in the main checkout from launch**
   (`checkpoints/<run>/`), not the worktree: closing a session can delete its
   worktree. Before landing a report, check every path it cites exists there.
-- **Paid API spend needs the owner's go-ahead per run.** A peer agent's brief
-  does not authorize it.
+- **Metered API keys (OpenAI, Anthropic, Gemini) need the owner's go-ahead
+  per run.** A peer agent's brief does not authorize it. Plan-billed
+  `claude -p` / `codex exec` with those keys unset needs none.
 - **The sample-40 model sweeps** (new-models-sample40 (#173) and its
   extensions) are for the owner's own view of how agents are progressing, not a
   project result: keep them cheap, and do not run Fable at max.
