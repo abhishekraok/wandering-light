@@ -36,4 +36,4 @@ One expected10min CPU attempt in a persistent unit, hard RuntimeMaxSec1200/Memor
 
 The conjunction is exact result compatibility AND >=10% process-clock reduction in EVERY repeat. Failure parks this construction without tuning/retry. PASS earns only a separately registered release-cohort verified-coverage/all-attempt-clock qualification under existing repository rules; it does not authorize landing the production hash change, claiming held-out speed, changing BEST or relaxing owner gates. Test-only/review repairs before real execution are not data eligibility. No trained-model authoring, training, paid API or new dataset generation.
 
-Status: pre-data design only; no candidate code, real panel/model access, timing reservation or attempt yet.
+Status: the one registered pilot completed normally; exact compatibility passed and every fixed clock gate failed. Construction parked; final result review pending. The contract above is unchanged.
