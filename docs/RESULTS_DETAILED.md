@@ -1041,7 +1041,7 @@ Pair numbers come from the complete raw final manifest, not a selected subset. A
 
 ### gumbel-retention-screen (#183), baseline feasibility (2026-10-15)
 
-TRAIN-only hash-selected24skeletons, fixed BEST staged-s0-e3, libraryoff, CPU1thread, width64/depth48/5second caps. Source0212640, complete wrapperexit0; unchanged feasibility gates READY_FOR_REGISTRATION. Final independent result review pending; no candidate result or BEST change.
+TRAIN-only hash-selected24skeletons, fixed BEST staged-s0-e3, libraryoff, CPU1thread, width64/depth48/5second caps. Source0212640, complete wrapperexit0; unchanged feasibility gates READY_FOR_REGISTRATION. Final independent code/result review passed on23a6614; no candidate result or BEST change.
 
 | Repeat label | Shown fit /24 | Hidden graded /24 | Verified /24 | Draw-tested / witness-equal | All-attempt solve seconds |
 |---|---:|---:|---:|---|---:|
@@ -1053,7 +1053,7 @@ Same verified set in every repeat; count range0. Full phase270.82604606800305sec
 
 ### gumbel-retention-screen (#183), fixed comparison (2026-10-15)
 
-TRAIN-only 24 skeletons, fixed staged-s0-e3 policy, library off; fresh paired cells, source0212640. Complete wrapper `exit 0`; final independent result review pending.
+TRAIN-only 24 skeletons, fixed staged-s0-e3 policy, library off; fresh paired cells, source0212640. Complete wrapper `exit 0`; final independent code/result review passed on23a6614.
 
 | Pair seed | Control verified /24 | Candidate verified /24 | Control solve seconds | Candidate solve seconds | Ratio | Net gain |
 |---|---:|---:|---:|---:|---:|---:|
@@ -1062,3 +1062,5 @@ TRAIN-only 24 skeletons, fixed staged-s0-e3 policy, library off; fresh paired ce
 | 43 | 8 | 7 | 55.0095840600261 | 53.961482725979295 | 0.9809469322127009 | -1 |
 
 Candidate loses `running_minima` and gains nothing in every pair. Median gain −1 and every gain <0 fail both coverage gates; median all-attempt clock ratio 1.004928438941979 passes ≤11/10. NEGATIVE_TRAIN_SCREEN; no tuning, retry or BEST promotion. Whole phase 525.307655882003 seconds includes setup, processes and verification. Point host snapshots do not establish continuous exclusivity. [Report](../reports/gumbel-retention-screen-20261015/RESULT.md), [full cells/sets](../reports/gumbel-retention-screen-20261015/COMPARISON.json), [audit](../reports/gumbel-retention-screen-20261015/COMPARISON_AUDIT.json).
+
+Both #183 phases passed [independent code/result review](../reports/gumbel-retention-screen-20261015/FINAL_REVIEW.md), with [independent replay/checker/arithmetic receipt](../reports/gumbel-retention-screen-20261015/INDEPENDENT_CHECK.json) under actual 12 GiB/no-swap controls. Parent post-run audits lacked their required memory scope; measured phases were correctly capped, and the reviewer redid all correctness-relevant checks within its capped unit.
