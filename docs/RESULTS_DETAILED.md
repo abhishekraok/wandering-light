@@ -155,6 +155,21 @@ Depth-5 states per task (`#70` probe, 3 tasks, seed 17): v4 roots **1,166,586** 
 
 Corpus scope numbers (v3 → v4): distinct input stacks 15,550 → 83,488; witness median 6.5 → 43 ops; witnesses with a branch — → 76%; median 8-op-window overlap between witnesses 79.8%, eval-with-train 76.8%.
 
+## Shown-pair count and memorisation, astra low on the full v4 eval split (#123)
+
+The generator draws each task's shown count as `rng.randint(3, 6)` and always holds out 8 pairs, so the count is randomised within behaviour (against behaviour: chi2 112.8 on 132 df, permutation p = 0.89). Verdicts of the 1,800-task astra-low run (`astra_low_v4_full_shard*.json`) against the eval payload at the manifest's pinned revision `00c2a999`. `experiments/shown_count_memorisation.py`, 2026-10-16.
+
+| shown pairs | tasks | solved | memorised | failed | memorised of shown fits |
+|---:|---:|---:|---:|---:|---:|
+| 3 | 460 | 44.8% | 52.6% | 2.6% | 54.0% |
+| 4 | 437 | 55.6% | 39.1% | 5.3% | 41.3% |
+| 5 | 443 | 56.2% | 37.2% | 6.5% | 39.9% |
+| 6 | 460 | 64.6% | 29.6% | 5.9% | 31.4% |
+
+Within behaviour, 5-6 shown against 3-4: memorised lower in 28 behaviours and higher in 4 (two-sided sign test p = 2e-5); solved higher in 26 and lower in 8 (p = 0.003).
+
+Memorisation among tasks a solver fits on the shown pairs. v3 full split: terra 12/389 (3.1%), BFS 10k 3/42 (7.1%). v4 full split: astra low 714/1,709 (41.8%), BFS 10k 22/142 (15.5%); on BFS's 142 fit tasks astra solves 123, memorises 17 and fails 2. The aggregate overstatement (v3 terra 2.7 points against BFS 0.7; v4 astra 39.7 against BFS 1.2) follows which tasks a solver reaches, not how often it memorises a task both reach.
+
 ## World-behaviours probe (#118): `mark-28` witnesses for MBPP and LeetCode-easy
 
 95 behaviours sampled from MBPP (50) and LeetCode-easy (45) with every argument and result an int or flat int list, ≤ 3 arguments, ≥ 10 tests (MBPP's 3 asserts extended by shape-mutated inputs run through the reference solution); programs authored by four Claude sessions in macro form, expanded to `mark-28`, re-verified on every test by `experiments/world_behaviours/report.py`. Lengths are expanded `mark-28` ops. [report](../reports/world-behaviours-probe-20260909/README.md), `report.json`, `behaviours.jsonl`, `programs_<k>.jsonl`; macros in `experiments/world_behaviours/macros*.txt`.
@@ -426,6 +441,8 @@ The #101 1m policy, seeds 0 / 1 / 2, epoch 3 fixed in advance, 313,560 task-bala
 | both | 130.3 (121 / 147 / 123) | 128.0 | 14.00 (14 / 15 / 13) | 15 | 1.00 | 13.00 |
 
 Verified behaviours by bucket (fused / re-fused / staged / both): 1-5 6.00 / 4.67 / 6.00 / 6.00; 6-10 1.00 / 1.33 / 3.00 / 3.00; 11-20 3.67 / 4.00 / 5.00 / 4.67; 21-40 1.33 / 2.33 / 1.67 / 0.33; 41+ 0.33 / 0.33 / 0.00 / 0.00. Staged against the fused union: gains `keep_below`, `n_minus_each`, `largest_inside_interval`; loses `shared_value_occurrences`, `farther_choice_from_target`.
+
+Fixed-reference recount (2026-10-16): the novelty column above is per arm, so its reference moves with the arm. Against the union of the fused, re-fused and staged train texts, behaviours solved by a program in none of them are 4.00 (5 / 2 / 5) / 4.67 (4 / 5 / 5) / 4.33 (4 / 6 / 3) / 1.00 (1 / 2 / 0) for fused / re-fused / staged / both; against the fused text alone, 8.33 / 9.67 / 12.00 / 10.00. `drop_last`, `increment_each`, `negate_each`, `rotate_left` and `sum_negative` are solved by the same string in fused and staged, a string only the staged text contains. Seeds verifying, fused / re-fused / staged: `all_positive` 1 / 3 / 3, `count_in_range` 1 / 3 / 3, `largest_inside_interval` 0 / 3 / 2, `keep_negative` 3 / 0 / 3, `shared_value_occurrences` 3 / 0 / 0. `experiments/staged_novelty_fixed_reference.py` over `checkpoints/staged-arms-20260920`.
 
 Per-cycle diagnostic, oracle sub-goal (next closed state as the search target), validation-skeleton holdout, 14 behaviours x 5 tasks, beam 64, depth = cycle length + 4, mean of 3 seeds:
 
@@ -866,6 +883,16 @@ Caveats: three seeds, one cohort, one corpus, one recipe. Learning rates are #10
 | 6 | 13/11 | 10/10 | 12/11 | 10.67 |
 
 Selection rules, mean verified behaviours over three seeds: validation CE 6.00, fixed epoch 5 10.33, best fixed epoch (3) 11.00, oracle 11.33. Validation CE per epoch, seed 0: 0.952 / 0.956 / 1.094 / 1.210 / 1.362 / 1.509.
+
+The same rules on the #134 / #136 arms, verified tasks of 300, mean of seeds 0-2 (from `reports/world-plus-v4-policy-20260912/epochs.md` and `reports/keep-below-ablation-20260913/ablation.md`; the CE-selected cells are the `*` ones), 2026-10-16. Fit rows per epoch: v4-only 313,560, ablated 358,086, v4 + world 429,078.
+
+| arm | CE-selected | best fixed epoch | ratio | epoch 3 | ratio |
+|---|---:|---:|---:|---:|---:|
+| v4-only | 52.3 | 85.3 (e4) | 0.61 | 80.3 | 0.65 |
+| ablated | 62.0 | 86.0 (e5) | 0.72 | 71.0 | 0.87 |
+| v4 + world | 86.0 | 101.0 (e5) | 0.85 | 93.3 | 0.92 |
+
+Graded-but-not-verified (shortcut) behaviours per cell, from `reports/solved-program-cache-20260919/verified_epoch_grid.json`: epochs 1-3 have one in 3 of 9 cells (`all_positive` at s2-e1 and s2-e2, `bounds_cover_list_flag` at s0-e3); epochs 4-6 have 8 in 6 of 9 cells. All are `all_positive`, `bounds_cover_list_flag` or `aligned_matches`.
 
 ## Hindsight sub-target relabelling on v4 (#152)
 
