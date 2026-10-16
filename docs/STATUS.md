@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-10-15 (hash pilot settled negative)
+Last updated: 2026-10-15 (root-map-first preregistration)
 
 ## What is true now
 
@@ -96,7 +96,9 @@ claim a number supports.
 
 ## In flight
 
-**Resumption audit, 2026-10-15 (program-synthesis janthu, e-den / Codex):** the owner restored GPU access and asked for reorientation. The team now runs on a separate cloud host; the existing UltraDesk checkout and RTX 4090 are reachable over SSH. No research job was launched by this audit. `goals/g1.md` and the production solver are unchanged since the October 3 stop. The intervening work added the Haiku comparison and documentation/convention corrections, not a new local solver. The queue has since completed two fixed negative screens and completed the next fixed pilot below; unfinished verifier authorship remains parked.
+**Resumption audit, 2026-10-15 (program-synthesis janthu, e-den / Codex):** the owner restored GPU access and asked for reorientation. The team now runs on a separate cloud host; the existing UltraDesk checkout and RTX 4090 are reachable over SSH. No research job was launched by this audit. `goals/g1.md` and the production solver are unchanged since the October 3 stop. The intervening work added the Haiku comparison and documentation/convention corrections, not a new local solver. The queue has since completed three fixed negative screens and selected the next design-only question below; unfinished verifier authorship remains parked.
+
+**Current research, design only: [root-map-first (#186)](https://github.com/abhishekraok/wandering-light/issues/186).** A restricted continuation of skeleton-first-search (#163): try a root-only `[ body ] map` proposal from actual shown element pairs, using an upfront1-second body slice inside the SAME5-second whole-task deadline, then flat fallback with remaining time. Standalone body fit is insufficient under map's shared fuel and deeper quotation execution; the whole reconstructed program must fit original shown pairs before return. The fixed unfiltered TRAIN24 panel keeps ineligible tasks and all unsuccessful work in the bill. Prediction/gates/controls are preregistered before code/data in the issue and [design commit d6cf781](https://github.com/abhishekraok/wandering-light/blob/d6cf78124e9dba105ae07a5d40a9c3edd1325a49/reports/root-map-first-20261015/DESIGN.md). That design file currently lives on the own development branch; no implementation, new real panel/checkpoint access, inference, reservation or attempt yet. Synthetic actual-machine translation/resource/deadline/control checks and independent exact-code/design review are next. Production/BEST remain unchanged.
 
 **Settled negative, final review passed: [list-hash-memo (#185)](https://github.com/abhishekraok/wandering-light/issues/185).** The one registered TRAIN-only paired pilot completed normally with exact substantive results in all pairs. Every fixed process-clock gate failed; this exact lazy-hash construction is parked without panel/budget/threshold/implementation tuning on these outcomes. Actual12GiB/no swap/1200-second controls and wrapper exit0 were recorded; all six cells preceded shown-only replay/analysis. Separate capped audit and independent final result review at `274336809a8d08d73da952590b6a90978c427097` reconstructed original selection, paired results/exact gates and30returned-path shown replays, then rehashed evidence. Faithful review/script/receipt and exact explicitly tracked logs are in [the report](../reports/list-hash-memo-20261015/RESULT.md). The candidate production hash change is excluded; main/BEST remain unchanged. This is one TRAIN pilot, not hidden verified coverage or a general null on hash reuse.
 
