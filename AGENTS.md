@@ -85,6 +85,9 @@ change settles:
   question as a message to the owner, or to the session the owner has named
   to answer for them, never as a blocking prompt. Keep the ungated work going
   until the answer arrives.
+- **When a result lands, put the figure (the PNG) and a few lines in front of
+  the owner**; report markdown is for agents. If the work has an explainer
+  (STATUS, Where things live), update it in place; never publish a second copy.
 
 ## Measurement traps
 

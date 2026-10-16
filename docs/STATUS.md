@@ -404,4 +404,4 @@ correction lands in one place instead of being chased across comment threads.
 - `reports/` — every measurement, one directory per run
 - `experiments/` — the scripts that produced them
 - `checkpoints/` and `.drafts/` in the main checkout — gitignored run directories and scratch that reports cite; UltraDesk only
-- Owner-facing explainers (claude.ai artifacts): Staged Witness Stepper for #155, https://claude.ai/artifact/U24qR8VcCyE2cAvikWkdUK; Where-Routes-Meet for #164, https://claude.ai/artifact/X6jnExYmg6oP4fKuM6EtF2
+- Owner-facing explainers (claude.ai artifacts): Staged Witness Stepper for #155, https://claude.ai/artifact/U24qR8VcCyE2cAvikWkdUK; Where-Routes-Meet for #164, https://claude.ai/artifact/X6jnExYmg6oP4fKuM6EtF2; Submarine Log for novelty-reduction (#171), https://claude.ai/artifact/3qVqMmsq3WCRnSnptKgPze
