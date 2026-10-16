@@ -1,0 +1,278 @@
+"""Independent final result review check for policy-item-reuse-screen (#184).
+
+Uses only raw JSONL/cell files, git, and low-level primitives (parse_stack, step_raw,
+ops_for_basis, node_encoder). Never imports diagnostic helpers (policy_item_reuse*),
+never runs search/model inference, never reads held-out/reference fields.
+"""
+import gzip, hashlib, json, math, pathlib, struct, subprocess, sys
+from fractions import Fraction
+import numpy as np
+
+REV = pathlib.Path('/home/abhishekrao/eden/janthus/program-synthesis/work/trees/policy-item-reuse-final-review-20261015')
+FROZEN = pathlib.Path('/home/abhishekrao/eden/janthus/program-synthesis/work/trees/policy-item-reuse-profile-20261015')
+BASE = pathlib.Path('/home/abhishekrao/repos/wandering-light/checkpoints/policy-item-reuse-screen-20261015')
+RUN = BASE / 'profile'
+REP = REV / 'reports/policy-item-reuse-screen-20261015'
+OUT = BASE / 'final-review'
+MEASURED = '23c260752070d0401f16b4848586701bb2083178'
+FINAL = 'df1acd0d3eb68bb4f70f0d9e3954bff742bedefd'
+sha = lambda p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
+read = lambda p: json.loads(pathlib.Path(p).read_text())
+git = lambda d, *a: subprocess.check_output(['git', '-C', str(d), *a], text=True)
+fails, notes = [], []
+def check(cond, msg):
+    if not cond: fails.append(msg)
+
+# ---- version continuity
+check(git(REV, 'rev-parse', 'HEAD').strip() == FINAL, 'review HEAD')
+check(git(REV, 'status', '--porcelain').strip() == '', 'review tree dirty')
+check(git(REV, 'diff', '--name-only', MEASURED, FINAL, '--', 'experiments', 'tests', 'wandering_light').strip() == '', 'executable delta after measured')
+check(git(REV, 'diff', '--name-only', 'ce9bd16', FINAL, '--', 'reports/policy-item-reuse-screen-20261015/DESIGN.md').strip() == '', 'DESIGN changed since registration')
+check(subprocess.run(['git', '-C', str(REV), 'merge-base', '--is-ancestor', 'ce9bd16', '8bc22d2']).returncode == 0, 'registration not before impl')
+check(subprocess.run(['git', '-C', str(REV), 'merge-base', '--is-ancestor', MEASURED, FINAL]).returncode == 0, 'measured not ancestor')
+check(git(FROZEN, 'rev-parse', 'HEAD').strip() == MEASURED, 'frozen HEAD')
+check(git(FROZEN, 'status', '--porcelain').strip() == '', 'frozen dirty')
+changed_paths = git(REV, 'diff', '--name-only', MEASURED, FINAL).split()
+
+prov = read(RUN / 'provenance.json')
+check(prov['head'] == MEASURED and prov['git_status'] == '', 'provenance head/status')
+
+def rehash_set():
+    files = {}
+    for p in prov['source']: files[p] = sha(p)
+    for p in prov['checkpoint']: files[p] = sha(p)
+    for p in sorted(RUN.rglob('*')) + sorted(BASE.glob('*')) + sorted((BASE / 'review-code1').glob('*')):
+        if p.is_file(): files[str(p)] = sha(p)
+    for p in sorted(REP.glob('*')): files[str(p)] = sha(p)
+    return files
+before = rehash_set()
+for p, h in prov['source'].items():
+    check(before[p] == h, f'source pin {p}')
+    rel = pathlib.Path(p).relative_to(FROZEN)
+    check(sha(REV / rel) == h, f'final-HEAD byte mismatch {rel}')
+for p, h in prov['checkpoint'].items(): check(before[p] == h, f'checkpoint pin {p}')
+prior = read(BASE.parent / 'gumbel-retention-screen-20261015/baseline/provenance.json')
+check(prior['checkpoint'] == prov['checkpoint'], 'checkpoint differs from prior accepted pins')
+summary = read(RUN / 'summary.json')
+for p, h in summary['raw_sha256'].items(): check(before[p] == h, f'raw pin {p}')
+# report copies byte-identical to raw
+for a, b in [('summary.json', 'PROFILE.json'), ('provenance.json', 'PROVENANCE.json'), ('selection.json', 'SELECTION.json')]:
+    check(sha(RUN / a) == sha(REP / b), f'copy {b}')
+check(sha(BASE / 'audit-receipt.json') == sha(REP / 'AUDIT.json'), 'copy AUDIT')
+check(sha(BASE / 'audit.py') == sha(REP / 'AUDIT_SCRIPT.py.txt'), 'copy AUDIT_SCRIPT')
+
+# ---- selection from raw JSONL (only split/skeleton/inputs/outputs/behaviour)
+payload = RUN / 'inputs/stack_pbe_v4_train.jsonl.gz'
+check(sha(payload) == '13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b', 'train sha')
+man = read(RUN / 'inputs/manifest.json')
+check(man['hub']['revision'] == '00c2a9996d32df8d1894b45f4246a66b6df46c25', 'hub revision')
+check(sha(RUN / 'inputs/manifest.json') == sha(FROZEN / 'wandering_light/evals/data/stack_pbe_v4/manifest.json'), 'manifest copy differs from frozen manifest')
+rows = []
+with gzip.open(payload, 'rt') as f:
+    for line in f:
+        r = json.loads(line)
+        rows.append({k: r[k] for k in ('split', 'skeleton', 'inputs', 'outputs', 'behaviour')})
+groups = {}
+for i, r in enumerate(rows):
+    check(r['split'] == 'train' and isinstance(r['skeleton'], str) and r['skeleton'] and r['inputs'] and len(r['inputs']) == len(r['outputs']), f'bad row {i}')
+    if r['skeleton'] not in groups: groups[r['skeleton']] = i
+digests = {s: hashlib.sha256('policy-item-reuse-v1'.encode() + b'\x00' + s.encode('utf-8')).hexdigest() for s in groups}
+order = sorted(groups, key=lambda s: (digests[s], s))
+check(len(set(digests.values())) == len(digests), 'salt digest tie (informational)')
+chosen = order[:24]
+my_sel = [{'behaviour': rows[groups[s]]['behaviour'], 'shown_sha256': hashlib.sha256(json.dumps({'inputs': rows[groups[s]]['inputs'], 'outputs': rows[groups[s]]['outputs']}, sort_keys=True, separators=(',', ':')).encode()).hexdigest(), 'skeleton': s, 'source_index': groups[s]} for s in chosen]
+my_shown = [{'inputs': rows[groups[s]]['inputs'], 'outputs': rows[groups[s]]['outputs'], 'source_index': groups[s]} for s in chosen]
+check(my_sel == read(RUN / 'selection.json'), 'selection mismatch')
+check(my_shown == read(RUN / 'shown.json'), 'shown mismatch')
+shown = my_shown
+
+# ---- independent LRU via plain dict (insertion order) AND reuse-distance definition
+CAP = 4096
+def lru_dict(stream):
+    """stream: list of (call, width, key). returns per-occurrence (hit, kind)."""
+    d = {}; out = []
+    for c, w, k in stream:
+        if k in d:
+            pc = d.pop(k); out.append(('within' if pc == c else 'cross'))
+        else:
+            out.append(None)
+            if len(d) == CAP: del d[next(iter(d))]
+        d[k] = c
+    return out
+class BIT:
+    def __init__(s, n): s.n = n; s.t = [0] * (n + 1)
+    def add(s, i, v):
+        i += 1
+        while i <= s.n: s.t[i] += v; i += i & -i
+    def pre(s, i):
+        i += 1; r = 0
+        while i > 0: r += s.t[i]; i -= i & -i
+        return r
+def reuse_distance(stream):
+    """hit iff key seen before and #distinct other keys since its last use < CAP."""
+    n = len(stream); bit = BIT(n); last = {}; out = []
+    for t, (c, w, k) in enumerate(stream):
+        if k in last:
+            lt, lc = last[k]
+            distinct_between = bit.pre(t - 1) - bit.pre(lt)
+            out.append(('within' if lc == c else 'cross') if distinct_between < CAP else None)
+            bit.add(lt, -1)
+        else:
+            out.append(None)
+        bit.add(t, 1); last[k] = (t, c)
+    return out
+
+from wandering_light.stack_machine import parse_stack, step_raw, ops_for_basis, DEFAULT_FUEL_LIMIT
+from wandering_light import stack_pbe
+from wandering_light.stack_policy import node_encoder, PAD
+ops = {op.name: op for op in ops_for_basis('mark-28')}
+check([o.name for o in ops_for_basis('mark-28')] == [o.name for o in stack_pbe.OPS] and len(ops) == 28, 'basis ops differ from production OPS')
+cfg = read(next(p for p in prov['checkpoint'] if p.endswith('policy_config.json')))
+check(cfg['ordered_actions'] == [o.name for o in stack_pbe.OPS], 'policy action order')
+encoding = cfg.get('encoding', 'machine')
+
+def key_of(row, W):
+    padded = np.full(W, PAD, dtype='<i8'); padded[:len(row)] = row
+    return hashlib.sha256(struct.pack('<Q', W) + padded.tobytes()).hexdigest()
+
+fields = ('calls', 'items', 'positions', 'hits', 'hit_positions', 'within_call_hits', 'cross_call_hits')
+mine = {}; splits = {}; fitsets = {}; extra = {'zero_call_tasks': {}, 'terminations': {}, 'path_keys_checked': 0, 'path_keys_found': 0, 'first_call_keys_checked': 0}
+for label in (17, 29, 43):
+    cell = read(RUN / f'cell-{label}.json')
+    check(cell['complete'] is True and cell['label'] == label and cell['host'] == 'UltraDesk', f'cell {label} meta')
+    check(cell['threads'] == 1 and cell['interop'] == 1 and set(cell['thread_env'].values()) == {'1'} and len(cell['thread_env']) == 5, f'cell {label} threads')
+    check(cell['device'] == 'cpu' and cell['model_parameter_dtypes'] == ['torch.float32'], f'cell {label} device/dtype')
+    check(cell['cgroup'].strip() == '0::/user.slice/user-1000.slice/user@1000.service/app.slice/wl-item-reuse-profile-20261015.service', f'cell {label} cgroup')
+    check(all(pathlib.Path(p).resolve().is_relative_to(FROZEN) for p in cell['module_origins'].values()) and len(cell['module_origins']) == 10, f'cell {label} origins')
+    check(cell['shown_sha256'] == sha(RUN / 'shown.json'), f'cell {label} shown pin')
+    check([r['source_index'] for r in cell['rows']] == [s['source_index'] for s in shown], f'cell {label} order')
+    # log lines equal rows sans calls
+    loglines = [json.loads(l) for l in (RUN / f'cell-{label}.log').read_text().splitlines() if l.startswith('{')]
+    check(loglines == [{k: v for k, v in r.items() if k != 'calls'} for r in cell['rows']], f'cell {label} log/rows mismatch')
+    tot = dict.fromkeys(fields, 0); wpos = cpos = 0; fits = []; global_width = {}
+    for task, row in zip(shown, cell['rows'], strict=True):
+        E = len(task['inputs']); stream = []; c = dict.fromkeys(fields, 0)
+        for ci, call in enumerate(row['calls']):
+            n, W, keys = call['n'], call['width'], call['keys']
+            check(set(call) == {'n', 'width', 'keys'} and type(n) is int and type(W) is int and n > 0 and W > 0 and len(keys) == n, f'{label}/{row["source_index"]}/{ci} malformed')
+            check(n % E == 0 and 1 <= n // E <= 64, f'{label}/{row["source_index"]}/{ci} n not beam*examples')
+            if ci == 0: check(n == E, 'first call not single node')
+            for k in keys:
+                check(len(k) == 64 and all(ch in '0123456789abcdef' for ch in k), 'bad digest')
+                if global_width.setdefault(k, W) != W: fails.append(f'digest at two widths {label}')
+                stream.append((ci, W, k))
+            c['calls'] += 1; c['items'] += n; c['positions'] += n * W
+        a = lru_dict(stream); b = reuse_distance(stream)
+        check(a == b, f'{label}/{row["source_index"]} LRU vs reuse-distance disagree')
+        for (ci, W, k), h in zip(stream, a):
+            if h is not None:
+                c['hits'] += 1; c['hit_positions'] += W
+                c['within_call_hits' if h == 'within' else 'cross_call_hits'] += 1
+                if h == 'within': wpos += W
+                else: cpos += W
+        check(c == row['observed'], f'{label}/{row["source_index"]} counters != observed')
+        for k2 in fields: tot[k2] += c[k2]
+        if c['calls'] == 0: extra['zero_call_tasks'].setdefault(str(label), []).append(row['source_index'])
+        term = row['termination']; extra['terminations'].setdefault(str(label), {}).setdefault(term, 0); extra['terminations'][str(label)][term] += 1
+        # calls vs depth/termination consistency
+        if term == 'fit': check(c['calls'] == row['depth'] - 1 and len(row['program']) == row['depth'], f'{label}/{row["source_index"]} fit depth/calls')
+        elif term == 'max_depth': check(c['calls'] == 48, 'max_depth calls')
+        elif term == 'wall_clock_cap': check(c['calls'] in (row['depth'] - 1, row['depth']), f'{label}/{row["source_index"]} cap calls {c["calls"]} depth {row["depth"]}')
+        else: notes.append(f'{label}/{row["source_index"]} termination {term} calls {c["calls"]} depth {row["depth"]}')
+        check((row['program'] is not None) == (term == 'fit'), 'program/termination')
+        check(math.isfinite(row['solve_seconds']) and row['solve_seconds'] >= 0, 'clock')
+        outs = tuple(parse_stack(x, basis='mark-28') for x in task['outputs'])
+        enc = node_encoder(outs, encoding)
+        if row['calls']:
+            states0 = tuple(parse_stack(x, basis='mark-28') for x in task['inputs'])
+            blk = enc(states0); W0 = row['calls'][0]['width']
+            check([key_of(r, W0) for r in blk] == row['calls'][0]['keys'], f'{label}/{row["source_index"]} first-call keys differ from encoded inputs')
+            extra['first_call_keys_checked'] += E
+        if row['program'] is not None:
+            # low-level shown replay, fresh default fuel per op
+            states = [parse_stack(x, basis='mark-28') for x in task['inputs']]
+            path = [tuple(states)]
+            for op in row['program']:
+                nxt = []
+                for s in states:
+                    ans = step_raw(ops[op], s, DEFAULT_FUEL_LIMIT, 0)
+                    check(not isinstance(ans, str), f'{label}/{row["source_index"]} refusal {ans}')
+                    nxt.append(ans[0] if not isinstance(ans, str) else s)
+                states = nxt; path.append(tuple(states))
+            check(tuple(states) == outs, f'{label}/{row["source_index"]} shown replay mismatch')
+            fits.append(row['source_index'])
+            # every path prefix state scored in its layer must appear as an aligned block in that call
+            for ci, call in enumerate(row['calls']):
+                ks = [key_of(r, call['width']) for r in enc(path[ci])]
+                blocks = [call['keys'][j:j + E] for j in range(0, call['n'], E)]
+                extra['path_keys_checked'] += 1
+                if ks in blocks: extra['path_keys_found'] += 1
+                else: fails.append(f'{label}/{row["source_index"]} path state {ci} not in call keys')
+    check(tot['within_call_hits'] + tot['cross_call_hits'] == tot['hits'] and wpos + cpos == tot['hit_positions'], 'split sums')
+    mine[str(label)] = {**tot, 'shown_fits': len(fits), 'solve_seconds': math.fsum(r['solve_seconds'] for r in cell['rows']), 'executions': sum(r['executions'] for r in cell['rows']), 'fuel': sum(r['fuel'] for r in cell['rows'])}
+    splits[str(label)] = (wpos, cpos)
+    fitsets[str(label)] = fits
+
+fr = [Fraction(mine[str(l)]['hit_positions'], mine[str(l)]['positions']) for l in (17, 29, 43)]
+every = all(f >= Fraction(1, 4) for f in fr); span = max(fr) - min(fr); stable = span < Fraction(1, 20)
+check(not every and stable, 'gate outcome')
+check(summary['cells'] == mine, 'summary cells != independent')
+check(summary['fractions_exact'] == [[f.numerator, f.denominator] for f in fr], 'fractions_exact')
+check(summary['fractions'] == [float(f) for f in fr], 'fractions float')
+check(summary['range_exact'] == [span.numerator, span.denominator], 'range_exact')
+check(summary['every_fraction_at_least_quarter'] is every and summary['range_below_five_points'] is stable and summary['reading'] == 'NOT_JUSTIFIED' and summary['complete'] is True, 'summary gate fields')
+check(not (RUN / 'INCOMPLETE.json').exists(), 'INCOMPLETE present')
+audit = read(BASE / 'audit-receipt.json')
+check(audit['cells'] == mine, 'audit cells')
+for l in ('17', '29', '43'):
+    w, c = splits[l]; P = mine[l]['positions']
+    check(audit['position_splits'][l]['within_hit_positions'] == w and audit['position_splits'][l]['cross_hit_positions'] == c, f'audit split {l}')
+    check(audit['position_splits'][l]['within_fraction'] == float(Fraction(w, P)) and audit['position_splits'][l]['cross_fraction'] == float(Fraction(c, P)), f'audit split frac {l}')
+check(audit['original_rows'] == 7000 == len(rows) and audit['skeletons'] == 171 == len(groups) and audit['shown_fits_replayed'] == 36 == sum(map(len, fitsets.values())), 'audit totals')
+# CELLS.json: all non-call fields equal raw
+cj = read(REP / 'CELLS.json')
+for l in ('17', '29', '43'):
+    cell = read(RUN / f'cell-{l}.json')
+    ref = {k: v for k, v in cell.items() if k != 'rows'}
+    ref['rows'] = [{k: v for k, v in r.items() if k != 'calls'} for r in cell['rows']]
+    got = cj[l]
+    for k, v in ref.items():
+        if k == 'rows':
+            check([{k2: v2 for k2, v2 in r.items() if k2 in ref['rows'][0]} for r in got['rows']] == ref['rows'], f'CELLS rows {l}')
+        else:
+            check(got.get(k) == v, f'CELLS field {l}.{k}')
+# document strings
+docs = {n: (REV / n).read_text() for n in ('docs/STATUS.md', 'docs/RESULTS_DETAILED.md')}
+docs['RESULT.md'] = (REP / 'RESULT.md').read_text()
+pct = lambda x: f'{float(x) * 100:.6f}%'
+for l in ('17', '29', '43'):
+    m = mine[l]; w, c = splits[l]
+    for s in (pct(Fraction(m['hit_positions'], m['positions'])), pct(Fraction(w, m['positions'])), pct(Fraction(c, m['positions'])), f"{m['solve_seconds']:.6f}"):
+        check(s in docs['RESULT.md'] and s in docs['docs/RESULTS_DETAILED.md'], f'doc value {s}')
+    check(f"{m['hit_positions']:,} / {m['positions']:,}" in docs['RESULT.md'], f'RESULT ratio {l}')
+    check(f"{m['hit_positions']} / {m['positions']}" in docs['docs/RESULTS_DETAILED.md'], f'DETAILED ratio {l}')
+    check(f"{m['hits']:,}/{m['items']:,}" in docs['RESULT.md'], f'RESULT row hits {l}')
+check(f'{span.numerator:,} / {span.denominator:,}' in docs['RESULT.md'] and f'{float(span) * 100:.6f}' in docs['RESULT.md'], 'RESULT range')
+wf = sorted(Fraction(splits[l][0], mine[l]['positions']) for l in splits); cf = sorted(Fraction(splits[l][1], mine[l]['positions']) for l in splits)
+check(f'{float(wf[0])*100:.4f}–{float(wf[-1])*100:.4f}%' in docs['docs/STATUS.md'] and f'{float(cf[0])*100:.4f}–{float(cf[-1])*100:.4f}%' in docs['docs/STATUS.md'], 'STATUS within/cross ranges')
+check(all(f'{float(f)*100:.4f}%' in docs['docs/STATUS.md'] for f in fr), 'STATUS fractions')
+sub = summary['subprocess_seconds']
+check(all(f'{sub[l]:.6f}' in docs['RESULT.md'] for l in sub) and f"{summary['phase_seconds']:.6f}" in docs['RESULT.md'], 'RESULT clocks')
+
+after = rehash_set()
+changed = sorted(p for p in before if after.get(p) != before[p]) + sorted(set(after) - set(before))
+check(not changed, f'files changed during replay: {changed}')
+receipt = {
+    'verdict_inputs_ok': not fails, 'fails': fails, 'notes': notes,
+    'final_head': FINAL, 'measured_source': MEASURED, 'changed_paths_since_measured': changed_paths,
+    'original_rows': len(rows), 'skeletons': len(groups),
+    'cells': mine, 'position_splits': {l: {'within_hit_positions': w, 'cross_hit_positions': c} for l, (w, c) in splits.items()},
+    'fractions_exact': [[f.numerator, f.denominator] for f in fr], 'range_exact': [span.numerator, span.denominator],
+    'every_ge_quarter': every, 'range_lt_one_twentieth': stable,
+    'fits_by_label': fitsets, 'encoding': encoding, **extra,
+    'rehashed_files': len(before), 'rehash_unchanged_after_replay': not changed,
+    'script_sha256': sha(__file__),
+}
+(OUT / 'independent-receipt.json').write_text(json.dumps(receipt, indent=2, sort_keys=True) + '\n')
+print(json.dumps({k: v for k, v in receipt.items() if k not in ('cells',)}, sort_keys=True)[:4000])
+sys.exit(1 if fails else 0)

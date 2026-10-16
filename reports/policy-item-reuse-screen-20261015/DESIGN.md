@@ -42,4 +42,4 @@ Small experiment-only wrapper/runner plus focused manual/dummy-model tests. Prod
 
 One expected ten-minute CPU diagnostic in its own persistent unit with enforced RuntimeMaxSec=1200, MemoryMax=12G and MemorySwapMax=0. Output/log/cache under main checkpoints, exact launcher and actual controls in desk runs log; wrapper exit0 and complete all-cell result required. Post-run replay/checks also run capped. No training, model authoring, paid API or threshold/cap retry. If the construction cannot fit, record incomplete and reassess openly rather than retrying favourably.
 
-Status: proposed design only. No new diagnostic implementation, panel/model access or run yet.
+Status metadata, 2026-10-15: this preregistered body preceded implementation and data. The one profile completed; independent code/design and final result reviews passed. See RESULT.md and FINAL_REVIEW.md. The preregistered body above is unchanged.

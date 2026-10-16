@@ -1,0 +1,165 @@
+{
+  "cells": {
+    "17": {
+      "calls": 788,
+      "cross_call_hits": 6456,
+      "executions": 5640562,
+      "fuel": 6117660,
+      "hit_positions": 758653,
+      "hits": 20927,
+      "items": 249012,
+      "positions": 9321733,
+      "shown_fits": 12,
+      "solve_seconds": 65.50164971800405,
+      "within_call_hits": 14471
+    },
+    "29": {
+      "calls": 789,
+      "cross_call_hits": 6492,
+      "executions": 5644900,
+      "fuel": 6120997,
+      "hit_positions": 762584,
+      "hits": 20964,
+      "items": 249396,
+      "positions": 9351685,
+      "shown_fits": 12,
+      "solve_seconds": 65.92556623196288,
+      "within_call_hits": 14472
+    },
+    "43": {
+      "calls": 790,
+      "cross_call_hits": 6493,
+      "executions": 5653546,
+      "fuel": 6131465,
+      "hit_positions": 765440,
+      "hits": 21020,
+      "items": 249780,
+      "positions": 9371269,
+      "shown_fits": 12,
+      "solve_seconds": 65.56469389397535,
+      "within_call_hits": 14527
+    }
+  },
+  "changed_paths_since_measured": [
+    "docs/RESULTS_DETAILED.md",
+    "docs/STATUS.md",
+    "reports/policy-item-reuse-screen-20261015/AUDIT.json",
+    "reports/policy-item-reuse-screen-20261015/AUDIT_SCRIPT.py.txt",
+    "reports/policy-item-reuse-screen-20261015/CELLS.json",
+    "reports/policy-item-reuse-screen-20261015/CODE_REVIEW.md",
+    "reports/policy-item-reuse-screen-20261015/PROFILE.json",
+    "reports/policy-item-reuse-screen-20261015/PROVENANCE.json",
+    "reports/policy-item-reuse-screen-20261015/RESULT.md",
+    "reports/policy-item-reuse-screen-20261015/SELECTION.json"
+  ],
+  "encoding": "machine",
+  "every_ge_quarter": false,
+  "fails": [],
+  "final_head": "df1acd0d3eb68bb4f70f0d9e3954bff742bedefd",
+  "first_call_keys_checked": 366,
+  "fits_by_label": {
+    "17": [
+      680,
+      360,
+      2640,
+      720,
+      240,
+      960,
+      40,
+      1240,
+      1480,
+      4720,
+      3200,
+      2400
+    ],
+    "29": [
+      680,
+      360,
+      2640,
+      720,
+      240,
+      960,
+      40,
+      1240,
+      1480,
+      4720,
+      3200,
+      2400
+    ],
+    "43": [
+      680,
+      360,
+      2640,
+      720,
+      240,
+      960,
+      40,
+      1240,
+      1480,
+      4720,
+      3200,
+      2400
+    ]
+  },
+  "fractions_exact": [
+    [
+      758653,
+      9321733
+    ],
+    [
+      762584,
+      9351685
+    ],
+    [
+      765440,
+      9371269
+    ]
+  ],
+  "measured_source": "23c260752070d0401f16b4848586701bb2083178",
+  "notes": [],
+  "original_rows": 7000,
+  "path_keys_checked": 684,
+  "path_keys_found": 684,
+  "position_splits": {
+    "17": {
+      "cross_hit_positions": 212188,
+      "within_hit_positions": 546465
+    },
+    "29": {
+      "cross_hit_positions": 214875,
+      "within_hit_positions": 547709
+    },
+    "43": {
+      "cross_hit_positions": 214926,
+      "within_hit_positions": 550514
+    }
+  },
+  "range_exact": [
+    25685966863,
+    87356467489177
+  ],
+  "range_lt_one_twentieth": true,
+  "rehash_unchanged_after_replay": true,
+  "rehashed_files": 60,
+  "script_sha256": "3c3187f2703a1451c9fdc7b1a5817f7aecc566b59d23dfa42dfb4064d757d8a3",
+  "skeletons": 171,
+  "terminations": {
+    "17": {
+      "fit": 12,
+      "max_depth": 9,
+      "wall_clock_cap": 3
+    },
+    "29": {
+      "fit": 12,
+      "max_depth": 10,
+      "wall_clock_cap": 2
+    },
+    "43": {
+      "fit": 12,
+      "max_depth": 10,
+      "wall_clock_cap": 2
+    }
+  },
+  "verdict_inputs_ok": true,
+  "zero_call_tasks": {}
+}

@@ -1,6 +1,6 @@
 # Running the registered item-reuse profile
 
-Read DESIGN.md and issue policy-item-reuse-screen (#184). This procedure is pre-data: no trained model or real panel execution is authorized until independent high-effort code/design review passes the exact frozen source.
+Read DESIGN.md and issue policy-item-reuse-screen (#184). This procedure was code/design-reviewed before data; the one registered profile and final result review are complete (see RESULT.md and FINAL_REVIEW.md). The command below records that completed attempt and is not authorization to retry it.
 
 The inner command from an own frozen UltraDesk worktree is:
 
