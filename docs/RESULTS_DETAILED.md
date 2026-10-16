@@ -1038,3 +1038,15 @@ Single complete bounded synthetic Gate A on reviewed826a8bb: actual exit0/SYNTHE
 | C-later-first-fit | dup add mul, shown fit | mul dup add, shown fit | mandatory adverse first-fit change |
 
 Pair numbers come from the complete raw final manifest, not a selected subset. All324 disabled production-reference pairs and all remaining controls passed the runner. Complete raw output/source hashes and structural receipt: reports/score-band-contract-20261003/GATE_A.md and gate-a-summary.json; main checkpoints/score-band-contract-20261003/gate-a/final.json. This is independently verified and finally reviewed software-QA evidence; not useful real allocation, verified held-out coverage, speed or BEST promotion. Declared gate is spent; no favourable subset/threshold/retry follows.
+
+### gumbel-retention-screen (#183), baseline feasibility (2026-10-15)
+
+TRAIN-only hash-selected24skeletons, fixed BEST staged-s0-e3, libraryoff, CPU1thread, width64/depth48/5second caps. Source0212640, complete wrapperexit0; unchanged feasibility gates READY_FOR_REGISTRATION. Final independent result review pending; no candidate result or BEST change.
+
+| Repeat label | Shown fit /24 | Hidden graded /24 | Verified /24 | Draw-tested / witness-equal | All-attempt solve seconds |
+|---|---:|---:|---:|---|---:|
+|17|12|10|8|2 /6|54.02054682899325|
+|29|12|10|8|2 /6|56.65142681800353|
+|43|12|10|8|2 /6|55.18483057596313|
+
+Same verified set in every repeat; count range0. Full phase270.82604606800305seconds includes post-timing verification/acquisition. After-cell host snapshot includes another CLI at13.8% lifetime CPU: no quiet-host timing claim. Six new comparison cells will use prospective paired control timings; candidate unexecuted at registration. [Report](../reports/gumbel-retention-screen-20261015/BASELINE.md), [complete summary](../reports/gumbel-retention-screen-20261015/BASELINE.json), [audit receipt](../reports/gumbel-retention-screen-20261015/BASELINE_AUDIT.json), [registration](https://github.com/abhishekraok/wandering-light/issues/183#issuecomment-6206493716).
