@@ -1,4 +1,4 @@
-"""Save self-contained evaluation provenance without changing checkpoint formats."""
+"""Save self-contained experiment provenance without changing checkpoint formats."""
 
 from __future__ import annotations
 
@@ -30,6 +30,30 @@ def git_metadata(repo_root: Path) -> dict:
 
 def write_json(path: Path, value):
     path.write_text(json.dumps(value, indent=2, allow_nan=False) + "\n")
+
+
+def save_training_history(path: Path, history: list[dict], metadata: dict) -> None:
+    """Save loss/validation entries with the training run's independent lineage."""
+    write_json(
+        path,
+        {
+            "format_version": 1,
+            "history": history,
+            "provenance": {
+                **metadata,
+                "wandb_run.url": metadata.get("wandb_url")
+                or metadata.get("wandb_run.url"),
+            },
+        },
+    )
+
+
+def load_training_history(path: Path) -> tuple[list[dict], dict | None]:
+    """Read new envelopes or legacy entry lists, whose provenance is unknown."""
+    payload = json.loads(path.read_text())
+    if isinstance(payload, list):
+        return payload, None
+    return payload["history"], payload.get("provenance")
 
 
 def save_evaluation(

@@ -12,7 +12,11 @@ import pytest
 from wandering_light import program_embedding_eval as evaluator
 from wandering_light import program_embedding_train as trainer
 from wandering_light.program_embedding import EmbeddingConfig, ProgramEmbedding
-from wandering_light.program_embedding_artifacts import save_evaluation
+from wandering_light.program_embedding_artifacts import (
+    load_training_history,
+    save_evaluation,
+    save_training_history,
+)
 from wandering_light.program_embedding_data import BehaviorRecord
 
 
@@ -185,13 +189,59 @@ def test_training_reports_trace_initial_and_selected_checkpoint(
     # argument: the artifact records the effective settings, not just CLI flags.
     assert initial["provenance"]["evaluation_config"]["execution_examples"] == 16
     assert initial["provenance"]["config"] == final["provenance"]["config"]
+    history, provenance = load_training_history(out / "history.json")
+    assert history[0]["step"] == 1
+    assert provenance["commit"] == "evaluator-code"
+    assert provenance["dirty"] is True
+    assert provenance["seed"] == 11
+    assert provenance["config"] == final["provenance"]["config"]
+    assert provenance["data"] == final["provenance"]["data"]
+    assert provenance["data_digest"] == final["provenance"]["data_digest"]
+    assert provenance["training"]["steps"] == 1
+    assert "wandb_run.url" in provenance
     if warm_start:
         parent = final["provenance"]["checkpoint_metadata"]
         assert parent["initial_checkpoint_metadata"]["commit"] == "training-code"
         assert (
+            provenance["initial_checkpoint_metadata"]
+            == parent["initial_checkpoint_metadata"]
+        )
+        assert (
+            provenance["initial_checkpoint_digest"]
+            == parent["initial_checkpoint_digest"]
+        )
+        assert (
             parent["initial_checkpoint_digest"]
             == hashlib.sha256(checkpoint.read_bytes()).hexdigest()
         )
+
+
+@pytest.mark.parametrize("empty", [False, True])
+def test_history_envelope_and_legacy_lists_preserve_entries(tmp_path, empty):
+    history = [] if empty else [{"step": 1, "loss": 0.25, "validation_mrr": 0.5}]
+    metadata = {
+        "commit": "training-code",
+        "dirty": True,
+        "seed": 17,
+        "config": {"dim": 6},
+        "data": {"digests": ["input"]},
+        "wandb_url": "https://wandb.ai/personal/project/runs/original",
+    }
+    path = tmp_path / "history.json"
+    save_training_history(path, history, metadata)
+    entries, provenance = load_training_history(path)
+    assert entries == history
+    assert provenance["wandb_run.url"] == metadata["wandb_url"]
+    assert json.loads(path.read_text())["format_version"] == 1
+    metadata["data"]["digests"].append("changed")
+    history.append({"step": 2})
+    assert load_training_history(path) == (entries, provenance)
+    # Legacy artifacts are read as-is, without fabricating missing provenance.
+    legacy = tmp_path / "legacy-history.json"
+    legacy.write_text(json.dumps(entries))
+    original = legacy.read_bytes()
+    assert load_training_history(legacy) == (entries, None)
+    assert legacy.read_bytes() == original
 
 
 def test_saved_provenance_is_a_snapshot_and_legacy_metadata_is_optional(tmp_path):

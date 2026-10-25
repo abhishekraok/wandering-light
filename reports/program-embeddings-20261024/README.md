@@ -46,7 +46,7 @@ Related [staged-witness-reauthoring (#155)](https://github.com/abhishekraok/wand
 
 ```bash
 uv run python reports/program-embeddings-20261024/plot_results.py --run-dir /home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0
-uv run pytest tests/test_program_embedding{,_data,_train}.py -q
+uv run pytest tests/test_program_embedding{,_data,_train,_artifacts}.py -q
 ```
 
 Evaluation is reusable through `wandering_light.program_embedding_eval.evaluate`;
@@ -64,6 +64,12 @@ records null checkpoint fields. Parent `initial_checkpoint_*` fields are retaine
 when evaluating a newly trained best checkpoint. Each report snapshots this
 metadata independently of `provenance.json` and records effective evaluation
 settings separately from training arguments.
+
+New `history.json` files use a version-1 envelope with `history` (the unchanged
+step/loss/validation entries) and a detached training-run `provenance` snapshot.
+`program_embedding_artifacts.load_training_history(path)` returns
+`(entries, provenance)` for new files and `(entries, None)` for legacy bare lists,
+including empty histories. Historical history files are not rewritten.
 
 Existing weights-only model (v2) and persistent index (v1) formats are unchanged.
 Historical evaluations, published metrics and figures are preserved. Plotting

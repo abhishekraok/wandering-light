@@ -27,6 +27,7 @@ from wandering_light.program_embedding_artifacts import (
 )
 from wandering_light.program_embedding_artifacts import (
     save_evaluation,
+    save_training_history,
 )
 from wandering_light.program_embedding_artifacts import (
     write_json as _write_json,
@@ -303,7 +304,7 @@ def train(args) -> dict:
                     },
                 )
     model.save(args.out / "last.pt", {**metadata, "step": args.steps})
-    _write_json(args.out / "history.json", history)
+    save_training_history(args.out / "history.json", history, metadata)
     model = ProgramEmbedding.load(args.out / "best.pt", device=args.device)
     final = evaluate(
         model,
