@@ -97,6 +97,8 @@ claim a number supports.
 
 ## In flight
 
+**Large-scale stack PBE** ([large-scale-stack-pbe (#188)](https://github.com/abhishekraok/wandering-light/issues/188)): corpus construction and fixed-epoch old/mixed training are complete on `codex/pbe-scale-20261024`. Paired frozen-v4 evaluation and fresh-reference checks are running. The augmented export has not been used for training; no new synthesis or longer-program generalization claim is established. [Report](../reports/pbe-scale-20261024/README.md).
+
 **Pursuing `goals/g1.md`** (Claude, from 2026-09-22). **Measurement on the current recipe is finished**, by the owner's decision of 2026-09-22: width (best-system-command (#158)), policy size (#159), search depth and data volume (clear-world-v3 (#161)) are all settled flat, and a new ladder on them needs new evidence first. That work is on `main`, with #157's state cap and inner-frames (#160) E1. The one command, `uv run python -m wandering_light.solve TASKS`, runs `BEST` (`wandering_light/solve.py`): `staged-s0-e3` of staged-witness-reauthoring (#155) at Hub revision `e5a0b139`, beam 64 x depth 48, guard `both`, solved-program library on. It solves 1 of 44 world-v3 eval tasks.
 
 **The build has started: a search that decomposes the witness.** The first registered prediction ([segment composite](../reports/segment-composite-20260922/README.md)) put the lever inside quotation bodies, not between them. On the lowest-deficit policy we have, the world arm `1m-s0-e5`, bodies carry 79-82% of the deficit. Resetting the beam's budget at closed states is predicted to add +1 of 45 v4 witnesses and +0 of 44 world-v3, so it was **not run**. So stage 1 was **inner-frames (#160) E2's first gate**, and it came back **WEAK, as registered** ([report](../reports/frame-gate-20260922/README.md)).
@@ -127,6 +129,8 @@ Six designs were set aside after exploratory, unreviewed probes on 2026-09-20: [
 (Session note, 2026-09-22: `~/.claude/history.jsonl` logs only CLI prompts on this machine, so it cannot show that no owner input was lost in a Desktop session; the transcript's queue records can.)
 
 ## Superseded
+
+- **2026-10-25, large-scale PBE source attribution:** the copied finisher's clean `839159c` fields describe its launch directory, not imported training code. Runtime modules came from the worktree implementation at `25eb317`; original artifacts remain intact and an [append-only correction](../reports/pbe-scale-20261024/provenance-correction.json) records source-hash evidence. Historical worktree cleanliness was not captured correctly. Data and training settings are unchanged.
 
 Claims that were stated confidently and are wrong. Recorded here so a
 correction lands in one place instead of being chased across comment threads.

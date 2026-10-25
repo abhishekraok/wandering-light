@@ -1,0 +1,278 @@
+{
+  "recorded_at": "2026-10-25T03:24:04.894007-07:00",
+  "issue": "Copied finisher resolved its child working directory to the main checkout checkpoints directory. Git fields describe that directory; editable imports used the worktree.",
+  "incorrect_git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+  "incorrect_dirty_flag": false,
+  "actual_working_directory": "/home/abhishekrao/repos/wandering-light/checkpoints",
+  "imported_source_checkout": "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024",
+  "runtime_implementation_revision": "25eb317",
+  "historical_dirty_state": "Not captured correctly; original clean flag does not establish worktree cleanliness. Interrupted edits affected finish/eval wrappers, not the listed runtime modules.",
+  "evidence": {
+    "frozen_finisher": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/config/finish-reviewed.py",
+    "frozen_finisher_sha256": "799efcc8a3b1d61d59ccc3440310e908730014de795f8ba3739298228ef52779",
+    "pipeline_recorded_source_sha256": "799efcc8a3b1d61d59ccc3440310e908730014de795f8ba3739298228ef52779",
+    "editable_install": {
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/.venv/lib/python3.12/site-packages/__editable__.wandering_light-0.1.0.pth": "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024"
+    },
+    "runtime_source_sha256_at_25eb317": {
+      "experiments/pbe_scale/train.py": "3252d5f2be350799fa95e779efef8df62721a244c2d261544ad027b35930a056",
+      "experiments/pbe_scale/validate.py": "8382b468b12425cf79b0fc44065f77bf980e777d46e518b401bb6204cd1d0721",
+      "experiments/pbe_scale/verify_batch.py": "032f0f3bc59856a58d190045e7fa4786d0a61522d2c84e31a38143a8c74266f4",
+      "experiments/pbe_scale/merge.py": "6c586848d3276d58adc5897033f7eadcda22156bde27816285535e133fab3256",
+      "experiments/pbe_scale/audit_eval.py": "ac74f2ce71c6dc07498e8c996e4496f7235a8692394b7396924fcf3a80f61918",
+      "experiments/pbe_scale/augment.py": "b420ec0199d6ebbdb891f4f759e1696bd8752b915f957aa711f06505cc34f5d7",
+      "experiments/pbe_scale/report.py": "e2f006181b63ab259eea38c0a15e9d21388257b8328d52b727a41863e2b4281a",
+      "wandering_light/stack_policy.py": "93c6a1046fd08913b35da2fe58e4fab8d8ccdbfb25dd9a7e52bd079561263362",
+      "wandering_light/stack_machine.py": "1cae29b19e1fcdb2ed452ba6a36577da889082e21916d18948a7a42d417e27c1",
+      "wandering_light/stack_pbe.py": "36071a844c291a9546a715de4e5c7d78ba3e6ba6b1c18a68fb0ba71c68d74f95"
+    },
+    "unchanged_between_25eb317_and_659ad77": true
+  },
+  "affected_manifests": [
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/anchor-validation-v3-final/provenance/d464dd38697752bb5db8bbe327245fbd35d43a665f65bf4c4b8b389eac8f9e64.json",
+      "sha256": "12b0b7198129438ed68b54f74c396170fbddc837cbac5ee8ab852e02750730bb",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/audit-v4-eval/exclusions.json",
+      "sha256": "6437d8cbf629d24952d8cd36341e8e5c2be0064c75e8fa4b9790e60e461fe194",
+      "incorrect_commit_fields": [
+        "provenance.git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/provenance/15c847692256c878898d6c06d9d2d90dddff5087d21bfd791e45facfd778d4d3.json",
+      "sha256": "a0a523719de98cd3e5aeb6346201fe9fea4aa542ebac79b2d6b916924e5ac20a",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/provenance/1efaad3e28b68f7dc857460e4a44cd223a28a453e97c5bea3bc7745c0dc3b095.json",
+      "sha256": "2949349d7324ca327b0780c904e353204a9d1f7e40e94e9c7fcc1708b887b7e1",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/provenance/274fb8e6654c1701a72fc10302a5b8fcbb8c1622481da553bc6cb9b7ae063254.json",
+      "sha256": "b3b872cddc7184476c24effc1af20ae94c44b2ef0d023a556d363e96df6722c0",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/provenance/35f4a9977226be7d100060be7e860ec4247e53c7bcf05cb85f851d336781a231.json",
+      "sha256": "c64ffb4c9aa8249d060b5cae1cd80cba1d07ae69155aaf336e880a0dee589c33",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/provenance/ad8101ffd1df546cc3cb4fde6c5bc4e15aed195799dcfb3ba87e1d7d0897966b.json",
+      "sha256": "57309dda4eb1f1dde0b6abf5dceb520063bbffd0769e4c5c4f2e1e75c56c49ae",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/provenance/c015b592aacc688daaa693d7744f5d5c23a94a12818931c8ec362da08c07767a.json",
+      "sha256": "c5fc6c77d0872b28cdea9b12c260ef87597705913dbad021b857faffa4cbecc8",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/provenance/d464dd38697752bb5db8bbe327245fbd35d43a665f65bf4c4b8b389eac8f9e64.json",
+      "sha256": "12b0b7198129438ed68b54f74c396170fbddc837cbac5ee8ab852e02750730bb",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/provenance/df4d6b6d379fe40ba4fdb1b19c558eac0dc2b500d3db158f1c9e4ab9d53b27f4.json",
+      "sha256": "a52f987868995d5e38b4fc6ee4e6626dafaf4d31f9a2a7dcf4791632388c1883",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/provenance/eec06c2cfdbfe3695b5dc73f20cd8c67fbe14db4a1465399277b773f4c05a881.json",
+      "sha256": "1b68ec0cf00a0f5ea82117fd6dba283908d0aa452ad6b6f356ed2bef92280e6f",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/provenance/f73dd444b7af6347d7b457d522621e1c14943a7f32ca7dc8e4b899cc73b7b8a4.json",
+      "sha256": "bd9914959b673ccb3aeaa4ca6f5b8d363e4f1d1dd27d57c7440d752226e603c4",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/summary.json",
+      "sha256": "443eecb4dadc162a198ed6df481c6d31b0e7e44280424c060c55b5fd6c4eb03c",
+      "incorrect_commit_fields": [
+        "provenance.git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/final-report/metrics.json",
+      "sha256": "8c2fb9582a85f374247a46868ce7a62a69b7df620414fc8454e32125124a7fe5",
+      "incorrect_commit_fields": [
+        "augmentation.git_commit",
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/new-fit-packed32/manifest.json",
+      "sha256": "dd1ae7ccd0307859dcb0e2208bf3a7fdd5ef3f21990bcfbced138c9ec0ff6a1b",
+      "incorrect_commit_fields": [
+        "commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/mixed-1m-s0/epoch-001/training_manifest.json",
+      "sha256": "e3fc0ab762d157cebc5ab78bb8b113b20bc285f8da0ca5c127390add43da3c98",
+      "incorrect_commit_fields": [
+        "commit",
+        "preparation.commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/mixed-1m-s0/epoch-002/training_manifest.json",
+      "sha256": "e3fc0ab762d157cebc5ab78bb8b113b20bc285f8da0ca5c127390add43da3c98",
+      "incorrect_commit_fields": [
+        "commit",
+        "preparation.commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/mixed-1m-s0/epoch-003/training_manifest.json",
+      "sha256": "e3fc0ab762d157cebc5ab78bb8b113b20bc285f8da0ca5c127390add43da3c98",
+      "incorrect_commit_fields": [
+        "commit",
+        "preparation.commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/mixed-1m-s0/run_manifest.json",
+      "sha256": "c2d6add811d4a6df0e82773af9f1202403e069ba51662b218a6c525746477427",
+      "incorrect_commit_fields": [
+        "commit",
+        "preparation.commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/mixed-1m-s0/training_summary.json",
+      "sha256": "f8f121122e65c31fad09e1832396fbef7de9758beb0d43bd201a7868b8421da2",
+      "incorrect_commit_fields": [
+        "provenance.commit",
+        "provenance.preparation.commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/old-staged-1m-s0/epoch-001/training_manifest.json",
+      "sha256": "11f9be83069fa16f7542733933f75a72345fc95c3af5bbddea175e8c5e6e87da",
+      "incorrect_commit_fields": [
+        "commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/old-staged-1m-s0/epoch-002/training_manifest.json",
+      "sha256": "11f9be83069fa16f7542733933f75a72345fc95c3af5bbddea175e8c5e6e87da",
+      "incorrect_commit_fields": [
+        "commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/old-staged-1m-s0/epoch-003/training_manifest.json",
+      "sha256": "11f9be83069fa16f7542733933f75a72345fc95c3af5bbddea175e8c5e6e87da",
+      "incorrect_commit_fields": [
+        "commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/old-staged-1m-s0/run_manifest.json",
+      "sha256": "c2cd27c48829f45742b5fd81967945eba2ea0186f1b3a1fb195e306f18b8c640",
+      "incorrect_commit_fields": [
+        "commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/old-staged-1m-s0/training_summary.json",
+      "sha256": "1496d44f51dfdec84896517575545ed0b635853d6b9e362edb0c0406817f00c0",
+      "incorrect_commit_fields": [
+        "provenance.commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/tasks_train_16views.jsonl.gz.manifest.json",
+      "sha256": "27cd111bc5d9eccaf795ba6c33081986077693b4ce14412ad81fd60a58a4bf05",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/validated-v3/shard-0/provenance/274fb8e6654c1701a72fc10302a5b8fcbb8c1622481da553bc6cb9b7ae063254.json",
+      "sha256": "b3b872cddc7184476c24effc1af20ae94c44b2ef0d023a556d363e96df6722c0",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/validated-v3/shard-1/provenance/eec06c2cfdbfe3695b5dc73f20cd8c67fbe14db4a1465399277b773f4c05a881.json",
+      "sha256": "1b68ec0cf00a0f5ea82117fd6dba283908d0aa452ad6b6f356ed2bef92280e6f",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/validated-v3/shard-2/provenance/15c847692256c878898d6c06d9d2d90dddff5087d21bfd791e45facfd778d4d3.json",
+      "sha256": "a0a523719de98cd3e5aeb6346201fe9fea4aa542ebac79b2d6b916924e5ac20a",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/validated-v3/shard-3/provenance/df4d6b6d379fe40ba4fdb1b19c558eac0dc2b500d3db158f1c9e4ab9d53b27f4.json",
+      "sha256": "a52f987868995d5e38b4fc6ee4e6626dafaf4d31f9a2a7dcf4791632388c1883",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/validated-v3/shard-4/provenance/ad8101ffd1df546cc3cb4fde6c5bc4e15aed195799dcfb3ba87e1d7d0897966b.json",
+      "sha256": "57309dda4eb1f1dde0b6abf5dceb520063bbffd0769e4c5c4f2e1e75c56c49ae",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/validated-v3/shard-5/provenance/1efaad3e28b68f7dc857460e4a44cd223a28a453e97c5bea3bc7745c0dc3b095.json",
+      "sha256": "2949349d7324ca327b0780c904e353204a9d1f7e40e94e9c7fcc1708b887b7e1",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/validated-v3/shard-6/provenance/c015b592aacc688daaa693d7744f5d5c23a94a12818931c8ec362da08c07767a.json",
+      "sha256": "c5fc6c77d0872b28cdea9b12c260ef87597705913dbad021b857faffa4cbecc8",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    },
+    {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/validated-v3/shard-7/provenance/35f4a9977226be7d100060be7e860ec4247e53c7bcf05cb85f851d336781a231.json",
+      "sha256": "c64ffb4c9aa8249d060b5cae1cd80cba1d07ae69155aaf336e880a0dee589c33",
+      "incorrect_commit_fields": [
+        "git_commit"
+      ]
+    }
+  ],
+  "disposition": "Original artifact bytes and hashes preserved. Source attribution corrected by this sidecar. No evidence of altered corpus contents or training configuration; no retraining performed."
+}

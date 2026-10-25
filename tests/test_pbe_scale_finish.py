@@ -52,6 +52,7 @@ def test_subcommands_order_and_failure(tmp_path, monkeypatch, fail_at):
         "eval-old",
         "eval-mixed",
         "compare-eval",
+        "verify-eval",
     ][:fail_at]
     assert status["status"] == ("incomplete" if fail_at else "complete")
     assert all(record["pid"] and record["log"] for record in status["stages"])
@@ -73,6 +74,7 @@ def test_subcommands_order_and_failure(tmp_path, monkeypatch, fail_at):
             "wandering_light.solve",
             "wandering_light.solve",
             "experiments.pbe_scale.eval_compare",
+            "experiments.pbe_scale.verify_eval",
         ]
         assert "--mix-data" in commands[8]
         assert all(
@@ -113,3 +115,15 @@ def test_incomplete_prerequisite_stops_immediately(tmp_path):
     (tmp_path / "v3-round-000/result.json").write_text('{"status":"incomplete"}')
     with pytest.raises(RuntimeError, match="incomplete"):
         finish.wait_ready(tmp_path, tmp_path / "pipeline_status.json", {}, 0)
+
+
+def test_copied_finisher_uses_installed_source_checkout(tmp_path):
+    import runpy
+    from pathlib import Path
+
+    copied = tmp_path / "config" / "finish-reviewed.py"
+    copied.parent.mkdir()
+    copied.write_text(Path(finish.__file__).read_text())
+    loaded = runpy.run_path(str(copied))
+    assert loaded["ROOT"] == finish.ROOT
+    assert (loaded["ROOT"] / "experiments/pbe_scale/train.py").is_file()

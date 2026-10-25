@@ -111,7 +111,10 @@ def augment(tasks: Path, output: Path, views: int = 16, seed: int = 0) -> dict:
 
     def git(*args):
         return subprocess.run(
-            ["git", *args], capture_output=True, text=True, check=False
+            ["git", "-C", str(Path(__file__).resolve().parents[2]), *args],
+            capture_output=True,
+            text=True,
+            check=False,
         ).stdout.strip()
 
     manifest = {

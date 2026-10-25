@@ -74,7 +74,10 @@ def report(
 
     def git(*args):
         return subprocess.run(
-            ["git", *args], capture_output=True, text=True, check=False
+            ["git", "-C", str(Path(__file__).resolve().parents[2]), *args],
+            capture_output=True,
+            text=True,
+            check=False,
         ).stdout.strip()
 
     metrics = {

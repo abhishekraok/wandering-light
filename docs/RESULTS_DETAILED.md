@@ -1014,6 +1014,43 @@ against three definitions it never saw.
 | Solution length, certified eval | mean solve 1.83 functions against 1.84 ground truth; the 1.81-vs-3.00 gap on `random_inputs_500` was its random-walk labels, 62.7 % of which certification shortened | same |
 | `abhishekraok/proposer-basicfns-opt125m-sft2k` scored against that solver | parse 0.96, solver success 0.15, 31 % of groups with non-zero reward std (69 % give GRPO no gradient); measured before the palette fix, never re-measured | README at `d70d143` |
 
+## Large-scale stack PBE (2026-10-24/25)
+
+[Report](../reports/pbe-scale-20261024/README.md), [metrics](../reports/pbe-scale-20261024/metrics.json), [large-scale-stack-pbe (#188)](https://github.com/abhishekraok/wandering-light/issues/188). Train-only corpus; distinct behavior means a shared-probe output fingerprint, not proven semantic inequivalence.
+
+| Candidate source | Candidates | Retained after deduplication and v4 audit |
+|---|---:|---:|
+| Typed compositions | 50,000 | 29,477 |
+| Long typed compositions | 30,000 | 22,204 |
+| Explicit algorithm compositions | 20,000 | 13,308 |
+| Codex-authored | 6,648 | 3,353 |
+| Bootstrap | 24 | 10 |
+| Simple anchors | 153 | 147 |
+| Total | **106,825** | **68,499** |
+
+The merge retained 68,511 before overlap exclusion: 30,615 duplicates, 6,967 constants and 732 other rejections. The frozen v4 audit resolved all 45 references, excluded 12 matches, and left 108 scalar candidates inconclusive (21 available domain points versus its 32-point minimum). Retained witnesses passed 14,255,789 reference/stack pairs: list kinds use 208 checks, single integers 21 exhaustive checks, integer pairs 441 exhaustive checks. Components comprise 39 explicit algorithms and 23 typed stages; generated compositions are not independently invented algorithms.
+
+| Known witness primitive operations | Retained behaviors |
+|---|---:|
+| 1–49 | 726 |
+| 50–99 | 7,390 |
+| 100–199 | 35,794 |
+| 200–399 | 24,283 |
+| 400–845 | 306 |
+
+There are 68,467 distinct witness strings. The original retained tasks contain 13,034,942 full prefixes; 16 reshuffled views per behavior export **1,095,984 tasks**, 6,575,904 shown pairs and 208,559,072 full prefixes. This is **156.57×** the old 7,000-task corpus; it reuses verified pairs and adds no functions. Known witness length is not certified minimal length or difficulty. Authoring stopped at 23:11 PDT on October 24 when weekly remaining jumped to 100%, crossing the owner's >95% stop rule.
+
+Both policies: 655,836 parameters; aligned example-pair architecture (128,320,640), seed 0, machine encoding, Adam LR 0.000125, batch 256, final fixed epoch 3. No held-out checkpoint selection. Up to 32 witness prefixes per original task. The old arm uses the historical fit subset (6,360 tasks / 159 behaviors), not all 7,000 train tasks / 175 behaviors. The mixed arm uses one original task per new behavior plus 20% cycled old rows; the 16-view export was **not** used in this first training comparison.
+
+| Training arm | Rows / epoch | Total rows | Optimizer steps | Training seconds | W&B |
+|---|---:|---:|---:|---:|---|
+| Old staged | 166,320 | 498,960 | 1,950 | 117.41 | [run](https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/u90fmixz) |
+| New + 20% old | 2,736,995 | 8,210,985 | 32,076 | 2,004.55 | [run](https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/caax4ru1) |
+
+New preparation selected 2,189,596 rows; the mixed epoch adds 547,399 old rows. Epochs match; updates and compute do not (16.45× updates, 17.07× time). New-state encoding truncates 132,540 / 13,137,576 examples (1.009%); target encoding truncates 52 / 410,994 (0.01265%). Baseline has neither.
+
+Paired frozen-v4 evaluation and fresh-reference checks are running; no solver-improvement measurement is established yet. Artifact commit/dirty fields affected by the copied launcher's working directory are corrected in the [append-only provenance sidecar](../reports/pbe-scale-20261024/provenance-correction.json); all original bytes and hashes remain preserved.
+
 ## No result
 
 | study | state |

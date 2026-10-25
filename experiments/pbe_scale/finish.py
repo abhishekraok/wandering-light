@@ -12,11 +12,12 @@ import sys
 import time
 from contextlib import suppress
 from datetime import datetime
+from importlib.util import find_spec
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 PACIFIC = ZoneInfo("America/Los_Angeles")
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(find_spec("experiments.pbe_scale.train").origin).resolve().parents[2]
 
 
 def now() -> str:
@@ -119,11 +120,16 @@ def plan(run: Path) -> list[tuple[str, list[str]]]:
             "eval_compare",
             "compare --output-dir @eval-v4 --old @eval-v4/old.json --mixed @eval-v4/mixed.json",
         ),
+        (
+            "verify-eval",
+            "verify_eval",
+            "--run-dir @ --old @eval-v4/old.json --mixed @eval-v4/mixed.json --output-dir @eval-v4/verified",
+        ),
     )
     result = []
     for name, module, template in specs:
-        module = module if "." in module else f"experiments.pbe_scale.{module}"
-        command = [sys.executable, "-m", module]
+        module_name = module if "." in module else f"experiments.pbe_scale.{module}"
+        command = [sys.executable, "-m", module_name]
         # Expand whole argv items; paths are never parsed as shell text.
         for word in template.split():
             if word == "@authors":

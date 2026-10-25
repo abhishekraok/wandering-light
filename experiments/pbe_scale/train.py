@@ -85,7 +85,10 @@ def write_json(path: Path, payload: dict) -> None:
 def provenance(config: dict, sources: list[Path]) -> dict:
     def git(*args):
         return subprocess.run(
-            ["git", *args], capture_output=True, text=True, check=False
+            ["git", "-C", str(Path(__file__).resolve().parents[2]), *args],
+            capture_output=True,
+            text=True,
+            check=False,
         ).stdout.strip()
 
     return {
