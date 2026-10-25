@@ -14,7 +14,7 @@ The [training-fit diagnostic](fit-summary.json) finds better sampled teacher-lab
 
 Typed stack compositions and explicit algorithms supply most of the volume; Codex-authored programs add variety. Each retained witness agrees with an independently executed Python reference. Behavioral deduplication uses finite shared probes, so fingerprints are empirical equivalence classes. Known witness length is an upper bound, not certified difficulty.
 
-The frozen v4 overlap audit removes detected matches; scalar cases with insufficient audit coverage remain disclosed as inconclusive. The larger view export reuses checked pairs, with a fixed hidden bank disjoint from all shown views. Its zero fuel field means unmeasured. Initial training uses the original one-view tasks, not this augmented export.
+The frozen v4 overlap audit removes 12 detected matches before training. Its 108 inconclusive candidates each take a single integer, an input signature absent from this eval set; they remain in training. Comparisons use up to 64 sampled inputs and do not establish strict family disjointness. The larger view export reuses checked pairs, with a fixed hidden bank disjoint from all shown views. Its zero fuel field means unmeasured. Initial training uses the original one-view tasks, not this augmented export.
 
 Durable outputs are in `/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/`:
 

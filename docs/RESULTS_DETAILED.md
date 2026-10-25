@@ -1028,7 +1028,7 @@ against three definitions it never saw.
 | Simple anchors | 153 | 147 |
 | Total | **106,825** | **68,499** |
 
-The merge retained 68,511 before overlap exclusion: 30,615 duplicates, 6,967 constants and 732 other rejections. The frozen v4 audit resolved all 45 references, excluded 12 matches, and left 108 scalar candidates inconclusive (21 available domain points versus its 32-point minimum). Retained witnesses passed 14,255,789 reference/stack pairs: list kinds use 208 checks, single integers 21 exhaustive checks, integer pairs 441 exhaustive checks. Components comprise 39 explicit algorithms and 23 typed stages; generated compositions are not independently invented algorithms.
+The merge retained 68,511 before overlap exclusion: 30,615 duplicates, 6,967 constants and 732 other rejections. The frozen v4 audit resolved all 45 references, excluded 12 matches, and flagged 108 single-integer candidates as inconclusive because no eval reference has that input signature. This flag does not indicate detected overlap; these candidates remain in training. Each same-signature comparison uses up to 64 distinct sampler-valid inputs; the audit does not establish strict family disjointness. Retained witnesses passed 14,255,789 reference/stack pairs: list kinds use 208 checks, single integers 21 exhaustive checks, integer pairs 441 exhaustive checks. Components comprise 39 explicit algorithms and 23 typed stages; generated compositions are not independently invented algorithms.
 
 | Known witness primitive operations | Retained behaviors |
 |---|---:|

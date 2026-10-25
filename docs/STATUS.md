@@ -130,6 +130,8 @@ Six designs were set aside after exploratory, unreviewed probes on 2026-09-20: [
 
 ## Superseded
 
+- **2026-10-25, large-scale PBE audit caveat:** the 108 single-integer candidates were flagged because the frozen eval has no reference with that input signature. The earlier claim that its 32-point minimum caused these flags was wrong; all 45 eval reference banks meet coverage. Counts, exclusions and training data are unchanged. [Corrected ledger](RESULTS_DETAILED.md#large-scale-stack-pbe-2026-10-2425).
+
 - **2026-10-25, large-scale PBE source attribution:** the copied finisher's clean `839159c` fields describe its launch directory, not imported training code. Runtime modules came from the worktree implementation at `25eb317`; original artifacts remain intact and an [append-only correction](../reports/pbe-scale-20261024/provenance-correction.json) records source-hash evidence. Historical worktree cleanliness was not captured correctly. Data and training settings are unchanged.
 
 Claims that were stated confidently and are wrong. Recorded here so a
