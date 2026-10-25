@@ -48,6 +48,10 @@ def test_subcommands_order_and_failure(tmp_path, monkeypatch, fail_at):
         "prepare-new",
         "train-old",
         "train-mixed",
+        "freeze-eval",
+        "eval-old",
+        "eval-mixed",
+        "compare-eval",
     ][:fail_at]
     assert status["status"] == ("incomplete" if fail_at else "complete")
     assert all(record["pid"] and record["log"] for record in status["stages"])
@@ -65,11 +69,19 @@ def test_subcommands_order_and_failure(tmp_path, monkeypatch, fail_at):
             "experiments.pbe_scale.train",
             "experiments.pbe_scale.train",
             "experiments.pbe_scale.train",
+            "experiments.pbe_scale.eval_compare",
+            "wandering_light.solve",
+            "wandering_light.solve",
+            "experiments.pbe_scale.eval_compare",
         ]
-        assert "--mix-data" in commands[-1]
+        assert "--mix-data" in commands[8]
         assert all(
             command[command.index("--device") + 1] == "cuda"
-            for command in commands[-2:]
+            for command in commands[7:9]
+        )
+        assert all(
+            command[command.index("--device") + 1] == "cpu"
+            for command in commands[10:12]
         )
         assert not any(
             "claude" in word.lower() or word == "codex"

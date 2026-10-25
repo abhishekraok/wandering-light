@@ -103,10 +103,27 @@ def plan(run: Path) -> list[tuple[str, list[str]]]:
             "train --data @new-fit-packed32 --mix-data @baseline-fit-packed32 --mix-share 0.2 --output-dir @policies/mixed-1m-s0 "
             + common,
         ),
+        ("freeze-eval", "eval_compare", "freeze --output-dir @eval-v4"),
+        (
+            "eval-old",
+            "wandering_light.solve",
+            "@eval-v4/tasks.jsonl.gz --checkpoint @policies/old-staged-1m-s0/epoch-003 --device cpu --json @eval-v4/old.json",
+        ),
+        (
+            "eval-mixed",
+            "wandering_light.solve",
+            "@eval-v4/tasks.jsonl.gz --checkpoint @policies/mixed-1m-s0/epoch-003 --device cpu --json @eval-v4/mixed.json",
+        ),
+        (
+            "compare-eval",
+            "eval_compare",
+            "compare --output-dir @eval-v4 --old @eval-v4/old.json --mixed @eval-v4/mixed.json",
+        ),
     )
     result = []
     for name, module, template in specs:
-        command = [sys.executable, "-m", f"experiments.pbe_scale.{module}"]
+        module = module if "." in module else f"experiments.pbe_scale.{module}"
+        command = [sys.executable, "-m", module]
         # Expand whole argv items; paths are never parsed as shell text.
         for word in template.split():
             if word == "@authors":
@@ -172,6 +189,7 @@ def run_pipeline(run: Path, poll: float = 15) -> int:
                     stderr=subprocess.STDOUT,
                     stdin=subprocess.DEVNULL,
                     start_new_session=True,
+                    env={**os.environ, "OMP_NUM_THREADS": "8", "MKL_NUM_THREADS": "8"},
                 )
                 record.update(
                     status="running", pid=process.pid, process_group=process.pid
