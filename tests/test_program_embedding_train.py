@@ -168,3 +168,33 @@ def test_audited_variant_removed_after_split_assignment():
     assert records[0].provenance["component"] == "stable-component"
     assert records[0].key == "stable"
     assert record.programs == ["dup add", "0 add"]
+
+
+def test_final_global_bank_includes_validation_programs():
+    records, vectors = [], {}
+    for i, split in enumerate(("train", "validation", "test")):
+        programs = [f"a{i}", f"b{i}"]
+        for program in programs:
+            vectors[program] = torch.eye(3)[i]
+        records.append(
+            SimpleNamespace(
+                key=split,
+                family="test",
+                split=split,
+                programs=programs,
+                styles=["fused", "staged"],
+                examples=[("shown", programs[0])],
+                held_out_examples=[],
+                provenance={"partition": "cross_style_holdout"},
+            )
+        )
+    model = LookupModel(vectors)
+    validation = evaluate(
+        model, records, split="validation", execution=False, global_bank=True
+    )
+    final = evaluate(model, records, split="test", execution=False, global_bank=True)
+    assert validation["partitions"]["cross_style_holdout"]["bank_programs"] == 4
+    assert final["partitions"]["cross_style_holdout"]["bank_programs"] == 6
+    row = final["program_records"][0]["cross_style"][0]
+    assert row["program"] == "a2"
+    assert len(row["program_sha256"]) == 64

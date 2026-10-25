@@ -211,7 +211,11 @@ def evaluate(
         "records": [],
         "program_records": [],
     }
-    reference_records = [r for r in records if r.split in ("train", split)]
+    reference_records = (
+        records
+        if split == "test"
+        else [r for r in records if r.split in ("train", "validation")]
+    )
     global_features = None
     for partition, full_group in sorted(groups.items()):
         group = full_group
@@ -268,7 +272,13 @@ def evaluate(
                 behaviour_lexical_ranks.append(l_rank)
                 style_ranks[style].append(p_rank)
                 cross_style_rows.append(
-                    {"style": style, "rank": p_rank, "lexical_rank": l_rank}
+                    {
+                        "style": style,
+                        "program": program,
+                        "program_sha256": hashlib.sha256(program.encode()).hexdigest(),
+                        "rank": p_rank,
+                        "lexical_rank": l_rank,
+                    }
                 )
             program_ranks.append(behaviour_program_ranks)
             lexical_ranks.append(behaviour_lexical_ranks)
@@ -364,7 +374,11 @@ def evaluate(
             "full_partition_behaviours": full_count,
             "query_sampling": "I/O: seeded uniform behaviour subset; cross-style programs: all eligible behaviours; complete candidate bank",
             "bank_programs": len(bank),
-            "bank_scope": "all train plus selected split"
+            "bank_scope": (
+                "all train, validation and test records"
+                if split == "test"
+                else "all train and validation records"
+            )
             if global_bank
             else "selected partition",
             "bank_coverage": 1.0,

@@ -210,3 +210,43 @@ def test_long_program_retains_prefix_and_padding_invariance(model):
 def test_default_model_stays_compact():
     model = ProgramEmbedding()
     assert sum(parameter.numel() for parameter in model.parameters()) < 1_000_000
+
+
+def test_index_persistence_is_self_contained_and_does_not_reencode(
+    model, tmp_path, monkeypatch
+):
+    path = tmp_path / "index.pt"
+    model.metadata = {"commit": "test", "dirty": True, "seed": 7, "wandb_run.url": None}
+    index = ProgramIndex(model).fit(["dup", ("dup", "add"), "drop"])
+    expected_program = index.search_program("dup add", k=3)
+    expected_io = index.search_io([("[3]", "[6]")], k=3)
+    index.save(path)
+    payload = torch.load(path, weights_only=True)
+    assert payload["model_metadata"] == model.metadata
+    assert payload["programs"] == index.programs
+    assert "optimizer" not in payload
+    with monkeypatch.context() as patch:
+
+        def forbidden(*args, **kwargs):
+            pytest.fail("Loading a saved index must not encode its program bank")
+
+        patch.setattr(ProgramEmbedding, "encode_programs", forbidden)
+        restored = ProgramIndex.load(path)
+    assert restored.programs == index.programs
+    assert restored.model.metadata == model.metadata
+    assert not restored.model.training
+    torch.testing.assert_close(restored.vectors, index.vectors)
+    for actual, expected in zip(
+        restored.search_program("dup add", k=3), expected_program, strict=True
+    ):
+        torch.testing.assert_close(actual, expected)
+    for actual, expected in zip(
+        restored.search_io([("[3]", "[6]")], k=3), expected_io, strict=True
+    ):
+        torch.testing.assert_close(actual, expected)
+    with pytest.raises(ValueError, match="before saving"):
+        ProgramIndex(model).save(tmp_path / "unfitted.pt")
+    payload["vectors"] = payload["vectors"][:1]
+    torch.save(payload, path)
+    with pytest.raises(ValueError, match="program count"):
+        ProgramIndex.load(path)

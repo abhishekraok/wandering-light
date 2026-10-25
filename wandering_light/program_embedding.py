@@ -320,6 +320,47 @@ class ProgramIndex:
         self.vectors = vectors
         return self
 
+    def save(self, path: str | Path) -> None:
+        """Store a ready-to-query bank, model weights and its JSON provenance."""
+        if self.vectors is None:
+            raise ValueError("Fit the program index before saving")
+        torch.save(
+            {
+                "artifact_type": "program_index",
+                "format_version": 1,
+                "config": asdict(self.model.config),
+                "model_metadata": json.loads(json.dumps(self.model.metadata)),
+                "state_dict": {
+                    key: value.detach().cpu()
+                    for key, value in self.model.state_dict().items()
+                },
+                "programs": self.programs,
+                "vectors": self.vectors.detach().cpu(),
+            },
+            path,
+        )
+
+    @classmethod
+    def load(cls, path: str | Path, device: str | torch.device = "cpu") -> ProgramIndex:
+        """Restore a warm index without reading a corpus or encoding the bank."""
+        payload = torch.load(path, map_location="cpu", weights_only=True)
+        if (
+            payload.get("artifact_type") != "program_index"
+            or payload.get("format_version") != 1
+        ):
+            raise ValueError("Unsupported program index checkpoint format")
+        model = ProgramEmbedding(EmbeddingConfig(**payload["config"]))
+        model.load_state_dict(payload["state_dict"])
+        model.metadata = payload["model_metadata"]
+        index = cls(model.to(device).eval())
+        index.programs = payload["programs"]
+        if payload["vectors"].shape != (len(index.programs), model.config.dim):
+            raise ValueError(
+                "Index vectors must match the program count and model dimension"
+            )
+        index.vectors = payload["vectors"].to(device)
+        return index
+
     def _search(
         self, query: Program | Examples, k: int, *, io: bool
     ) -> tuple[Tensor, Tensor]:
