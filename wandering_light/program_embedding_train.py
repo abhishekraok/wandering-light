@@ -313,7 +313,12 @@ def evaluate(
                 )
                 shown_pass = [_matches(bank[i], inputs[row]) for i in top]
                 hidden_pass = (
-                    [_matches(bank[i], hidden) for i in top] if hidden else None
+                    [
+                        False if passed is False else _matches(bank[i], hidden)
+                        for i, passed in zip(top, shown_pass, strict=True)
+                    ]
+                    if hidden
+                    else None
                 )
                 selected = next(
                     (i for i, passed in enumerate(shown_pass) if passed is True), None

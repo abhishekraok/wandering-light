@@ -198,3 +198,45 @@ def test_final_global_bank_includes_validation_programs():
     row = final["program_records"][0]["cross_style"][0]
     assert row["program"] == "a2"
     assert len(row["program_sha256"]) == 64
+
+
+def test_hidden_execution_skips_candidates_that_fail_shown(monkeypatch):
+    from wandering_light import program_embedding_train as trainer
+
+    vectors = {"correct": torch.tensor([1.0, 0.0]), "wrong": torch.tensor([0.0, 1.0])}
+    record = SimpleNamespace(
+        key="query",
+        family="test",
+        split="validation",
+        programs=["correct"],
+        styles=["fused"],
+        examples=[("shown", "correct")],
+        held_out_examples=[("hidden", "correct")],
+        provenance={"partition": "cross_style_holdout"},
+    )
+    negative = SimpleNamespace(
+        key="negative",
+        family="test",
+        split="train",
+        programs=["wrong"],
+        styles=["fused"],
+        examples=[],
+        held_out_examples=[],
+        provenance={"partition": "fit"},
+    )
+    calls = []
+
+    def matches(program, examples):
+        calls.append((program, examples[0][0]))
+        return program == "correct"
+
+    monkeypatch.setattr(trainer, "_matches", matches)
+    result = trainer.evaluate(
+        LookupModel(vectors), [record, negative], global_bank=True
+    )
+    assert ("wrong", "shown") in calls
+    assert ("wrong", "hidden") not in calls
+    assert ("correct", "hidden") in calls
+    metrics = result["partitions"]["cross_style_holdout"]["execution"]
+    assert metrics["selected_hidden@10"] == 1
+    assert metrics["oracle_hidden@10"] == 1
