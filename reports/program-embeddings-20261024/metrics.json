@@ -1,0 +1,1009 @@
+{
+  "primary_program_partition": "cross_style_holdout",
+  "metric_weighting": "Program: mean within each behavior, then equal behavior mean. I/O: one query per behavior.",
+  "execution_definition": "selected_hidden@10 grades the first shown-passing candidate; oracle_hidden@10 accepts any candidate using hidden outputs. Timeout outcomes are unknown, with bounds over all queries.",
+  "selected_run": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0",
+  "library": {
+    "programs": 12837,
+    "dim": 128,
+    "parameters": 387344,
+    "checkpoint_step": 500,
+    "checkpoint_sha256": "1b678c1d5fc7978a4562310d0b21355bf10512b50dda6dcb982ca605f94004ea",
+    "index_sha256": "f810d6a4f10560717602768d50ffbc817ccf4aac957debb97eed7bce9e5c0aaa",
+    "index_bytes": 15116833,
+    "cpu_warm_io_query_ms": {
+      "median": 5.09049500033143,
+      "p95": 8.913689998735208,
+      "n": 45,
+      "threads": 4
+    },
+    "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/3elwpicv"
+  },
+  "test_trained": {
+    "cross_style_holdout": {
+      "behaviours": 128,
+      "full_partition_behaviours": 1241,
+      "bank_programs": 12837,
+      "io_to_program": {
+        "queries": 128,
+        "recall@1": 0.015625,
+        "recall@5": 0.046875,
+        "recall@10": 0.0859375,
+        "mrr": 0.0444999495636062
+      },
+      "cross_style_program": {
+        "queries": 146,
+        "behaviours": 65,
+        "recall@1": 0.4128205128205128,
+        "recall@5": 0.6564102564102564,
+        "recall@10": 0.7230769230769231,
+        "mrr": 0.5168800877686327
+      },
+      "lexical_cross_style": {
+        "queries": 146,
+        "behaviours": 65,
+        "recall@1": 0.1794871794871795,
+        "recall@5": 0.3384615384615385,
+        "recall@10": 0.4102564102564103,
+        "mrr": 0.25206244647374304
+      },
+      "execution": {
+        "shown@1": 0.0390625,
+        "shown@1_scored_queries": 128,
+        "shown@1_unknown_queries": 0,
+        "shown@1_bounds": [
+          0.0390625,
+          0.0390625
+        ],
+        "shown@10": 0.140625,
+        "shown@10_scored_queries": 128,
+        "shown@10_unknown_queries": 0,
+        "shown@10_bounds": [
+          0.140625,
+          0.140625
+        ],
+        "hidden@1": 0.015625,
+        "hidden@1_scored_queries": 128,
+        "hidden@1_unknown_queries": 0,
+        "hidden@1_bounds": [
+          0.015625,
+          0.015625
+        ],
+        "selected_hidden@10": 0.09375,
+        "selected_hidden@10_scored_queries": 128,
+        "selected_hidden@10_unknown_queries": 0,
+        "selected_hidden@10_bounds": [
+          0.09375,
+          0.09375
+        ],
+        "oracle_hidden@10": 0.1015625,
+        "oracle_hidden@10_scored_queries": 128,
+        "oracle_hidden@10_unknown_queries": 0,
+        "oracle_hidden@10_bounds": [
+          0.1015625,
+          0.1015625
+        ]
+      },
+      "by_query_style": {
+        "canonical": {
+          "queries": 18,
+          "recall@1": 0.3888888888888889,
+          "recall@5": 0.7222222222222222,
+          "recall@10": 0.7777777777777778,
+          "mrr": 0.5314380704317812
+        },
+        "opus": {
+          "queries": 47,
+          "recall@1": 0.3191489361702128,
+          "recall@5": 0.5957446808510638,
+          "recall@10": 0.7021276595744681,
+          "mrr": 0.4361746520933337
+        },
+        "refused": {
+          "queries": 16,
+          "recall@1": 0.75,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 0.8645833333333334
+        },
+        "sol": {
+          "queries": 47,
+          "recall@1": 0.3617021276595745,
+          "recall@5": 0.5531914893617021,
+          "recall@10": 0.6170212765957447,
+          "mrr": 0.4468693968135087
+        },
+        "staged": {
+          "queries": 18,
+          "recall@1": 0.6666666666666666,
+          "recall@5": 0.8888888888888888,
+          "recall@10": 0.8888888888888888,
+          "mrr": 0.7437662814358668
+        }
+      }
+    },
+    "official_eval": {
+      "behaviours": 45,
+      "full_partition_behaviours": 45,
+      "bank_programs": 12837,
+      "io_to_program": {
+        "queries": 45,
+        "recall@1": 0.022222222222222223,
+        "recall@5": 0.1111111111111111,
+        "recall@10": 0.2222222222222222,
+        "mrr": 0.07104338537782748
+      },
+      "cross_style_program": {
+        "queries": 6,
+        "behaviours": 3,
+        "recall@1": 0.5,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "mrr": 0.6944444444444445
+      },
+      "lexical_cross_style": {
+        "queries": 6,
+        "behaviours": 3,
+        "recall@1": 0.0,
+        "recall@5": 0.3333333333333333,
+        "recall@10": 0.5,
+        "mrr": 0.16489173567977913
+      },
+      "execution": {
+        "shown@1": 0.06666666666666667,
+        "shown@1_scored_queries": 45,
+        "shown@1_unknown_queries": 0,
+        "shown@1_bounds": [
+          0.06666666666666667,
+          0.06666666666666667
+        ],
+        "shown@10": 0.28888888888888886,
+        "shown@10_scored_queries": 45,
+        "shown@10_unknown_queries": 0,
+        "shown@10_bounds": [
+          0.28888888888888886,
+          0.28888888888888886
+        ],
+        "hidden@1": 0.044444444444444446,
+        "hidden@1_scored_queries": 45,
+        "hidden@1_unknown_queries": 0,
+        "hidden@1_bounds": [
+          0.044444444444444446,
+          0.044444444444444446
+        ],
+        "selected_hidden@10": 0.2222222222222222,
+        "selected_hidden@10_scored_queries": 45,
+        "selected_hidden@10_unknown_queries": 0,
+        "selected_hidden@10_bounds": [
+          0.2222222222222222,
+          0.2222222222222222
+        ],
+        "oracle_hidden@10": 0.2222222222222222,
+        "oracle_hidden@10_scored_queries": 45,
+        "oracle_hidden@10_unknown_queries": 0,
+        "oracle_hidden@10_bounds": [
+          0.2222222222222222,
+          0.2222222222222222
+        ]
+      },
+      "by_query_style": {
+        "alternative": {
+          "queries": 3,
+          "recall@1": 0.6666666666666666,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 0.7777777777777778
+        },
+        "canonical": {
+          "queries": 3,
+          "recall@1": 0.3333333333333333,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 0.611111111111111
+        }
+      }
+    },
+    "official_eval_overlap": {
+      "behaviours": 4,
+      "full_partition_behaviours": 4,
+      "bank_programs": 12837,
+      "io_to_program": {
+        "queries": 4,
+        "recall@1": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 0.0,
+        "mrr": 0.029226578520111016
+      },
+      "cross_style_program": {
+        "queries": 4,
+        "behaviours": 2,
+        "recall@1": 0.5,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "mrr": 0.625
+      },
+      "lexical_cross_style": {
+        "queries": 4,
+        "behaviours": 2,
+        "recall@1": 0.5,
+        "recall@5": 0.5,
+        "recall@10": 0.5,
+        "mrr": 0.5003655698502488
+      },
+      "execution": {
+        "shown@1": 0.0,
+        "shown@1_scored_queries": 4,
+        "shown@1_unknown_queries": 0,
+        "shown@1_bounds": [
+          0.0,
+          0.0
+        ],
+        "shown@10": 0.0,
+        "shown@10_scored_queries": 4,
+        "shown@10_unknown_queries": 0,
+        "shown@10_bounds": [
+          0.0,
+          0.0
+        ],
+        "hidden@1": 0.0,
+        "hidden@1_scored_queries": 4,
+        "hidden@1_unknown_queries": 0,
+        "hidden@1_bounds": [
+          0.0,
+          0.0
+        ],
+        "selected_hidden@10": 0.0,
+        "selected_hidden@10_scored_queries": 4,
+        "selected_hidden@10_unknown_queries": 0,
+        "selected_hidden@10_bounds": [
+          0.0,
+          0.0
+        ],
+        "oracle_hidden@10": 0.0,
+        "oracle_hidden@10_scored_queries": 4,
+        "oracle_hidden@10_unknown_queries": 0,
+        "oracle_hidden@10_bounds": [
+          0.0,
+          0.0
+        ]
+      },
+      "by_query_style": {
+        "alternative": {
+          "queries": 1,
+          "recall@1": 0.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 0.25
+        },
+        "canonical": {
+          "queries": 1,
+          "recall@1": 0.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 0.25
+        },
+        "opus": {
+          "queries": 1,
+          "recall@1": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 1.0
+        },
+        "sol": {
+          "queries": 1,
+          "recall@1": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 1.0
+        }
+      }
+    }
+  },
+  "test_untrained": {
+    "cross_style_holdout": {
+      "behaviours": 128,
+      "full_partition_behaviours": 1241,
+      "bank_programs": 12837,
+      "io_to_program": {
+        "queries": 128,
+        "recall@1": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 0.0,
+        "mrr": 0.0012103535028479032
+      },
+      "cross_style_program": {
+        "queries": 146,
+        "behaviours": 65,
+        "recall@1": 0.2230769230769231,
+        "recall@5": 0.3923076923076923,
+        "recall@10": 0.45897435897435895,
+        "mrr": 0.29799404018781017
+      },
+      "lexical_cross_style": {
+        "queries": 146,
+        "behaviours": 65,
+        "recall@1": 0.1794871794871795,
+        "recall@5": 0.3384615384615385,
+        "recall@10": 0.4102564102564103,
+        "mrr": 0.25206244647374304
+      },
+      "execution": {
+        "shown@1": 0.0,
+        "shown@1_scored_queries": 128,
+        "shown@1_unknown_queries": 0,
+        "shown@1_bounds": [
+          0.0,
+          0.0
+        ],
+        "shown@10": 0.0,
+        "shown@10_scored_queries": 128,
+        "shown@10_unknown_queries": 0,
+        "shown@10_bounds": [
+          0.0,
+          0.0
+        ],
+        "hidden@1": 0.0,
+        "hidden@1_scored_queries": 128,
+        "hidden@1_unknown_queries": 0,
+        "hidden@1_bounds": [
+          0.0,
+          0.0
+        ],
+        "selected_hidden@10": 0.0,
+        "selected_hidden@10_scored_queries": 128,
+        "selected_hidden@10_unknown_queries": 0,
+        "selected_hidden@10_bounds": [
+          0.0,
+          0.0
+        ],
+        "oracle_hidden@10": 0.0,
+        "oracle_hidden@10_scored_queries": 128,
+        "oracle_hidden@10_unknown_queries": 0,
+        "oracle_hidden@10_bounds": [
+          0.0,
+          0.0
+        ]
+      },
+      "by_query_style": {
+        "canonical": {
+          "queries": 18,
+          "recall@1": 0.16666666666666666,
+          "recall@5": 0.3888888888888889,
+          "recall@10": 0.3888888888888889,
+          "mrr": 0.23981695176222073
+        },
+        "opus": {
+          "queries": 47,
+          "recall@1": 0.1702127659574468,
+          "recall@5": 0.2765957446808511,
+          "recall@10": 0.425531914893617,
+          "mrr": 0.23743384742186086
+        },
+        "refused": {
+          "queries": 16,
+          "recall@1": 0.375,
+          "recall@5": 0.75,
+          "recall@10": 0.8125,
+          "mrr": 0.5272649433182773
+        },
+        "sol": {
+          "queries": 47,
+          "recall@1": 0.19148936170212766,
+          "recall@5": 0.3404255319148936,
+          "recall@10": 0.3617021276595745,
+          "mrr": 0.2543487858801905
+        },
+        "staged": {
+          "queries": 18,
+          "recall@1": 0.4444444444444444,
+          "recall@5": 0.6666666666666666,
+          "recall@10": 0.6666666666666666,
+          "mrr": 0.5195491461490342
+        }
+      }
+    },
+    "official_eval": {
+      "behaviours": 45,
+      "full_partition_behaviours": 45,
+      "bank_programs": 12837,
+      "io_to_program": {
+        "queries": 45,
+        "recall@1": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 0.0,
+        "mrr": 0.00010785727884081634
+      },
+      "cross_style_program": {
+        "queries": 6,
+        "behaviours": 3,
+        "recall@1": 0.16666666666666666,
+        "recall@5": 0.6666666666666666,
+        "recall@10": 0.6666666666666666,
+        "mrr": 0.35351797224953563
+      },
+      "lexical_cross_style": {
+        "queries": 6,
+        "behaviours": 3,
+        "recall@1": 0.0,
+        "recall@5": 0.3333333333333333,
+        "recall@10": 0.5,
+        "mrr": 0.16489173567977913
+      },
+      "execution": {
+        "shown@1": 0.0,
+        "shown@1_scored_queries": 45,
+        "shown@1_unknown_queries": 0,
+        "shown@1_bounds": [
+          0.0,
+          0.0
+        ],
+        "shown@10": 0.0,
+        "shown@10_scored_queries": 45,
+        "shown@10_unknown_queries": 0,
+        "shown@10_bounds": [
+          0.0,
+          0.0
+        ],
+        "hidden@1": 0.0,
+        "hidden@1_scored_queries": 45,
+        "hidden@1_unknown_queries": 0,
+        "hidden@1_bounds": [
+          0.0,
+          0.0
+        ],
+        "selected_hidden@10": 0.0,
+        "selected_hidden@10_scored_queries": 45,
+        "selected_hidden@10_unknown_queries": 0,
+        "selected_hidden@10_bounds": [
+          0.0,
+          0.0
+        ],
+        "oracle_hidden@10": 0.0,
+        "oracle_hidden@10_scored_queries": 45,
+        "oracle_hidden@10_unknown_queries": 0,
+        "oracle_hidden@10_bounds": [
+          0.0,
+          0.0
+        ]
+      },
+      "by_query_style": {
+        "alternative": {
+          "queries": 3,
+          "recall@1": 0.3333333333333333,
+          "recall@5": 0.6666666666666666,
+          "recall@10": 0.6666666666666666,
+          "mrr": 0.4446902654867257
+        },
+        "canonical": {
+          "queries": 3,
+          "recall@1": 0.0,
+          "recall@5": 0.6666666666666666,
+          "recall@10": 0.6666666666666666,
+          "mrr": 0.2623456790123457
+        }
+      }
+    },
+    "official_eval_overlap": {
+      "behaviours": 4,
+      "full_partition_behaviours": 4,
+      "bank_programs": 12837,
+      "io_to_program": {
+        "queries": 4,
+        "recall@1": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 0.0,
+        "mrr": 7.864430576900917e-05
+      },
+      "cross_style_program": {
+        "queries": 4,
+        "behaviours": 2,
+        "recall@1": 0.25,
+        "recall@5": 0.5,
+        "recall@10": 0.5,
+        "mrr": 0.375701781054445
+      },
+      "lexical_cross_style": {
+        "queries": 4,
+        "behaviours": 2,
+        "recall@1": 0.5,
+        "recall@5": 0.5,
+        "recall@10": 0.5,
+        "mrr": 0.5003655698502488
+      },
+      "execution": {
+        "shown@1": 0.0,
+        "shown@1_scored_queries": 4,
+        "shown@1_unknown_queries": 0,
+        "shown@1_bounds": [
+          0.0,
+          0.0
+        ],
+        "shown@10": 0.0,
+        "shown@10_scored_queries": 4,
+        "shown@10_unknown_queries": 0,
+        "shown@10_bounds": [
+          0.0,
+          0.0
+        ],
+        "hidden@1": 0.0,
+        "hidden@1_scored_queries": 4,
+        "hidden@1_unknown_queries": 0,
+        "hidden@1_bounds": [
+          0.0,
+          0.0
+        ],
+        "selected_hidden@10": 0.0,
+        "selected_hidden@10_scored_queries": 4,
+        "selected_hidden@10_unknown_queries": 0,
+        "selected_hidden@10_bounds": [
+          0.0,
+          0.0
+        ],
+        "oracle_hidden@10": 0.0,
+        "oracle_hidden@10_scored_queries": 4,
+        "oracle_hidden@10_unknown_queries": 0,
+        "oracle_hidden@10_bounds": [
+          0.0,
+          0.0
+        ]
+      },
+      "by_query_style": {
+        "alternative": {
+          "queries": 1,
+          "recall@1": 0.0,
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "mrr": 0.0005649717514124294
+        },
+        "canonical": {
+          "queries": 1,
+          "recall@1": 0.0,
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "mrr": 0.002242152466367713
+        },
+        "opus": {
+          "queries": 1,
+          "recall@1": 0.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 0.5
+        },
+        "sol": {
+          "queries": 1,
+          "recall@1": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 1.0
+        }
+      }
+    }
+  },
+  "validation_runs": {
+    "joint-s0": {
+      "source": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/joint-s0/validation.json",
+      "partitions": {
+        "cross_style_holdout": {
+          "behaviours": 128,
+          "full_partition_behaviours": 1224,
+          "bank_programs": 11461,
+          "io_to_program": {
+            "queries": 128,
+            "recall@1": 0.015625,
+            "recall@5": 0.03125,
+            "recall@10": 0.046875,
+            "mrr": 0.03528539442436341
+          },
+          "cross_style_program": {
+            "queries": 108,
+            "behaviours": 47,
+            "recall@1": 0.32978723404255317,
+            "recall@5": 0.524822695035461,
+            "recall@10": 0.6170212765957447,
+            "mrr": 0.41828897602493886
+          },
+          "lexical_cross_style": {
+            "queries": 108,
+            "behaviours": 47,
+            "recall@1": 0.1631205673758865,
+            "recall@5": 0.24468085106382978,
+            "recall@10": 0.30141843971631205,
+            "mrr": 0.20404773551203653
+          },
+          "execution": {
+            "shown@1": 0.0546875,
+            "shown@1_scored_queries": 128,
+            "shown@1_unknown_queries": 0,
+            "shown@1_bounds": [
+              0.0546875,
+              0.0546875
+            ],
+            "shown@10": 0.1171875,
+            "shown@10_scored_queries": 128,
+            "shown@10_unknown_queries": 0,
+            "shown@10_bounds": [
+              0.1171875,
+              0.1171875
+            ],
+            "hidden@1": 0.015625,
+            "hidden@1_scored_queries": 128,
+            "hidden@1_unknown_queries": 0,
+            "hidden@1_bounds": [
+              0.015625,
+              0.015625
+            ],
+            "selected_hidden@10": 0.046875,
+            "selected_hidden@10_scored_queries": 128,
+            "selected_hidden@10_unknown_queries": 0,
+            "selected_hidden@10_bounds": [
+              0.046875,
+              0.046875
+            ],
+            "oracle_hidden@10": 0.046875,
+            "oracle_hidden@10_scored_queries": 128,
+            "oracle_hidden@10_unknown_queries": 0,
+            "oracle_hidden@10_bounds": [
+              0.046875,
+              0.046875
+            ]
+          },
+          "by_query_style": {
+            "alternative": {
+              "queries": 1,
+              "recall@1": 1.0,
+              "recall@5": 1.0,
+              "recall@10": 1.0,
+              "mrr": 1.0
+            },
+            "canonical": {
+              "queries": 15,
+              "recall@1": 0.2,
+              "recall@5": 0.5333333333333333,
+              "recall@10": 0.6,
+              "mrr": 0.3282996771981725
+            },
+            "opus": {
+              "queries": 32,
+              "recall@1": 0.1875,
+              "recall@5": 0.375,
+              "recall@10": 0.53125,
+              "mrr": 0.2798391473469211
+            },
+            "refused": {
+              "queries": 14,
+              "recall@1": 0.9285714285714286,
+              "recall@5": 1.0,
+              "recall@10": 1.0,
+              "mrr": 0.9642857142857143
+            },
+            "sol": {
+              "queries": 32,
+              "recall@1": 0.15625,
+              "recall@5": 0.375,
+              "recall@10": 0.46875,
+              "mrr": 0.25254107060190784
+            },
+            "staged": {
+              "queries": 14,
+              "recall@1": 0.8571428571428571,
+              "recall@5": 1.0,
+              "recall@10": 1.0,
+              "mrr": 0.9285714285714286
+            }
+          }
+        }
+      }
+    },
+    "program-s0": {
+      "source": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/program-s0/validation.json",
+      "partitions": {
+        "cross_style_holdout": {
+          "behaviours": 128,
+          "full_partition_behaviours": 1224,
+          "bank_programs": 11461,
+          "io_to_program": {
+            "queries": 128,
+            "recall@1": 0.015625,
+            "recall@5": 0.0234375,
+            "recall@10": 0.0546875,
+            "mrr": 0.03453062108948051
+          },
+          "cross_style_program": {
+            "queries": 108,
+            "behaviours": 47,
+            "recall@1": 0.40780141843971635,
+            "recall@5": 0.5567375886524822,
+            "recall@10": 0.6276595744680851,
+            "mrr": 0.48082747612004706
+          },
+          "lexical_cross_style": {
+            "queries": 108,
+            "behaviours": 47,
+            "recall@1": 0.1631205673758865,
+            "recall@5": 0.24468085106382978,
+            "recall@10": 0.30141843971631205,
+            "mrr": 0.20404773551203653
+          },
+          "execution": {
+            "shown@1": null,
+            "shown@1_scored_queries": 0,
+            "shown@1_unknown_queries": 0,
+            "shown@1_bounds": null,
+            "shown@10": null,
+            "shown@10_scored_queries": 0,
+            "shown@10_unknown_queries": 0,
+            "shown@10_bounds": null,
+            "hidden@1": null,
+            "hidden@1_scored_queries": 0,
+            "hidden@1_unknown_queries": 0,
+            "hidden@1_bounds": null,
+            "selected_hidden@10": null,
+            "selected_hidden@10_scored_queries": 0,
+            "selected_hidden@10_unknown_queries": 0,
+            "selected_hidden@10_bounds": null,
+            "oracle_hidden@10": null,
+            "oracle_hidden@10_scored_queries": 0,
+            "oracle_hidden@10_unknown_queries": 0,
+            "oracle_hidden@10_bounds": null
+          },
+          "by_query_style": {
+            "alternative": {
+              "queries": 1,
+              "recall@1": 1.0,
+              "recall@5": 1.0,
+              "recall@10": 1.0,
+              "mrr": 1.0
+            },
+            "canonical": {
+              "queries": 15,
+              "recall@1": 0.3333333333333333,
+              "recall@5": 0.5333333333333333,
+              "recall@10": 0.6,
+              "mrr": 0.41956235126343144
+            },
+            "opus": {
+              "queries": 32,
+              "recall@1": 0.28125,
+              "recall@5": 0.4375,
+              "recall@10": 0.5625,
+              "mrr": 0.3631216055115434
+            },
+            "refused": {
+              "queries": 14,
+              "recall@1": 1.0,
+              "recall@5": 1.0,
+              "recall@10": 1.0,
+              "mrr": 1.0
+            },
+            "sol": {
+              "queries": 32,
+              "recall@1": 0.1875,
+              "recall@5": 0.40625,
+              "recall@10": 0.46875,
+              "mrr": 0.2931958708212725
+            },
+            "staged": {
+              "queries": 14,
+              "recall@1": 1.0,
+              "recall@5": 1.0,
+              "recall@10": 1.0,
+              "mrr": 1.0
+            }
+          }
+        }
+      }
+    },
+    "aligned-s0": {
+      "source": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0/validation.json",
+      "partitions": {
+        "cross_style_holdout": {
+          "behaviours": 128,
+          "full_partition_behaviours": 1224,
+          "bank_programs": 11461,
+          "io_to_program": {
+            "queries": 128,
+            "recall@1": 0.015625,
+            "recall@5": 0.0625,
+            "recall@10": 0.0859375,
+            "mrr": 0.04767092568555381
+          },
+          "cross_style_program": {
+            "queries": 108,
+            "behaviours": 47,
+            "recall@1": 0.40780141843971635,
+            "recall@5": 0.5567375886524822,
+            "recall@10": 0.6276595744680851,
+            "mrr": 0.48082747612004706
+          },
+          "lexical_cross_style": {
+            "queries": 108,
+            "behaviours": 47,
+            "recall@1": 0.1631205673758865,
+            "recall@5": 0.24468085106382978,
+            "recall@10": 0.30141843971631205,
+            "mrr": 0.20404773551203653
+          },
+          "execution": {
+            "shown@1": 0.0625,
+            "shown@1_scored_queries": 128,
+            "shown@1_unknown_queries": 0,
+            "shown@1_bounds": [
+              0.0625,
+              0.0625
+            ],
+            "shown@10": 0.1484375,
+            "shown@10_scored_queries": 128,
+            "shown@10_unknown_queries": 0,
+            "shown@10_bounds": [
+              0.1484375,
+              0.1484375
+            ],
+            "hidden@1": 0.015625,
+            "hidden@1_scored_queries": 128,
+            "hidden@1_unknown_queries": 0,
+            "hidden@1_bounds": [
+              0.015625,
+              0.015625
+            ],
+            "selected_hidden@10": 0.0859375,
+            "selected_hidden@10_scored_queries": 128,
+            "selected_hidden@10_unknown_queries": 0,
+            "selected_hidden@10_bounds": [
+              0.0859375,
+              0.0859375
+            ],
+            "oracle_hidden@10": 0.0859375,
+            "oracle_hidden@10_scored_queries": 128,
+            "oracle_hidden@10_unknown_queries": 0,
+            "oracle_hidden@10_bounds": [
+              0.0859375,
+              0.0859375
+            ]
+          },
+          "by_query_style": {
+            "alternative": {
+              "queries": 1,
+              "recall@1": 1.0,
+              "recall@5": 1.0,
+              "recall@10": 1.0,
+              "mrr": 1.0
+            },
+            "canonical": {
+              "queries": 15,
+              "recall@1": 0.3333333333333333,
+              "recall@5": 0.5333333333333333,
+              "recall@10": 0.6,
+              "mrr": 0.41956235126343144
+            },
+            "opus": {
+              "queries": 32,
+              "recall@1": 0.28125,
+              "recall@5": 0.4375,
+              "recall@10": 0.5625,
+              "mrr": 0.3631216055115434
+            },
+            "refused": {
+              "queries": 14,
+              "recall@1": 1.0,
+              "recall@5": 1.0,
+              "recall@10": 1.0,
+              "mrr": 1.0
+            },
+            "sol": {
+              "queries": 32,
+              "recall@1": 0.1875,
+              "recall@5": 0.40625,
+              "recall@10": 0.46875,
+              "mrr": 0.2931958708212725
+            },
+            "staged": {
+              "queries": 14,
+              "recall@1": 1.0,
+              "recall@5": 1.0,
+              "recall@10": 1.0,
+              "mrr": 1.0
+            }
+          }
+        }
+      }
+    }
+  },
+  "independent_two_author_subset": {
+    "selection": "Descriptive subset: primary test behaviors with exactly Sol and Opus query styles; not a checkpoint-selection metric.",
+    "trained": {
+      "behaviors": 47,
+      "queries": 94,
+      "rank": {
+        "recall@1": 0.3404255319148936,
+        "recall@10": 0.6595744680851063
+      },
+      "lexical_rank": {
+        "recall@1": 0.1595744680851064,
+        "recall@10": 0.35106382978723405
+      }
+    },
+    "untrained": {
+      "behaviors": 47,
+      "queries": 94,
+      "rank": {
+        "recall@1": 0.18085106382978725,
+        "recall@10": 0.39361702127659576
+      },
+      "lexical_rank": {
+        "recall@1": 0.1595744680851064,
+        "recall@10": 0.35106382978723405
+      }
+    }
+  },
+  "provenance": {
+    "commit": "39fe589745203faf99eb01f6e42b3432f858ee8d",
+    "dirty": true,
+    "seed": 0,
+    "config": {
+      "dim": 128,
+      "hidden_dim": 128,
+      "byte_dim": 48,
+      "num_layers": 1,
+      "max_program_bytes": 16384,
+      "max_example_bytes": 16384
+    },
+    "training": {
+      "repo_root": "/home/abhishekrao/repos/wandering-light",
+      "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0",
+      "exclude_program_sha256": [
+        "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+      ],
+      "steps": 500,
+      "batch_size": 64,
+      "eval_every": 250,
+      "device": "cuda",
+      "rewrite_fraction": 0.5,
+      "threads": 4,
+      "global_bank": true,
+      "untrained_eval": false,
+      "freeze_program_space": true,
+      "seed": 0,
+      "dim": 128,
+      "hidden_dim": 128,
+      "byte_dim": 48,
+      "max_eval_records": 128,
+      "max_train_records": 0,
+      "max_program_bytes": 16384,
+      "max_example_bytes": 16384,
+      "lr": 0.001,
+      "weight_decay": 0.01,
+      "temperature": 0.07,
+      "io_weight": 1.0,
+      "invariance_weight": 0.0,
+      "io_io_weight": 0.0,
+      "io_examples": 5,
+      "execution_examples": 16,
+      "offline": false,
+      "skip_execution": false,
+      "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/program-s0/best.pt",
+      "eval_only": false,
+      "eval_split": "validation"
+    },
+    "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+    "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+    "step": 500,
+    "validation_mrr": 0.04767092568555381
+  },
+  "evaluation_source": {
+    "commit": "6b7391c33d43b00f3a964968607180ce3da5ccc2",
+    "dirty": true
+  },
+  "source_data_digests": {
+    "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0/test-trained.json": "sha256:08b22881c4da330e6a74398cb21897d4c3827e6d8a93b7852abd602e986f4414",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0/test-untrained.json": "sha256:74fe1e3dbb0c3a656bb1228af662f5a6efd4d994f3579083c0c5ed6f6eb27b67",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0/library_manifest.json": "sha256:3b55da3a81e2d9c9d7751d6f7eb4dd8f925a6a105372b4be8089334fe7c8e86a",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/joint-s0/validation.json": "sha256:8b5703459077aba95614f0b2da08c915aa6d31be8ecf26d5b6013085c5f1a3db",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/program-s0/validation.json": "sha256:5ebb93c5716105f06468f16d1773e4505fe7a8b413f915c489ca60d183638ef3",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0/validation.json": "sha256:bd04aa41d15454d8aa2a1acfdcb09d143b4f504d3ae21dfdcdb79f7fdf4fe4bb"
+  },
+  "caveats": [
+    "Held-out answers included in bank; synthesis/coverage not measured.",
+    "Finite-domain equivalence; one seed; grouped skeleton/template splits.",
+    "Tiny official alternate-text strata excluded from main program headline."
+  ]
+}

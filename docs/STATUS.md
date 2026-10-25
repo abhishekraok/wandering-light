@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-10-16 (overstated claims re-derived; Codex janthu campaigns moved to `ps-worker`)
+Last updated: 2026-10-25 (semantic embedding implementation and evaluation complete; pending landing)
 
 ## What is true now
 
@@ -96,6 +96,14 @@ claim a number supports.
 | **Short-segment data teaches the style but not the solve, and resetting the beam at closed states adds nothing new** | Short-segment-campaign (#168): train witnesses re-authored with bodies of at most 4 atoms and a closed state at least every 8 ops (148 of 148 capped), a comparing encoder (`difference`), and a segment-reset beam. The capped policies pay **0.6-0.7 raw nats per op** on held-out capped programs, against 2.7-3.1 for `staged` and 5.1-5.6 for `fused`. They verify only **12-14 of 43** on the #101 cohort, against `BEST`'s 16. Segment-reset adds at most 1 at 20-40x the fuel, and **no segment-reset cell verifies a behaviour outside `BEST`'s set**. Ranking each segment from its own root keeps the witness state in the top 64 far more often (0.50 against 0.32 on train) and verifies no more. Yet 101 of the 235 produced train witness states still rank below 64, so ranking and proposal both remain open. The only new behaviours came from a wide beam at 2-4x flat-48's depth: `BEST` 17 under the widening control. Reading: NEITHER on the cells searched, seed 0 only; the fused and staged / difference families were not searched. | [report](../reports/short-segment-20260924/README.md), [short-segment-campaign (#168)](../../issues/168) |
 
 ## In flight
+
+**Semantic program embeddings:** model, ready-to-query index and final held-out
+evaluation complete on `codex/semantic-embeddings-20261024`; awaiting landing.
+Learned vectors improve alternate-implementation retrieval over token overlap
+and untrained encoders. I/O retrieval remains partial even when answers are
+available; no improvement over the existing PBE solver is established.
+[Report](../reports/program-embeddings-20261024/README.md),
+[semantic-program-embeddings (#189)](https://github.com/abhishekraok/wandering-light/issues/189).
 
 **Pursuing `goals/g1.md`** (Claude, from 2026-09-22). **Measurement on the current recipe is finished**, by the owner's decision of 2026-09-22: width (best-system-command (#158)), policy size (#159), search depth and data volume (clear-world-v3 (#161)) are all settled flat, and a new ladder on them needs new evidence first. That work is on `main`, with #157's state cap and inner-frames (#160) E1. The one command, `uv run python -m wandering_light.solve TASKS`, runs `BEST` (`wandering_light/solve.py`): `staged-s0-e3` of staged-witness-reauthoring (#155) at Hub revision `e5a0b139`, beam 64 x depth 48, guard `both`, solved-program library on. It solves 1 of 44 world-v3 eval tasks.
 
@@ -396,6 +404,7 @@ correction lands in one place instead of being chased across comment threads.
 
 - `docs/RESULTS.md` — headline numbers; `docs/RESULTS_DETAILED.md` — every run, one row per measurement, copied from `reports/`
 - `docs/metrics.md` — how cost and success are measured: units, cost to clear (the objective), its AUC solve-cost slice, the Kt bridge, calibration constants
+- `wandering_light/program_embedding.py` — program/I/O vectors and a persistent nearest-neighbor index; [report and usage](../reports/program-embeddings-20261024/README.md)
 - `wandering_light/stack_machine.py` — the machine
 - `wandering_light/stack_machine_corpus.py` — PBE corpus generation, certified by BFS depth
 - `docs/stack_machine_explorer.html` — keyboard-driven explorer, self-checks against the Python core
