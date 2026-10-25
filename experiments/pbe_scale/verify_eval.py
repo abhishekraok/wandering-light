@@ -42,7 +42,7 @@ def verify(run: Path, old_path: Path, mixed_path: Path, output: Path) -> dict:
             raise ValueError("incomplete or unpaired frozen v4 evaluation rows")
         if any(type(row["solved"]) is not bool for row in record["rows"]):
             raise ValueError("rows require explicit boolean held-out grades")
-        if any(row["solved"] and not row["program"] for row in record["rows"]):
+        if any(row["solved"] and row.get("program") is None for row in record["rows"]):
             raise ValueError("a graded solution is missing its program")
     if {name for _, name in expected} - {b.name for b in cells.CATALOGUE}:
         raise ValueError(

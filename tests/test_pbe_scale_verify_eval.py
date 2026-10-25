@@ -188,3 +188,22 @@ def test_incomplete_verification_never_publishes_summary(case, monkeypatch, fail
         verify.verify(run, old, mixed, output)
     assert (output / "input_manifest.json").exists()
     assert not (output / "summary.json").exists()
+
+
+def test_empty_program_is_a_valid_identity_solution(case, monkeypatch):
+    run, old, mixed, output, _ = case
+    for path in (old, mixed):
+        record = compare.read(path)
+        for row in record["rows"]:
+            row.update(solved=False, program=None)
+        if path == old:
+            record["rows"][0].update(solved=True, program=[])
+        path.write_text(json.dumps(record))
+    monkeypatch.setattr(
+        verify.cells,
+        "verified_programs",
+        lambda *args: {"a :: ": {"verdict": "genuine"}},
+    )
+    result = verify.verify(run, old, mixed, output)
+    assert result["counts"]["old"]["accepted_tasks"] == 1
+    assert result["task_delta"] == -1
