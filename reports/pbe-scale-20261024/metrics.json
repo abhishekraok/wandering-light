@@ -1,5 +1,5 @@
 {
-  "status": "corpus_and_training_complete_evaluation_running",
+  "status": "complete",
   "candidates": 106825,
   "raw_candidate_sources": {
     "structured": 50000,
@@ -898,8 +898,239 @@
     "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/audit-v4-eval/exclusions.json": "6437d8cbf629d24952d8cd36341e8e5c2be0064c75e8fa4b9790e60e461fe194",
     "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/tasks_train_16views.jsonl.gz.manifest.json": "27cd111bc5d9eccaf795ba6c33081986077693b4ce14412ad81fd60a58a4bf05",
     "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/new-fit-packed32/manifest.json": "dd1ae7ccd0307859dcb0e2208bf3a7fdd5ef3f21990bcfbced138c9ec0ff6a1b",
-    "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32/manifest.json": "7a1450c705c567d8b4e737fd7648152e620abf35764dd7172ea17d0aacd09797"
+    "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32/manifest.json": "7a1450c705c567d8b4e737fd7648152e620abf35764dd7172ea17d0aacd09797",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/eval-v4/verified/summary.json": "83b9608d7de255ed7a8ede49bc5a0444c9ae8e99b1241a512faa327683121340",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/eval-v4/comparison.json": "2d27225f245ac96e8955643feb2a8bf280e476e76b60c672b657aea6fad5ea63",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/fit-diagnostic/metrics.json": "d1126a32feaa072b28324db4596331b6c016b5b9d3caa401dfe1bd10c24144e0"
   },
   "provenance_correction": "provenance-correction.json",
-  "evaluation_pending": true
+  "evaluation_pending": false,
+  "evaluation": {
+    "status": "complete",
+    "counts": {
+      "old": {
+        "tasks_attempted": 1800,
+        "graded_tasks": 640,
+        "graded_behaviors": 19,
+        "accepted_tasks": 584,
+        "accepted_behaviors": 15,
+        "by_verdict": {
+          "genuine": {
+            "tasks": 306,
+            "behaviors": 8
+          },
+          "equals_catalogue_witness": {
+            "tasks": 278,
+            "behaviors": 7
+          },
+          "shortcut": {
+            "tasks": 56,
+            "behaviors": 4
+          },
+          "inconclusive": {
+            "tasks": 0,
+            "behaviors": 0
+          }
+        }
+      },
+      "mixed": {
+        "tasks_attempted": 1800,
+        "graded_tasks": 605,
+        "graded_behaviors": 19,
+        "accepted_tasks": 586,
+        "accepted_behaviors": 17,
+        "by_verdict": {
+          "genuine": {
+            "tasks": 378,
+            "behaviors": 11
+          },
+          "equals_catalogue_witness": {
+            "tasks": 208,
+            "behaviors": 6
+          },
+          "shortcut": {
+            "tasks": 19,
+            "behaviors": 2
+          },
+          "inconclusive": {
+            "tasks": 0,
+            "behaviors": 0
+          }
+        }
+      }
+    },
+    "task_gain": 77,
+    "task_loss": 75,
+    "task_delta": 2,
+    "behavior_gain": 2,
+    "behavior_loss": 0,
+    "behavior_delta": 2,
+    "distinct_program_pairs": 27,
+    "gained_behaviors": [
+      "all_positive",
+      "pair_floor_averages"
+    ],
+    "lost_behaviors": [],
+    "training_scope": "Original one-view-per-behavior tasks; 16-view export not trained.",
+    "limitations": [
+      "One seed; no uncertainty estimate.",
+      "Fixed epochs, not fixed updates: mixed uses 16.45x optimizer updates.",
+      "Old control caps32 prefixes/task, not an exact reproduction of pinned BEST sampling.",
+      "Finite fresh-reference checks; catalogue-equal programs trusted without fresh draws.",
+      "Longer-program generalization remains untested; both searches cap depth48."
+    ]
+  },
+  "fit_diagnostic": {
+    "status": "complete",
+    "settings": {
+      "rows_per_pool": 10000,
+      "seed": 0,
+      "batch_size": 256,
+      "threads": 8,
+      "device": "cpu",
+      "seconds_cap": 300
+    },
+    "results": {
+      "old": {
+        "old": {
+          "rows": 10000,
+          "teacher_label_ce": 0.4898800111055374,
+          "teacher_label_top1": 0.841
+        },
+        "new": {
+          "rows": 10000,
+          "teacher_label_ce": 2.354578175735474,
+          "teacher_label_top1": 0.5138
+        }
+      },
+      "mixed": {
+        "old": {
+          "rows": 10000,
+          "teacher_label_ce": 0.3313844790160656,
+          "teacher_label_top1": 0.8834
+        },
+        "new": {
+          "rows": 10000,
+          "teacher_label_ce": 0.21212082318067552,
+          "teacher_label_top1": 0.9187
+        }
+      }
+    },
+    "seconds": 64.70825604599668,
+    "caveats": [
+      "Training-pool teacher-label fit, not semantic generalization or held-out evaluation.",
+      "Uniform packed-row sample; not uniform over behaviors or full prefixes.",
+      "Raw logits without legality mask. Both epoch-003 models use identical samples.",
+      "Original training git fields need the provenance-correction.json sidecar."
+    ],
+    "evidence": {
+      "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/fit-diagnostic/metrics.json",
+      "sha256": "d1126a32feaa072b28324db4596331b6c016b5b9d3caa401dfe1bd10c24144e0",
+      "input_manifest_sha256": "b2e1dff6aa9c2989ef1bf9f349f5fe73c25235fb7398226e5925178eeb59e297"
+    },
+    "provenance": {
+      "commit": "60cbcefe2b8f5ab1a9d47c41ba8ca7b4913dd6bb",
+      "dirty": true,
+      "source_sha256": {
+        "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/pbe_scale/train.py": "233041d5f207d5fbc3276418b6d256b1cfd20f7f8f04b2d95953df828422e52b",
+        "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/wandering_light/stack_policy.py": "93c6a1046fd08913b35da2fe58e4fab8d8ccdbfb25dd9a7e52bd079561263362",
+        "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/wandering_light/rollout_policy.py": "894d4b372fb40e98cc2044b447cfdfa372ec2d176619dee1a41b2c8db3c47af3",
+        "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/pbe_scale/eval_compare.py": "bd8867c977be346ff348f8fe32407e878b12200bef904c81376f77519168c456",
+        "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/pbe_scale/diagnose_fit.py": "84f698647d557d1b92d0dd808012647664937e076f834b986caaf4f3c9de72a1"
+      },
+      "checkpoints": {
+        "old": {
+          "files_sha256": {
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/old-staged-1m-s0/epoch-003/training_manifest.json": "11f9be83069fa16f7542733933f75a72345fc95c3af5bbddea175e8c5e6e87da",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/old-staged-1m-s0/epoch-003/policy_config.json": "f6dcfb0fc28231827145b3c193fd911037d6b05bb729f08e0f3802790476c9b2",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/old-staged-1m-s0/epoch-003/trainer_state.json": "967dd33c4e27b939fd3d308a5767c56118068bb90ea3a39b070abe0a04f4f3b3",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/old-staged-1m-s0/epoch-003/wandb_run.url": "428e99a9b70d8a2823fab82cdf2da6b76153b9ccedec2162da854a8df3ea0061",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/old-staged-1m-s0/epoch-003/model.safetensors": "3631ec6fbb456a89662d11be27e49f175e6988df2de21a38e284a337ae6151ab"
+          },
+          "trainer_state": {
+            "arm": "1m",
+            "batch_size": 256,
+            "checkpoint_selection": "every fixed epoch; no held-out selection",
+            "device": "cuda",
+            "encoding": "machine",
+            "epoch": 3,
+            "epochs": 3,
+            "learning_rate": 0.000125,
+            "mix_data": null,
+            "mixture": null,
+            "optimizer_steps": 1950,
+            "parameters": 655836,
+            "rows_seen": 498960,
+            "seconds": 117.40339300900087,
+            "seed": 0,
+            "stored_tokens_seen": 54709800,
+            "threads": 8,
+            "train_cross_entropy": 0.5539248981631794,
+            "train_probe_cross_entropy": 0.44684523344039917,
+            "train_rows": 166320
+          },
+          "wandb_run.url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/u90fmixz"
+        },
+        "mixed": {
+          "files_sha256": {
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/mixed-1m-s0/epoch-003/training_manifest.json": "e3fc0ab762d157cebc5ab78bb8b113b20bc285f8da0ca5c127390add43da3c98",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/mixed-1m-s0/epoch-003/policy_config.json": "f6dcfb0fc28231827145b3c193fd911037d6b05bb729f08e0f3802790476c9b2",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/mixed-1m-s0/epoch-003/trainer_state.json": "393946c987da54d64fb4aa58484f1c6a956f41a6cedb29248b2997cbac52fed1",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/mixed-1m-s0/epoch-003/wandb_run.url": "2085748581339a5b528c746ed668e702e62a18766b24ce01e31452233d25fd79",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/mixed-1m-s0/epoch-003/model.safetensors": "21bf0f027235bd9ded0bea2445215a0acfc4253a72ae4c314979c4a853997bb5"
+          },
+          "trainer_state": {
+            "arm": "1m",
+            "batch_size": 256,
+            "checkpoint_selection": "every fixed epoch; no held-out selection",
+            "device": "cuda",
+            "encoding": "machine",
+            "epoch": 3,
+            "epochs": 3,
+            "learning_rate": 0.000125,
+            "mix_data": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32",
+            "mixture": {
+              "actual_old_share": 0.2,
+              "new_full_prefixes": 13034942,
+              "new_rows": 2189596,
+              "old_full_prefixes": 270800,
+              "old_rows": 547399,
+              "old_underlying_rows": 166320,
+              "requested_old_share": 0.2,
+              "sampling": "fixed modular old-row permutation with cycling; heuristic share, not selected from eval"
+            },
+            "optimizer_steps": 32076,
+            "parameters": 655836,
+            "rows_seen": 8210985,
+            "seconds": 2004.5447995680006,
+            "seed": 0,
+            "stored_tokens_seen": 1833662418,
+            "threads": 8,
+            "train_cross_entropy": 0.2357436486000157,
+            "train_probe_cross_entropy": 0.2482987940311432,
+            "train_rows": 2736995
+          },
+          "wandb_run.url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/caax4ru1"
+        }
+      },
+      "pools": {
+        "old": {
+          "files_sha256": {
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32/manifest.json": "7a1450c705c567d8b4e737fd7648152e620abf35764dd7172ea17d0aacd09797",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32/tokens.bin": "95fcaef52228107ba5078dd51fd17f0147db4ee2fb8ebde2de0827caea29264e",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32/index.bin": "27bfab4b830941bc89a4f3487c3e6207f4bc4d20cfffa308dcebf6de5609f463"
+          },
+          "sample_indices_sha256": "cbb798f059c5bde5473c812244e0607cc64e75f438d0b118382a4a43cb6c2012"
+        },
+        "new": {
+          "files_sha256": {
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/new-fit-packed32/manifest.json": "dd1ae7ccd0307859dcb0e2208bf3a7fdd5ef3f21990bcfbced138c9ec0ff6a1b",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/new-fit-packed32/tokens.bin": "9f4a01410538caf4bc07d428dc751013202dc38f702809a9e6f8fab4f3a6ab91",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/new-fit-packed32/index.bin": "1b4a912870ab10aaf8f00467e627a4f31789a30a0233f237b307fb29071a755c"
+          },
+          "sample_indices_sha256": "1b41321e239f33ffd3c6238a4f0bed3477bdd6bdb59a33193e517f2be4b3c663"
+        }
+      }
+    }
+  }
 }

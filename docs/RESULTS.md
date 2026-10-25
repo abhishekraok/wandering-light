@@ -5,6 +5,10 @@
 [`RESULTS_DETAILED.md`](RESULTS_DETAILED.md). `STATUS.md` says what these
 mean; issues say why.
 
+## Large-scale stack PBE — corpus and first training comparison
+
+**68,499 tested behaviors; 1,095,984 task views (156.57× the old task count).** The first one-view training comparison on full frozen v4 gives **15 → 17 verified behaviors and 584 → 586 tasks** for old → mixed data. One seed, fixed epoch 3; mixed receives 16.45× more optimizer updates. The full augmented export was not trained, and longer-program generalization is untested. [Figure and report](../reports/pbe-scale-20261024/README.md) · [numbers](RESULTS_DETAILED.md#large-scale-stack-pbe-2026-10-2425) · [large-scale-stack-pbe (#188)](https://github.com/abhishekraok/wandering-light/issues/188).
+
 ## Certified coverage — M3, synthetic stack pairs, three seeds
 
 Certified coverage, as registered, did not move over three cycles. Walker success rose in every branch over the frozen start policy: adaptive +0.039 to +0.052, control +0.061 to +0.065 and solved +0.062 to +0.070, as paired panel differences over seeds 0–2. The readout measures how well the refit P head is calibrated, not capability. A same-seed replicate moves it by 0.05.

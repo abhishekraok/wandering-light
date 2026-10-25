@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-10-16 (overstated claims re-derived; Codex janthu campaigns moved to `ps-worker`)
+Last updated: 2026-10-25 (large-scale PBE campaign complete on its reviewed branch)
 
 ## What is true now
 
@@ -97,7 +97,7 @@ claim a number supports.
 
 ## In flight
 
-**Large-scale stack PBE** ([large-scale-stack-pbe (#188)](https://github.com/abhishekraok/wandering-light/issues/188)): corpus construction and fixed-epoch old/mixed training are complete on `codex/pbe-scale-20261024`. Paired frozen-v4 evaluation and fresh-reference checks are running. The augmented export has not been used for training; no new synthesis or longer-program generalization claim is established. [Report](../reports/pbe-scale-20261024/README.md).
+**Large-scale stack PBE** ([large-scale-stack-pbe (#188)](https://github.com/abhishekraok/wandering-light/issues/188)): construction, old/mixed training, paired frozen-v4 evaluation and fresh-reference checks are complete on `codex/pbe-scale-20261024`. The first comparison shows a modest verified behavior-coverage gain, with nearly flat task coverage. One seed and unequal optimizer budgets leave attribution to data scale unresolved. The augmented export was not used in this first training run; longer-program generalization remains untested. Claude was excluded by the owner; independent high-effort Codex reviews cover the branch, which remains off `main`. [Report](../reports/pbe-scale-20261024/README.md).
 
 **Pursuing `goals/g1.md`** (Claude, from 2026-09-22). **Measurement on the current recipe is finished**, by the owner's decision of 2026-09-22: width (best-system-command (#158)), policy size (#159), search depth and data volume (clear-world-v3 (#161)) are all settled flat, and a new ladder on them needs new evidence first. That work is on `main`, with #157's state cap and inner-frames (#160) E1. The one command, `uv run python -m wandering_light.solve TASKS`, runs `BEST` (`wandering_light/solve.py`): `staged-s0-e3` of staged-witness-reauthoring (#155) at Hub revision `e5a0b139`, beam 64 x depth 48, guard `both`, solved-program library on. It solves 1 of 44 world-v3 eval tasks.
 

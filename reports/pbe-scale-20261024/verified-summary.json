@@ -1,0 +1,615 @@
+{
+  "status": "complete",
+  "counts": {
+    "old": {
+      "tasks_attempted": 1800,
+      "graded_tasks": 640,
+      "graded_behaviors": 19,
+      "accepted_tasks": 584,
+      "accepted_behaviors": 15,
+      "by_verdict": {
+        "genuine": {
+          "tasks": 306,
+          "behaviors": 8
+        },
+        "equals_catalogue_witness": {
+          "tasks": 278,
+          "behaviors": 7
+        },
+        "shortcut": {
+          "tasks": 56,
+          "behaviors": 4
+        },
+        "inconclusive": {
+          "tasks": 0,
+          "behaviors": 0
+        }
+      }
+    },
+    "mixed": {
+      "tasks_attempted": 1800,
+      "graded_tasks": 605,
+      "graded_behaviors": 19,
+      "accepted_tasks": 586,
+      "accepted_behaviors": 17,
+      "by_verdict": {
+        "genuine": {
+          "tasks": 378,
+          "behaviors": 11
+        },
+        "equals_catalogue_witness": {
+          "tasks": 208,
+          "behaviors": 6
+        },
+        "shortcut": {
+          "tasks": 19,
+          "behaviors": 2
+        },
+        "inconclusive": {
+          "tasks": 0,
+          "behaviors": 0
+        }
+      }
+    }
+  },
+  "task_gain": 77,
+  "task_loss": 75,
+  "task_delta": 2,
+  "behavior_gain": 2,
+  "behavior_loss": 0,
+  "behavior_delta": 2,
+  "distinct_program_pairs": 27,
+  "verdicts_sha256": "8f7552b2c66ce97dd43dd4cf6c47edc03deb62abdc6e618e3428be724039b43d",
+  "provenance": {
+    "commit": "60cbcefe2b8f5ab1a9d47c41ba8ca7b4913dd6bb",
+    "dirty": false,
+    "source_sha256": {
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/best_system_cells.py": "09215a7f488f03ce4c7602f8d079b1a76bcf8d316ae6aa3a2a2b8a666d041034",
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/step3_verify_solves.py": "ad6fbe911f2012604b9cc8ff2176daf9f3316437fcb24914b007213c73a80ca6",
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/pbe_scale/eval_compare.py": "bd8867c977be346ff348f8fe32407e878b12200bef904c81376f77519168c456",
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/wandering_light/stack_machine.py": "1cae29b19e1fcdb2ed452ba6a36577da889082e21916d18948a7a42d417e27c1",
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/wandering_light/stack_pbe.py": "36071a844c291a9546a715de4e5c7d78ba3e6ba6b1c18a68fb0ba71c68d74f95"
+    },
+    "adapter_sha256": "98410826ad96288360fab9e6d2db0d5c9570abfc281820690dfa1a60d083a32a",
+    "inputs": {
+      "old": {
+        "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/eval-v4/old.json",
+        "sha256": "920e2c00faaf1382eca68060fd703305f45ac2976fc5335fa6528248d7538884"
+      },
+      "mixed": {
+        "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/eval-v4/mixed.json",
+        "sha256": "b558d3eb937f0b063a1d9609fe6facacf50c5024724561f9068ee55b1202ad4c"
+      },
+      "payload": {
+        "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/eval-v4/tasks.jsonl.gz",
+        "sha256": "ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786"
+      },
+      "frozen_manifest": {
+        "path": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/eval-v4/input_manifest.json",
+        "sha256": "635aa64b9513ee05d6f5f05611415c0b4ae98bc09c0296d5a46430e1cdefb95e"
+      }
+    },
+    "frozen": {
+      "source": "/home/abhishekrao/.cache/huggingface/hub/datasets--abhishekraok--wandering-light-stack-pbe-v4/snapshots/00c2a9996d32df8d1894b45f4246a66b6df46c25/stack_pbe_v4_eval.jsonl.gz",
+      "payload": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/eval-v4/tasks.jsonl.gz",
+      "sha256": "ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+      "expected_sha256": "ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+      "manifest_sha256": "26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+      "tasks": 1800,
+      "behaviors": 45,
+      "expected_tasks": 1800,
+      "expected_behaviors": 45,
+      "hub": {
+        "repo_id": "abhishekraok/wandering-light-stack-pbe-v4",
+        "repo_type": "dataset",
+        "revision": "00c2a9996d32df8d1894b45f4246a66b6df46c25"
+      },
+      "provenance": {
+        "commit": "659ad7767d5bbac0d0ac5d36be1772fa17275970",
+        "dirty": false,
+        "source_sha256": "bd8867c977be346ff348f8fe32407e878b12200bef904c81376f77519168c456"
+      }
+    },
+    "checkpoints": {
+      "old": {
+        "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/old-staged-1m-s0/epoch-003",
+        "model_sha256": "3631ec6fbb456a89662d11be27e49f175e6988df2de21a38e284a337ae6151ab",
+        "trainer_state": {
+          "arm": "1m",
+          "batch_size": 256,
+          "checkpoint_selection": "every fixed epoch; no held-out selection",
+          "device": "cuda",
+          "encoding": "machine",
+          "epoch": 3,
+          "epochs": 3,
+          "learning_rate": 0.000125,
+          "mix_data": null,
+          "mixture": null,
+          "optimizer_steps": 1950,
+          "parameters": 655836,
+          "rows_seen": 498960,
+          "seconds": 117.40339300900087,
+          "seed": 0,
+          "stored_tokens_seen": 54709800,
+          "threads": 8,
+          "train_cross_entropy": 0.5539248981631794,
+          "train_probe_cross_entropy": 0.44684523344039917,
+          "train_rows": 166320
+        },
+        "training_manifest": {
+          "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+          "config": {
+            "arm": "1m",
+            "batch_size": 256,
+            "checkpoint_selection": "every fixed epoch; no held-out selection",
+            "device": "cuda",
+            "encoding": "machine",
+            "epochs": 3,
+            "learning_rate": 0.000125,
+            "mix_data": null,
+            "mixture": null,
+            "seed": 0,
+            "threads": 8
+          },
+          "data_sha256": {
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32/index.bin": "27bfab4b830941bc89a4f3487c3e6207f4bc4d20cfffa308dcebf6de5609f463",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32/manifest.json": "7a1450c705c567d8b4e737fd7648152e620abf35764dd7172ea17d0aacd09797",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32/tokens.bin": "95fcaef52228107ba5078dd51fd17f0147db4ee2fb8ebde2de0827caea29264e"
+          },
+          "dirty": false,
+          "preparation": {
+            "commit": "f9f4b2f672d6203b28cd47b08d2573c3fab3afbb",
+            "config": {
+              "encoding": "machine",
+              "prefixes_per_task": 32,
+              "seed": 0,
+              "task_limit": null
+            },
+            "data_sha256": {
+              "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-inputs/v4-staged-historical-fit.jsonl.gz": "18898b9b9e91b81922ecfe061c8672bb55af3d3580d64053059d70c0d0a74ff8"
+            },
+            "dirty": true,
+            "encoding_stats": {
+              "max_state_tokens": 152,
+              "max_target_tokens": 18,
+              "state_cap": 160,
+              "state_examples": 747489,
+              "state_overflow_examples": 0,
+              "state_overflow_fraction": 0.0,
+              "target_cap": 64,
+              "target_examples": 28562,
+              "target_overflow_examples": 0,
+              "target_overflow_fraction": 0.0
+            },
+            "files": {
+              "index.bin": "27bfab4b830941bc89a4f3487c3e6207f4bc4d20cfffa308dcebf6de5609f463",
+              "tokens.bin": "95fcaef52228107ba5078dd51fd17f0147db4ee2fb8ebde2de0827caea29264e"
+            },
+            "full_prefixes": 270800,
+            "index_dtype": [
+              [
+                "offset",
+                "<u8"
+              ],
+              [
+                "count",
+                "<u2"
+              ],
+              [
+                "width",
+                "<u2"
+              ],
+              [
+                "label",
+                "<u2"
+              ],
+              [
+                "task",
+                "<u4"
+              ],
+              [
+                "step",
+                "<u4"
+              ],
+              [
+                "remaining",
+                "<u4"
+              ]
+            ],
+            "prepare_seconds": 30.240265452999665,
+            "rows": 166320,
+            "seed": 0,
+            "stored_tokens": 18236600,
+            "tasks": 6360,
+            "tasks_per_second": 210.31561412332522,
+            "wandb_run.url": null
+          },
+          "seed": 0,
+          "wandb_run.url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/u90fmixz",
+          "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/u90fmixz"
+        },
+        "policy_config": {
+          "architecture": {
+            "byte_embedding": 128,
+            "conv_channels": 320,
+            "hidden": 640,
+            "name": "aligned-example-pairs-stack-tokens-v1"
+          },
+          "basis": "mark-28",
+          "encoding": "machine",
+          "ordered_actions": [
+            "0",
+            "1",
+            "nil",
+            "true",
+            "false",
+            "dup",
+            "swap",
+            "drop",
+            "over",
+            "cons",
+            "uncons",
+            "null?",
+            "add",
+            "sub",
+            "mul",
+            "div",
+            "eq?",
+            "lt?",
+            "dip",
+            "quote",
+            "cat",
+            "i",
+            "map",
+            "filter",
+            "fold",
+            "ifte",
+            "[",
+            "]"
+          ],
+          "schema_version": 1,
+          "vocabulary": {
+            "size": 176,
+            "small_int": 64,
+            "state_cap": 160,
+            "target_cap": 64
+          }
+        },
+        "search": {
+          "beam_width": 64,
+          "guard": "both",
+          "library": true,
+          "max_depth": 48,
+          "max_segments": 12,
+          "max_state_atoms": 16384,
+          "measured": "best-system-command (#158), this exact configuration on the #101 300-task v4 cohort, UltraDesk CPU: 180 tasks graded, 18 of 43 behaviours graded, 16 verified, 154 s. Library off it is 143 tasks and the same 16, which is staged-witness-reauthoring (#155)'s own cell for this checkpoint",
+          "name": "staged-s0-e3",
+          "repo_id": "abhishekraok/wandering-light-stack-policy",
+          "revision": "e5a0b1391c5268c3ae04a49e6862f19a30779bb2",
+          "roots": 16,
+          "scoring": "cumulative",
+          "search": "flat",
+          "segment_depth": 12
+        },
+        "host": {
+          "cuda_device": null,
+          "device": "cpu",
+          "hostname": "UltraDesk",
+          "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+          "threads": 8,
+          "torch": "2.8.0+cu128"
+        },
+        "solver_commit": "659ad77",
+        "wandb_run.url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/u90fmixz"
+      },
+      "mixed": {
+        "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/policies/mixed-1m-s0/epoch-003",
+        "model_sha256": "21bf0f027235bd9ded0bea2445215a0acfc4253a72ae4c314979c4a853997bb5",
+        "trainer_state": {
+          "arm": "1m",
+          "batch_size": 256,
+          "checkpoint_selection": "every fixed epoch; no held-out selection",
+          "device": "cuda",
+          "encoding": "machine",
+          "epoch": 3,
+          "epochs": 3,
+          "learning_rate": 0.000125,
+          "mix_data": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32",
+          "mixture": {
+            "actual_old_share": 0.2,
+            "new_full_prefixes": 13034942,
+            "new_rows": 2189596,
+            "old_full_prefixes": 270800,
+            "old_rows": 547399,
+            "old_underlying_rows": 166320,
+            "requested_old_share": 0.2,
+            "sampling": "fixed modular old-row permutation with cycling; heuristic share, not selected from eval"
+          },
+          "optimizer_steps": 32076,
+          "parameters": 655836,
+          "rows_seen": 8210985,
+          "seconds": 2004.5447995680006,
+          "seed": 0,
+          "stored_tokens_seen": 1833662418,
+          "threads": 8,
+          "train_cross_entropy": 0.2357436486000157,
+          "train_probe_cross_entropy": 0.2482987940311432,
+          "train_rows": 2736995
+        },
+        "training_manifest": {
+          "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+          "config": {
+            "arm": "1m",
+            "batch_size": 256,
+            "checkpoint_selection": "every fixed epoch; no held-out selection",
+            "device": "cuda",
+            "encoding": "machine",
+            "epochs": 3,
+            "learning_rate": 0.000125,
+            "mix_data": "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32",
+            "mixture": {
+              "actual_old_share": 0.2,
+              "new_full_prefixes": 13034942,
+              "new_rows": 2189596,
+              "old_full_prefixes": 270800,
+              "old_rows": 547399,
+              "old_underlying_rows": 166320,
+              "requested_old_share": 0.2,
+              "sampling": "fixed modular old-row permutation with cycling; heuristic share, not selected from eval"
+            },
+            "seed": 0,
+            "threads": 8
+          },
+          "data_sha256": {
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32/index.bin": "27bfab4b830941bc89a4f3487c3e6207f4bc4d20cfffa308dcebf6de5609f463",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32/manifest.json": "7a1450c705c567d8b4e737fd7648152e620abf35764dd7172ea17d0aacd09797",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-fit-packed32/tokens.bin": "95fcaef52228107ba5078dd51fd17f0147db4ee2fb8ebde2de0827caea29264e",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/new-fit-packed32/index.bin": "1b4a912870ab10aaf8f00467e627a4f31789a30a0233f237b307fb29071a755c",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/new-fit-packed32/manifest.json": "dd1ae7ccd0307859dcb0e2208bf3a7fdd5ef3f21990bcfbced138c9ec0ff6a1b",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/new-fit-packed32/tokens.bin": "9f4a01410538caf4bc07d428dc751013202dc38f702809a9e6f8fab4f3a6ab91"
+          },
+          "dirty": false,
+          "preparation": {
+            "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+            "config": {
+              "encoding": "machine",
+              "prefixes_per_task": 32,
+              "seed": 0,
+              "task_limit": null
+            },
+            "data_sha256": {
+              "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/audit-v4-eval/tasks_train_filtered.jsonl.gz": "fc67a2b4d322365d1b01dabc1db556139a8ba0805a946cfba18878fbdd589460"
+            },
+            "dirty": false,
+            "encoding_stats": {
+              "max_state_tokens": 679,
+              "max_target_tokens": 178,
+              "state_cap": 160,
+              "state_examples": 13137576,
+              "state_overflow_examples": 132540,
+              "state_overflow_fraction": 0.010088619087722118,
+              "target_cap": 64,
+              "target_examples": 410994,
+              "target_overflow_examples": 52,
+              "target_overflow_fraction": 0.0001265225283094157
+            },
+            "files": {
+              "index.bin": "1b4a912870ab10aaf8f00467e627a4f31789a30a0233f237b307fb29071a755c",
+              "tokens.bin": "9f4a01410538caf4bc07d428dc751013202dc38f702809a9e6f8fab4f3a6ab91"
+            },
+            "full_prefixes": 13034942,
+            "index_dtype": [
+              [
+                "offset",
+                "<u8"
+              ],
+              [
+                "count",
+                "<u2"
+              ],
+              [
+                "width",
+                "<u2"
+              ],
+              [
+                "label",
+                "<u2"
+              ],
+              [
+                "task",
+                "<u4"
+              ],
+              [
+                "step",
+                "<u4"
+              ],
+              [
+                "remaining",
+                "<u4"
+              ]
+            ],
+            "mixture": {
+              "actual_old_share": 0.2,
+              "new_full_prefixes": 13034942,
+              "new_rows": 2189596,
+              "old_full_prefixes": 270800,
+              "old_rows": 547399,
+              "old_underlying_rows": 166320,
+              "requested_old_share": 0.2,
+              "sampling": "fixed modular old-row permutation with cycling; heuristic share, not selected from eval"
+            },
+            "old_preparation": {
+              "commit": "f9f4b2f672d6203b28cd47b08d2573c3fab3afbb",
+              "config": {
+                "encoding": "machine",
+                "prefixes_per_task": 32,
+                "seed": 0,
+                "task_limit": null
+              },
+              "data_sha256": {
+                "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/baseline-inputs/v4-staged-historical-fit.jsonl.gz": "18898b9b9e91b81922ecfe061c8672bb55af3d3580d64053059d70c0d0a74ff8"
+              },
+              "dirty": true,
+              "encoding_stats": {
+                "max_state_tokens": 152,
+                "max_target_tokens": 18,
+                "state_cap": 160,
+                "state_examples": 747489,
+                "state_overflow_examples": 0,
+                "state_overflow_fraction": 0.0,
+                "target_cap": 64,
+                "target_examples": 28562,
+                "target_overflow_examples": 0,
+                "target_overflow_fraction": 0.0
+              },
+              "files": {
+                "index.bin": "27bfab4b830941bc89a4f3487c3e6207f4bc4d20cfffa308dcebf6de5609f463",
+                "tokens.bin": "95fcaef52228107ba5078dd51fd17f0147db4ee2fb8ebde2de0827caea29264e"
+              },
+              "full_prefixes": 270800,
+              "index_dtype": [
+                [
+                  "offset",
+                  "<u8"
+                ],
+                [
+                  "count",
+                  "<u2"
+                ],
+                [
+                  "width",
+                  "<u2"
+                ],
+                [
+                  "label",
+                  "<u2"
+                ],
+                [
+                  "task",
+                  "<u4"
+                ],
+                [
+                  "step",
+                  "<u4"
+                ],
+                [
+                  "remaining",
+                  "<u4"
+                ]
+              ],
+              "prepare_seconds": 30.240265452999665,
+              "rows": 166320,
+              "seed": 0,
+              "stored_tokens": 18236600,
+              "tasks": 6360,
+              "tasks_per_second": 210.31561412332522,
+              "wandb_run.url": null
+            },
+            "prepare_seconds": 704.6658359409994,
+            "rows": 2736995,
+            "seed": 0,
+            "stored_tokens": 611220806,
+            "tasks": 68499,
+            "tasks_per_second": 97.20777779516945,
+            "wandb_run.url": null
+          },
+          "seed": 0,
+          "wandb_run.url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/caax4ru1",
+          "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/caax4ru1"
+        },
+        "policy_config": {
+          "architecture": {
+            "byte_embedding": 128,
+            "conv_channels": 320,
+            "hidden": 640,
+            "name": "aligned-example-pairs-stack-tokens-v1"
+          },
+          "basis": "mark-28",
+          "encoding": "machine",
+          "ordered_actions": [
+            "0",
+            "1",
+            "nil",
+            "true",
+            "false",
+            "dup",
+            "swap",
+            "drop",
+            "over",
+            "cons",
+            "uncons",
+            "null?",
+            "add",
+            "sub",
+            "mul",
+            "div",
+            "eq?",
+            "lt?",
+            "dip",
+            "quote",
+            "cat",
+            "i",
+            "map",
+            "filter",
+            "fold",
+            "ifte",
+            "[",
+            "]"
+          ],
+          "schema_version": 1,
+          "vocabulary": {
+            "size": 176,
+            "small_int": 64,
+            "state_cap": 160,
+            "target_cap": 64
+          }
+        },
+        "search": {
+          "beam_width": 64,
+          "guard": "both",
+          "library": true,
+          "max_depth": 48,
+          "max_segments": 12,
+          "max_state_atoms": 16384,
+          "measured": "best-system-command (#158), this exact configuration on the #101 300-task v4 cohort, UltraDesk CPU: 180 tasks graded, 18 of 43 behaviours graded, 16 verified, 154 s. Library off it is 143 tasks and the same 16, which is staged-witness-reauthoring (#155)'s own cell for this checkpoint",
+          "name": "staged-s0-e3",
+          "repo_id": "abhishekraok/wandering-light-stack-policy",
+          "revision": "e5a0b1391c5268c3ae04a49e6862f19a30779bb2",
+          "roots": 16,
+          "scoring": "cumulative",
+          "search": "flat",
+          "segment_depth": 12
+        },
+        "host": {
+          "cuda_device": null,
+          "device": "cpu",
+          "hostname": "UltraDesk",
+          "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+          "threads": 8,
+          "torch": "2.8.0+cu128"
+        },
+        "solver_commit": "659ad77",
+        "wandb_run.url": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/caax4ru1"
+      }
+    },
+    "catalogue_digest": "sha256:5645f2fb513d55550533f3c31f0ef144e9bda23d39b49524ba038317f7dff60e",
+    "catalogue_source_digest": "sha256:0ef22aa3d3aadab5da764d874dd5efbd8fb20078fc5b997b594edb8ec6d3a471",
+    "protocol": {
+      "draws_per_mode": 10000,
+      "seed": 134,
+      "modes": [
+        "sampler",
+        "perturbed",
+        "dense"
+      ],
+      "min_tested_per_mode": 500,
+      "catalogue_equal_new_draws": 0
+    }
+  },
+  "caveats": [
+    "Accepted = draw-tested genuine or catalogue-equal; catalogue-equal programs receive zero fresh draws.",
+    "Non-witness programs receive 10,000 draw attempts per mode, on the canonical witness's operating domain; this is a finite test, not a proof. Actual tested/skipped/failed counts are in verified.json.",
+    "Verdict behavior counts can overlap; one behavior may have several solution programs.",
+    "One training seed; fixed epochs do not match training compute. Verification does not tune search or train a model."
+  ]
+}

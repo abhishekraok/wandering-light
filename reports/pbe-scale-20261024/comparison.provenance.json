@@ -1,0 +1,23 @@
+{
+  "commit": "60cbcefe2b8f5ab1a9d47c41ba8ca7b4913dd6bb",
+  "dirty": true,
+  "source_sha256": "bd8867c977be346ff348f8fe32407e878b12200bef904c81376f77519168c456",
+  "seed": 0,
+  "config": {
+    "dpi": 170,
+    "size_inches": [
+      11,
+      5
+    ]
+  },
+  "inputs": {
+    "reports/pbe-scale-20261024/metrics.json": "f5a612dfd5a774b3143507a2a6c61dd474eff5a3e695689b11041c655e14ff2a",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/eval-v4/verified/summary.json": "83b9608d7de255ed7a8ede49bc5a0444c9ae8e99b1241a512faa327683121340",
+    "reports/pbe-scale-20261024/plot.py": "b4830645c3786136cbe94b2f859bbcdb16447f987f0cd6c687ca076dda5386f3"
+  },
+  "output_sha256": "dbc8e61f75b244591d2087954b82547acf7f9f66e9ef93116e9f43b76f7961fa",
+  "wandb_run.url": {
+    "old-staged-1m-s0": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/u90fmixz",
+    "mixed-1m-s0": "https://wandb.ai/abhishekraok-na/wandering-light-rollout-policy/runs/caax4ru1"
+  }
+}

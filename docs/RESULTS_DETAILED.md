@@ -1049,7 +1049,35 @@ Both policies: 655,836 parameters; aligned example-pair architecture (128,320,64
 
 New preparation selected 2,189,596 rows; the mixed epoch adds 547,399 old rows. Epochs match; updates and compute do not (16.45× updates, 17.07× time). New-state encoding truncates 132,540 / 13,137,576 examples (1.009%); target encoding truncates 52 / 410,994 (0.01265%). Baseline has neither.
 
-Paired frozen-v4 evaluation and fresh-reference checks are running; no solver-improvement measurement is established yet. Artifact commit/dirty fields affected by the copied launcher's working directory are corrected in the [append-only provenance sidecar](../reports/pbe-scale-20261024/provenance-correction.json); all original bytes and hashes remain preserved.
+Paired evaluation uses all 1,800 frozen v4 tasks / 45 behaviors, in the same order, with beam 64, depth 48, guard `both`, solved-program library enabled, 16,384 state-atom cap and eight CPU threads. Both final epoch-3 checkpoints were fixed before evaluation. No world-v3 tasks were used.
+
+| Evaluation readout | Old staged | New + 20% old |
+|---|---:|---:|
+| Tasks passing saved held-out examples | 640 | 605 |
+| Behaviors with a held-out-passing solution | 19 | 19 |
+| Tasks accepted after fresh-reference protocol | **584** | **586** |
+| Behaviors accepted after fresh-reference protocol | **15** | **17** |
+| Accepted tasks / behaviors: fresh checks | 306 / 8 | 378 / 11 |
+| Accepted tasks / behaviors: catalogue-equal, trusted without fresh draws | 278 / 7 | 208 / 6 |
+| Rejected shortcut tasks / behaviors | 56 / 4 | 19 / 2 |
+| Inconclusive task solutions | 0 | 0 |
+| Stack executions | 317,358,462 | 343,964,389 |
+| Search seconds | 3,164.71 | 3,560.27 |
+
+The existing reference protocol checks 27 distinct `(behavior, program)` pairs across both arms: 10,000 draw attempts per sampler, perturbed and dense mode, seed 134, minimum 500 valid tests per mode; exact catalogue matches retain the existing trust rule and receive zero fresh draws. Canonical-witness validity filters the input domain. Passing these finite tests is not a proof. Aggregate evidence: [held-out comparison](../reports/pbe-scale-20261024/heldout-comparison.json), [verified summary](../reports/pbe-scale-20261024/verified-summary.json).
+
+Mixed training gains two verified behaviors (`all_positive`, `pair_floor_averages`), losing none; it gains 77 verified tasks and loses 75. The raw 35-task decrease is explained by the old arm's larger shortcut count. This is a modest one-seed coverage gain over the freshly trained control, with nearly flat task count. Matched epochs do not isolate data from the 16.45× update budget. The old control also caps prefixes at 32 per task, unlike the pinned `BEST` checkpoint's historical row sampling; its published 300-task / 43-behavior result is not directly comparable to this full split. No new project-best or longer-program generalization claim follows.
+
+A bounded follow-up scores both checkpoints on identical seed-0 samples of 10,000 packed training rows from each pool. Raw teacher-label CE / top-1 (no legality mask):
+
+| Policy | Old training pool | New training pool |
+|---|---:|---:|
+| Old staged | 0.48988 / 84.10% | 2.35458 / 51.38% |
+| New + 20% old | 0.33138 / 88.34% | 0.21212 / 91.87% |
+
+The diagnostic completes in 64.71 s wall time on CPU. Sampled label fit improves on both pools; it does not establish semantic retention or explain individual search failures. Samples are uniform over packed rows, not behaviors or all prefixes. [Summary](../reports/pbe-scale-20261024/fit-summary.json); exact indices and hashes are preserved in the durable run's `fit-diagnostic/` directory.
+
+Artifact commit/dirty fields affected by the copied launcher's working directory are corrected in the [append-only provenance sidecar](../reports/pbe-scale-20261024/provenance-correction.json); all original bytes and hashes remain preserved.
 
 ## No result
 
