@@ -201,7 +201,7 @@ def test_final_global_bank_includes_validation_programs():
 
 
 def test_hidden_execution_skips_candidates_that_fail_shown(monkeypatch):
-    from wandering_light import program_embedding_train as trainer
+    from wandering_light import program_embedding_eval as evaluator
 
     vectors = {"correct": torch.tensor([1.0, 0.0]), "wrong": torch.tensor([0.0, 1.0])}
     record = SimpleNamespace(
@@ -230,8 +230,8 @@ def test_hidden_execution_skips_candidates_that_fail_shown(monkeypatch):
         calls.append((program, examples[0][0]))
         return program == "correct"
 
-    monkeypatch.setattr(trainer, "_matches", matches)
-    result = trainer.evaluate(
+    monkeypatch.setattr(evaluator, "_matches", matches)
+    result = evaluator.evaluate(
         LookupModel(vectors), [record, negative], global_bank=True
     )
     assert ("wrong", "shown") in calls

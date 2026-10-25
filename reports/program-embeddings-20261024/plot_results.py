@@ -225,7 +225,12 @@ def plot(run_dir: Path, out: Path) -> Path:
                 "validation_mrr",
             )
         },
-        "evaluation_source": trained["provenance"]["evaluation_source"],
+        # Historical reports predate embedded evaluator provenance. Do not
+        # mistake the library checkpoint's commit for the evaluator's commit.
+        "evaluation_source": trained.get("provenance", {}).get("evaluation_source"),
+        "evaluation_provenance": {
+            name: report.get("provenance") for name, report in reports.items()
+        },
         "source_data_digests": {str(path): _digest(path) for path in paths},
         "caveats": [
             "Held-out answers included in bank; synthesis/coverage not measured.",
@@ -233,6 +238,12 @@ def plot(run_dir: Path, out: Path) -> Path:
             "Tiny official alternate-text strata excluded from main program headline.",
         ],
     }
+    for name, report in reports.items():
+        if not report.get("provenance", {}).get("evaluation_source"):
+            summary["caveats"].append(
+                f"{name}: legacy evaluation lacks embedded evaluator provenance; "
+                "evaluation source is unknown. Original artifacts are unchanged."
+            )
     for name in ("joint-s0", "program-s0", "aligned-s0"):
         path = run_dir.parent / name / "validation.json"
         if path.exists():
@@ -249,6 +260,7 @@ def plot(run_dir: Path, out: Path) -> Path:
             "Description": json.dumps(
                 {
                     "provenance": summary["provenance"],
+                    "evaluation_provenance": summary["evaluation_provenance"],
                     "source_data_digests": summary["source_data_digests"],
                     "wandb_run.url": manifest.get("wandb_url"),
                 },

@@ -48,3 +48,25 @@ Related [staged-witness-reauthoring (#155)](https://github.com/abhishekraok/wand
 uv run python reports/program-embeddings-20261024/plot_results.py --run-dir /home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0
 uv run pytest tests/test_program_embedding{,_data,_train}.py -q
 ```
+
+Evaluation is reusable through `wandering_light.program_embedding_eval.evaluate`;
+the existing `program_embedding_train.evaluate`, `retrieval_metrics` and
+`lexical_vectors` imports remain available. Ranking, tie order, seeded query
+sampling, complete banks and execution grading are unchanged. `evaluate` adds
+`evaluation_config` with the effective options, including defaults.
+
+New `evaluation.json`, `untrained.json`, `initial.json` and `validation.json`
+reports embed `provenance`: evaluator commit/dirty flag, actual model config,
+arguments, data manifest/digests, seed, W&B URL, and `evaluation_source`.
+`checkpoint_path`/`checkpoint_digest` identify the evaluated checkpoint, with
+its complete training lineage in `checkpoint_metadata`; random initialization
+records null checkpoint fields. Parent `initial_checkpoint_*` fields are retained
+when evaluating a newly trained best checkpoint. Each report snapshots this
+metadata independently of `provenance.json` and records effective evaluation
+settings separately from training arguments.
+
+Existing weights-only model (v2) and persistent index (v1) formats are unchanged.
+Historical evaluations, published metrics and figures are preserved. Plotting
+accepts older reports without embedded provenance and records their evaluation
+source as unknown with a caveat; it does not infer evaluator provenance from the
+library's training commit. Missing metadata never prevents loading or evaluation.
