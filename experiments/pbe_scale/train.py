@@ -251,6 +251,63 @@ class PackedRows(Sequence):
         )
 
 
+class MixedRows(Sequence):
+    """Visit new rows once; replay old rows through a fixed modular permutation."""
+
+    def __init__(self, new: PackedRows, old: PackedRows, share: float, seed: int):
+        if not 0 < share < 1:
+            raise ValueError("mix share must be strictly between 0 and 1")
+        self.new, self.old = new, old
+        self.old_count = math.ceil(len(new) * share / (1 - share))
+        rng = random.Random(seed)
+        self.offset, self.stride = (
+            rng.randrange(len(old)),
+            rng.randrange(1, len(old) + 1),
+        )
+        while math.gcd(self.stride, len(old)) != 1:
+            self.stride = rng.randrange(1, len(old) + 1)
+        tokens = sum(
+            int(old.index[self.old_index(i)]["count"])
+            * int(old.index[self.old_index(i)]["width"])
+            for i in range(self.old_count)
+        )
+        self.manifest = {
+            **new.manifest,
+            "rows": len(self),
+            "stored_tokens": new.manifest["stored_tokens"] + tokens,
+            "old_preparation": old.manifest,
+            "mixture": {
+                "new_rows": len(new),
+                "old_rows": self.old_count,
+                "old_underlying_rows": len(old),
+                "new_full_prefixes": new.manifest["full_prefixes"],
+                "old_full_prefixes": old.manifest["full_prefixes"],
+                "requested_old_share": share,
+                "actual_old_share": self.old_count / len(self),
+                "sampling": "fixed modular old-row permutation with cycling; heuristic share, not selected from eval",
+            },
+        }
+
+    def old_index(self, position):
+        return (self.offset + position * self.stride) % len(self.old)
+
+    def __len__(self):
+        return len(self.new) + self.old_count
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            return [self[i] for i in range(*key.indices(len(self)))]
+        if key < 0:
+            key += len(self)
+        if not 0 <= key < len(self):
+            raise IndexError(key)
+        return (
+            self.new[key]
+            if key < len(self.new)
+            else self.old[self.old_index(key - len(self.new))]
+        )
+
+
 def train(
     directory: Path,
     output: Path,
@@ -263,6 +320,8 @@ def train(
     batch_size: int = 256,
     wandb_mode: str = "online",
     threads: int = 8,
+    mix_data: Path | None = None,
+    mix_share: float = 0.2,
 ) -> dict:
     import torch
     import wandb
@@ -271,6 +330,14 @@ def train(
         raise ValueError("epochs, batch size and threads must be positive")
     torch.set_num_threads(threads)
     rows = PackedRows(directory)
+    sources = [
+        directory / name for name in ("manifest.json", "tokens.bin", "index.bin")
+    ]
+    if mix_data is not None:
+        rows = MixedRows(rows, PackedRows(mix_data), mix_share, seed)
+        sources += [
+            mix_data / name for name in ("manifest.json", "tokens.bin", "index.bin")
+        ]
     learning_rate = (
         learning_rate if learning_rate is not None else {"1m": 2e-3, "10m": 5e-4}[arm]
     )
@@ -284,16 +351,11 @@ def train(
         "encoding": rows.manifest["config"]["encoding"],
         "threads": threads,
         "checkpoint_selection": "every fixed epoch; no held-out selection",
+        "mix_data": str(mix_data.resolve()) if mix_data else None,
+        "mixture": rows.manifest.get("mixture"),
     }
     output.mkdir(parents=True, exist_ok=False)
-    origin = provenance(
-        config,
-        [
-            directory / "manifest.json",
-            directory / "tokens.bin",
-            directory / "index.bin",
-        ],
-    )
+    origin = provenance(config, sources)
     origin["preparation"] = rows.manifest
     # This probe contains training rows only; it is telemetry, not model selection.
     probe = [
@@ -397,6 +459,8 @@ def main() -> int:
         "--wandb-mode", choices=("online", "offline", "disabled"), default="online"
     )
     fit.add_argument("--threads", type=int, default=8)
+    fit.add_argument("--mix-data", type=Path)
+    fit.add_argument("--mix-share", type=float, default=0.2)
     for command in (prep, fit):
         command.add_argument("--seed", type=int, default=0)
     options = vars(parser.parse_args())

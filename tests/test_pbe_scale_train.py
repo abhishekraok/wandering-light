@@ -99,7 +99,33 @@ def test_prepare_reports_long_quotation_and_target_clipping(tmp_path):
     assert stats["target_overflow_fraction"] == 1.0
 
 
-def test_fixed_epoch_cpu_training_and_weights_only_checkpoint(monkeypatch, tmp_path):
+def test_mixed_rows_preserve_labels_and_deterministic_old_mass(tmp_path):
+    payload = source(tmp_path)
+    driver.prepare([payload], tmp_path / "new", prefixes=0)
+    driver.prepare([payload], tmp_path / "old", prefixes=3)
+    new, old = driver.PackedRows(tmp_path / "new"), driver.PackedRows(tmp_path / "old")
+    first = driver.MixedRows(new, old, 0.2, 17)
+    second = driver.MixedRows(new, old, 0.2, 17)
+    assert first.old_count == 2
+    assert len(first) == len(new) + 2
+    assert first.manifest["mixture"]["actual_old_share"] == 2 / len(first)
+    assert [first.old_index(i) for i in range(9)] == [
+        second.old_index(i) for i in range(9)
+    ]
+    assert len({first.old_index(i) for i in range(len(old))}) == len(old)
+    for i in range(len(first)):
+        expected = new[i] if i < len(new) else old[first.old_index(i - len(new))]
+        assert first[i].label == expected.label
+        np.testing.assert_array_equal(first[i].items, expected.items)
+    assert first.manifest["stored_tokens"] == sum(row.items.size for row in first)
+    with pytest.raises(IndexError):
+        first[len(first)]
+
+
+@pytest.mark.parametrize("mixture", [False, True])
+def test_fixed_epoch_cpu_training_and_weights_only_checkpoint(
+    monkeypatch, tmp_path, mixture
+):
     payload = source(tmp_path)
     driver.prepare([payload], tmp_path / "packed", prefixes=0)
     monkeypatch.setitem(driver.ARMS, "1m", {"dims": (4, 8, 12)})
@@ -111,8 +137,10 @@ def test_fixed_epoch_cpu_training_and_weights_only_checkpoint(monkeypatch, tmp_p
         wandb_mode="disabled",
         threads=1,
         device="cpu",
+        mix_data=tmp_path / "packed" if mixture else None,
+        mix_share=0.2,
     )
-    assert result["optimizer_steps"] == 2 * 3
+    assert result["optimizer_steps"] == 2 * (4 if mixture else 3)
     assert result["final_checkpoint"].endswith("epoch-002")
     for epoch in (1, 2):
         checkpoint = tmp_path / f"policy/epoch-{epoch:03d}"

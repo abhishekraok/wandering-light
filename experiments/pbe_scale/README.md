@@ -25,13 +25,23 @@ uv run python -m experiments.pbe_scale.merge "$RUN"/validated-v3/shard-* "$RUN/a
 
 V3 uses 192 shared edge/random inputs plus 16 candidate-specific inputs for list tasks. Integer inputs are exhaustive over −10…10 (21 single integers or 441 integer pairs). Six shown examples vary in outputs; the rest remain hidden. Deduplication compares shared-probe output fingerprints and retains the shortest *verified* representative available. This is not a proof of minimal program length. Reference and witness execution have per-candidate CPU, wall-time, output, and memory bounds. Exports preserve journals, rejected candidates, source hashes, configuration, and provenance.
 
-The corpus is training-only. Existing benchmark overlap has not been audited; no generalization claim follows from dataset construction. Program length is an authored upper bound, and macro expansion can dominate it.
+The corpus is training-only. The blind `audit_eval.py` stage excludes detected matches to frozen v4 eval references and reports inconclusive checks. Sampled agreement cannot rule out systematic family overlap; no generalization claim follows from dataset construction. Program length is an authored upper bound, and macro expansion can dominate it.
 
 Prepare bounded-memory training rows and train at fixed epochs:
 
 ```bash
 systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- uv run python -m experiments.pbe_scale.train prepare --input "$RUN/corpus-v3/tasks_train.jsonl.gz" --output-dir "$RUN/packed32" --prefixes-per-task 32 --seed 0
-uv run python -m experiments.pbe_scale.train train --data "$RUN/packed32" --output-dir "$RUN/policies/new-1m-s0" --arm 1m --epochs 3 --seed 0 --device cuda
+uv run python -m experiments.pbe_scale.train train --data "$RUN/packed32" --output-dir "$RUN/policies/new-1m-s0" --arm 1m --epochs 3 --seed 0 --learning-rate 0.000125 --device cuda
 ```
 
 Use `--prefixes-per-task 0` for every witness prefix. Preparation records state/target truncation and selected/full prefix counts. Training uses the existing policy, saves weights at every epoch, records personal W&B lineage, and reports final-epoch weights; its small training-row diagnostic does not select a checkpoint.
+
+`augment.py` exports 16 six-example views per behavior using previously verified pairs, with a fixed hidden bank disjoint from every shown view. It adds training tasks, not functions. Its manifest separates behaviors, distinct witness programs, views, and full prefix counts. Reshuffled views have unmeasured fuel, explicitly tagged and stored as a zero sentinel.
+
+The campaign-specific finisher waits for the first validation round and author shutdown, validates remaining author batches and anchors, merges, audits, exports views and a figure, prepares rows, then trains the old-only and mixed policies serially:
+
+```bash
+systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- uv run python -m experiments.pbe_scale.finish --run-dir "$RUN"
+```
+
+It uses the already prepared historical v4 fit subset for the control. The first mixed run includes every retained new behavior with up to 32 prefixes, plus 20% old rows, at three fixed epochs. This matches epochs, not optimizer steps or compute. The full 16-view corpus is a separate export for subsequent larger training. All CPU preparation finishes before GPU training; any failed stage marks the pipeline incomplete without retries or device fallback. `pipeline_status.json` records commands, exact owned process groups, logs, and return codes. The finisher makes no LLM calls.
