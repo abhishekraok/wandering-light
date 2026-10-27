@@ -37,9 +37,20 @@ skipped. Ultra and Max were excluded under the owner's October 15 instruction
 
 On October 27 the owner requested max as well (message 2210), overriding the
 earlier exclusion for this model. The new arm uses the same fixed protocol and
-retains every original arm. Before it starts, a separate lowest-effort identity
-preflight must confirm the served model; that probe is excluded from the 40
-evaluation tasks. No max result is available in this preparation commit.
+retains every original arm. A separate lowest-effort identity preflight
+confirmed the served model before launch; that probe is excluded from the 40
+evaluation tasks (`preflight-before-max.json`). Max finished at 16:36:45 PDT,
+exit 0: **24/40 at $0.010158/task**, mean output 1,771.7 tokens, 14 memorised,
+zero illegal. All 40 candidates independently regrade and all 40 server
+identities match `gpt-6.1-terra`, with zero tool calls or generation exceptions.
+Its contemporaneous provenance records clean commit `06fb3b0`, unchanged
+inference-source digests, and Codex CLI 0.163.0 before/after. No retry.
+
+Max enters the existing 22–27 shaded band and is within three tasks of the
+best hosted saved score, 27/40. It costs 2.66 times xhigh for three additional
+solves, within the ±3-task comparison convention. Sol 6.1 medium's saved
+25/40 at $0.006976/task is both higher-scoring and cheaper than Terra max;
+this sample does not establish a reliable ranking.
 
 The owner subsequently authorized rerunning low and medium (relayed in
 operator message 2212) because the first runs lack proof of the serving model.
@@ -47,7 +58,10 @@ These are explicit exceptions to the no-rerun rule, for identity evidence.
 Their sample, prompt, parser and grader remain fixed. New outputs will be
 saved under `identity-rerun/`, with the first runs retained in this directory;
 the plot will use the identity-verified reruns regardless of their scores.
-Neither rerun has started in this preparation state.
+The separate lowest-effort preflight before the low rerun also passed
+(`preflight-before-low-identity-rerun.json`). The reruns have not started in
+this preparation commit; each will use a fresh output path and full received
+websocket identity tracing.
 
 ## Protocol
 

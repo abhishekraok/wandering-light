@@ -42,5 +42,16 @@
     "mean_out": 504.775,
     "cost_per_task": 0.003823875,
     "model_confirmed_calls": 40
+  },
+  {
+    "model": "gpt-6.1-terra",
+    "effort": "max",
+    "solved": 24,
+    "memorised": 14,
+    "illegal": 0,
+    "usage_calls": 40,
+    "mean_out": 1771.65,
+    "cost_per_task": 0.01015825,
+    "model_confirmed_calls": 40
   }
 ]
