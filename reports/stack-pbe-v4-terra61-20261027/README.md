@@ -58,10 +58,15 @@ These are explicit exceptions to the no-rerun rule, for identity evidence.
 Their sample, prompt, parser and grader remain fixed. New outputs will be
 saved under `identity-rerun/`, with the first runs retained in this directory;
 the plot will use the identity-verified reruns regardless of their scores.
-The separate lowest-effort preflight before the low rerun also passed
-(`preflight-before-low-identity-rerun.json`). The reruns have not started in
-this preparation commit; each will use a fresh output path and full received
-websocket identity tracing.
+Separate lowest-effort preflights before both reruns passed
+(`preflight-before-low-identity-rerun.json` and
+`preflight-before-medium-identity-rerun.json`). Low finished once at
+16:47:36 PDT, exit 0: 9/40 at $0.001923/task, six memorised, 17 illegal.
+All 40 grades reproduce and all 40 server identities match, with zero tools,
+generation exceptions or provenance caveats. Its output is saved under
+`identity-rerun/`; the original low remains in the parent directory.
+Medium has not started in this preparation commit. Both reruns use fresh
+output paths and full received websocket identity tracing.
 
 ## Protocol
 
