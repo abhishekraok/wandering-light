@@ -464,5 +464,41 @@
   "cost_per_task": 0.029052012500000002,
   "median_out": 35019.0,
   "mean_out": 57844.025
+ },
+ {
+  "model": "gpt-6.1-terra",
+  "effort": "low",
+  "solved": 9,
+  "cost_per_task": 0.001689,
+  "median_out": 20.5,
+  "mean_out": 77.8,
+  "model_confirmed_calls": 0
+ },
+ {
+  "model": "gpt-6.1-terra",
+  "effort": "medium",
+  "solved": 18,
+  "cost_per_task": 0.002685,
+  "median_out": 244.0,
+  "mean_out": 277,
+  "model_confirmed_calls": 0
+ },
+ {
+  "model": "gpt-6.1-terra",
+  "effort": "high",
+  "solved": 20,
+  "cost_per_task": 0.00284425,
+  "median_out": 267.0,
+  "mean_out": 308.85,
+  "model_confirmed_calls": 40
+ },
+ {
+  "model": "gpt-6.1-terra",
+  "effort": "xhigh",
+  "solved": 21,
+  "cost_per_task": 0.003823875,
+  "median_out": 390.0,
+  "mean_out": 504.775,
+  "model_confirmed_calls": 40
  }
 ]

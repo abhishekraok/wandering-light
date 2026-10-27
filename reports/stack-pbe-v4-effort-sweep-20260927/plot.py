@@ -18,6 +18,7 @@ ORDER = (  # model, colour, latest generation (coloured, labelled) or earlier (g
     ("claude-opus-5", "#8fb8ea", False),
     ("gpt-6-astra", "#c2185b", True),
     ("gpt-6.1-sol", "#b83a0b", True),
+    ("gpt-6.1-terra", "#8b6508", True),
     ("gpt-6-sol", "#eb6834", False),
     ("gpt-6-luna", "#1baf7a", True),
     ("gpt-5.6-sol", "#f2a57f", False),
@@ -38,13 +39,16 @@ LABEL = {  # current generation only: anchor effort, offset (points), alignment
     "claude-opus-5-5": ("low", (-8, -3), "right"),
     "gpt-6-astra": ("low", (0, 20), "center"),  # above Opus 5.5's medium/high
     "gpt-6.1-sol": ("low", (-8, -3), "right"),
+    "gpt-6.1-terra": ("high", (-8, 3), "right"),
     "gpt-6-luna": ("max", (8, 3), "left"),
 }
 for model, colour, new in ORDER:
     pts = [
         (r["cost_per_task"], r["solved"], r["effort"])
         for r in rows
-        if r["model"] == model and r["cost_per_task"] is not None
+        if r["model"] == model
+        and r["cost_per_task"] is not None
+        and (model != "gpt-6.1-terra" or r.get("model_confirmed_calls") == 40)
     ]
     if not pts:
         continue
@@ -165,7 +169,8 @@ for side in ("top", "right"):
     ax.spines[side].set_visible(False)
 notes = [
     "grey: earlier generations (gpt-6-sol, gpt-5.6 sol/terra/luna,\n"
-    "claude-opus-5, claude-fable-5), unlabelled; all rows in table.md"
+    "claude-opus-5, claude-fable-5), unlabelled; all rows in table.md",
+    "Terra 6.1 low/medium omitted: server identity unconfirmed.",
 ]
 for r in rows:
     if r["model"] != "claude-sonnet-5-5":

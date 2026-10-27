@@ -1,0 +1,1872 @@
+{
+  "requested_model": "gpt-6.1-terra",
+  "task_indices": [
+    361,
+    359,
+    234,
+    595,
+    1603,
+    1156,
+    479,
+    1408,
+    967,
+    1499,
+    815,
+    341,
+    456,
+    1266,
+    1241,
+    992,
+    1466,
+    1347,
+    160,
+    1729,
+    1087,
+    1019,
+    176,
+    1159,
+    570,
+    317,
+    399,
+    241,
+    1097,
+    47,
+    1634,
+    1579,
+    574,
+    470,
+    521,
+    897,
+    1772,
+    1735,
+    128,
+    95
+  ],
+  "benchmark_base_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+  "run_preparation_commit": "9c538a7f7b8ce1ec763b98993250da59d3e2c66d",
+  "inference_source_dirty": false,
+  "cli_version_before": "codex-cli 0.163.0",
+  "cli_version_after": "codex-cli 0.163.0",
+  "cli_audit_sha256": "cb59d1b4be6d3ac576e2e90e7d4d06393713bd95fd9eb0884b1d32ff8c70c927",
+  "expected_efforts": [
+    "low",
+    "medium",
+    "high",
+    "xhigh"
+  ],
+  "completed_efforts": [
+    "low",
+    "medium",
+    "high",
+    "xhigh"
+  ],
+  "plot_prompt_tokens": 1300,
+  "input_usd_per_million": 1,
+  "output_usd_per_million": 5,
+  "pricing_source": "https://developers.openai.com/api/docs/pricing",
+  "pricing_checked": "2026-10-27",
+  "regraded_candidates": 160,
+  "model_confirmed_calls": 80,
+  "all_server_identities_confirmed": false,
+  "analysis_source_sha256": {
+    "experiments/stack_pbe_baseline.py": "9428c5d52efeac36e2aa442a078214d57dbd4fb02fdd13d3650d44352c053a93",
+    "wandering_light/solver.py": "9090107ede24971e9a8ab5536e99dab9a1040873aae50b9af38e7fd95fc1fe74",
+    "wandering_light/stack_pbe_eval.py": "a9834f52f7b2b4ab2b607eb745b54b0d35b8f82144b9179fb00eda90311bc2bf",
+    "wandering_light/stack_machine.py": "1cae29b19e1fcdb2ed452ba6a36577da889082e21916d18948a7a42d417e27c1",
+    "wandering_light/evals/data/stack_pbe_v4/manifest.json": "26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b"
+  },
+  "arms": [
+    {
+      "effort": "low",
+      "artifact": "terra61_low_v4_sample40.json",
+      "regraded_candidates": 40,
+      "saved_grades_agree": true,
+      "calls": [
+        {
+          "task_index": 361,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 359,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 234,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 595,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1603,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1156,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 479,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1408,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 967,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1499,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 815,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 341,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 456,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1266,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1241,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 992,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1466,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1347,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 160,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1729,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1087,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1019,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 176,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1159,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 570,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 317,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 399,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 241,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1097,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 47,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1634,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1579,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 574,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 470,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 521,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 897,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1772,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1735,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 128,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 95,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        }
+      ]
+    },
+    {
+      "effort": "medium",
+      "artifact": "terra61_medium_v4_sample40.json",
+      "regraded_candidates": 40,
+      "saved_grades_agree": true,
+      "calls": [
+        {
+          "task_index": 361,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 359,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 234,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 595,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1603,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1156,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 479,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1408,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 967,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1499,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 815,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 341,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 456,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1266,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1241,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 992,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1466,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1347,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 160,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1729,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1087,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1019,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 176,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1159,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 570,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 317,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 399,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 241,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1097,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 47,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1634,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1579,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 574,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 470,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 521,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 897,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1772,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1735,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 128,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 95,
+          "server_models": [],
+          "identity_confirmed": false,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        }
+      ]
+    },
+    {
+      "effort": "high",
+      "artifact": "terra61_high_v4_sample40.json",
+      "regraded_candidates": 40,
+      "saved_grades_agree": true,
+      "calls": [
+        {
+          "task_index": 361,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 359,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 234,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 595,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1603,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1156,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 479,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1408,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 967,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1499,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 815,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 341,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 456,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1266,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1241,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 992,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1466,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1347,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 160,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1729,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1087,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1019,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 176,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1159,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 570,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 317,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 399,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 241,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1097,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 47,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1634,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1579,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 574,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 470,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 521,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 897,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1772,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1735,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 128,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 95,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        }
+      ]
+    },
+    {
+      "effort": "xhigh",
+      "artifact": "terra61_xhigh_v4_sample40.json",
+      "regraded_candidates": 40,
+      "saved_grades_agree": true,
+      "calls": [
+        {
+          "task_index": 361,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 359,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 234,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 595,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1603,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1156,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 479,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1408,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 967,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1499,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 815,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 341,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 456,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1266,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1241,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 992,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1466,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1347,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 160,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1729,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1087,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1019,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 176,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1159,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 570,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 317,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 399,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 241,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1097,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 47,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1634,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1579,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 574,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 470,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 521,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 897,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1772,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1735,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 128,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 95,
+          "server_models": [
+            "gpt-6.1-terra"
+          ],
+          "identity_confirmed": true,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        }
+      ]
+    }
+  ]
+}

@@ -16,6 +16,7 @@ REPORTS = HERE.parent
 BUCKETS = ((1, 10), (11, 20), (21, 40), (41, 1000))
 PROMPT_TOKENS = 1300
 PRICE = {  # $ per 1M input, output; Sonnet 5.5 verified 2026-09-28, 6.1 Sol 2026-09-29
+    "gpt-6.1-terra": (1, 5),  # vendor standard list price, checked 2026-10-27
     "gpt-6.1-sol": (2, 10),
     "gpt-6-astra": (10, 50),
     "gpt-6-sol": (2, 10),
@@ -91,6 +92,10 @@ ARMS = (
     ("stack-pbe-v4-haiku55-20261011/haiku55_high", "claude-haiku-5-5", "high"),
     ("stack-pbe-v4-haiku55-20261011/haiku55_xhigh", "claude-haiku-5-5", "xhigh"),
     ("stack-pbe-v4-haiku55-20261011/haiku55_max", "claude-haiku-5-5", "max"),
+    ("stack-pbe-v4-terra61-20261027/terra61_low", "gpt-6.1-terra", "low"),
+    ("stack-pbe-v4-terra61-20261027/terra61_medium", "gpt-6.1-terra", "medium"),
+    ("stack-pbe-v4-terra61-20261027/terra61_high", "gpt-6.1-terra", "high"),
+    ("stack-pbe-v4-terra61-20261027/terra61_xhigh", "gpt-6.1-terra", "xhigh"),
 )
 
 
@@ -154,6 +159,14 @@ def main() -> None:
             for r in ref.values()
         ]
         served = sorted({x for g in gens for x in g.get("model", [])}) or ["-"]
+        confirmed = None
+        if m == "gpt-6.1-terra":
+            audit = json.loads(
+                (REPORTS / "stack-pbe-v4-terra61-20261027/validation.json").read_text()
+            )
+            calls = next(arm["calls"] for arm in audit["arms"] if arm["effort"] == e)
+            confirmed = sum(call["identity_confirmed"] for call in calls)
+            served = [f"{m} ({confirmed}/40)"] if confirmed else ["unconfirmed (0/40)"]
         tools = sum(
             g.get("tool_calls", 0) + bool(g.get("text_tool_call")) for g in gens
         )
@@ -188,6 +201,8 @@ def main() -> None:
         if m == "claude-sonnet-5-5":
             rows[-1]["usage_calls"] = len(out)
             rows[-1]["refusals"] = sum(g.get("stop_reason") == "refusal" for g in gens)
+        if confirmed is not None:
+            rows[-1]["model_confirmed_calls"] = confirmed
     (HERE / "summary.json").write_text(json.dumps(rows, indent=1))
 
 
