@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Same fixed sample and untooled Codex protocol as sol61-sample40 (#177).
-# Run efforts from lowest up. Ultra/Max excluded by owner message 1155.
+# Default efforts follow owner message 1155. Max additionally authorised by
+# owner message 2210 (2026-10-27), selected explicitly with EFFORTS=max.
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 PYTHON=${PYTHON:-.venv/bin/python}

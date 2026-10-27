@@ -33,6 +33,14 @@ High was seven tasks below the best hosted score (27), so xhigh was not
 skipped. Ultra and Max were excluded under the owner's October 15 instruction
 (message 1155).
 
+### Requested max extension
+
+On October 27 the owner requested max as well (message 2210), overriding the
+earlier exclusion for this model. The new arm uses the same fixed protocol and
+retains every original arm. Before it starts, a separate lowest-effort identity
+preflight must confirm the served model; that probe is excluded from the 40
+evaluation tasks. No max result is available in this preparation commit.
+
 ## Protocol
 
 Same seed-17 sample of 40 `stack_pbe_v4` eval tasks as the Sol 6.1 and Haiku 5.5
