@@ -4,10 +4,12 @@ This observes completed Codex subprocess output only. It does not change the
 CLI command, prompt, selected tasks, output parser, grader, or generation count.
 """
 
+import hashlib
 import json
 import runpy
 import subprocess
 import sys
+from datetime import UTC, datetime
 from itertools import count
 from pathlib import Path
 
@@ -17,6 +19,31 @@ RAW = OUT.parent / "raw" / OUT.stem
 RAW.mkdir(parents=True, exist_ok=True)
 OriginalPopen = subprocess.Popen
 call_numbers = count(1)
+
+
+def run_metadata():
+    def output(*command):
+        return subprocess.check_output(command, cwd=ROOT, text=True).strip()
+
+    return {
+        "capture_method": "recorded at inference time",
+        "source_commit": output("git", "rev-parse", "HEAD"),
+        "source_dirty": bool(output("git", "status", "--porcelain")),
+        "cli_version_before": output("codex", "--version"),
+        "started_at": datetime.now(UTC).isoformat(),
+        "baseline_arguments": sys.argv[1:],
+        "inference_source_sha256": {
+            p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest()
+            for p in (
+                "experiments/stack_pbe_baseline.py",
+                "wandering_light/solver.py",
+                "wandering_light/stack_pbe_eval.py",
+                "wandering_light/stack_machine.py",
+                "wandering_light/evals/data/stack_pbe_v4/manifest.json",
+                "reports/stack-pbe-v4-terra61-20261027/capture.py",
+            )
+        },
+    }
 
 
 class RecordingPopen(OriginalPopen):
@@ -38,6 +65,18 @@ class RecordingPopen(OriginalPopen):
 
 
 if __name__ == "__main__":
+    provenance = run_metadata()
+    provenance_path = OUT.with_suffix(".provenance.json")
+    provenance_path.write_text(json.dumps(provenance, indent=2) + "\n")
     subprocess.Popen = RecordingPopen
     sys.argv[0] = str(ROOT / "experiments/stack_pbe_baseline.py")
-    runpy.run_path(sys.argv[0], run_name="__main__")
+    try:
+        runpy.run_path(sys.argv[0], run_name="__main__")
+    finally:
+        provenance["finished_at"] = datetime.now(UTC).isoformat()
+        provenance["cli_version_after"] = subprocess.check_output(
+            ["codex", "--version"], text=True
+        ).strip()
+        if OUT.exists():
+            provenance["artifact_sha256"] = hashlib.sha256(OUT.read_bytes()).hexdigest()
+        provenance_path.write_text(json.dumps(provenance, indent=2) + "\n")

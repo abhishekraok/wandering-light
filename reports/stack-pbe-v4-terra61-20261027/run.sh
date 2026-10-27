@@ -15,7 +15,8 @@ for effort in ${EFFORTS:-low medium high xhigh}; do
     exit 1
   fi
   printf 'RUN STARTED %s codex %s\n' "$(date -Is)" "$(codex --version)" >> "$OUT/$tag.log"
-  "$PYTHON" -u reports/stack-pbe-v4-terra61-20261027/capture.py \
+  systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- \
+    "$PYTHON" -u reports/stack-pbe-v4-terra61-20261027/capture.py \
     --backend llm --provider codex --model gpt-6.1-terra --effort "$effort" \
     --tasks 40 --split eval --seed 17 --out "$OUT/$tag.json" >> "$OUT/$tag.log" 2>&1
   status=$?

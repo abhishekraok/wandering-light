@@ -17,6 +17,29 @@ MODEL = "gpt-6.1-terra"
 EFFORTS = ("low", "medium", "high", "xhigh")
 
 
+def inference_provenance(path):
+    sidecar = path.with_suffix(".provenance.json")
+    if not sidecar.exists():
+        return None, ["Inference provenance was not recorded for this arm."]
+    provenance = json.loads(sidecar.read_text())
+    caveats = []
+    if (
+        provenance.get("artifact_sha256")
+        != hashlib.sha256(path.read_bytes()).hexdigest()
+    ):
+        caveats.append("Inference provenance artifact digest is missing or differs.")
+    if provenance.get("source_dirty") is not False:
+        caveats.append("Inference checkout was dirty or its dirty flag is unknown.")
+    for name, digest in provenance.get("inference_source_sha256", {}).items():
+        source = ROOT / name
+        if (
+            not source.exists()
+            or hashlib.sha256(source.read_bytes()).hexdigest() != digest
+        ):
+            caveats.append(f"Analysis source differs from inference: {name}")
+    return provenance, caveats
+
+
 def server_models(call):
     """Read server response fields, never the local command's requested model."""
     models = set()
@@ -55,6 +78,7 @@ def main():
         path = out / f"terra61_{effort}_v4_sample40.json"
         if not path.exists():
             continue
+        provenance, caveats = inference_provenance(path)
         data = json.loads(path.read_text())
         assert data["tasks"] == data["tasks_planned"] == 40 and not data["partial"]
         assert (data["model"], data["provider"], data["effort"]) == (
@@ -125,6 +149,8 @@ def main():
                 "artifact": path.name,
                 "regraded_candidates": 40,
                 "saved_grades_agree": True,
+                "inference_provenance": provenance,
+                "provenance_caveats": caveats,
                 "calls": calls,
             }
         )
@@ -137,11 +163,6 @@ def main():
     validation = {
         "requested_model": MODEL,
         "task_indices": selected,
-        "benchmark_base_commit": "839159cb392dbacb82d05debb6a59282a487d190",
-        "run_preparation_commit": "9c538a7f7b8ce1ec763b98993250da59d3e2c66d",
-        "inference_source_dirty": False,
-        "cli_version_before": "codex-cli 0.163.0",
-        "cli_version_after": "codex-cli 0.163.0",
         "cli_audit_sha256": hashlib.sha256(
             (out / "cli-audit.json").read_bytes()
         ).hexdigest(),

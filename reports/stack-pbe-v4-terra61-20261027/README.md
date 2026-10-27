@@ -46,8 +46,19 @@ not change the prompt, model command, output parser, grader or number of calls.
 
 Inference used preparation commit `9c538a7f7b8ce1ec763b98993250da59d3e2c66d`.
 The inference source was clean at preparation; subsequent edits were confined
-to report analysis/documentation and the plot. `validation.json` records source
-and corpus-manifest digests, task indices, commit and CLI provenance.
+to report analysis/documentation and the plot. The original arms' per-arm
+`*.provenance.json` files reconstruct the historical metadata from recorded run
+information and bind it to each saved JSON's SHA256. Their inference-time dirty
+flag is unknown: only the preparation-time clean state was recorded.
+`validation.json` includes this caveat, per-arm provenance, task indices, and
+analysis source/corpus-manifest digests.
+
+For new measurements, `capture.py` records the actual checkout commit, dirty
+flag, baseline arguments, source/corpus-manifest digests, timestamps and CLI
+versions before/after inference in each arm's provenance sidecar. `analyse.py`
+reads the selected output directory's sidecars; absent metadata and digest
+differences are reported as caveats, without substituting historical values or
+refusing to regrade.
 
 The adapter's summary parser omits server identity. Low used ordinary captured
 stdout/stderr; medium added `RUST_LOG=codex_api::sse::responses=trace`, which
@@ -89,20 +100,23 @@ hosted saved score is 27/40; use the existing ±3-task comparison convention.
 From the sweep worktree root:
 
 ```bash
-PYTHONPATH=. .venv/bin/python reports/stack-pbe-v4-terra61-20261027/analyse.py > reports/stack-pbe-v4-terra61-20261027/table.md
+systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- env PYTHONPATH=. .venv/bin/python reports/stack-pbe-v4-terra61-20261027/analyse.py > reports/stack-pbe-v4-terra61-20261027/table.md
 .venv/bin/python reports/stack-pbe-v4-effort-sweep-20260927/analyse.py > reports/stack-pbe-v4-effort-sweep-20260927/table.md
 .venv/bin/python reports/stack-pbe-v4-effort-sweep-20260927/plot.py
 ```
 
 To make a new measurement, use a fresh output directory (the runner refuses
-to overwrite existing arms). These commands spend subscription calls:
+to overwrite existing arms). The runner caps each capture/baseline process at
+12 GiB with no swap; regrading below uses the same cap. A process killed by the
+cap is incomplete and must not be retried uncapped or scored as zero.
+These commands spend subscription calls:
 
 ```bash
 export OUT=/path/to/fresh-output
 export RUST_LOG=codex_api::sse::responses=trace,tungstenite::protocol=trace
 EFFORTS='low medium high xhigh' bash reports/stack-pbe-v4-terra61-20261027/run.sh
 .venv/bin/python reports/stack-pbe-v4-terra61-20261027/extract_audit.py --data-dir "$OUT" --out "$OUT/cli-audit.json"
-PYTHONPATH=. .venv/bin/python reports/stack-pbe-v4-terra61-20261027/analyse.py --data-dir "$OUT"
+systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- env PYTHONPATH=. .venv/bin/python reports/stack-pbe-v4-terra61-20261027/analyse.py --data-dir "$OUT"
 ```
 
 Original arm completion times (PDT): low 09:31:40, medium 09:39:02,
