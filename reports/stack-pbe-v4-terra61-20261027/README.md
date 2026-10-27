@@ -41,6 +41,14 @@ retains every original arm. Before it starts, a separate lowest-effort identity
 preflight must confirm the served model; that probe is excluded from the 40
 evaluation tasks. No max result is available in this preparation commit.
 
+The owner subsequently authorized rerunning low and medium (relayed in
+operator message 2212) because the first runs lack proof of the serving model.
+These are explicit exceptions to the no-rerun rule, for identity evidence.
+Their sample, prompt, parser and grader remain fixed. New outputs will be
+saved under `identity-rerun/`, with the first runs retained in this directory;
+the plot will use the identity-verified reruns regardless of their scores.
+Neither rerun has started in this preparation state.
+
 ## Protocol
 
 Same seed-17 sample of 40 `stack_pbe_v4` eval tasks as the Sol 6.1 and Haiku 5.5

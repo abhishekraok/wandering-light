@@ -14,7 +14,7 @@ from wandering_light.stack_pbe_eval import grade, summarise
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 MODEL = "gpt-6.1-terra"
-EFFORTS = ("low", "medium", "high", "xhigh")
+EFFORTS = ("low", "medium", "high", "xhigh", "max")
 
 
 def inference_provenance(path):
