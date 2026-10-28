@@ -1,0 +1,26 @@
+{
+  "requested_model": "claude-sonnet-5-5",
+  "effort": "high",
+  "started_at": "2026-10-28T00:10:44.639433+00:00",
+  "finished_at": "2026-10-28T00:12:25.934994+00:00",
+  "review_input_sha256": "1f2a0ac910fb0b3666866ea0371502caf5d22b9ddb0a4c0df9613b6d8c43d803",
+  "metadata": {
+    "tool_calls": 0,
+    "text_tool_call": false,
+    "errors": [],
+    "usage": {
+      "input_tokens": 25615,
+      "cache_creation_input_tokens": 25613,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 13685,
+      "reasoning_output_tokens": 12326
+    },
+    "model": [
+      "claude-sonnet-5-5"
+    ],
+    "stop_reason": "end_turn",
+    "api_ms": 100274,
+    "seconds": 101.3
+  },
+  "review": "**Findings: 3, none affecting the reported scores or the plotted-arm selection.**\n\n**1. Medium (reproducibility): the identity-evidence logging is not in the runner or the sidecars.**\n- Location: `reports/stack-pbe-v4-terra61-20261027/run.sh` (the `systemd-run \u2026 capture.py` invocation), `capture.py::run_metadata`, and the README \"Reproduce without model calls\" section.\n- The README says the high/xhigh arms and all new arms ran with `RUST_LOG=codex_api::sse::responses=trace,tungstenite::protocol=trace`, and the original low arm did not. The original low arm's result was 0/40 identities confirmed.\n- Neither `run.sh` nor `capture.py` sets `RUST_LOG`, and the sidecar records `baseline_arguments` but no environment.\n- The documented `EFFORTS=max bash \u2026/run.sh` therefore produces an identity-unverifiable arm unless the user exports the variable by hand. The README only says \"the same logging target above\".\n- The README says the runner \"was corrected\" to impose the 12 GiB scope, yet also says all new arms used it. The sidecars cannot show which invocation produced the max and rerun arms.\n- Suggested fix: export `RUST_LOG` in `run.sh` (default if unset) and record `RUST_LOG` and the memory-scope setting in the sidecar. This is record-only and need not be a gate.\n\n**2. Low: the plot's identity gate trusts `validation.json` by effort only.**\n- Location: the new Terra block in `reports/stack-pbe-v4-effort-sweep-20260927/analyse.py`, around `audit_path = \u2026 / \"validation.json\"`.\n- `confirmed` is read from the first `arms` entry whose `effort` matches. The block does not check that the entry's `artifact` is the artifact it just loaded, nor that `validation.json` matches the current `cli-audit.json` (`cli_audit_sha256`).\n- It works for the committed data. If a validation file went stale after a rerun, the 40/40 plot gate could still pass.\n- Suggested fix: add a one-line assert that `arm[\"artifact\"]` equals the loaded filename. This is not a provenance gate.\n\n**3. Low: the identity preflight procedure is not committed.**\n- Location: README \"Protocol and serving-model audit\" and the \"New measurements\" paragraph.\n- The README requires a separate `Reply exactly OK.` preflight before each arm and keeps three `preflight-before-*.json` files. No script or command in the diff produces them, and `run.sh` does not run one.\n- The preflights cannot be regenerated or re-checked from the repo. They are evidence only, which is acceptable under your constraints.\n- Suggested fix: commit the one-line command or a small script.\n\n**Checked and consistent**\n- Counts: 280 = 200 + 80, 120 confirmed in the root file, and 200 plotted calls = 40 each for rerun low, rerun medium, high, xhigh and max.\n- Costs: recomputed as `(1300 + mean_out\u00b75)/1e6` for all seven arms; every one matches the README and `table.md`.\n- Shown-only percentages: solved + memorised equals the quoted shown-only rate for every arm.\n- Wall seconds: match the sidecar start and finish timestamps for max, rerun low and rerun medium.\n- Rerun selection: hardcoded by stem in the sweep `ARMS`, independent of score.\n- First runs: still in the root directory, still in the root table, and flagged unconfirmed in `RESULTS_DETAILED.md`.\n- Provenance: the new sidecars show identical inference-source hashes (including `capture.py`) across the three new arms. The first four arms' `capture.py` mismatch is surfaced as a caveat, not hidden.\n- Claims: \"2.66\u00d7\", \"within three tasks of 27/40\" and \"unverified low/medium excluded\" are accurate. I could not verify the Sol 6.1 medium figures (25/40 at $0.006976) from this diff."
+}

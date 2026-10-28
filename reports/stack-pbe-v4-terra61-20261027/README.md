@@ -120,6 +120,18 @@ The unchanged plot estimate is a fixed 1,300-token uncached prompt plus recorded
 output; it excludes the CLI's residual tool-schema input overhead. It is an
 API-list comparison, not the subscription's marginal bill.
 
+## Review
+
+Claude Code 2.1.310, Sonnet 5.5 at high effort, reviewed the complete source/docs
+diff and measured validation, then the fixes. Its first review found three
+reproducibility gaps (default identity tracing, artifact/validation filename
+matching, and the portable preflight producer), with no score or selection
+errors. All three were fixed; follow-up reports **no remaining findings**.
+Both outputs, served reviewer identity, usage and review-input SHA256 are saved
+as `review-claude-round1.json` and `review-claude-round2.json`. Six offline
+regression cases and local lint/format pass. Review required changes, so the
+owner retains the merge decision.
+
 ## Reproduce without model calls
 
 From the sweep worktree root, with the manifest-pinned corpus available:
