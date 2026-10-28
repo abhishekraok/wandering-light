@@ -6,6 +6,7 @@ set -uo pipefail
 cd "$(dirname "$0")/../.."
 PYTHON=${PYTHON:-.venv/bin/python}
 OUT=${OUT:-reports/stack-pbe-v4-terra61-20261027}
+export RUST_LOG=${RUST_LOG:-codex_api::sse::responses=trace,tungstenite::protocol=trace}
 export PYTHONPATH="$PWD${PYTHONPATH:+:$PYTHONPATH}"
 mkdir -p "$OUT"
 

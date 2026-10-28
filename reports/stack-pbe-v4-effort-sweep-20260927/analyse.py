@@ -175,7 +175,9 @@ def main() -> None:
             # saved in their parent directory. Bind identity to that run's audit.
             audit_path = (REPORTS / stems[(m, e)]).parent / "validation.json"
             audit = json.loads(audit_path.read_text())
-            calls = next(arm["calls"] for arm in audit["arms"] if arm["effort"] == e)
+            arm = next(arm for arm in audit["arms"] if arm["effort"] == e)
+            assert arm["artifact"] == Path(f"{stems[(m, e)]}_v4_sample40.json").name
+            calls = arm["calls"]
             confirmed = sum(call["identity_confirmed"] for call in calls)
             served = [f"{m} ({confirmed}/40)"] if confirmed else ["unconfirmed (0/40)"]
         tools = sum(

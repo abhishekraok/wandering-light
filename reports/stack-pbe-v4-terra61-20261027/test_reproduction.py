@@ -8,6 +8,7 @@ import runpy
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -54,6 +55,7 @@ def test_capture_records_current_run_even_on_failure(tmp_path, fails):
         patch("subprocess.check_output", side_effect=check_output),
         patch("subprocess.Popen", subprocess.Popen),
         patch("runpy.run_path", side_effect=baseline),
+        patch.dict(os.environ, {"RUST_LOG": "fixture-trace-targets"}),
     ):
         if fails:
             with pytest.raises(RuntimeError, match="fixture failure"):
@@ -66,6 +68,8 @@ def test_capture_records_current_run_even_on_failure(tmp_path, fails):
     assert record["source_dirty"] == expected_dirty
     assert record["cli_version_after"] == "codex-cli fixture-after"
     assert record["baseline_arguments"] == ["--out", str(out)]
+    assert record["identity_trace_logging"] == "fixture-trace-targets"
+    assert "memory_scope" in record
     assert record["finished_at"] >= record["started_at"]
     if not fails:
         assert record["artifact_sha256"] == hashlib.sha256(out.read_bytes()).hexdigest()
@@ -90,7 +94,7 @@ def test_analysis_reports_absent_or_mismatched_provenance(tmp_path):
 def test_runner_requires_memory_scope_and_propagates_failure(tmp_path):
     for name, contents in {
         "codex": "#!/bin/sh\nprintf 'fixture-cli\\n'\n",
-        "systemd-run": '#!/bin/sh\nprintf "%s\\n" "$@" > "$SCOPE_ARGS"\nexit 42\n',
+        "systemd-run": '#!/bin/sh\nprintf "%s\\n" "$@" > "$SCOPE_ARGS"\nprintf "%s" "$RUST_LOG" > "$TRACE_ENV"\nexit 42\n',
     }.items():
         command = tmp_path / name
         command.write_text(contents)
@@ -104,6 +108,8 @@ def test_runner_requires_memory_scope_and_propagates_failure(tmp_path):
             "OUT": str(tmp_path / "output"),
             "EFFORTS": "low medium",
             "SCOPE_ARGS": str(args_path),
+            "TRACE_ENV": str(tmp_path / "trace-env"),
+            "RUST_LOG": "",
         },
         capture_output=True,
         text=True,
@@ -120,4 +126,43 @@ def test_runner_requires_memory_scope_and_propagates_failure(tmp_path):
         "--",
     ]
     assert "INCOMPLETE: low arm failed" in result.stderr
+    assert (tmp_path / "trace-env").read_text() == (
+        "codex_api::sse::responses=trace,tungstenite::protocol=trace"
+    )
     assert not (tmp_path / "output/terra61_medium_v4_sample40.log").exists()
+
+
+@pytest.mark.parametrize("served", ["gpt-6.1-terra", "wrong-model"])
+def test_preflight_requires_incoming_identity_and_preserves_evidence(tmp_path, served):
+    from wandering_light.solver import CodexExecTokenGenerator
+
+    out = tmp_path / "preflight.json"
+    stdout = json.dumps({"type": "turn.completed", "usage": {"output_tokens": 5}})
+    stderr = "Received message " + json.dumps(
+        {"type": "response.completed", "response": {"model": served}}
+    )
+    generator = SimpleNamespace(
+        command=lambda: ["fixture-codex"],
+        env={},
+        parse_events=CodexExecTokenGenerator.parse_events,
+    )
+    with (
+        patch.object(sys, "argv", [str(HERE / "preflight.py"), "--out", str(out)]),
+        patch("wandering_light.solver.CodexExecTokenGenerator", return_value=generator),
+        patch(
+            "subprocess.run",
+            return_value=subprocess.CompletedProcess([], 0, stdout, stderr),
+        ),
+        patch("subprocess.check_output", return_value="fixture-version"),
+        pytest.raises(SystemExit) as stopped,
+    ):
+        runpy.run_path(str(HERE / "preflight.py"), run_name="__main__")
+    passed = served == "gpt-6.1-terra"
+    assert stopped.value.code == (0 if passed else 1)
+    audit = json.loads(out.read_text())
+    assert audit["passed"] is passed
+    assert audit["served_models"] == [served]
+    assert audit["requested_model"] == "gpt-6.1-terra"
+    assert audit["effort"] == "low"
+    assert audit["parsed_metadata"]["tool_calls"] == 0
+    assert (tmp_path / "raw/preflight/stderr.txt").read_text() == stderr

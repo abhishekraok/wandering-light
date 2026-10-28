@@ -95,13 +95,19 @@ events are retained separately from generation exceptions.
 Each arm finished with exit 0. Original metadata is explicitly reconstructed:
 preparation was clean, but the actual inference-time dirty flags were not
 recorded. New sidecars record actual HEAD/dirty state, arguments, CLI versions,
-timestamps, source/manifest digests and final artifact SHA256. The unchanged
-inference sources match for all new arms. Analysis reads the selected
+timestamps, source/manifest digests and final artifact SHA256. The inference
+harness, parser, grader and manifest match for all new arms. The saved capture
+wrapper digest differs from the current wrapper after review added environment
+and cgroup-limit recording for future runs; this is surfaced as a caveat,
+without editing the historical sidecars or rerunning inference. Analysis reads the selected
 directory's sidecars and reports missing metadata or differences as caveats;
 it does not substitute original-run constants for fresh measurements.
 The seven small console logs are saved beside the corresponding JSON.
 All new arms and all reproductions below use 12 GiB/no-swap memory scopes.
-The runner was corrected to impose the same scope on future arms.
+The new arms used the corrected scoped runner. Future sidecars additionally
+record the actual cgroup's memory/swap limit and RUST_LOG; these fields were
+not captured in the already-completed arms and have not been backfilled.
+The runner now defaults to both websocket and SSE identity trace targets.
 
 ## Prices
 
@@ -132,9 +138,20 @@ high/xhigh/max, reading validation from each selected artifact's directory.
 Its summary records each Terra row's source artifact. All 57 earlier non-Terra
 summary rows remain unchanged.
 
-New measurements spend subscription calls. Use a fresh `OUT`, a separate
-identity preflight before each arm, and the same logging target above.
-`EFFORTS=max bash reports/stack-pbe-v4-terra61-20261027/run.sh` selects max;
-the default is low/medium/high/xhigh. The runner refuses existing JSON or logs,
+New measurements spend subscription calls. Use a fresh absolute `OUT` outside
+the worktree and a separate preflight before each arm. For one new max arm:
+
+```bash
+export OUT=/absolute/path/to/fresh-output
+systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- env PYTHONPATH=. .venv/bin/python reports/stack-pbe-v4-terra61-20261027/preflight.py --out "$OUT/preflight-before-max.json" && EFFORTS=max bash reports/stack-pbe-v4-terra61-20261027/run.sh
+```
+
+`preflight.py` reproduces the same adapter command, lowest effort and probe
+prompt as the three saved historical preflights, with portable output paths.
+It retains incoming identity evidence, exits nonzero without confirmed Terra
+identity/usage/zero tools, and refuses existing evidence paths. Both it and the
+runner default to the trace targets above; an explicit RUST_LOG overrides them.
+The runner's default efforts are low/medium/high/xhigh; callers must preflight
+each arm separately when selecting multiple efforts. It refuses existing JSON or logs,
 caps each baseline at 12 GiB/no swap, and stops on failure. A capped/incomplete
 arm is never retried uncapped or scored as zero for missing output.

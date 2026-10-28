@@ -6,6 +6,7 @@ CLI command, prompt, selected tasks, output parser, grader, or generation count.
 
 import hashlib
 import json
+import os
 import runpy
 import subprocess
 import sys
@@ -25,6 +26,20 @@ def run_metadata():
     def output(*command):
         return subprocess.check_output(command, cwd=ROOT, text=True).strip()
 
+    memory_scope = {}
+    try:
+        group = next(
+            line.split(":", 2)[2]
+            for line in Path("/proc/self/cgroup").read_text().splitlines()
+            if line.startswith("0::")
+        )
+        memory_scope["cgroup"] = group
+        directory = Path("/sys/fs/cgroup") / group.lstrip("/")
+        for name in ("memory.max", "memory.swap.max"):
+            memory_scope[name] = (directory / name).read_text().strip()
+    except (OSError, StopIteration) as error:
+        memory_scope["unavailable"] = str(error)
+
     return {
         "capture_method": "recorded at inference time",
         "source_commit": output("git", "rev-parse", "HEAD"),
@@ -32,6 +47,8 @@ def run_metadata():
         "cli_version_before": output("codex", "--version"),
         "started_at": datetime.now(UTC).isoformat(),
         "baseline_arguments": sys.argv[1:],
+        "identity_trace_logging": os.environ.get("RUST_LOG"),
+        "memory_scope": memory_scope,
         "inference_source_sha256": {
             p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest()
             for p in (

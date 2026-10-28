@@ -1998,7 +1998,9 @@
         "cli_version_after": "codex-cli 0.163.0",
         "artifact_sha256": "38c478733c0e0bee72ce069d5ef0bde88f216484e4e83d48725824ef6e93cd19"
       },
-      "provenance_caveats": [],
+      "provenance_caveats": [
+        "Analysis source differs from inference: reports/stack-pbe-v4-terra61-20261027/capture.py"
+      ],
       "calls": [
         {
           "task_index": 361,

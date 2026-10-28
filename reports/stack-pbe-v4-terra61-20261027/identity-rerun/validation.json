@@ -111,7 +111,9 @@
         "cli_version_after": "codex-cli 0.163.0",
         "artifact_sha256": "403ce6ebcd63e921bd4d1a3b92d7f263308fd820b807337cab4468e61a2657ec"
       },
-      "provenance_caveats": [],
+      "provenance_caveats": [
+        "Analysis source differs from inference: reports/stack-pbe-v4-terra61-20261027/capture.py"
+      ],
       "calls": [
         {
           "task_index": 361,
@@ -636,7 +638,9 @@
         "cli_version_after": "codex-cli 0.163.0",
         "artifact_sha256": "86db483ad681a23ad192c4c7b024c535f7bd1070a7dbc8350e51472ad94074b4"
       },
-      "provenance_caveats": [],
+      "provenance_caveats": [
+        "Analysis source differs from inference: reports/stack-pbe-v4-terra61-20261027/capture.py"
+      ],
       "calls": [
         {
           "task_index": 361,
