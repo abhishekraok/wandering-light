@@ -1,159 +1,140 @@
 # GPT-6.1 Terra on the fixed v4 40-task sample
 
 Tracking: [terra61-sample40 (#191)](https://github.com/abhishekraok/wandering-light/issues/191).
+Run October 27, 2026; Codex CLI 0.163.0 before/after every arm, no update.
 
-Prepared October 27, 2026 on base `839159cb392dbacb82d05debb6a59282a487d190`.
-Codex CLI: `0.163.0` before launch; no update performed. Python 3.12.12,
-environment created with `uv sync --extra dev --extra experiments`.
+## Results used in the plot
 
-## Results
+| effort | solved /40 | memorised | illegal | mean output tokens | $/task | server identity confirmed /40 | saved measurement |
+|---|---:|---:|---:|---:|---:|---:|---|
+| low | 9 | 6 | 17 | 124.6 | 0.001923 | 40 | identity rerun |
+| medium | 20 | 11 | 6 | 286.4 | 0.002732 | 40 | identity rerun |
+| high | 20 | 10 | 6 | 308.9 | 0.002844 | 40 | original |
+| xhigh | 21 | 15 | 3 | 504.8 | 0.003824 | 40 | original |
+| max | 24 | 14 | 0 | 1771.7 | 0.010158 | 40 | requested extension |
 
-Run October 27, 2026, Codex CLI `0.163.0` before and after; no update.
-Every arm completed once with exit 0; no retries or additional probe calls.
+The best verified result is **24/40 at max, $0.010158/task**. It enters the
+figure's existing 22–27 shaded band and is within three tasks of the best
+hosted saved score, 27/40. Max costs 2.66 times xhigh for three more solves,
+within this sample's ±3-task comparison convention. Medium gives 20/40 at
+$0.002732/task. Sol 6.1 medium's saved 25/40 at $0.006976/task is both
+higher-scoring and cheaper than Terra max; this small sample does not establish
+a reliable model ranking.
 
-| effort | solved /40 | memorised | illegal | mean output tokens | $/task | server identity confirmed /40 |
+### Authorized extensions and retained first runs
+
+The first low/medium measurements lacked serving-model proof. Their candidates
+and token usage reproduce, but later identity checks cannot validate them
+retrospectively. They remain saved in this directory:
+
+| first measurement | solved /40 | memorised | illegal | mean output tokens | $/task | identities confirmed /40 |
 |---|---:|---:|---:|---:|---:|---:|
 | low | 9 | 3 | 19 | 77.8 | 0.001689 | 0 |
 | medium | 18 | 15 | 5 | 277.0 | 0.002685 | 0 |
-| high | 20 | 10 | 6 | 308.9 | 0.002844 | 40 |
-| xhigh | 21 | 15 | 3 | 504.8 | 0.003824 | 40 |
 
-The best verified result is **21/40 at xhigh, $0.003824/task**. High gives
-20/40 for $0.002844; xhigh costs 34% more for one additional solve, within
-the sample's ±3-task noise. Both observed scores sit below the existing plot's
-22–27 shaded band. This is a small-sample cost comparison, not a reliable ranking.
+Max was initially excluded under owner message 1155. The owner explicitly
+requested it in message 2210 (“Try max as well.”). Operator message 2212 then
+quoted the owner's authorization to rerun low and medium as well, so their
+serving identities could be proved. These are explicit exceptions to the
+no-rerun rule for missing identity evidence, not retries after machine failures
+or attempts to improve scores.
 
-**Identity limitation:** low/medium grades and usage reproduce, but their saved
-CLI output lacks a server model field. They remain provisional and are omitted
-from the figure; the table preserves them with explicit identity counts.
-High/xhigh have server-reported `gpt-6.1-terra` on all 80 calls. Those later
-checks do not establish low/medium identity retrospectively.
+The new low/medium runs are saved separately under `identity-rerun/`. The plot
+uses those runs regardless of their scores: low stayed at 9/40 and medium
+changed from the unconfirmed 18/40 to a verified 20/40. Neither original was
+overwritten. No other arm was rerun. Ultra remains excluded.
 
-High was seven tasks below the best hosted score (27), so xhigh was not
-skipped. Ultra and Max were excluded under the owner's October 15 instruction
-(message 1155).
+## Protocol and serving-model audit
 
-### Requested max extension
+Same seed-17 sample of 40 `stack_pbe_v4` eval tasks as Sol 6.1 and Haiku 5.5.
+Task indices match the saved Sol 6.1 low arm. The unchanged
+`experiments/stack_pbe_baseline.py`, prompt/parser, `wandering_light/solver.py`,
+stack machine, held-out grader and corpus manifest are used throughout.
+One untooled subscription `codex exec` call per task; no paid API route.
+`capture.py` observes commands and stdout/stderr without changing inference,
+the parser, the grader, or the number of samples.
 
-On October 27 the owner requested max as well (message 2210), overriding the
-earlier exclusion for this model. The new arm uses the same fixed protocol and
-retains every original arm. A separate lowest-effort identity preflight
-confirmed the served model before launch; that probe is excluded from the 40
-evaluation tasks (`preflight-before-max.json`). Max finished at 16:36:45 PDT,
-exit 0: **24/40 at $0.010158/task**, mean output 1,771.7 tokens, 14 memorised,
-zero illegal. All 40 candidates independently regrade and all 40 server
-identities match `gpt-6.1-terra`, with zero tool calls or generation exceptions.
-Its contemporaneous provenance records clean commit `06fb3b0`, unchanged
-inference-source digests, and Codex CLI 0.163.0 before/after. No retry.
+Before each new arm (max, low rerun, medium rerun), a separate low-effort
+`Reply exactly OK.` preflight confirmed server-reported `gpt-6.1-terra`.
+The three `preflight-before-*.json` files retain compact evidence.
+These three probes are excluded from evaluation candidates and costs.
+Every one of the 200 plotted evaluation calls independently confirms that same
+served model. The adapter omits identity in its own summary, so incoming
+websocket response fields, rather than the requested `-m`, establish it.
 
-Max enters the existing 22–27 shaded band and is within three tasks of the
-best hosted saved score, 27/40. It costs 2.66 times xhigh for three additional
-solves, within the ±3-task comparison convention. Sol 6.1 medium's saved
-25/40 at $0.006976/task is both higher-scoring and cheaper than Terra max;
-this sample does not establish a reliable ranking.
+Original low used ordinary captured output. Original medium added SSE tracing,
+which did not capture its websocket responses. High/xhigh and all new arms used
+`RUST_LOG=codex_api::sse::responses=trace,tungstenite::protocol=trace`.
+This changes logging only. `extract_audit.py` creates `cli-audit.json` from
+the retained raw traces: original command/stdout, selected incoming model
+fields, and SHA256 of original stderr. Full traces remain ignored local
+intermediates under `raw/`; neither full traces nor authentication homes are
+needed to reproduce grading from committed artifacts.
 
-The owner subsequently authorized rerunning low and medium (relayed in
-operator message 2212) because the first runs lack proof of the serving model.
-These are explicit exceptions to the no-rerun rule, for identity evidence.
-Their sample, prompt, parser and grader remain fixed. New outputs will be
-saved under `identity-rerun/`, with the first runs retained in this directory;
-the plot will use the identity-verified reruns regardless of their scores.
-Separate lowest-effort preflights before both reruns passed
-(`preflight-before-low-identity-rerun.json` and
-`preflight-before-medium-identity-rerun.json`). Low finished once at
-16:47:36 PDT, exit 0: 9/40 at $0.001923/task, six memorised, 17 illegal.
-All 40 grades reproduce and all 40 server identities match, with zero tools,
-generation exceptions or provenance caveats. Its output is saved under
-`identity-rerun/`; the original low remains in the parent directory.
-Medium has not started in this preparation commit. Both reruns use fresh
-output paths and full received websocket identity tracing.
+All **280 saved candidates** independently regrade and their usage, tools and
+CLI error summaries agree with captured stdout. Root `validation.json`
+covers the first four arms plus max (200 candidates, 120 confirmed identities).
+`identity-rerun/validation.json` covers the two authorized reruns (80/80).
+The 80 first low/medium calls remain identity-unconfirmed and excluded from the
+plot. Every saved call has the same disabled-Code-Mode availability warning;
+there are zero tool calls and zero candidate generation exceptions. Warning
+events are retained separately from generation exceptions.
 
-## Protocol
+### Provenance and timing
 
-Same seed-17 sample of 40 `stack_pbe_v4` eval tasks as the Sol 6.1 and Haiku 5.5
-reports. The task indices were checked against the saved Sol 6.1 low arm.
-`experiments/stack_pbe_baseline.py`, the prompt/parser in it, `wandering_light/solver.py`,
-the stack machine, held-out grader and corpus manifest are unchanged from the
-existing sweep baseline. One untooled `codex exec` call per task through the
-subscription; no paid API route. `capture.py` executes that baseline unchanged
-and saves the command and raw stdout/stderr from each Codex subprocess. It does
-not change the prompt, model command, output parser, grader or number of calls.
+| measurement | source commit | inference dirty state | finished (PDT) |
+|---|---|---|---|
+| original low | `9c538a7` | unknown; reconstructed metadata | 09:31:40 |
+| original medium | `9c538a7` | unknown; reconstructed metadata | 09:39:02 |
+| high | `9c538a7` | unknown; reconstructed metadata | 09:53:31 |
+| xhigh | `9c538a7` | unknown; reconstructed metadata | 10:09:05 |
+| max | `06fb3b0` | recorded clean at inference | 16:36:45 |
+| low identity rerun | `d235970` | recorded clean at inference | 16:47:36 |
+| medium identity rerun | `3e4594c` | recorded clean at inference | 17:01:12 |
 
-Inference used preparation commit `9c538a7f7b8ce1ec763b98993250da59d3e2c66d`.
-The inference source was clean at preparation; subsequent edits were confined
-to report analysis/documentation and the plot. The original arms' per-arm
-`*.provenance.json` files reconstruct the historical metadata from recorded run
-information and bind it to each saved JSON's SHA256. Their inference-time dirty
-flag is unknown: only the preparation-time clean state was recorded.
-`validation.json` includes this caveat, per-arm provenance, task indices, and
-analysis source/corpus-manifest digests.
+Each arm finished with exit 0. Original metadata is explicitly reconstructed:
+preparation was clean, but the actual inference-time dirty flags were not
+recorded. New sidecars record actual HEAD/dirty state, arguments, CLI versions,
+timestamps, source/manifest digests and final artifact SHA256. The unchanged
+inference sources match for all new arms. Analysis reads the selected
+directory's sidecars and reports missing metadata or differences as caveats;
+it does not substitute original-run constants for fresh measurements.
+The seven small console logs are saved beside the corresponding JSON.
+All new arms and all reproductions below use 12 GiB/no-swap memory scopes.
+The runner was corrected to impose the same scope on future arms.
 
-For new measurements, `capture.py` records the actual checkout commit, dirty
-flag, baseline arguments, source/corpus-manifest digests, timestamps and CLI
-versions before/after inference in each arm's provenance sidecar. `analyse.py`
-reads the selected output directory's sidecars; absent metadata and digest
-differences are reported as caveats, without substituting historical values or
-refusing to regrade.
+## Prices
 
-The adapter's summary parser omits server identity. Low used ordinary captured
-stdout/stderr; medium added `RUST_LOG=codex_api::sse::responses=trace`, which
-showed websocket event names but no complete SSE events. High/xhigh added
-`tungstenite::protocol=trace` to retain received websocket messages. This changed
-logging only, without changing transport or inference settings.
-
-`analyse.py` independently regrades each completed arm, reproduces its table,
-and writes `validation.json` with per-call identity status. Unconfirmed identity
-is reported as unconfirmed, never inferred from the command's requested model.
-`cli-audit.json` retains every command and original CLI stdout, selected received
-response identity fields, and SHA256 of each original stderr. `extract_audit.py`
-extracts these fields from the locally retained transport traces; full traces
-remain generated intermediates under ignored `raw/`, rather than adding 13 MB
-of compressed transport/debug output to git. `analyse.py` checks all 160 saved
-usage/tool/error summaries against the retained stdout. All 160 calls emit one
-identical fail-closed Code Mode
-availability warning because its host is disabled; none attempts a tool.
-These CLI error events are retained in validation separately from generation
-exceptions. All 160 candidates independently regrade, with usage for 160/160,
-zero tool calls and zero generation exceptions. The full sweep does **not**
-pass the every-call identity requirement: 80/160 are confirmed.
-
-## Prices and comparison
-
-Standard short-context prices checked October 27, 2026: $1 per million uncached
-input tokens and $5 per million output tokens. Sources:
+Standard short-context list prices checked October 27, 2026: $1 per million
+uncached input tokens, $5 per million output tokens.
 [OpenAI pricing](https://developers.openai.com/api/docs/pricing),
 [Terra 6.1 model page](https://developers.openai.com/api/docs/models/gpt-6.1-terra),
 [launch announcement](https://openai.com/index/introducing-gpt-6-1-terra/).
-The plot estimate remains a fixed 1,300-token uncached prompt plus recorded output.
+The unchanged plot estimate is a fixed 1,300-token uncached prompt plus recorded
+output; it excludes the CLI's residual tool-schema input overhead. It is an
+API-list comparison, not the subscription's marginal bill.
 
-Historical saved-table comparisons, not new regrades: `gpt-5.6-terra` max scored
-19/40 at $0.0633/task; `gpt-6.1-sol` medium scored 25/40 at $0.0070/task. The best
-hosted saved score is 27/40; use the existing ±3-task comparison convention.
+## Reproduce without model calls
 
-## Reproduce
-
-From the sweep worktree root:
+From the sweep worktree root, with the manifest-pinned corpus available:
 
 ```bash
 systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- env PYTHONPATH=. .venv/bin/python reports/stack-pbe-v4-terra61-20261027/analyse.py > reports/stack-pbe-v4-terra61-20261027/table.md
+systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- env PYTHONPATH=. .venv/bin/python reports/stack-pbe-v4-terra61-20261027/analyse.py --data-dir reports/stack-pbe-v4-terra61-20261027/identity-rerun > reports/stack-pbe-v4-terra61-20261027/identity-rerun/table.md
 .venv/bin/python reports/stack-pbe-v4-effort-sweep-20260927/analyse.py > reports/stack-pbe-v4-effort-sweep-20260927/table.md
 .venv/bin/python reports/stack-pbe-v4-effort-sweep-20260927/plot.py
 ```
 
-To make a new measurement, use a fresh output directory (the runner refuses
-to overwrite existing arms). The runner caps each capture/baseline process at
-12 GiB with no swap; regrading below uses the same cap. A process killed by the
-cap is incomplete and must not be retried uncapped or scored as zero.
-These commands spend subscription calls:
+Root `table.md` includes the original low/medium plus high/xhigh/max.
+`identity-rerun/table.md` includes the verified replacement low/medium.
+The unified analysis explicitly selects replacement low/medium and original
+high/xhigh/max, reading validation from each selected artifact's directory.
+Its summary records each Terra row's source artifact. All 57 earlier non-Terra
+summary rows remain unchanged.
 
-```bash
-export OUT=/path/to/fresh-output
-export RUST_LOG=codex_api::sse::responses=trace,tungstenite::protocol=trace
-EFFORTS='low medium high xhigh' bash reports/stack-pbe-v4-terra61-20261027/run.sh
-.venv/bin/python reports/stack-pbe-v4-terra61-20261027/extract_audit.py --data-dir "$OUT" --out "$OUT/cli-audit.json"
-systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- env PYTHONPATH=. .venv/bin/python reports/stack-pbe-v4-terra61-20261027/analyse.py --data-dir "$OUT"
-```
-
-Original arm completion times (PDT): low 09:31:40, medium 09:39:02,
-high 09:53:31, xhigh 10:09:05. Each ran as a supervised user systemd unit with
-MemoryMax=12G and MemorySwapMax=0. Console logs sit beside their saved JSON.
+New measurements spend subscription calls. Use a fresh `OUT`, a separate
+identity preflight before each arm, and the same logging target above.
+`EFFORTS=max bash reports/stack-pbe-v4-terra61-20261027/run.sh` selects max;
+the default is low/medium/high/xhigh. The runner refuses existing JSON or logs,
+caps each baseline at 12 GiB/no swap, and stops on failure. A capped/incomplete
+arm is never retried uncapped or scored as zero for missing output.

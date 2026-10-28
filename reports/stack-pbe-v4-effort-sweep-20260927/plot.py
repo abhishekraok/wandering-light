@@ -70,10 +70,15 @@ for model, colour, new in ORDER:
     )
     above = model in ("gpt-6-astra", "claude-haiku-5-5")
     for x, y, e in pts:
+        offset = (0, 7 if above else -13)
+        if model == "gpt-6.1-terra":
+            offset = {"medium": (-8, -13), "high": (8, -13), "max": (0, 8)}.get(
+                e, offset
+            )
         ax.annotate(
             EFFORT[e] + ("*" if refusals[(model, e)] else ""),
             (x, y),
-            xytext=(0, 7 if above else -13),
+            xytext=offset,
             textcoords="offset points",
             ha="center",
             fontsize=7,
@@ -170,7 +175,7 @@ for side in ("top", "right"):
 notes = [
     "grey: earlier generations (gpt-6-sol, gpt-5.6 sol/terra/luna,\n"
     "claude-opus-5, claude-fable-5), unlabelled; all rows in table.md",
-    "Terra 6.1 low/medium omitted: server identity unconfirmed.",
+    "Terra 6.1 L/M use authorized identity reruns; originals retained.",
 ]
 for r in rows:
     if r["model"] != "claude-sonnet-5-5":

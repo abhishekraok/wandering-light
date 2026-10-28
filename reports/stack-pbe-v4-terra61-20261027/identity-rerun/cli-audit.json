@@ -4160,5 +4160,4167 @@
         }
       ]
     }
+  ],
+  "terra61_medium_v4_sample40": [
+    {
+      "call": "call-001",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcb-4d4e-7d93-8400-c6cb2b68fcbd\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ 0 lt? ] filter 0 [ add ] fold\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8025,\"cached_input_tokens\":0,\"cache_write_input_tokens\":0,\"output_tokens\":52,\"reasoning_output_tokens\":33}}\n",
+      "stderr_sha256": "6d3f395b4de0ce7b2d3432e6f575b6e0b4ecec04f920965f8f299b304f061f88",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0ca2973151eaa66b016ae13a31802881998ca8a3ed8dbf30f5",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0ca2973151eaa66b016ae13a31802881998ca8a3ed8dbf30f5",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0ca2973151eaa66b016ae13a31802881998ca8a3ed8dbf30f5",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0ca2973151eaa66b016ae13a32058c819994ab228d50673c8a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0ca2973151eaa66b016ae13a32058c819994ab228d50673c8a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0ca2973151eaa66b016ae13a32058c819994ab228d50673c8a",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-002",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcb-5dd3-7550-bcbd-fd7f16b81243\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ over over lt? ] [ drop ] [ swap drop ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":7998,\"cached_input_tokens\":0,\"cache_write_input_tokens\":0,\"output_tokens\":63,\"reasoning_output_tokens\":42}}\n",
+      "stderr_sha256": "4e8106e14af5500714f7b2dc23bf93401eba9443f04c0d81fe7a99374b3f5b7a",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_06267dfabf8f2fe5016ae13a35a97c819984cbc6b436f3333f",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_06267dfabf8f2fe5016ae13a35a97c819984cbc6b436f3333f",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_06267dfabf8f2fe5016ae13a35a97c819984cbc6b436f3333f",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_06267dfabf8f2fe5016ae13a3634a08199b625cc6946a5e164",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_06267dfabf8f2fe5016ae13a3634a08199b625cc6946a5e164",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_06267dfabf8f2fe5016ae13a3634a08199b625cc6946a5e164",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-003",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcb-72ea-7982-a721-8a332dcebe7d\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ 0 lt? ] filter\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8078,\"cached_input_tokens\":0,\"cache_write_input_tokens\":0,\"output_tokens\":11,\"reasoning_output_tokens\":0}}\n",
+      "stderr_sha256": "9ec855a92aa422cdb282ad567b382f660f30a95a1302e36bb2d913eaf908053c",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0b4917e9a3c5d356016ae13a3af78c8199b99eb276070de47c",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0b4917e9a3c5d356016ae13a3af78c8199b99eb276070de47c",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0b4917e9a3c5d356016ae13a3af78c8199b99eb276070de47c",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0b4917e9a3c5d356016ae13a3b768081999d9b2a39e56f89d0",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0b4917e9a3c5d356016ae13a3b768081999d9b2a39e56f89d0",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0b4917e9a3c5d356016ae13a3b768081999d9b2a39e56f89d0",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-004",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcb-7e97-7103-b082-6b7d0af528fb\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ 0 1 1 add sub lt? false eq? ] filter\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":7998,\"cached_input_tokens\":0,\"cache_write_input_tokens\":0,\"output_tokens\":120,\"reasoning_output_tokens\":98}}\n",
+      "stderr_sha256": "6386e8e0249cf0fcc4939f01c9111217c02ad0bc088675092fc87779bcb36744",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_02b70e8bc7ec4f9a016ae13a3e3b8481989d97867f7fbf41eb",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_02b70e8bc7ec4f9a016ae13a3e3b8481989d97867f7fbf41eb",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_02b70e8bc7ec4f9a016ae13a3e3b8481989d97867f7fbf41eb",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_02b70e8bc7ec4f9a016ae13a3ed3a48198a5f2a5b01132a82e",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_02b70e8bc7ec4f9a016ae13a3ed3a48198a5f2a5b01132a82e",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_02b70e8bc7ec4f9a016ae13a3ed3a48198a5f2a5b01132a82e",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-005",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcb-90b9-7fa2-89db-6a03372c8c94\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"quote [ false [ [ over ] dip eq? quote [ drop true ] [ ] ifte ] fold swap drop ] cat filter\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8102,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":405,\"reasoning_output_tokens\":373}}\n",
+      "stderr_sha256": "0ea96f5e58849e8797cd33775796823a08c561549794aef6a076c43b41cc8aa8",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0153b9afdcd190b1016ae13a429e10819991cf1b9b4ab61d18",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0153b9afdcd190b1016ae13a429e10819991cf1b9b4ab61d18",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0153b9afdcd190b1016ae13a429e10819991cf1b9b4ab61d18",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0153b9afdcd190b1016ae13a43194c8199b9a1eb8b71c9d453",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0153b9afdcd190b1016ae13a43194c8199b9a1eb8b71c9d453",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0153b9afdcd190b1016ae13a43194c8199b9a1eb8b71c9d453",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-006",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcb-b492-7861-964d-8e77db8754ab\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"0 [ drop 1 add ] fold [ dup 1 1 add eq? ] [ ] [ 1 1 add dup dup add add 1 add add ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8007,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":688,\"reasoning_output_tokens\":645}}\n",
+      "stderr_sha256": "db462ae7ad70e10c6ff5f22c889998a27f146fc2b04295ad055beac6c9f643f6",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_049c26efdc3de9d9016ae13a4bd7a481999379a4c1cf39498d",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_049c26efdc3de9d9016ae13a4bd7a481999379a4c1cf39498d",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_049c26efdc3de9d9016ae13a4bd7a481999379a4c1cf39498d",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_049c26efdc3de9d9016ae13a4c70208199bc5fa34acb3d2e09",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_049c26efdc3de9d9016ae13a4c70208199bc5fa34acb3d2e09",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_049c26efdc3de9d9016ae13a4c70208199bc5fa34acb3d2e09",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-007",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcb-e903-7703-9701-080fadbde504\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"swap quote [ dup ] swap cat [ eq? ] cat quote swap quote [ drop ] swap cat quote cat [ [ ] ifte ] cat map\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8138,\"cached_input_tokens\":0,\"cache_write_input_tokens\":0,\"output_tokens\":318,\"reasoning_output_tokens\":282}}\n",
+      "stderr_sha256": "26cdfa0b6ea9960df2783c3085d1bcadd6257fcacbed1d2ca4b9a5f57849c9bb",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0765f22f1962b6a9016ae13a593c20819bbf78fbfdaedaabdd",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0765f22f1962b6a9016ae13a593c20819bbf78fbfdaedaabdd",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0765f22f1962b6a9016ae13a593c20819bbf78fbfdaedaabdd",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0765f22f1962b6a9016ae13a59b42c819ba2d59a4f7749b004",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0765f22f1962b6a9016ae13a59b42c819ba2d59a4f7749b004",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0765f22f1962b6a9016ae13a59b42c819ba2d59a4f7749b004",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-008",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcc-04f7-70b3-bfe6-ac21e9e7db99\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"uncons [ dup 0 lt? ] [ drop drop 0 ] [ [ dup 1 eq? ] [ drop drop 1 1 add dup add 1 1 add add ] [ [ dup 1 1 add dup add eq? ] [ drop 0 [ drop 1 add ] fold ] [ drop drop 1 1 add dup add ] ifte ] ifte ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8047,\"cached_input_tokens\":5888,\"cache_write_input_tokens\":0,\"output_tokens\":643,\"reasoning_output_tokens\":553}}\n",
+      "stderr_sha256": "870dd14913cecf45fffe08d672c9b428e84ecf4ba1f8e8b115ddc7781efe60e4",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_011951197534f824016ae13a60e75c8199b18cafec79509c43",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_011951197534f824016ae13a60e75c8199b18cafec79509c43",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_011951197534f824016ae13a60e75c8199b18cafec79509c43",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_011951197534f824016ae13a6186c48199a473443128d87a8a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_011951197534f824016ae13a6186c48199a473443128d87a8a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_011951197534f824016ae13a6186c48199a473443128d87a8a",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-009",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcc-31fb-7f63-b114-cc029284bffa\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"uncons swap uncons swap uncons swap drop [ over add 0 eq? ] dip swap [ add 0 eq? ] dip [ ] [ drop 1 ] [ [ ] [ 1 ] [ 0 ] ifte ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8022,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":573,\"reasoning_output_tokens\":516}}\n",
+      "stderr_sha256": "b3f8dd45d9e52a97674c4bc6aa655b8d3b7ae5fb90a3c502fc69dbd6076d277c",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0397db50b55083cb016ae13a6c2668819aa7cd600310dc5f44",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0397db50b55083cb016ae13a6c2668819aa7cd600310dc5f44",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0397db50b55083cb016ae13a6c2668819aa7cd600310dc5f44",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0397db50b55083cb016ae13a6cdd0c819a9299d34345dab1cd",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0397db50b55083cb016ae13a6cdd0c819a9299d34345dab1cd",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0397db50b55083cb016ae13a6cdd0c819a9299d34345dab1cd",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-010",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcc-5b78-7c83-aee5-43fba0bea15b\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ 0 1 sub lt? ] filter 0 [ drop 1 add ] fold\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8028,\"cached_input_tokens\":0,\"cache_write_input_tokens\":0,\"output_tokens\":199,\"reasoning_output_tokens\":174}}\n",
+      "stderr_sha256": "24bc3ff7850b7d1d878a8dac68b746f13d0bbeeac091cb64571f3fdb465ac882",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_09c3072de0bd9750016ae13a76b1dc819b84a4cd8573920a19",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_09c3072de0bd9750016ae13a76b1dc819b84a4cd8573920a19",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_09c3072de0bd9750016ae13a76b1dc819b84a4cd8573920a19",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_09c3072de0bd9750016ae13a772d10819badc818523f7a0c4b",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_09c3072de0bd9750016ae13a772d10819badc818523f7a0c4b",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_09c3072de0bd9750016ae13a772d10819badc818523f7a0c4b",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-011",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcc-6f11-7312-aaff-bc76f46c5120\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ dup 1 1 add 1 add eq? ] [ [ drop drop ] dip dup nil swap cons swap cons ] [ [ over 0 1 1 add 1 1 add mul 1 1 add mul sub lt? ] [ [ swap drop ] dip nil swap cons swap cons ] [ drop swap drop dup dup nil swap cons swap cons swap cons ] ifte ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8012,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":522,\"reasoning_output_tokens\":433}}\n",
+      "stderr_sha256": "ceae889770c9a2dd9b957d1ca492987e08bfeffe896558c7979be2d61f1cef1f",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_062c73594919eae4016ae13a7ba6bc8198b7d91a07bb588d7c",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_062c73594919eae4016ae13a7ba6bc8198b7d91a07bb588d7c",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_062c73594919eae4016ae13a7ba6bc8198b7d91a07bb588d7c",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_062c73594919eae4016ae13a7c26348198aa83dae3fea81a51",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_062c73594919eae4016ae13a7c26348198aa83dae3fea81a51",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_062c73594919eae4016ae13a7c26348198aa83dae3fea81a51",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-012",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcc-95ba-7bd3-a900-b3dcd2ca0a37\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ over over lt? ] [ drop ] [ swap drop ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8012,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":116,\"reasoning_output_tokens\":95}}\n",
+      "stderr_sha256": "d935b53297f5fb10f8e5316ac33c10ec82cda4245813b20a687903b9285e2987",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_04f77cd571727c87016ae13a857d188198845830826f3dd4aa",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_04f77cd571727c87016ae13a857d188198845830826f3dd4aa",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_04f77cd571727c87016ae13a857d188198845830826f3dd4aa",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_04f77cd571727c87016ae13a85f99c819886a55fcab7566822",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_04f77cd571727c87016ae13a85f99c819886a55fcab7566822",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_04f77cd571727c87016ae13a85f99c819886a55fcab7566822",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-013",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcc-a59b-7d62-ae50-6bd6865ef9a2\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"quote [ drop ] swap cat quote swap quote [ dup ] swap cat [ eq? ] cat quote swap cat [ [ ] ifte ] cat map\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8088,\"cached_input_tokens\":0,\"cache_write_input_tokens\":0,\"output_tokens\":386,\"reasoning_output_tokens\":350}}\n",
+      "stderr_sha256": "697b5a17900f43d7f4a78434f8181643c0511d02abbccd749cea0347f3c86baf",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0404611ce57229e9016ae13a89b810819aaa2b4cfb62cd9091",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0404611ce57229e9016ae13a89b810819aaa2b4cfb62cd9091",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0404611ce57229e9016ae13a89b810819aaa2b4cfb62cd9091",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0404611ce57229e9016ae13a8a36a8819a82682cdefc7e63d2",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0404611ce57229e9016ae13a8a36a8819a82682cdefc7e63d2",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0404611ce57229e9016ae13a8a36a8819a82682cdefc7e63d2",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-014",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcc-c58a-76d3-9336-c3d5232a482a\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"dup [ 0 eq? ] filter 0 [ drop 1 add ] fold swap [ 1 1 add dup add eq? ] filter 0 [ drop 1 add ] fold 1 1 add div sub\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8054,\"cached_input_tokens\":0,\"cache_write_input_tokens\":0,\"output_tokens\":657,\"reasoning_output_tokens\":605}}\n",
+      "stderr_sha256": "68303459b4bc7da9d8e3ca7ffd39740f7e2b48629acfacfb59450e41cdc94022",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_04906f43873f4b49016ae13a91c030819b87fb104476f7dfa2",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_04906f43873f4b49016ae13a91c030819b87fb104476f7dfa2",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_04906f43873f4b49016ae13a91c030819b87fb104476f7dfa2",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_04906f43873f4b49016ae13a92abf8819b914e3a51303015df",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_04906f43873f4b49016ae13a92abf8819b914e3a51303015df",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_04906f43873f4b49016ae13a92abf8819b914e3a51303015df",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-015",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcc-edab-70d3-954b-b6e6cd0794b8\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ 0 eq? ] filter 0 [ drop 1 add ] fold\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8076,\"cached_input_tokens\":5888,\"cache_write_input_tokens\":0,\"output_tokens\":95,\"reasoning_output_tokens\":73}}\n",
+      "stderr_sha256": "543bf2990c81da435a33b0a227d45b8440cb54dc18bd888ae8965e059cb87e29",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0975a78f82a613bf016ae13a9c23c88199b1c5faf16cca42f4",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0975a78f82a613bf016ae13a9c23c88199b1c5faf16cca42f4",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0975a78f82a613bf016ae13a9c23c88199b1c5faf16cca42f4",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0975a78f82a613bf016ae13a9ca31c8199b0678e9555e05f19",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0975a78f82a613bf016ae13a9ca31c8199b0678e9555e05f19",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0975a78f82a613bf016ae13a9ca31c8199b0678e9555e05f19",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-016",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcc-fd07-76b3-8bf1-c086a4d1a671\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ dup 0 eq? ] [ drop drop drop 0 ] [ drop drop drop 1 ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8006,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":305,\"reasoning_output_tokens\":276}}\n",
+      "stderr_sha256": "f7c3ffabbbb2deb05b7b3c92e4749bd3c19696e2909006877485974cc107331c",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_016d0e673f16884a016ae13a9fdae48198b57f8c9857ea5d80",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_016d0e673f16884a016ae13a9fdae48198b57f8c9857ea5d80",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_016d0e673f16884a016ae13a9fdae48198b57f8c9857ea5d80",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_016d0e673f16884a016ae13aa061048198b98d8e602acc2f8e",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_016d0e673f16884a016ae13aa061048198b98d8e602acc2f8e",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_016d0e673f16884a016ae13aa061048198b98d8e602acc2f8e",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-017",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcd-1817-78b2-8af8-0417934ff575\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"uncons swap drop [ dup 0 lt? ] [ [ dup 0 1 1 add dup mul dup add sub lt? ] [ drop 0 1 1 add 1 add dup add sub ] [ [ dup 0 1 1 add dup mul sub lt? ] [ drop 0 ] [ drop 0 1 1 add dup mul sub ] ifte ] ifte ] [ drop 0 1 1 add sub ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8020,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":597,\"reasoning_output_tokens\":493}}\n",
+      "stderr_sha256": "8422208250959ebb59aa43c8d765d9b0f478efce1a6aa44de5534ea66e207548",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_04ab25ed7212c128016ae13aa6d948819981cfb51a238d8cb2",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_04ab25ed7212c128016ae13aa6d948819981cfb51a238d8cb2",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_04ab25ed7212c128016ae13aa6d948819981cfb51a238d8cb2",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_04ab25ed7212c128016ae13aa777b08199a33ed808558edc90",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_04ab25ed7212c128016ae13aa777b08199a33ed808558edc90",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_04ab25ed7212c128016ae13aa777b08199a33ed808558edc90",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-018",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcd-4242-7e20-b746-14aa115d4f43\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ dup uncons swap drop 0 swap lt? ] [ drop nil ] [ [ dup uncons drop uncons drop null? ] [ ] [ uncons [ uncons [ uncons [ uncons drop ] dip ] dip ] dip nil swap cons swap cons swap cons swap cons ] ifte ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8008,\"cached_input_tokens\":5888,\"cache_write_input_tokens\":0,\"output_tokens\":792,\"reasoning_output_tokens\":722}}\n",
+      "stderr_sha256": "36569c616f91b51f2d1710ccabe791dffa670b38a082c2fb8a9be793ba335ffe",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0fb1103dfe7bcf69016ae13ab1edc0819bb14c43e4320325dc",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0fb1103dfe7bcf69016ae13ab1edc0819bb14c43e4320325dc",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0fb1103dfe7bcf69016ae13ab1edc0819bb14c43e4320325dc",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0fb1103dfe7bcf69016ae13ab2790c819bb50feeb1eb822137",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0fb1103dfe7bcf69016ae13ab2790c819bb50feeb1eb822137",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0fb1103dfe7bcf69016ae13ab2790c819bb50feeb1eb822137",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-019",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcd-7867-7e81-822f-7c7443afd046\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ 0 eq? ] filter\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8000,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":51,\"reasoning_output_tokens\":38}}\n",
+      "stderr_sha256": "2fa915e3668761f8aefa8a22211bb33f41e0f22e323ab44cd4f13bb91eab9a2f",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_03e2508d6b57986e016ae13abf6ec0819a961fff2633b95cbf",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_03e2508d6b57986e016ae13abf6ec0819a961fff2633b95cbf",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_03e2508d6b57986e016ae13abf6ec0819a961fff2633b95cbf",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_03e2508d6b57986e016ae13abff220819a8cdba4f9bde9c51b",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_03e2508d6b57986e016ae13abff220819a8cdba4f9bde9c51b",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_03e2508d6b57986e016ae13abff220819a8cdba4f9bde9c51b",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-020",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcd-85e5-79f2-9fd4-2dd1d0e65505\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"swap drop quote [ lt? ] cat filter uncons [ [ over over lt? ] [ swap drop ] [ drop ] ifte ] fold\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8042,\"cached_input_tokens\":5888,\"cache_write_input_tokens\":0,\"output_tokens\":373,\"reasoning_output_tokens\":338}}\n",
+      "stderr_sha256": "3a24666552d645d8d511a215d790caad5bc31e3691c9c455d69a7b4ed31c1647",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_05a4d8c2d7e31d13016ae13ac2e6fc81988017272e0ea2a6d8",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_05a4d8c2d7e31d13016ae13ac2e6fc81988017272e0ea2a6d8",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_05a4d8c2d7e31d13016ae13ac2e6fc81988017272e0ea2a6d8",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_05a4d8c2d7e31d13016ae13ac36ef08198805102ef5f573169",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_05a4d8c2d7e31d13016ae13ac36ef08198805102ef5f573169",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_05a4d8c2d7e31d13016ae13ac36ef08198805102ef5f573169",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-021",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcd-a2e0-74f3-b8a1-d806e02411e8\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"drop quote [ eq? ] cat filter null? false eq?\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8055,\"cached_input_tokens\":5888,\"cache_write_input_tokens\":0,\"output_tokens\":172,\"reasoning_output_tokens\":153}}\n",
+      "stderr_sha256": "a11324f5a4cbce0b45fcf9300d7d5cbee70871fbd65f3b701b987f90c76047c1",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_065823563a802b0a016ae13aca6dd08199ab79fee70a05f766",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_065823563a802b0a016ae13aca6dd08199ab79fee70a05f766",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_065823563a802b0a016ae13aca6dd08199ab79fee70a05f766",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_065823563a802b0a016ae13acaf7cc819987e2d702855dfbc8",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_065823563a802b0a016ae13acaf7cc819987e2d702855dfbc8",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_065823563a802b0a016ae13acaf7cc819987e2d702855dfbc8",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-022",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcd-b82c-7553-857e-ba6a75d5fc7f\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ over 0 [ drop 1 add ] fold over 0 [ drop 1 add ] fold lt? ] [ ] [ swap ] ifte swap nil [ cons ] fold swap [ cons ] fold\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8106,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":416,\"reasoning_output_tokens\":368}}\n",
+      "stderr_sha256": "4f9c933be4a97930a8888fce3c2ee52397fb52e2e72001842ce6e16f37c6f6f8",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0c7fd8445081198e016ae13acfcaec8198a4d3599562d97466",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0c7fd8445081198e016ae13acfcaec8198a4d3599562d97466",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0c7fd8445081198e016ae13acfcaec8198a4d3599562d97466",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0c7fd8445081198e016ae13ad04648819898949fd12fac886b",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0c7fd8445081198e016ae13ad04648819898949fd12fac886b",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0c7fd8445081198e016ae13ad04648819898949fd12fac886b",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-023",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcd-d9ab-7331-8e81-9ac707917545\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ 0 eq? ] filter\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8060,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":31,\"reasoning_output_tokens\":18}}\n",
+      "stderr_sha256": "603e5641f3c164164ca15f5cdd7b817339d9b2e28c2246e4d833918b35657047",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_068cf6995386289b016ae13ad868d881999e5d4b5a751a1b0a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_068cf6995386289b016ae13ad868d881999e5d4b5a751a1b0a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_068cf6995386289b016ae13ad868d881999e5d4b5a751a1b0a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_068cf6995386289b016ae13ad8dc0081998ef48b82245860c2",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_068cf6995386289b016ae13ad8dc0081998ef48b82245860c2",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_068cf6995386289b016ae13ad8dc0081998ef48b82245860c2",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-024",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcd-e59e-7b91-8dcd-d34777f20770\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"nil [ cons ] fold uncons swap uncons swap drop sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":7995,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":397,\"reasoning_output_tokens\":361}}\n",
+      "stderr_sha256": "ec77e0a235ea53e403e1caedb5e9215a50cc0b6821b20486aa595f954fe9775e",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_08ce8313efed2582016ae13adba594819ab050ce440686c9aa",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_08ce8313efed2582016ae13adba594819ab050ce440686c9aa",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_08ce8313efed2582016ae13adba594819ab050ce440686c9aa",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_08ce8313efed2582016ae13adc3184819a879e51275defc253",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_08ce8313efed2582016ae13adc3184819a879e51275defc253",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_08ce8313efed2582016ae13adc3184819a879e51275defc253",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-025",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-0447-7c81-b5d7-1a148b7171ab\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"nil [ cons ] fold uncons drop nil [ cons ] fold\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8022,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":74,\"reasoning_output_tokens\":55}}\n",
+      "stderr_sha256": "64292356843318b0435378dccef689671c62a0461cce09deb95e548f1f544be9",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0da3ac2ce28b027e016ae13ae374088198b022a0ef0fcb0cf9",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0da3ac2ce28b027e016ae13ae374088198b022a0ef0fcb0cf9",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0da3ac2ce28b027e016ae13ae374088198b022a0ef0fcb0cf9",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0da3ac2ce28b027e016ae13ae3e9708198a6d2343cbd8a28fb",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0da3ac2ce28b027e016ae13ae3e9708198a6d2343cbd8a28fb",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0da3ac2ce28b027e016ae13ae3e9708198a6d2343cbd8a28fb",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-026",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-12a6-7f73-8762-0fdbe6064ce3\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"quote [ lt? ] cat filter\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8074,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":117,\"reasoning_output_tokens\":104}}\n",
+      "stderr_sha256": "f09085c8dde0fdf4c656f4016a4c49da007345a2f79cdbb28e5ae6b0fbe38db4",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_02bcb9c8c2f199a6016ae13ae7223c819ba51a8986433982fc",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_02bcb9c8c2f199a6016ae13ae7223c819ba51a8986433982fc",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_02bcb9c8c2f199a6016ae13ae7223c819ba51a8986433982fc",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_02bcb9c8c2f199a6016ae13ae79d6c819bb397e101a9699ae0",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_02bcb9c8c2f199a6016ae13ae79d6c819bb397e101a9699ae0",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_02bcb9c8c2f199a6016ae13ae79d6c819bb397e101a9699ae0",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-027",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-23aa-7842-8b13-6cf4cb464c29\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ 0 lt? ] filter 0 [ add ] fold\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8052,\"cached_input_tokens\":0,\"cache_write_input_tokens\":0,\"output_tokens\":50,\"reasoning_output_tokens\":31}}\n",
+      "stderr_sha256": "c7999045409678515b3e73509b894508f526ab3c4b7a56ea1ffea7e3f89976e1",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0adf2f1573a987b4016ae13aeb7f308199ab8afef9e08f48d4",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0adf2f1573a987b4016ae13aeb7f308199ab8afef9e08f48d4",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0adf2f1573a987b4016ae13aeb7f308199ab8afef9e08f48d4",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0adf2f1573a987b4016ae13aec08b48199b0298e2635f2d328",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0adf2f1573a987b4016ae13aec08b48199b0298e2635f2d328",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0adf2f1573a987b4016ae13aec08b48199b0298e2635f2d328",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-028",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-3316-7272-853f-f07ec8d2048c\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"quote [ swap sub ] cat map\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8034,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":63,\"reasoning_output_tokens\":50}}\n",
+      "stderr_sha256": "2b6cb14d094437ed67afbdb221417414fe88dd15c6aa38cf827650e04e4a2ca6",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_01d528d837dd0c78016ae13aef9f38819bad7d7b006c7e6d03",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_01d528d837dd0c78016ae13aef9f38819bad7d7b006c7e6d03",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_01d528d837dd0c78016ae13aef9f38819bad7d7b006c7e6d03",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_01d528d837dd0c78016ae13af019f4819bb3a91dbb6659aab4",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_01d528d837dd0c78016ae13af019f4819bb3a91dbb6659aab4",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_01d528d837dd0c78016ae13af019f4819bb3a91dbb6659aab4",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-029",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-4c44-7122-8470-4f1080d0ba71\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"drop swap drop [ 1 1 add eq? ] [ 1 ] [ 0 ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8005,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":306,\"reasoning_output_tokens\":278}}\n",
+      "stderr_sha256": "7d3e9513d3aa820891bef1cdb439ae6ff4582d45b74ed27c28e25528759501d2",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_008c90ab3fe88f77016ae13af5be608199a1ae70ab48a47a9a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_008c90ab3fe88f77016ae13af5be608199a1ae70ab48a47a9a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_008c90ab3fe88f77016ae13af5be608199a1ae70ab48a47a9a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_008c90ab3fe88f77016ae13af652448199b5cd711cc922ccb8",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_008c90ab3fe88f77016ae13af652448199b5cd711cc922ccb8",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_008c90ab3fe88f77016ae13af652448199b5cd711cc922ccb8",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-030",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-673e-7603-b5d2-0fd95f152b95\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ 0 swap sub ] map\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8034,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":11,\"reasoning_output_tokens\":0}}\n",
+      "stderr_sha256": "b6f1bdf890c4a27ef170e36ea2f08c861ed49058cad2079fc5c238064e14cdfc",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0609cf8bc7d90ac6016ae13afcb49c819a804aa5ea6ae9f7ab",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0609cf8bc7d90ac6016ae13afcb49c819a804aa5ea6ae9f7ab",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0609cf8bc7d90ac6016ae13afcb49c819a804aa5ea6ae9f7ab",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0609cf8bc7d90ac6016ae13afd2974819a9f60af978b33983d",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0609cf8bc7d90ac6016ae13afd2974819a9f60af978b33983d",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0609cf8bc7d90ac6016ae13afd2974819a9f60af978b33983d",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-031",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-751a-7960-8d71-d0b0a565bdc1\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"drop uncons swap drop nil swap cons\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8079,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":70,\"reasoning_output_tokens\":56}}\n",
+      "stderr_sha256": "a23113d50d66fd78184fcb6eee0df9fcd25f1c1c537f373096b4d1173051026c",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_05a684223ee4fd05016ae13b0038408198a60b5b1a7e22ce8e",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_05a684223ee4fd05016ae13b0038408198a60b5b1a7e22ce8e",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_05a684223ee4fd05016ae13b0038408198a60b5b1a7e22ce8e",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_05a684223ee4fd05016ae13b00b1e88198a1236934235f796f",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_05a684223ee4fd05016ae13b00b1e88198a1236934235f796f",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_05a684223ee4fd05016ae13b00b1e88198a1236934235f796f",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-032",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-8369-7ee2-9ae4-c0a031e5d1af\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"swap nil [ quote [ add ] cat [ over ] dip map cat ] fold swap drop\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8121,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":219,\"reasoning_output_tokens\":195}}\n",
+      "stderr_sha256": "6f166b461e63203f63eadf589a376623312230ae3da577b721cd3166f5cd8a28",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0208315890349e7b016ae13b03c7fc819a9dd528fb5c2cea3a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0208315890349e7b016ae13b03c7fc819a9dd528fb5c2cea3a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0208315890349e7b016ae13b03c7fc819a9dd528fb5c2cea3a",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0208315890349e7b016ae13b043f5c819a9e9d955510ff01cf",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0208315890349e7b016ae13b043f5c819a9e9d955510ff01cf",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0208315890349e7b016ae13b043f5c819a9e9d955510ff01cf",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-033",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-9d4f-7691-9510-5b59d6f47752\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"nil [ cons ] fold uncons drop nil [ cons ] fold\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8018,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":102,\"reasoning_output_tokens\":83}}\n",
+      "stderr_sha256": "38651eed20e09e086b67bf058d7ab28c297cc5c5581fae2792db46d55c855abc",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0cba0579ee644cd4016ae13b0a85cc819a8deb3eec16c7daa5",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0cba0579ee644cd4016ae13b0a85cc819a8deb3eec16c7daa5",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0cba0579ee644cd4016ae13b0a85cc819a8deb3eec16c7daa5",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0cba0579ee644cd4016ae13b0b0cf0819ab2c229c4ff7d4b4c",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0cba0579ee644cd4016ae13b0b0cf0819ab2c229c4ff7d4b4c",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0cba0579ee644cd4016ae13b0b0cf0819ab2c229c4ff7d4b4c",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-034",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-ae4d-7793-b875-110a3e35639b\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"swap [ dup ] swap quote cat [ eq? ] cat swap [ drop ] swap quote cat swap quote swap quote cat [ [ ] ifte ] cat map\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8130,\"cached_input_tokens\":0,\"cache_write_input_tokens\":0,\"output_tokens\":353,\"reasoning_output_tokens\":315}}\n",
+      "stderr_sha256": "6cbbf861979f16d5ee45c68807532e98f285411f9be93b819769a4fe8e0c971f",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0c256ffe6de2c612016ae13b0ed27481999d4a9229386a763b",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0c256ffe6de2c612016ae13b0ed27481999d4a9229386a763b",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0c256ffe6de2c612016ae13b0ed27481999d4a9229386a763b",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0c256ffe6de2c612016ae13b0f499c8199b4ba3074f9524376",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0c256ffe6de2c612016ae13b0f499c8199b4ba3074f9524376",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0c256ffe6de2c612016ae13b0f499c8199b4ba3074f9524376",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-035",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-c965-7212-aa8e-875f78fc1dbd\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"uncons quote swap nil [ swap cons ] fold swap [ swap cons ] fold\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8064,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":233,\"reasoning_output_tokens\":211}}\n",
+      "stderr_sha256": "5cc0aab198b9006db443773d11f69ef8a468db602b11c87daa4ae0314355cb06",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0015a5f96e73948c016ae13b16701c819b9466efa1ae90dcf1",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0015a5f96e73948c016ae13b16701c819b9466efa1ae90dcf1",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0015a5f96e73948c016ae13b16701c819b9466efa1ae90dcf1",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0015a5f96e73948c016ae13b16e164819b859f7ef43072c116",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0015a5f96e73948c016ae13b16e164819b859f7ef43072c116",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0015a5f96e73948c016ae13b16e164819b859f7ef43072c116",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-036",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fce-e7fa-7ef0-b3b1-d8f8b2542235\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"[ dup 1 1 add 1 add sub over 1 1 add 1 add 1 add 1 add 1 add 1 add add mul 0 eq? ] [ drop swap drop ] [ swap drop swap drop ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8022,\"cached_input_tokens\":5888,\"cache_write_input_tokens\":0,\"output_tokens\":355,\"reasoning_output_tokens\":297}}\n",
+      "stderr_sha256": "2fcb0e2c552c979679fe2f937f71a72bcdfce9bb522ed9b9b5aab5873935dee8",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0cb34d7f8ba4d3ff016ae13b1df844819891de099bc0540c68",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0cb34d7f8ba4d3ff016ae13b1df844819891de099bc0540c68",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0cb34d7f8ba4d3ff016ae13b1df844819891de099bc0540c68",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0cb34d7f8ba4d3ff016ae13b1e99b48198811447f699c5679e",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0cb34d7f8ba4d3ff016ae13b1e99b48198811447f699c5679e",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0cb34d7f8ba4d3ff016ae13b1e99b48198811447f699c5679e",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-037",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcf-0622-7071-a63a-eb760a301752\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"swap uncons [ dup [ [ over ] dip ] dip [ sub dup mul ] dip [ [ over over sub dup mul ] dip ] dip [ lt? ] dip swap quote [ swap drop ] [ drop ] ifte ] fold swap drop\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8053,\"cached_input_tokens\":5888,\"cache_write_input_tokens\":0,\"output_tokens\":809,\"reasoning_output_tokens\":754}}\n",
+      "stderr_sha256": "582d958234d3280a8c3e4a98a774b445c57b095d82a7bb6927dc404cb32f5127",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_07460de0e5c9fde5016ae13b253fec819bbf6e5bda57145d17",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_07460de0e5c9fde5016ae13b253fec819bbf6e5bda57145d17",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_07460de0e5c9fde5016ae13b253fec819bbf6e5bda57145d17",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_07460de0e5c9fde5016ae13b25c164819b9c26cab733c671d3",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_07460de0e5c9fde5016ae13b25c164819b9c26cab733c671d3",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_07460de0e5c9fde5016ae13b25c164819b9c26cab733c671d3",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-038",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcf-3e34-78e1-a1f0-05958f5a3a07\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"drop 0 lt? [ ] [ 0 [ swap drop ] fold ] [ uncons swap drop ] ifte\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8007,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":298,\"reasoning_output_tokens\":268}}\n",
+      "stderr_sha256": "4caa6052b37bbc99ca12cb103a92da7a670562624bfdec6cfdb10c89aca9dccb",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_09c5aeaeb74234b4016ae13b33f1d0819ba1ed290260b88a3d",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_09c5aeaeb74234b4016ae13b33f1d0819ba1ed290260b88a3d",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_09c5aeaeb74234b4016ae13b33f1d0819ba1ed290260b88a3d",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_09c5aeaeb74234b4016ae13b347494819ba915de6bf808b170",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_09c5aeaeb74234b4016ae13b347494819ba915de6bf808b170",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_09c5aeaeb74234b4016ae13b347494819ba915de6bf808b170",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-039",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcf-5bde-71e3-b0d2-707eb27e8ad2\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"nil 0 cons [ swap dup uncons [ drop ] dip [ swap ] dip add cons ] fold nil [ cons ] fold uncons drop\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8042,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":375,\"reasoning_output_tokens\":340}}\n",
+      "stderr_sha256": "ca2d9251d06d682a1da5a7227526dc4b9179f9f55aaf71f026e40b0028d62371",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0a13c3d1b4b20fef016ae13b3b71e4819baff32974af22b572",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0a13c3d1b4b20fef016ae13b3b71e4819baff32974af22b572",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0a13c3d1b4b20fef016ae13b3b71e4819baff32974af22b572",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0a13c3d1b4b20fef016ae13b3c1c60819b945b26cbb04d71b8",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0a13c3d1b4b20fef016ae13b3c1c60819b945b26cbb04d71b8",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0a13c3d1b4b20fef016ae13b3c1c60819b945b26cbb04d71b8",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    },
+    {
+      "call": "call-040",
+      "command": [
+        "codex",
+        "exec",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--strict-config",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/tmp/codex-exec-l_no5tf1/workdir",
+        "-m",
+        "gpt-6.1-terra",
+        "-c",
+        "model_instructions_file=\"/tmp/codex-exec-l_no5tf1/instructions.md\"",
+        "-c",
+        "tools.web_search=false",
+        "--json",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "--disable",
+        "shell_tool",
+        "--disable",
+        "unified_exec",
+        "--disable",
+        "code_mode_host",
+        "--disable",
+        "multi_agent",
+        "--disable",
+        "plugins",
+        "--disable",
+        "apps",
+        "--disable",
+        "browser_use",
+        "--disable",
+        "browser_use_external",
+        "--disable",
+        "computer_use",
+        "--disable",
+        "image_generation",
+        "--disable",
+        "view_image",
+        "--disable",
+        "sleep_tool",
+        "--disable",
+        "tool_suggest",
+        "--disable",
+        "skill_search",
+        "--disable",
+        "goals",
+        "--disable",
+        "hooks",
+        "--disable",
+        "personality",
+        "-"
+      ],
+      "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17fcf-85b9-7f03-a40b-b00975e31a53\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"nil [ cons ] fold\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":8030,\"cached_input_tokens\":7808,\"cache_write_input_tokens\":0,\"output_tokens\":41,\"reasoning_output_tokens\":30}}\n",
+      "stderr_sha256": "ca283b26c151f258a1e5f9fee293c97e5d355df32cdf75a03c63d7b282ff3aa1",
+      "received_model_events": [
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0aa45ae2c755567e016ae13b4607f0819b9868c6108e8e835f",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0aa45ae2c755567e016ae13b4607f0819b9868c6108e8e835f",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0aa45ae2c755567e016ae13b4607f0819b9868c6108e8e835f",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.created",
+          "response": {
+            "id": "resp_0aa45ae2c755567e016ae13b469660819b999876fb118ec9bd",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.in_progress",
+          "response": {
+            "id": "resp_0aa45ae2c755567e016ae13b469660819b999876fb118ec9bd",
+            "model": "gpt-6.1-terra"
+          }
+        },
+        {
+          "type": "response.completed",
+          "response": {
+            "id": "resp_0aa45ae2c755567e016ae13b469660819b999876fb118ec9bd",
+            "model": "gpt-6.1-terra"
+          }
+        }
+      ]
+    }
   ]
 }
