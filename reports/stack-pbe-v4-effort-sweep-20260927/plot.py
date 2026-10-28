@@ -1,6 +1,8 @@
 """Accuracy against API-list cost per task, effort levels joined per model.
 
-Reads summary.json (written by analyse.py). Latest generation of each line coloured and labelled, earlier ones grey.
+Reads summary.json (written by analyse.py). Current-generation frontier points
+are coloured; all other hosted points are grey. The step line includes every
+hosted generation, while local systems retain distinct styling.
 """
 
 import json
@@ -9,7 +11,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 HERE = Path(__file__).parent
-ORDER = (  # model, colour, latest generation (coloured, labelled) or earlier (grey)
+ORDER = (  # model, colour, current generation (eligible for colour)
     ("claude-sonnet-5-5", "#006d77", True),
     ("claude-haiku-5-5", "#d4a017", True),
     ("claude-fable-5-1", "#7a3db8", True),
@@ -27,71 +29,88 @@ ORDER = (  # model, colour, latest generation (coloured, labelled) or earlier (g
 )
 EFFORT = {"low": "L", "medium": "M", "high": "H", "xhigh": "X", "max": "Mx"}
 
-rows = json.loads((HERE / "summary.json").read_text())
-refusals = {(r["model"], r["effort"]): r.get("refusals", 0) for r in rows}
+saved_rows = json.loads((HERE / "summary.json").read_text())
+rows = [
+    r
+    for r in saved_rows
+    if r["cost_per_task"] is not None
+    and (r["model"] != "gpt-6.1-terra" or r.get("model_confirmed_calls") == 40)
+]
+# Keep exact ties: equally good/costly models receive the same treatment.
+frontier = [
+    r
+    for r in rows
+    if not any(
+        s["cost_per_task"] <= r["cost_per_task"]
+        and s["solved"] >= r["solved"]
+        and (s["cost_per_task"] < r["cost_per_task"] or s["solved"] > r["solved"])
+        for s in rows
+    )
+]
+frontier_keys = {(r["model"], r["effort"]) for r in frontier}
+step_points = sorted({(r["cost_per_task"], r["solved"]) for r in frontier})
+best_score = max(r["solved"] for r in rows)
 fig, ax = plt.subplots(figsize=(11, 6.5), dpi=150)
-ax.axhspan(22, 27.3, color="#e8e7e1", zorder=0)
-ax.text(1e-5, 26.9, "top cluster, ±3-task noise", color="#6b6a64", fontsize=8, va="top")
-LABEL = {  # current generation only: anchor effort, offset (points), alignment
-    "claude-sonnet-5-5": ("xhigh", (0, 9), "center"),
-    "claude-haiku-5-5": ("low", (-8, 3), "right"),
-    "claude-fable-5-1": ("xhigh", (8, 3), "left"),
-    "claude-opus-5-5": ("low", (-8, -3), "right"),
-    "gpt-6-astra": ("low", (0, 20), "center"),  # above Opus 5.5's medium/high
-    "gpt-6.1-sol": ("low", (-8, -3), "right"),
-    "gpt-6.1-terra": ("high", (-8, 3), "right"),
-    "gpt-6-luna": ("max", (8, 3), "left"),
-}
+ax.axhspan(best_score - 3, best_score + 3, color="#e8e7e1", zorder=0)
+ax.text(
+    1e-5,
+    best_score + 0.5,
+    "within noise (±3) of the best score",
+    color="#6b6a64",
+    fontsize=8,
+    va="top",
+)
+ax.step(
+    [p[0] for p in step_points],
+    [p[1] for p in step_points],
+    where="post",
+    color="#454545",
+    lw=0.9,
+    ls="--",
+    zorder=2.5,
+)
 for model, colour, new in ORDER:
     pts = [
         (r["cost_per_task"], r["solved"], r["effort"])
         for r in rows
         if r["model"] == model
-        and r["cost_per_task"] is not None
-        and (model != "gpt-6.1-terra" or r.get("model_confirmed_calls") == 40)
     ]
     if not pts:
         continue
     pts.sort(key=lambda p: list(EFFORT).index(p[2]))  # joined in effort order
     xs, ys, _ = zip(*pts, strict=True)
-    if not new:  # earlier generation: unlabelled grey context
-        ax.plot(xs, ys, color="#cfcec8", lw=1, marker="o", ms=3, zorder=2)
+    ax.plot(xs, ys, color="#cfcec8", lw=0.7, marker="o", ms=3, zorder=2)
+    highlighted = [p for p in pts if new and (model, p[2]) in frontier_keys]
+    if not highlighted:
         continue
-    ax.plot(
-        xs,
-        ys,
+    ax.scatter(
+        [p[0] for p in highlighted],
+        [p[1] for p in highlighted],
         color=colour,
-        lw=2,
         marker="o" if model.startswith("claude") else "s",
-        ms=8,
-        mec="white",
-        mew=1.5,
+        s=64,
+        edgecolors="white",
+        linewidths=1.5,
         zorder=3,
     )
-    above = model in ("gpt-6-astra", "claude-haiku-5-5")
-    for x, y, e in pts:
-        offset = (0, 7 if above else -13)
-        if model == "gpt-6.1-terra":
-            offset = {"medium": (-8, -13), "high": (8, -13), "max": (0, 8)}.get(
-                e, offset
-            )
+    for x, y, e in highlighted:
         ax.annotate(
-            EFFORT[e] + ("*" if refusals[(model, e)] else ""),
+            EFFORT[e],
             (x, y),
-            xytext=offset,
+            xytext=(-5, -13),
             textcoords="offset points",
-            ha="center",
+            ha="right",
             fontsize=7,
             color="#6b6a64",
         )
-    effort, offset, ha = LABEL[model]
-    x, y, _ = next(p for p in pts if p[2] == effort)
+    # Anchor to a frontier point, including future newly dominant models.
+    x, y, _ = highlighted[-1]
     ax.annotate(
         model,
         (x, y),
-        xytext=offset,
+        xytext=(-10, 8) if model == "gpt-6.1-sol" else (10, 4),
         textcoords="offset points",
-        ha=ha,
+        ha="right" if model == "gpt-6.1-sol" else "left",
         fontsize=8.5,
         fontweight="bold",
         color=colour,
@@ -105,7 +124,7 @@ bfs = [local[f"BFS {k} nodes"] for k in ("1k", "10k", "100k")]
 ax.plot(
     [r["cost_per_task"] for r in bfs],
     [r["solved"] for r in bfs],
-    color="#8a8983",
+    color="#3b6b87",
     lw=1.5,
     marker="^",
     ms=7,
@@ -118,7 +137,7 @@ ax.annotate(
     xytext=(8, -3),
     textcoords="offset points",
     fontsize=7.5,
-    color="#2b2b29",
+    color="#3b6b87",
 )
 for r, k in zip(bfs, ("1k", "10k", "100k"), strict=True):
     ax.annotate(
@@ -133,8 +152,8 @@ for r, k in zip(bfs, ("1k", "10k", "100k"), strict=True):
 for label, name, colour, marker in (
     ("staged-s0-e3 (solve.BEST)", "1m policy, staged (best system)", "#111111", "*"),
     ("fused-s0-e3", "1m policy, fused witnesses", "#555555", "*"),
-    ("qwen3:30b-a3b (ollama)", "qwen3 30b-a3b (4090)", "#8d5b3a", "D"),
-    ("gpt-oss:20b high (ollama)", "gpt-oss 20b high (4090)", "#b0784f", "D"),
+    ("qwen3:30b-a3b (ollama)", "qwen3 30b-a3b (4090)", "#aaaaaa", "D"),
+    ("gpt-oss:20b high (ollama)", "gpt-oss 20b high (4090)", "#aaaaaa", "D"),
 ):
     r = local[label]
     ax.plot(
@@ -157,14 +176,14 @@ for label, name, colour, marker in (
     )
 ax.set_xscale("log")
 ax.set_xlim(8e-6, 3)
-ax.set_ylim(-1.5, max(28, max(r["solved"] for r in rows) + 1))
+ax.set_ylim(-1.5, max(28, best_score + 1))
 ax.set_xlabel(
     "$ per task: API list price for hosted models (1.3k-token prompt + recorded output);\n"
     "wall clock x cloud rental rate for local solvers"
 )
 ax.set_ylabel("solved, of 40 (held-out graded)")
 ax.set_title(
-    "stack_pbe_v4 seed-17 sample: accuracy against cost, effort joined per model\n"
+    "stack_pbe_v4 seed-17 sample: accuracy against cost, hosted cost frontier dashed\n"
     "L/M/H/X/Mx = effort low/medium/high/xhigh/max",
     fontsize=10,
     loc="left",
@@ -173,11 +192,12 @@ ax.grid(True, which="major", color="#e8e7e1", lw=0.8)
 for side in ("top", "right"):
     ax.spines[side].set_visible(False)
 notes = [
-    "grey: earlier generations (gpt-6-sol, gpt-5.6 sol/terra/luna,\n"
-    "claude-opus-5, claude-fable-5), unlabelled; all rows in table.md",
+    "colour: current-generation hosted frontier points + own systems\n"
+    "grey: other hosted points (including older frontier endpoints); rows in table.md\n"
+    "dashed steps: all hosted generations; local systems excluded",
     "Terra 6.1 L/M use authorized identity reruns; originals retained.",
 ]
-for r in rows:
+for r in saved_rows:
     if r["model"] != "claude-sonnet-5-5":
         continue
     if r["cost_per_task"] is None:
@@ -187,7 +207,7 @@ for r in rows:
         )
     elif r.get("refusals"):
         notes.append(
-            f"*Sonnet {r['effort']}: {r['refusals']} refusals\n"
+            f"Sonnet {r['effort']}: {r['refusals']} refusals\n"
             "(unsolved; output tokens priced)."
         )
 ax.text(

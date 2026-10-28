@@ -14,7 +14,7 @@ Run October 27, 2026; Codex CLI 0.163.0 before/after every arm, no update.
 | max | 24 | 14 | 0 | 1771.7 | 0.010158 | 40 | requested extension |
 
 The best verified result is **24/40 at max, $0.010158/task**. It enters the
-figure's existing 22–27 shaded band and is within three tasks of the best
+figure's best-minus-three shaded band (24–27) and is within three tasks of the best
 hosted saved score, 27/40. Max costs 2.66 times xhigh for three more solves,
 within this sample's ±3-task comparison convention. Medium gives 20/40 at
 $0.002732/task. Sol 6.1 medium's saved 25/40 at $0.006976/task is both
@@ -130,7 +130,7 @@ errors. All three were fixed; follow-up reports **no remaining findings**.
 Both outputs, served reviewer identity, usage and review-input SHA256 are saved
 as `review-claude-round1.json` and `review-claude-round2.json`. Six offline
 regression cases and local lint/format pass. Review required changes, so the
-owner retains the merge decision.
+owner subsequently instructed the desk to update the plot and merge after passing checks.
 
 ## Reproduce without model calls
 
