@@ -1,0 +1,26 @@
+{
+  "requested_model": "claude-sonnet-5-5",
+  "effort": "high",
+  "started_at": "2026-10-28T00:15:42.644849+00:00",
+  "finished_at": "2026-10-28T00:16:26.137607+00:00",
+  "review_input_sha256": "7e806ffafbcd65ed50fcc832bbac1ef261af7e2eb821f9096d67239f56338df2",
+  "metadata": {
+    "tool_calls": 0,
+    "text_tool_call": false,
+    "errors": [],
+    "usage": {
+      "input_tokens": 8789,
+      "cache_creation_input_tokens": 8787,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 5603,
+      "reasoning_output_tokens": 5250
+    },
+    "model": [
+      "claude-sonnet-5-5"
+    ],
+    "stop_reason": "end_turn",
+    "api_ms": 42574,
+    "seconds": 43.5
+  },
+  "review": "No remaining findings.\n\nI checked the three fixes against the diff only; I did not run anything.\n\n- **Identity logging:** `run.sh` and `preflight.py` both default `RUST_LOG` to the two trace targets, and an explicit value overrides them. `preflight.py` sets it before constructing the generator, so the generator's environment can inherit it. `capture.py` records `RUST_LOG` and the cgroup `memory.max` and `memory.swap.max` in future sidecars. The README states that completed arms were not backfilled and that the capture-wrapper hash difference is a caveat.\n- **Plot identity gate:** the new assertion ties the `validation.json` entry to the artifact filename the plot loads. The filename is derived from the same stem the plot already uses.\n- **Preflight:** `preflight.py` is committed. It refuses existing output, keeps the raw evidence, and exits nonzero unless the served model is Terra with usage and zero tool calls. The README command chains it ahead of `run.sh`, and the new tests cover both the pass and fail cases."
+}

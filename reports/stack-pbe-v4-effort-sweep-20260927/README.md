@@ -4,11 +4,15 @@ Extends new-models-sample40 (#173) with gpt-5.6-sol (all efforts), gpt-5.6-terra
 
 ![accuracy vs cost](accuracy_vs_cost.png)
 
+**Reading the plot.** Colour marks only current-generation hosted points on the measured cost/score Pareto frontier; other hosted points, including every older generation, are grey. Frontier membership is computed from `summary.json`: no other hosted row may cost no more and solve at least as many, with one strict improvement. Thin dashed steps connect the frontier points across **all** hosted generations, including grey older endpoints; between those costs they show the best score achievable within budget. Thin grey lines join efforts within a model. The 1m policy stars and BFS retain distinct styling; local solvers do not enter the hosted frontier. All hosted rows remain in `table.md`. The band is recomputed as within three solves of the best measured hosted score (currently 24–27/40); this is a comparison convention, not a confidence interval. As future sweeps change the frontier, eligible points recolour automatically.
+
 Updated 2026-09-29 with [Sonnet 5.5 at five efforts](../stack-pbe-v4-sonnet55-20260928/README.md), under the same protocol and cost estimate ($2/$10 per million input/output tokens). Max includes four refusals, scored as unsolved with their output tokens priced. The table's tool/turn column is a CLI turn/permission proxy for Claude; max reports eight on those refusal calls, with tools disabled in the command.
 
 Updated 2026-09-29 with [GPT-6.1 Sol at four efforts](../stack-pbe-v4-sol61-20260929/README.md) ($2/$10 per million): 23 / 25 / 24 / 24 at low..xhigh, in the top band from low at $0.006-0.014/task; max not run.
 
 Updated 2026-10-11 with [Haiku 5.5 at five efforts](../stack-pbe-v4-haiku55-20261011/README.md) ($0.10/$0.50 per million): 16 / 17 / 18 / 16 / 22 at low..max; only max reaches the band, at $0.029/task. The same update reprices claude-fable-5-1 at its $10/$50 list price (was an inferred $15/$75), moving its points left by a third.
+
+Updated 2026-10-27 with [GPT-6.1 Terra at five verified efforts](../stack-pbe-v4-terra61-20261027/README.md), $1/$5 per million input/output tokens: 9 / 20 / 20 / 21 / 24 at low..max. Max reaches the 24–27 shaded band at $0.010158/task; medium gives 20/40 at $0.002732/task. All 200 plotted calls have confirmed server identity. Low/medium are owner-authorized reruns because the first runs lacked identity proof; the first 9/18 measurements remain saved separately and unplotted. All 280 saved candidates regrade. Max was also explicitly requested. No earlier non-Terra measurement changed.
 
 - **Top of the sample:** fable-5 medium 27, gpt-6-sol max 26, sonnet-5.5 xhigh 26, fable-5 xhigh 26, gpt-5.6-sol max 25, opus-5 xhigh 25 -- all within the ±3-task noise of a 40-task sample. gpt-6-sol reaches that band at ~$0.02/task, Sonnet at ~$0.06, Fable at ~$0.14-0.23.
 - **Fable 5.1 is not better than Fable 5 here** (22 / 24 / 22 / 23 against 20 / 27 / 24 / 26), and xhigh costs $0.47/task.

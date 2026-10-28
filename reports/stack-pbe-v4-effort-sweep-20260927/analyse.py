@@ -16,6 +16,7 @@ REPORTS = HERE.parent
 BUCKETS = ((1, 10), (11, 20), (21, 40), (41, 1000))
 PROMPT_TOKENS = 1300
 PRICE = {  # $ per 1M input, output; Sonnet 5.5 verified 2026-09-28, 6.1 Sol 2026-09-29
+    "gpt-6.1-terra": (1, 5),  # vendor standard list price, checked 2026-10-27
     "gpt-6.1-sol": (2, 10),
     "gpt-6-astra": (10, 50),
     "gpt-6-sol": (2, 10),
@@ -91,6 +92,19 @@ ARMS = (
     ("stack-pbe-v4-haiku55-20261011/haiku55_high", "claude-haiku-5-5", "high"),
     ("stack-pbe-v4-haiku55-20261011/haiku55_xhigh", "claude-haiku-5-5", "xhigh"),
     ("stack-pbe-v4-haiku55-20261011/haiku55_max", "claude-haiku-5-5", "max"),
+    (
+        "stack-pbe-v4-terra61-20261027/identity-rerun/terra61_low",
+        "gpt-6.1-terra",
+        "low",
+    ),
+    (
+        "stack-pbe-v4-terra61-20261027/identity-rerun/terra61_medium",
+        "gpt-6.1-terra",
+        "medium",
+    ),
+    ("stack-pbe-v4-terra61-20261027/terra61_high", "gpt-6.1-terra", "high"),
+    ("stack-pbe-v4-terra61-20261027/terra61_xhigh", "gpt-6.1-terra", "xhigh"),
+    ("stack-pbe-v4-terra61-20261027/terra61_max", "gpt-6.1-terra", "max"),
 )
 
 
@@ -103,6 +117,7 @@ def main() -> None:
         (REPORTS / "stack-pbe-v4-baseline-20260901/luna_v4_sample40.json").read_text()
     )
     length = [len(c["witness"].split()) for c in api["candidates"]]
+    stems = {(m, e): stem for stem, m, e in ARMS}
     runs = {
         (m, e): load(stem)
         for stem, m, e in ARMS
@@ -154,6 +169,17 @@ def main() -> None:
             for r in ref.values()
         ]
         served = sorted({x for g in gens for x in g.get("model", [])}) or ["-"]
+        confirmed = None
+        if m == "gpt-6.1-terra":
+            # Low/medium use the owner's identity reruns; the first runs remain
+            # saved in their parent directory. Bind identity to that run's audit.
+            audit_path = (REPORTS / stems[(m, e)]).parent / "validation.json"
+            audit = json.loads(audit_path.read_text())
+            arm = next(arm for arm in audit["arms"] if arm["effort"] == e)
+            assert arm["artifact"] == Path(f"{stems[(m, e)]}_v4_sample40.json").name
+            calls = arm["calls"]
+            confirmed = sum(call["identity_confirmed"] for call in calls)
+            served = [f"{m} ({confirmed}/40)"] if confirmed else ["unconfirmed (0/40)"]
         tools = sum(
             g.get("tool_calls", 0) + bool(g.get("text_tool_call")) for g in gens
         )
@@ -188,6 +214,9 @@ def main() -> None:
         if m == "claude-sonnet-5-5":
             rows[-1]["usage_calls"] = len(out)
             rows[-1]["refusals"] = sum(g.get("stop_reason") == "refusal" for g in gens)
+        if confirmed is not None:
+            rows[-1]["model_confirmed_calls"] = confirmed
+            rows[-1]["source_artifact"] = f"{stems[(m, e)]}_v4_sample40.json"
     (HERE / "summary.json").write_text(json.dumps(rows, indent=1))
 
 
