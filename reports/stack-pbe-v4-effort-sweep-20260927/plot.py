@@ -51,10 +51,10 @@ frontier_keys = {(r["model"], r["effort"]) for r in frontier}
 step_points = sorted({(r["cost_per_task"], r["solved"]) for r in frontier})
 best_score = max(r["solved"] for r in rows)
 fig, ax = plt.subplots(figsize=(11, 6.5), dpi=150)
-ax.axhspan(best_score - 3, best_score + 3, color="#e8e7e1", zorder=0)
+ax.axhspan(best_score - 3, best_score, color="#e8e7e1", zorder=0)
 ax.text(
     1e-5,
-    best_score + 0.5,
+    best_score - 0.2,
     "within noise (±3) of the best score",
     color="#6b6a64",
     fontsize=8,
@@ -114,6 +114,8 @@ for model, colour, new in ORDER:
         fontsize=8.5,
         fontweight="bold",
         color=colour,
+        bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.95, "pad": 1},
+        zorder=5,
     )
 # Local solvers (local/local_rows.json): $ from wall clock at cloud rental rates
 # (c7i vCPU-hour for CPU, $0.40/h for an RTX 4090), not API list prices.
