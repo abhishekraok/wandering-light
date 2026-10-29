@@ -1086,6 +1086,37 @@ The diagnostic completes in 64.71 s wall time on CPU. Sampled label fit improves
 
 Artifact commit/dirty fields affected by the copied launcher's working directory are corrected in the [append-only provenance sidecar](../reports/pbe-scale-20261024/provenance-correction.json); all original bytes and hashes remain preserved.
 
+### Diversity audit (2026-10-28)
+
+Saved-data audit of all 68,499 retained rows. Full-corpus metrics use stored records without executing their programs or references; no eval payload was read. Separate reference-only unit fixtures check generator algebra on hand-picked inputs. [Figure](../reports/pbe-scale-20261024/diversity/diversity.png), [structure](../reports/pbe-scale-20261024/diversity/structural-summary.json), [output agreement](../reports/pbe-scale-20261024/diversity/semantic-summary.json), [length sensitivity](../reports/pbe-scale-20261024/diversity/semantic-sensitivity.json), [original training prompts](../reports/pbe-scale-20261024/diversity/prompt-coverage.json).
+
+| Source | Rows | Share | Underlying vocabulary |
+|---|---:|---:|---|
+| Pipelines | 51,681 | 75.4% | 23 transformations; 2–4 per pipeline; 8,756 ordered stage sequences excluding starts, wrappers and readouts |
+| Explicit algorithm compositions | 13,308 | 19.4% | 39 named algorithms with input/output transforms |
+| Codex-authored | 3,353 | 4.9% | Not independently classified into algorithm families |
+| Anchors / bootstrap | 157 | 0.2% | Simple seed witnesses |
+
+These are concentration descriptors, not a reduced function count. Ignoring stage order gives 2,945 stage bags, but order often changes behavior. Erasing integer literal tokens reduces 68,499 `(input kind, macro program)` keys to 68,480; numeric-literal sweeps do not explain the bulk volume. This lexical normalization leaves constants encoded through other macros intact.
+
+Conservative algebraic checks identify **7,722 witnesses (11.27%)** with a removable declared stage: 7,452 unnecessary ordering stages and 325 terminal absolute-value stages, with 55 overlapping rows. The checker allows only known symmetric readouts, multiset-based continuations and known wrapper contexts; unknown contexts are skipped. Its identities concern output values, not fuel costs or minimality. Tests compare actual generated Python references with/without reversal across all four wrappers and eight symmetric readouts. For example, `above-argument / reverse / negative / span` does not need the reversal: filtering negatives and taking max-minus-min is permutation invariant. Removing the identified steps gives no matching pipeline template keys, consistent with prior behavioral deduplication; this is witness inflation, not demonstrated duplicate functions. Pipeline medians are 193 expanded stack tokens versus 30 macro tokens, despite only 2–4 transformation stages. Python references and stack witnesses share the chosen composition while expressing each component separately; cross-checking them establishes implementation agreement, not independent algorithmic coverage. Family-level counts and assumptions are in the structural evidence.
+
+The behavioral audit aligns saved outputs by the intersection of inputs within each input kind and confirms that its size equals the recorded shared-probe count. Factorized per-probe output labels and blockwise Hamming distances compare every same-kind pair; self-pairs are excluded. Actual-corpus sampled distances and unit tests agree with direct equality. **21,388 rows (31.22%)** have a neighbor agreeing on at least 95% of shared outputs; 33,020 (48.20%) have one agreeing on at least 90%. No exact shared-output duplicate remains, as expected from deduplication on the same bank; this is not independent evidence of novelty.
+
+| Input kind | Rows | Median closest-function agreement, all shared probes | Same pairs, maximum input-list length ≥4 | Probes in length subset |
+|---|---:|---:|---:|---:|
+| One list | 24,364 | 70.31% | 60.45% | 134 / 192 |
+| List + integer | 18,424 | 96.88% | 70.59% | 17 / 192 |
+| Two lists | 25,482 | 86.98% | 72.84% | 81 / 192 |
+
+The remaining single-/two-integer groups have 108 / 121 rows and median agreement 28.57% / 26.30% over 21 / 441 exhaustive probes. Random same-kind pairs have exact expected agreement 9.70%, 47.41% and 32.61% for one-list, list-plus-integer and two-list inputs. These are descriptive random-pair averages, not a null distribution for a maximum over thousands of potential neighbors.
+
+For list-plus-integer programs, **170 / 192 shared inputs contain lists of length at most two**. The same pairs' median agreement falls from 96.88% across all probes to 70.59% on the 17 longer-list cases. This is a sensitivity check on fixed pairs, not a nearest-neighbor search repeated on the subset. Threshold counts are especially coarse: ≥95% on 17 probes requires all 17 to agree, whereas ≥95% on 192 permits nine mismatches. The effect is not uniform across types: one-list pairs at ≥95% number 2,656 on all probes and 2,612 on its 134 longer-list cases; at ≥99% they increase from 290 to 670 (both bank sizes permit one mismatch). Example: list maximum and absolute-rank selection with a clamped rank agree on 182 / 192 inputs yet compute different operations. Raw agreement must not be used as an automatic duplicate-removal rule.
+
+The original one-view **training prompts** are less skewed: 84,085 / 110,544 shown list-plus-integer pairs (76.06%) have list length ≥4, and every retained task has at least two distinct shown outputs. The shared-bank bias therefore does not establish that training prompts are mostly trivial. Source-conditioned agreement is also reported by input kind; pooled Codex/structured comparisons alone confound source with input-type distribution.
+
+Conclusion: substantial compositional variety is present within a small declared generator vocabulary. Expanded witness length should not be read as algorithmic novelty or certified task difficulty. The shared probe-bank limitation is distinct from training-prompt length coverage. A second seed measures training variance; it does not establish diversity or isolate data from compute. No second-seed run was launched during this audit. All artifacts and per-row neighbors are durable under `checkpoints/pbe-scale-20261024/diversity-audit/`.
+
 ## No result
 
 | study | state |

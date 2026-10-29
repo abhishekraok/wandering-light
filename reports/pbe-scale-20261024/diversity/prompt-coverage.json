@@ -1,0 +1,160 @@
+{
+  "groups": {
+    "list": {
+      "rows": 24364,
+      "shown_pairs": 146184,
+      "input_max_list_lengths": {
+        "3": 12807,
+        "6": 12692,
+        "4": 12858,
+        "5": 12821,
+        "1": 5825,
+        "10": 12742,
+        "7": 12819,
+        "11": 12860,
+        "2": 12407,
+        "12": 12865,
+        "8": 12622,
+        "9": 12862,
+        "0": 4
+      },
+      "distinct_shown_outputs": {
+        "6": 14296,
+        "5": 4995,
+        "4": 2333,
+        "3": 1228,
+        "2": 1512
+      },
+      "shown_long_case_counts_per_task": {
+        "4": 8126,
+        "5": 11704,
+        "6": 3505,
+        "3": 1029
+      },
+      "rows_with_fewer_than_two_shown_outputs": 0
+    },
+    "list_int": {
+      "rows": 18424,
+      "shown_pairs": 110544,
+      "input_max_list_lengths": {
+        "11": 9409,
+        "5": 9272,
+        "3": 9450,
+        "12": 9435,
+        "9": 9316,
+        "7": 9322,
+        "8": 9326,
+        "4": 9319,
+        "1": 7624,
+        "2": 9352,
+        "6": 9337,
+        "10": 9349,
+        "0": 33
+      },
+      "distinct_shown_outputs": {
+        "6": 4736,
+        "4": 3637,
+        "5": 3664,
+        "2": 3150,
+        "3": 3237
+      },
+      "shown_long_case_counts_per_task": {
+        "5": 7919,
+        "3": 1430,
+        "6": 1951,
+        "4": 7123,
+        "2": 1
+      },
+      "rows_with_fewer_than_two_shown_outputs": 0
+    },
+    "two_lists": {
+      "rows": 25482,
+      "shown_pairs": 152892,
+      "input_max_list_lengths": {
+        "11": 21127,
+        "6": 11823,
+        "7": 13723,
+        "10": 19174,
+        "12": 22972,
+        "4": 8067,
+        "3": 6398,
+        "5": 9931,
+        "8": 15630,
+        "9": 17138,
+        "1": 2262,
+        "2": 4643,
+        "0": 4
+      },
+      "distinct_shown_outputs": {
+        "6": 6429,
+        "4": 5279,
+        "5": 5562,
+        "3": 4104,
+        "2": 4108
+      },
+      "shown_long_case_counts_per_task": {
+        "6": 14290,
+        "5": 9231,
+        "4": 1812,
+        "3": 144,
+        "2": 5
+      },
+      "rows_with_fewer_than_two_shown_outputs": 0
+    },
+    "int": {
+      "rows": 108,
+      "shown_pairs": 648,
+      "input_max_list_lengths": {
+        "0": 648
+      },
+      "distinct_shown_outputs": {
+        "6": 36,
+        "2": 10,
+        "5": 35,
+        "4": 20,
+        "3": 7
+      },
+      "shown_long_case_counts_per_task": {
+        "0": 108
+      },
+      "rows_with_fewer_than_two_shown_outputs": 0
+    },
+    "two_ints": {
+      "rows": 121,
+      "shown_pairs": 726,
+      "input_max_list_lengths": {
+        "0": 726
+      },
+      "distinct_shown_outputs": {
+        "6": 44,
+        "5": 39,
+        "4": 14,
+        "2": 12,
+        "3": 12
+      },
+      "shown_long_case_counts_per_task": {
+        "0": 121
+      },
+      "rows_with_fewer_than_two_shown_outputs": 0
+    }
+  },
+  "method": "Original one-view training prompts; maximum list length across arguments; no programs executed.",
+  "provenance": {
+    "commit": "6206d97a801056dde5dc7ceec5c3c8a81b13245e",
+    "dirty": true,
+    "seed": null,
+    "config": {
+      "min_list_length": 4,
+      "source_view": "original"
+    },
+    "data_sha256": {
+      "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/accepted.jsonl": "1a3c173aff7010419a79779516f502cce81063f015a9a99d1bb7dc48634fffbf",
+      "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/audit-v4-eval/exclusions.json": "6437d8cbf629d24952d8cd36341e8e5c2be0064c75e8fa4b9790e60e461fe194"
+    },
+    "source_sha256": {
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/pbe_scale/diversity_prompts.py": "cc564609d1c93cb3bc559033c28cc4daffd0d4ad480b1c0650a72933836ec9ac",
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/pbe_scale/diversity_semantic.py": "40dd50e1c3692bc5d52ec10212d65c8720f3f949303de1e016be8548be95c007"
+    },
+    "wandb_run.url": null
+  }
+}

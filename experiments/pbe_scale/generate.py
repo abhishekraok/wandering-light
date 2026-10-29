@@ -527,8 +527,9 @@ def iter_candidates(
     """Yield a reproducible diverse stream, with structural templates as IDs.
 
     This is a finite seeded enumeration, not rejection sampling. Every accepted
-    candidate has a distinct macro program and 2-4 meaningful transformation stages.
-    Parameter values do not multiply the candidate count.
+    candidate has a distinct macro program and 2-4 declared transformation stages.
+    Some stages can be algebraically redundant; verification does not certify
+    shortest witnesses. Parameter values do not multiply the candidate count.
     """
     if min_ops < 0 or max_ops < min_ops:
         raise ValueError("invalid primitive-op bounds")

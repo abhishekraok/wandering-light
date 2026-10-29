@@ -1,0 +1,420 @@
+{
+  "composition_groups": {
+    "pipeline_bag": {
+      "largest_group": 93,
+      "top10": [
+        [
+          "above-mean/even/running-sum",
+          93
+        ],
+        [
+          "below-mean/negative/running-sum",
+          88
+        ],
+        [
+          "above-mean/odd/running-sum",
+          87
+        ],
+        [
+          "below-mean/even/running-sum",
+          86
+        ],
+        [
+          "even/positive-part/running-sum",
+          84
+        ],
+        [
+          "below-mean/magnitude-residual/running-sum",
+          84
+        ],
+        [
+          "odd/running-sum/squared",
+          82
+        ],
+        [
+          "above-mean/odd/squared",
+          82
+        ],
+        [
+          "odd/positive-part/running-sum",
+          82
+        ],
+        [
+          "above-mean/negative/running-sum",
+          80
+        ]
+      ],
+      "unique": 2945
+    },
+    "pipeline_core": {
+      "largest_group": 22,
+      "top10": [
+        [
+          "positive-part/running-sum/odd",
+          22
+        ],
+        [
+          "positive-part/running-sum/even",
+          21
+        ],
+        [
+          "magnitude-residual/running-sum/below-mean",
+          21
+        ],
+        [
+          "running-sum/above-mean",
+          20
+        ],
+        [
+          "running-sum/negative",
+          20
+        ],
+        [
+          "running-sum/odd",
+          20
+        ],
+        [
+          "odd/neighbor-min",
+          20
+        ],
+        [
+          "squared/running-sum/even",
+          20
+        ],
+        [
+          "running-sum/below-mean/even",
+          20
+        ],
+        [
+          "running-sum/negative/above-mean",
+          20
+        ]
+      ],
+      "unique": 8756
+    }
+  },
+  "counts": {
+    "algorithm": {
+      "decreasing-streaks": 171,
+      "dense-lower-ranks": 356,
+      "downward-zero-crossings": 19,
+      "equal-streaks": 175,
+      "higher-count-ranks": 522,
+      "increasing-streaks": 170,
+      "local-flat-triples": 57,
+      "local-peaks": 66,
+      "local-troughs": 72,
+      "longest-equal-run-so-far": 46,
+      "longest-increasing-run-so-far": 53,
+      "lower-count-ranks": 559,
+      "neighbor-equality": 37,
+      "neighbor-increases": 47,
+      "nondecreasing-streaks": 129,
+      "occurrence-frequencies": 530,
+      "prefix-distinct-counts": 207,
+      "prefix-nonzero-count": 334,
+      "prefix-positive-balance": 550,
+      "prior-equal-counts": 407,
+      "prior-smaller-counts": 464,
+      "record-highs": 786,
+      "record-lows": 777,
+      "run-lengths": 232,
+      "run-representatives": 745,
+      "running-drawdown": 256,
+      "running-maximum": 660,
+      "running-mean-residuals": 504,
+      "running-minimum": 666,
+      "running-product": 475,
+      "running-rise": 248,
+      "second-differences": 530,
+      "squared-distance": 627,
+      "strict-sign-changes": 44,
+      "sum-smaller": 814,
+      "three-point-medians": 173,
+      "three-point-ranges": 223,
+      "total-distance": 560,
+      "upward-zero-crossings": 17
+    },
+    "input_kind": {
+      "int": 108,
+      "list": 24364,
+      "list_int": 18424,
+      "two_ints": 121,
+      "two_lists": 25482
+    },
+    "pipeline_depth": {
+      "2": 4066,
+      "3": 29165,
+      "4": 18450
+    },
+    "redundancy_overlap": {
+      "absolute_only": 270,
+      "both": 55,
+      "neither": 43959,
+      "ordering_only": 7397
+    },
+    "redundant_ordering": {
+      "descending": 1588,
+      "reverse": 4057,
+      "sort": 1807
+    },
+    "source_class": {
+      "explicit_algorithm": 13308,
+      "other_authored_or_anchor": 3510,
+      "pipeline": 51681
+    }
+  },
+  "declared_vocabulary": {
+    "algorithms": 39,
+    "readouts": 10,
+    "stages": 23,
+    "starts": 12
+  },
+  "excluded_rows": 12,
+  "execution_performed": false,
+  "kept_rows": 68499,
+  "kind_macro_integer_normalized_unique": 68480,
+  "kind_macro_unique": 68499,
+  "limitations": [
+    "Composition groups measure concentration, not semantic duplicates; order, starts and readouts can change behavior.",
+    "Redundancy checks prove removable operations, not duplicate functions or minimal witnesses; checks are incomplete.",
+    "Integer normalization is lexical; constants encoded by other macros are not normalized."
+  ],
+  "pipeline_simplified_template_unique": 51681,
+  "provenance": {
+    "config": {
+      "algorithm_families": [
+        "all-pairs-relations",
+        "frequency-analysis",
+        "local-relations",
+        "local-shape",
+        "prefix-relations",
+        "rank-transforms",
+        "record-sequences",
+        "running-aggregation",
+        "running-extrema",
+        "running-residuals",
+        "runs-and-streaks",
+        "threshold-crossings"
+      ],
+      "deterministic": true,
+      "example_limit": 3,
+      "pipeline_families": [
+        "baseline-pipeline",
+        "conditional-summary",
+        "original-comparison",
+        "paired-series-pipeline",
+        "series-pipeline"
+      ]
+    },
+    "dirty": true,
+    "git_commit": "6206d97a801056dde5dc7ceec5c3c8a81b13245e",
+    "seed": null,
+    "source_data_digests": {
+      "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/audit-v4-eval/exclusions.json": "6437d8cbf629d24952d8cd36341e8e5c2be0064c75e8fa4b9790e60e461fe194",
+      "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/accepted.jsonl": "1a3c173aff7010419a79779516f502cce81063f015a9a99d1bb7dc48634fffbf"
+    },
+    "source_file_digests": {
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/pbe_scale/diversity_structure.py": "e3d4bf38b844d71507c8eeee75488b31556c6dfa5395fc41322702a59a021a3a",
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/pbe_scale/generate.py": "aa02f6fa72f81271e011cb3548e7d1ec8e13f20cbeb0741947f1edf1570d2576",
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/pbe_scale/generate_families.py": "dd382842153b63ea61fd255641f9a1411cc86deb70e73ced1f9eb7f46b5db269"
+    },
+    "wandb_run.url": null
+  },
+  "redundancy_assumptions": {
+    "absolute": "Squaring and absolute magnitude ignore a final absolute-value map.",
+    "contexts": {
+      "baseline-pipeline": [
+        "above-argument",
+        "below-argument",
+        "distance-to-argument",
+        "subtract-argument"
+      ],
+      "conditional-summary": [
+        "direction-by-total"
+      ],
+      "original-comparison": [
+        "level-versus-change",
+        "sample-weighted",
+        "total-difference"
+      ],
+      "paired-series-pipeline": [
+        "concatenate",
+        "pair-difference",
+        "pair-distance",
+        "pair-max",
+        "pair-min",
+        "pair-product",
+        "pair-sum"
+      ],
+      "series-pipeline": [
+        "input"
+      ]
+    },
+    "multiset_continuation_categories": [
+      "global",
+      "multiplicity",
+      "ordering",
+      "pointwise",
+      "selection"
+    ],
+    "ordering": "Downstream stages preserve multiset dependence; the readout is invariant to permutations.",
+    "readouts": [
+      "absolute-total",
+      "count",
+      "energy",
+      "maximum",
+      "mean",
+      "minimum",
+      "span",
+      "total"
+    ],
+    "scope": "Known stage semantics and scalar wrappers from generate.py; output-value identities, not fuel equivalence or duplicate functions."
+  },
+  "redundancy_examples": [
+    {
+      "expanded_length": 63,
+      "id": "pbe-scale-823dc5b045cf54bd4aa5",
+      "redundant_indices": [
+        0
+      ],
+      "template": "above-argument/reverse/negative/span"
+    },
+    {
+      "expanded_length": 103,
+      "id": "pbe-scale-ef42b7a0e6bea6fd7382",
+      "redundant_indices": [
+        2
+      ],
+      "template": "subtract-argument/running-sum/odd/absolute/absolute-total"
+    },
+    {
+      "expanded_length": 59,
+      "id": "pbe-scale-c797d2d6d9c662671046",
+      "redundant_indices": [
+        1
+      ],
+      "template": "below-argument/nonzero/absolute/absolute-total"
+    }
+  ],
+  "redundancy_rows_by_family": {
+    "baseline-pipeline": {
+      "absolute": 92,
+      "ordering": 1684,
+      "union": 1757
+    },
+    "conditional-summary": {
+      "absolute": 3,
+      "ordering": 55,
+      "union": 58
+    },
+    "original-comparison": {
+      "absolute": 82,
+      "ordering": 2300,
+      "union": 2374
+    },
+    "paired-series-pipeline": {
+      "absolute": 134,
+      "ordering": 2785,
+      "union": 2892
+    },
+    "series-pipeline": {
+      "absolute": 14,
+      "ordering": 628,
+      "union": 641
+    }
+  },
+  "redundant_witness_rows": 7722,
+  "source_lengths": {
+    "explicit_algorithm": {
+      "expanded_tokens": {
+        "0": 25,
+        "0.25": 101,
+        "0.5": 144,
+        "0.75": 172,
+        "0.9": 189,
+        "0.99": 199,
+        "1": 200
+      },
+      "expansion_ratio": {
+        "0": 1.1224489795918366,
+        "0.25": 2.2298850574712645,
+        "0.5": 3.1923076923076925,
+        "0.75": 4.147058823529412,
+        "0.9": 5.676470588235294,
+        "0.99": 9.875,
+        "1": 24.5
+      },
+      "macro_tokens": {
+        "0": 7,
+        "0.25": 32,
+        "0.5": 41,
+        "0.75": 52,
+        "0.9": 66,
+        "0.99": 84,
+        "1": 100
+      },
+      "rows": 13308
+    },
+    "other_authored_or_anchor": {
+      "expanded_tokens": {
+        "0": 1,
+        "0.25": 121,
+        "0.5": 201,
+        "0.75": 287,
+        "0.9": 364,
+        "0.99": 561,
+        "1": 845
+      },
+      "expansion_ratio": {
+        "0": 1.0,
+        "0.25": 5.3478260869565215,
+        "0.5": 10.153846153846153,
+        "0.75": 16.15,
+        "0.9": 22.058823529411764,
+        "0.99": 36.57142857142857,
+        "1": 128.0
+      },
+      "macro_tokens": {
+        "0": 1,
+        "0.25": 14,
+        "0.5": 20,
+        "0.75": 28,
+        "0.9": 39,
+        "0.99": 65,
+        "1": 118
+      },
+      "rows": 3510
+    },
+    "pipeline": {
+      "expanded_tokens": {
+        "0": 50,
+        "0.25": 145,
+        "0.5": 193,
+        "0.75": 257,
+        "0.9": 314,
+        "0.99": 390,
+        "1": 400
+      },
+      "expansion_ratio": {
+        "0": 1.255813953488372,
+        "0.25": 4.523809523809524,
+        "0.5": 6.576923076923077,
+        "0.75": 8.947368421052632,
+        "0.9": 11.857142857142858,
+        "0.99": 18.80952380952381,
+        "1": 60.0
+      },
+      "macro_tokens": {
+        "0": 3,
+        "0.25": 24,
+        "0.5": 30,
+        "0.75": 37,
+        "0.9": 46,
+        "0.99": 68,
+        "1": 138
+      },
+      "rows": 51681
+    }
+  }
+}

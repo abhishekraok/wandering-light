@@ -1,8 +1,12 @@
 # Large-scale stack PBE
 
-![Completed corpus and first training comparison](comparison.png)
+![Composition reuse and sensitivity of output similarity](diversity/diversity.png)
+
+The diversity audit finds real compositional variety within a narrow generator vocabulary. Most rows combine 23 transformations or 39 named algorithms. Across the shared test bank, 31.2% have a neighbor matching at least 95% of outputs; this is not a duplicate-function count. Sensitivity is strongest for list-plus-integer inputs: the same pairs' median agreement falls from 96.9% to 70.6% on the 17 longer-list cases. The one-list group's count at ≥95% changes little. Original training prompts have broader length coverage than the shared bank. [Audit numbers and limits](../../docs/RESULTS_DETAILED.md#diversity-audit-2026-10-28) · [structural evidence](diversity/structural-summary.json) · [behavioral evidence](diversity/semantic-summary.json) · [input sensitivity](diversity/semantic-sensitivity.json).
 
 The scale target is met: 68,499 tested behaviors and 1,095,984 task views, 156.57× the old task count. The first training comparison gives a modest gain: **15 → 17 verified behaviors; 584 → 586 tasks**, over all 1,800 frozen v4 tasks. Mixed training gains `all_positive` and `pair_floor_averages`, losing no behaviors; at task level it gains 77 and loses 75.
+
+[First training comparison figure](comparison.png). A second seed measures repeatability of that result; it does not resolve generator diversity or the unequal training budget. No second-seed training was launched while investigating the owner's diversity question.
 
 This is one seed at fixed epoch 3, with **16.45× more optimizer updates** for mixed training. It does not isolate the effect of data from compute. The old arm is a freshly trained control, not an exact reproduction of the pinned `BEST` checkpoint's row sampling. Longer-program generalization remains untested (both searches use depth 48).
 

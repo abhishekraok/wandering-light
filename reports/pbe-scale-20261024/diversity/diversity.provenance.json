@@ -1,0 +1,22 @@
+{
+  "commit": "6206d97a801056dde5dc7ceec5c3c8a81b13245e",
+  "dirty": true,
+  "source_sha256": "bd8867c977be346ff348f8fe32407e878b12200bef904c81376f77519168c456",
+  "seed": null,
+  "config": {
+    "dpi": 170,
+    "size_inches": [
+      12,
+      5.2
+    ]
+  },
+  "inputs_sha256": {
+    "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/diversity-audit/structural-summary.json": "bcbfe723524e515343c8cf4eca93ed6ce607343575275206f57c7b2b2f01e486",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/diversity-audit/semantic-summary.json": "6909e93186294bbb9e93fe455bfa66b8544f400967384298f31d8b2e3115158f",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/diversity-audit/semantic-sensitivity.json": "704da34325d2dfa4cec91a0ef89d0c4183b7436dd11fdca5e3984218fda146c3",
+    "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/diversity-audit/prompt-coverage.json": "5b7020e0e2476c33024fbd0923f9ae6b726d421cb21628fdd33fdd821e36d2d5",
+    "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/reports/pbe-scale-20261024/plot_diversity.py": "922cbbcfc2b01ec4cfcf5b854604e7f7588ba19b458f565fd73daf39418d46ba"
+  },
+  "output_sha256": "e191adcf3b7363fdbe7c5b59ecf17f5b1dc8d5b3a7de860e1bb21ce6554ea086",
+  "wandb_run.url": null
+}

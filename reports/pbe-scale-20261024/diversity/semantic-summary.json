@@ -1,0 +1,1415 @@
+{
+  "method": "exhaustive same-input-kind saved shared-IO Hamming agreement",
+  "thresholds": [
+    0.99,
+    0.95,
+    0.9,
+    0.8
+  ],
+  "groups": {
+    "list": {
+      "rows": 24364,
+      "shared_probes": 192,
+      "unordered_pairs": 296790066,
+      "nearest_agreement_quantiles": {
+        "0": 0.015625,
+        "0.1": 0.34895833333333337,
+        "0.25": 0.5052083333333333,
+        "0.5": 0.703125,
+        "0.75": 0.8645833333333334,
+        "0.9": 0.953125,
+        "0.95": 0.9791666666666666,
+        "0.99": 0.9947916666666666,
+        "1": 0.9947916666666666
+      },
+      "nearest_mismatch_quantiles": {
+        "0": 1.0,
+        "0.1": 9.0,
+        "0.25": 26.0,
+        "0.5": 57.0,
+        "0.75": 95.0,
+        "0.9": 125.0,
+        "0.95": 138.0,
+        "0.99": 158.0,
+        "1": 189.0
+      },
+      "rows_with_neighbor": {
+        "0.99": 290,
+        "0.95": 2656,
+        "0.9": 4890,
+        "0.8": 8549
+      },
+      "unordered_pairs_at_threshold": {
+        "0.99": 159,
+        "0.95": 11878,
+        "0.9": 73495,
+        "0.8": 251830
+      },
+      "random_pair_count": 10000,
+      "random_pair_agreement_quantiles": {
+        "0": 0.0,
+        "0.1": 0.0,
+        "0.25": 0.026041666666666668,
+        "0.5": 0.052083333333333336,
+        "0.75": 0.140625,
+        "0.9": 0.24479166666666666,
+        "0.95": 0.3020833333333333,
+        "0.99": 0.44276041666666777,
+        "1": 0.9322916666666666
+      },
+      "exact_random_pair_expected_agreement": 0.09699627916033415,
+      "probe_modal_output_share_quantiles": {
+        "0": 0.055532753242488915,
+        "0.1": 0.07372763093088162,
+        "0.25": 0.08162658020029552,
+        "0.5": 0.116401247742571,
+        "0.75": 0.2660790510589394,
+        "0.9": 0.4840953866360205,
+        "0.95": 0.5538704646199311,
+        "0.99": 0.9009427844360532,
+        "1": 0.9184452470858644
+      },
+      "probe_output_entropy_bits_quantiles": {
+        "0": 0.41760639950459344,
+        "0.1": 3.006119295194322,
+        "0.25": 5.341610390364964,
+        "0.5": 7.524112585756045,
+        "0.75": 8.28897397516517,
+        "0.9": 8.690435143576547,
+        "0.95": 8.808538989626388,
+        "0.99": 9.04030890982997,
+        "1": 9.129107868423418
+      },
+      "probes_modal_share_at_least_90pct": 3,
+      "row_most_common_output_share_quantiles": {
+        "0": 0.005208333333333333,
+        "0.1": 0.041666666666666664,
+        "0.25": 0.057291666666666664,
+        "0.5": 0.15104166666666666,
+        "0.75": 0.3229166666666667,
+        "0.9": 0.5260416666666666,
+        "0.95": 0.71875,
+        "0.99": 0.9427083333333334,
+        "1": 0.9947916666666666
+      },
+      "nearest_agreement_on_probes_with_modal_share_below_90pct_quantiles": {
+        "0": 0.005291005291005291,
+        "0.1": 0.3386243386243386,
+        "0.25": 0.4973544973544973,
+        "0.5": 0.6984126984126984,
+        "0.75": 0.8624338624338624,
+        "0.9": 0.9523809523809523,
+        "0.95": 0.9788359788359788,
+        "0.99": 0.9947089947089947,
+        "1": 0.9947089947089947
+      }
+    },
+    "list_int": {
+      "rows": 18424,
+      "shared_probes": 192,
+      "unordered_pairs": 169712676,
+      "nearest_agreement_quantiles": {
+        "0": 0.04166666666666663,
+        "0.1": 0.9270833333333334,
+        "0.25": 0.9479166666666666,
+        "0.5": 0.96875,
+        "0.75": 0.9895833333333334,
+        "0.9": 0.9947916666666666,
+        "0.95": 0.9947916666666666,
+        "0.99": 0.9947916666666666,
+        "1": 0.9947916666666666
+      },
+      "nearest_mismatch_quantiles": {
+        "0": 1.0,
+        "0.1": 1.0,
+        "0.25": 2.0,
+        "0.5": 6.0,
+        "0.75": 10.0,
+        "0.9": 14.0,
+        "0.95": 18.0,
+        "0.99": 41.0,
+        "1": 184.0
+      },
+      "rows_with_neighbor": {
+        "0.99": 2585,
+        "0.95": 13320,
+        "0.9": 17725,
+        "0.8": 18215
+      },
+      "unordered_pairs_at_threshold": {
+        "0.99": 2745,
+        "0.95": 4072934,
+        "0.9": 36240778,
+        "0.8": 59861193
+      },
+      "random_pair_count": 10000,
+      "random_pair_agreement_quantiles": {
+        "0": 0.0,
+        "0.1": 0.0,
+        "0.25": 0.0,
+        "0.5": 0.5833333333333334,
+        "0.75": 0.890625,
+        "0.9": 0.921875,
+        "0.95": 0.9375,
+        "0.99": 0.9635416666666666,
+        "1": 0.984375
+      },
+      "exact_random_pair_expected_agreement": 0.4740893945511766,
+      "probe_modal_output_share_quantiles": {
+        "0": 0.0800586191923578,
+        "0.1": 0.5496037776812854,
+        "0.25": 0.6285280069474599,
+        "0.5": 0.6980840208423795,
+        "0.75": 0.7072297003907946,
+        "0.9": 0.7738113330438559,
+        "0.95": 0.7738818931828051,
+        "0.99": 0.7738818931828051,
+        "1": 0.7738818931828051
+      },
+      "probe_output_entropy_bits_quantiles": {
+        "0": 0.7819635337508276,
+        "0.1": 0.7830691348023255,
+        "0.25": 1.4673005220466235,
+        "0.5": 1.6261391114457717,
+        "0.75": 2.382145826710201,
+        "0.9": 3.2399013781410373,
+        "0.95": 6.599323908983511,
+        "0.99": 7.783644453159491,
+        "1": 8.535774219382352
+      },
+      "probes_modal_share_at_least_90pct": 0,
+      "row_most_common_output_share_quantiles": {
+        "0": 0.015625,
+        "0.1": 0.546875,
+        "0.25": 0.7708333333333334,
+        "0.5": 0.90625,
+        "0.75": 0.9479166666666666,
+        "0.9": 0.96875,
+        "0.95": 0.9791666666666666,
+        "0.99": 0.9895833333333334,
+        "1": 0.9947916666666666
+      },
+      "nearest_agreement_on_probes_with_modal_share_below_90pct_quantiles": {
+        "0": 0.041666666666666664,
+        "0.1": 0.9270833333333334,
+        "0.25": 0.9479166666666666,
+        "0.5": 0.96875,
+        "0.75": 0.9895833333333334,
+        "0.9": 0.9947916666666666,
+        "0.95": 0.9947916666666666,
+        "0.99": 0.9947916666666666,
+        "1": 0.9947916666666666
+      }
+    },
+    "two_lists": {
+      "rows": 25482,
+      "shared_probes": 192,
+      "unordered_pairs": 324653421,
+      "nearest_agreement_quantiles": {
+        "0": 0.08854166666666663,
+        "0.1": 0.6302083333333333,
+        "0.25": 0.765625,
+        "0.5": 0.8697916666666666,
+        "0.75": 0.9427083333333334,
+        "0.9": 0.9739583333333334,
+        "0.95": 0.9895833333333334,
+        "0.99": 0.9947916666666666,
+        "1": 0.9947916666666666
+      },
+      "nearest_mismatch_quantiles": {
+        "0": 1.0,
+        "0.1": 5.0,
+        "0.25": 11.0,
+        "0.5": 25.0,
+        "0.75": 45.0,
+        "0.9": 71.0,
+        "0.95": 89.0,
+        "0.99": 121.0,
+        "1": 175.0
+      },
+      "rows_with_neighbor": {
+        "0.99": 660,
+        "0.95": 5412,
+        "0.9": 10403,
+        "0.8": 17497
+      },
+      "unordered_pairs_at_threshold": {
+        "0.99": 452,
+        "0.95": 102743,
+        "0.9": 741467,
+        "0.8": 6850646
+      },
+      "random_pair_count": 10000,
+      "random_pair_agreement_quantiles": {
+        "0": 0.0,
+        "0.1": 0.0,
+        "0.25": 0.0,
+        "0.5": 0.2916666666666667,
+        "0.75": 0.6145833333333334,
+        "0.9": 0.7083333333333334,
+        "0.95": 0.7552083333333334,
+        "0.99": 0.8333333333333334,
+        "1": 0.9583333333333334
+      },
+      "exact_random_pair_expected_agreement": 0.3260778930932884,
+      "probe_modal_output_share_quantiles": {
+        "0": 0.0744447060670277,
+        "0.1": 0.13750490542343616,
+        "0.25": 0.3250824111137274,
+        "0.5": 0.6046621144337179,
+        "0.75": 0.6659897182324779,
+        "0.9": 0.7630601993564085,
+        "0.95": 0.7705105564712346,
+        "0.99": 0.7869511812259634,
+        "1": 0.792716427282003
+      },
+      "probe_output_entropy_bits_quantiles": {
+        "0": 0.7512888257524925,
+        "0.1": 1.2608697897378376,
+        "0.25": 2.0116928284450024,
+        "0.5": 2.8319070194884253,
+        "0.75": 6.045760717876489,
+        "0.9": 8.235501114892358,
+        "0.95": 8.807901862504226,
+        "0.99": 9.289229635993282,
+        "1": 9.392191605118349
+      },
+      "probes_modal_share_at_least_90pct": 0,
+      "row_most_common_output_share_quantiles": {
+        "0": 0.015625,
+        "0.1": 0.28125,
+        "0.25": 0.4635416666666667,
+        "0.5": 0.6666666666666666,
+        "0.75": 0.78125,
+        "0.9": 0.8697916666666666,
+        "0.95": 0.921875,
+        "0.99": 0.9791666666666666,
+        "1": 0.9947916666666666
+      },
+      "nearest_agreement_on_probes_with_modal_share_below_90pct_quantiles": {
+        "0": 0.08854166666666667,
+        "0.1": 0.6302083333333334,
+        "0.25": 0.765625,
+        "0.5": 0.8697916666666666,
+        "0.75": 0.9427083333333334,
+        "0.9": 0.9739583333333334,
+        "0.95": 0.9895833333333334,
+        "0.99": 0.9947916666666666,
+        "1": 0.9947916666666666
+      }
+    },
+    "int": {
+      "rows": 108,
+      "shared_probes": 21,
+      "unordered_pairs": 5778,
+      "nearest_agreement_quantiles": {
+        "0": 0.0,
+        "0.1": 0.09523809523809523,
+        "0.25": 0.1428571428571429,
+        "0.5": 0.2857142857142857,
+        "0.75": 0.39285714285714285,
+        "0.9": 0.5714285714285714,
+        "0.95": 0.7428571428571412,
+        "0.99": 0.9014285714285711,
+        "1": 0.9047619047619048
+      },
+      "nearest_mismatch_quantiles": {
+        "0": 2.0,
+        "0.1": 9.0,
+        "0.25": 12.75,
+        "0.5": 15.0,
+        "0.75": 18.0,
+        "0.9": 19.0,
+        "0.95": 19.64999999999999,
+        "0.99": 20.0,
+        "1": 21.0
+      },
+      "rows_with_neighbor": {
+        "0.99": 0,
+        "0.95": 0,
+        "0.9": 2,
+        "0.8": 6
+      },
+      "unordered_pairs_at_threshold": {
+        "0.99": 0,
+        "0.95": 0,
+        "0.9": 1,
+        "0.8": 3
+      },
+      "random_pair_count": 10000,
+      "random_pair_agreement_quantiles": {
+        "0": 0.0,
+        "0.1": 0.0,
+        "0.25": 0.0,
+        "0.5": 0.0,
+        "0.75": 0.047619047619047616,
+        "0.9": 0.14285714285714285,
+        "0.95": 0.23809523809523808,
+        "0.99": 0.38095238095238093,
+        "1": 0.9047619047619048
+      },
+      "exact_random_pair_expected_agreement": 0.04906954128137929,
+      "probe_modal_output_share_quantiles": {
+        "0": 0.05555555555555555,
+        "0.1": 0.06481481481481481,
+        "0.25": 0.07407407407407407,
+        "0.5": 0.08333333333333333,
+        "0.75": 0.1111111111111111,
+        "0.9": 0.2962962962962963,
+        "0.95": 0.2962962962962963,
+        "0.99": 0.4814814814814817,
+        "1": 0.5277777777777778
+      },
+      "probe_output_entropy_bits_quantiles": {
+        "0": 2.0438515779514974,
+        "0.1": 3.2438781444263944,
+        "0.25": 5.34905833587524,
+        "0.5": 5.823912155459908,
+        "0.75": 6.0383682615592615,
+        "0.9": 6.065965020738394,
+        "0.95": 6.175912270561794,
+        "0.99": 6.180454330206883,
+        "1": 6.181589845118156
+      },
+      "probes_modal_share_at_least_90pct": 0,
+      "row_most_common_output_share_quantiles": {
+        "0": 0.047619047619047616,
+        "0.1": 0.09523809523809523,
+        "0.25": 0.09523809523809523,
+        "0.5": 0.19047619047619047,
+        "0.75": 0.23809523809523808,
+        "0.9": 0.5238095238095238,
+        "0.95": 0.5238095238095238,
+        "0.99": 0.8880952380952364,
+        "1": 0.9523809523809523
+      },
+      "nearest_agreement_on_probes_with_modal_share_below_90pct_quantiles": {
+        "0": 0.0,
+        "0.1": 0.09523809523809523,
+        "0.25": 0.14285714285714285,
+        "0.5": 0.2857142857142857,
+        "0.75": 0.39285714285714285,
+        "0.9": 0.5714285714285714,
+        "0.95": 0.7428571428571412,
+        "0.99": 0.901428571428571,
+        "1": 0.9047619047619048
+      }
+    },
+    "two_ints": {
+      "rows": 121,
+      "shared_probes": 441,
+      "unordered_pairs": 7260,
+      "nearest_agreement_quantiles": {
+        "0": 0.009070294784580546,
+        "0.1": 0.05442176870748294,
+        "0.25": 0.15646258503401356,
+        "0.5": 0.2630385487528345,
+        "0.75": 0.5124716553287982,
+        "0.9": 0.5918367346938775,
+        "0.95": 0.7936507936507937,
+        "0.99": 0.8875283446712018,
+        "1": 0.891156462585034
+      },
+      "nearest_mismatch_quantiles": {
+        "0": 48.0,
+        "0.1": 180.0,
+        "0.25": 215.0,
+        "0.5": 325.0,
+        "0.75": 372.0,
+        "0.9": 417.0,
+        "0.95": 425.0,
+        "0.99": 435.8,
+        "1": 437.0
+      },
+      "rows_with_neighbor": {
+        "0.99": 0,
+        "0.95": 0,
+        "0.9": 0,
+        "0.8": 5
+      },
+      "unordered_pairs_at_threshold": {
+        "0.99": 0,
+        "0.95": 0,
+        "0.9": 0,
+        "0.8": 3
+      },
+      "random_pair_count": 10000,
+      "random_pair_agreement_quantiles": {
+        "0": 0.0,
+        "0.1": 0.0,
+        "0.25": 0.0022675736961451248,
+        "0.5": 0.02040816326530612,
+        "0.75": 0.05668934240362812,
+        "0.9": 0.12244897959183673,
+        "0.95": 0.1746031746031746,
+        "0.99": 0.42403628117913833,
+        "1": 0.7936507936507936
+      },
+      "exact_random_pair_expected_agreement": 0.047546272870948196,
+      "probe_modal_output_share_quantiles": {
+        "0": 0.04132231404958678,
+        "0.1": 0.0743801652892562,
+        "0.25": 0.09090909090909091,
+        "0.5": 0.11570247933884298,
+        "0.75": 0.15702479338842976,
+        "0.9": 0.2727272727272727,
+        "0.95": 0.33884297520661155,
+        "0.99": 0.3884297520661157,
+        "1": 0.768595041322314
+      },
+      "probe_output_entropy_bits_quantiles": {
+        "0": 1.242031361776988,
+        "0.1": 4.077560482204781,
+        "0.25": 4.988413473492837,
+        "0.5": 5.381177773489023,
+        "0.75": 5.633203010393289,
+        "0.9": 5.783457634090678,
+        "0.95": 5.847888236952757,
+        "0.99": 5.927210761774551,
+        "1": 6.034081005655078
+      },
+      "probes_modal_share_at_least_90pct": 0,
+      "row_most_common_output_share_quantiles": {
+        "0": 0.009070294784580499,
+        "0.1": 0.045351473922902494,
+        "0.25": 0.07256235827664399,
+        "0.5": 0.10884353741496598,
+        "0.75": 0.2290249433106576,
+        "0.9": 0.5238095238095238,
+        "0.95": 0.7732426303854876,
+        "0.99": 0.9215419501133786,
+        "1": 0.9523809523809523
+      },
+      "nearest_agreement_on_probes_with_modal_share_below_90pct_quantiles": {
+        "0": 0.009070294784580499,
+        "0.1": 0.05442176870748299,
+        "0.25": 0.1564625850340136,
+        "0.5": 0.26303854875283444,
+        "0.75": 0.5124716553287982,
+        "0.9": 0.5918367346938775,
+        "0.95": 0.7936507936507936,
+        "0.99": 0.8875283446712018,
+        "1": 0.891156462585034
+      }
+    }
+  },
+  "examples": [
+    {
+      "kind": "list",
+      "agreement": 0.9947916666666666,
+      "mismatches": 1,
+      "probes": 192,
+      "a": {
+        "id": "anchor-list-list-minimum",
+        "candidate_digest": "b7714c2e604bbbd1c0bbe2967dc33bad9414fbbcf896d3d256581d645581f216",
+        "family": "canonical-anchors",
+        "description": "On the list argument, take the minimum, or zero when empty; ignore other arguments.",
+        "program": "[ dup null? ] [ drop 0 ] [ min ] ifte"
+      },
+      "b": {
+        "id": "pbe-family-5f03f2545d3c4471e09e",
+        "candidate_digest": "3c4655547a908ad50705500ee4fe49fa3d78da98852a817e633d315ac673cf9f",
+        "family": "record-sequences",
+        "description": "start with the input list; then retain the first observation and every subsequent strict record low; then remove zeros; then take the minimum, or zero when empty.",
+        "program": "nil [ [ over null? ] [ cons ] [ [ over head over gt? ] [ cons ] [ drop ] ifte ] ifte ] fold reverse [ 0 eq? not ] filter [ dup null? ] [ drop 0 ] [ min ] ifte"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (7 0 6 2 5) ]",
+          "a": "[ 0 ]",
+          "b": "[ 7 ]"
+        }
+      ]
+    },
+    {
+      "kind": "list",
+      "agreement": 0.9895833333333334,
+      "mismatches": 2,
+      "probes": 192,
+      "a": {
+        "id": "pbe-family-187f5b7b62fd6a8de394",
+        "candidate_digest": "e49cae9386b1bdb774b936011b8e7ffaca9b8074a6b484c38f28ef82cf1b9510",
+        "family": "local-shape",
+        "description": "start with the input list; then flag triples of equal observations; then keep first occurrences; then take the minimum, or zero when empty.",
+        "program": "nil nil pack2 [ [ unpack2 ] dip [ pick2 len 2 lt? ] [ ] [ dup pick3 unpack2 swap rot over eq? bool>int [ eq? bool>int ] dip mul [ swap ] dip cons swap ] ifte [ swap ] dip cons swap pack2 ] fold second reverse dedup [ dup null? ] [ drop 0 ] [ min ] ifte"
+      },
+      "b": {
+        "id": "pbe-family-b70f598ea6cb95339486",
+        "candidate_digest": "85e04c15c05b5817a0651740049f84a31a42be7a3d7fad01a43727f0e54f7914",
+        "family": "local-shape",
+        "description": "start with the input list; then flag triples of equal observations; then take the maximum, or zero when empty.",
+        "program": "nil nil pack2 [ [ unpack2 ] dip [ pick2 len 2 lt? ] [ ] [ dup pick3 unpack2 swap rot over eq? bool>int [ eq? bool>int ] dip mul [ swap ] dip cons swap ] ifte [ swap ] dip cons swap pack2 ] fold second reverse [ dup null? ] [ drop 0 ] [ max ] ifte"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-3 -3 -3 10 -4 1 -5 10 0) ]",
+          "a": "[ 0 ]",
+          "b": "[ 1 ]"
+        },
+        {
+          "input": "[ (2 2 -9 -7 -5 3 4 4 4 10) ]",
+          "a": "[ 0 ]",
+          "b": "[ 1 ]"
+        }
+      ]
+    },
+    {
+      "kind": "list",
+      "agreement": 0.9479166666666666,
+      "mismatches": 10,
+      "probes": 192,
+      "a": {
+        "id": "scale-000135-02",
+        "candidate_digest": "eb2c93c3b5064d75d60a794696c81b4418a76b47e9dc136e7453dc9e223bd7f0",
+        "family": "cancelling-pair-counts",
+        "description": "Count index pairs i<j with nonzero opposite values, so their sum is zero and their product is negative. Empty lists return 0.",
+        "program": "nil 0 pack2 [ [ unpack2 ] dip pick2 over [ over over add 0 eq? bool>int [ mul 0 lt? bool>int ] dip mul 1 eq? ] swap cons filter len [ swap ] dip add [ cons ] dip pack2 ] fold second"
+      },
+      "b": {
+        "id": "scale-000123-01",
+        "candidate_digest": "04c8168f72bcf746b32c6ac6687f3d0b6b8e1dceac236f73786e09003390c5fe",
+        "family": "pair-counts",
+        "description": "Count index pairs i<j whose values sum to zero. Duplicate positions count separately; return 0 for fewer than two elements.",
+        "program": "nil 0 pack2 [ [ unpack2 ] dip pick2 over [ add 0 eq? ] swap cons filter len rot add [ cons ] dip pack2 ] fold unpack2 swap drop"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-3 1 5 0 0 -1 8 7 -7 -10 5 -1) ]",
+          "a": "[ 3 ]",
+          "b": "[ 4 ]"
+        },
+        {
+          "input": "[ (-4 -3 -6 0 2 5 0 9) ]",
+          "a": "[ 0 ]",
+          "b": "[ 1 ]"
+        },
+        {
+          "input": "[ (-7 -9 -1 -8 0 9 -1 0 0 5 -10 -2) ]",
+          "a": "[ 1 ]",
+          "b": "[ 4 ]"
+        }
+      ]
+    },
+    {
+      "kind": "list",
+      "agreement": 0.9010416666666666,
+      "mismatches": 19,
+      "probes": 192,
+      "a": {
+        "id": "scale-000046-11",
+        "candidate_digest": "8e2346aa137d994e9b2bf20235c65704f1ffa1b7fc704c97d3a94f307ae33870",
+        "family": "endpoint-sensitive-transformation",
+        "description": "Empty input returns []. If the first and last elements are equal, remove every occurrence of that endpoint value. Otherwise return the absolute consecutive differences in original order.",
+        "program": "[ dup null? ] [ ] [ [ dup head swap last eq? ] [ dup head [ eq? not ] swap cons filter ] [ differences [ abs ] map ] ifte ] ifte"
+      },
+      "b": {
+        "id": "scale-000011-09",
+        "candidate_digest": "bf701703dbdba2db562d541d56e0f2ebc7b4ef7b17eef12f28efe13aa0b3d0af",
+        "family": "neighbor-distance",
+        "description": "Return the absolute difference between each consecutive pair, in order. Lists shorter than two return [].",
+        "program": "adjacent [ unpack2 sub abs ] map"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-1 -1) ]",
+          "a": "[ nil ]",
+          "b": "[ (0) ]"
+        },
+        {
+          "input": "[ (-1 1 -6 -8 1 -4 -4 -9 5 -1) ]",
+          "a": "[ (1 -6 -8 1 -4 -4 -9 5) ]",
+          "b": "[ (2 7 2 9 5 0 5 14 6) ]"
+        },
+        {
+          "input": "[ (-1 7 -1) ]",
+          "a": "[ (7) ]",
+          "b": "[ (8 8) ]"
+        }
+      ]
+    },
+    {
+      "kind": "list",
+      "agreement": 0.8020833333333334,
+      "mismatches": 38,
+      "probes": 192,
+      "a": {
+        "id": "pbe-family-3303aacb01f5526dab8a",
+        "candidate_digest": "7bfaba9ba5f8c0596ae92d7f9d6b51763513021a62c0c5bef2729425b45cfdb0",
+        "family": "runs-and-streaks",
+        "description": "start with the input list; then report the current nondecreasing run length at each observation; then retain odd values; then count the result.",
+        "program": "nil 0 nil pack3 [ [ unpack3 ] dip [ pick3 null? ] [ [ drop 1 ] dip2 ] [ [ pick3 head over le? ] [ [ inc ] dip2 ] [ [ drop 1 ] dip2 ] ifte ] ifte [ over cons ] dip [ drop ] dip3 quote -rot pack3 ] fold third reverse [ odd? ] filter len"
+      },
+      "b": {
+        "id": "pbe-family-208920584808c84446bd",
+        "candidate_digest": "e4392fa28b3370a2a8433099dac1956be6f06060e8301b683211da39210d625a",
+        "family": "runs-and-streaks",
+        "description": "start with the input list; then report the current strictly increasing run length at each observation; then retain odd values; then count the result.",
+        "program": "nil 0 nil pack3 [ [ unpack3 ] dip [ pick3 null? ] [ [ drop 1 ] dip2 ] [ [ pick3 head over lt? ] [ [ inc ] dip2 ] [ [ drop 1 ] dip2 ] ifte ] ifte [ over cons ] dip [ drop ] dip3 quote -rot pack3 ] fold third reverse [ odd? ] filter len"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-1 -1 -5 -4 0 -4 7 4 -3 4 5) ]",
+          "a": "[ 7 ]",
+          "b": "[ 8 ]"
+        },
+        {
+          "input": "[ (-1 -1 -8 1 9 -2) ]",
+          "a": "[ 4 ]",
+          "b": "[ 5 ]"
+        },
+        {
+          "input": "[ (-1 -1) ]",
+          "a": "[ 1 ]",
+          "b": "[ 2 ]"
+        }
+      ]
+    },
+    {
+      "kind": "list_int",
+      "agreement": 0.9947916666666666,
+      "mismatches": 1,
+      "probes": 192,
+      "a": {
+        "id": "scale-000073-16",
+        "candidate_digest": "56c4c46c024466349d9a65702198ce06f645c602e4a3027e27e55c435855a390",
+        "family": "threshold-crossings",
+        "description": "Count isolated elements at least n that have an immediate predecessor and successor both below n. Boundary elements never count.",
+        "program": "[ ge? bool>int ] swap cons map differences adjacent [ unpack2 [ -1 eq? bool>int ] dip 1 eq? bool>int mul 1 eq? ] filter len"
+      },
+      "b": {
+        "id": "pbe-scale-b29525f34cefa6ff3f0b",
+        "candidate_digest": "cd7aafd8bf0d0fc291b2ec2f771f7def81a10c40954d2ab395ac5c229801bc59",
+        "family": "baseline-pipeline",
+        "description": "retain observations below the supplied threshold; then take absolute values; then reverse order; then subtract the floored mean; then retain negative values; then take the range, or zero when empty.",
+        "program": "[ lt? ] swap cons filter [ abs ] map reverse dup sum over len 1 max2 div [ sub ] swap cons map [ 0 lt? ] filter [ dup null? ] [ drop 0 ] [ dup max swap min sub ] ifte"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-2 -7 -7 -3 7 7 -5) 2 ]",
+          "a": "[ 0 ]",
+          "b": "[ 1 ]"
+        }
+      ]
+    },
+    {
+      "kind": "list_int",
+      "agreement": 0.9895833333333334,
+      "mismatches": 2,
+      "probes": 192,
+      "a": {
+        "id": "anchor-list_int-list-span",
+        "candidate_digest": "010dc46a3a9ac112129bd9cee630dd4d214f0f35056128eb51819e05b54be86f",
+        "family": "canonical-anchors",
+        "description": "On the list argument, take the range, or zero when empty; ignore other arguments.",
+        "program": "drop [ dup null? ] [ drop 0 ] [ dup max swap min sub ] ifte"
+      },
+      "b": {
+        "id": "pbe-scale-2b29304220d503548dee",
+        "candidate_digest": "d1e270b8301046a1088ef72673a2692b0fdbd11d9fbffc83db0c5fb4b65d8b11",
+        "family": "baseline-pipeline",
+        "description": "subtract the supplied baseline from each observation; then remove zeros; then reverse order; then subtract the floored mean; then take the range, or zero when empty.",
+        "program": "[ sub ] swap cons map [ 0 eq? not ] filter reverse dup sum over len 1 max2 div [ sub ] swap cons map [ dup null? ] [ drop 0 ] [ dup max swap min sub ] ifte"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-10 10) 10 ]",
+          "a": "[ 20 ]",
+          "b": "[ 0 ]"
+        },
+        {
+          "input": "[ (1 -1 1) -1 ]",
+          "a": "[ 2 ]",
+          "b": "[ 0 ]"
+        }
+      ]
+    },
+    {
+      "kind": "list_int",
+      "agreement": 0.9479166666666666,
+      "mismatches": 10,
+      "probes": 192,
+      "a": {
+        "id": "anchor-list_int-list-maximum",
+        "candidate_digest": "37db0a83a1b8a573bf16e0c29ef53c18cd61e512cd58eda876e368b55ecb0a58",
+        "family": "canonical-anchors",
+        "description": "On the list argument, take the maximum, or zero when empty; ignore other arguments.",
+        "program": "drop [ dup null? ] [ drop 0 ] [ max ] ifte"
+      },
+      "b": {
+        "id": "scale-000038-07",
+        "candidate_digest": "fbdfa237d464928b92e133d1096b05215c2b1848f46766226e32224d5ede5e59",
+        "family": "robust-location",
+        "description": "Return the sorted item at zero-based rank abs(n), clamped to the last valid rank. Return 0 for an empty list.",
+        "program": "abs [ sort ] dip [ over null? ] [ drop drop 0 ] [ over len dec min2 nth ] ifte"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-1 -6 -7 -7 5 0 -2) -3 ]",
+          "a": "[ 5 ]",
+          "b": "[ -2 ]"
+        },
+        {
+          "input": "[ (-2 -7 -7 -3 7 7 -5) 2 ]",
+          "a": "[ 7 ]",
+          "b": "[ -5 ]"
+        },
+        {
+          "input": "[ (-3 8 -8 -10 6 3 9 -5 -1 -7 -7) -2 ]",
+          "a": "[ 9 ]",
+          "b": "[ -7 ]"
+        }
+      ]
+    },
+    {
+      "kind": "list_int",
+      "agreement": 0.9010416666666666,
+      "mismatches": 19,
+      "probes": 192,
+      "a": {
+        "id": "anchor-list_int-list-energy",
+        "candidate_digest": "062b2d17f46037a9a73703cb9ec4e618367e2b69400e51accfb35b4cbf3e5410",
+        "family": "canonical-anchors",
+        "description": "On the list argument, sum squared values; ignore other arguments.",
+        "program": "drop [ sq ] map sum"
+      },
+      "b": {
+        "id": "scale-000040-20",
+        "candidate_digest": "c2c0fb8c16f9e5ba5085f33a03a3699a410e480232be6ba02006d74dc4d0e47e",
+        "family": "parameterized-digit-filtering",
+        "description": "Sum the squares of list elements whose absolute value has decimal digit sum at most |n|. Zero qualifies for every n; empty input yields zero.",
+        "program": "abs [ swap abs digit-sum swap le? ] swap cons filter [ sq ] map sum"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-1 -1) 0 ]",
+          "a": "[ 2 ]",
+          "b": "[ 0 ]"
+        },
+        {
+          "input": "[ (-1 -6 -7 -7 5 0 -2) -3 ]",
+          "a": "[ 164 ]",
+          "b": "[ 5 ]"
+        },
+        {
+          "input": "[ (-1) 0 ]",
+          "a": "[ 1 ]",
+          "b": "[ 0 ]"
+        }
+      ]
+    },
+    {
+      "kind": "list_int",
+      "agreement": 0.8020833333333334,
+      "mismatches": 38,
+      "probes": 192,
+      "a": {
+        "id": "anchor-list_int-list-nonzero",
+        "candidate_digest": "14d6cde8413df64088b5d2f449e9da15ae9e7542c34db62520cae6fde8febb49",
+        "family": "canonical-anchors",
+        "description": "On the list argument, remove zeros; ignore other arguments.",
+        "program": "drop [ 0 eq? not ] filter"
+      },
+      "b": {
+        "id": "scale-000190-19",
+        "candidate_digest": "4e624687672d926cc805094ad1afc1e87cc0ea7e16b17d048a397a8a3caafc0a",
+        "family": "split-statistic-branching",
+        "description": "Split at min(abs(n), length). If the prefix sum exceeds the suffix sum, reverse the prefix and append the suffix. Otherwise append the reversed suffix to the unchanged prefix. Ties choose suffix reversal; empty input returns [].",
+        "program": "abs over len min2 over over take -rot drop-n [ over sum over sum gt? ] [ [ reverse ] dip cat ] [ reverse cat ] ifte"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-1 -6 -7 -7 5 0 -2) -3 ]",
+          "a": "[ (-1 -6 -7 -7 5 -2) ]",
+          "b": "[ (-1 -6 -7 -2 0 5 -7) ]"
+        },
+        {
+          "input": "[ (-10 8 4 8 2 -10 -2 3 8 1) -7 ]",
+          "a": "[ (-10 8 4 8 2 -10 -2 3 8 1) ]",
+          "b": "[ (-10 8 4 8 2 -10 -2 1 8 3) ]"
+        },
+        {
+          "input": "[ (-2 -7 -7 -3 7 7 -5) 2 ]",
+          "a": "[ (-2 -7 -7 -3 7 7 -5) ]",
+          "b": "[ (-2 -7 -5 7 7 -3 -7) ]"
+        }
+      ]
+    },
+    {
+      "kind": "two_lists",
+      "agreement": 0.9947916666666666,
+      "mismatches": 1,
+      "probes": 192,
+      "a": {
+        "id": "pbe-family-fee8ba7a4518e9d8f2a5",
+        "candidate_digest": "43e4ce76a487d79983b4875885250ec15d7c68552fdcd8b14716c11dcba3abe8",
+        "family": "frequency-analysis",
+        "description": "measure aligned distances, stopping at the shorter list; then replace each observation by its total occurrence count; then subtract the floored mean; then take the minimum, or zero when empty.",
+        "program": "zip [ unpack2 sub abs ] map dup [ swap count ] swap cons map dup sum over len 1 max2 div [ sub ] swap cons map [ dup null? ] [ drop 0 ] [ min ] ifte"
+      },
+      "b": {
+        "id": "pbe-family-c6853a8d762e8d1c6cda",
+        "candidate_digest": "5c434c8767dd0b065d53da42d1ff579a109d905207076817ce70a551dcb48355",
+        "family": "frequency-analysis",
+        "description": "subtract aligned observations, stopping at the shorter list; then replace each observation by its total occurrence count; then subtract the floored mean; then take the minimum, or zero when empty.",
+        "program": "zip [ unpack2 sub ] map dup [ swap count ] swap cons map dup sum over len 1 max2 div [ sub ] swap cons map [ dup null? ] [ drop 0 ] [ min ] ifte"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-8 4 4 -10 10 7 -6 3 9 6) (-9 8 -2 9 -9 5 4 -1 3 2 5 -8) ]",
+          "a": "[ -1 ]",
+          "b": "[ 0 ]"
+        }
+      ]
+    },
+    {
+      "kind": "two_lists",
+      "agreement": 0.9895833333333334,
+      "mismatches": 2,
+      "probes": 192,
+      "a": {
+        "id": "scale-000121-17",
+        "candidate_digest": "d84e2b5d379e08a7ce926fdc934c61118bd26b18e2e1fa3585f10c54f93b7590",
+        "family": "relative-crossing",
+        "description": "Truncate both lists to their common length and define margins xs[i]-ys[i]. Return gaps between consecutive indices i where the margin changes from strictly negative to nonnegative. Return [] for fewer than two crossings.",
+        "program": "zip [ unpack2 sub ] map adjacent enumerate [ second unpack2 [ 0 lt? bool>int ] dip 0 ge? bool>int mul 1 eq? ] filter [ head ] map differences [ neg ] map"
+      },
+      "b": {
+        "id": "scale-000181-20",
+        "candidate_digest": "70308b9b9acc8389ac31545e917143389217609c0756d87af834a471b58ddbe2",
+        "family": "coupled-events",
+        "description": "Compare aligned elements up to the shorter input length. Return distances between consecutive transitions from xs<=ys to xs>ys. Fewer than two transitions gives [].",
+        "program": "zip [ unpack2 gt? bool>int ] map differences enumerate [ second -1 eq? ] filter [ head ] map differences [ neg ] map"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (2 3 3 -2 -9 -8 -2 6 -10) (9 2 3 -6 3 -1 5 9 -1 -6 8 -6) ]",
+          "a": "[ nil ]",
+          "b": "[ (2) ]"
+        },
+        {
+          "input": "[ (5 4 -4 9 2 -3 -10) (-2 2 -2 -5 6 7 -10 -10 3) ]",
+          "a": "[ (3) ]",
+          "b": "[ nil ]"
+        }
+      ]
+    },
+    {
+      "kind": "two_lists",
+      "agreement": 0.9479166666666666,
+      "mismatches": 10,
+      "probes": 192,
+      "a": {
+        "id": "pbe-family-69c0d20c89b8db33326e",
+        "candidate_digest": "a3e689d42778be64a68f7ce9872199b360755eb4cde60584d4eaf4827ebe14b0",
+        "family": "record-sequences",
+        "description": "multiply aligned observations, stopping at the shorter list; then retain the first observation and every subsequent strict record high; then retain negative values; then sum the result.",
+        "program": "zip [ unpack2 mul ] map nil [ [ over null? ] [ cons ] [ [ over head over lt? ] [ cons ] [ drop ] ifte ] ifte ] fold reverse [ 0 lt? ] filter sum"
+      },
+      "b": {
+        "id": "pbe-family-a5bf1fdf5ab07fb6828e",
+        "candidate_digest": "546d12ae789d794d5cf24d4e9d9c997e4511c46da949ef5318aaea44b0a22cb9",
+        "family": "record-sequences",
+        "description": "multiply aligned observations, stopping at the shorter list; then retain the first observation and every subsequent strict record high; then retain negative values; then take the floored mean, or zero when empty.",
+        "program": "zip [ unpack2 mul ] map nil [ [ over null? ] [ cons ] [ [ over head over lt? ] [ cons ] [ drop ] ifte ] ifte ] fold reverse [ 0 lt? ] filter dup sum swap len 1 max2 div"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-1 7 4 -9 10 2 6 -7) (8 -6 -1) ]",
+          "a": "[ -12 ]",
+          "b": "[ -6 ]"
+        },
+        {
+          "input": "[ (-5 -1 6 -10 6) (8 2 -6 9) ]",
+          "a": "[ -42 ]",
+          "b": "[ -21 ]"
+        },
+        {
+          "input": "[ (-6 -5 -4 -3 -2 -1 0 1 2 3 4 5) (10 9 8 7 6 5 4 3 2 1 0 -1) ]",
+          "a": "[ -175 ]",
+          "b": "[ -30 ]"
+        }
+      ]
+    },
+    {
+      "kind": "two_lists",
+      "agreement": 0.9010416666666666,
+      "mismatches": 19,
+      "probes": 192,
+      "a": {
+        "id": "scale-000054-06",
+        "candidate_digest": "6721b4f323108baa0edbeb5e03e6f62f0dc7e0380620ad417ee297f76d209a98",
+        "family": "aligned-distance",
+        "description": "Return absolute aligned differences in order, ignoring unmatched tails. Return an empty list for empty alignment.",
+        "program": "zip [ unpack2 sub abs ] map"
+      },
+      "b": {
+        "id": "pbe-family-41695dba9ab32cf1ef71",
+        "candidate_digest": "9b17e03ae549d9b646aaee8706eb32cc6956eeb8890913b3f84f7fad516e845e",
+        "family": "runs-and-streaks",
+        "description": "subtract aligned observations, stopping at the shorter list; then compress each consecutive run of equal values to one representative; then take absolute values; then return the observations.",
+        "program": "zip [ unpack2 sub ] map nil [ [ over null? ] [ cons ] [ [ over head over eq? ] [ drop ] [ cons ] ifte ] ifte ] fold reverse [ abs ] map"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-1 -1) (-1 -1) ]",
+          "a": "[ (0 0) ]",
+          "b": "[ (0) ]"
+        },
+        {
+          "input": "[ (-1 -1) (0 0) ]",
+          "a": "[ (1 1) ]",
+          "b": "[ (1) ]"
+        },
+        {
+          "input": "[ (-1 -1) (1 1) ]",
+          "a": "[ (2 2) ]",
+          "b": "[ (2) ]"
+        }
+      ]
+    },
+    {
+      "kind": "two_lists",
+      "agreement": 0.8020833333333334,
+      "mismatches": 38,
+      "probes": 192,
+      "a": {
+        "id": "scale-000106-21",
+        "candidate_digest": "4313ae3217fb9fa5d6e2638eb7f7a870884a0b5f0a36b4037167270d2ad3ea90",
+        "family": "paired-order-transform",
+        "description": "Form paired first-minus-second differences, truncating to the shorter length. If their sum is positive, return prefix sums of the differences in reverse order. Otherwise return prefix sums of sorted distinct absolute differences. Empty pairing returns [].",
+        "program": "zip [ unpack2 sub ] map [ sum 0 gt? ] [ reverse prefix-sums ] [ [ abs ] map dedup sort prefix-sums ] ifte"
+      },
+      "b": {
+        "id": "scale-000194-20",
+        "candidate_digest": "56a1b13241d099756c1684249fcb4b5e42d2315df83972cc974d68d87d82ad3a",
+        "family": "paired-error-support",
+        "description": "Pair elements by position up to the shorter length, collect distinct absolute errors, sort them, and return cumulative sums of those distinct errors. No pairs returns [].",
+        "program": "zip [ unpack2 sub abs ] map dedup sort prefix-sums"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ (-1 1) (-6 5 -3 10 -3 -4 3 2 2 -3) ]",
+          "a": "[ (-4 1) ]",
+          "b": "[ (4 9) ]"
+        },
+        {
+          "input": "[ (-1 7 4 -9 10 2 6 -7) (8 -6 -1) ]",
+          "a": "[ (5 18 9) ]",
+          "b": "[ (5 14 27) ]"
+        },
+        {
+          "input": "[ (-1 7) (-7 -1 -6 -6 5 2 2 8 1 1 -9) ]",
+          "a": "[ (8 14) ]",
+          "b": "[ (6 14) ]"
+        }
+      ]
+    },
+    {
+      "kind": "int",
+      "agreement": 0.9047619047619048,
+      "mismatches": 2,
+      "probes": 21,
+      "a": {
+        "id": "scale-000064-09",
+        "candidate_digest": "4f2de078be53009305887f5e19481208c2c3709e2056b0ed423f1d0c89d42a92",
+        "family": "scalar-decimal-rotation",
+        "description": "Compute n*n+abs(n), move its first decimal digit to the end, and return the resulting integer. A single digit is unchanged and leading zeros in the rotated representation disappear.",
+        "program": "dup sq swap abs add decimal-digits uncons quote cat from-digits"
+      },
+      "b": {
+        "id": "scale-000088-01",
+        "candidate_digest": "8e4fcee22bd68a293e71a19553c38acd86fd6f7f34904dab65bd2819e4912e4d",
+        "family": "decimal-digit-transformation",
+        "description": "Return the integer obtained by reversing the decimal digits of n\u00b2+|n|. Leading zeros after reversal disappear; zero returns zero.",
+        "program": "dup sq swap abs add decimal-digits reverse from-digits"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ -10 ]",
+          "a": "[ 101 ]",
+          "b": "[ 11 ]"
+        },
+        {
+          "input": "[ 10 ]",
+          "a": "[ 101 ]",
+          "b": "[ 11 ]"
+        }
+      ]
+    },
+    {
+      "kind": "int",
+      "agreement": 0.8571428571428572,
+      "mismatches": 3,
+      "probes": 21,
+      "a": {
+        "id": "anchor-int-zero",
+        "candidate_digest": "4c6e5d0361f84d5d8de2ae2d0775d01aede840d2d9e7f18b4d790a481ff198ee",
+        "family": "canonical-anchors",
+        "description": "Compute int(n==0) from the integer argument.",
+        "program": "0 eq? bool>int"
+      },
+      "b": {
+        "id": "scale-000052-24",
+        "candidate_digest": "c58de3353150c8998af43f4f5d9af69985d556739ec3d48958ed8f5776df361f",
+        "family": "bounded-decimal-series",
+        "description": "For k from 1 through abs(n), concatenate the decimal digits of k squared, then count adjacent equal-digit pairs in that combined sequence, including pairs across square boundaries. Zero returns 0.",
+        "program": "abs range1 [ sq decimal-digits ] map flatten adjacent [ unpack2 eq? bool>int ] map sum"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ -10 ]",
+          "a": "[ 0 ]",
+          "b": "[ 2 ]"
+        },
+        {
+          "input": "[ 0 ]",
+          "a": "[ 1 ]",
+          "b": "[ 0 ]"
+        },
+        {
+          "input": "[ 10 ]",
+          "a": "[ 0 ]",
+          "b": "[ 2 ]"
+        }
+      ]
+    },
+    {
+      "kind": "int",
+      "agreement": 0.8095238095238095,
+      "mismatches": 4,
+      "probes": 21,
+      "a": {
+        "id": "scale-000160-20",
+        "candidate_digest": "cfa16a7bf06a4ac7301cad031053f0d4b0f0d944f1c33b2d31739c8809961aca",
+        "family": "scalar-decimal-permutation",
+        "description": "Compute abs(n) factorial, sort its decimal digits ascending, and interpret those digits as an integer, dropping leading zeros. For n=0 the result is 1.",
+        "program": "abs factorial decimal-digits sort from-digits"
+      },
+      "b": {
+        "id": "scale-000268-12",
+        "candidate_digest": "f18599f6d5a375d68611775c009d0216c53d5e8c5097d8db79c06a7748016fc4",
+        "family": "decimal-arithmetic-signatures",
+        "description": "Compute abs(n)!, sort its decimal digits ascending, remove duplicates, and interpret the remaining digits as a decimal integer. Any initial zero has no numeric effect; n=0 returns 1.",
+        "program": "abs factorial decimal-digits sort dedup from-digits"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ -10 ]",
+          "a": "[ 23688 ]",
+          "b": "[ 2368 ]"
+        },
+        {
+          "input": "[ -9 ]",
+          "a": "[ 23688 ]",
+          "b": "[ 2368 ]"
+        },
+        {
+          "input": "[ 10 ]",
+          "a": "[ 23688 ]",
+          "b": "[ 2368 ]"
+        }
+      ]
+    },
+    {
+      "kind": "int",
+      "agreement": 0.6190476190476191,
+      "mismatches": 8,
+      "probes": 21,
+      "a": {
+        "id": "scale-000135-21",
+        "candidate_digest": "eeecf72a25e51242d4ee3d9644384a95bd0e4176157703814970196944632633",
+        "family": "bounded-divisor-selections",
+        "description": "Among integers 1 through abs(n), count selections a<b where a divides b and b-a is odd. For n=0 return 0; negative n uses its absolute value.",
+        "program": "abs range1 nil 0 pack2 [ [ unpack2 ] dip pick2 over [ over over swap mod 0 eq? bool>int [ sub odd? bool>int ] dip mul 1 eq? ] swap cons filter len [ swap ] dip add [ cons ] dip pack2 ] fold second"
+      },
+      "b": {
+        "id": "scale-000135-22",
+        "candidate_digest": "f6de0a620aad7b569cd45a16a8cd8d569057e639921c8e40545fae48208d44c7",
+        "family": "bounded-square-selections",
+        "description": "Among integers 1 through abs(n), count selections a<b whose sum is a perfect square. For n=0 return 0; negative n uses its absolute value.",
+        "program": "abs range1 nil 0 pack2 [ [ unpack2 ] dip pick2 over [ add dup isqrt sq eq? ] swap cons filter len [ swap ] dip add [ cons ] dip pack2 ] fold second"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ -2 ]",
+          "a": "[ 1 ]",
+          "b": "[ 0 ]"
+        },
+        {
+          "input": "[ -4 ]",
+          "a": "[ 2 ]",
+          "b": "[ 1 ]"
+        },
+        {
+          "input": "[ -6 ]",
+          "a": "[ 4 ]",
+          "b": "[ 3 ]"
+        }
+      ]
+    },
+    {
+      "kind": "int",
+      "agreement": 0.6190476190476191,
+      "mismatches": 8,
+      "probes": 21,
+      "a": {
+        "id": "scale-000267-20",
+        "candidate_digest": "bbebbd6166f9602ebfb1cf2a5cb93c52af4e9d9afd38f06f859a4e22af1cec73",
+        "family": "bounded-integer-selections",
+        "description": "Among integers 1 through max(n,0), count ways to select two even integers and one odd integer. The two even integers are unordered and distinct.",
+        "program": "0 max2 range1 dup [ even? ] filter len choose2 swap [ odd? ] filter len mul"
+      },
+      "b": {
+        "id": "anchor-int-zero",
+        "candidate_digest": "4c6e5d0361f84d5d8de2ae2d0775d01aede840d2d9e7f18b4d790a481ff198ee",
+        "family": "canonical-anchors",
+        "description": "Compute int(n==0) from the integer argument.",
+        "program": "0 eq? bool>int"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ 0 ]",
+          "a": "[ 0 ]",
+          "b": "[ 1 ]"
+        },
+        {
+          "input": "[ 10 ]",
+          "a": "[ 50 ]",
+          "b": "[ 0 ]"
+        },
+        {
+          "input": "[ 4 ]",
+          "a": "[ 2 ]",
+          "b": "[ 0 ]"
+        }
+      ]
+    },
+    {
+      "kind": "two_ints",
+      "agreement": 0.891156462585034,
+      "mismatches": 48,
+      "probes": 441,
+      "a": {
+        "id": "scale-000088-09",
+        "candidate_digest": "3336f6b1cb3068941fe21f71b4fb303e041a19a1b32a981e550794c83fefd1a4",
+        "family": "decimal-digit-transformation",
+        "description": "Concatenate the ordinary decimal representations of |a| and |b|, reverse all their digits, and return the resulting integer. Each zero contributes one digit.",
+        "program": "[ abs decimal-digits ] dip abs decimal-digits cat reverse from-digits"
+      },
+      "b": {
+        "id": "scale-000256-12",
+        "candidate_digest": "501a971ca2a110e6dcc151387941b48586495a884f05e48b7c79c1a2340d954f",
+        "family": "concatenated-decimals",
+        "description": "Concatenate the decimal representations of abs(a) and abs(b), remove duplicate digits keeping first occurrences, reverse the remaining digits, and interpret them as a decimal integer. Leading zeros disappear.",
+        "program": "[ abs decimal-digits ] dip abs decimal-digits cat dedup reverse from-digits"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ -1 -1 ]",
+          "a": "[ 11 ]",
+          "b": "[ 1 ]"
+        },
+        {
+          "input": "[ -1 -10 ]",
+          "a": "[ 11 ]",
+          "b": "[ 1 ]"
+        },
+        {
+          "input": "[ -1 1 ]",
+          "a": "[ 11 ]",
+          "b": "[ 1 ]"
+        }
+      ]
+    },
+    {
+      "kind": "two_ints",
+      "agreement": 0.873015873015873,
+      "mismatches": 56,
+      "probes": 441,
+      "a": {
+        "id": "anchor-two_ints-equal",
+        "candidate_digest": "4a40c83e14c14ca8be58d3699cb879fad9df52ceed697e01065713dde272c9bd",
+        "family": "canonical-anchors",
+        "description": "Compute int(a==b) from the two integer arguments.",
+        "program": "eq? bool>int"
+      },
+      "b": {
+        "id": "scale-000064-16",
+        "candidate_digest": "2e07befecd993fd2e0b6ae1a2fbabdadd35022d63421c8551791a5de563b6e40",
+        "family": "pair-decimal-palindrome",
+        "description": "Return 1 if a*a+b*b has a palindromic decimal representation, otherwise 0. Zero is palindromic.",
+        "program": "[ sq ] dip sq add palindrome? bool>int"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ -1 -10 ]",
+          "a": "[ 0 ]",
+          "b": "[ 1 ]"
+        },
+        {
+          "input": "[ -1 -2 ]",
+          "a": "[ 0 ]",
+          "b": "[ 1 ]"
+        },
+        {
+          "input": "[ -1 0 ]",
+          "a": "[ 0 ]",
+          "b": "[ 1 ]"
+        }
+      ]
+    },
+    {
+      "kind": "two_ints",
+      "agreement": 0.8117913832199546,
+      "mismatches": 83,
+      "probes": 441,
+      "a": {
+        "id": "scale-000100-04",
+        "candidate_digest": "79ed46f956c9319a4d8091b68ad037c2f497b86bb3339766c3af5d4a724b9de8",
+        "family": "decimal-multiplicity-statistics",
+        "description": "Form m=100*abs(a)+abs(b). Count unordered pairs of distinct decimal positions holding equal digits. Zero is represented by one zero digit.",
+        "program": "[ abs 100 mul ] dip abs add decimal-digits dup dedup swap [ swap count choose2 ] swap cons map sum"
+      },
+      "b": {
+        "id": "anchor-two_ints-equal",
+        "candidate_digest": "4a40c83e14c14ca8be58d3699cb879fad9df52ceed697e01065713dde272c9bd",
+        "family": "canonical-anchors",
+        "description": "Compute int(a==b) from the two integer arguments.",
+        "program": "eq? bool>int"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ -1 -10 ]",
+          "a": "[ 1 ]",
+          "b": "[ 0 ]"
+        },
+        {
+          "input": "[ -1 0 ]",
+          "a": "[ 1 ]",
+          "b": "[ 0 ]"
+        },
+        {
+          "input": "[ -1 1 ]",
+          "a": "[ 1 ]",
+          "b": "[ 0 ]"
+        }
+      ]
+    },
+    {
+      "kind": "two_ints",
+      "agreement": 0.7936507936507937,
+      "mismatches": 91,
+      "probes": 441,
+      "a": {
+        "id": "scale-000279-21",
+        "candidate_digest": "d51e56970857c0b00a8345716377a94962a9d7e771c54dcc74f06453df882b6b",
+        "family": "bounded-selection-weight",
+        "description": "For positive selections i<=max(a,0), j<=max(b,0) of opposite parity, sum min(i,j), the number of positive k bounded by both selections. Nonpositive bounds yield 0.",
+        "program": "[ 0 max2 range1 ] dip 0 max2 range1 [ swap [ [ over over add odd? ] [ min2 ] [ drop drop 0 ] ifte ] swap cons map sum ] swap cons map sum"
+      },
+      "b": {
+        "id": "scale-000279-22",
+        "candidate_digest": "4291aef1a0c3bf8c5248dac527d0121233a639efbd9c425f6377aef3d902cecd",
+        "family": "bounded-triple-count",
+        "description": "Count positive integer triples (i,j,k) with i<=max(a,0), j<=max(b,0), i+j even, and 1<=k<abs(i-j). Nonpositive bounds yield 0.",
+        "program": "[ 0 max2 range1 ] dip 0 max2 range1 [ swap [ sub abs [ dup even? ] [ dec 0 max2 ] [ drop 0 ] ifte ] swap cons map sum ] swap cons map sum"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ 1 10 ]",
+          "a": "[ 5 ]",
+          "b": "[ 16 ]"
+        },
+        {
+          "input": "[ 1 2 ]",
+          "a": "[ 1 ]",
+          "b": "[ 0 ]"
+        },
+        {
+          "input": "[ 1 4 ]",
+          "a": "[ 2 ]",
+          "b": "[ 1 ]"
+        }
+      ]
+    },
+    {
+      "kind": "two_ints",
+      "agreement": 0.780045351473923,
+      "mismatches": 97,
+      "probes": 441,
+      "a": {
+        "id": "scale-000267-23",
+        "candidate_digest": "965087bf2c394f273f88c0433f2bd31c34c28d7cfa981e361759a244bc62a888",
+        "family": "bounded-grid-selections",
+        "description": "Count selections of two distinct cells from the same row of a rectangular grid with max(a,0) rows and max(b,0) columns. The two cells are unordered; nonpositive dimensions yield 0.",
+        "program": "[ 0 max2 ] dip 0 max2 choose2 mul"
+      },
+      "b": {
+        "id": "scale-000279-21",
+        "candidate_digest": "d51e56970857c0b00a8345716377a94962a9d7e771c54dcc74f06453df882b6b",
+        "family": "bounded-selection-weight",
+        "description": "For positive selections i<=max(a,0), j<=max(b,0) of opposite parity, sum min(i,j), the number of positive k bounded by both selections. Nonpositive bounds yield 0.",
+        "program": "[ 0 max2 range1 ] dip 0 max2 range1 [ swap [ [ over over add odd? ] [ min2 ] [ drop drop 0 ] ifte ] swap cons map sum ] swap cons map sum"
+      },
+      "disagreements_first_3": [
+        {
+          "input": "[ 1 10 ]",
+          "a": "[ 45 ]",
+          "b": "[ 5 ]"
+        },
+        {
+          "input": "[ 1 3 ]",
+          "a": "[ 3 ]",
+          "b": "[ 1 ]"
+        },
+        {
+          "input": "[ 1 4 ]",
+          "a": "[ 6 ]",
+          "b": "[ 2 ]"
+        }
+      ]
+    }
+  ],
+  "rows": 68499,
+  "nearest_agreement_quantiles": {
+    "0": 0.0,
+    "0.1": 0.49479166666666663,
+    "0.25": 0.7135416666666667,
+    "0.5": 0.890625,
+    "0.75": 0.9635416666666666,
+    "0.9": 0.984375,
+    "0.95": 0.9947916666666666,
+    "0.99": 0.9947916666666666,
+    "1": 0.9947916666666666
+  },
+  "rows_with_neighbor": {
+    "0.99": 3535,
+    "0.95": 21388,
+    "0.9": 33020,
+    "0.8": 44272
+  },
+  "limitations": [
+    "Raw output equality on existing shared probes approximates similarity; it does not prove useful diversity.",
+    "Probe distribution is finite and includes repeated edge structures; list and scalar kinds have different coverage.",
+    "High modal-output probabilities and mostly constant behaviors can inflate agreement; per-type baselines and entropy are supplied.",
+    "Nearest-neighbor ties use the first row in corpus order. No generated execution, fresh probes, eval contents or model calls.",
+    "Input intersection alignment is checked against saved shared_count; saved outputs are trusted as already verified."
+  ],
+  "provenance": {
+    "git_commit": "6206d97a801056dde5dc7ceec5c3c8a81b13245e",
+    "dirty": true,
+    "seed": 188,
+    "config": {
+      "block_size": 256,
+      "cpu_threads": 8,
+      "random_pairs_per_kind": 10000
+    },
+    "source_data_digests": {
+      "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/corpus-v3/accepted.jsonl": "1a3c173aff7010419a79779516f502cce81063f015a9a99d1bb7dc48634fffbf",
+      "/home/abhishekrao/repos/wandering-light/checkpoints/pbe-scale-20261024/audit-v4-eval/exclusions.json": "6437d8cbf629d24952d8cd36341e8e5c2be0064c75e8fa4b9790e60e461fe194",
+      "/home/abhishekrao/repos/worktrees/wandering-light/pbe-scale-20261024/experiments/pbe_scale/diversity_semantic.py": "40dd50e1c3692bc5d52ec10212d65c8720f3f949303de1e016be8548be95c007"
+    },
+    "wandb_run.url": null,
+    "elapsed_seconds": 59.38048302597599
+  }
+}
