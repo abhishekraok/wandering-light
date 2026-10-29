@@ -1,0 +1,19 @@
+{
+  "capture_method": "historical reconstruction from recorded run metadata",
+  "source_commit": "9c538a7f7b8ce1ec763b98993250da59d3e2c66d",
+  "benchmark_base_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+  "source_dirty": null,
+  "source_dirty_at_preparation": false,
+  "historical_caveat": "Clean state was checked at preparation, not contemporaneously for each arm. Later report edits are documented in README.md. Source digests are reconstructed from the unchanged inference sources and preparation capture wrapper.",
+  "cli_version_before": "codex-cli 0.163.0",
+  "cli_version_after": "codex-cli 0.163.0",
+  "artifact_sha256": "25b4f5bfee43fe3b0e7114ad867a7c60a26e54fe5237636cc99ef234981c79f2",
+  "inference_source_sha256": {
+    "experiments/stack_pbe_baseline.py": "9428c5d52efeac36e2aa442a078214d57dbd4fb02fdd13d3650d44352c053a93",
+    "wandering_light/solver.py": "9090107ede24971e9a8ab5536e99dab9a1040873aae50b9af38e7fd95fc1fe74",
+    "wandering_light/stack_pbe_eval.py": "a9834f52f7b2b4ab2b607eb745b54b0d35b8f82144b9179fb00eda90311bc2bf",
+    "wandering_light/stack_machine.py": "1cae29b19e1fcdb2ed452ba6a36577da889082e21916d18948a7a42d417e27c1",
+    "wandering_light/evals/data/stack_pbe_v4/manifest.json": "26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+    "reports/stack-pbe-v4-terra61-20261027/capture.py": "3fe29db5aae934edff756935273bfb4459c91124fae844530e6a261f998363e5"
+  }
+}
