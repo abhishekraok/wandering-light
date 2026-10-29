@@ -13,6 +13,16 @@ Alternate-text ranking improves over both controls; I/O retrieval remains limite
 
 On 47 behaviors with two independently authored implementations, top-10 recall is **66.0%**, versus 39.4% random and 35.1% lexical (descriptive subset). Staged queries reach 88.9% versus 66.7% random on 18 queries: useful tolerance to staging, with misses remaining.
 
+**Keep/discard check (2026-10-28).** Fixed TF-IDF character 3–5-grams and token 1–3-grams reach only 34.1% / 34.4% top-10 recall (independently authored subset: 29.8% / 27.7%). The learned ranking gain survives these syntax baselines. These are exploratory checks after opening the test, with no parameter sweep; one training seed. [Exact results/provenance](syntax-baselines.json), [figure](syntax-baselines.png).
+
+Keep the program retriever as an experimental component. PBE utility is still unmeasured: compare retrieval plus execution verification and the same fallback solver against a simple execution-based library lookup and the solver alone, using a bank built from training data or generated independently before test, fresh tasks, and equal wall-clock budgets. Report both bank coverage and conditional retrieval, verified solves, total time and timeouts. Adopt I/O retrieval only if it improves verified solves or solving time; test near-identical programs with different behavior separately before using distances as equivalence decisions.
+
+Reproduce the added check (no stack execution):
+
+```bash
+uv run python reports/program-embeddings-20261024/check_syntax_baselines.py --run-dir /home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0 --out-dir /home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/utility-20261028
+```
+
 Programs in the repo's `mark-28` stack language and I/O examples map to 128-dimensional unit vectors: **387,344 parameters**, **1.5 MB** of weights; **12,837 programs**, **14.4 MiB** index. Warm CPU I/O queries: median **5.09 ms**, p95 **8.91 ms** (45 queries, four threads; encoder/scan/top-k, excluding startup/verification). Encoding performs no execution.
 
 ```python

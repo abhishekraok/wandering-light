@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-10-25 (semantic embedding implementation and evaluation complete; pending landing)
+Last updated: 2026-10-28 (semantic embedding utility check; pending landing)
 
 ## What is true now
 
@@ -97,11 +97,13 @@ claim a number supports.
 
 ## In flight
 
-**Semantic program embeddings:** model, ready-to-query index and final held-out
-evaluation complete on `codex/semantic-embeddings-20261024`; awaiting landing.
-Learned vectors improve alternate-implementation retrieval over token overlap
-and untrained encoders. I/O retrieval remains partial even when answers are
-available; no improvement over the existing PBE solver is established.
+**Semantic program embeddings:** implementation and held-out evaluation complete
+on `codex/semantic-embeddings-20261024`; awaiting landing. Learned program
+ranking beats untrained encoders, token overlap and fixed n-gram baselines.
+Retain it as an experimental retriever. I/O retrieval remains partial even
+with answers available; improvement over the existing PBE solver is unmeasured.
+The next decision needs a candidate bank built independently of test tasks
+and an equal wall-clock comparison including execution and fallback search.
 [Report](../reports/program-embeddings-20261024/README.md),
 [semantic-program-embeddings (#189)](https://github.com/abhishekraok/wandering-light/issues/189).
 

@@ -45,6 +45,8 @@ programs. [Report](../reports/program-embeddings-20261024/README.md),
 | Frozen-program I/O continuation, 500 steps (selected) | 40.78% / 62.77% | 8.59% | 41.28% / 72.31% | 12/128 / 10/45 |
 | Untrained, same architecture | — | — | 22.31% / 45.90% | 0/128 / 0/45 |
 | Token overlap | — | — | 17.95% / 41.03% | — |
+| Character TF-IDF 3–5-grams, post-hoc | — | — | 17.18% / 34.10% | — |
+| Token TF-IDF 1–3-grams, post-hoc | — | — | 15.90% / 34.36% | — |
 
 The four additional records connected to official eval score 0/4 I/O success;
 all execution outcomes are known. Warm four-thread CPU lookup, including
@@ -52,6 +54,15 @@ encoding/scan/top-k but excluding execution: median 5.09 ms, p95 8.91 ms over
 45 official queries. Self-contained index: 15,116,833 bytes. Program-space
 tensors are bit identical before and after the final I/O phase. Checkpoint
 selection uses validation only; one seed, finite-domain equivalence.
+
+2026-10-28 syntax check: fixed smoothed-IDF/sublinear-TF baselines fitted to
+the bank without labels; no sweep. Original lexical ranks replay exactly for
+all 156 queries across the three test partitions. On 47 independently authored
+primary behaviors, learned / untrained / token-bag / character / token-gram
+recall@10: 65.96% / 39.36% / 35.11% / 29.79% / 27.66%. Learned minus untrained
+primary recall@10: +26.41 percentage points; paired behavior bootstrap 95%
+interval +16.41 to +36.67 (10,000 resamples, seed 0; no training-seed uncertainty).
+[Syntax-check artifact](../reports/program-embeddings-20261024/syntax-baselines.json).
 
 ## Stack PBE v3 — 40 behaviours, eval split 440 tasks
 
