@@ -174,6 +174,10 @@ def prepare(run_dir: Path, output: Path, card: Path) -> dict:
                 "audit_eval",
                 "augment",
                 "publish",
+                "diversity_structure",
+                "diversity_semantic",
+                "diversity_prompts",
+                "eval_compare",
             )
         ),
         "experiments/world_behaviours/macros.txt",
@@ -182,6 +186,7 @@ def prepare(run_dir: Path, output: Path, card: Path) -> dict:
         "wandering_light/stack_pbe.py",
         "pyproject.toml",
         "uv.lock",
+        "reports/pbe-scale-20261024/plot_diversity.py",
     ]
     for name in sources:
         copy(repo / name, f"sources/{name}")
@@ -228,7 +233,7 @@ def prepare(run_dir: Path, output: Path, card: Path) -> dict:
         "current_source_sha256": {name: inputs[str(repo / name)] for name in sources},
         "git_commit": git("rev-parse", "HEAD"),
         "dirty": bool(git("status", "--porcelain")),
-        "seed": augmentation["seed"],
+        "augmentation_seed": augmentation["seed"],
         "config": {
             "validation_seed": json.loads(
                 (run_dir / "corpus-v3/summary.json").read_text()
