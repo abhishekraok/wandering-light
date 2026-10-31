@@ -1,0 +1,36 @@
+{
+  "reviewer_family": "Claude",
+  "effort": "high",
+  "verdict": "PASS",
+  "scope": "Dataset release preparer, generation card, source excerpts and saved evidence; not the full historical training/evaluation pipeline.",
+  "reviewed_source_commit": "2be2fc0",
+  "published_source_commit": "74fd44c2a88c8dd70538a66583c08846b255c402",
+  "post_review_changes": "Requested nonblocking clarifications: copy audit source files, explicitly name the augmentation seed, explain cross-signature witness reuse and generator length filtering.",
+  "validation": {
+    "new_tests_passed": 5,
+    "lint": "uv run ./lint.sh ci: passed",
+    "fresh_download": {
+      "fresh_download_verified": true,
+      "files_verified": 57,
+      "default_rows_loaded": 68499,
+      "views16_stream_load": true,
+      "programs_executed": false
+    }
+  },
+  "input_sha256": "14bd6a00bd65f253dad358e245ff933c819fd16e0062ae5b6bd56f8ee2e44055",
+  "raw_result_sha256": "9e431c8cfc13bb4e22f7992dce9f78fa30c90f8e01fd9012cc33957d0ebc4879",
+  "result": "**PASS.** I found nothing that should stop the release. I couldn't open the repo or the release directory from this session, so this review is a desk-check of the excerpts and evidence you supplied.\n\n**What I checked**\n- **Counts in the card match the evidence:**\n  - Candidates per source add up to 106,825, and retained rows add up to 68,499.\n  - 106,825 \u2212 30,615 \u2212 6,967 \u2212 732 = 68,511, and removing the 12 overlap matches leaves 68,499.\n  - Verified pairs: 68,270 \u00d7 208 + 108 \u00d7 21 + 121 \u00d7 441 = 14,255,789.\n  - Shown pairs in the 16 views: 1,095,984 \u00d7 6 = 6,575,904.\n  - The source-mix percentages, the 11.27% removable-stage rate, the 31.22% near-neighbour rate and 76.06% (84,085 / 110,544) are all right.\n  - The length bins match the histogram. The 400\u2013845 bin is 306 only if it includes length 400 (75 rows), and the evidence does count it there.\n- **Description of the probe banks matches `validate.py`:**\n  - Shared banks are 192 inputs (21 for one integer, 441 for two integers), and the one-integer and two-integer banks cover every input in range.\n  - Candidate-specific probes are capped by the remaining capacity, so one- and two-integer tasks get none.\n  - List lengths are drawn uniformly from 0\u201312.\n  - List-plus-integer banks are dominated by short lists: 8 short lists \u00d7 21 integers, which supports \"170 of 192\".\n- **Description of the 16 views matches `augment.py`:** 5 or 32 hidden pairs, a hidden bank fixed across views and disjoint from every shown set, at least two distinct shown outputs, and fuel 0 tagged `fuel-unmeasured`.\n- **Overlap exclusion is described correctly:** at most 64 inputs drawn from 512 attempts, 108 inconclusive rows that equal the 108 one-integer rows, and all 45 evaluation references resolved.\n- **`publish.py`:**\n  - The join is strict: unique IDs and digests, status and behaviour association, a match to the original tasks by canonical hash, and the exclusion sets checked against the saved audit in both directions.\n  - Output is deterministic (gzip `mtime=0`) and written atomically through a temp file that is cleaned up on failure.\n  - The `kept != dict_keys` comparison is a valid set comparison.\n  - Hashes that don't match the historical manifest are recorded as caveats, not enforced, as `CLAUDE.md` requires.\n  - Every path the card links to is copied by `prepare`.\n- **Tests:** the five cases cover duplicates, a missing row, a wrong association and changed task content, plus the two machine-path fields (`merge_attempts`, `source`) being stripped from the metadata.\n\n**Nits (none blocking)**\n1. **External link not checked.** The campaign-report link pins commit `cc4951d` on GitHub, and only local links were checked. Run `git branch -r --contains cc4951d` before upload, and push the branch if it isn't there yet. If that branch is later deleted unmerged, the commit can become unreachable, so either land it on `main` or point the link at a `main` commit.\n2. **Shared witnesses not explained.** The card gives 68,467 distinct witness strings for 68,499 behaviours. That means 32 behaviours reuse another's exact witness, which only makes sense if they differ in input signature (the fingerprint includes the input kind). One clause in the card would save readers the puzzle.\n3. **Length caps not disclosed.** The histogram spikes at length 200 (625 rows, then 162 at 201) and drops after 400. Algorithm witnesses top out at exactly 200 and pipelines at 400, which looks like a generator length cap. The card says length is \"an upper bound\", but it doesn't say long compositions were capped or filtered.\n4. **Diversity scripts missing from `sources/`.** `diversity_structure.py`, `diversity_semantic.py` and `diversity_prompts.py` aren't snapshotted, although the copied audit JSONs cite their hashes. Add them for completeness.\n5. **Ambiguous top-level `seed`.** In the manifest, top-level `seed` (0) is the augmentation seed, while the validation seed sits under `config`. Consider renaming it `augmentation_seed`.\n6. **Constants count may include projections.** The card says \"constants and projections are rejected\" but gives a count only for constants (6,967). If projections are folded into the 732 \"other failures\", say so.\n7. **No secret scan reported.** The authoring config and provenance files go public verbatim, and nothing you listed included a scan. A quick grep of the output directory for `sk-`, `token`, `api_key` and `Authorization` before upload is cheap.\n8. **Two untested branches:** \"an excluded ID appears with a different digest\" and \"the audit exclusion set isn't fully seen\". Each is about a two-line test.",
+  "provenance": {
+    "source_git_commit": "74fd44c2a88c8dd70538a66583c08846b255c402",
+    "dirty": false,
+    "seed": 0,
+    "config": {
+      "execution_performed": false,
+      "train_only": true,
+      "validation_seed": 20261024,
+      "views_per_behavior": 16
+    },
+    "manifest_sha256": "ae62caa8b164d0eb8b298129136ac380acbb4b4d00e3c23a511e575d4cce9ebf",
+    "wandb_run.url": null
+  }
+}

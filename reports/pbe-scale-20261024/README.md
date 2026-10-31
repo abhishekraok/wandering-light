@@ -1,5 +1,7 @@
 # Large-scale stack PBE
 
+Published as [Stack PBE Scale v1](https://huggingface.co/datasets/abhishekraok/wandering-light-stack-pbe-scale-v1). The [generation card](huggingface/README.md) explains construction and limits; the [release pin](huggingface/hub.json) records the verified immutable Hub revision and payload hashes.
+
 ![Composition reuse and sensitivity of output similarity](diversity/diversity.png)
 
 The diversity audit finds real compositional variety within a narrow generator vocabulary. Most rows combine 23 transformations or 39 named algorithms. Across the shared test bank, 31.2% have a neighbor matching at least 95% of outputs; this is not a duplicate-function count. Sensitivity is strongest for list-plus-integer inputs: the same pairs' median agreement falls from 96.9% to 70.6% on the 17 longer-list cases. The one-list group's count at ≥95% changes little. Original training prompts have broader length coverage than the shared bank. [Audit numbers and limits](../../docs/RESULTS_DETAILED.md#diversity-audit-2026-10-28) · [structural evidence](diversity/structural-summary.json) · [behavioral evidence](diversity/semantic-summary.json) · [input sensitivity](diversity/semantic-sensitivity.json).

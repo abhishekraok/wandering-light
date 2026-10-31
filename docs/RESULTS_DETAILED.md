@@ -1117,6 +1117,10 @@ The original one-view **training prompts** are less skewed: 84,085 / 110,544 sho
 
 Conclusion: substantial compositional variety is present within a small declared generator vocabulary. Expanded witness length should not be read as algorithmic novelty or certified task difficulty. The shared probe-bank limitation is distinct from training-prompt length coverage. A second seed measures training variance; it does not establish diversity or isolate data from compute. No second-seed run was launched during this audit. All artifacts and per-row neighbors are durable under `checkpoints/pbe-scale-20261024/diversity-audit/`.
 
+### Hugging Face release (2026-10-30)
+
+Published the train-only corpus as [Stack PBE Scale v1](https://huggingface.co/datasets/abhishekraok/wandering-light-stack-pbe-scale-v1), revision `8236358d348387758e29fd7f9200d5fd760b9d9d`. A fresh download verified **57 file hashes**, the complete default configuration loaded **68,499 rows**, and the optional `views16` configuration streamed successfully. [Release pin](../reports/pbe-scale-20261024/huggingface/hub.json), [generation card](../reports/pbe-scale-20261024/huggingface/README.md), [independent high-effort review](../reports/pbe-scale-20261024/huggingface/review.json). Packaging passed five metadata-integrity tests and required lint; no references or generated stack programs were executed during publication. This adds a durable dataset release, not a new training result.
+
 ## No result
 
 | study | state |

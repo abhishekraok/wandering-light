@@ -1,0 +1,58 @@
+{
+  "repo_id": "abhishekraok/wandering-light-stack-pbe-scale-v1",
+  "revision": "8236358d348387758e29fd7f9200d5fd760b9d9d",
+  "url": "https://huggingface.co/datasets/abhishekraok/wandering-light-stack-pbe-scale-v1",
+  "source_git_commit": "74fd44c2a88c8dd70538a66583c08846b255c402",
+  "dirty": false,
+  "seed": 0,
+  "config": {
+    "execution_performed": false,
+    "train_only": true,
+    "validation_seed": 20261024,
+    "views_per_behavior": 16
+  },
+  "manifest_sha256": "ae62caa8b164d0eb8b298129136ac380acbb4b4d00e3c23a511e575d4cce9ebf",
+  "wandb_run.url": null,
+  "repo_type": "dataset",
+  "configs": {
+    "default": {
+      "train": {
+        "path": "data/tasks_train.jsonl.gz",
+        "records": 68499
+      }
+    },
+    "views16": {
+      "train": {
+        "path": "data/tasks_train_16views.jsonl.gz",
+        "records": 1095984
+      }
+    }
+  },
+  "metadata_records": 68499,
+  "primary_files": {
+    "data/tasks_train.jsonl.gz": {
+      "bytes": 64802562,
+      "sha256": "fc67a2b4d322365d1b01dabc1db556139a8ba0805a946cfba18878fbdd589460"
+    },
+    "data/tasks_train_16views.jsonl.gz": {
+      "bytes": 260212478,
+      "sha256": "bfdd78beca5017a089cf35a8702950f0232ffbc13ea225aef440429a04eb1d98"
+    },
+    "metadata/behaviors.jsonl.gz": {
+      "bytes": 11532156,
+      "sha256": "b1227c3ddd6a4e26dbf063b510b8cb793b6fc03bab1af35112152b91c451c899"
+    }
+  },
+  "verification": {
+    "fresh_download_verified": true,
+    "files_verified": 57,
+    "default_rows_loaded": 68499,
+    "views16_stream_load": true,
+    "programs_executed": false
+  },
+  "evaluation": {
+    "repo_id": "abhishekraok/wandering-light-stack-pbe-v4",
+    "revision": "00c2a9996d32df8d1894b45f4246a66b6df46c25",
+    "split": "eval"
+  }
+}
