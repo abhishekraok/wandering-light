@@ -1,0 +1,3073 @@
+{
+  "partitions": {
+    "cross_style_holdout": {
+      "paired_queries": 128,
+      "historical_only": [],
+      "corrected_only": [],
+      "metrics": {
+        "shown@1": {
+          "gain": 2,
+          "regression": 3,
+          "unchanged_success": 2,
+          "unchanged_failure": 121,
+          "unknown": 0
+        },
+        "shown@10": {
+          "gain": 4,
+          "regression": 5,
+          "unchanged_success": 13,
+          "unchanged_failure": 106,
+          "unknown": 0
+        },
+        "selected_hidden@10": {
+          "gain": 4,
+          "regression": 4,
+          "unchanged_success": 8,
+          "unchanged_failure": 112,
+          "unknown": 0
+        }
+      }
+    },
+    "official_eval": {
+      "paired_queries": 45,
+      "historical_only": [],
+      "corrected_only": [],
+      "metrics": {
+        "shown@1": {
+          "gain": 0,
+          "regression": 2,
+          "unchanged_success": 1,
+          "unchanged_failure": 42,
+          "unknown": 0
+        },
+        "shown@10": {
+          "gain": 2,
+          "regression": 3,
+          "unchanged_success": 10,
+          "unchanged_failure": 30,
+          "unknown": 0
+        },
+        "selected_hidden@10": {
+          "gain": 2,
+          "regression": 3,
+          "unchanged_success": 7,
+          "unchanged_failure": 33,
+          "unknown": 0
+        }
+      }
+    },
+    "official_eval_overlap": {
+      "paired_queries": 4,
+      "historical_only": [],
+      "corrected_only": [],
+      "metrics": {
+        "shown@1": {
+          "gain": 0,
+          "regression": 0,
+          "unchanged_success": 0,
+          "unchanged_failure": 4,
+          "unknown": 0
+        },
+        "shown@10": {
+          "gain": 1,
+          "regression": 0,
+          "unchanged_success": 0,
+          "unchanged_failure": 3,
+          "unknown": 0
+        },
+        "selected_hidden@10": {
+          "gain": 1,
+          "regression": 0,
+          "unchanged_success": 0,
+          "unchanged_failure": 3,
+          "unknown": 0
+        }
+      }
+    }
+  },
+  "changed_io_queries": [
+    {
+      "partition": "cross_style_holdout",
+      "key": "keep_positive",
+      "changes": {
+        "shown@10": {
+          "historical": false,
+          "corrected": true
+        },
+        "selected_hidden@10": {
+          "historical": false,
+          "corrected": true
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": null,
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "[ 0 swap lt? ] filter",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c184",
+      "changes": {
+        "shown@1": {
+          "historical": false,
+          "corrected": true
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ [ drop ] dip drop 1 eq? ] [ cons ] [ drop ] ifte swap 1 swap sub swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold 1 1 add [ over over div mul sub 1 eq? ] swap cons filter",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ [ drop ] dip drop 1 eq? ] [ cons ] [ drop ] ifte swap 1 swap sub swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold 1 1 add [ over over div mul sub 1 eq? ] swap cons filter",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "pbe-scale-02ebea896bfa9eaba3d6",
+      "changes": {
+        "shown@10": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "[ swap lt? ] swap cons filter 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ 0 [ over lt? ] [ drop ] [ swap drop ] ifte ] map dup 0 [ add ] fold over 0 [ drop 1 add ] fold 1 [ over lt? ] [ drop ] [ swap drop ] ifte div [ lt? ] swap cons filter [ 0 swap lt? ] filter 0 [ drop 1 add ] fold",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": null,
+          "source": "zero shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "pbe-scale-10f129f4ae07f2433373",
+      "changes": {
+        "shown@10": {
+          "historical": false,
+          "corrected": true
+        },
+        "selected_hidden@10": {
+          "historical": false,
+          "corrected": true
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": null,
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "[ sub ] swap cons map [ 0 eq? [ ] [ drop false ] [ drop true ] ifte ] filter [ dup mul ] map nil [ over over [ swap lt? ] swap cons filter [ swap ] dip swap [ swap ] dip swap swap over [ swap lt? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter [ swap ] dip swap [ swap ] dip swap quote swap cat cat ] fold",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "pbe-scale-1175cdcda882f48cc396",
+      "changes": {
+        "shown@1": {
+          "historical": true,
+          "corrected": false
+        },
+        "selected_hidden@10": {
+          "historical": false,
+          "corrected": true
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "dup dup 0 [ add ] fold over 0 [ drop 1 add ] fold 1 [ over lt? ] [ drop ] [ swap drop ] ifte div [ lt? ] swap cons filter [ [ dup 0 lt? ] [ drop 0 1 sub ] [ [ dup 0 eq? ] [ drop 0 ] [ drop 1 ] ifte ] ifte ] map [ 0 swap lt? ] filter [ dup null? ] [ drop 0 ] [ uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold ] ifte swap 0 [ drop 1 add ] fold mul",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "dup [ 0 eq? [ ] [ drop false ] [ drop true ] ifte ] filter dup 0 [ add ] fold over 0 [ drop 1 add ] fold 1 [ over lt? ] [ drop ] [ swap drop ] ifte div [ lt? ] swap cons filter [ [ dup 0 lt? ] [ drop 0 1 sub ] [ [ dup 0 eq? ] [ drop 0 ] [ drop 1 ] ifte ] ifte ] map [ dup null? ] [ drop 0 ] [ dup uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold swap uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold sub ] ifte swap 0 [ drop 1 add ] fold mul",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "pbe-scale-2f0b585e19ae3811a6c9",
+      "changes": {
+        "shown@10": {
+          "historical": false,
+          "corrected": true
+        },
+        "selected_hidden@10": {
+          "historical": false,
+          "corrected": true
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": null,
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "swap nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop null? ] [ drop nil swap cons swap cons ] [ [ swap uncons ] dip nil swap cons swap cons swap [ cons ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ uncons swap uncons swap drop sub ] map [ dup [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte sub ] map nil [ [ over over [ eq? ] swap cons filter 0 [ drop 1 add ] fold 0 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte 1 eq? ] [ drop ] [ cons ] ifte ] fold nil [ cons ] fold 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold 0 [ add ] fold",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "pbe-scale-4fcdd68a158bc7121166",
+      "changes": {
+        "shown@1": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "[ sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] swap cons map nil [ over over [ swap lt? ] swap cons filter [ swap ] dip swap [ swap ] dip swap swap over [ swap lt? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter [ swap ] dip swap [ swap ] dip swap quote swap cat cat ] fold [ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map nil [ [ over over [ eq? ] swap cons filter 0 [ drop 1 add ] fold 0 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte 1 eq? ] [ drop ] [ cons ] ifte ] fold nil [ cons ] fold [ 1 1 add over over div mul sub 0 eq? ] filter",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "[ sub [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] swap cons map nil [ over over [ swap lt? ] swap cons filter [ swap ] dip swap [ swap ] dip swap swap over [ swap lt? [ ] [ drop false ] [ drop true ] ifte ] swap cons filter [ swap ] dip swap [ swap ] dip swap quote swap cat cat ] fold [ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map nil [ [ over over [ eq? ] swap cons filter 0 [ drop 1 add ] fold 0 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte 1 eq? ] [ drop ] [ cons ] ifte ] fold nil [ cons ] fold [ 1 1 add over over div mul sub 0 eq? ] filter",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "pbe-scale-50c40ba4095d4acbb7fc",
+      "changes": {
+        "shown@10": {
+          "historical": true,
+          "corrected": false
+        },
+        "selected_hidden@10": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "[ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] map dup 0 [ add ] fold over 0 [ drop 1 add ] fold 1 [ over lt? ] [ drop ] [ swap drop ] ifte div [ swap lt? ] swap cons filter [ 1 1 add over over div mul sub 0 eq? ] filter [ dup null? ] [ drop 0 ] [ uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold ] ifte",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": null,
+          "source": "zero shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "pbe-scale-cc22c292a8a6cc0caaca",
+      "changes": {
+        "shown@1": {
+          "historical": false,
+          "corrected": true
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "cat nil [ [ over over [ eq? ] swap cons filter 0 [ drop 1 add ] fold 0 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte 1 eq? ] [ drop ] [ cons ] ifte ] fold nil [ cons ] fold [ 0 lt? ] filter 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold dup 0 [ add ] fold swap 0 [ drop 1 add ] fold 1 [ over lt? ] [ drop ] [ swap drop ] ifte div",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "cat nil [ [ over over [ eq? ] swap cons filter 0 [ drop 1 add ] fold 0 swap lt? [ ] [ drop 1 ] [ drop 0 ] ifte 1 eq? ] [ drop ] [ cons ] ifte ] fold nil [ cons ] fold [ 0 lt? ] filter 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold dup 0 [ add ] fold swap 0 [ drop 1 add ] fold 1 [ over lt? ] [ drop ] [ swap drop ] ifte div",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "pbe-scale-d8cdedec7930f3e49317",
+      "changes": {
+        "shown@10": {
+          "historical": false,
+          "corrected": true
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": null,
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "dup 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ dup [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte sub ] map [ dup null? ] [ drop 0 ] [ uncons [ [ over lt? ] [ drop ] [ swap drop ] ifte ] fold ] ifte swap 0 [ add ] fold sub",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "pbe-scale-df10be0f6e1296b58638",
+      "changes": {
+        "shown@1": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "swap nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop null? ] [ drop nil swap cons swap cons ] [ [ swap uncons ] dip nil swap cons swap cons swap [ cons ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ uncons swap uncons swap drop add ] map 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ 1 1 add over over div mul sub 1 eq? ] filter nil [ cons ] fold",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "swap nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop null? ] [ drop nil swap cons swap cons ] [ [ swap uncons ] dip nil swap cons swap cons swap [ cons ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ uncons swap uncons swap drop add ] map 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ 1 1 add over over div mul sub 1 eq? ] filter nil [ cons ] fold",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "pbe-scale-e6a77864d0179cfb754d",
+      "changes": {
+        "shown@10": {
+          "historical": true,
+          "corrected": false
+        },
+        "selected_hidden@10": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "swap nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop null? ] [ drop nil swap cons swap cons ] [ [ swap uncons ] dip nil swap cons swap cons swap [ cons ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ uncons swap uncons swap drop add ] map [ 1 1 add over over div mul sub 1 eq? ] filter nil [ cons ] fold dup 0 [ add ] fold over 0 [ drop 1 add ] fold 1 [ over lt? ] [ drop ] [ swap drop ] ifte div [ lt? ] swap cons filter 0 [ drop 1 add ] fold",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": null,
+          "source": "zero shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "scale-000033-22",
+      "changes": {
+        "shown@10": {
+          "historical": true,
+          "corrected": false
+        },
+        "selected_hidden@10": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "swap nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop null? ] [ drop nil swap cons swap cons ] [ [ swap uncons ] dip nil swap cons swap cons swap [ cons ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ uncons swap uncons swap drop mul ] map dup 0 [ drop 1 add ] fold dup nil 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons 0 cons dup cat swap nil 0 cons 1 nil swap cons swap cons swap [ [ [ drop uncons swap uncons swap drop swap drop ] dip lt? ] [ drop drop uncons swap uncons swap drop over over [ dup ] dip [ add ] swap cons map cat [ swap ] dip swap drop swap dup add nil swap cons swap cons ] [ drop drop ] ifte ] swap cons fold uncons swap uncons swap drop drop swap [ lt? ] swap cons filter swap swap nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ drop drop null? ] [ drop nil swap cons swap cons ] [ [ swap uncons ] dip nil swap cons swap cons swap [ cons ] dip swap nil swap cons swap cons ] ifte ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ uncons swap uncons swap drop [ 1 add ] dip mul ] map 0 [ add ] fold",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": null,
+          "source": "zero shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "scale-000082-14",
+      "changes": {
+        "shown@10": {
+          "historical": true,
+          "corrected": false
+        },
+        "selected_hidden@10": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "[ dup 0 [ add ] fold 1 1 add over over div mul sub 0 eq? ] [ 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ 1 1 add over over div mul sub 0 eq? ] filter [ 1 1 add div ] map ] [ 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ 1 1 add over over div mul sub 1 eq? ] filter [ dup mul ] map ] ifte",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": null,
+          "source": "zero shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "official_eval",
+      "key": "all_positive",
+      "changes": {
+        "shown@1": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "dup 0 [ [ 0 swap lt? ] [ drop 1 add ] [ drop ] ifte ] fold 1 1 add mul swap 0 [ drop 1 add ] fold [ over lt? ] [ drop drop 1 ] [ drop drop 0 ] ifte",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "dup 0 [ [ 0 swap lt? ] [ drop 1 add ] [ drop ] ifte ] fold 1 1 add mul swap 0 [ drop 1 add ] fold [ over lt? ] [ drop drop 1 ] [ drop drop 0 ] ifte",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "official_eval",
+      "key": "cartesian_pair_sums",
+      "changes": {
+        "shown@10": {
+          "historical": true,
+          "corrected": false
+        },
+        "selected_hidden@10": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "[ swap [ add ] swap cons map cat ] swap cons nil swap fold",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": null,
+          "source": "zero shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "official_eval",
+      "key": "concatenate_shorter_first",
+      "changes": {
+        "shown@1": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "[ 0 [ drop 1 add ] fold swap 0 [ drop 1 add ] fold lt? ] [ swap cat ] [ cat ] ifte",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "[ 0 [ drop 1 add ] fold swap 0 [ drop 1 add ] fold lt? ] [ swap cat ] [ cat ] ifte",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "official_eval",
+      "key": "keep_negative",
+      "changes": {
+        "shown@10": {
+          "historical": true,
+          "corrected": false
+        },
+        "selected_hidden@10": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "[ 0 lt? ] filter",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": null,
+          "source": "zero shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "official_eval",
+      "key": "manhattan_point_radii",
+      "changes": {
+        "shown@10": {
+          "historical": false,
+          "corrected": true
+        },
+        "selected_hidden@10": {
+          "historical": false,
+          "corrected": true
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": null,
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "nil 0 cons 0 cons nil cons [ [ uncons swap uncons swap uncons swap drop ] dip [ drop 0 eq? ] [ swap drop [ drop ] dip 1 nil swap cons swap cons swap cons ] [ swap drop [ [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte ] dip [ dup 0 lt? ] [ 0 swap sub ] [ ] ifte add cons 0 0 nil swap cons swap cons swap cons ] ifte ] fold uncons swap drop nil [ cons ] fold",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "official_eval",
+      "key": "nearest_interval_endpoint_each",
+      "changes": {
+        "shown@10": {
+          "historical": true,
+          "corrected": false
+        },
+        "selected_hidden@10": {
+          "historical": true,
+          "corrected": false
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": "[ [ [ over swap sub dup mul ] dip swap [ over swap sub dup mul ] dip lt? ] [ swap drop swap drop ] [ drop swap drop ] ifte ] swap cons swap cons map",
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": null,
+          "source": "zero shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "official_eval",
+      "key": "sum_negative",
+      "changes": {
+        "shown@10": {
+          "historical": false,
+          "corrected": true
+        },
+        "selected_hidden@10": {
+          "historical": false,
+          "corrected": true
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": null,
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "[ dup 0 [ add ] fold 0 lt? ] [ [ 0 lt? ] filter 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ dup null? ] [ drop 0 ] [ uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold ] ifte ] [ nil [ cons ] fold [ 0 lt? ] filter 0 nil nil swap cons swap cons [ [ uncons swap uncons swap drop ] dip [ swap ] dip swap add dup [ cons ] dip swap nil swap cons swap cons ] fold uncons swap uncons swap drop swap drop nil [ cons ] fold [ dup null? ] [ drop 0 ] [ uncons [ [ over lt? ] [ swap drop ] [ drop ] ifte ] fold ] ifte ] ifte",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    },
+    {
+      "partition": "official_eval_overlap",
+      "key": "halve_each",
+      "changes": {
+        "shown@10": {
+          "historical": false,
+          "corrected": true
+        },
+        "selected_hidden@10": {
+          "historical": false,
+          "corrected": true
+        }
+      },
+      "selected_programs": {
+        "historical": {
+          "recoverable": true,
+          "program": null,
+          "source": "saved historical replay candidate grades"
+        },
+        "corrected": {
+          "recoverable": true,
+          "program": "[ 1 1 add div ] map",
+          "source": "first known pass identified by shown reciprocal-rank lower bound"
+        }
+      }
+    }
+  ],
+  "program_recall10": {
+    "cross_style_holdout": {
+      "paired_queries": 146,
+      "paired_behaviors": 65,
+      "query_recall10_changes": {
+        "gain": 5,
+        "regression": 8,
+        "unchanged_success": 100,
+        "unchanged_failure": 33,
+        "unknown": 0
+      },
+      "behavior_balanced": {
+        "historical_recall@10": 0.7230769230769231,
+        "corrected_recall@10": 0.7,
+        "gain": 0.0358974358974359,
+        "regression": 0.05897435897435898
+      },
+      "historical_only": [],
+      "corrected_only": []
+    },
+    "official_eval": {
+      "paired_queries": 6,
+      "paired_behaviors": 3,
+      "query_recall10_changes": {
+        "gain": 0,
+        "regression": 1,
+        "unchanged_success": 5,
+        "unchanged_failure": 0,
+        "unknown": 0
+      },
+      "behavior_balanced": {
+        "historical_recall@10": 1.0,
+        "corrected_recall@10": 0.8333333333333334,
+        "gain": 0.0,
+        "regression": 0.16666666666666666
+      },
+      "historical_only": [],
+      "corrected_only": []
+    },
+    "official_eval_overlap": {
+      "paired_queries": 4,
+      "paired_behaviors": 2,
+      "query_recall10_changes": {
+        "gain": 0,
+        "regression": 0,
+        "unchanged_success": 4,
+        "unchanged_failure": 0,
+        "unknown": 0
+      },
+      "behavior_balanced": {
+        "historical_recall@10": 1.0,
+        "corrected_recall@10": 1.0,
+        "gain": 0.0,
+        "regression": 0.0
+      },
+      "historical_only": [],
+      "corrected_only": []
+    }
+  },
+  "changed_program_ranks": [
+    {
+      "partition": "cross_style_holdout",
+      "key": "abs_each",
+      "program_sha256": "8a09f1f2a83d47333e51efebada4a5d599f697f4211c414e7104da8366d23c6b",
+      "historical_rank": 33,
+      "corrected_rank": 24
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "count_negative",
+      "program_sha256": "78ed02d756da703a6f7a7dbd5383c662e049df97410662ae3176908b7acac24d",
+      "historical_rank": 1,
+      "corrected_rank": 2
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-caesar-cipher-k-modulo-n-k3-n5",
+      "program_sha256": "0883ef4bca92493d5584116e25d5cc27585e8afabe0825668b12cc60c6555142",
+      "historical_rank": 6,
+      "corrected_rank": 8
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-caesar-cipher-k-modulo-n-k3-n5",
+      "program_sha256": "7e740edb533b6c83be4c4bc8892bcd23fb9d23495e12c1a9efa2004dcd96c480",
+      "historical_rank": 3,
+      "corrected_rank": 5
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-count-k-k3",
+      "program_sha256": "08ee0a4e875a1857b3f7c9e09c8c5e17713c33dea152c8c4e677f805bc02135e",
+      "historical_rank": 3,
+      "corrected_rank": 2
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-index-k-k2",
+      "program_sha256": "0dd84fbb8bc8d3a682a734fad7df6cd49b7337b3b77f50d197705b8a28a23a52",
+      "historical_rank": 13,
+      "corrected_rank": 10
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-index-k-k2",
+      "program_sha256": "c19a5aba8f223ef34ea341c3bfd0258979ddb4640850c705af6c524d9e4710c0",
+      "historical_rank": 3,
+      "corrected_rank": 4
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-index-k-k3",
+      "program_sha256": "ec70a76ed5e3c105453c36f3c315660388e5b1110a1bdd75513cdb2a308dc3c7",
+      "historical_rank": 7,
+      "corrected_rank": 3
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-index-k-k5",
+      "program_sha256": "863540314375dfdcf1ce621ecaa2961a65b372aed9845ae754ac0e1718975dba",
+      "historical_rank": 18,
+      "corrected_rank": 17
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-index-k-k5",
+      "program_sha256": "fa3fea7e8671a6683292a145619eca3087d02a05b5d6900aa20a7e1ad0bfddc4",
+      "historical_rank": 7,
+      "corrected_rank": 9
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-remove-mod-k-k3",
+      "program_sha256": "4b24d6d4d6459180bf2cb379e8e00fab0a7ea56fa7f95316e2f7965d686e4b05",
+      "historical_rank": 2,
+      "corrected_rank": 5
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-remove-mod-k-k4",
+      "program_sha256": "c9e4f5bb40dc9342c6550c10f113f4c45dae79941ea069ce8337ca44e9ea3da2",
+      "historical_rank": 2,
+      "corrected_rank": 1
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-replace-all-with-index-k-k2",
+      "program_sha256": "807794c62454d003c88c5b0ef2f10f9db63c4a72ac200bc32b2ec6da1884e611",
+      "historical_rank": 6,
+      "corrected_rank": 21
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-replace-all-with-index-k-k3",
+      "program_sha256": "1e4baba2993384b02bd7536fc7572825940bfefe7150bfa8c853d7930e578f63",
+      "historical_rank": 117,
+      "corrected_rank": 454
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-replace-all-with-index-k-k3",
+      "program_sha256": "b873f9a1bdad697429b04e73b2fcd455e28f65402e47e7093445c301be56ef6e",
+      "historical_rank": 8,
+      "corrected_rank": 46
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-replace-all-with-index-k-k4",
+      "program_sha256": "187225790b81f63b01f1d30640d9be913dbd2844f8f9bd2ab802a56dfa9c0697",
+      "historical_rank": 1038,
+      "corrected_rank": 639
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-replace-all-with-index-k-k4",
+      "program_sha256": "4059a2b4166a08666c58b517fb3a48df311917e116499951c0f5b43d763b3733",
+      "historical_rank": 88,
+      "corrected_rank": 31
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-replace-all-with-index-k-k5",
+      "program_sha256": "4477eac1b512516a88c4ceed2ba9a8f76340a3837d3233fe896a08ee838e6485",
+      "historical_rank": 338,
+      "corrected_rank": 1668
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "dc-replace-all-with-index-k-k5",
+      "program_sha256": "f2fd60cac27d1dc650cdda3eb3106430d88c6a89817af80592fc75ee4ef52e88",
+      "historical_rank": 1055,
+      "corrected_rank": 2494
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "distance_from_target_total",
+      "program_sha256": "bcb2aac2454ae712f55894d7cec600a46732645e9dac35e1f09063d0b23d867e",
+      "historical_rank": 3,
+      "corrected_rank": 5
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "flat_pair_maxima",
+      "program_sha256": "24eced1c43b078df31af2ef8f27168c23022e887a213d8e3abaf3ade9a4b377e",
+      "historical_rank": 547,
+      "corrected_rank": 201
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "flat_pair_maxima",
+      "program_sha256": "8a51a41dc7a521035b35e76692fcc0dbaeb7493c3cfbc647acb463696b5e2d77",
+      "historical_rank": 1,
+      "corrected_rank": 3
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "hamming_distance",
+      "program_sha256": "52b77747a318df76f856fb00498d272fd8145f060140d880755e06fce2d2f984",
+      "historical_rank": 2,
+      "corrected_rank": 5
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "interval_overlap_length",
+      "program_sha256": "8de517a4c1b32f9b05444ba5a6785a72e2367f40974a326c8cbe2c18c7b1aa21",
+      "historical_rank": 4,
+      "corrected_rank": 6
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "largest_magnitude",
+      "program_sha256": "7c7727c25c8f9b144f18f905ffc01ecc77a43e2a8d246152139a523e6ba986f0",
+      "historical_rank": 19,
+      "corrected_rank": 1
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-005",
+      "program_sha256": "041cc6e9a4a1eb4003e894ecdc3b5dbb2d52426814fd0205bda97b6e9217de96",
+      "historical_rank": 3,
+      "corrected_rank": 7
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-005",
+      "program_sha256": "9afe62ce687319734ed29c2ec89f6bea1e1c8ec18142291f84ae4a4bf4058c7b",
+      "historical_rank": 4,
+      "corrected_rank": 1
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-008",
+      "program_sha256": "6369d255a88ca88ddc701e76e598c9e72e2f68581f6ec7e69fe2de5f1500c9c3",
+      "historical_rank": 20,
+      "corrected_rank": 13
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-008",
+      "program_sha256": "9f32605ef23ee7a6c7e03f9959ad2766ce33849a8ac98c99b32a80bbcfd86cc5",
+      "historical_rank": 26,
+      "corrected_rank": 9
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-018",
+      "program_sha256": "942461e3fc6c20ef16e9862b3e943d3ad94c0761caa7744f5df045807fb869ce",
+      "historical_rank": 6,
+      "corrected_rank": 5
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-018",
+      "program_sha256": "a68ed63951751921e93d2ad7cad0c3d1d3bde4aad55de6423860d532ee00c72c",
+      "historical_rank": 2,
+      "corrected_rank": 1
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-078",
+      "program_sha256": "71d3d61307b16b8519ae5ad927e7e8363fff3ab890c241fb83710154bd0118b2",
+      "historical_rank": 7,
+      "corrected_rank": 28
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-078",
+      "program_sha256": "93e25723bfb394107f506cb24808da8b309a13e5786d087044431f23419ef755",
+      "historical_rank": 49,
+      "corrected_rank": 72
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-087",
+      "program_sha256": "020e72abcefe3bb7fc1dfef0bc613135671b926846ab2a90eb6419af829418cc",
+      "historical_rank": 2002,
+      "corrected_rank": 684
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-087",
+      "program_sha256": "4d37e9a04c9f996859e4d05e226e59d75f306aa205ed49fae7217dc7faa7cadc",
+      "historical_rank": 4533,
+      "corrected_rank": 2699
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-089",
+      "program_sha256": "4a490d64cb087a2d463c3f2ec8b04c66195e28cc5966d9aff0448bb681c48346",
+      "historical_rank": 77,
+      "corrected_rank": 288
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lb-089",
+      "program_sha256": "4dba7fdaabea9697af5ab1a282c252a3083b913fd6ccf22d2ae701ef97b68506",
+      "historical_rank": 17,
+      "corrected_rank": 250
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c024",
+      "program_sha256": "a524221ab2f3e6683e381f4abaf8835493157bae0e9d9ee371eb0935570bcd15",
+      "historical_rank": 1,
+      "corrected_rank": 3
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c024",
+      "program_sha256": "b3b29bd8658bc1aff3b5ebb5439931161b82fdecbaeac5e054186b21bee06d24",
+      "historical_rank": 6,
+      "corrected_rank": 15
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c058",
+      "program_sha256": "738afb7418c376d7dcce3634a634b15540c1398b6ee92cf58100c688a58daf28",
+      "historical_rank": 214,
+      "corrected_rank": 63
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c058",
+      "program_sha256": "d0e911064a279745a54425c39f9c3d4d10ac1ecfef4daa8a7ecb4ea79c1e616c",
+      "historical_rank": 80,
+      "corrected_rank": 79
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c089",
+      "program_sha256": "2ab19426f43ec3a2af1b37073dbc8b859de5536a2b1b4afe0767de5d394df165",
+      "historical_rank": 3,
+      "corrected_rank": 4
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c110",
+      "program_sha256": "5dd563b31ca3cc965a82385a1c754577c2cde11a5004231eef120cf1c0365a92",
+      "historical_rank": 17,
+      "corrected_rank": 37
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c110",
+      "program_sha256": "ddfd182aea1939601a28b3225cb16ee9d64919fabe8472013e898c3b676e16d1",
+      "historical_rank": 27,
+      "corrected_rank": 579
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c118",
+      "program_sha256": "5f2e13563356564b605fa62fc085d8578820a9edd47c69cfd5766756b5c46c08",
+      "historical_rank": 70,
+      "corrected_rank": 636
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c118",
+      "program_sha256": "c598532b4f0f946bbb03a5db0183acfb09d41c46841911080be1bae8fe34414e",
+      "historical_rank": 178,
+      "corrected_rank": 99
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c135",
+      "program_sha256": "586a500227b77fb23d37330d157fa9e27bd3c274463fab27cbd29bdc57191546",
+      "historical_rank": 5,
+      "corrected_rank": 136
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c135",
+      "program_sha256": "db61e9c41b20f26229cd5a62e75c67680a14b9f46a1401776590f75a14b67ed9",
+      "historical_rank": 3,
+      "corrected_rank": 16
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c158",
+      "program_sha256": "393c8af42943367b6666f49d89fa559178fc967fd080b62543e1a67e30f7a3b3",
+      "historical_rank": 22,
+      "corrected_rank": 253
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c158",
+      "program_sha256": "61d553b43b26229606a4a18415080f57fae5540340365b7c3c7835528e2478cf",
+      "historical_rank": 171,
+      "corrected_rank": 848
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c161",
+      "program_sha256": "75d3e48c0c82e61218ca4be58f0662d35187b12209c9381af204e6f05dff3d5e",
+      "historical_rank": 369,
+      "corrected_rank": 6
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c161",
+      "program_sha256": "e2e7490b8c6273f538968725b214ec4207c480d4778dafe60c9c4f49326bf95c",
+      "historical_rank": 74,
+      "corrected_rank": 10
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c162",
+      "program_sha256": "f8cc06d6d942570d0b382e062165349e07189804fe03d02ee072ff6e64ca1bfe",
+      "historical_rank": 2,
+      "corrected_rank": 1
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c184",
+      "program_sha256": "580ee63b4093a66fec1b5155d2202f45ffe4863d272a3e6aac1577604a107959",
+      "historical_rank": 5,
+      "corrected_rank": 40
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c184",
+      "program_sha256": "5b600218caa5e47c329a7a68bfac20adde746b4820910f739b07d7e5919590d3",
+      "historical_rank": 26,
+      "corrected_rank": 225
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c216",
+      "program_sha256": "2752a4b54b1e86c1cee3496d36ae9452e86eebae1378e54be6fba5ba07b2bc29",
+      "historical_rank": 349,
+      "corrected_rank": 25
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c216",
+      "program_sha256": "ab69135b26f571050ca9d292d0768fdab66ee9462c2e3af0babe895272d95c44",
+      "historical_rank": 226,
+      "corrected_rank": 19
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c218",
+      "program_sha256": "9026a60d713f731076b0d749167a03d271d02a1d15dd49bd3a9db1e0e02ceede",
+      "historical_rank": 5,
+      "corrected_rank": 7
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c226",
+      "program_sha256": "0bdb85149aee10be7a41793f845ceb193dfb05aaa77e07a0d4a7b41218ac3c54",
+      "historical_rank": 540,
+      "corrected_rank": 4372
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c226",
+      "program_sha256": "592750b6fbd71a68fbde08b5cb7c2fb70827a4de3b2678bef59c6d113fc1fe95",
+      "historical_rank": 615,
+      "corrected_rank": 6504
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c249",
+      "program_sha256": "c10be86ec1025fa391673d430b65d8386b27ccc4967efe3a60444ac1c09991ef",
+      "historical_rank": 19,
+      "corrected_rank": 12
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "lf-c249",
+      "program_sha256": "feff17afc8a216757a942f5b1ac6eddd0154323d3bafee4a3b3564be318bf184",
+      "historical_rank": 67,
+      "corrected_rank": 44
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "mbpp-571",
+      "program_sha256": "09acf1d822d986ff360658a33c8ec553496dc3cb75bede1fd0ae039dc4c94525",
+      "historical_rank": 1,
+      "corrected_rank": 2
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "mbpp-571",
+      "program_sha256": "5e76c0b27438e2e830d2fcc12f2ed35c2d612626fef6ff60d3fc289d1cff62f5",
+      "historical_rank": 1,
+      "corrected_rank": 3
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "minimum",
+      "program_sha256": "876b7c7ba401a77334b35f88235677ac6b6ef0d9b836d2e2160c2e85baa1b1b2",
+      "historical_rank": 1,
+      "corrected_rank": 2
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "ordered_pair",
+      "program_sha256": "ba98aa27edacfff38697f2dafbe59cf41d69d73afc005d4c477867865d837821",
+      "historical_rank": 2,
+      "corrected_rank": 1
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "positive_quadrant_count",
+      "program_sha256": "958ecabec9732b81dc8c6381afd6dcc69517e2b7d1864456d7c7a6de2b57d187",
+      "historical_rank": 2,
+      "corrected_rank": 3
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "positive_quadrant_count",
+      "program_sha256": "a399540b950b847f9c3465138c5ec5cd2197e60f9ce56910aedd2a80f689b0d2",
+      "historical_rank": 4,
+      "corrected_rank": 11
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "positive_quadrant_count",
+      "program_sha256": "ad7d3b1ac3240f841b973906423071d80efacb0169e5328795a7b172641801a5",
+      "historical_rank": 15,
+      "corrected_rank": 19
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "replace_zeros",
+      "program_sha256": "beb90e3aaeafddc299d9ff10b80b70debbe88f918d3fcbfab3048674028458f1",
+      "historical_rank": 55,
+      "corrected_rank": 367
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "running_positive_streaks",
+      "program_sha256": "e1fbb979827495472e442309c1d72fc94e0868ad74c5a90dc0557f8fa6e113ee",
+      "historical_rank": 159,
+      "corrected_rank": 197
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "stable_sort_flat_pairs",
+      "program_sha256": "ed6f16d7884aebc55b54a6ab0285aae03136fa650aeaaf14e2f7062e05b9790b",
+      "historical_rank": 9,
+      "corrected_rank": 3
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "sum_inside_interval",
+      "program_sha256": "218c1513ca385d7b891ebb0057adcb59a5f4ff1f2c197fc7b1e38611dccf3c26",
+      "historical_rank": 1,
+      "corrected_rank": 2
+    },
+    {
+      "partition": "cross_style_holdout",
+      "key": "triangle_feasibility_flag",
+      "program_sha256": "57afce6af9c13b7c9a7f7da21263437739ff4de543794a4f54fd3b4f42c7e27c",
+      "historical_rank": 3,
+      "corrected_rank": 1
+    },
+    {
+      "partition": "official_eval",
+      "key": "all_positive",
+      "program_sha256": "4a6c4860ac93cd4ec81a5a8fa8ec9d301f9dceffcf7b9ca003a53b58b94d3a6c",
+      "historical_rank": 1,
+      "corrected_rank": 2
+    },
+    {
+      "partition": "official_eval",
+      "key": "all_positive",
+      "program_sha256": "65cbfec691f5b85555d7a3edd9796a22b9025694011453a765b8a66a2ce91135",
+      "historical_rank": 1,
+      "corrected_rank": 34
+    },
+    {
+      "partition": "official_eval",
+      "key": "negate_each",
+      "program_sha256": "eab078eb8e493f0445c6f04c0693e1dcfad1a73c4ee713aca95bf4800d67b2ee",
+      "historical_rank": 3,
+      "corrected_rank": 1
+    },
+    {
+      "partition": "official_eval_overlap",
+      "key": "double_each",
+      "program_sha256": "48742ec079f40547299032137a3486d01db608aae065a278605d6f50e7329722",
+      "historical_rank": 4,
+      "corrected_rank": 5
+    },
+    {
+      "partition": "official_eval_overlap",
+      "key": "lf-c071",
+      "program_sha256": "f8c5cf473321506c571e60fbacd2e008f4cacd1fb6488656c9029195683b8b49",
+      "historical_rank": 1,
+      "corrected_rank": 2
+    }
+  ],
+  "provenance": {
+    "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+    "dirty": false,
+    "config": {
+      "seed": 0,
+      "metrics": [
+        "shown@1",
+        "shown@10",
+        "selected_hidden@10"
+      ],
+      "program_threshold": 10,
+      "pairing": "partition, behavior key; program queries also SHA-256"
+    },
+    "inputs": {
+      "historical": {
+        "path": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0/test-trained.json",
+        "sha256": "08b22881c4da330e6a74398cb21897d4c3827e6d8a93b7852abd602e986f4414"
+      },
+      "corrected": {
+        "path": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/test-trained/evaluation.json",
+        "sha256": "e1ff0063dd30cdd21596757ad4a56a447aac6483bb95598ab06e77db5f0e4b44"
+      },
+      "historical_replay": {
+        "path": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/historical-execution.json",
+        "sha256": "c4b8b7de1172ae341dd35e0e975cc83d7e24ebcd17f1769db27042a7ad75dfa8"
+      }
+    },
+    "script_sha256": "ecad767094c532f5d90ad872d7c2a6043fbc74b565b9535fd9b285bef83d4766",
+    "wandb_run.url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/ikcpxo2w",
+    "evaluation_provenance": {
+      "historical": {
+        "training": {
+          "commit": "39fe589745203faf99eb01f6e42b3432f858ee8d",
+          "dirty": true,
+          "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embeddings-20261024",
+          "asset_root": "/home/abhishekrao/repos/wandering-light",
+          "asset_git": {
+            "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+            "dirty": false
+          },
+          "config": {
+            "dim": 128,
+            "hidden_dim": 128,
+            "byte_dim": 48,
+            "num_layers": 1,
+            "max_program_bytes": 16384,
+            "max_example_bytes": 16384
+          },
+          "training": {
+            "repo_root": "/home/abhishekrao/repos/wandering-light",
+            "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0",
+            "exclude_program_sha256": [
+              "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+            ],
+            "steps": 500,
+            "batch_size": 64,
+            "eval_every": 250,
+            "device": "cuda",
+            "rewrite_fraction": 0.5,
+            "threads": 4,
+            "global_bank": true,
+            "untrained_eval": false,
+            "freeze_program_space": true,
+            "seed": 0,
+            "dim": 128,
+            "hidden_dim": 128,
+            "byte_dim": 48,
+            "max_eval_records": 128,
+            "max_train_records": 0,
+            "max_program_bytes": 16384,
+            "max_example_bytes": 16384,
+            "lr": 0.001,
+            "weight_decay": 0.01,
+            "temperature": 0.07,
+            "io_weight": 1.0,
+            "invariance_weight": 0.0,
+            "io_io_weight": 0.0,
+            "io_examples": 5,
+            "execution_examples": 16,
+            "offline": false,
+            "skip_execution": false,
+            "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/program-s0/best.pt",
+            "eval_only": false,
+            "eval_split": "validation"
+          },
+          "extra_task_paths": [
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+          ],
+          "data": {
+            "schema_version": 1,
+            "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+            "dirty": false,
+            "wandb_run.url": null,
+            "seed": 20261024,
+            "config": {
+              "split_policy": "template-and-all-witness-skeleton-components-v1",
+              "validation_share": 0.1,
+              "test_share": 0.1
+            },
+            "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+            "counts": {
+              "validation": 1224,
+              "test": 1290,
+              "train": 9707
+            },
+            "partitions": {
+              "cross_style_holdout": 2465,
+              "fit": 9707,
+              "official_eval": 45,
+              "official_eval_overlap": 4
+            },
+            "components": {
+              "count": 11469,
+              "largest": 23
+            },
+            "components_by_split": {
+              "train": 9116,
+              "validation": 1144,
+              "test": 1209
+            },
+            "cross_style_by_split": {
+              "validation": 47,
+              "test": 70,
+              "train": 367
+            },
+            "source_data_digests": {
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+              "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+            },
+            "caveats": [
+              "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+              "Fewer than four distinct visible examples after hidden-input exclusion.",
+              "Held out because template or witness skeleton connects to official v4 eval.",
+              "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+              "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+            ],
+            "excluded_program_sha256": [
+              "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+            ],
+            "excluded_program_variants": 1
+          },
+          "seed": 0,
+          "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/3elwpicv",
+          "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+          "initial_checkpoint_metadata": {
+            "commit": "39fe589745203faf99eb01f6e42b3432f858ee8d",
+            "dirty": true,
+            "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embeddings-20261024",
+            "asset_root": "/home/abhishekrao/repos/wandering-light",
+            "asset_git": {
+              "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+              "dirty": false
+            },
+            "config": {
+              "dim": 128,
+              "hidden_dim": 128,
+              "byte_dim": 48,
+              "num_layers": 1,
+              "max_program_bytes": 16384,
+              "max_example_bytes": 16384
+            },
+            "training": {
+              "repo_root": "/home/abhishekrao/repos/wandering-light",
+              "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/program-s0",
+              "exclude_program_sha256": [
+                "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+              ],
+              "steps": 500,
+              "batch_size": 64,
+              "eval_every": 250,
+              "device": "cuda",
+              "rewrite_fraction": 1.0,
+              "threads": 4,
+              "global_bank": true,
+              "untrained_eval": false,
+              "freeze_program_space": false,
+              "seed": 0,
+              "dim": 128,
+              "hidden_dim": 128,
+              "byte_dim": 48,
+              "max_eval_records": 128,
+              "max_train_records": 0,
+              "max_program_bytes": 16384,
+              "max_example_bytes": 16384,
+              "lr": 0.0002,
+              "weight_decay": 0.01,
+              "temperature": 0.07,
+              "io_weight": 0.0,
+              "invariance_weight": 1.0,
+              "io_io_weight": 0.0,
+              "io_examples": 5,
+              "execution_examples": 16,
+              "offline": false,
+              "skip_execution": true,
+              "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/joint-s0/best.pt",
+              "eval_only": false,
+              "eval_split": "validation"
+            },
+            "extra_task_paths": [
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+            ],
+            "data": {
+              "schema_version": 1,
+              "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+              "dirty": false,
+              "wandb_run.url": null,
+              "seed": 20261024,
+              "config": {
+                "split_policy": "template-and-all-witness-skeleton-components-v1",
+                "validation_share": 0.1,
+                "test_share": 0.1
+              },
+              "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+              "counts": {
+                "validation": 1224,
+                "test": 1290,
+                "train": 9707
+              },
+              "partitions": {
+                "cross_style_holdout": 2465,
+                "fit": 9707,
+                "official_eval": 45,
+                "official_eval_overlap": 4
+              },
+              "components": {
+                "count": 11469,
+                "largest": 23
+              },
+              "components_by_split": {
+                "train": 9116,
+                "validation": 1144,
+                "test": 1209
+              },
+              "cross_style_by_split": {
+                "validation": 47,
+                "test": 70,
+                "train": 367
+              },
+              "source_data_digests": {
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+                "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+              },
+              "caveats": [
+                "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+                "Fewer than four distinct visible examples after hidden-input exclusion.",
+                "Held out because template or witness skeleton connects to official v4 eval.",
+                "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+                "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+              ],
+              "excluded_program_sha256": [
+                "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+              ],
+              "excluded_program_variants": 1
+            },
+            "seed": 0,
+            "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/gesa8v43",
+            "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+            "initial_checkpoint_metadata": {
+              "commit": "70a531de013dc29c29f062bf4cfd7a4bfb30e0cb",
+              "dirty": false,
+              "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embeddings-20261024",
+              "asset_root": "/home/abhishekrao/repos/wandering-light",
+              "asset_git": {
+                "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+                "dirty": false
+              },
+              "config": {
+                "dim": 128,
+                "hidden_dim": 128,
+                "byte_dim": 48,
+                "num_layers": 1,
+                "max_program_bytes": 16384,
+                "max_example_bytes": 16384
+              },
+              "training": {
+                "repo_root": "/home/abhishekrao/repos/wandering-light",
+                "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/joint-s0",
+                "exclude_program_sha256": [
+                  "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+                ],
+                "steps": 1500,
+                "batch_size": 64,
+                "eval_every": 300,
+                "device": "cuda",
+                "rewrite_fraction": 0.5,
+                "threads": 4,
+                "global_bank": true,
+                "untrained_eval": false,
+                "freeze_program_space": false,
+                "seed": 0,
+                "dim": 128,
+                "hidden_dim": 128,
+                "byte_dim": 48,
+                "max_eval_records": 128,
+                "max_train_records": 0,
+                "max_program_bytes": 16384,
+                "max_example_bytes": 16384,
+                "lr": 0.001,
+                "weight_decay": 0.01,
+                "temperature": 0.07,
+                "io_weight": 1.0,
+                "invariance_weight": 1.0,
+                "io_io_weight": 0.0,
+                "io_examples": 5,
+                "execution_examples": 16,
+                "offline": false,
+                "skip_execution": false,
+                "checkpoint": null,
+                "eval_only": false,
+                "eval_split": "validation"
+              },
+              "extra_task_paths": [
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+              ],
+              "data": {
+                "schema_version": 1,
+                "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+                "dirty": false,
+                "wandb_run.url": null,
+                "seed": 20261024,
+                "config": {
+                  "split_policy": "template-and-all-witness-skeleton-components-v1",
+                  "validation_share": 0.1,
+                  "test_share": 0.1
+                },
+                "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+                "counts": {
+                  "validation": 1224,
+                  "test": 1290,
+                  "train": 9707
+                },
+                "partitions": {
+                  "cross_style_holdout": 2465,
+                  "fit": 9707,
+                  "official_eval": 45,
+                  "official_eval_overlap": 4
+                },
+                "components": {
+                  "count": 11469,
+                  "largest": 23
+                },
+                "components_by_split": {
+                  "train": 9116,
+                  "validation": 1144,
+                  "test": 1209
+                },
+                "cross_style_by_split": {
+                  "validation": 47,
+                  "test": 70,
+                  "train": 367
+                },
+                "source_data_digests": {
+                  "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+                  "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+                  "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+                  "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+                  "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+                  "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+                },
+                "caveats": [
+                  "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+                  "Fewer than four distinct visible examples after hidden-input exclusion.",
+                  "Held out because template or witness skeleton connects to official v4 eval.",
+                  "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+                  "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+                ],
+                "excluded_program_sha256": [
+                  "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+                ],
+                "excluded_program_variants": 1
+              },
+              "seed": 0,
+              "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/sxxe7yhe",
+              "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+              "train_records_used": 9702,
+              "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+              "rewrite_training_records": 363,
+              "step": 1500,
+              "validation_mrr": 0.03528539442436341
+            },
+            "initial_checkpoint_digest": "616bc0ea903f14c8bf826d56c87a216e56d1adaa6b104b2ccbd2a6091ad41049",
+            "train_records_used": 9702,
+            "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+            "rewrite_training_records": 363,
+            "step": 500,
+            "validation_mrr": 0.48082747612004706
+          },
+          "initial_checkpoint_digest": "7341e7aa53687cfc8ddc6903f0acf300ae2385fa1a5f46d96aa90f01f9c1210e",
+          "train_records_used": 9702,
+          "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+          "rewrite_training_records": 363,
+          "step": 500,
+          "validation_mrr": 0.04767092568555381
+        },
+        "evaluation_source": {
+          "commit": "6b7391c33d43b00f3a964968607180ce3da5ccc2",
+          "dirty": true
+        },
+        "initialization": "trained",
+        "seed": 0,
+        "io_examples": 5,
+        "execution_examples": 16,
+        "max_io_queries_per_partition": 128,
+        "global_bank": true
+      },
+      "corrected": {
+        "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+        "dirty": false,
+        "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embedding-retrain-20261031",
+        "asset_root": "/home/abhishekrao/repos/wandering-light",
+        "asset_git": {
+          "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+          "dirty": false
+        },
+        "config": {
+          "dim": 128,
+          "hidden_dim": 128,
+          "byte_dim": 48,
+          "num_layers": 1,
+          "max_program_bytes": 16384,
+          "max_example_bytes": 16384
+        },
+        "training": {
+          "repo_root": "/home/abhishekrao/repos/wandering-light",
+          "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/test-trained",
+          "exclude_program_sha256": [
+            "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+          ],
+          "steps": 1000,
+          "batch_size": 64,
+          "eval_every": 100,
+          "device": "cuda",
+          "rewrite_fraction": 0.5,
+          "threads": 4,
+          "global_bank": true,
+          "untrained_eval": false,
+          "freeze_program_space": false,
+          "seed": 0,
+          "dim": 128,
+          "hidden_dim": 128,
+          "byte_dim": 48,
+          "max_eval_records": 128,
+          "max_train_records": 0,
+          "max_program_bytes": 16384,
+          "max_example_bytes": 16384,
+          "lr": 0.001,
+          "weight_decay": 0.01,
+          "temperature": 0.07,
+          "io_weight": 1.0,
+          "invariance_weight": 1.0,
+          "io_io_weight": 0.0,
+          "io_examples": 5,
+          "execution_examples": 16,
+          "execution_label_timeout": 1.0,
+          "execution_label_cache_size": 65536,
+          "execution_label_workers": 4,
+          "offline": false,
+          "skip_execution": false,
+          "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/aligned-s0/best.pt",
+          "eval_only": true,
+          "eval_split": "test"
+        },
+        "extra_task_paths": [
+          "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+          "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+        ],
+        "data": {
+          "schema_version": 1,
+          "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+          "dirty": false,
+          "wandb_run.url": null,
+          "seed": 20261024,
+          "config": {
+            "split_policy": "template-and-all-witness-skeleton-components-v1",
+            "validation_share": 0.1,
+            "test_share": 0.1
+          },
+          "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+          "counts": {
+            "validation": 1224,
+            "test": 1290,
+            "train": 9707
+          },
+          "partitions": {
+            "cross_style_holdout": 2465,
+            "fit": 9707,
+            "official_eval": 45,
+            "official_eval_overlap": 4
+          },
+          "components": {
+            "count": 11469,
+            "largest": 23
+          },
+          "components_by_split": {
+            "train": 9116,
+            "validation": 1144,
+            "test": 1209
+          },
+          "cross_style_by_split": {
+            "validation": 47,
+            "test": 70,
+            "train": 367
+          },
+          "source_data_digests": {
+            "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+            "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+            "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+            "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+          },
+          "caveats": [
+            "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+            "Fewer than four distinct visible examples after hidden-input exclusion.",
+            "Held out because template or witness skeleton connects to official v4 eval.",
+            "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+            "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+          ],
+          "excluded_program_sha256": [
+            "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+          ],
+          "excluded_program_variants": 1
+        },
+        "seed": 0,
+        "wandb_url": null,
+        "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+        "initial_checkpoint_metadata": {
+          "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+          "dirty": false,
+          "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embedding-retrain-20261031",
+          "asset_root": "/home/abhishekrao/repos/wandering-light",
+          "asset_git": {
+            "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+            "dirty": false
+          },
+          "config": {
+            "dim": 128,
+            "hidden_dim": 128,
+            "byte_dim": 48,
+            "num_layers": 1,
+            "max_program_bytes": 16384,
+            "max_example_bytes": 16384
+          },
+          "training": {
+            "repo_root": "/home/abhishekrao/repos/wandering-light",
+            "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/aligned-s0",
+            "exclude_program_sha256": [
+              "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+            ],
+            "steps": 500,
+            "batch_size": 64,
+            "eval_every": 250,
+            "device": "cuda",
+            "rewrite_fraction": 0.5,
+            "threads": 4,
+            "global_bank": true,
+            "untrained_eval": false,
+            "freeze_program_space": true,
+            "seed": 0,
+            "dim": 128,
+            "hidden_dim": 128,
+            "byte_dim": 48,
+            "max_eval_records": 128,
+            "max_train_records": 0,
+            "max_program_bytes": 16384,
+            "max_example_bytes": 16384,
+            "lr": 0.001,
+            "weight_decay": 0.01,
+            "temperature": 0.07,
+            "io_weight": 1.0,
+            "invariance_weight": 0.0,
+            "io_io_weight": 0.0,
+            "io_examples": 5,
+            "execution_examples": 16,
+            "execution_label_timeout": 1.0,
+            "execution_label_cache_size": 65536,
+            "execution_label_workers": 4,
+            "offline": false,
+            "skip_execution": false,
+            "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/program-s0/best.pt",
+            "eval_only": false,
+            "eval_split": "validation"
+          },
+          "extra_task_paths": [
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+          ],
+          "data": {
+            "schema_version": 1,
+            "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+            "dirty": false,
+            "wandb_run.url": null,
+            "seed": 20261024,
+            "config": {
+              "split_policy": "template-and-all-witness-skeleton-components-v1",
+              "validation_share": 0.1,
+              "test_share": 0.1
+            },
+            "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+            "counts": {
+              "validation": 1224,
+              "test": 1290,
+              "train": 9707
+            },
+            "partitions": {
+              "cross_style_holdout": 2465,
+              "fit": 9707,
+              "official_eval": 45,
+              "official_eval_overlap": 4
+            },
+            "components": {
+              "count": 11469,
+              "largest": 23
+            },
+            "components_by_split": {
+              "train": 9116,
+              "validation": 1144,
+              "test": 1209
+            },
+            "cross_style_by_split": {
+              "validation": 47,
+              "test": 70,
+              "train": 367
+            },
+            "source_data_digests": {
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+              "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+            },
+            "caveats": [
+              "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+              "Fewer than four distinct visible examples after hidden-input exclusion.",
+              "Held out because template or witness skeleton connects to official v4 eval.",
+              "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+              "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+            ],
+            "excluded_program_sha256": [
+              "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+            ],
+            "excluded_program_variants": 1
+          },
+          "seed": 0,
+          "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/ikcpxo2w",
+          "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+          "initial_checkpoint_metadata": {
+            "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+            "dirty": false,
+            "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embedding-retrain-20261031",
+            "asset_root": "/home/abhishekrao/repos/wandering-light",
+            "asset_git": {
+              "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+              "dirty": false
+            },
+            "config": {
+              "dim": 128,
+              "hidden_dim": 128,
+              "byte_dim": 48,
+              "num_layers": 1,
+              "max_program_bytes": 16384,
+              "max_example_bytes": 16384
+            },
+            "training": {
+              "repo_root": "/home/abhishekrao/repos/wandering-light",
+              "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/program-s0",
+              "exclude_program_sha256": [
+                "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+              ],
+              "steps": 500,
+              "batch_size": 64,
+              "eval_every": 250,
+              "device": "cuda",
+              "rewrite_fraction": 1.0,
+              "threads": 4,
+              "global_bank": true,
+              "untrained_eval": false,
+              "freeze_program_space": false,
+              "seed": 0,
+              "dim": 128,
+              "hidden_dim": 128,
+              "byte_dim": 48,
+              "max_eval_records": 128,
+              "max_train_records": 0,
+              "max_program_bytes": 16384,
+              "max_example_bytes": 16384,
+              "lr": 0.0002,
+              "weight_decay": 0.01,
+              "temperature": 0.07,
+              "io_weight": 0.0,
+              "invariance_weight": 1.0,
+              "io_io_weight": 0.0,
+              "io_examples": 5,
+              "execution_examples": 16,
+              "execution_label_timeout": 1.0,
+              "execution_label_cache_size": 65536,
+              "execution_label_workers": 4,
+              "offline": false,
+              "skip_execution": true,
+              "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/joint-s0/best.pt",
+              "eval_only": false,
+              "eval_split": "validation"
+            },
+            "extra_task_paths": [
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+            ],
+            "data": {
+              "schema_version": 1,
+              "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+              "dirty": false,
+              "wandb_run.url": null,
+              "seed": 20261024,
+              "config": {
+                "split_policy": "template-and-all-witness-skeleton-components-v1",
+                "validation_share": 0.1,
+                "test_share": 0.1
+              },
+              "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+              "counts": {
+                "validation": 1224,
+                "test": 1290,
+                "train": 9707
+              },
+              "partitions": {
+                "cross_style_holdout": 2465,
+                "fit": 9707,
+                "official_eval": 45,
+                "official_eval_overlap": 4
+              },
+              "components": {
+                "count": 11469,
+                "largest": 23
+              },
+              "components_by_split": {
+                "train": 9116,
+                "validation": 1144,
+                "test": 1209
+              },
+              "cross_style_by_split": {
+                "validation": 47,
+                "test": 70,
+                "train": 367
+              },
+              "source_data_digests": {
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+                "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+              },
+              "caveats": [
+                "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+                "Fewer than four distinct visible examples after hidden-input exclusion.",
+                "Held out because template or witness skeleton connects to official v4 eval.",
+                "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+                "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+              ],
+              "excluded_program_sha256": [
+                "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+              ],
+              "excluded_program_variants": 1
+            },
+            "seed": 0,
+            "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/2r2w80s0",
+            "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+            "initial_checkpoint_metadata": {
+              "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+              "dirty": false,
+              "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embedding-retrain-20261031",
+              "asset_root": "/home/abhishekrao/repos/wandering-light",
+              "asset_git": {
+                "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+                "dirty": false
+              },
+              "config": {
+                "dim": 128,
+                "hidden_dim": 128,
+                "byte_dim": 48,
+                "num_layers": 1,
+                "max_program_bytes": 16384,
+                "max_example_bytes": 16384
+              },
+              "training": {
+                "repo_root": "/home/abhishekrao/repos/wandering-light",
+                "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/joint-s0",
+                "exclude_program_sha256": [
+                  "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+                ],
+                "steps": 1500,
+                "batch_size": 64,
+                "eval_every": 300,
+                "device": "cuda",
+                "rewrite_fraction": 0.5,
+                "threads": 4,
+                "global_bank": true,
+                "untrained_eval": false,
+                "freeze_program_space": false,
+                "seed": 0,
+                "dim": 128,
+                "hidden_dim": 128,
+                "byte_dim": 48,
+                "max_eval_records": 128,
+                "max_train_records": 0,
+                "max_program_bytes": 16384,
+                "max_example_bytes": 16384,
+                "lr": 0.001,
+                "weight_decay": 0.01,
+                "temperature": 0.07,
+                "io_weight": 1.0,
+                "invariance_weight": 1.0,
+                "io_io_weight": 0.0,
+                "io_examples": 5,
+                "execution_examples": 16,
+                "execution_label_timeout": 1.0,
+                "execution_label_cache_size": 65536,
+                "execution_label_workers": 4,
+                "offline": false,
+                "skip_execution": false,
+                "checkpoint": null,
+                "eval_only": false,
+                "eval_split": "validation"
+              },
+              "extra_task_paths": [
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+              ],
+              "data": {
+                "schema_version": 1,
+                "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+                "dirty": false,
+                "wandb_run.url": null,
+                "seed": 20261024,
+                "config": {
+                  "split_policy": "template-and-all-witness-skeleton-components-v1",
+                  "validation_share": 0.1,
+                  "test_share": 0.1
+                },
+                "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+                "counts": {
+                  "validation": 1224,
+                  "test": 1290,
+                  "train": 9707
+                },
+                "partitions": {
+                  "cross_style_holdout": 2465,
+                  "fit": 9707,
+                  "official_eval": 45,
+                  "official_eval_overlap": 4
+                },
+                "components": {
+                  "count": 11469,
+                  "largest": 23
+                },
+                "components_by_split": {
+                  "train": 9116,
+                  "validation": 1144,
+                  "test": 1209
+                },
+                "cross_style_by_split": {
+                  "validation": 47,
+                  "test": 70,
+                  "train": 367
+                },
+                "source_data_digests": {
+                  "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+                  "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+                  "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+                  "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+                  "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+                  "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+                },
+                "caveats": [
+                  "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+                  "Fewer than four distinct visible examples after hidden-input exclusion.",
+                  "Held out because template or witness skeleton connects to official v4 eval.",
+                  "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+                  "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+                ],
+                "excluded_program_sha256": [
+                  "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+                ],
+                "excluded_program_variants": 1
+              },
+              "seed": 0,
+              "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/vlpjwcvu",
+              "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+              "train_records_used": 9702,
+              "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+              "io_supervision": {
+                "kind": "execution-on-shown-io-v1",
+                "positive": "candidate passes every shown example in the current query",
+                "negative": "candidate fails at least one shown example",
+                "unknown": "excluded from targets and softmax denominators",
+                "candidate_scope": "in-batch",
+                "seconds_per_program_example": 1.0,
+                "cache_size": 65536,
+                "selection": "shown execution MRR@10 lower bound; no hidden outputs"
+              },
+              "checkpoint_selection": "execution_io_mrr@10_lower",
+              "io_io_supervision": "disabled",
+              "program_supervision": {
+                "kind": "execution-mutual-shown-io-v1",
+                "positive": "both programs pass both sampled shown I/O sets",
+                "negative": "a completed cross-failure, with both own matches known true",
+                "unknown": "unreliable own matches or unresolved cross-matches excluded",
+                "candidate_scope": "in-batch"
+              },
+              "execution_labeling": {
+                "workers": 4,
+                "start_method": "spawn",
+                "cache_size_per_worker": 65536
+              },
+              "rewrite_training_records": 363,
+              "step": 1500,
+              "validation_mrr": 0.060887896825396824
+            },
+            "initial_checkpoint_digest": "144fd09edb664f1411c32f93dc1a302d28275ddd7f22703fbb3fc7964e5566d4",
+            "train_records_used": 9702,
+            "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+            "io_supervision": {
+              "kind": "disabled"
+            },
+            "checkpoint_selection": "cross_style_mrr",
+            "io_io_supervision": "disabled",
+            "program_supervision": {
+              "kind": "execution-mutual-shown-io-v1",
+              "positive": "both programs pass both sampled shown I/O sets",
+              "negative": "a completed cross-failure, with both own matches known true",
+              "unknown": "unreliable own matches or unresolved cross-matches excluded",
+              "candidate_scope": "in-batch"
+            },
+            "execution_labeling": {
+              "workers": 4,
+              "start_method": "spawn",
+              "cache_size_per_worker": 65536
+            },
+            "rewrite_training_records": 363,
+            "step": 250,
+            "validation_mrr": 0.47924483747796226
+          },
+          "initial_checkpoint_digest": "33a468854e40391f3b93c2434ad141961b60fc8f4f7bfccdb51db0f1d98c2fdd",
+          "train_records_used": 9702,
+          "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+          "io_supervision": {
+            "kind": "execution-on-shown-io-v1",
+            "positive": "candidate passes every shown example in the current query",
+            "negative": "candidate fails at least one shown example",
+            "unknown": "excluded from targets and softmax denominators",
+            "candidate_scope": "in-batch",
+            "seconds_per_program_example": 1.0,
+            "cache_size": 65536,
+            "selection": "shown execution MRR@10 lower bound; no hidden outputs"
+          },
+          "checkpoint_selection": "execution_io_mrr@10_lower",
+          "io_io_supervision": "disabled",
+          "program_supervision": {
+            "kind": "disabled"
+          },
+          "execution_labeling": {
+            "workers": 4,
+            "start_method": "spawn",
+            "cache_size_per_worker": 65536
+          },
+          "rewrite_training_records": 363,
+          "step": 500,
+          "validation_mrr": 0.07906746031746031
+        },
+        "initial_checkpoint_digest": "735e02d74fc8eb522fd1302cc9dfec848a7b896e93416d5c8e900fc22ad46785",
+        "io_supervision": {
+          "kind": "execution-on-shown-io-v1",
+          "positive": "candidate passes every shown example in the current query",
+          "negative": "candidate fails at least one shown example",
+          "unknown": "excluded from targets and softmax denominators",
+          "candidate_scope": "in-batch",
+          "seconds_per_program_example": 1.0,
+          "cache_size": 65536,
+          "selection": "shown execution MRR@10 lower bound; no hidden outputs"
+        },
+        "program_supervision": {
+          "kind": "disabled"
+        },
+        "io_io_supervision": "disabled",
+        "checkpoint_selection": "execution_io_mrr@10_lower",
+        "checkpoint_metadata": {
+          "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+          "dirty": false,
+          "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embedding-retrain-20261031",
+          "asset_root": "/home/abhishekrao/repos/wandering-light",
+          "asset_git": {
+            "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+            "dirty": false
+          },
+          "config": {
+            "dim": 128,
+            "hidden_dim": 128,
+            "byte_dim": 48,
+            "num_layers": 1,
+            "max_program_bytes": 16384,
+            "max_example_bytes": 16384
+          },
+          "training": {
+            "repo_root": "/home/abhishekrao/repos/wandering-light",
+            "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/aligned-s0",
+            "exclude_program_sha256": [
+              "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+            ],
+            "steps": 500,
+            "batch_size": 64,
+            "eval_every": 250,
+            "device": "cuda",
+            "rewrite_fraction": 0.5,
+            "threads": 4,
+            "global_bank": true,
+            "untrained_eval": false,
+            "freeze_program_space": true,
+            "seed": 0,
+            "dim": 128,
+            "hidden_dim": 128,
+            "byte_dim": 48,
+            "max_eval_records": 128,
+            "max_train_records": 0,
+            "max_program_bytes": 16384,
+            "max_example_bytes": 16384,
+            "lr": 0.001,
+            "weight_decay": 0.01,
+            "temperature": 0.07,
+            "io_weight": 1.0,
+            "invariance_weight": 0.0,
+            "io_io_weight": 0.0,
+            "io_examples": 5,
+            "execution_examples": 16,
+            "execution_label_timeout": 1.0,
+            "execution_label_cache_size": 65536,
+            "execution_label_workers": 4,
+            "offline": false,
+            "skip_execution": false,
+            "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/program-s0/best.pt",
+            "eval_only": false,
+            "eval_split": "validation"
+          },
+          "extra_task_paths": [
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+          ],
+          "data": {
+            "schema_version": 1,
+            "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+            "dirty": false,
+            "wandb_run.url": null,
+            "seed": 20261024,
+            "config": {
+              "split_policy": "template-and-all-witness-skeleton-components-v1",
+              "validation_share": 0.1,
+              "test_share": 0.1
+            },
+            "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+            "counts": {
+              "validation": 1224,
+              "test": 1290,
+              "train": 9707
+            },
+            "partitions": {
+              "cross_style_holdout": 2465,
+              "fit": 9707,
+              "official_eval": 45,
+              "official_eval_overlap": 4
+            },
+            "components": {
+              "count": 11469,
+              "largest": 23
+            },
+            "components_by_split": {
+              "train": 9116,
+              "validation": 1144,
+              "test": 1209
+            },
+            "cross_style_by_split": {
+              "validation": 47,
+              "test": 70,
+              "train": 367
+            },
+            "source_data_digests": {
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+              "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+            },
+            "caveats": [
+              "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+              "Fewer than four distinct visible examples after hidden-input exclusion.",
+              "Held out because template or witness skeleton connects to official v4 eval.",
+              "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+              "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+            ],
+            "excluded_program_sha256": [
+              "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+            ],
+            "excluded_program_variants": 1
+          },
+          "seed": 0,
+          "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/ikcpxo2w",
+          "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+          "initial_checkpoint_metadata": {
+            "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+            "dirty": false,
+            "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embedding-retrain-20261031",
+            "asset_root": "/home/abhishekrao/repos/wandering-light",
+            "asset_git": {
+              "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+              "dirty": false
+            },
+            "config": {
+              "dim": 128,
+              "hidden_dim": 128,
+              "byte_dim": 48,
+              "num_layers": 1,
+              "max_program_bytes": 16384,
+              "max_example_bytes": 16384
+            },
+            "training": {
+              "repo_root": "/home/abhishekrao/repos/wandering-light",
+              "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/program-s0",
+              "exclude_program_sha256": [
+                "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+              ],
+              "steps": 500,
+              "batch_size": 64,
+              "eval_every": 250,
+              "device": "cuda",
+              "rewrite_fraction": 1.0,
+              "threads": 4,
+              "global_bank": true,
+              "untrained_eval": false,
+              "freeze_program_space": false,
+              "seed": 0,
+              "dim": 128,
+              "hidden_dim": 128,
+              "byte_dim": 48,
+              "max_eval_records": 128,
+              "max_train_records": 0,
+              "max_program_bytes": 16384,
+              "max_example_bytes": 16384,
+              "lr": 0.0002,
+              "weight_decay": 0.01,
+              "temperature": 0.07,
+              "io_weight": 0.0,
+              "invariance_weight": 1.0,
+              "io_io_weight": 0.0,
+              "io_examples": 5,
+              "execution_examples": 16,
+              "execution_label_timeout": 1.0,
+              "execution_label_cache_size": 65536,
+              "execution_label_workers": 4,
+              "offline": false,
+              "skip_execution": true,
+              "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/joint-s0/best.pt",
+              "eval_only": false,
+              "eval_split": "validation"
+            },
+            "extra_task_paths": [
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+            ],
+            "data": {
+              "schema_version": 1,
+              "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+              "dirty": false,
+              "wandb_run.url": null,
+              "seed": 20261024,
+              "config": {
+                "split_policy": "template-and-all-witness-skeleton-components-v1",
+                "validation_share": 0.1,
+                "test_share": 0.1
+              },
+              "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+              "counts": {
+                "validation": 1224,
+                "test": 1290,
+                "train": 9707
+              },
+              "partitions": {
+                "cross_style_holdout": 2465,
+                "fit": 9707,
+                "official_eval": 45,
+                "official_eval_overlap": 4
+              },
+              "components": {
+                "count": 11469,
+                "largest": 23
+              },
+              "components_by_split": {
+                "train": 9116,
+                "validation": 1144,
+                "test": 1209
+              },
+              "cross_style_by_split": {
+                "validation": 47,
+                "test": 70,
+                "train": 367
+              },
+              "source_data_digests": {
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+                "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+              },
+              "caveats": [
+                "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+                "Fewer than four distinct visible examples after hidden-input exclusion.",
+                "Held out because template or witness skeleton connects to official v4 eval.",
+                "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+                "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+              ],
+              "excluded_program_sha256": [
+                "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+              ],
+              "excluded_program_variants": 1
+            },
+            "seed": 0,
+            "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/2r2w80s0",
+            "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+            "initial_checkpoint_metadata": {
+              "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+              "dirty": false,
+              "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embedding-retrain-20261031",
+              "asset_root": "/home/abhishekrao/repos/wandering-light",
+              "asset_git": {
+                "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+                "dirty": false
+              },
+              "config": {
+                "dim": 128,
+                "hidden_dim": 128,
+                "byte_dim": 48,
+                "num_layers": 1,
+                "max_program_bytes": 16384,
+                "max_example_bytes": 16384
+              },
+              "training": {
+                "repo_root": "/home/abhishekrao/repos/wandering-light",
+                "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/joint-s0",
+                "exclude_program_sha256": [
+                  "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+                ],
+                "steps": 1500,
+                "batch_size": 64,
+                "eval_every": 300,
+                "device": "cuda",
+                "rewrite_fraction": 0.5,
+                "threads": 4,
+                "global_bank": true,
+                "untrained_eval": false,
+                "freeze_program_space": false,
+                "seed": 0,
+                "dim": 128,
+                "hidden_dim": 128,
+                "byte_dim": 48,
+                "max_eval_records": 128,
+                "max_train_records": 0,
+                "max_program_bytes": 16384,
+                "max_example_bytes": 16384,
+                "lr": 0.001,
+                "weight_decay": 0.01,
+                "temperature": 0.07,
+                "io_weight": 1.0,
+                "invariance_weight": 1.0,
+                "io_io_weight": 0.0,
+                "io_examples": 5,
+                "execution_examples": 16,
+                "execution_label_timeout": 1.0,
+                "execution_label_cache_size": 65536,
+                "execution_label_workers": 4,
+                "offline": false,
+                "skip_execution": false,
+                "checkpoint": null,
+                "eval_only": false,
+                "eval_split": "validation"
+              },
+              "extra_task_paths": [
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+              ],
+              "data": {
+                "schema_version": 1,
+                "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+                "dirty": false,
+                "wandb_run.url": null,
+                "seed": 20261024,
+                "config": {
+                  "split_policy": "template-and-all-witness-skeleton-components-v1",
+                  "validation_share": 0.1,
+                  "test_share": 0.1
+                },
+                "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+                "counts": {
+                  "validation": 1224,
+                  "test": 1290,
+                  "train": 9707
+                },
+                "partitions": {
+                  "cross_style_holdout": 2465,
+                  "fit": 9707,
+                  "official_eval": 45,
+                  "official_eval_overlap": 4
+                },
+                "components": {
+                  "count": 11469,
+                  "largest": 23
+                },
+                "components_by_split": {
+                  "train": 9116,
+                  "validation": 1144,
+                  "test": 1209
+                },
+                "cross_style_by_split": {
+                  "validation": 47,
+                  "test": 70,
+                  "train": 367
+                },
+                "source_data_digests": {
+                  "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+                  "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+                  "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+                  "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+                  "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+                  "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+                  "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+                },
+                "caveats": [
+                  "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+                  "Fewer than four distinct visible examples after hidden-input exclusion.",
+                  "Held out because template or witness skeleton connects to official v4 eval.",
+                  "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+                  "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+                ],
+                "excluded_program_sha256": [
+                  "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+                ],
+                "excluded_program_variants": 1
+              },
+              "seed": 0,
+              "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/vlpjwcvu",
+              "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+              "train_records_used": 9702,
+              "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+              "io_supervision": {
+                "kind": "execution-on-shown-io-v1",
+                "positive": "candidate passes every shown example in the current query",
+                "negative": "candidate fails at least one shown example",
+                "unknown": "excluded from targets and softmax denominators",
+                "candidate_scope": "in-batch",
+                "seconds_per_program_example": 1.0,
+                "cache_size": 65536,
+                "selection": "shown execution MRR@10 lower bound; no hidden outputs"
+              },
+              "checkpoint_selection": "execution_io_mrr@10_lower",
+              "io_io_supervision": "disabled",
+              "program_supervision": {
+                "kind": "execution-mutual-shown-io-v1",
+                "positive": "both programs pass both sampled shown I/O sets",
+                "negative": "a completed cross-failure, with both own matches known true",
+                "unknown": "unreliable own matches or unresolved cross-matches excluded",
+                "candidate_scope": "in-batch"
+              },
+              "execution_labeling": {
+                "workers": 4,
+                "start_method": "spawn",
+                "cache_size_per_worker": 65536
+              },
+              "rewrite_training_records": 363,
+              "step": 1500,
+              "validation_mrr": 0.060887896825396824
+            },
+            "initial_checkpoint_digest": "144fd09edb664f1411c32f93dc1a302d28275ddd7f22703fbb3fc7964e5566d4",
+            "train_records_used": 9702,
+            "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+            "io_supervision": {
+              "kind": "disabled"
+            },
+            "checkpoint_selection": "cross_style_mrr",
+            "io_io_supervision": "disabled",
+            "program_supervision": {
+              "kind": "execution-mutual-shown-io-v1",
+              "positive": "both programs pass both sampled shown I/O sets",
+              "negative": "a completed cross-failure, with both own matches known true",
+              "unknown": "unreliable own matches or unresolved cross-matches excluded",
+              "candidate_scope": "in-batch"
+            },
+            "execution_labeling": {
+              "workers": 4,
+              "start_method": "spawn",
+              "cache_size_per_worker": 65536
+            },
+            "rewrite_training_records": 363,
+            "step": 250,
+            "validation_mrr": 0.47924483747796226
+          },
+          "initial_checkpoint_digest": "33a468854e40391f3b93c2434ad141961b60fc8f4f7bfccdb51db0f1d98c2fdd",
+          "train_records_used": 9702,
+          "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+          "io_supervision": {
+            "kind": "execution-on-shown-io-v1",
+            "positive": "candidate passes every shown example in the current query",
+            "negative": "candidate fails at least one shown example",
+            "unknown": "excluded from targets and softmax denominators",
+            "candidate_scope": "in-batch",
+            "seconds_per_program_example": 1.0,
+            "cache_size": 65536,
+            "selection": "shown execution MRR@10 lower bound; no hidden outputs"
+          },
+          "checkpoint_selection": "execution_io_mrr@10_lower",
+          "io_io_supervision": "disabled",
+          "program_supervision": {
+            "kind": "disabled"
+          },
+          "execution_labeling": {
+            "workers": 4,
+            "start_method": "spawn",
+            "cache_size_per_worker": 65536
+          },
+          "rewrite_training_records": 363,
+          "step": 500,
+          "validation_mrr": 0.07906746031746031
+        },
+        "initialization": "checkpoint",
+        "evaluation_source": {
+          "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+          "dirty": false,
+          "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embedding-retrain-20261031"
+        },
+        "evaluation_config": {
+          "split": "test",
+          "seed": 0,
+          "io_examples": 5,
+          "execution": true,
+          "execution_examples": 16,
+          "max_eval_records": 128,
+          "global_bank": true
+        },
+        "checkpoint_path": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/aligned-s0/best.pt",
+        "checkpoint_digest": "735e02d74fc8eb522fd1302cc9dfec848a7b896e93416d5c8e900fc22ad46785",
+        "wandb_run.url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/ikcpxo2w"
+      }
+    }
+  },
+  "caveats": [
+    "One seed; descriptive matched-query changes, not causal isolation or a confidence interval.",
+    "Training supervision and I/O checkpoint selection changed; the program-only stage still selects by alternate-text MRR.",
+    "Answer-containing fixed bank; outcomes measure retrieval and finite-domain checks, not synthesis.",
+    "Unknown outcomes are excluded from gains/regressions. Program recalls weight each matched behavior equally.",
+    "Selected programs are the evaluator first known shown-passing candidates; recovered from replay grades or reciprocal-rank lower bounds, without new execution."
+  ]
+}

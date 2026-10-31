@@ -37,6 +37,11 @@ run_stage aligned-s0 --steps 500 --eval-every 250 \
   --checkpoint "$run_root/program-s0/best.pt" --freeze-program-space
 run_stage test-trained --eval-only --eval-split test \
   --checkpoint "$run_root/aligned-s0/best.pt"
+if [[ ! -f "$run_root/historical-execution.json" ]]; then
+  uv run python reports/program-embeddings-20261024/replay_execution_rankings.py \
+    --repo-root "$asset_root" --input "$old_root/aligned-s0/test-trained.json" \
+    --out "$run_root/historical-execution.json"
+fi
 uv run python reports/program-embeddings-20261024/compare_corrected.py \
   --run-root "$run_root" --repo-root "$asset_root" \
   --historical "$old_root/aligned-s0" --device cuda \
