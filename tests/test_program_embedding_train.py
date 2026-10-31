@@ -240,3 +240,39 @@ def test_hidden_execution_skips_candidates_that_fail_shown(monkeypatch):
     metrics = result["partitions"]["cross_style_holdout"]["execution"]
     assert metrics["selected_hidden@10"] == 1
     assert metrics["oracle_hidden@10"] == 1
+
+
+def test_execution_retrieval_accepts_a_program_from_another_record():
+    vectors = {"0 add": torch.tensor([1.0, 0.0]), "dup add": torch.tensor([0.0, 1.0])}
+    record = SimpleNamespace(
+        key="identity",
+        family="toy",
+        split="validation",
+        programs=["0 add"],
+        styles=["canonical"],
+        examples=[("0", "0")],
+        held_out_examples=[("3", "3")],
+        provenance={"partition": "cross_style_holdout"},
+    )
+    other = SimpleNamespace(
+        key="doubling",
+        family="toy",
+        split="train",
+        programs=["dup add"],
+        styles=["canonical"],
+        examples=[],
+        held_out_examples=[],
+        provenance={"partition": "fit"},
+    )
+
+    class PreferDoubling(LookupModel):
+        def encode_io(self, examples):
+            return torch.stack([self.programs["dup add"] for _ in examples])
+
+    result = evaluate(PreferDoubling(vectors), [record, other], global_bank=True)
+    part = result["partitions"]["cross_style_holdout"]
+    assert part["io_to_program"]["mrr"] == 0.5
+    assert part["execution"]["shown_mrr@10_bounds"] == [1.0, 1.0]
+    assert part["execution"]["shown@1"] == 1.0
+    assert part["execution"]["hidden@1"] == 0.0
+    assert part["execution"]["selected_hidden@10"] == 0.0

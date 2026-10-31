@@ -26,6 +26,7 @@ from wandering_light.program_embedding_artifacts import (
     git_metadata as _git_metadata,
 )
 from wandering_light.program_embedding_artifacts import (
+    model_objectives,
     save_evaluation,
     save_training_history,
 )
@@ -41,6 +42,7 @@ from wandering_light.program_embedding_eval import (
     lexical_vectors,
     retrieval_metrics,
 )
+from wandering_light.program_embedding_execution import ExecutionMatcher
 
 # Preserve existing imports while evaluation now has its own reusable module.
 __all__ = [
@@ -85,7 +87,11 @@ def exclude_programs(records, digests):
 
 
 def _validation_score(report) -> float:
-    metrics = [p["io_to_program"]["mrr"] for p in report["partitions"].values()]
+    metrics = [
+        p["execution"]["shown_mrr@10_bounds"][0]
+        for p in report["partitions"].values()
+        if p["execution"].get("shown_mrr@10_bounds") is not None
+    ]
     return sum(metrics) / len(metrics) if metrics else -math.inf
 
 
@@ -136,6 +142,7 @@ def train(args) -> dict:
             args.checkpoint.read_bytes()
         ).hexdigest()
     if args.eval_only or args.untrained_eval:
+        metadata.update(model_objectives(model, checkpoint=args.checkpoint is not None))
         metadata["checkpoint_metadata"] = model.metadata
         metadata["config"] = asdict(model.config)
         metadata["initialization"] = "random" if args.untrained_eval else "checkpoint"
@@ -173,6 +180,28 @@ def train(args) -> dict:
     ).hexdigest()
     if not fit:
         raise ValueError("No fitting behaviours found")
+    metadata["io_supervision"] = (
+        {
+            "kind": "execution-on-shown-io-v1",
+            "positive": "candidate passes every shown example in the current query",
+            "negative": "candidate fails at least one shown example",
+            "unknown": "excluded from targets and softmax denominators",
+            "candidate_scope": "in-batch",
+            "seconds_per_program_example": args.execution_label_timeout,
+            "cache_size": args.execution_label_cache_size,
+            "selection": "shown execution MRR@10 lower bound; no hidden outputs",
+        }
+        if args.io_weight
+        else {"kind": "disabled"}
+    )
+    metadata["checkpoint_selection"] = (
+        "execution_io_mrr@10_lower" if args.io_weight else "cross_style_mrr"
+    )
+    metadata["io_io_supervision"] = (
+        "positive-only cosine consistency within known records"
+        if args.io_io_weight
+        else "disabled"
+    )
     run = None
     try:
         import wandb
@@ -216,6 +245,9 @@ def train(args) -> dict:
     metadata["rewrite_training_records"] = len(rewrite_fit)
     _write_json(args.out / "provenance.json", metadata)
     labels_by_key = {r.key: i for i, r in enumerate(fit)}
+    matcher = ExecutionMatcher(
+        args.execution_label_timeout, args.execution_label_cache_size
+    )
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay
     )
@@ -243,21 +275,35 @@ def train(args) -> dict:
         program_b = model.encode_programs(second)
         inputs_a = model.encode_io(io_a)
         inputs_b = model.encode_io(io_b)
-        loss_io = (
-            symmetric_multi_positive_contrastive_loss(
-                inputs_a, program_a, labels=labels, temperature=args.temperature
-            )
-            + symmetric_multi_positive_contrastive_loss(
-                inputs_b, program_b, labels=labels, temperature=args.temperature
-            )
-        ) / 2
+        loss_io = inputs_a.sum() * 0
+        if args.io_weight:
+            positives_a, known_a = matcher.masks(io_a, first, device=args.device)
+            positives_b, known_b = matcher.masks(io_b, second, device=args.device)
+            loss_io = (
+                symmetric_multi_positive_contrastive_loss(
+                    inputs_a,
+                    program_a,
+                    positive_mask=positives_a,
+                    valid_mask=known_a,
+                    temperature=args.temperature,
+                )
+                + symmetric_multi_positive_contrastive_loss(
+                    inputs_b,
+                    program_b,
+                    positive_mask=positives_b,
+                    valid_mask=known_b,
+                    temperature=args.temperature,
+                )
+            ) / 2
         loss_program = symmetric_multi_positive_contrastive_loss(
             program_a, program_b, labels=labels, temperature=args.temperature
         )
         loss = args.io_weight * loss_io + args.invariance_weight * loss_program
         if args.io_io_weight:
-            loss = loss + args.io_io_weight * symmetric_multi_positive_contrastive_loss(
-                inputs_a, inputs_b, labels=labels, temperature=args.temperature
+            same_record = labels[:, None] == labels[None, :]
+            loss = (
+                loss
+                + args.io_io_weight * (1 - (inputs_a @ inputs_b.T)[same_record]).mean()
             )
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
@@ -269,7 +315,8 @@ def train(args) -> dict:
                 records,
                 seed=args.seed,
                 io_examples=args.io_examples,
-                execution=False,
+                execution=bool(args.io_weight),
+                execution_examples=0,
                 max_eval_records=args.max_eval_records,
                 global_bank=args.global_bank,
             )
@@ -287,7 +334,10 @@ def train(args) -> dict:
                 "io_loss": float(loss_io.detach()),
                 "program_loss": float(loss_program.detach()),
                 "validation_mrr": score if math.isfinite(score) else None,
-                "selection_metric": "io_mrr" if args.io_weight else "cross_style_mrr",
+                "selection_metric": "execution_io_mrr@10_lower"
+                if args.io_weight
+                else "cross_style_mrr",
+                "execution_labels": matcher.statistics(),
             }
             history.append(entry)
             print(json.dumps(entry), flush=True)
@@ -368,8 +418,14 @@ def main(argv=None):
     parser.add_argument("--io-io-weight", type=float, default=0.0)
     parser.add_argument("--io-examples", type=int, default=5)
     parser.add_argument("--execution-examples", type=int, default=16)
+    parser.add_argument("--execution-label-timeout", type=float, default=1.0)
+    parser.add_argument("--execution-label-cache-size", type=int, default=65536)
     parser.add_argument("--offline", action="store_true")
-    parser.add_argument("--skip-execution", action="store_true")
+    parser.add_argument(
+        "--skip-execution",
+        action="store_true",
+        help="Skip final execution grading; training labels and I/O checkpoint selection still execute shown examples.",
+    )
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument("--eval-only", action="store_true")
     parser.add_argument(
@@ -389,6 +445,13 @@ def main(argv=None):
         parser.error(
             "steps, batch size, evaluation interval and example counts must be positive"
         )
+    if (
+        not math.isfinite(args.execution_label_timeout)
+        or args.execution_label_timeout <= 0
+    ):
+        parser.error("execution-label-timeout must be positive and finite")
+    if args.execution_label_cache_size < 0:
+        parser.error("execution-label-cache-size must be nonnegative")
     if not 0 <= args.rewrite_fraction <= 1:
         parser.error("rewrite-fraction must be between zero and one")
     if args.untrained_eval and args.checkpoint:

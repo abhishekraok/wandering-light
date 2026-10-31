@@ -229,6 +229,7 @@ def symmetric_multi_positive_contrastive_loss(
     labels: Sequence[str | int] | Tensor | None = None,
     positive_mask: Tensor | None = None,
     temperature: float = 0.07,
+    valid_mask: Tensor | None = None,
 ) -> Tensor:
     """Average both directional supervised contrastive losses.
 
@@ -237,6 +238,8 @@ def symmetric_multi_positive_contrastive_loss(
     alone). The union prevents same-label pairs from becoming false negatives.
     Without either, aligned diagonal pairs are positives. Each positive gets
     equal weight within its anchor, so every positive receives a training signal.
+    With valid_mask, unknown pairs leave both denominators and targets; anchors
+    without a known positive are skipped. An entirely unknown batch has zero loss.
     """
     if left.ndim != 2 or right.ndim != 2 or left.shape[1] != right.shape[1]:
         raise ValueError("Embeddings must be matrices with matching feature dimensions")
@@ -270,21 +273,37 @@ def symmetric_multi_positive_contrastive_loss(
         if shape[0] != shape[1]:
             raise ValueError("Unaligned batches require a positive_mask")
         mask.fill_diagonal_(True)
-    if not mask.any(dim=1).all() or not mask.any(dim=0).all():
-        raise ValueError("Every row and column must have at least one positive")
+    if valid_mask is None:
+        valid = torch.ones(shape, device=left.device, dtype=torch.bool)
+        if not mask.any(dim=1).all() or not mask.any(dim=0).all():
+            raise ValueError("Every row and column must have at least one positive")
+    else:
+        if valid_mask.shape != shape or valid_mask.dtype != torch.bool:
+            raise ValueError("valid_mask must be a boolean matrix matching batch sizes")
+        valid = valid_mask.to(left.device)
+        if (mask & ~valid).any():
+            raise ValueError("Positive pairs must be known in valid_mask")
     logits = (
         functional.normalize(left, dim=1)
         @ functional.normalize(right, dim=1).T
         / temperature
     )
 
-    def directional(scores: Tensor, positives: Tensor) -> Tensor:
-        log_prob = functional.log_softmax(scores, dim=1)
+    def directional(scores: Tensor, positives: Tensor, known: Tensor) -> Tensor:
+        active = positives.any(dim=1)
+        if not active.any():
+            return scores.sum() * 0
+        log_prob = functional.log_softmax(
+            scores[active].masked_fill(~known[active], -torch.inf), dim=1
+        )
         return -(
-            log_prob.masked_fill(~positives, 0).sum(dim=1) / positives.sum(dim=1)
+            log_prob.masked_fill(~positives[active], 0).sum(dim=1)
+            / positives[active].sum(dim=1)
         ).mean()
 
-    return (directional(logits, mask) + directional(logits.T, mask.T)) / 2
+    return (
+        directional(logits, mask, valid) + directional(logits.T, mask.T, valid.T)
+    ) / 2
 
 
 class ProgramIndex:

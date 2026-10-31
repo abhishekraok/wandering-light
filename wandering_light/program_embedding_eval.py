@@ -112,6 +112,13 @@ def _matches(program: str, examples, seconds: float = 1.0) -> bool | None:
         signal.signal(signal.SIGALRM, previous)
 
 
+def reciprocal_rank_bounds(outcomes):
+    """Truncated reciprocal-rank bounds; an unknown is neither pass nor fail."""
+    lower = next((1 / (i + 1) for i, v in enumerate(outcomes) if v is True), 0.0)
+    upper = next((1 / (i + 1) for i, v in enumerate(outcomes) if v is not False), 0.0)
+    return [lower, upper]
+
+
 def _known_any(values):
     return True if any(v is True for v in values) else None if None in values else False
 
@@ -299,6 +306,7 @@ def evaluate(
                 verified = {
                     "shown@1": shown_pass[0],
                     "shown@10": _known_any(shown_pass),
+                    "shown_mrr@10_bounds": reciprocal_rank_bounds(shown_pass),
                     "hidden@1": _both(shown_pass[0], hidden_pass[0])
                     if hidden_pass is not None
                     else None,
@@ -340,6 +348,19 @@ def evaluate(
                 if verification
                 else None
             )
+        execution_summary["shown_mrr@10_bounds"] = (
+            [
+                sum(r["shown_mrr@10_bounds"][i] for r in verification)
+                / len(verification)
+                for i in (0, 1)
+            ]
+            if verification
+            else None
+        )
+        execution_summary["shown_mrr@10_unknown_queries"] = sum(
+            r["shown_mrr@10_bounds"][0] != r["shown_mrr@10_bounds"][1]
+            for r in verification
+        )
         output["partitions"][partition] = {
             "behaviours": len(group),
             "full_partition_behaviours": full_count,

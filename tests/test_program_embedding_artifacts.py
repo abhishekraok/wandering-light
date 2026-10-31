@@ -27,7 +27,7 @@ def experiment(tmp_path, monkeypatch):
             key=split,
             family="toy",
             split=split,
-            programs=["dup add", "2 mul"],
+            programs=["dup add", "dup 0 add add"],
             styles=["sol", "opus"],
             examples=[(str(i), str(2 * i)) for i in range(1, 7)],
             held_out_examples=[("7", "14")],
@@ -129,6 +129,9 @@ def _assert_provenance(report, checkpoint=None):
         assert provenance["checkpoint_path"] is None
         assert provenance["checkpoint_digest"] is None
         assert provenance["checkpoint_metadata"] == {}
+        assert provenance["io_supervision"] == {"kind": "not-trained"}
+        assert provenance["io_io_supervision"] == "not-trained"
+        assert provenance["checkpoint_selection"] == "not-trained"
     else:
         assert provenance["initialization"] == "checkpoint"
         assert provenance["checkpoint_path"] == str(checkpoint)
@@ -139,6 +142,15 @@ def _assert_provenance(report, checkpoint=None):
         model = ProgramEmbedding.load(checkpoint)
         assert provenance["config"] == asdict(model.config)
         assert provenance["checkpoint_metadata"] == model.metadata
+        assert provenance["io_supervision"] == model.metadata.get(
+            "io_supervision", {"kind": "unknown"}
+        )
+        assert provenance["io_io_supervision"] == model.metadata.get(
+            "io_io_supervision", "unknown"
+        )
+        assert provenance["checkpoint_selection"] == model.metadata.get(
+            "checkpoint_selection", "unknown"
+        )
 
 
 @pytest.mark.parametrize("untrained", [False, True])
@@ -302,3 +314,92 @@ def test_plot_accepts_new_and_legacy_reports(tmp_path, experiment, legacy):
         assert summary["evaluation_source"]["commit"] == "evaluator-code"
         assert summary["evaluation_provenance"]["Random"] == report["provenance"]
     assert all(path.read_bytes() == content for path, content in inputs.items())
+
+
+def test_corrected_training_records_execution_supervision(tmp_path, experiment):
+    out = _run(tmp_path, "--io-io-weight", "0.2")
+    model = ProgramEmbedding.load(out / "best.pt")
+    assert model.metadata["io_supervision"]["kind"] == "execution-on-shown-io-v1"
+    initial = json.loads((out / "untrained.json").read_text())["provenance"]
+    assert initial["io_supervision"] == {"kind": "not-trained"}
+    assert (
+        initial["io_io_supervision"] == initial["checkpoint_selection"] == "not-trained"
+    )
+    assert (
+        model.metadata["io_io_supervision"]
+        == "positive-only cosine consistency within known records"
+    )
+    history, metadata = load_training_history(out / "history.json")
+    assert history[0]["selection_metric"] == "execution_io_mrr@10_lower"
+    counts = history[0]["execution_labels"]
+    assert counts["positive"] == 8
+    assert counts["negative"] == counts["unknown"] == 0
+    assert (
+        metadata["io_supervision"]["unknown"]
+        == "excluded from targets and softmax denominators"
+    )
+
+
+def test_training_accepts_cross_record_matches_without_hidden_outputs(
+    tmp_path, experiment, monkeypatch
+):
+    records, _ = experiment
+    zero_inputs = ["0", "[ 0 ]", " 0 ", "0  "]
+    train_records = [
+        BehaviorRecord(
+            key=key,
+            family="toy",
+            split="train",
+            programs=[program],
+            styles=["canonical"],
+            examples=[(x, "0") for x in zero_inputs],
+            held_out_examples=[],
+            provenance={
+                "partition": "fit",
+                "component": key,
+                "component_size": 1,
+                "source_digests": {"fixture": "sha256:zero-inputs"},
+            },
+        )
+        for key, program in [("identity", "0 add"), ("doubling", "dup add")]
+    ]
+    monkeypatch.setattr(
+        trainer, "load_records", lambda *a, **k: [*train_records, records[1]]
+    )
+    original_loss = trainer.symmetric_multi_positive_contrastive_loss
+    io_masks, record_labels = [], []
+
+    def capture_loss(*args, **kwargs):
+        if "positive_mask" in kwargs:
+            io_masks.append(kwargs["positive_mask"].cpu())
+            assert "labels" not in kwargs
+        else:
+            record_labels.append(kwargs["labels"].cpu())
+        return original_loss(*args, **kwargs)
+
+    monkeypatch.setattr(
+        trainer, "symmetric_multi_positive_contrastive_loss", capture_loss
+    )
+    original_matches = evaluator._matches
+
+    def shown_only(program, examples, **kwargs):
+        assert all(given != "7" for given, _ in examples), (
+            "Hidden validation output entered selection"
+        )
+        return original_matches(program, examples, **kwargs)
+
+    monkeypatch.setattr(evaluator, "_matches", shown_only)
+    _run(tmp_path, "--batch-size", "8")
+    assert len(io_masks) == 2
+    assert all(mask.all() for mask in io_masks)
+    assert record_labels[0].unique().numel() == 2
+
+
+def test_program_only_run_does_not_claim_execution_supervision(tmp_path, experiment):
+    out = _run(tmp_path, "--io-weight", "0")
+    model = ProgramEmbedding.load(out / "best.pt")
+    assert model.metadata["io_supervision"] == {"kind": "disabled"}
+    assert model.metadata["checkpoint_selection"] == "cross_style_mrr"
+    history, _ = load_training_history(out / "history.json")
+    assert history[0]["selection_metric"] == "cross_style_mrr"
+    assert history[0]["execution_labels"]["cache_misses"] == 0

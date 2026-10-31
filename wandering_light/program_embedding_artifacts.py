@@ -56,6 +56,16 @@ def load_training_history(path: Path) -> tuple[list[dict], dict | None]:
     return payload["history"], payload.get("provenance")
 
 
+def model_objectives(model, *, checkpoint: bool) -> dict:
+    """Describe evaluated weights, never a future training recipe."""
+    missing = "unknown" if checkpoint else "not-trained"
+    return {
+        "io_supervision": model.metadata.get("io_supervision", {"kind": missing}),
+        "io_io_supervision": model.metadata.get("io_io_supervision", missing),
+        "checkpoint_selection": model.metadata.get("checkpoint_selection", missing),
+    }
+
+
 def save_evaluation(
     path: Path, report: dict, metadata: dict, model, *, checkpoint: Path | None = None
 ) -> None:
@@ -82,6 +92,7 @@ def save_evaluation(
             else None
         ),
         "checkpoint_metadata": model.metadata,
+        **model_objectives(model, checkpoint=checkpoint is not None),
         "wandb_run.url": metadata.get("wandb_url")
         or model.metadata.get("wandb_url")
         or model.metadata.get("wandb_run.url"),
