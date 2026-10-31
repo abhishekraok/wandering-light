@@ -1,6 +1,6 @@
 # Large-scale stack PBE
 
-Published as [Stack PBE Scale v1](https://huggingface.co/datasets/abhishekraok/wandering-light-stack-pbe-scale-v1). The [generation card](huggingface/README.md) explains construction and limits; the [release pin](huggingface/hub.json) records the verified immutable Hub revision and payload hashes.
+Privately hosted as [Stack PBE Scale v1](https://huggingface.co/datasets/abhishekraok/wandering-light-stack-pbe-scale-v1); downloading requires Hugging Face authentication with access to the dataset. The [generation card](huggingface/README.md) explains construction and limits; the [release pin](huggingface/hub.json) records the verified immutable Hub revision and payload hashes.
 
 ![Composition reuse and sensitivity of output similarity](diversity/diversity.png)
 

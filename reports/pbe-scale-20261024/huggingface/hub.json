@@ -54,5 +54,7 @@
     "repo_id": "abhishekraok/wandering-light-stack-pbe-v4",
     "revision": "00c2a9996d32df8d1894b45f4246a66b6df46c25",
     "split": "eval"
-  }
+  },
+  "private": true,
+  "visibility_checked_on": "2026-10-31"
 }
