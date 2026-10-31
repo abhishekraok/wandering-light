@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-10-16 (overstated claims re-derived; Codex janthu campaigns moved to `ps-worker`)
+Last updated: 2026-10-31 (obsolete embedding weights deleted)
 
 ## What is true now
 
@@ -97,6 +97,22 @@ claim a number supports.
 
 ## In flight
 
+**Semantic program embeddings:** implementation and historical held-out
+evaluation complete. Learned program ranking beats untrained encoders, token
+overlap and fixed n-gram baselines.
+Retain it as an experimental retriever. I/O retrieval remains partial even
+with answers available; improvement over the existing PBE solver is unmeasured.
+The training bug is corrected: I/O positives now come from
+execution on shown examples, unknown pairs are excluded, and checkpoint
+selection uses shown execution rather than record IDs. All saved embedding
+weights and the weight-containing index were deleted at the owner's request
+on 2026-10-31. No corrected model has been trained; historical data, results
+and provenance remain.
+The next decision needs a candidate bank built independently of test tasks
+and an equal wall-clock comparison including execution and fallback search.
+[Report](../reports/program-embeddings-20261024/README.md),
+[semantic-program-embeddings (#189)](https://github.com/abhishekraok/wandering-light/issues/189).
+
 **Pursuing `goals/g1.md`** (Claude, from 2026-09-22). **Measurement on the current recipe is finished**, by the owner's decision of 2026-09-22: width (best-system-command (#158)), policy size (#159), search depth and data volume (clear-world-v3 (#161)) are all settled flat, and a new ladder on them needs new evidence first. That work is on `main`, with #157's state cap and inner-frames (#160) E1. The one command, `uv run python -m wandering_light.solve TASKS`, runs `BEST` (`wandering_light/solve.py`): `staged-s0-e3` of staged-witness-reauthoring (#155) at Hub revision `e5a0b139`, beam 64 x depth 48, guard `both`, solved-program library on. It solves 1 of 44 world-v3 eval tasks.
 
 **The build has started: a search that decomposes the witness.** The first registered prediction ([segment composite](../reports/segment-composite-20260922/README.md)) put the lever inside quotation bodies, not between them. On the lowest-deficit policy we have, the world arm `1m-s0-e5`, bodies carry 79-82% of the deficit. Resetting the beam's budget at closed states is predicted to add +1 of 45 v4 witnesses and +0 of 44 world-v3, so it was **not run**. So stage 1 was **inner-frames (#160) E2's first gate**, and it came back **WEAK, as registered** ([report](../reports/frame-gate-20260922/README.md)).
@@ -130,6 +146,8 @@ Six designs were set aside after exploratory, unreviewed probes on 2026-09-20: [
 
 Claims that were stated confidently and are wrong. Recorded here so a
 correction lands in one place instead of being chased across comment threads.
+
+- **2026-10-30, "your requested mapping is implemented"** (semantic-program-embeddings (#189)). Overstated: I/O contrastive positives use behavior-group identity, not execution satisfaction of each sampled I/O subset. Different groups can both fit an ambiguous subset yet be treated as negatives; frequency and impact are unmeasured. The measured retrieval results stand.
 
 - **2026-10-16, "the stronger solver overstates ~4x as much, so holding examples back is worth more as solvers improve"** (the v3 language-model row, and "the held-out protocol is worth more the stronger the solver" on the v4 `codex exec` row). The aggregate gap is coverage: conditional on fitting the shown pairs, terra memorises 3.1% (12/389) against BFS's 7.1% (3/42) on v3, and on the 142 v4 tasks BFS fits astra memorises 17 against BFS's 22. Stronger solvers reach more tasks with weak held-out sets. Held-out examples still matter; the reason is output entropy (the shown-count row), not solver strength. [Numbers](RESULTS_DETAILED.md#shown-pair-count-and-memorisation-astra-low-on-the-full-v4-eval-split-123).
 
@@ -396,6 +414,7 @@ correction lands in one place instead of being chased across comment threads.
 
 - `docs/RESULTS.md` — headline numbers; `docs/RESULTS_DETAILED.md` — every run, one row per measurement, copied from `reports/`
 - `docs/metrics.md` — how cost and success are measured: units, cost to clear (the objective), its AUC solve-cost slice, the Kt bridge, calibration constants
+- `wandering_light/program_embedding.py` — program/I/O vectors and a persistent nearest-neighbor index; [report and usage](../reports/program-embeddings-20261024/README.md)
 - `wandering_light/stack_machine.py` — the machine
 - `wandering_light/stack_machine_corpus.py` — PBE corpus generation, certified by BFS depth
 - `docs/stack_machine_explorer.html` — keyboard-driven explorer, self-checks against the Python core

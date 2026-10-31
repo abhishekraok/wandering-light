@@ -325,6 +325,20 @@ browser.
 
 ## Training
 
+### Semantic program embeddings
+
+Encode stack programs or I/O examples into a shared space and retrieve
+programs with `wandering_light.program_embedding.ProgramIndex`. The
+[embedding report](reports/program-embeddings-20261024/README.md) has the API
+and historical retrieval results. Previous weights were removed after a training
+objective correction. Train with:
+
+```bash
+systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- \
+  uv run python -m wandering_light.program_embedding_train --repo-root . \
+  --out checkpoints/embeddings --device cuda
+```
+
 ### Learned next-op policies
 The policies behind the results above are small encoders trained on witness
 prefixes, selected on validation by beam search:

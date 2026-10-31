@@ -1,0 +1,2486 @@
+{
+  "protocol": "Exploratory fixed baselines after test was opened. TF-IDF with smoothed IDF, sublinear TF, L2 cosine; char 3-5 grams and whitespace-token 1-3 grams. IDF fits the candidate bank without labels. Stable index-order ties, self/same-style-equivalent exclusion identical to original. No parameter sweep. Bootstrap resamples behaviors, not training seeds.",
+  "provenance": {
+    "commit": "ff8625e3b15d975ebe330c630bd95dc937cd9459",
+    "dirty": true,
+    "seed": 0,
+    "wandb_run.url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/3elwpicv",
+    "data_sha256": {
+      "library.jsonl": "4fc1c3445a8f83d4e7dbcd11e72877ed0f01b6a2b8356495d65962c90c295afa",
+      "test-trained.json": "08b22881c4da330e6a74398cb21897d4c3827e6d8a93b7852abd602e986f4414",
+      "test-untrained.json": "74fe1e3dbb0c3a656bb1228af662f5a6efd4d994f3579083c0c5ed6f6eb27b67"
+    },
+    "script_sha256": "4a3a24655349cf2e07914c90ef80e87fa358caded4bc9b860df5c136b2b6b6f6",
+    "config": {
+      "char_ngrams": [
+        3,
+        5
+      ],
+      "token_ngrams": [
+        1,
+        3
+      ],
+      "sublinear_tf": true,
+      "smooth_idf": true,
+      "bootstrap_replicates": 10000
+    },
+    "embedding_run": {
+      "programs": 12837,
+      "dim": 128,
+      "parameters": 387344,
+      "checkpoint_step": 500,
+      "checkpoint_sha256": "1b678c1d5fc7978a4562310d0b21355bf10512b50dda6dcb982ca605f94004ea",
+      "index_sha256": "f810d6a4f10560717602768d50ffbc817ccf4aac957debb97eed7bce9e5c0aaa",
+      "index_bytes": 15116833,
+      "cpu_warm_io_query_ms": {
+        "median": 5.09049500033143,
+        "p95": 8.913689998735208,
+        "n": 45,
+        "threads": 4
+      },
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/3elwpicv",
+      "provenance": {
+        "commit": "39fe589745203faf99eb01f6e42b3432f858ee8d",
+        "dirty": true,
+        "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embeddings-20261024",
+        "asset_root": "/home/abhishekrao/repos/wandering-light",
+        "asset_git": {
+          "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+          "dirty": false
+        },
+        "config": {
+          "dim": 128,
+          "hidden_dim": 128,
+          "byte_dim": 48,
+          "num_layers": 1,
+          "max_program_bytes": 16384,
+          "max_example_bytes": 16384
+        },
+        "training": {
+          "repo_root": "/home/abhishekrao/repos/wandering-light",
+          "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0",
+          "exclude_program_sha256": [
+            "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+          ],
+          "steps": 500,
+          "batch_size": 64,
+          "eval_every": 250,
+          "device": "cuda",
+          "rewrite_fraction": 0.5,
+          "threads": 4,
+          "global_bank": true,
+          "untrained_eval": false,
+          "freeze_program_space": true,
+          "seed": 0,
+          "dim": 128,
+          "hidden_dim": 128,
+          "byte_dim": 48,
+          "max_eval_records": 128,
+          "max_train_records": 0,
+          "max_program_bytes": 16384,
+          "max_example_bytes": 16384,
+          "lr": 0.001,
+          "weight_decay": 0.01,
+          "temperature": 0.07,
+          "io_weight": 1.0,
+          "invariance_weight": 0.0,
+          "io_io_weight": 0.0,
+          "io_examples": 5,
+          "execution_examples": 16,
+          "offline": false,
+          "skip_execution": false,
+          "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/program-s0/best.pt",
+          "eval_only": false,
+          "eval_split": "validation"
+        },
+        "extra_task_paths": [
+          "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+          "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+        ],
+        "data": {
+          "schema_version": 1,
+          "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+          "dirty": false,
+          "wandb_run.url": null,
+          "seed": 20261024,
+          "config": {
+            "split_policy": "template-and-all-witness-skeleton-components-v1",
+            "validation_share": 0.1,
+            "test_share": 0.1
+          },
+          "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+          "counts": {
+            "validation": 1224,
+            "test": 1290,
+            "train": 9707
+          },
+          "partitions": {
+            "cross_style_holdout": 2465,
+            "fit": 9707,
+            "official_eval": 45,
+            "official_eval_overlap": 4
+          },
+          "components": {
+            "count": 11469,
+            "largest": 23
+          },
+          "components_by_split": {
+            "train": 9116,
+            "validation": 1144,
+            "test": 1209
+          },
+          "cross_style_by_split": {
+            "validation": 47,
+            "test": 70,
+            "train": 367
+          },
+          "source_data_digests": {
+            "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+            "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+            "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+            "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+          },
+          "caveats": [
+            "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+            "Fewer than four distinct visible examples after hidden-input exclusion.",
+            "Held out because template or witness skeleton connects to official v4 eval.",
+            "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+            "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+          ],
+          "excluded_program_sha256": [
+            "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+          ],
+          "excluded_program_variants": 1
+        },
+        "seed": 0,
+        "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/3elwpicv",
+        "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+        "initial_checkpoint_metadata": {
+          "commit": "39fe589745203faf99eb01f6e42b3432f858ee8d",
+          "dirty": true,
+          "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embeddings-20261024",
+          "asset_root": "/home/abhishekrao/repos/wandering-light",
+          "asset_git": {
+            "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+            "dirty": false
+          },
+          "config": {
+            "dim": 128,
+            "hidden_dim": 128,
+            "byte_dim": 48,
+            "num_layers": 1,
+            "max_program_bytes": 16384,
+            "max_example_bytes": 16384
+          },
+          "training": {
+            "repo_root": "/home/abhishekrao/repos/wandering-light",
+            "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/program-s0",
+            "exclude_program_sha256": [
+              "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+            ],
+            "steps": 500,
+            "batch_size": 64,
+            "eval_every": 250,
+            "device": "cuda",
+            "rewrite_fraction": 1.0,
+            "threads": 4,
+            "global_bank": true,
+            "untrained_eval": false,
+            "freeze_program_space": false,
+            "seed": 0,
+            "dim": 128,
+            "hidden_dim": 128,
+            "byte_dim": 48,
+            "max_eval_records": 128,
+            "max_train_records": 0,
+            "max_program_bytes": 16384,
+            "max_example_bytes": 16384,
+            "lr": 0.0002,
+            "weight_decay": 0.01,
+            "temperature": 0.07,
+            "io_weight": 0.0,
+            "invariance_weight": 1.0,
+            "io_io_weight": 0.0,
+            "io_examples": 5,
+            "execution_examples": 16,
+            "offline": false,
+            "skip_execution": true,
+            "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/joint-s0/best.pt",
+            "eval_only": false,
+            "eval_split": "validation"
+          },
+          "extra_task_paths": [
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+          ],
+          "data": {
+            "schema_version": 1,
+            "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+            "dirty": false,
+            "wandb_run.url": null,
+            "seed": 20261024,
+            "config": {
+              "split_policy": "template-and-all-witness-skeleton-components-v1",
+              "validation_share": 0.1,
+              "test_share": 0.1
+            },
+            "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+            "counts": {
+              "validation": 1224,
+              "test": 1290,
+              "train": 9707
+            },
+            "partitions": {
+              "cross_style_holdout": 2465,
+              "fit": 9707,
+              "official_eval": 45,
+              "official_eval_overlap": 4
+            },
+            "components": {
+              "count": 11469,
+              "largest": 23
+            },
+            "components_by_split": {
+              "train": 9116,
+              "validation": 1144,
+              "test": 1209
+            },
+            "cross_style_by_split": {
+              "validation": 47,
+              "test": 70,
+              "train": 367
+            },
+            "source_data_digests": {
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+              "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+            },
+            "caveats": [
+              "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+              "Fewer than four distinct visible examples after hidden-input exclusion.",
+              "Held out because template or witness skeleton connects to official v4 eval.",
+              "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+              "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+            ],
+            "excluded_program_sha256": [
+              "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+            ],
+            "excluded_program_variants": 1
+          },
+          "seed": 0,
+          "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/gesa8v43",
+          "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+          "initial_checkpoint_metadata": {
+            "commit": "70a531de013dc29c29f062bf4cfd7a4bfb30e0cb",
+            "dirty": false,
+            "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embeddings-20261024",
+            "asset_root": "/home/abhishekrao/repos/wandering-light",
+            "asset_git": {
+              "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+              "dirty": false
+            },
+            "config": {
+              "dim": 128,
+              "hidden_dim": 128,
+              "byte_dim": 48,
+              "num_layers": 1,
+              "max_program_bytes": 16384,
+              "max_example_bytes": 16384
+            },
+            "training": {
+              "repo_root": "/home/abhishekrao/repos/wandering-light",
+              "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/joint-s0",
+              "exclude_program_sha256": [
+                "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+              ],
+              "steps": 1500,
+              "batch_size": 64,
+              "eval_every": 300,
+              "device": "cuda",
+              "rewrite_fraction": 0.5,
+              "threads": 4,
+              "global_bank": true,
+              "untrained_eval": false,
+              "freeze_program_space": false,
+              "seed": 0,
+              "dim": 128,
+              "hidden_dim": 128,
+              "byte_dim": 48,
+              "max_eval_records": 128,
+              "max_train_records": 0,
+              "max_program_bytes": 16384,
+              "max_example_bytes": 16384,
+              "lr": 0.001,
+              "weight_decay": 0.01,
+              "temperature": 0.07,
+              "io_weight": 1.0,
+              "invariance_weight": 1.0,
+              "io_io_weight": 0.0,
+              "io_examples": 5,
+              "execution_examples": 16,
+              "offline": false,
+              "skip_execution": false,
+              "checkpoint": null,
+              "eval_only": false,
+              "eval_split": "validation"
+            },
+            "extra_task_paths": [
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+            ],
+            "data": {
+              "schema_version": 1,
+              "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+              "dirty": false,
+              "wandb_run.url": null,
+              "seed": 20261024,
+              "config": {
+                "split_policy": "template-and-all-witness-skeleton-components-v1",
+                "validation_share": 0.1,
+                "test_share": 0.1
+              },
+              "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+              "counts": {
+                "validation": 1224,
+                "test": 1290,
+                "train": 9707
+              },
+              "partitions": {
+                "cross_style_holdout": 2465,
+                "fit": 9707,
+                "official_eval": 45,
+                "official_eval_overlap": 4
+              },
+              "components": {
+                "count": 11469,
+                "largest": 23
+              },
+              "components_by_split": {
+                "train": 9116,
+                "validation": 1144,
+                "test": 1209
+              },
+              "cross_style_by_split": {
+                "validation": 47,
+                "test": 70,
+                "train": 367
+              },
+              "source_data_digests": {
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+                "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+                "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+                "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+                "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+              },
+              "caveats": [
+                "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+                "Fewer than four distinct visible examples after hidden-input exclusion.",
+                "Held out because template or witness skeleton connects to official v4 eval.",
+                "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+                "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+              ],
+              "excluded_program_sha256": [
+                "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+              ],
+              "excluded_program_variants": 1
+            },
+            "seed": 0,
+            "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/sxxe7yhe",
+            "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+            "train_records_used": 9702,
+            "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+            "rewrite_training_records": 363,
+            "step": 1500,
+            "validation_mrr": 0.03528539442436341
+          },
+          "initial_checkpoint_digest": "616bc0ea903f14c8bf826d56c87a216e56d1adaa6b104b2ccbd2a6091ad41049",
+          "train_records_used": 9702,
+          "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+          "rewrite_training_records": 363,
+          "step": 500,
+          "validation_mrr": 0.48082747612004706
+        },
+        "initial_checkpoint_digest": "7341e7aa53687cfc8ddc6903f0acf300ae2385fa1a5f46d96aa90f01f9c1210e",
+        "train_records_used": 9702,
+        "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+        "rewrite_training_records": 363,
+        "step": 500,
+        "validation_mrr": 0.04767092568555381
+      }
+    }
+  },
+  "bank_size": 12837,
+  "features": {
+    "char": 2185,
+    "token": 2761
+  },
+  "lexical_replay_mismatches": [],
+  "primary": {
+    "behaviors": 65,
+    "queries": 146,
+    "metrics": {
+      "trained": {
+        "recall@1": 0.41282051282051285,
+        "recall@10": 0.723076923076923,
+        "mrr": 0.5168800877686328
+      },
+      "random": {
+        "recall@1": 0.22307692307692306,
+        "recall@10": 0.458974358974359,
+        "mrr": 0.2979940401878101
+      },
+      "token_bag": {
+        "recall@1": 0.17948717948717946,
+        "recall@10": 0.41025641025641035,
+        "mrr": 0.252062446473743
+      },
+      "char": {
+        "recall@1": 0.17179487179487177,
+        "recall@10": 0.3410256410256411,
+        "mrr": 0.2279683916257905
+      },
+      "token": {
+        "recall@1": 0.158974358974359,
+        "recall@10": 0.34358974358974365,
+        "mrr": 0.2240783834791172
+      }
+    },
+    "trained_minus_baseline_recall10": {
+      "random": {
+        "mean": 0.2641025641025641,
+        "paired_behavior_bootstrap_95_percent": [
+          0.16410256410256413,
+          0.36666666666666664
+        ]
+      },
+      "token_bag": {
+        "mean": 0.3128205128205129,
+        "paired_behavior_bootstrap_95_percent": [
+          0.2102564102564103,
+          0.4153846153846154
+        ]
+      },
+      "char": {
+        "mean": 0.3820512820512821,
+        "paired_behavior_bootstrap_95_percent": [
+          0.2691666666666667,
+          0.49487179487179483
+        ]
+      },
+      "token": {
+        "mean": 0.3794871794871795,
+        "paired_behavior_bootstrap_95_percent": [
+          0.2641025641025641,
+          0.49230769230769234
+        ]
+      }
+    }
+  },
+  "independent_authors": {
+    "behaviors": 47,
+    "queries": 94,
+    "metrics": {
+      "trained": {
+        "recall@1": 0.3404255319148936,
+        "recall@10": 0.6595744680851063,
+        "mrr": 0.4415220244534213
+      },
+      "random": {
+        "recall@1": 0.18085106382978725,
+        "recall@10": 0.39361702127659576,
+        "mrr": 0.24589131665102568
+      },
+      "token_bag": {
+        "recall@1": 0.1595744680851064,
+        "recall@10": 0.35106382978723405,
+        "mrr": 0.21581294601235865
+      },
+      "char": {
+        "recall@1": 0.13829787234042554,
+        "recall@10": 0.2978723404255319,
+        "mrr": 0.19262986109013114
+      },
+      "token": {
+        "recall@1": 0.14893617021276595,
+        "recall@10": 0.2765957446808511,
+        "mrr": 0.1957552397978546
+      }
+    },
+    "trained_minus_baseline_recall10": {
+      "random": {
+        "mean": 0.26595744680851063,
+        "paired_behavior_bootstrap_95_percent": [
+          0.13829787234042554,
+          0.39361702127659576
+        ]
+      },
+      "token_bag": {
+        "mean": 0.30851063829787234,
+        "paired_behavior_bootstrap_95_percent": [
+          0.18085106382978725,
+          0.43617021276595747
+        ]
+      },
+      "char": {
+        "mean": 0.3617021276595745,
+        "paired_behavior_bootstrap_95_percent": [
+          0.2127659574468085,
+          0.5
+        ]
+      },
+      "token": {
+        "mean": 0.3829787234042553,
+        "paired_behavior_bootstrap_95_percent": [
+          0.23404255319148937,
+          0.5212765957446809
+        ]
+      }
+    }
+  },
+  "records": [
+    {
+      "key": "abs_each",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        33,
+        1,
+        1
+      ],
+      "random": [
+        15,
+        1,
+        1
+      ],
+      "token_bag": [
+        654,
+        5,
+        3
+      ],
+      "char": [
+        5653,
+        1,
+        1
+      ],
+      "token": [
+        6912,
+        1,
+        1
+      ]
+    },
+    {
+      "key": "count_negative",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        1,
+        1,
+        1
+      ],
+      "random": [
+        1,
+        1,
+        3
+      ],
+      "token_bag": [
+        17,
+        178,
+        1940
+      ],
+      "char": [
+        104,
+        3,
+        12
+      ],
+      "token": [
+        254,
+        19,
+        15
+      ]
+    },
+    {
+      "key": "count_zeros",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        1,
+        1,
+        1
+      ],
+      "random": [
+        1,
+        1,
+        1
+      ],
+      "token_bag": [
+        5,
+        1,
+        1
+      ],
+      "char": [
+        567,
+        1,
+        1
+      ],
+      "token": [
+        81,
+        1,
+        1
+      ]
+    },
+    {
+      "key": "dc-caesar-cipher-k-modulo-n-k3-n5",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        6,
+        3
+      ],
+      "random": [
+        13,
+        6
+      ],
+      "token_bag": [
+        5,
+        2
+      ],
+      "char": [
+        10,
+        9
+      ],
+      "token": [
+        9,
+        7
+      ]
+    },
+    {
+      "key": "dc-count-k-k3",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        3,
+        4
+      ],
+      "random": [
+        12,
+        9
+      ],
+      "token_bag": [
+        6,
+        7
+      ],
+      "char": [
+        91,
+        26
+      ],
+      "token": [
+        134,
+        73
+      ]
+    },
+    {
+      "key": "dc-count-k-k5",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        2,
+        3
+      ],
+      "random": [
+        5,
+        7
+      ],
+      "token_bag": [
+        2,
+        3
+      ],
+      "char": [
+        13,
+        8
+      ],
+      "token": [
+        11,
+        5
+      ]
+    },
+    {
+      "key": "dc-index-k-k2",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        13,
+        3
+      ],
+      "random": [
+        8711,
+        1553
+      ],
+      "token_bag": [
+        12707,
+        9592
+      ],
+      "char": [
+        12278,
+        7667
+      ],
+      "token": [
+        12470,
+        8348
+      ]
+    },
+    {
+      "key": "dc-index-k-k3",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        13,
+        7
+      ],
+      "random": [
+        10067,
+        2346
+      ],
+      "token_bag": [
+        12727,
+        10541
+      ],
+      "char": [
+        11826,
+        6744
+      ],
+      "token": [
+        12406,
+        8358
+      ]
+    },
+    {
+      "key": "dc-index-k-k5",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        18,
+        7
+      ],
+      "random": [
+        10638,
+        4639
+      ],
+      "token_bag": [
+        12711,
+        8477
+      ],
+      "char": [
+        10717,
+        6470
+      ],
+      "token": [
+        12381,
+        8133
+      ]
+    },
+    {
+      "key": "dc-remove-mod-k-k3",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        2,
+        2
+      ],
+      "random": [
+        6,
+        8
+      ],
+      "token_bag": [
+        9,
+        15
+      ],
+      "char": [
+        15,
+        28
+      ],
+      "token": [
+        13,
+        11
+      ]
+    },
+    {
+      "key": "dc-remove-mod-k-k4",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        5,
+        2
+      ],
+      "random": [
+        5,
+        20
+      ],
+      "token_bag": [
+        10,
+        46
+      ],
+      "char": [
+        16,
+        36
+      ],
+      "token": [
+        23,
+        19
+      ]
+    },
+    {
+      "key": "dc-remove-mod-k-k5",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        3,
+        6
+      ],
+      "token_bag": [
+        2,
+        2
+      ],
+      "char": [
+        2,
+        2
+      ],
+      "token": [
+        2,
+        2
+      ]
+    },
+    {
+      "key": "dc-replace-all-with-index-k-k2",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        6,
+        3
+      ],
+      "random": [
+        76,
+        405
+      ],
+      "token_bag": [
+        8853,
+        1346
+      ],
+      "char": [
+        9594,
+        12016
+      ],
+      "token": [
+        195,
+        55
+      ]
+    },
+    {
+      "key": "dc-replace-all-with-index-k-k3",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        117,
+        8
+      ],
+      "random": [
+        419,
+        1198
+      ],
+      "token_bag": [
+        11495,
+        5977
+      ],
+      "char": [
+        9493,
+        12113
+      ],
+      "token": [
+        1345,
+        910
+      ]
+    },
+    {
+      "key": "dc-replace-all-with-index-k-k4",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1038,
+        88
+      ],
+      "random": [
+        163,
+        1062
+      ],
+      "token_bag": [
+        12080,
+        8174
+      ],
+      "char": [
+        9357,
+        11664
+      ],
+      "token": [
+        9696,
+        11518
+      ]
+    },
+    {
+      "key": "dc-replace-all-with-index-k-k5",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1055,
+        338
+      ],
+      "random": [
+        33,
+        22
+      ],
+      "token_bag": [
+        9,
+        5
+      ],
+      "char": [
+        6144,
+        45
+      ],
+      "token": [
+        29,
+        11
+      ]
+    },
+    {
+      "key": "distance_from_target_total",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        3,
+        1,
+        1
+      ],
+      "random": [
+        80,
+        1,
+        1
+      ],
+      "token_bag": [
+        12,
+        7,
+        1795
+      ],
+      "char": [
+        2122,
+        371,
+        104
+      ],
+      "token": [
+        5036,
+        497,
+        227
+      ]
+    },
+    {
+      "key": "flat_pair_maxima",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        2,
+        547,
+        1
+      ],
+      "random": [
+        56,
+        1,
+        2
+      ],
+      "token_bag": [
+        9057,
+        1,
+        2
+      ],
+      "char": [
+        7857,
+        4,
+        11
+      ],
+      "token": [
+        11235,
+        4,
+        5
+      ]
+    },
+    {
+      "key": "hamming_distance",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        2,
+        1,
+        1
+      ],
+      "random": [
+        2841,
+        1,
+        1
+      ],
+      "token_bag": [
+        11820,
+        2,
+        27
+      ],
+      "char": [
+        12328,
+        3,
+        4
+      ],
+      "token": [
+        9772,
+        3,
+        2
+      ]
+    },
+    {
+      "key": "interval_overlap_length",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        2,
+        4,
+        1
+      ],
+      "random": [
+        5,
+        5,
+        2
+      ],
+      "token_bag": [
+        2,
+        3,
+        3
+      ],
+      "char": [
+        2,
+        19,
+        1
+      ],
+      "token": [
+        2,
+        24,
+        3
+      ]
+    },
+    {
+      "key": "largest_magnitude",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        4,
+        19,
+        2
+      ],
+      "random": [
+        3,
+        1172,
+        1
+      ],
+      "token_bag": [
+        2,
+        303,
+        1
+      ],
+      "char": [
+        11589,
+        1,
+        1
+      ],
+      "token": [
+        11614,
+        1,
+        2
+      ]
+    },
+    {
+      "key": "lb-005",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        3,
+        4
+      ],
+      "random": [
+        766,
+        3898
+      ],
+      "token_bag": [
+        3449,
+        5927
+      ],
+      "char": [
+        3443,
+        14
+      ],
+      "token": [
+        6172,
+        21
+      ]
+    },
+    {
+      "key": "lb-008",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        20,
+        26
+      ],
+      "random": [
+        2740,
+        116
+      ],
+      "token_bag": [
+        4437,
+        2250
+      ],
+      "char": [
+        9573,
+        903
+      ],
+      "token": [
+        10490,
+        566
+      ]
+    },
+    {
+      "key": "lb-018",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        2,
+        6
+      ],
+      "random": [
+        27,
+        55
+      ],
+      "token_bag": [
+        52,
+        101
+      ],
+      "char": [
+        43,
+        28
+      ],
+      "token": [
+        25,
+        36
+      ]
+    },
+    {
+      "key": "lb-023",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        1,
+        1
+      ],
+      "token_bag": [
+        1,
+        1
+      ],
+      "char": [
+        1,
+        1
+      ],
+      "token": [
+        1,
+        1
+      ]
+    },
+    {
+      "key": "lb-024",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        56,
+        14
+      ],
+      "token_bag": [
+        11242,
+        9208
+      ],
+      "char": [
+        4055,
+        1254
+      ],
+      "token": [
+        5157,
+        1854
+      ]
+    },
+    {
+      "key": "lb-032",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        1,
+        2
+      ],
+      "token_bag": [
+        2,
+        3
+      ],
+      "char": [
+        2,
+        2
+      ],
+      "token": [
+        5,
+        15
+      ]
+    },
+    {
+      "key": "lb-056",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        1,
+        4
+      ],
+      "token_bag": [
+        4179,
+        720
+      ],
+      "char": [
+        5250,
+        443
+      ],
+      "token": [
+        7174,
+        261
+      ]
+    },
+    {
+      "key": "lb-078",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        7,
+        49
+      ],
+      "random": [
+        1204,
+        1002
+      ],
+      "token_bag": [
+        9305,
+        8997
+      ],
+      "char": [
+        11847,
+        10132
+      ],
+      "token": [
+        12124,
+        11710
+      ]
+    },
+    {
+      "key": "lb-087",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        4533,
+        2002
+      ],
+      "random": [
+        5799,
+        291
+      ],
+      "token_bag": [
+        7803,
+        1327
+      ],
+      "char": [
+        8154,
+        4809
+      ],
+      "token": [
+        11303,
+        9005
+      ]
+    },
+    {
+      "key": "lb-089",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        77,
+        17
+      ],
+      "random": [
+        173,
+        111
+      ],
+      "token_bag": [
+        2160,
+        1929
+      ],
+      "char": [
+        6536,
+        3456
+      ],
+      "token": [
+        7170,
+        2300
+      ]
+    },
+    {
+      "key": "lb-095",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        1,
+        1
+      ],
+      "token_bag": [
+        1,
+        1
+      ],
+      "char": [
+        1,
+        1
+      ],
+      "token": [
+        3,
+        5
+      ]
+    },
+    {
+      "key": "lf-c024",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        6
+      ],
+      "random": [
+        373,
+        135
+      ],
+      "token_bag": [
+        47,
+        1875
+      ],
+      "char": [
+        91,
+        211
+      ],
+      "token": [
+        98,
+        108
+      ]
+    },
+    {
+      "key": "lf-c058",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        80,
+        214
+      ],
+      "random": [
+        9038,
+        12712
+      ],
+      "token_bag": [
+        12048,
+        12734
+      ],
+      "char": [
+        11898,
+        12747
+      ],
+      "token": [
+        3694,
+        11754
+      ]
+    },
+    {
+      "key": "lf-c089",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        3,
+        3
+      ],
+      "random": [
+        7749,
+        8533
+      ],
+      "token_bag": [
+        9296,
+        7734
+      ],
+      "char": [
+        9572,
+        7483
+      ],
+      "token": [
+        9620,
+        9182
+      ]
+    },
+    {
+      "key": "lf-c110",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        17,
+        27
+      ],
+      "random": [
+        4864,
+        858
+      ],
+      "token_bag": [
+        8971,
+        6770
+      ],
+      "char": [
+        8700,
+        883
+      ],
+      "token": [
+        8786,
+        1113
+      ]
+    },
+    {
+      "key": "lf-c118",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        178,
+        70
+      ],
+      "random": [
+        3079,
+        1755
+      ],
+      "token_bag": [
+        9227,
+        4975
+      ],
+      "char": [
+        8334,
+        42
+      ],
+      "token": [
+        9449,
+        213
+      ]
+    },
+    {
+      "key": "lf-c135",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        5,
+        3
+      ],
+      "random": [
+        5,
+        4
+      ],
+      "token_bag": [
+        6888,
+        78
+      ],
+      "char": [
+        10860,
+        5700
+      ],
+      "token": [
+        5570,
+        315
+      ]
+    },
+    {
+      "key": "lf-c146",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        1,
+        1
+      ],
+      "token_bag": [
+        1,
+        1
+      ],
+      "char": [
+        1,
+        1
+      ],
+      "token": [
+        1,
+        1
+      ]
+    },
+    {
+      "key": "lf-c158",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        171,
+        22
+      ],
+      "random": [
+        30,
+        7
+      ],
+      "token_bag": [
+        5553,
+        62
+      ],
+      "char": [
+        46,
+        4
+      ],
+      "token": [
+        19,
+        2
+      ]
+    },
+    {
+      "key": "lf-c159",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        2,
+        6
+      ],
+      "token_bag": [
+        3,
+        4182
+      ],
+      "char": [
+        23,
+        2148
+      ],
+      "token": [
+        3607,
+        11368
+      ]
+    },
+    {
+      "key": "lf-c161",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        369,
+        74
+      ],
+      "random": [
+        5347,
+        10622
+      ],
+      "token_bag": [
+        7601,
+        5115
+      ],
+      "char": [
+        15,
+        101
+      ],
+      "token": [
+        37,
+        82
+      ]
+    },
+    {
+      "key": "lf-c162",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        2
+      ],
+      "random": [
+        75,
+        119
+      ],
+      "token_bag": [
+        8,
+        7
+      ],
+      "char": [
+        4,
+        10
+      ],
+      "token": [
+        5,
+        18
+      ]
+    },
+    {
+      "key": "lf-c184",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        26,
+        5
+      ],
+      "random": [
+        5719,
+        5508
+      ],
+      "token_bag": [
+        9684,
+        8679
+      ],
+      "char": [
+        9898,
+        4298
+      ],
+      "token": [
+        9314,
+        314
+      ]
+    },
+    {
+      "key": "lf-c186",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        123,
+        2
+      ],
+      "token_bag": [
+        12388,
+        6721
+      ],
+      "char": [
+        11452,
+        3376
+      ],
+      "token": [
+        88,
+        22
+      ]
+    },
+    {
+      "key": "lf-c201",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        1,
+        1
+      ],
+      "token_bag": [
+        1,
+        1
+      ],
+      "char": [
+        3,
+        4
+      ],
+      "token": [
+        1,
+        3
+      ]
+    },
+    {
+      "key": "lf-c216",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        349,
+        226
+      ],
+      "random": [
+        11942,
+        9159
+      ],
+      "token_bag": [
+        104,
+        2253
+      ],
+      "char": [
+        515,
+        7244
+      ],
+      "token": [
+        415,
+        311
+      ]
+    },
+    {
+      "key": "lf-c218",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        5,
+        4
+      ],
+      "random": [
+        540,
+        8965
+      ],
+      "token_bag": [
+        133,
+        40
+      ],
+      "char": [
+        748,
+        283
+      ],
+      "token": [
+        83,
+        124
+      ]
+    },
+    {
+      "key": "lf-c221",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        2,
+        1
+      ],
+      "token_bag": [
+        1,
+        1
+      ],
+      "char": [
+        1,
+        1
+      ],
+      "token": [
+        1,
+        5
+      ]
+    },
+    {
+      "key": "lf-c226",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        540,
+        615
+      ],
+      "random": [
+        66,
+        15
+      ],
+      "token_bag": [
+        8707,
+        11369
+      ],
+      "char": [
+        9711,
+        4941
+      ],
+      "token": [
+        10905,
+        8962
+      ]
+    },
+    {
+      "key": "lf-c244",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        2,
+        1
+      ],
+      "token_bag": [
+        4,
+        1
+      ],
+      "char": [
+        2,
+        4
+      ],
+      "token": [
+        1,
+        1
+      ]
+    },
+    {
+      "key": "lf-c249",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        67,
+        19
+      ],
+      "random": [
+        1,
+        3
+      ],
+      "token_bag": [
+        780,
+        68
+      ],
+      "char": [
+        6,
+        1
+      ],
+      "token": [
+        1,
+        1
+      ]
+    },
+    {
+      "key": "maximum_drawdown",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        4,
+        1,
+        1
+      ],
+      "random": [
+        6674,
+        4,
+        6
+      ],
+      "token_bag": [
+        8378,
+        2,
+        3
+      ],
+      "char": [
+        10804,
+        4,
+        3
+      ],
+      "token": [
+        12064,
+        2,
+        2
+      ]
+    },
+    {
+      "key": "mbpp-430",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        1,
+        1
+      ],
+      "token_bag": [
+        1,
+        1
+      ],
+      "char": [
+        1,
+        1
+      ],
+      "token": [
+        1,
+        1
+      ]
+    },
+    {
+      "key": "mbpp-571",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        357,
+        156
+      ],
+      "token_bag": [
+        2962,
+        5009
+      ],
+      "char": [
+        8861,
+        6277
+      ],
+      "token": [
+        8879,
+        7346
+      ]
+    },
+    {
+      "key": "mbpp-673",
+      "partition": "cross_style_holdout",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        1,
+        1
+      ],
+      "token_bag": [
+        1,
+        1
+      ],
+      "char": [
+        1,
+        1
+      ],
+      "token": [
+        1,
+        1
+      ]
+    },
+    {
+      "key": "minimum",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        1,
+        2
+      ],
+      "random": [
+        3,
+        3
+      ],
+      "token_bag": [
+        8,
+        11
+      ],
+      "char": [
+        6025,
+        49
+      ],
+      "token": [
+        8486,
+        81
+      ]
+    },
+    {
+      "key": "ordered_pair",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        1,
+        1,
+        2
+      ],
+      "random": [
+        11,
+        34,
+        3
+      ],
+      "token_bag": [
+        1,
+        1782,
+        3
+      ],
+      "char": [
+        2424,
+        5070,
+        19
+      ],
+      "token": [
+        4693,
+        68,
+        9
+      ]
+    },
+    {
+      "key": "positive_quadrant_count",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        15,
+        4,
+        2
+      ],
+      "random": [
+        1586,
+        6200,
+        1846
+      ],
+      "token_bag": [
+        8444,
+        1,
+        1
+      ],
+      "char": [
+        12352,
+        1,
+        1
+      ],
+      "token": [
+        12039,
+        2,
+        1
+      ]
+    },
+    {
+      "key": "replace_zeros",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        55,
+        1,
+        1
+      ],
+      "random": [
+        2337,
+        2,
+        4
+      ],
+      "token_bag": [
+        1033,
+        59,
+        22
+      ],
+      "char": [
+        4679,
+        1,
+        7
+      ],
+      "token": [
+        3563,
+        1,
+        4
+      ]
+    },
+    {
+      "key": "running_positive_streaks",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        159,
+        1,
+        1
+      ],
+      "random": [
+        689,
+        35,
+        55
+      ],
+      "token_bag": [
+        8348,
+        1,
+        1
+      ],
+      "char": [
+        8408,
+        1,
+        1
+      ],
+      "token": [
+        10360,
+        2,
+        1
+      ]
+    },
+    {
+      "key": "stable_sort_flat_pairs",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        9,
+        1,
+        1
+      ],
+      "random": [
+        17,
+        1,
+        1
+      ],
+      "token_bag": [
+        6981,
+        1,
+        1
+      ],
+      "char": [
+        4109,
+        1,
+        1
+      ],
+      "token": [
+        4328,
+        1,
+        1
+      ]
+    },
+    {
+      "key": "sum_inside_interval",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        1,
+        1,
+        1
+      ],
+      "random": [
+        5,
+        112,
+        3
+      ],
+      "token_bag": [
+        10,
+        9159,
+        3
+      ],
+      "char": [
+        12,
+        1109,
+        12
+      ],
+      "token": [
+        8,
+        6482,
+        6
+      ]
+    },
+    {
+      "key": "triangle_feasibility_flag",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        1,
+        3,
+        3
+      ],
+      "random": [
+        3698,
+        1600,
+        1178
+      ],
+      "token_bag": [
+        8153,
+        7807,
+        7789
+      ],
+      "char": [
+        7173,
+        8,
+        3719
+      ],
+      "token": [
+        2176,
+        28,
+        146
+      ]
+    },
+    {
+      "key": "zero_base_by_minimum",
+      "partition": "cross_style_holdout",
+      "independent_authors": false,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        1,
+        1
+      ],
+      "token_bag": [
+        3,
+        1
+      ],
+      "char": [
+        18,
+        8
+      ],
+      "token": [
+        4,
+        8
+      ]
+    },
+    {
+      "key": "all_positive",
+      "partition": "official_eval",
+      "independent_authors": false,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        27,
+        1356
+      ],
+      "token_bag": [
+        56,
+        115
+      ],
+      "char": [
+        61,
+        6
+      ],
+      "token": [
+        8,
+        5
+      ]
+    },
+    {
+      "key": "increment_each",
+      "partition": "official_eval",
+      "independent_authors": false,
+      "trained": [
+        2,
+        1
+      ],
+      "random": [
+        2,
+        1
+      ],
+      "token_bag": [
+        3,
+        2
+      ],
+      "char": [
+        15,
+        7
+      ],
+      "token": [
+        116,
+        2
+      ]
+    },
+    {
+      "key": "negate_each",
+      "partition": "official_eval",
+      "independent_authors": false,
+      "trained": [
+        3,
+        3
+      ],
+      "random": [
+        4,
+        3
+      ],
+      "token_bag": [
+        224,
+        8
+      ],
+      "char": [
+        10492,
+        287
+      ],
+      "token": [
+        10712,
+        544
+      ]
+    },
+    {
+      "key": "double_each",
+      "partition": "official_eval_overlap",
+      "independent_authors": false,
+      "trained": [
+        4,
+        4
+      ],
+      "random": [
+        446,
+        1770
+      ],
+      "token_bag": [
+        3482,
+        851
+      ],
+      "char": [
+        5276,
+        3436
+      ],
+      "token": [
+        10151,
+        11142
+      ]
+    },
+    {
+      "key": "lf-c071",
+      "partition": "official_eval_overlap",
+      "independent_authors": true,
+      "trained": [
+        1,
+        1
+      ],
+      "random": [
+        1,
+        2
+      ],
+      "token_bag": [
+        1,
+        1
+      ],
+      "char": [
+        34,
+        95
+      ],
+      "token": [
+        28,
+        155
+      ]
+    }
+  ]
+}
