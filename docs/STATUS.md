@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-10-31 (obsolete embedding weights deleted; pending landing)
+Last updated: 2026-10-31 (obsolete embedding weights deleted)
 
 ## What is true now
 
@@ -97,12 +97,12 @@ claim a number supports.
 
 ## In flight
 
-**Semantic program embeddings:** implementation and held-out evaluation complete
-on `codex/semantic-embeddings-20261024`; awaiting landing. Learned program
-ranking beats untrained encoders, token overlap and fixed n-gram baselines.
+**Semantic program embeddings:** implementation and historical held-out
+evaluation complete. Learned program ranking beats untrained encoders, token
+overlap and fixed n-gram baselines.
 Retain it as an experimental retriever. I/O retrieval remains partial even
 with answers available; improvement over the existing PBE solver is unmeasured.
-The training bug is corrected on the branch: I/O positives now come from
+The training bug is corrected: I/O positives now come from
 execution on shown examples, unknown pairs are excluded, and checkpoint
 selection uses shown execution rather than record IDs. All saved embedding
 weights and the weight-containing index were deleted at the owner's request

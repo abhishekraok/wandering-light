@@ -1,8 +1,11 @@
 """Data preparation should not execute programs or depend on a model."""
 
 import gzip
+import hashlib
 import json
 from dataclasses import asdict
+
+import pytest
 
 from wandering_light.program_embedding_data import (
     _assign_splits,
@@ -151,7 +154,10 @@ def test_exact_program_duplicates_merge_aliases_and_keep_official_eval():
     assert set(merged.provenance["aliases"]) == {"a", "b"}
 
 
-def test_independent_teachers_use_existing_labels_and_verification(tmp_path):
+@pytest.mark.parametrize("first_program", ["dup drop", ""])
+def test_independent_teachers_use_existing_labels_and_verification(
+    tmp_path, first_program
+):
     root = _repo(tmp_path, [_task()])
     base = root / "reports/distinct-programs-20260926"
     behavior = {
@@ -164,7 +170,7 @@ def test_independent_teachers_use_existing_labels_and_verification(tmp_path):
     _write_jsonl(base / "audit.jsonl", [{"id": behavior["id"], "verdict": "keep"}])
     _write_jsonl(base / "verdicts.jsonl", [{"id": behavior["id"], "verified": True}])
     _write_jsonl(
-        base / "programs_w01.jsonl", [{"id": behavior["id"], "program": "dup drop"}]
+        base / "programs_w01.jsonl", [{"id": behavior["id"], "program": first_program}]
     )
     _write_jsonl(base / "opus_check.out", [{"id": behavior["id"], "verified": True}])
     with (base / "opus_check.out").open("a") as stream:
@@ -174,7 +180,7 @@ def test_independent_teachers_use_existing_labels_and_verification(tmp_path):
     )
     records = {r.key: r for r in load_records(root)}
     independent = records[behavior["id"]]
-    assert independent.programs == ["dup drop", "nil cat"]
+    assert independent.programs == [first_program, "nil cat"]
     assert independent.styles == ["sol", "opus"]
     assert independent.examples == [("[ (1) ]", "[ (1) ]")]
     assert independent.held_out_examples == [("[ (2) ]", "[ (2) ]")]
@@ -196,4 +202,87 @@ def test_gzip_task_adapter_and_manifest_cli_are_deterministic(tmp_path):
     main(["--repo-root", str(root), "--extra-tasks", str(extra), "--out", str(out)])
     manifest = json.loads((out / "manifest.json").read_text())
     assert sum(manifest["counts"].values()) == 2
-    assert len((out / "records.jsonl").read_text().splitlines()) == 2
+    payload = (out / "records.jsonl").read_bytes()
+    assert len(payload.splitlines()) == 2
+    assert manifest["records_digest"] == "sha256:" + hashlib.sha256(payload).hexdigest()
+    preparation = manifest["preparation"]
+    assert preparation["commit"] is not None
+    assert isinstance(preparation["dirty"], bool)
+    assert preparation["config"]["repo_root"] == str(root.resolve())
+    assert preparation["config"]["extra_tasks"] == [str(extra.resolve())]
+    assert preparation["config"]["split_policy"] == manifest["config"]["split_policy"]
+    assert preparation["seed"] == manifest["seed"]
+    assert preparation["wandb_run.url"] is None
+    assert (
+        preparation["input_records_digest"]
+        == manifest_for(before, root)["records_digest"]
+    )
+    main(["--repo-root", str(root), "--extra-tasks", str(extra), "--out", str(out)])
+    assert (out / "records.jsonl").read_bytes() == payload
+    # The records file carries preparation lineage even away from its sidecar.
+    copied = tmp_path / "copied-records.jsonl"
+    copied.write_bytes(payload)
+    (out / "manifest.json").unlink()
+    for row in map(json.loads, copied.read_text().splitlines()):
+        assert row["provenance"]["preparation"] == preparation
+        assert row["provenance"]["source_digests"]
+
+
+@pytest.mark.parametrize("program", [[], ""])
+def test_accepted_identity_witness_survives_without_missing_programs(tmp_path, program):
+    root = _repo(tmp_path, [_task()])
+    extra = root / "accepted.jsonl"
+    identity = _task("identity", ())
+    identity["program"] = program
+    identity["alternative_programs"] = [["dup", "drop"]]
+    identity["outputs"] = identity["inputs"]
+    identity["held_out_outputs"] = identity["held_out_inputs"]
+    missing = {**identity, "behaviour": "missing", "alternative_programs": []}
+    missing.pop("program")
+    unsolved = {**missing, "behaviour": "unsolved", "program": None}
+    rejected = {**identity, "behaviour": "rejected"}
+    _write_jsonl(
+        extra,
+        [
+            {"status": "accepted", "task": identity},
+            {"status": "accepted", "task": missing},
+            {"status": "accepted", "task": unsolved},
+            {"status": "rejected", "task": rejected},
+        ],
+    )
+    records = {record.key: record for record in load_records(root, [extra])}
+    assert records["identity"].programs == ["", "dup drop"]
+    assert records["identity"].styles == ["peer", "alternative"]
+    assert records["missing"].programs == records["unsolved"].programs == []
+    assert "rejected" not in records
+
+
+@pytest.mark.parametrize("canonical", [(), ("dup", "drop")])
+def test_identity_is_retained_in_canonical_and_sidefile_programs(tmp_path, canonical):
+    task = _task("identity", canonical)
+    task["outputs"] = task["inputs"]
+    task["held_out_outputs"] = task["held_out_inputs"]
+    root = _repo(tmp_path, [task])
+    _write_jsonl(
+        root / "experiments/staged_witnesses/v4.jsonl",
+        [{"behaviour": "identity", "program": "dup drop", "refused_program": ""}],
+    )
+    (record,) = load_records(root)
+    if canonical:
+        assert record.programs == ["dup drop", ""]
+        assert record.styles == ["canonical", "refused"]
+    else:
+        assert record.programs == ["", "dup drop"]
+        assert record.styles == ["canonical", "staged"]
+
+
+@pytest.mark.parametrize("primary", [{}, {"program": None}])
+def test_sidefile_missing_primary_preserves_identity_alternative(tmp_path, primary):
+    root = _repo(tmp_path, [_task("identity", ("dup", "drop"))])
+    _write_jsonl(
+        root / "experiments/staged_witnesses/v4.jsonl",
+        [{"behaviour": "identity", "refused_program": "", **primary}],
+    )
+    (record,) = load_records(root)
+    assert record.programs == ["dup drop", ""]
+    assert record.styles == ["canonical", "refused"]

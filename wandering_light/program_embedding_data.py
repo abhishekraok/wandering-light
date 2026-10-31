@@ -19,6 +19,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from wandering_light.program_embedding_artifacts import git_metadata
 from wandering_light.stack_machine import Config, format_stack
 from wandering_light.stack_pbe import load, skeleton, to_stack, to_value
 
@@ -76,10 +77,12 @@ def _new_record(key: str, family: str | None = None) -> BehaviorRecord:
 
 
 def _add_program(
-    record: BehaviorRecord, program: str | list | tuple, style: str
+    record: BehaviorRecord, program: str | list | tuple | None, style: str
 ) -> None:
+    if program is None:
+        return
     text = _program(program)
-    if text and text not in record.programs:
+    if text not in record.programs:
         record.programs.append(text)
         record.styles.append(style)
 
@@ -110,7 +113,7 @@ def _add_task(
     if family:
         record.family = family
     _source(record, path)
-    _add_program(record, row["program"], style)
+    _add_program(record, row.get("program"), style)
     for program in row.get("alternative_programs", []):
         _add_program(record, program, "alternative")
     record.examples.extend(zip(row["inputs"], row["outputs"], strict=True))
@@ -140,9 +143,8 @@ def _load_sidefile(records: dict[str, BehaviorRecord], path: Path) -> None:
         # verified both programs; a non-staged verdict is a style judgement.
         record = records[row["behaviour"]]
         _source(record, path)
-        _add_program(record, row["program"], "staged")
-        if row.get("refused_program"):
-            _add_program(record, row["refused_program"], "refused")
+        _add_program(record, row.get("program"), "staged")
+        _add_program(record, row.get("refused_program"), "refused")
         record.provenance["sidefile_verification"] = "reviewed v4 sidefile"
 
 
@@ -167,11 +169,11 @@ def _load_independent(records: dict[str, BehaviorRecord], root: Path) -> None:
         for path in sorted(base.glob(glob)):
             for row in _json_rows(path):
                 key = row["id"]
-                if key not in kept or key not in checked or not row.get("program"):
+                if key not in kept or key not in checked or row.get("program") is None:
                     continue
                 behavior = behaviors[key]
                 record = records.setdefault(key, _new_record(key))
-                _add_program(record, row["program"], style)
+                _add_program(record, row.get("program"), style)
                 for source in (behavior_path, audit_path, check_path, path):
                     _source(record, source)
                 _caveat(
@@ -503,10 +505,30 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
     records = load_records(args.repo_root, args.extra_tasks)
-    args.out.mkdir(parents=True, exist_ok=True)
-    payload = "".join(json.dumps(asdict(r), sort_keys=True) + "\n" for r in records)
-    (args.out / "records.jsonl").write_text(payload)
     manifest = manifest_for(records, args.repo_root)
+    source_root = Path(__file__).resolve().parents[1]
+    preparation = {
+        **git_metadata(source_root),
+        "source_root": str(source_root),
+        "seed": SEED,
+        "config": {
+            **manifest["config"],
+            "repo_root": str(args.repo_root.resolve()),
+            "extra_tasks": [str(path.resolve()) for path in args.extra_tasks],
+            "out": str(args.out.resolve()),
+        },
+        "wandb_run.url": None,
+        # Identify the logical input records without a recursive self-digest.
+        "input_records_digest": manifest["records_digest"],
+    }
+    rows = [asdict(record) for record in records]
+    for row in rows:
+        row["provenance"]["preparation"] = preparation
+    payload = "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows)
+    manifest["preparation"] = preparation
+    manifest["records_digest"] = _digest(payload.encode())
+    args.out.mkdir(parents=True, exist_ok=True)
+    (args.out / "records.jsonl").write_text(payload)
     (args.out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(
         json.dumps(
