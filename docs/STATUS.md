@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-10-28 (semantic embedding utility check; pending landing)
+Last updated: 2026-10-30 (semantic embedding objective caveat; pending landing)
 
 ## What is true now
 
@@ -102,6 +102,8 @@ on `codex/semantic-embeddings-20261024`; awaiting landing. Learned program
 ranking beats untrained encoders, token overlap and fixed n-gram baselines.
 Retain it as an experimental retriever. I/O retrieval remains partial even
 with answers available; improvement over the existing PBE solver is unmeasured.
+I/O training positives use behavior-group identity, not execution satisfaction
+of each sampled subset; ambiguity frequency and impact are unmeasured.
 The next decision needs a candidate bank built independently of test tasks
 and an equal wall-clock comparison including execution and fallback search.
 [Report](../reports/program-embeddings-20261024/README.md),
@@ -140,6 +142,8 @@ Six designs were set aside after exploratory, unreviewed probes on 2026-09-20: [
 
 Claims that were stated confidently and are wrong. Recorded here so a
 correction lands in one place instead of being chased across comment threads.
+
+- **2026-10-30, "your requested mapping is implemented"** (semantic-program-embeddings (#189)). Overstated: I/O contrastive positives use behavior-group identity, not execution satisfaction of each sampled I/O subset. Different groups can both fit an ambiguous subset yet be treated as negatives; frequency and impact are unmeasured. The measured retrieval results stand.
 
 - **2026-10-16, "the stronger solver overstates ~4x as much, so holding examples back is worth more as solvers improve"** (the v3 language-model row, and "the held-out protocol is worth more the stronger the solver" on the v4 `codex exec` row). The aggregate gap is coverage: conditional on fitting the shown pairs, terra memorises 3.1% (12/389) against BFS's 7.1% (3/42) on v3, and on the 142 v4 tasks BFS fits astra memorises 17 against BFS's 22. Stronger solvers reach more tasks with weak held-out sets. Held-out examples still matter; the reason is output entropy (the shown-count row), not solver strength. [Numbers](RESULTS_DETAILED.md#shown-pair-count-and-memorisation-astra-low-on-the-full-v4-eval-split-123).
 
