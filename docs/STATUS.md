@@ -102,8 +102,10 @@ on `codex/semantic-embeddings-20261024`; awaiting landing. Learned program
 ranking beats untrained encoders, token overlap and fixed n-gram baselines.
 Retain it as an experimental retriever. I/O retrieval remains partial even
 with answers available; improvement over the existing PBE solver is unmeasured.
-I/O training positives use behavior-group identity, not execution satisfaction
-of each sampled subset; ambiguity frequency and impact are unmeasured.
+The training bug is corrected on the branch: I/O positives now come from
+execution on shown examples, unknown pairs are excluded, and checkpoint
+selection uses shown execution rather than record IDs. Published `aligned-s0`
+weights still use the old objective; corrected weights need a new run.
 The next decision needs a candidate bank built independently of test tasks
 and an equal wall-clock comparison including execution and fallback search.
 [Report](../reports/program-embeddings-20261024/README.md),
