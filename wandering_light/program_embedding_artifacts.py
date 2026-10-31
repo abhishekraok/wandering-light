@@ -61,6 +61,9 @@ def model_objectives(model, *, checkpoint: bool) -> dict:
     missing = "unknown" if checkpoint else "not-trained"
     return {
         "io_supervision": model.metadata.get("io_supervision", {"kind": missing}),
+        "program_supervision": model.metadata.get(
+            "program_supervision", {"kind": missing}
+        ),
         "io_io_supervision": model.metadata.get("io_io_supervision", missing),
         "checkpoint_selection": model.metadata.get("checkpoint_selection", missing),
     }
