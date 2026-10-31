@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-10-30 (semantic embedding objective caveat; pending landing)
+Last updated: 2026-10-31 (obsolete embedding weights deleted; pending landing)
 
 ## What is true now
 
@@ -104,8 +104,10 @@ Retain it as an experimental retriever. I/O retrieval remains partial even
 with answers available; improvement over the existing PBE solver is unmeasured.
 The training bug is corrected on the branch: I/O positives now come from
 execution on shown examples, unknown pairs are excluded, and checkpoint
-selection uses shown execution rather than record IDs. Published `aligned-s0`
-weights still use the old objective; corrected weights need a new run.
+selection uses shown execution rather than record IDs. All saved embedding
+weights and the weight-containing index were deleted at the owner's request
+on 2026-10-31. No corrected model has been trained; historical data, results
+and provenance remain.
 The next decision needs a candidate bank built independently of test tasks
 and an equal wall-clock comparison including execution and fallback search.
 [Report](../reports/program-embeddings-20261024/README.md),

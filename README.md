@@ -329,8 +329,9 @@ browser.
 
 Encode stack programs or I/O examples into a shared space and retrieve
 programs with `wandering_light.program_embedding.ProgramIndex`. The
-[embedding report](reports/program-embeddings-20261024/README.md) has the API,
-local checkpoint/index paths, and held-out retrieval results. Train with:
+[embedding report](reports/program-embeddings-20261024/README.md) has the API
+and historical retrieval results. Previous weights were removed after a training
+objective correction. Train with:
 
 ```bash
 systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- \

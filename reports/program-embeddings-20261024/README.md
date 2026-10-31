@@ -1,5 +1,7 @@
 # Program / I/O embeddings
 
+**Weights deleted, 2026-10-31.** All saved embedding checkpoints and the self-contained index were removed at the owner's request after the objective correction. Measurements below are historical; data, results and provenance remain. The API example requires a newly trained checkpoint.
+
 ![Held-out retrieval and executable I/O selection](metrics.png)
 
 | Held-out test | Trained | Random | Lexical |
@@ -29,14 +31,14 @@ Programs in the repo's `mark-28` stack language and I/O examples map to 128-dime
 import torch
 from wandering_light.program_embedding import ProgramEmbedding, ProgramIndex
 
-run = "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0"
+run = "/path/to/a/new/training/run"  # Train first; historical weights were deleted.
 model = ProgramEmbedding.load(f"{run}/best.pt")
 with torch.inference_mode():
     # fold accumulates add over the input list: its sum.
     programs = model.encode_programs(["0 [ add ] fold", "0 [ swap add ] fold"])
     similarity = (programs[0] @ programs[1]).item()
     examples = model.encode_io([[("[ (2 3) ]", "[ 5 ]")]])
-index = ProgramIndex.load(f"{run}/library.pt")
+index = ProgramIndex(model).fit(["0 [ add ] fold", "nil [ cons ] fold"])
 ids, scores = index.search_io([("[ (2 3) ]", "[ 5 ]")], k=10)
 neighbors = [index.programs[i] for i in ids.tolist()]
 # Or precompute your own bank once:
@@ -48,7 +50,7 @@ Programs use `mark-28`, the 28-operation basis. Outer brackets delimit a stack; 
 
 **Protocol.** One-layer bidirectional GRUs, hidden 128/token 48; AdamW, batch 64, temperature 0.07, weight decay 0.01, gradient cap 1, seed 0. Joint: 1,500 steps, rate 0.001, half-batch alternate-text sampling, equal I/O↔program/program↔program losses. Program-only: 500 steps, rate 0.0002, alternate-text sampling only. Frozen-program alignment: 500 steps, rate 0.001, I/O↔program only, half-batch alternate-text sampling. Validation selected **aligned step 500** before test. Five visible/16 hidden examples maximum. Configuration/W&B lineage: `provenance.json`.
 
-**Objective correction (2026-10-30).** The published `aligned-s0` checkpoint used record-ID positives, which can make a valid program from another record a negative. Current training executes each in-batch candidate on the shown I/O subset: all matches are positives, any completed failure is negative, and incomplete outcomes leave both loss targets and denominators. A bounded per-example cache avoids repeated execution. Checkpoint selection uses the lower bound of shown-example reciprocal rank within the top ten; hidden outputs are excluded. The optional I/O-view auxiliary now pulls known matching views together without cross-record negatives. New artifacts record the objective actually used; legacy checkpoints remain loadable with unknown objective metadata. Historical measurements above remain unchanged until a corrected run is reported.
+**Objective correction (2026-10-30).** The published `aligned-s0` checkpoint used record-ID positives, which can make a valid program from another record a negative. Current training executes each in-batch candidate on the shown I/O subset: all matches are positives, any completed failure is negative, and incomplete outcomes leave both loss targets and denominators. A bounded per-example cache avoids repeated execution. Checkpoint selection uses the lower bound of shown-example reciprocal rank within the top ten; hidden outputs are excluded. The optional I/O-view auxiliary now pulls known matching views together without cross-record negatives. New artifacts record the objective actually used; legacy checkpoints remain loadable with unknown objective metadata. The old weights have since been deleted; historical measurements above remain unchanged.
 
 **Data/caveats.** 9,702 fit / 1,224 validation / 1,290 test behaviors; five insufficient train records omitted. Exact programs merge with aliases; shared templates/alternative skeletons stay in one split. All 45 official v4 behaviors remain held out. Hidden inputs never enter visible views. Contrived/precondition-flagged rewrites are excluded. All 1,101 retained alternate programs pass every stored merged-domain example. Excluded bad Opus `mbpp-876` SHA-256: `0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43`.
 
