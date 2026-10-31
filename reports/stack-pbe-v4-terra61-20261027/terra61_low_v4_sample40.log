@@ -1,0 +1,75 @@
+RUN STARTED 2026-10-27T09:27:48-07:00 codex codex-cli 0.163.0
+  [1/40] sum_negative (16 ops): solved, 1 solved so far, 5s
+  [2/40] min_pair (12 ops): failed, 1 solved so far, 10s
+  [3/40] keep_negative (5 ops): failed, 1 solved so far, 14s
+  [4/40] drop_last (12 ops): failed, 1 solved so far, 18s
+  [5/40] aligned_matches (39 ops): failed, 1 solved so far, 22s
+  [6/40] widest_pair (84 ops): failed, 1 solved so far, 27s
+  [7/40] replace_value (22 ops): solved, 2 solved so far, 36s
+  [8/40] positive_balance_prefix_count (49 ops): failed, 2 solved so far, 48s
+  [9/40] positive_majority_three (39 ops): failed, 2 solved so far, 52s
+  [10/40] adjacent_sign_change_count (47 ops): memorised, 2 solved so far, 60s
+  [11/40] nearest_interval_endpoint_each (39 ops): failed, 2 solved so far, 66s
+  [12/40] min_pair (12 ops): failed, 2 solved so far, 72s
+  [13/40] replace_value (22 ops): failed, 2 solved so far, 76s
+  [14/40] axis_point_count (86 ops): failed, 2 solved so far, 80s
+  [15/40] axis_point_count (86 ops): failed, 2 solved so far, 86s
+  [16/40] positive_majority_three (39 ops): failed, 2 solved so far, 90s
+  [17/40] median_floor (253 ops): memorised, 2 solved so far, 98s
+  [18/40] keep_ascending_pairs (80 ops): failed, 2 solved so far, 103s
+  [19/40] keep_zeros (5 ops): failed, 2 solved so far, 107s
+  [20/40] largest_inside_interval (40 ops): failed, 2 solved so far, 112s
+  [21/40] bounds_cover_list_flag (92 ops): failed, 2 solved so far, 116s
+  [22/40] concatenate_shorter_first (26 ops): failed, 2 solved so far, 120s
+  [23/40] keep_zeros (5 ops): solved, 3 solved so far, 124s
+  [24/40] widest_pair (84 ops): memorised, 3 solved so far, 134s
+  [25/40] drop_last (12 ops): failed, 3 solved so far, 138s
+  [26/40] keep_below (6 ops): solved, 4 solved so far, 144s
+  [27/40] sum_negative (16 ops): solved, 5 solved so far, 148s
+  [28/40] n_minus_each (7 ops): failed, 5 solved so far, 153s
+  [29/40] bounds_cover_list_flag (92 ops): failed, 5 solved so far, 157s
+  [30/40] negate_each (6 ops): solved, 6 solved so far, 161s
+  [31/40] aligned_matches (39 ops): solved, 7 solved so far, 165s
+  [32/40] cartesian_pair_sums (15 ops): failed, 7 solved so far, 171s
+  [33/40] drop_last (12 ops): failed, 7 solved so far, 175s
+  [34/40] replace_value (22 ops): solved, 8 solved so far, 184s
+  [35/40] rotate_left (5 ops): failed, 8 solved so far, 188s
+  [36/40] farther_choice_from_target (54 ops): failed, 8 solved so far, 194s
+  [37/40] farthest_from_target_last_tie (59 ops): failed, 8 solved so far, 199s
+  [38/40] largest_inside_interval (40 ops): failed, 8 solved so far, 203s
+  [39/40] prefix_sums (25 ops): solved, 9 solved so far, 214s
+  [40/40] reverse (5 ops): failed, 9 solved so far, 217s
+llm on eval, budget 10,000: 40 tasks, 217s
+  9/40 solved (22.5%); shown-only would say 30.0% (+7.5%, 3 memorised)
+
+  behaviour          wit   solved  memorised
+  keep_negative        5    0/1            0
+  keep_zeros           5    1/2            0
+  rotate_left          5    0/1            0
+  reverse              5    0/1            0
+  keep_below           6    1/1            0
+  negate_each          6    1/1            0
+  n_minus_each         7    0/1            0
+  min_pair            12    0/2            0
+  drop_last           12    0/3            0
+  cartesian_pair_sums  15    0/1            0
+  sum_negative        16    2/2            0
+  replace_value       22    2/3            0
+  prefix_sums         25    1/1            0
+  concatenate_shorter_first  26    0/1            0
+  aligned_matches     39    1/2            0
+  positive_majority_three  39    0/2            0
+  nearest_interval_endpoint_each  39    0/1            0
+  largest_inside_interval  40    0/2            0
+  adjacent_sign_change_count  47    0/1            1
+  positive_balance_prefix_count  49    0/1            0
+  farther_choice_from_target  54    0/1            0
+  farthest_from_target_last_tie  59    0/1            0
+  keep_ascending_pairs  80    0/1            0
+  widest_pair         84    0/2            1
+  axis_point_count    86    0/2            0
+  bounds_cover_list_flag  92    0/2            0
+  median_floor       253    0/1            1
+
+wrote /home/abhishekrao/repos/wandering-light-bench/reports/stack-pbe-v4-terra61-20261027/terra61_low_v4_sample40.json
+RUN FINISHED 2026-10-27T09:31:40-07:00 (exit 0)

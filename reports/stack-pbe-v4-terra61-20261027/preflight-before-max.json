@@ -1,0 +1,130 @@
+{
+  "purpose": "Separate preflight before max arm; excluded from benchmark sample and scores",
+  "authorization": "Abhishek message 2210, 2026-10-27: Try max as well.",
+  "requested_model": "gpt-6.1-terra",
+  "effort": "low",
+  "started_at": "2026-10-27T23:20:10.244094+00:00",
+  "finished_at": "2026-10-27T23:20:13.788697+00:00",
+  "source_commit": "b15856ce32acd0b02b522f9b1f2f28164d7ac187",
+  "cli_version": "codex-cli 0.163.0",
+  "command": [
+    "codex",
+    "exec",
+    "--ephemeral",
+    "--skip-git-repo-check",
+    "--strict-config",
+    "--sandbox",
+    "read-only",
+    "-C",
+    "/tmp/codex-exec-99pusype/workdir",
+    "-m",
+    "gpt-6.1-terra",
+    "-c",
+    "model_instructions_file=\"/tmp/codex-exec-99pusype/instructions.md\"",
+    "-c",
+    "tools.web_search=false",
+    "--json",
+    "-c",
+    "model_reasoning_effort=\"low\"",
+    "--disable",
+    "shell_tool",
+    "--disable",
+    "unified_exec",
+    "--disable",
+    "code_mode_host",
+    "--disable",
+    "multi_agent",
+    "--disable",
+    "plugins",
+    "--disable",
+    "apps",
+    "--disable",
+    "browser_use",
+    "--disable",
+    "browser_use_external",
+    "--disable",
+    "computer_use",
+    "--disable",
+    "image_generation",
+    "--disable",
+    "view_image",
+    "--disable",
+    "sleep_tool",
+    "--disable",
+    "tool_suggest",
+    "--disable",
+    "skill_search",
+    "--disable",
+    "goals",
+    "--disable",
+    "hooks",
+    "--disable",
+    "personality",
+    "-"
+  ],
+  "prompt": "Reply exactly OK.",
+  "returncode": 0,
+  "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a17faa-0224-7ff0-a639-1b71a1f7061f\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"OK\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":7534,\"cached_input_tokens\":5888,\"cache_write_input_tokens\":0,\"output_tokens\":5,\"reasoning_output_tokens\":0}}\n",
+  "stderr_sha256": "ce03be7948cb3c6e472514701ec076a7b0a3c668b1819a3fc0cd2910c3395208",
+  "received_model_events": [
+    {
+      "type": "response.created",
+      "response": {
+        "id": "resp_0d13b3bd08f85a7a016ae131ab90d4819a86390ac804c6801b",
+        "model": "gpt-6.1-terra"
+      }
+    },
+    {
+      "type": "response.in_progress",
+      "response": {
+        "id": "resp_0d13b3bd08f85a7a016ae131ab90d4819a86390ac804c6801b",
+        "model": "gpt-6.1-terra"
+      }
+    },
+    {
+      "type": "response.completed",
+      "response": {
+        "id": "resp_0d13b3bd08f85a7a016ae131ab90d4819a86390ac804c6801b",
+        "model": "gpt-6.1-terra"
+      }
+    },
+    {
+      "type": "response.created",
+      "response": {
+        "id": "resp_0d13b3bd08f85a7a016ae131ac1294819a8a826924c682bf78",
+        "model": "gpt-6.1-terra"
+      }
+    },
+    {
+      "type": "response.in_progress",
+      "response": {
+        "id": "resp_0d13b3bd08f85a7a016ae131ac1294819a8a826924c682bf78",
+        "model": "gpt-6.1-terra"
+      }
+    },
+    {
+      "type": "response.completed",
+      "response": {
+        "id": "resp_0d13b3bd08f85a7a016ae131ac1294819a8a826924c682bf78",
+        "model": "gpt-6.1-terra"
+      }
+    }
+  ],
+  "served_models": [
+    "gpt-6.1-terra"
+  ],
+  "parsed_metadata": {
+    "tool_calls": 0,
+    "errors": [
+      "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+    ],
+    "usage": {
+      "input_tokens": 7534,
+      "cached_input_tokens": 5888,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 5,
+      "reasoning_output_tokens": 0
+    }
+  },
+  "passed": true
+}

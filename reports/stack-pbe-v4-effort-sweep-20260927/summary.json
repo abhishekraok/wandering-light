@@ -464,5 +464,55 @@
   "cost_per_task": 0.029052012500000002,
   "median_out": 35019.0,
   "mean_out": 57844.025
+ },
+ {
+  "model": "gpt-6.1-terra",
+  "effort": "low",
+  "solved": 9,
+  "cost_per_task": 0.001923125,
+  "median_out": 22.0,
+  "mean_out": 124.625,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-terra61-20261027/identity-rerun/terra61_low_v4_sample40.json"
+ },
+ {
+  "model": "gpt-6.1-terra",
+  "effort": "medium",
+  "solved": 20,
+  "cost_per_task": 0.00273225,
+  "median_out": 265.5,
+  "mean_out": 286.45,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-terra61-20261027/identity-rerun/terra61_medium_v4_sample40.json"
+ },
+ {
+  "model": "gpt-6.1-terra",
+  "effort": "high",
+  "solved": 20,
+  "cost_per_task": 0.00284425,
+  "median_out": 267.0,
+  "mean_out": 308.85,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-terra61-20261027/terra61_high_v4_sample40.json"
+ },
+ {
+  "model": "gpt-6.1-terra",
+  "effort": "xhigh",
+  "solved": 21,
+  "cost_per_task": 0.003823875,
+  "median_out": 390.0,
+  "mean_out": 504.775,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-terra61-20261027/terra61_xhigh_v4_sample40.json"
+ },
+ {
+  "model": "gpt-6.1-terra",
+  "effort": "max",
+  "solved": 24,
+  "cost_per_task": 0.01015825,
+  "median_out": 809.0,
+  "mean_out": 1771.65,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-terra61-20261027/terra61_max_v4_sample40.json"
  }
 ]
