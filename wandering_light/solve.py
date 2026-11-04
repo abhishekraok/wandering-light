@@ -69,12 +69,18 @@ class System:
     guard: str
     library: bool
     measured: str
+    # The most atoms (`stack_beam.atoms_exceed`) a state the beam keeps may
+    # hold; None is unbounded. The largest state along any v4 witness is 124
+    # atoms, along any world-v3 witness 2,642; the runaway this guards against
+    # sat at a median of 19,980.
+    max_state_atoms: int | None = None
 
     def describe(self) -> str:
+        cap = "none" if self.max_state_atoms is None else str(self.max_state_atoms)
         return (
             f"{self.name} = {self.repo_id}@{self.revision[:12]}; beam {self.beam_width}"
             f" x depth {self.max_depth}, guard {self.guard}, library "
-            f"{'on' if self.library else 'off'}"
+            f"{'on' if self.library else 'off'}, state cap {cap}"
         )
 
 
@@ -86,6 +92,7 @@ BEST = System(
     max_depth=48,
     guard="both",
     library=True,
+    max_state_atoms=16_384,
     measured=(
         "staged-witness-reauthoring (#155): 143 of the 300-task v4 cohort graded, "
         "16 of 43 behaviours verified, beam 64 x depth 48, CUDA"
@@ -203,6 +210,7 @@ def solve_tasks(
                 beam_width=system.beam_width,
                 max_depth=system.max_depth,
                 guard=system.guard,
+                max_state_atoms=system.max_state_atoms,
             )
             program, termination = result.program, result.termination
             executions += result.executions

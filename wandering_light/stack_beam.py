@@ -30,6 +30,7 @@ import numpy as np
 from wandering_light.quotation_guard import blocked
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
+    Lst,
     Mark,
     parse_stack,
     step_raw,
@@ -86,8 +87,8 @@ class BeamObserver:
         """What survived, and for each ranked successor why it did or did not.
 
         ``verdicts`` maps ``(node, op_index)`` to ``retained``, ``duplicate``,
-        ``guard:close`` or ``guard:type``; a successor the ranking never
-        reached, because the beam filled first, is absent. ``parents[rank]`` is
+        ``guard:close``, ``guard:type`` or ``guard:size``; a successor the
+        ranking never reached, because the beam filled first, is absent. ``parents[rank]`` is
         the ``(node, op_index)`` that produced ``beam[rank]``.
         """
 
@@ -139,6 +140,32 @@ def replay_program(
 
 def key_of(product: Product) -> tuple:
     return tuple(tuple(value_key(v) for v in stack) for stack in product)
+
+
+def atoms_exceed(product: Product, cap: int) -> bool:
+    """Does the product hold more than ``cap`` atoms?
+
+    An atom is an int, bool, symbol or mark, or a list cell, so a list of n
+    ints is n + 1 atoms and ``(1 (2 3))`` is five; every example's stack counts
+    towards the same total. ``dup`` and ``cat`` cost one fuel whatever they
+    copy, so ``dup cat`` doubles a list for two fuel and a policy that likes the
+    pair can park the beam on states of millions of atoms, where hashing,
+    comparing and encoding them is all the search does; ``beam_solve`` asks
+    this before it hashes or keeps a successor. The walk is iterative, so a
+    value nested deeper than the interpreter's recursion limit cannot overflow
+    the Python stack, and it stops at the first atom past the cap.
+    """
+    count = sum(len(stack) for stack in product)
+    if count > cap:
+        return True
+    pending = [value for stack in product for value in stack if isinstance(value, Lst)]
+    while pending:
+        items = pending.pop().items
+        count += len(items)
+        if count > cap:
+            return True
+        pending.extend(value for value in items if isinstance(value, Lst))
+    return False
 
 
 def step_all_explained(
@@ -197,9 +224,16 @@ def beam_solve(
     max_depth: int = 48,
     guard: str = "both",
     budget: int | None = None,
+    max_state_atoms: int | None = None,
     observer: BeamObserver | None = None,
 ) -> BeamResult:
     """Search one task. The cyclic collector is off for the duration.
+
+    ``max_state_atoms`` bounds the size of a state the beam keeps, in the atoms
+    ``atoms_exceed`` counts: a successor past it is refused with the verdict
+    ``guard:size``, after the quotation guard's verdicts and before the
+    duplicate check, so it is never hashed or kept. None leaves the search
+    unbounded, which is every search before the cap existed.
 
     Every object the expansion loop makes -- a product tuple per op per example,
     a program tuple per legal successor, the visited set's keys -- is acyclic,
@@ -223,6 +257,7 @@ def beam_solve(
             max_depth=max_depth,
             guard=guard,
             budget=budget,
+            max_state_atoms=max_state_atoms,
             observer=observer,
         )
     finally:
@@ -238,6 +273,7 @@ def _beam_solve(
     max_depth: int = 48,
     guard: str = "both",
     budget: int | None = None,
+    max_state_atoms: int | None = None,
     observer: BeamObserver | None = None,
 ) -> BeamResult:
     started = time.perf_counter()
@@ -327,6 +363,9 @@ def _beam_solve(
                 if why is not None:
                     verdicts[node, index] = f"guard:{why}"
                     continue
+            if max_state_atoms is not None and atoms_exceed(product, max_state_atoms):
+                verdicts[node, index] = "guard:size"
+                continue
             if product in seen:
                 verdicts[node, index] = "duplicate"
                 continue

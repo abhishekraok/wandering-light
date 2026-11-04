@@ -1,14 +1,16 @@
 """The stack-token policy and the beam search it guides (compute-optimal-mark-28, #101)."""
 
 import random
+import sys
 
 import numpy as np
 import pytest
 import torch
 
+from wandering_light.quotation_guard import blocked
 from wandering_light.rollout_policy import PolicyArchitecture
-from wandering_light.stack_beam import beam_solve, step_all
-from wandering_light.stack_machine import Int, Lst, Mark, Sym, parse_stack
+from wandering_light.stack_beam import BeamObserver, atoms_exceed, beam_solve, step_all
+from wandering_light.stack_machine import Bool, Int, Lst, Mark, Sym, parse_stack
 from wandering_light.stack_pbe import BASIS, BY_NAME, OPS, build_task, draw_task
 from wandering_light.stack_pbe_eval import grade
 from wandering_light.stack_policy import (
@@ -137,6 +139,119 @@ def test_trained_policy_guides_a_narrow_beam_to_the_witness():
     assert result.termination == "fit", result
     assert grade(result.program, task).solved
     assert result.depth == len(result.program) <= task.length
+
+
+def test_atoms_count_every_value_and_list_cell_across_examples():
+    """A list of n ints is n + 1 atoms, and every example's stack adds up."""
+    one = ((Int(1), Bool(True), Sym("add"), Mark()),)
+    assert not atoms_exceed(one, 4)
+    assert atoms_exceed(one, 3)
+    listed = ((Lst((Int(1), Int(2), Int(3))),),)  # the cell and three ints
+    assert not atoms_exceed(listed, 4)
+    assert atoms_exceed(listed, 3)
+    nested = ((Int(0), Lst((Int(1), Lst((Int(2), Int(3)))))),)  # 0 ( 1 ( 2 3 ) )
+    assert not atoms_exceed(nested, 6)
+    assert atoms_exceed(nested, 5)
+    assert not atoms_exceed((), 0)
+    assert not atoms_exceed(((), ()), 0)
+    product = ((Int(1), Int(2)), (Lst((Int(3),)),), ())  # 2 + 2 + 0
+    assert not atoms_exceed(product, 4)
+    assert atoms_exceed(product, 3)
+
+
+def test_atoms_walk_is_iterative_and_stops_at_the_cap():
+    """A value nested past the recursion limit must neither overflow nor be walked."""
+    depth = sys.getrecursionlimit() * 4
+    value = Lst(())
+    for _ in range(depth):
+        value = Lst((value,))
+    product = ((value,), (value,))
+    assert atoms_exceed(product, 10)
+    assert atoms_exceed(product, 2 * (depth + 1) - 1)
+    assert not atoms_exceed(product, 2 * (depth + 1))
+    # A wide list past the cap is answered from its length, not its items.
+    wide = ((Lst(tuple(Int(i) for i in range(1000))),),)
+    assert atoms_exceed(wide, 1000)
+    assert not atoms_exceed(wide, 1001)
+
+
+class _Watcher(BeamObserver):
+    def __init__(self):
+        self.successors = {}  # (depth, node, op) -> product
+        self.verdicts = {}  # (depth, node, op) -> verdict
+        self.retained = []  # (depth, product)
+        self.remaining = {}
+
+    def expansion_attempted(self, depth, node, op_index, successor, *_):
+        if successor is not None:
+            self.successors[depth, node, op_index] = successor
+
+    def layer_retained(self, depth, beam, verdicts, parents):
+        for (node, op), verdict in verdicts.items():
+            self.verdicts[depth, node, op] = verdict
+        self.retained.extend((depth, product) for product, _, _ in beam)
+
+
+def test_state_cap_refuses_oversized_successors_after_the_guard_and_before_seen():
+    task = task_for("sum")
+    scorer = PolicyScorer(StackPairPolicy(TINY), "cpu")
+    inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
+    cap = next(n for n in range(10**6) if not atoms_exceed(inputs, n))
+    watch = _Watcher()
+    max_depth = 3
+    result = beam_solve(
+        task,
+        scorer,
+        beam_width=8,
+        max_depth=max_depth,
+        guard="both",
+        max_state_atoms=cap,
+        observer=watch,
+    )
+    assert result.program is None
+    assert "guard:size" in set(watch.verdicts.values())
+    assert "retained" in set(watch.verdicts.values())
+    for (depth, node, op), verdict in watch.verdicts.items():
+        product = watch.successors[depth, node, op]
+        why = blocked(product[0], max_depth - depth - 1, "both")
+        oversized = atoms_exceed(product, cap)
+        if why is not None:
+            assert verdict == f"guard:{why}"
+        elif oversized:
+            assert verdict == "guard:size"
+        else:
+            assert verdict in ("retained", "duplicate")
+    for _depth, product in watch.retained:
+        assert not atoms_exceed(product, cap)
+
+
+def test_no_state_cap_is_the_unbounded_search():
+    task = task_for("sum")
+    scorer = PolicyScorer(StackPairPolicy(TINY), "cpu")
+    settings = {"beam_width": 8, "max_depth": 3}
+    watched = _Watcher()
+    unbounded = beam_solve(
+        task, scorer, max_state_atoms=None, observer=watched, **settings
+    )
+    assert "guard:size" not in set(watched.verdicts.values())
+    plain = beam_solve(task, scorer, **settings)
+    loose = beam_solve(task, scorer, max_state_atoms=10**9, **settings)
+    for other in (plain, loose):
+        assert (other.program, other.termination, other.executions, other.fuel) == (
+            unbounded.program,
+            unbounded.termination,
+            unbounded.executions,
+            unbounded.fuel,
+        )
+        assert (other.expansions, other.depth) == (
+            unbounded.expansions,
+            unbounded.depth,
+        )
+    # A cap below every successor empties the frontier at the first layer.
+    starved = beam_solve(task, scorer, max_state_atoms=0, **settings)
+    assert starved.program is None
+    assert starved.termination == "frontier_exhausted"
+    assert starved.depth == 1
 
 
 def test_beam_reports_max_depth_when_the_witness_is_out_of_reach():

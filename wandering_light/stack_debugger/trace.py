@@ -66,7 +66,7 @@ class ExpansionRecord:
     outcome: str  # refused | captured | executed
     reason: str | None
     successor: str | None
-    verdict: str | None  # retained | duplicate | guard:close | guard:type | cut | fit
+    verdict: str | None  # retained | duplicate | guard:close | guard:type | guard:size | cut | fit
     fuel: int
     stepped: int
 

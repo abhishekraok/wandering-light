@@ -53,7 +53,7 @@ def checkpoint(tmp_path_factory):
     )
 
 
-def small_system(depth: int) -> solve.System:
+def small_system(depth: int, max_state_atoms: int | None = None) -> solve.System:
     return solve.System(
         name="tiny",
         repo_id="nobody/nothing",
@@ -63,6 +63,7 @@ def small_system(depth: int) -> solve.System:
         guard="both",
         library=True,
         measured="a test",
+        max_state_atoms=max_state_atoms,
     )
 
 
@@ -102,6 +103,50 @@ def test_solves_grades_on_held_out_and_replays_the_library(tmp_path, checkpoint)
     assert text.rstrip().splitlines()[-1] == summary.line()
     assert "median_floor  unsolved" in text
     assert (tmp_path / "log.txt").read_text().count("\n") == 3
+
+
+def test_best_pins_a_state_cap_and_describe_ends_with_it():
+    assert solve.BEST.max_state_atoms == 16_384
+    assert solve.BEST.describe().endswith(", library on, state cap 16384")
+    assert small_system(3).max_state_atoms is None
+    assert small_system(3).describe().endswith(", library on, state cap none")
+    assert small_system(3, 7).describe().endswith(", state cap 7")
+
+
+def test_state_cap_reaches_the_search(tmp_path, checkpoint, monkeypatch):
+    seen = []
+    real = solve.beam_solve
+
+    def spy(task, scorer, **kwargs):
+        seen.append(kwargs["max_state_atoms"])
+        return real(task, scorer, **kwargs)
+
+    monkeypatch.setattr(solve, "beam_solve", spy)
+    task = task_for("sum", 4)
+    payload = write_payload(tmp_path / "tasks.jsonl.gz", [task])
+    with open(tmp_path / "out.txt", "w") as out, open(tmp_path / "log.txt", "w") as log:
+        capped = solve.solve_file(
+            payload,
+            system=small_system(task.length, 0),
+            checkpoint=checkpoint,
+            out=out,
+            log=log,
+        )
+        uncapped = solve.solve_file(
+            payload,
+            system=small_system(task.length),
+            checkpoint=checkpoint,
+            out=out,
+            log=log,
+        )
+    assert seen == [0, None]
+    # A cap no successor fits under leaves nothing to search; without one the
+    # fitted policy finds the witness, as the beam tests show.
+    assert (capped.solved, uncapped.solved) == (0, 1)
+    text = (tmp_path / "out.txt").read_text()
+    assert "state cap 0\n" in text and "state cap none\n" in text
+    record_line = next(line for line in text.splitlines() if "state cap 0" in line)
+    assert record_line.startswith("system  tiny = ")
 
 
 def test_a_plain_jsonl_payload_loads_like_a_gzipped_one(tmp_path):
