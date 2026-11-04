@@ -14,6 +14,7 @@ import os
 import random
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -41,6 +42,7 @@ from wandering_light.stack_pbe import (
     draw_task,
     encode_task,
     generate,
+    independent_groups,
     load,
     run_program,
     skeleton,
@@ -196,6 +198,66 @@ def test_skeleton_blanks_literals_and_interchangeable_ops():
     assert assign_split(BY_NAME["keep_zeros"].skeleton) == assign_split(
         BY_NAME["keep_negative"].skeleton
     )
+
+
+def _named(*names: str):
+    """Stand-in behaviours: only the name matters to `independent_groups`."""
+    return [replace(CATALOGUE[0], name=name) for name in names]
+
+
+def _assert_partition(groups: dict[str, list[str]], names: list[str]) -> None:
+    flat = [name for members in groups.values() for name in members]
+    assert sorted(flat) == sorted(names)
+    assert all(key in members for key, members in groups.items())
+
+
+def test_current_catalogue_is_all_singleton_groups():
+    groups = independent_groups()
+    assert groups == independent_groups(CATALOGUE)
+    _assert_partition(groups, [b.name for b in CATALOGUE])
+    assert len(groups) == len(CATALOGUE) == 40
+    assert all(members == [key] for key, members in groups.items())
+
+
+def test_composition_grid_collapses_to_one_group():
+    """Twelve predicates times twelve maps is one idea, not 144."""
+    predicates = [f"keep_p{i}" for i in range(12)]
+    maps = [f"m{j}" for j in range(12)]
+    names = [f"{p}_then_{m}" for p in predicates for m in maps]
+    groups = independent_groups(_named(*names))
+    _assert_partition(groups, names)
+    assert len(groups) == 1
+    assert len(next(iter(groups.values()))) == 144
+
+
+def test_grouping_is_transitive_through_a_chain():
+    # a_then_b ~ b_then_c ~ c_then_d: no two ends share a component directly.
+    names = ["a_then_b", "b_then_c", "c_then_d", "x_then_y", "z"]
+    groups = independent_groups(_named(*names))
+    _assert_partition(groups, names)
+    assert sorted(sorted(m) for m in groups.values()) == [
+        ["a_then_b", "b_then_c", "c_then_d"],
+        ["x_then_y"],
+        ["z"],
+    ]
+
+
+def test_bare_name_joins_compositions_that_use_it():
+    names = ["keep_even", "keep_even_then_cube", "negate", "sum"]
+    groups = independent_groups(_named(*names))
+    _assert_partition(groups, names)
+    assert sorted(sorted(m) for m in groups.values()) == [
+        ["keep_even", "keep_even_then_cube"],
+        ["negate"],
+        ["sum"],
+    ]
+
+
+def test_components_match_whole_not_substring():
+    """`keep_even` and `keep_even_odd` share no component."""
+    names = ["keep_even_then_cube", "keep_even_odd_then_negate"]
+    groups = independent_groups(_named(*names))
+    assert len(groups) == 2
 
 
 def test_every_witness_of_a_behaviour_is_checked():

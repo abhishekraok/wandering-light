@@ -149,6 +149,49 @@ def skeleton(program: Sequence[str]) -> str:
     return " ".join("_" if op in INTERCHANGEABLE else op for op in program)
 
 
+def independent_groups(
+    catalogue: Sequence[Behaviour] = (),
+) -> dict[str, list[str]]:
+    """Behaviours that cannot be held apart, grouped by shared components.
+
+    The skeleton count is gameable: cross twelve predicates with twelve maps
+    and you get 144 correct, distinct skeletons from 24 ideas. Learning
+    `keep_even_then_cube` hands over half of `keep_even_then_negate`, so no
+    train/eval split can separate them. A behaviour's components are its name
+    split on ``"_then_"``; two behaviours sharing a component are in one
+    group, transitively, so a composition grid collapses to a single group.
+
+    An empty ``catalogue`` means `CATALOGUE`. Each group is keyed by its first
+    member in catalogue order and lists its members' names in catalogue order.
+    """
+    behaviours = tuple(catalogue) or CATALOGUE
+    parent: dict[str, str] = {}
+
+    def find(node: str) -> str:
+        while parent[node] != node:
+            parent[node] = parent[parent[node]]
+            node = parent[node]
+        return node
+
+    # Union-find over two kinds of node: behaviours (by index, since names are
+    # not guaranteed unique in an arbitrary catalogue) and component strings.
+    for index, behaviour in enumerate(behaviours):
+        node = f"b:{index}"
+        parent.setdefault(node, node)
+        for component in behaviour.name.split("_then_"):
+            other = f"c:{component}"
+            parent.setdefault(other, other)
+            parent[find(other)] = find(node)
+
+    groups: dict[str, list[str]] = {}
+    keys: dict[str, str] = {}
+    for index, behaviour in enumerate(behaviours):
+        root = find(f"b:{index}")
+        key = keys.setdefault(root, behaviour.name)
+        groups.setdefault(key, []).append(behaviour.name)
+    return groups
+
+
 @dataclass(frozen=True)
 class Behaviour:
     """One hand-written problem: what it computes, and programs that do.
