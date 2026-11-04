@@ -155,6 +155,13 @@ def _aggregate_seed_results(
 
     results = [result for _, result, _ in seed_results]
     seeds = [seed for seed, _, _ in seed_results]
+    hosts = [result.evaluation_host for result in results]
+    if any(host != hosts[0] for host in hosts[1:]):
+        raise ValueError(
+            "seed evaluations ran on different hosts, so their wall-clock costs "
+            f"are not comparable: {hosts}"
+        )
+    evaluation_host = dict(hosts[0])
     total_samples = sum(result.total_samples for result in results)
     success_count = sum(result.success_count for result in results)
     total_solution_length = sum(
@@ -171,6 +178,9 @@ def _aggregate_seed_results(
         if all(value is not None for value in candidate_totals)
         else None
     )
+    wall_clock_totals = [result.total_wall_clock_seconds for result in results]
+    complete_wall_clock = all(value is not None for value in wall_clock_totals)
+    total_wall_clock_seconds = sum(wall_clock_totals) if complete_wall_clock else None
 
     def consistent(field: str):
         values = {getattr(result, field) for result in results}
@@ -219,10 +229,22 @@ def _aggregate_seed_results(
         seed=bootstrap_seed + 1,
         seed_effective=seed_effective and complete_costs,
     )
+    wall_clock_ci = bootstrap_mean_confidence_interval(
+        [
+            result.mean_wall_clock_seconds
+            for result in results
+            if result.mean_wall_clock_seconds is not None
+        ],
+        confidence=confidence,
+        samples=bootstrap_samples,
+        seed=bootstrap_seed + 2,
+        seed_effective=seed_effective and complete_wall_clock,
+    )
     if not seed_effective:
         reason = "solver is deterministic or its generator is not seed-controlled"
         success_rate_ci["reason"] = reason
         execution_ci["reason"] = reason
+        wall_clock_ci["reason"] = reason
 
     solver_config = dict(results[0].solver_config)
     solver_config.pop("seed", None)
@@ -257,6 +279,16 @@ def _aggregate_seed_results(
             if total_candidates is not None and costed_samples
             else None
         ),
+        "primary_cost_unit": consistent("primary_cost_unit"),
+        "primary_cost_definition": consistent("primary_cost_definition"),
+        "total_wall_clock_seconds": total_wall_clock_seconds,
+        "mean_wall_clock_seconds": (
+            total_wall_clock_seconds / total_samples
+            if total_wall_clock_seconds is not None and total_samples
+            else None
+        ),
+        "mean_wall_clock_seconds_ci": wall_clock_ci,
+        "evaluation_host": evaluation_host,
         "solver_config": solver_config,
         "seed_effective": seed_effective,
         "seeds": seeds,
@@ -520,11 +552,19 @@ def run_evaluation(
         print(f"  Seed-Task Trials: {result['total_samples']}")
         print(f"  Successes: {result['success_count']}")
         print(f"  Failures: {len(result['failures'])}")
-        if result["mean_charged_executions"] is None:
-            print("  Mean Cost: unreported")
+        if result["mean_wall_clock_seconds"] is None:
+            print("  Mean Wall Clock: unreported")
         else:
             print(
-                "  Mean Cost: "
+                "  Mean Wall Clock: "
+                f"{result['mean_wall_clock_seconds']:.4f} "
+                f"{result['primary_cost_unit']}"
+            )
+        if result["mean_charged_executions"] is None:
+            print("  Mean Executions: unreported")
+        else:
+            print(
+                "  Mean Executions: "
                 f"{result['mean_charged_executions']:.2f} {result['cost_unit']}"
             )
         print(f"  Budget: {result['budget_value']} {result['budget_unit']}")

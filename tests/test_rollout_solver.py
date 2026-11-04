@@ -1,7 +1,9 @@
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, replace
+from types import SimpleNamespace
 
 import pytest
 
+from wandering_light import solver as solver_module
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.solver import (
     ActionScorer,
@@ -426,7 +428,9 @@ def test_batch_predictions_report_comparable_cost_and_search_config():
     )[0]
 
     assert prediction.function_defs == FunctionDefList([increment])
-    assert prediction.cost == PredictionCost(1, None, "solved")
+    assert replace(prediction.cost, seconds=None) == PredictionCost(1, None, "solved")
+    assert prediction.cost.seconds is not None
+    assert prediction.cost.seconds >= 0.0
     assert predictor.cost_metadata() == {
         "cost_unit": "basis_function_executions",
         "cost_definition": predictor.cost_definition,
@@ -435,6 +439,52 @@ def test_batch_predictions_report_comparable_cost_and_search_config():
         "beam_width": 2,
         "max_depth": 3,
     }
+
+
+def test_batch_predictions_time_each_problem_including_early_returns(monkeypatch):
+    increment = make_function("increment", "return x + 1")
+    functions = FunctionDefSet([increment])
+    ticks = iter([1.0, 1.5, 2.0, 2.0, 3.0, 3.25, 4.0, 4.75])
+    monkeypatch.setattr(
+        solver_module, "time", SimpleNamespace(perf_counter=lambda: next(ticks))
+    )
+    scorer = RecordingScorer(uniform_scores)
+    predictor = RolloutPredictor(scorer, beam_width=1, max_depth=1, budget=1)
+
+    searched, trivial, budget_zero, no_actions = (
+        predictor.predict_functions_batch_with_cost(
+            [
+                (TypedList([0]), TypedList([1])),
+                (TypedList([0]), TypedList([0])),
+                (TypedList([0]), TypedList([2])),
+                (TypedList([0]), TypedList([5])),
+            ],
+            functions,
+        )
+    )
+
+    assert searched.cost == PredictionCost(1, None, "solved", 0.5)
+    # Zero distance returns before scoring, yet is still timed.
+    assert trivial.cost == PredictionCost(0, None, "solved", 0.0)
+    assert budget_zero.cost.termination in {"budget", "max_depth"}
+    assert budget_zero.cost.seconds == 0.25
+    assert no_actions.cost.seconds == 0.75
+
+
+def test_zero_budget_rollout_still_reports_wall_clock():
+    increment = make_function("increment", "return x + 1")
+    scorer = RecordingScorer(uniform_scores)
+
+    prediction = RolloutPredictor(scorer, budget=0).predict_functions_batch_with_cost(
+        [(TypedList([0]), TypedList([1]))],
+        FunctionDefSet([increment]),
+    )[0]
+
+    assert scorer.calls == []
+    assert prediction.cost.termination == "budget"
+    assert prediction.cost.charged_executions == 0
+    assert prediction.cost.seconds is not None
+    assert prediction.cost.seconds >= 0.0
 
 
 def test_rollout_result_is_frozen():

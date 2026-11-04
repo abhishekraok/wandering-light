@@ -11,6 +11,7 @@ import hashlib
 import math
 import os
 import random
+import time
 from collections import deque
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -42,15 +43,29 @@ SAMPLED_PROGRAM_COST_DEFINITION = (
     "sequence length, including candidates that fail during execution. Malformed "
     "candidates cost zero and cannot solve."
 )
+WALL_CLOCK_COST_UNIT = "wall_clock_seconds"
+WALL_CLOCK_COST_DEFINITION = (
+    "Wall-clock seconds of the solve call on the evaluation host, including "
+    "model inference and search bookkeeping as well as basis-function "
+    "execution. Executions-only accounting charges the executor but not policy "
+    "inference, so wall clock is the primary comparable cost; it is only "
+    "comparable between runs on the same host."
+)
 
 
 @dataclass(frozen=True)
 class PredictionCost:
-    """Comparable search cost for one prediction."""
+    """Comparable search cost for one prediction.
+
+    ``seconds`` is the wall-clock time of the prediction on the evaluation
+    host. Predictors that batch inference across problems cannot attribute
+    time to one problem and leave it ``None``.
+    """
 
     charged_executions: int
     candidate_programs: int | None
     termination: str
+    seconds: float | None = None
 
 
 @dataclass(frozen=True)
@@ -378,11 +393,12 @@ class RandomPredictor(FunctionPredictor):
         executor = Executor(available_functions)
 
         for input_list, output_list in problems:
+            started = time.perf_counter()
             if input_list == output_list:
                 results.append(
                     FunctionPrediction(
                         FunctionDefList(),
-                        PredictionCost(0, 0, "solved"),
+                        PredictionCost(0, 0, "solved", time.perf_counter() - started),
                     )
                 )
                 continue
@@ -390,7 +406,12 @@ class RandomPredictor(FunctionPredictor):
                 results.append(
                     FunctionPrediction(
                         FunctionDefList(),
-                        PredictionCost(0, 0, "frontier_exhausted"),
+                        PredictionCost(
+                            0,
+                            0,
+                            "frontier_exhausted",
+                            time.perf_counter() - started,
+                        ),
                     )
                 )
                 continue
@@ -422,6 +443,7 @@ class RandomPredictor(FunctionPredictor):
                         charged_executions,
                         candidates,
                         termination,
+                        time.perf_counter() - started,
                     ),
                 )
             )
@@ -494,11 +516,13 @@ class BFSPredictor(FunctionPredictor):
         """Predict with independent per-problem execution counts."""
         predictions = []
         for input_list, output_list in problems:
+            started = time.perf_counter()
             result = self.search_with_cost(
                 input_list,
                 output_list,
                 available_functions,
             )
+            seconds = time.perf_counter() - started
             predictions.append(
                 FunctionPrediction(
                     result.function_defs,
@@ -506,6 +530,7 @@ class BFSPredictor(FunctionPredictor):
                         result.executions,
                         None,
                         result.termination,
+                        seconds,
                     ),
                 )
             )
@@ -685,11 +710,13 @@ class RolloutPredictor(FunctionPredictor):
         """Run independent rollouts and preserve their exact execution costs."""
         predictions = []
         for input_list, output_list in problems:
+            started = time.perf_counter()
             result = self.search_with_cost(
                 input_list,
                 output_list,
                 available_functions,
             )
+            seconds = time.perf_counter() - started
             predictions.append(
                 FunctionPrediction(
                     result.function_defs,
@@ -697,6 +724,7 @@ class RolloutPredictor(FunctionPredictor):
                         result.executions,
                         None,
                         result.termination,
+                        seconds,
                     ),
                 )
             )

@@ -1,14 +1,27 @@
 import os
+import platform
 import tempfile
+from types import SimpleNamespace
 
 import pytest
 
+from wandering_light.evals import evaluate_solver as evaluate_solver_module
 from wandering_light.evals.evaluate_solver import (
+    DetailedEvalResult,
+    EvalResult,
     EvaluateSolver,
     evaluate_solver_from_file,
+    evaluation_host,
 )
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
-from wandering_light.solver import BFSSolve, RandomSolve
+from wandering_light.solver import (
+    WALL_CLOCK_COST_DEFINITION,
+    WALL_CLOCK_COST_UNIT,
+    BFSSolve,
+    FunctionPredictor,
+    RandomSolve,
+    TrajectorySolver,
+)
 from wandering_light.trajectory import (
     InvalidTrajectorySpecsError,
     TrajectorySpec,
@@ -66,6 +79,18 @@ class TestEvaluateSolverFile:
         assert result.total_charged_executions == sum(
             detail.charged_executions for detail in result.detailed_results
         )
+        # Wall clock is the primary comparable cost; executions stay diagnostic.
+        assert result.primary_cost_unit == WALL_CLOCK_COST_UNIT
+        assert result.primary_cost_definition == WALL_CLOCK_COST_DEFINITION
+        assert result.total_wall_clock_seconds is not None
+        assert result.total_wall_clock_seconds >= sum(
+            detail.seconds for detail in result.detailed_results
+        )
+        assert result.mean_wall_clock_seconds == pytest.approx(
+            result.total_wall_clock_seconds / 3
+        )
+        assert result.evaluation_host == evaluation_host()
+        assert all(detail.seconds >= 0.0 for detail in result.detailed_results)
 
         # Test detailed results have correct function tracking
         assert len(result.detailed_results) == 3
@@ -291,6 +316,154 @@ class TestEvaluateSolverFile:
         assert result.success_rate == 0.0
         assert result.avg_solution_length == 0.0
         assert len(result.failures) == 0
+        # No samples: the batch call is still timed but has no mean.
+        assert result.primary_cost_unit == WALL_CLOCK_COST_UNIT
+        assert result.total_wall_clock_seconds is not None
+        assert result.mean_wall_clock_seconds is None
+        assert set(result.evaluation_host) == {
+            "node",
+            "machine",
+            "processor",
+            "python",
+        }
+
+    def test_evaluation_host_identifies_the_machine(self):
+        host = evaluation_host()
+
+        assert host == {
+            "node": platform.node(),
+            "machine": platform.machine(),
+            "processor": platform.processor(),
+            "python": platform.python_version(),
+        }
+        assert all(isinstance(value, str) for value in host.values())
+
+    def test_batch_wall_clock_charges_the_whole_solve_call(self, monkeypatch):
+        """Wall clock wraps solve_batch, so inference outside the per-problem
+        timers (what a batched policy spends) is still charged."""
+        inc_func = FunctionDef(
+            name="inc",
+            input_type="builtins.int",
+            output_type="builtins.int",
+            code="return x + 1",
+        )
+        specs = TrajectorySpecList(
+            [
+                TrajectorySpec(TypedList([1]), FunctionDefList([inc_func])),
+                TrajectorySpec(TypedList([2]), FunctionDefList([inc_func])),
+            ]
+        )
+        ticks = iter([100.0, 103.0])
+        monkeypatch.setattr(
+            evaluate_solver_module,
+            "time",
+            SimpleNamespace(perf_counter=lambda: next(ticks)),
+        )
+
+        result = EvaluateSolver.evaluate_using_trajectory_specs(
+            BFSSolve(budget=10),
+            specs,
+            available_functions=FunctionDefSet([inc_func]),
+        )
+
+        assert result.total_wall_clock_seconds == 3.0
+        assert result.mean_wall_clock_seconds == 1.5
+        assert result.primary_cost_unit == WALL_CLOCK_COST_UNIT
+
+    def test_uncosted_predictor_still_gets_wall_clock_but_no_per_sample_seconds(
+        self,
+    ):
+        inc_func = FunctionDef(
+            name="inc",
+            input_type="builtins.int",
+            output_type="builtins.int",
+            code="return x + 1",
+        )
+
+        class LegacyPredictor(FunctionPredictor):
+            def predict_functions_batch(self, problems, available_functions):
+                return [FunctionDefList([inc_func]) for _ in problems]
+
+        specs = TrajectorySpecList(
+            [TrajectorySpec(TypedList([1]), FunctionDefList([inc_func]))]
+        )
+
+        result = EvaluateSolver.evaluate_using_trajectory_specs(
+            TrajectorySolver(LegacyPredictor()),
+            specs,
+            available_functions=FunctionDefSet([inc_func]),
+        )
+
+        assert result.success_count == 1
+        assert result.uncosted_samples == 1
+        assert result.total_charged_executions is None
+        assert result.detailed_results[0].seconds is None
+        assert result.total_wall_clock_seconds is not None
+        assert result.mean_wall_clock_seconds == result.total_wall_clock_seconds
+
+    def test_random_walk_sums_per_sample_solve_calls(self, monkeypatch):
+        inc_func = FunctionDef(
+            name="inc",
+            input_type="builtins.int",
+            output_type="builtins.int",
+            code="return x + 1",
+        )
+        # Two samples: each solve consumes a start and stop tick.
+        ticks = iter([10.0, 12.0, 20.0, 21.0])
+        monkeypatch.setattr(
+            evaluate_solver_module,
+            "time",
+            SimpleNamespace(perf_counter=lambda: next(ticks)),
+        )
+
+        result = EvaluateSolver.evaluate_using_random_walk(
+            BFSSolve(budget=10),
+            [TypedList([1])],
+            num_samples=2,
+            available_functions=FunctionDefSet([inc_func]),
+            path_length=1,
+        )
+
+        assert result.total_samples == 2
+        assert result.success_count == 2
+        assert result.primary_cost_unit == WALL_CLOCK_COST_UNIT
+        assert result.primary_cost_definition == WALL_CLOCK_COST_DEFINITION
+        assert result.total_wall_clock_seconds == 3.0
+        assert result.mean_wall_clock_seconds == 1.5
+        assert result.evaluation_host == evaluation_host()
+
+    def test_wall_clock_fields_serialize(self, tmp_path):
+        result = EvalResult(
+            total_samples=1,
+            success_count=1,
+            success_rate=1.0,
+            avg_solution_length=1.0,
+            failures=[],
+            detailed_results=[DetailedEvalResult(input="[1]", seconds=0.25)],
+            primary_cost_unit=WALL_CLOCK_COST_UNIT,
+            primary_cost_definition=WALL_CLOCK_COST_DEFINITION,
+            total_wall_clock_seconds=0.5,
+            mean_wall_clock_seconds=0.5,
+            evaluation_host={
+                "node": "n",
+                "machine": "m",
+                "processor": "p",
+                "python": "3",
+            },
+        )
+
+        payload = result.to_dict()
+
+        assert payload["primary_cost_unit"] == "wall_clock_seconds"
+        assert payload["total_wall_clock_seconds"] == 0.5
+        assert payload["mean_wall_clock_seconds"] == 0.5
+        assert payload["evaluation_host"]["node"] == "n"
+        assert payload["detailed_results"][0]["seconds"] == 0.25
+        keys = list(payload)
+        assert keys.index("evaluation_host") < keys.index("solver_config")
+        output_file = tmp_path / "nested" / "result.json"
+        result.save_to_file(str(output_file))
+        assert output_file.is_file()
 
     def test_detailed_result_function_fields(self):
         """Test that predicted_functions and golden_functions are correctly populated."""

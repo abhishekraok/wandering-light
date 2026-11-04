@@ -1,10 +1,18 @@
+from dataclasses import replace
+from types import SimpleNamespace
+
+from wandering_light import solver as solver_module
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.function_usage import FunctionUsageTracker
 from wandering_light.solver import (
+    WALL_CLOCK_COST_DEFINITION,
+    WALL_CLOCK_COST_UNIT,
     BFSPredictor,
     BFSSolve,
+    PredictionCost,
     RandomPredictor,
     RandomSolve,
+    TokenGeneratorPredictor,
     create_token_solver,
     get_solver_by_name,
 )
@@ -126,6 +134,113 @@ def test_random_predictor_exhausts_budget(monkeypatch):
     assert result.cost.charged_executions == 3
     assert result.cost.candidate_programs == 3
     assert result.cost.termination == "candidate_budget"
+    assert result.cost.seconds is not None
+    assert result.cost.seconds >= 0.0
+
+
+def test_wall_clock_cost_constants_describe_the_primary_unit():
+    assert WALL_CLOCK_COST_UNIT == "wall_clock_seconds"
+    assert "wall-clock seconds" in WALL_CLOCK_COST_DEFINITION.lower()
+    assert "inference" in WALL_CLOCK_COST_DEFINITION
+    assert "same host" in WALL_CLOCK_COST_DEFINITION
+
+
+def test_prediction_cost_seconds_defaults_to_none_for_legacy_callers():
+    cost = PredictionCost(2, 1, "solved")
+
+    assert cost.seconds is None
+    assert cost == PredictionCost(2, 1, "solved", None)
+
+
+def test_random_predictor_times_every_problem_including_early_returns(monkeypatch):
+    inc = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    functions = FunctionDefSet([inc])
+    ticks = iter(float(index) for index in range(100))
+    monkeypatch.setattr(
+        solver_module, "time", SimpleNamespace(perf_counter=lambda: next(ticks))
+    )
+    predictor = RandomPredictor(budget=2, path_length=1, seed=0)
+
+    trivial, exhausted, searched = predictor.predict_functions_batch_with_cost(
+        [
+            (TypedList([1]), TypedList([1])),
+            (TypedList([1]), TypedList([2])),
+            (TypedList([1]), TypedList([99])),
+        ],
+        functions,
+    )
+    empty_basis = predictor.predict_functions_batch_with_cost(
+        [(TypedList([1]), TypedList([2]))],
+        FunctionDefSet(),
+    )[0]
+
+    # Each problem consumes exactly one start and one stop tick.
+    assert trivial.cost.termination == "solved"
+    assert trivial.cost.seconds == 1.0
+    assert exhausted.cost.termination == "solved"
+    assert exhausted.cost.seconds == 1.0
+    assert searched.cost.termination == "candidate_budget"
+    assert searched.cost.seconds == 1.0
+    assert empty_basis.cost.termination == "frontier_exhausted"
+    assert empty_basis.cost.seconds == 1.0
+
+
+def test_bfs_predictor_records_wall_clock_per_problem(monkeypatch):
+    inc = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    functions = FunctionDefSet([inc])
+    ticks = iter([10.0, 10.5, 20.0, 20.25, 30.0, 30.125])
+    monkeypatch.setattr(
+        solver_module, "time", SimpleNamespace(perf_counter=lambda: next(ticks))
+    )
+    predictor = BFSPredictor(budget=5, max_depth=2)
+
+    solved, trivial, exhausted = predictor.predict_functions_batch_with_cost(
+        [
+            (TypedList([1]), TypedList([2])),
+            (TypedList([1]), TypedList([1])),
+            (TypedList([1]), TypedList([99])),
+        ],
+        functions,
+    )
+
+    assert solved.cost == PredictionCost(1, None, "solved", 0.5)
+    assert trivial.cost == PredictionCost(0, None, "solved", 0.25)
+    assert exhausted.cost == PredictionCost(2, None, "max_depth", 0.125)
+
+
+def test_token_generator_predictor_leaves_per_problem_seconds_unset():
+    inc = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+
+    class FixedTokenGenerator:
+        def generate(self, prompt):
+            return "inc"
+
+        def generate_batch(self, prompts):
+            return [self.generate(prompt) for prompt in prompts]
+
+    predictor = TokenGeneratorPredictor(FixedTokenGenerator(), budget=1)
+
+    solved, trivial = predictor.predict_functions_batch_with_cost(
+        [(TypedList([1]), TypedList([2])), (TypedList([1]), TypedList([1]))],
+        FunctionDefSet([inc]),
+    )
+
+    assert solved.cost.termination == "solved"
+    assert solved.cost.charged_executions == 1
+    assert solved.cost.seconds is None
+    assert trivial.cost.seconds is None
+
+
+def test_solver_wrapper_preserves_wall_clock_on_maybe_trajectory():
+    inc = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    functions = FunctionDefSet([inc])
+
+    result = BFSSolve(budget=5).solve(TypedList([1]), TypedList([2]), functions)
+
+    assert result.success
+    assert result.cost is not None
+    assert result.cost.seconds is not None
+    assert result.cost.seconds >= 0.0
 
 
 def test_random_charges_full_program_when_execution_fails(monkeypatch):
@@ -183,7 +298,10 @@ def test_random_path_length_sampling_is_seeded_and_reported(monkeypatch):
 
     assert first_lengths == observed_lengths
     assert set(first_lengths) == {1, 2, 3}
-    assert first.cost == second.cost
+    # Wall clock is never reproducible; everything else must be.
+    assert replace(first.cost, seconds=None) == replace(second.cost, seconds=None)
+    assert first.cost.seconds is not None
+    assert second.cost.seconds is not None
     assert first.cost.charged_executions == sum(first_lengths)
     assert first.cost.candidate_programs == 30
     metadata = RandomPredictor(path_lengths=[1, 3], seed=5).cost_metadata()
