@@ -1,5 +1,6 @@
 """The stack-token policy and the beam search it guides (compute-optimal-mark-28, #101)."""
 
+import itertools
 import random
 
 import numpy as np
@@ -7,8 +8,13 @@ import pytest
 import torch
 
 from wandering_light.rollout_policy import PolicyArchitecture
-from wandering_light.stack_beam import beam_solve, step_all
-from wandering_light.stack_machine import Int, Lst, Mark, Sym, parse_stack
+from wandering_light.stack_beam import (
+    BeamObserver,
+    atoms_exceed,
+    beam_solve,
+    step_all,
+)
+from wandering_light.stack_machine import Bool, Int, Lst, Mark, Sym, parse_stack
 from wandering_light.stack_pbe import BASIS, BY_NAME, OPS, build_task, draw_task
 from wandering_light.stack_pbe_eval import grade
 from wandering_light.stack_policy import (
@@ -188,3 +194,76 @@ def test_scorer_masks_illegal_ops():
     assert np.isneginf(out[0, 2:]).all()
     assert np.isclose(np.exp(out[0, :2]).sum(), 1.0)
     assert torch.isfinite(torch.tensor(out[0, :2])).all()
+
+
+def test_atoms_count_every_value_and_every_list_cell_across_examples():
+    # 3 ints + 1 list cell, a bool, a mark, a symbol, an empty list: 8 atoms.
+    first = (Lst((Int(1), Int(2), Int(3))), Bool(True), Mark(), Sym("add"), Lst(()))
+    assert not atoms_exceed((first,), 8)
+    assert atoms_exceed((first,), 7)
+    # Every example's stack counts towards the one total.
+    second = (Lst((Lst((Int(4),)),)),)  # outer cell, inner cell, int
+    assert not atoms_exceed((first, second), 11)
+    assert atoms_exceed((first, second), 10)
+    assert not atoms_exceed(((), ()), 0)
+    assert atoms_exceed(((Int(0),),), 0)
+
+
+def test_atoms_walk_is_iterative_and_stops_at_the_cap():
+    deep = Int(0)
+    for _ in range(200_000):  # far past the recursion limit
+        deep = Lst((deep,))
+    assert atoms_exceed(((deep,),), 199_999)
+    assert not atoms_exceed(((deep,),), 200_001)
+
+    # An endless stack: only an early exit can answer.
+    assert atoms_exceed((itertools.repeat(Int(0)),), 5)
+    endless_list = Lst(itertools.repeat(Int(0)))  # type: ignore[arg-type]
+    assert atoms_exceed(((endless_list,),), 5)
+
+
+class Verdicts(BeamObserver):
+    def __init__(self):
+        self.verdicts = []
+        self.beams = []
+
+    def layer_retained(self, depth, beam, verdicts, parents):
+        self.verdicts.extend(verdicts.values())
+        self.beams.append([product for product, _, _ in beam])
+
+
+def test_state_cap_refuses_oversized_successors_as_guard_size():
+    task = task_for("sum")
+    scorer = PolicyScorer(StackPairPolicy(TINY), "cpu")
+    inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
+    cap = next(n for n in range(10_000) if not atoms_exceed(inputs, n))
+    capped = Verdicts()
+    beam_solve(
+        task, scorer, beam_width=64, max_depth=3, observer=capped, max_state_atoms=cap
+    )
+    assert "guard:size" in capped.verdicts
+    assert capped.beams and all(
+        not atoms_exceed(p, cap) for beam in capped.beams for p in beam
+    )
+    # The cap is checked after the existing guards: a guard verdict survives it.
+    free = Verdicts()
+    beam_solve(task, scorer, beam_width=64, max_depth=3, observer=free)
+    assert "guard:size" not in free.verdicts
+    assert {v for v in free.verdicts if v.startswith("guard:")} <= {
+        v for v in capped.verdicts if v.startswith("guard:")
+    }
+
+
+def test_no_state_cap_is_the_uncapped_search():
+    task = task_for("sum")
+    scorer = PolicyScorer(StackPairPolicy(TINY), "cpu")
+    default = beam_solve(task, scorer, beam_width=8, max_depth=4)
+    explicit = beam_solve(task, scorer, beam_width=8, max_depth=4, max_state_atoms=None)
+    huge = beam_solve(task, scorer, beam_width=8, max_depth=4, max_state_atoms=10**9)
+    for other in (explicit, huge):
+        assert (other.program, other.termination, other.executions, other.fuel) == (
+            default.program,
+            default.termination,
+            default.executions,
+            default.fuel,
+        )

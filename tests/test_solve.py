@@ -53,7 +53,7 @@ def checkpoint(tmp_path_factory):
     )
 
 
-def small_system(depth: int) -> solve.System:
+def small_system(depth: int, max_state_atoms: int | None = None) -> solve.System:
     return solve.System(
         name="tiny",
         repo_id="nobody/nothing",
@@ -63,6 +63,7 @@ def small_system(depth: int) -> solve.System:
         guard="both",
         library=True,
         measured="a test",
+        max_state_atoms=max_state_atoms,
     )
 
 
@@ -157,3 +158,34 @@ def test_fetch_pins_a_commit_and_downloads_once(tmp_path, monkeypatch):
     assert again == got and len(calls) == 5
     with pytest.raises(ValueError, match="commit id"):
         stack_policy_hub.fetch_stack_policy("x/y", "main", cache_dir=tmp_path / "cache")
+
+
+def test_describe_ends_with_the_state_cap():
+    assert small_system(3).describe().endswith(", library on, state cap none")
+    assert small_system(3, 500).describe().endswith(", library on, state cap 500")
+    assert solve.BEST.max_state_atoms == 16_384
+    assert solve.BEST.describe().endswith(", state cap 16384")
+
+
+def test_the_state_cap_reaches_the_search(tmp_path, checkpoint, monkeypatch):
+    seen = []
+    real = solve.beam_solve
+
+    def spy(*args, **kwargs):
+        seen.append(kwargs.get("max_state_atoms"))
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(solve, "beam_solve", spy)
+    task = task_for("sum", 4)
+    payload = write_payload(tmp_path / "one.jsonl.gz", [task])
+    with open(tmp_path / "out.txt", "w") as out, open(tmp_path / "log.txt", "w") as log:
+        capped = solve.solve_file(
+            payload,
+            system=small_system(task.length, 0),
+            checkpoint=checkpoint,
+            out=out,
+            log=log,
+        )
+    assert seen == [0]
+    # Every successor of a non-empty input holds an atom, so a cap of 0 starves it.
+    assert capped.solved == 0

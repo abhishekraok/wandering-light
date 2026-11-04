@@ -30,6 +30,7 @@ import numpy as np
 from wandering_light.quotation_guard import blocked
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
+    Lst,
     Mark,
     parse_stack,
     step_raw,
@@ -86,7 +87,7 @@ class BeamObserver:
         """What survived, and for each ranked successor why it did or did not.
 
         ``verdicts`` maps ``(node, op_index)`` to ``retained``, ``duplicate``,
-        ``guard:close`` or ``guard:type``; a successor the ranking never
+        ``guard:close``, ``guard:type`` or ``guard:size``; a successor the ranking never
         reached, because the beam filled first, is absent. ``parents[rank]`` is
         the ``(node, op_index)`` that produced ``beam[rank]``.
         """
@@ -135,6 +136,26 @@ def replay_program(
             return False, executions, fuel
         product = moved
     return product == outputs, executions, fuel
+
+
+def atoms_exceed(product: Product, cap: int) -> bool:
+    """Does ``product`` hold more than ``cap`` atoms, over every example's stack?
+
+    An atom is an int, bool, symbol or mark, or a list cell: a list of n ints
+    is n + 1 atoms. The walk is iterative, so a deeply nested value cannot
+    overflow the Python stack, and it stops as soon as the count passes ``cap``,
+    so a runaway state costs ``cap`` steps to refuse rather than its size.
+    """
+    count = 0
+    pending: list = list(product)
+    while pending:
+        for value in pending.pop():
+            count += 1
+            if count > cap:
+                return True
+            if value.__class__ is Lst and value.items:
+                pending.append(value.items)
+    return False
 
 
 def key_of(product: Product) -> tuple:
@@ -198,6 +219,7 @@ def beam_solve(
     guard: str = "both",
     budget: int | None = None,
     observer: BeamObserver | None = None,
+    max_state_atoms: int | None = None,
 ) -> BeamResult:
     """Search one task. The cyclic collector is off for the duration.
 
@@ -211,6 +233,13 @@ def beam_solve(
     and cycles made during the search are collected between tasks rather than
     never. Callers that solve many tasks should call ``gc.freeze()`` once first,
     which moves the corpus and the model out of the generations being scanned.
+
+    ``max_state_atoms`` bounds the size of a state the beam keeps (see
+    ``atoms_exceed``). ``dup`` and ``cat`` cost one fuel whatever they copy, so
+    ``dup cat`` doubles a list for two fuel, and a policy fond of the pair can
+    park the beam on states of millions of atoms where hashing, comparing and
+    encoding them is all the search does. A successor past the bound is refused
+    with ``guard:size`` before it is hashed or kept; None bounds nothing.
     """
     collecting = gc.isenabled()
     if collecting:
@@ -224,6 +253,7 @@ def beam_solve(
             guard=guard,
             budget=budget,
             observer=observer,
+            max_state_atoms=max_state_atoms,
         )
     finally:
         if collecting:
@@ -239,6 +269,7 @@ def _beam_solve(
     guard: str = "both",
     budget: int | None = None,
     observer: BeamObserver | None = None,
+    max_state_atoms: int | None = None,
 ) -> BeamResult:
     started = time.perf_counter()
     watch = observer if observer is not None else BeamObserver()
@@ -327,6 +358,9 @@ def _beam_solve(
                 if why is not None:
                     verdicts[node, index] = f"guard:{why}"
                     continue
+            if max_state_atoms is not None and atoms_exceed(product, max_state_atoms):
+                verdicts[node, index] = "guard:size"
+                continue
             if product in seen:
                 verdicts[node, index] = "duplicate"
                 continue
