@@ -212,7 +212,8 @@ correction lands in one place instead of being chased across comment threads.
   (8× depth, 25.6× clock, zero extra solves) is unaffected.
 
 - **"Quadrupling the beam adds verified behaviours and loses none"** (the width
-  row above, from [solved-program-cache (#151)](../../issues/151), 2026-09-19).
+  row above, from [solved-program-cache (#151)](../../issues/151), 2026-09-19;
+  the measured ladder was 8x, 64 -> 512 in three doublings, not quadrupling).
   True of the eight cells it measured (four widths, cache on and off) and stated without that scope. Verified behaviours
   are not monotone in beam width: on the staged checkpoint that
   [best-system-command (#158)](../../issues/158) pins, the ladder runs
