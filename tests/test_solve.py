@@ -3,7 +3,8 @@
 import gzip
 import json
 import random
-from dataclasses import asdict
+from dataclasses import asdict, replace
+from types import SimpleNamespace
 
 import pytest
 
@@ -103,6 +104,30 @@ def test_solves_grades_on_held_out_and_replays_the_library(tmp_path, checkpoint)
     assert text.rstrip().splitlines()[-1] == summary.line()
     assert "median_floor  unsolved" in text
     assert (tmp_path / "log.txt").read_text().count("\n") == 3
+
+
+def test_an_empty_program_is_the_identity_and_none_is_no_solution(monkeypatch):
+    base = task_for("sum", 4)
+    identity = replace(base, outputs=base.inputs, held_out_outputs=base.held_out_inputs)
+    found = iter([(), None])
+
+    def fake_beam_solve(task, scorer, **_):
+        return SimpleNamespace(
+            program=next(found),
+            termination="solved",
+            executions=0,
+            fuel=0,
+            expansions=0,
+            depth=0,
+        )
+
+    monkeypatch.setattr(solve, "beam_solve", fake_beam_solve)
+    system = replace(small_system(2), library=False)
+    rows = solve.solve_tasks([identity, identity], None, system)
+    assert [r.program for r in rows] == [(), None]
+    assert [r.record()["program"] for r in rows] == [[], None]
+    assert [r.solved for r in rows] == [True, False]
+    assert [r.verdict for r in rows] == ["solved", "unsolved"]
 
 
 def test_a_plain_jsonl_payload_loads_like_a_gzipped_one(tmp_path):

@@ -61,10 +61,19 @@ def _matches(program: Sequence[str], given: str, wanted: str) -> bool | None:
     return tuple(map(value_key, stack)) == tuple(map(value_key, want))
 
 
-def grade(candidate: Sequence[str] | str, task: Task) -> Score:
-    """Score one candidate. An illegal or unparseable program simply loses."""
+def grade(
+    candidate: Sequence[str] | str, task: Task, *, empty_is_identity: bool = False
+) -> Score:
+    """Score one candidate. An illegal or unparseable program simply loses.
+
+    An empty candidate loses too, as a model that wrote nothing should, unless
+    ``empty_is_identity``: a search that returns ``()`` has found the identity
+    program, which solves any task whose outputs equal its inputs.
+    """
     program = tuple(candidate.split() if isinstance(candidate, str) else candidate)
-    if not program or any(name not in OP_BY_NAME for name in program):
+    if (not program and not empty_is_identity) or any(
+        name not in OP_BY_NAME for name in program
+    ):
         return Score(program, parsed=False, legal=False, shown=False, held_out=False)
 
     legal = True
