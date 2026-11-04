@@ -21,6 +21,7 @@ import pytest
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
     Lst,
+    MachineError,
     Sym,
     Value,
     ops_for_basis,
@@ -32,8 +33,12 @@ from wandering_light.stack_pbe import (
     BASIS,
     BY_NAME,
     CATALOGUE,
+    INTERCHANGEABLE,
+    SCHEMA_VERSION,
+    Behaviour,
     Task,
     _informative,
+    _same_list_lengths,
     assign_split,
     build_task,
     check,
@@ -42,6 +47,7 @@ from wandering_light.stack_pbe import (
     generate,
     load,
     run_program,
+    skeleton,
     to_stack,
     to_value,
     verify,
@@ -52,8 +58,9 @@ CORPUS = (
     / "wandering_light"
     / "evals"
     / "data"
-    / "stack_pbe_v3.jsonl.gz"
+    / "stack_pbe_v4.jsonl.gz"
 )
+V3 = CORPUS.with_name("stack_pbe_v3.jsonl.gz")
 
 
 @pytest.fixture(scope="module")
@@ -112,7 +119,7 @@ def test_a_wrong_witness_is_caught():
     """The agreement check has to be able to fail, or it proves nothing."""
     from dataclasses import replace
 
-    broken = replace(BY_NAME["sum"], witness="1 [ add ] fold")
+    broken = replace(BY_NAME["sum"], witnesses=("1 [ add ] fold",))
     assert verify(broken, trials=50, seed=3) is not None
 
 
@@ -155,9 +162,7 @@ def test_build_task_rejects_an_output_its_witness_does_not_produce():
 
     rng = random.Random(2)
     drawn = draw_task(BY_NAME["sum"], rng, examples=3, held_out=2)
-    corrupted = replace(
-        drawn, shown_results=[r + 1 for r in drawn.shown_results]
-    )
+    corrupted = replace(drawn, shown_results=[r + 1 for r in drawn.shown_results])
     with pytest.raises(MachineError, match="disagree"):
         build_task(BY_NAME["sum"], corrupted)
 
@@ -173,12 +178,23 @@ def test_build_task_rejects_an_output_its_witness_does_not_produce():
 # --------------------------------------------------------------------------
 
 
-def test_split_is_on_the_behaviour_not_the_task():
-    """No behaviour may appear in both halves, whatever its data."""
+def test_split_is_on_the_skeleton_not_the_behaviour():
+    """No program shape may appear in both halves, whatever its data."""
     for behaviour in CATALOGUE:
-        assert assign_split(behaviour.name) in {"train", "eval"}
-    both = {b.name: assign_split(b.name) for b in CATALOGUE}
+        assert assign_split(behaviour.skeleton) in {"train", "eval"}
+    both = {b.name: assign_split(b.skeleton) for b in CATALOGUE}
     assert set(both.values()) == {"train", "eval"}
+
+
+def test_behaviours_sharing_a_shape_share_a_side():
+    """`keep_zeros` and `keep_negative` are one shape; learning one gives the other."""
+    zeros, negative = BY_NAME["keep_zeros"], BY_NAME["keep_negative"]
+    assert zeros.skeleton == negative.skeleton == "[ _ _ ] filter"
+    assert assign_split(zeros.skeleton) == assign_split(negative.skeleton)
+    by_shape: dict[str, set[str]] = {}
+    for b in CATALOGUE:
+        by_shape.setdefault(b.skeleton, set()).add(assign_split(b.skeleton))
+    assert all(len(sides) == 1 for sides in by_shape.values())
 
 
 @pytest.mark.parametrize("seed", ["0", "1", "31337"])
@@ -187,7 +203,7 @@ def test_split_does_not_depend_on_pythonhashseed(seed):
     script = """
 import json
 from wandering_light.stack_pbe import CATALOGUE, assign_split
-print(json.dumps({b.name: assign_split(b.name) for b in CATALOGUE}))
+print(json.dumps({b.name: assign_split(b.skeleton) for b in CATALOGUE}))
 """
     result = subprocess.run(
         [sys.executable, "-c", script],
@@ -196,7 +212,7 @@ print(json.dumps({b.name: assign_split(b.name) for b in CATALOGUE}))
         check=True,
         env={**os.environ, "PYTHONHASHSEED": seed},
     )
-    expected = {b.name: assign_split(b.name) for b in CATALOGUE}
+    expected = {b.name: assign_split(b.skeleton) for b in CATALOGUE}
     assert json.loads(result.stdout) == expected
 
 
@@ -259,6 +275,54 @@ def test_no_behaviour_spans_both_splits(tasks):
     for task in tasks:
         by_behaviour.setdefault(task.behaviour, set()).add(task.split)
     assert all(len(splits) == 1 for splits in by_behaviour.values())
+
+
+def test_no_skeleton_spans_both_splits(tasks):
+    by_shape: dict[str, set[str]] = {}
+    for task in tasks:
+        assert task.skeleton == skeleton(task.program)
+        assert task.split == assign_split(task.skeleton)
+        by_shape.setdefault(task.skeleton, set()).add(task.split)
+    assert all(len(splits) == 1 for splits in by_shape.values())
+
+
+def test_corpus_records_schema_2_and_alternative_witnesses(tasks):
+    assert {task.schema_version for task in tasks} == {SCHEMA_VERSION} == {2}
+    for task in tasks:
+        behaviour = BY_NAME[task.behaviour]
+        assert task.program == behaviour.program
+        assert task.alternative_programs == behaviour.programs[1:]
+        assert all(isinstance(p, tuple) for p in task.alternative_programs)
+
+
+def test_every_alternative_witness_reproduces_the_corpus_outputs(tasks):
+    """An alternative is only worth recording if it is really correct."""
+    for task in tasks:
+        for program in task.alternative_programs:
+            pairs = zip(
+                (*task.inputs, *task.held_out_inputs),
+                (*task.outputs, *task.held_out_outputs),
+                strict=True,
+            )
+            for given, wanted in pairs:
+                outcome = run_program(program, parse_stack(given, basis=BASIS))
+                assert not isinstance(outcome, str), f"{task.behaviour}: {outcome}"
+                want = parse_stack(wanted, basis=BASIS)
+                assert tuple(map(value_key, outcome[0])) == tuple(map(value_key, want))
+
+
+def test_no_shown_set_has_uniform_list_lengths(tasks):
+    for task in tasks:
+        stacks = [parse_stack(given, basis=BASIS) for given in task.inputs]
+        assert not _same_list_lengths(stacks), (task.behaviour, task.inputs)
+
+
+def test_v3_corpus_still_loads_as_schema_1():
+    old = load(str(V3))
+    assert len(old) == 40 * 40
+    assert {task.schema_version for task in old} == {1}
+    assert all(task.skeleton == "" for task in old)
+    assert all(task.alternative_programs == () for task in old)
 
 
 def test_corpus_round_trips_through_load(tmp_path):
@@ -325,7 +389,7 @@ def test_executable_26_reaches_no_executable_quotation_from_data():
 def test_check_reports_the_input_it_disagreed_on():
     from dataclasses import replace
 
-    broken = replace(BY_NAME["reverse"], witness="nil [ swap cons ] fold")
+    broken = replace(BY_NAME["reverse"], witnesses=("nil [ swap cons ] fold",))
     bad = check(broken, ([1, 2, 3],))
     assert bad is not None
     assert bad.args == ([1, 2, 3],)
@@ -336,3 +400,97 @@ def test_to_value_refuses_bools():
 
     with pytest.raises(MachineError):
         to_value(True)
+
+
+# --------------------------------------------------------------------------
+# Skeletons and multiple witnesses
+# --------------------------------------------------------------------------
+
+
+def test_skeleton_blanks_only_interchangeable_ops():
+    assert skeleton(("[", "0", "lt?", "]", "filter")) == "[ _ _ ] filter"
+    assert skeleton(["uncons", "swap", "drop"]) == "uncons swap drop"
+    assert skeleton(sorted(INTERCHANGEABLE)) == " ".join(["_"] * len(INTERCHANGEABLE))
+    assert skeleton(()) == ""
+
+
+def test_witnesses_must_be_a_non_empty_tuple():
+    base = BY_NAME["sum"]
+    from dataclasses import replace
+
+    with pytest.raises(MachineError, match="sum: witnesses must be a tuple"):
+        replace(base, witnesses="0 [ add ] fold")
+    with pytest.raises(MachineError, match="sum: needs at least one witness"):
+        replace(base, witnesses=())
+
+
+def test_witness_and_program_are_the_canonical_first():
+    b = BY_NAME["sum_of_squares"]
+    assert b.witnesses == (
+        "0 [ dup mul add ] fold",
+        "[ dup mul ] map 0 [ add ] fold",
+    )
+    assert b.witness == b.witnesses[0]
+    assert b.program == tuple(b.witnesses[0].split())
+    assert b.programs == tuple(tuple(w.split()) for w in b.witnesses)
+    assert b.skeleton == "_ [ dup _ _ ] fold"
+    assert len(b.programs[0]) + 3 == len(b.programs[1])
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "double_each",
+        "increment_each",
+        "negate_each",
+        "sum",
+        "product",
+        "length",
+        "last",
+        "sum_both",
+        "sum_of_squares",
+    ],
+)
+def test_behaviours_with_a_second_witness(name):
+    assert len(BY_NAME[name].witnesses) == 2
+
+
+def test_verify_checks_every_witness_not_just_the_first():
+    from dataclasses import replace
+
+    broken = replace(BY_NAME["sum"], witnesses=("0 [ add ] fold", "1 [ add ] fold"))
+    bad = verify(broken, trials=50, seed=3)
+    assert bad is not None
+    assert check(broken, ([1, 2],)) is None
+    assert check(broken, ([1, 2],), program=broken.programs[1]) is not None
+
+
+def test_uniform_list_lengths_are_detected():
+    same = [to_stack(([1, 2],)), to_stack(([3, 4],))]
+    differ = [to_stack(([1, 2],)), to_stack(([3, 4, 5],))]
+    scalars = [to_stack((1, 2)), to_stack((3, 4))]
+    assert _same_list_lengths(same)
+    assert not _same_list_lengths(differ)
+    assert not _same_list_lengths(scalars)
+    mixed = [to_stack(([1], [2, 3])), to_stack(([1], [4]))]
+    assert not _same_list_lengths(mixed)
+
+
+def test_draw_task_never_shows_uniform_list_lengths():
+    rng = random.Random(9)
+    for behaviour in CATALOGUE:
+        for _ in range(5):
+            drawn = draw_task(behaviour, rng, examples=3, held_out=2)
+            assert not _same_list_lengths([to_stack(a) for a in drawn.shown])
+
+
+def test_behaviour_constructs_from_a_witness_tuple():
+    b = Behaviour(
+        name="ident_sum",
+        summary="sum",
+        witnesses=("0 [ add ] fold",),
+        sample=lambda rng: ([1, 2],),
+        reference=sum,
+    )
+    assert b.length == 5
+    assert b.skeleton == "_ [ _ ] fold"
