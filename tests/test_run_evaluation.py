@@ -9,6 +9,13 @@ from wandering_light.function_def import FunctionDef, FunctionDefList
 from wandering_light.trajectory import TrajectorySpec, TrajectorySpecList
 from wandering_light.typed_list import TypedList
 
+TEST_HOST = {
+    "node": "test-node",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "python": "3.13.0",
+}
+
 
 class DummySolver:
     def __init__(self):
@@ -185,6 +192,11 @@ def test_run_evaluation_freezes_cohort_and_aggregates_random_seeds(
             mean_charged_executions=solver.seed + 1,
             total_candidate_programs=(total if solver.name == "random" else None),
             mean_candidate_programs=(1.0 if solver.name == "random" else None),
+            primary_cost_unit="wall_clock_seconds",
+            primary_cost_definition="test wall clock",
+            total_wall_clock_seconds=total * 0.5 * solver.seed,
+            mean_wall_clock_seconds=0.5 * solver.seed,
+            evaluation_host=dict(TEST_HOST),
             solver_config={
                 "cost_unit": "basis_function_executions",
                 "budget_unit": budget_unit,
@@ -244,12 +256,24 @@ def test_run_evaluation_freezes_cohort_and_aggregates_random_seeds(
     assert random_result["mean_charged_executions_ci"]["lower"] is not None
     assert random_result["budget_unit"] == "candidate_programs"
     assert random_result["cost_unit"] == "basis_function_executions"
+    assert random_result["primary_cost_unit"] == "wall_clock_seconds"
+    assert random_result["primary_cost_definition"] == "test wall clock"
+    assert random_result["total_wall_clock_seconds"] == pytest.approx(9.0)
+    assert random_result["mean_wall_clock_seconds"] == pytest.approx(1.0)
+    assert random_result["mean_wall_clock_seconds_ci"]["n"] == 3
+    assert random_result["mean_wall_clock_seconds_ci"]["lower"] is not None
+    assert random_result["evaluation_host"] == TEST_HOST
 
     bfs_result = summary["results"]["bfs"]
     assert bfs_result["seeds"] == [1]
     assert not bfs_result["seed_effective"]
     assert bfs_result["success_rate_ci"]["lower"] is None
     assert "reason" in bfs_result["success_rate_ci"]
+    assert bfs_result["mean_wall_clock_seconds_ci"]["lower"] is None
+    assert (
+        bfs_result["mean_wall_clock_seconds_ci"]["reason"]
+        == bfs_result["mean_charged_executions_ci"]["reason"]
+    )
     assert bfs_result["budget_unit"] == "basis_function_executions"
 
     run_dirs = list((tmp_path / "results").iterdir())
@@ -283,3 +307,80 @@ def test_run_evaluation_propagates_invalid_corpus_errors(monkeypatch, tmp_path):
             output_dir=str(tmp_path),
             trusted_legacy_python=True,
         )
+
+
+def _seed_result(seconds_total, host=None, total=2):
+    return EvalResult(
+        total_samples=total,
+        success_count=1,
+        success_rate=1 / total,
+        avg_solution_length=1.0,
+        failures=[],
+        cost_unit="basis_function_executions",
+        costed_samples=total,
+        total_charged_executions=total,
+        mean_charged_executions=1.0,
+        primary_cost_unit="wall_clock_seconds",
+        primary_cost_definition="defn",
+        total_wall_clock_seconds=seconds_total,
+        mean_wall_clock_seconds=(
+            seconds_total / total if seconds_total is not None else None
+        ),
+        evaluation_host=dict(host if host is not None else TEST_HOST),
+    )
+
+
+def _aggregate(results, seed_effective=True):
+    return run_eval._aggregate_seed_results(
+        [(seed, result, f"seed-{seed}.json") for seed, result in enumerate(results)],
+        seed_effective=seed_effective,
+        confidence=0.95,
+        bootstrap_samples=50,
+        bootstrap_seed=0,
+    )
+
+
+def test_aggregate_refuses_seeds_from_different_hosts():
+    other_host = {**TEST_HOST, "node": "other-node"}
+
+    with pytest.raises(ValueError, match="different hosts"):
+        _aggregate([_seed_result(1.0), _seed_result(1.0, host=other_host)])
+
+
+def test_aggregate_sums_wall_clock_and_bootstraps_seed_means():
+    aggregated = _aggregate([_seed_result(1.0), _seed_result(3.0)])
+
+    assert aggregated["primary_cost_unit"] == "wall_clock_seconds"
+    assert aggregated["primary_cost_definition"] == "defn"
+    assert aggregated["total_wall_clock_seconds"] == pytest.approx(4.0)
+    assert aggregated["mean_wall_clock_seconds"] == pytest.approx(1.0)
+    interval = aggregated["mean_wall_clock_seconds_ci"]
+    assert interval["n"] == 2
+    assert 0.5 <= interval["lower"] <= interval["upper"] <= 1.5
+    assert aggregated["evaluation_host"] == TEST_HOST
+
+
+def test_aggregate_wall_clock_is_unreported_if_any_seed_lacks_it():
+    aggregated = _aggregate([_seed_result(1.0), _seed_result(None)])
+
+    assert aggregated["total_wall_clock_seconds"] is None
+    assert aggregated["mean_wall_clock_seconds"] is None
+    assert aggregated["mean_wall_clock_seconds_ci"]["lower"] is None
+
+
+def test_aggregate_rejects_inconsistent_primary_cost_unit():
+    other = _seed_result(1.0)
+    other.primary_cost_unit = "something_else"
+
+    with pytest.raises(ValueError, match="primary_cost_unit"):
+        _aggregate([_seed_result(1.0), other])
+
+
+def test_aggregate_wall_clock_ci_marks_deterministic_solvers():
+    aggregated = _aggregate(
+        [_seed_result(1.0), _seed_result(3.0)], seed_effective=False
+    )
+
+    interval = aggregated["mean_wall_clock_seconds_ci"]
+    assert interval["lower"] is None
+    assert interval["reason"] == aggregated["mean_charged_executions_ci"]["reason"]

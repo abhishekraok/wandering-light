@@ -1,7 +1,9 @@
+import itertools
 from dataclasses import FrozenInstanceError
 
 import pytest
 
+import wandering_light.solver as solver_module
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.solver import (
     ActionScorer,
@@ -426,7 +428,11 @@ def test_batch_predictions_report_comparable_cost_and_search_config():
     )[0]
 
     assert prediction.function_defs == FunctionDefList([increment])
-    assert prediction.cost == PredictionCost(1, None, "solved")
+    assert prediction.cost == PredictionCost(
+        1, None, "solved", seconds=prediction.cost.seconds
+    )
+    assert prediction.cost.seconds is not None
+    assert prediction.cost.seconds >= 0.0
     assert predictor.cost_metadata() == {
         "cost_unit": "basis_function_executions",
         "cost_definition": predictor.cost_definition,
@@ -442,3 +448,27 @@ def test_rollout_result_is_frozen():
 
     with pytest.raises(FrozenInstanceError):
         result.executions = 1
+
+
+@pytest.mark.parametrize(
+    ("problem", "kwargs"),
+    [
+        ((TypedList([1]), TypedList([1])), {}),
+        ((TypedList([1]), TypedList([2])), {"budget": 0}),
+        ((TypedList([1]), TypedList([2])), {"max_depth": 0}),
+        ((TypedList([1]), TypedList([3])), {}),
+    ],
+)
+def test_batch_predictions_record_wall_clock_seconds_per_problem(
+    monkeypatch, problem, kwargs
+):
+    increment = make_function("increment", "return x + 1")
+    ticks = itertools.count()
+    monkeypatch.setattr(solver_module.time, "perf_counter", lambda: next(ticks) * 0.5)
+    predictor = RolloutPredictor(RecordingScorer(uniform_scores), **kwargs)
+
+    predictions = predictor.predict_functions_batch_with_cost(
+        [problem, problem], FunctionDefSet([increment])
+    )
+
+    assert [prediction.cost.seconds for prediction in predictions] == [0.5, 0.5]

@@ -1,3 +1,9 @@
+import dataclasses
+import itertools
+
+import pytest
+
+import wandering_light.solver as solver_module
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
 from wandering_light.function_usage import FunctionUsageTracker
 from wandering_light.solver import (
@@ -183,7 +189,9 @@ def test_random_path_length_sampling_is_seeded_and_reported(monkeypatch):
 
     assert first_lengths == observed_lengths
     assert set(first_lengths) == {1, 2, 3}
-    assert first.cost == second.cost
+    assert dataclasses.replace(first.cost, seconds=None) == dataclasses.replace(
+        second.cost, seconds=None
+    )
     assert first.cost.charged_executions == sum(first_lengths)
     assert first.cost.candidate_programs == 30
     metadata = RandomPredictor(path_lengths=[1, 3], seed=5).cost_metadata()
@@ -606,3 +614,112 @@ def test_bfs_counts_raising_expansions_against_budget():
     ]
 
     assert list(result) == []
+
+
+def install_fake_clock(monkeypatch, step=0.25):
+    """Make every perf_counter call advance by ``step`` seconds."""
+    ticks = itertools.count()
+    monkeypatch.setattr(solver_module.time, "perf_counter", lambda: next(ticks) * step)
+
+
+def test_wall_clock_cost_constants():
+    assert solver_module.WALL_CLOCK_COST_UNIT == "wall_clock_seconds"
+    definition = solver_module.WALL_CLOCK_COST_DEFINITION
+    assert "inference" in definition
+    assert "same host" in definition
+
+
+def test_prediction_cost_seconds_defaults_to_none():
+    cost = solver_module.PredictionCost(3, None, "budget")
+    assert cost.seconds is None
+    assert [f.name for f in dataclasses.fields(cost)][-1] == "seconds"
+
+
+@pytest.mark.parametrize(
+    ("problem", "functions"),
+    [
+        # Early return: already solved.
+        ((TypedList([1]), TypedList([1])), "inc"),
+        # Early return: no functions at all.
+        ((TypedList([1]), TypedList([2])), None),
+        # Full search.
+        ((TypedList([1]), TypedList([2])), "inc"),
+    ],
+)
+def test_random_predictor_records_seconds_per_problem(monkeypatch, problem, functions):
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    available = FunctionDefSet([increment] if functions else [])
+    install_fake_clock(monkeypatch)
+
+    result = RandomPredictor(budget=3, path_length=1).predict_functions_batch_with_cost(
+        [problem], available
+    )[0]
+
+    assert result.cost.seconds == pytest.approx(0.25)
+
+
+def test_random_predictor_times_each_problem_independently(monkeypatch):
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    install_fake_clock(monkeypatch)
+
+    results = RandomPredictor(
+        budget=3, path_length=1
+    ).predict_functions_batch_with_cost(
+        [
+            (TypedList([1]), TypedList([1])),
+            (TypedList([1]), TypedList([2])),
+        ],
+        FunctionDefSet([increment]),
+    )
+
+    assert [result.cost.seconds for result in results] == [
+        pytest.approx(0.25),
+        pytest.approx(0.25),
+    ]
+
+
+@pytest.mark.parametrize(
+    "problem",
+    [
+        (TypedList([1]), TypedList([1])),
+        (TypedList([1]), TypedList([3])),
+        (TypedList([1]), TypedList([999])),
+    ],
+)
+def test_bfs_predictor_records_seconds_including_early_returns(monkeypatch, problem):
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    install_fake_clock(monkeypatch)
+
+    result = BFSPredictor(budget=5, max_depth=2).predict_functions_batch_with_cost(
+        [problem], FunctionDefSet([increment])
+    )[0]
+
+    assert result.cost.seconds == pytest.approx(0.25)
+
+
+def test_bfs_real_clock_seconds_are_non_negative():
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    result = BFSSolve(budget=10).solve(
+        TypedList([1]), TypedList([3]), FunctionDefSet([increment])
+    )
+
+    assert result.success
+    assert result.cost.seconds is not None
+    assert result.cost.seconds >= 0.0
+
+
+def test_token_predictor_leaves_seconds_unset():
+    class FixedTokenGenerator:
+        def generate_batch(self, prompts):
+            return ["inc" for _ in prompts]
+
+    increment = make_function("inc", "builtins.int", "builtins.int", "return x + 1")
+    solver = create_token_solver(FixedTokenGenerator())
+
+    results = solver.solve_batch(
+        [(TypedList([0]), TypedList([1])), (TypedList([0]), TypedList([0]))],
+        FunctionDefSet([increment]),
+    )
+
+    assert all(result.cost is not None for result in results)
+    assert all(result.cost.seconds is None for result in results)

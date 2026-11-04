@@ -1,6 +1,8 @@
 import json
 import os
+import platform
 import sys
+import time
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -14,6 +16,8 @@ import fire
 from wandering_light.executor import Executor
 from wandering_light.function_def import FunctionDef, FunctionDefSet
 from wandering_light.solver import (
+    WALL_CLOCK_COST_DEFINITION,
+    WALL_CLOCK_COST_UNIT,
     PredictionCost,
     TrajectorySolver,
     get_solver_by_name,
@@ -41,6 +45,7 @@ class DetailedEvalResult:
     charged_executions: int | None = None
     candidate_programs: int | None = None
     cost_termination: str | None = None
+    seconds: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization compatibility."""
@@ -65,6 +70,11 @@ class EvalResult:
     mean_charged_executions: float | None = None
     total_candidate_programs: int | None = None
     mean_candidate_programs: float | None = None
+    primary_cost_unit: str | None = None
+    primary_cost_definition: str | None = None
+    total_wall_clock_seconds: float | None = None
+    mean_wall_clock_seconds: float | None = None
+    evaluation_host: dict[str, Any] = field(default_factory=dict)
     solver_config: dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self):
@@ -91,6 +101,33 @@ class EvalResult:
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, "w") as f:
             json.dump(self.to_dict(), f, indent=2)
+
+
+def evaluation_host() -> dict[str, Any]:
+    """Identify the host whose wall clock produced the timing."""
+    return {
+        "node": platform.node(),
+        "machine": platform.machine(),
+        "processor": platform.processor(),
+        "python": platform.python_version(),
+    }
+
+
+def _wall_clock_summary(
+    total_seconds: float | None,
+    total_samples: int,
+) -> dict[str, Any]:
+    return {
+        "primary_cost_unit": WALL_CLOCK_COST_UNIT,
+        "primary_cost_definition": WALL_CLOCK_COST_DEFINITION,
+        "total_wall_clock_seconds": total_seconds,
+        "mean_wall_clock_seconds": (
+            total_seconds / total_samples
+            if total_seconds is not None and total_samples > 0
+            else None
+        ),
+        "evaluation_host": evaluation_host(),
+    }
 
 
 def _cost_summary(
@@ -225,8 +262,11 @@ class EvaluateSolver:
             traj_to_ground_truth[id(traj)] = true_output
 
         # Batch solve all problems at once
+        solve_seconds = 0.0
         if problems:
+            start = time.perf_counter()
             batch_results = solver.solve_batch(problems, available_functions)
+            solve_seconds = time.perf_counter() - start
         else:
             batch_results = []
         if len(batch_results) != len(problems):
@@ -258,6 +298,7 @@ class EvaluateSolver:
                     detailed_result.charged_executions = result.cost.charged_executions
                     detailed_result.candidate_programs = result.cost.candidate_programs
                     detailed_result.cost_termination = result.cost.termination
+                    detailed_result.seconds = result.cost.seconds
 
                 if result.success and result.trajectory is not None:
                     successes += 1
@@ -300,6 +341,7 @@ class EvaluateSolver:
             failures=failures,
             detailed_results=detailed_results,
             **_cost_summary(solver, [result.cost for result in batch_results]),
+            **_wall_clock_summary(solve_seconds, total_evaluated),
         )
 
         if save_results:
@@ -336,6 +378,7 @@ class EvaluateSolver:
         total_length = 0
         failures: list[tuple[TrajectorySpec, Exception]] = []
         prediction_costs: list[PredictionCost | None] = []
+        solve_seconds = 0.0
         executor = Executor(available_functions)
 
         for _ in range(num_samples):
@@ -356,7 +399,9 @@ class EvaluateSolver:
                 prediction_costs.append(None)
                 continue
             # solver attempt
+            start = time.perf_counter()
             result = solver.solve(input_list, true_output, available_functions)
+            solve_seconds += time.perf_counter() - start
             prediction_costs.append(result.cost)
             # record success or failure from MaybeTrajectory
             if result.success and result.trajectory is not None:
@@ -374,6 +419,7 @@ class EvaluateSolver:
             avg_solution_length=avg_length,
             failures=failures,
             **_cost_summary(solver, prediction_costs),
+            **_wall_clock_summary(solve_seconds, num_samples),
         )
 
 

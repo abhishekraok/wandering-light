@@ -1,14 +1,24 @@
+import itertools
 import os
+import platform
 import tempfile
 
 import pytest
 
+import wandering_light.evals.evaluate_solver as evaluate_solver_module
 from wandering_light.evals.evaluate_solver import (
     EvaluateSolver,
     evaluate_solver_from_file,
 )
 from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionDefSet
-from wandering_light.solver import BFSSolve, RandomSolve
+from wandering_light.solver import (
+    WALL_CLOCK_COST_DEFINITION,
+    WALL_CLOCK_COST_UNIT,
+    BFSSolve,
+    MaybeTrajectory,
+    PredictionCost,
+    RandomSolve,
+)
 from wandering_light.trajectory import (
     InvalidTrajectorySpecsError,
     TrajectorySpec,
@@ -403,3 +413,127 @@ class TestEvaluateSolverFile:
             )
 
         assert [failure.index for failure in exc_info.value.failures] == [1]
+
+
+class _StubSolver:
+    """Solver whose own work does not touch the clock."""
+
+    def __init__(self):
+        self.batch_calls = 0
+        self.solve_calls = 0
+
+    def cost_metadata(self):
+        return {"cost_unit": "basis_function_executions"}
+
+    def solve_batch(self, problems, available_functions):
+        self.batch_calls += 1
+        return [
+            MaybeTrajectory(
+                success=False,
+                error_msg="no",
+                cost=PredictionCost(2, None, "budget", seconds=0.125),
+            )
+            for _ in problems
+        ]
+
+    def solve(self, input_list, output_list, available_functions):
+        self.solve_calls += 1
+        return self.solve_batch([(input_list, output_list)], available_functions)[0]
+
+
+def _install_fake_clock(monkeypatch, step):
+    ticks = itertools.count()
+    monkeypatch.setattr(
+        evaluate_solver_module.time, "perf_counter", lambda: next(ticks) * step
+    )
+
+
+def _expected_host():
+    return {
+        "node": platform.node(),
+        "machine": platform.machine(),
+        "processor": platform.processor(),
+        "python": platform.python_version(),
+    }
+
+
+class TestWallClockCost:
+    inc = FunctionDef(
+        name="inc",
+        input_type="builtins.int",
+        output_type="builtins.int",
+        code="return x + 1",
+    )
+
+    def test_trajectory_specs_time_the_batch_call(self, monkeypatch):
+        specs = TrajectorySpecList(
+            [
+                TrajectorySpec(TypedList([1]), FunctionDefList([self.inc])),
+                TrajectorySpec(TypedList([2]), FunctionDefList([self.inc])),
+                TrajectorySpec(TypedList([3]), FunctionDefList([self.inc])),
+                TrajectorySpec(TypedList([4]), FunctionDefList([self.inc])),
+            ]
+        )
+        solver = _StubSolver()
+        _install_fake_clock(monkeypatch, 2.0)
+
+        result = EvaluateSolver.evaluate_using_trajectory_specs(
+            solver, specs, available_functions=FunctionDefSet([self.inc])
+        )
+
+        assert solver.batch_calls == 1
+        assert result.primary_cost_unit == WALL_CLOCK_COST_UNIT == "wall_clock_seconds"
+        assert result.primary_cost_definition == WALL_CLOCK_COST_DEFINITION
+        assert result.total_wall_clock_seconds == 2.0
+        assert result.mean_wall_clock_seconds == 0.5
+        assert result.evaluation_host == _expected_host()
+        assert [detail.seconds for detail in result.detailed_results] == [0.125] * 4
+        serialized = result.to_dict()
+        assert serialized["evaluation_host"] == _expected_host()
+        assert serialized["detailed_results"][0]["seconds"] == 0.125
+
+    def test_random_walk_sums_per_sample_solve_calls(self, monkeypatch):
+        solver = _StubSolver()
+        _install_fake_clock(monkeypatch, 0.75)
+
+        result = EvaluateSolver.evaluate_using_random_walk(
+            solver,
+            [TypedList([1])],
+            num_samples=3,
+            available_functions=FunctionDefSet([self.inc]),
+            path_length=1,
+        )
+
+        assert solver.solve_calls == 3
+        assert result.primary_cost_unit == WALL_CLOCK_COST_UNIT
+        assert result.primary_cost_definition == WALL_CLOCK_COST_DEFINITION
+        assert result.total_wall_clock_seconds == pytest.approx(2.25)
+        assert result.mean_wall_clock_seconds == pytest.approx(0.75)
+        assert result.evaluation_host == _expected_host()
+
+    def test_real_solver_reports_non_negative_wall_clock(self):
+        specs = TrajectorySpecList(
+            [TrajectorySpec(TypedList([1]), FunctionDefList([self.inc]))]
+        )
+
+        result = EvaluateSolver.evaluate_using_trajectory_specs(
+            BFSSolve(budget=10),
+            specs,
+            available_functions=FunctionDefSet([self.inc]),
+        )
+
+        assert result.total_wall_clock_seconds >= 0.0
+        assert result.mean_wall_clock_seconds == result.total_wall_clock_seconds
+        assert result.detailed_results[0].seconds is not None
+        assert result.detailed_results[0].seconds >= 0.0
+
+    def test_empty_evaluation_has_no_mean_wall_clock(self):
+        result = EvaluateSolver.evaluate_using_trajectory_specs(
+            BFSSolve(budget=10),
+            TrajectorySpecList(),
+            available_functions=FunctionDefSet([]),
+        )
+
+        assert result.primary_cost_unit == WALL_CLOCK_COST_UNIT
+        assert result.mean_wall_clock_seconds is None
+        assert result.evaluation_host == _expected_host()
