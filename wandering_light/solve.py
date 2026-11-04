@@ -169,7 +169,7 @@ class Row:
             "behaviour": self.task.behaviour,
             "length": self.task.length,
             "examples": self.task.examples,
-            "program": list(self.program) if self.program else None,
+            "program": None if self.program is None else list(self.program),
             "source": self.source,
             "termination": self.termination,
             "seconds": self.seconds,
@@ -366,7 +366,12 @@ def solve_tasks(
         if progress is not None:
             progress(row)
     for row in rows:
-        score = grade(row.program, row.task) if row.program else None
+        # `()` is the identity program, a real solution; only None means none found.
+        score = (
+            None
+            if row.program is None
+            else grade(row.program, row.task, empty_is_identity=True)
+        )
         row.solved = bool(score and score.solved)
         row.shown_fit = bool(score and score.shown)
     return rows
