@@ -149,6 +149,61 @@ def skeleton(program: Sequence[str]) -> str:
     return " ".join("_" if op in INTERCHANGEABLE else op for op in program)
 
 
+def independent_groups(catalogue: Sequence[Behaviour] = ()) -> dict[str, list[str]]:
+    """Behaviours a train/eval split can actually hold apart, grouped.
+
+    The skeleton count is gameable. A run asked for 400 distinct skeletons
+    produced 466 of them from about 38 ideas by cross-producting twelve
+    predicates against twelve maps: every label was correct, the acceptance
+    gate was green, and the catalogue was one idea repeated. Behaviours that
+    share a component idea cannot be split, since learning
+    `keep_even_then_cube` hands over half of `keep_even_then_negate`.
+
+    A behaviour's components are its name split on ``"_then_"``; a name
+    without it is its own single component. Two behaviours are in the same
+    group when they share a component, and grouping is transitive, so
+    compositions chain: a grid of predicates against maps collapses to one
+    group however many skeletons it has. Returns one entry per group keyed by
+    one member's name (the first in catalogue order), mapping to the names of
+    its behaviours in catalogue order. Every behaviour lands in exactly one
+    group; an empty ``catalogue`` means ``CATALOGUE``.
+
+    The count of groups, not of behaviours or skeletons, is the number of
+    things a catalogue can hold out.
+    """
+    behaviours = tuple(catalogue) or CATALOGUE
+    names = [b.name for b in behaviours]
+    parent: dict[str, str] = {name: name for name in names}
+
+    def find(name: str) -> str:
+        while parent[name] != name:
+            parent[name] = parent[parent[name]]
+            name = parent[name]
+        return name
+
+    def union(a: str, b: str) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            # Keep the earlier-listed name as root so keys are deterministic.
+            if names.index(ra) < names.index(rb):
+                parent[rb] = ra
+            else:
+                parent[ra] = rb
+
+    owner: dict[str, str] = {}  # component -> first behaviour using it
+    for name in names:
+        for component in name.split("_then_"):
+            if component in owner:
+                union(owner[component], name)
+            else:
+                owner[component] = name
+
+    groups: dict[str, list[str]] = {}
+    for name in names:
+        groups.setdefault(find(name), []).append(name)
+    return groups
+
+
 @dataclass(frozen=True)
 class Behaviour:
     """One hand-written problem: what it computes, and programs that do.

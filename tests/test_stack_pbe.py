@@ -32,6 +32,7 @@ from wandering_light.stack_pbe import (
     BASIS,
     BY_NAME,
     CATALOGUE,
+    Behaviour,
     Task,
     _informative,
     assign_split,
@@ -41,6 +42,7 @@ from wandering_light.stack_pbe import (
     draw_task,
     encode_task,
     generate,
+    independent_groups,
     load,
     run_program,
     skeleton,
@@ -196,6 +198,91 @@ def test_skeleton_blanks_literals_and_interchangeable_ops():
     assert assign_split(BY_NAME["keep_zeros"].skeleton) == assign_split(
         BY_NAME["keep_negative"].skeleton
     )
+
+
+def _named(*names: str) -> list[Behaviour]:
+    """Behaviours that exist only to carry a name; grouping reads nothing else."""
+    return [
+        Behaviour(
+            name=name,
+            summary=name,
+            witnesses=("add",),
+            sample=lambda rng: (0, 0),
+            reference=lambda a, b: a + b,
+        )
+        for name in names
+    ]
+
+
+def _partitions(groups: dict[str, list[str]], behaviours: list[Behaviour]) -> bool:
+    members = [name for group in groups.values() for name in group]
+    return (
+        sorted(members) == sorted(b.name for b in behaviours)
+        and len(members) == len(set(members))
+        and all(key in group for key, group in groups.items())
+    )
+
+
+def test_current_catalogue_is_forty_groups_of_one():
+    groups = independent_groups()
+    assert groups == independent_groups(CATALOGUE)
+    assert len(groups) == len(CATALOGUE) == 40
+    assert all(group == [key] for key, group in groups.items())
+    assert _partitions(groups, list(CATALOGUE))
+
+
+def test_a_composition_grid_collapses_to_a_single_group():
+    """Twelve predicates by twelve maps is 144 skeletons and one idea.
+
+    This is the catalogue that passed the skeleton gate with 466 skeletons
+    from about 38 ideas. Grouped by shared component, no split could hold any
+    of it out, and the audit must say so.
+    """
+    predicates = [f"keep_p{i}" for i in range(12)]
+    maps = [f"map_m{j}" for j in range(12)]
+    grid = _named(*(f"{p}_then_{m}" for p in predicates for m in maps))
+    assert len({b.name for b in grid}) == 144
+    groups = independent_groups(grid)
+    assert len(groups) == 1
+    (members,) = groups.values()
+    assert members == [b.name for b in grid]
+    assert _partitions(groups, grid)
+
+    # Listing the components themselves alongside the grid changes nothing:
+    # they are absorbed into the same group, not counted as new ideas.
+    with_parts = _named(*predicates, *maps) + grid
+    assert len(independent_groups(with_parts)) == 1
+
+
+def test_grouping_is_transitive_through_chained_compositions():
+    """`a_then_b` and `c_then_d` share nothing directly, but `b_then_c` links them."""
+    chain = _named("a_then_b", "c_then_d", "b_then_c")
+    assert len(independent_groups(chain)) == 1
+    # Without the link, two groups.
+    assert len(independent_groups(_named("a_then_b", "c_then_d"))) == 2
+
+
+def test_behaviours_sharing_no_component_stay_apart():
+    behaviours = _named("sum", "reverse", "keep_even_then_cube", "keep_odd_then_halve")
+    groups = independent_groups(behaviours)
+    assert len(groups) == 4
+    assert _partitions(groups, behaviours)
+    # A single shared component merges exactly the behaviours that carry it.
+    behaviours = _named("sum", "reverse", "keep_even_then_cube", "keep_even_then_negate")
+    groups = independent_groups(behaviours)
+    assert len(groups) == 3
+    assert sorted(len(g) for g in groups.values()) == [1, 1, 2]
+    assert sorted(groups["keep_even_then_cube"]) == [
+        "keep_even_then_cube",
+        "keep_even_then_negate",
+    ]
+
+
+def test_group_keys_are_member_names_in_catalogue_order():
+    behaviours = _named("reverse", "x_then_y", "sum", "y_then_z")
+    groups = independent_groups(behaviours)
+    assert list(groups) == ["reverse", "x_then_y", "sum"]
+    assert groups["x_then_y"] == ["x_then_y", "y_then_z"]
 
 
 def test_every_witness_of_a_behaviour_is_checked():
