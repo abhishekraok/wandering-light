@@ -3,9 +3,10 @@
 import gzip
 import io
 import json
+from dataclasses import dataclass
 from itertools import combinations
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from wandering_light.common_functions import basic_fns
 from wandering_light.executor import Executor
@@ -125,8 +126,9 @@ def bounded_relabel(
             search_transitions=expansion.attempted_transitions,
             search_stop_reason=expansion.stop_reason,
         )
-        destination = graph.find(target)
-        if destination is not None and destination in expansion.node_depths:
+        # Judged in answer space: ``[0.0]`` reached through ``[-0.0]`` counts.
+        destination = graph.shallowest_answer(expansion, target)
+        if destination is not None:
             path = graph.shortest_path(root, destination)
             if path is None:
                 raise AssertionError("reached destination has no graph path")
@@ -216,6 +218,145 @@ def apply_solver_candidate(
         ),
     )
     return updated
+
+
+RecertificationOutcome = Literal["certified", "inflated", "inconclusive"]
+
+
+@dataclass(frozen=True)
+class ShortestPathRecertification:
+    """Result of re-proving that a recorded distance is the shortest.
+
+    ``certified`` means a complete expansion to ``recorded_distance - 1`` found
+    no answer-equal state, so nothing shorter exists under these functions.
+    ``inflated`` means a shorter witness was found at ``shorter_distance`` --
+    sound even from a partial expansion, since any reached state is reachable.
+    ``inconclusive`` means the expansion stopped on a budget (``stop_reason``)
+    before ruling a shorter path out.
+    """
+
+    outcome: RecertificationOutcome
+    recorded_distance: int
+    shorter_distance: int | None
+    search_depth: int
+    certified_search_depth: int
+    complete_expansion: bool
+    states_searched: int
+    transitions_attempted: int
+    stop_reason: str | None
+
+    @property
+    def ok(self) -> bool:
+        return self.outcome == "certified"
+
+
+def recertify_shortest_path(
+    input_list: TypedList,
+    target: TypedList,
+    recorded_distance: int,
+    *,
+    available_functions: FunctionDefSet = basic_fns,
+    max_states: int | None = None,
+    max_transitions: int | None = None,
+) -> ShortestPathRecertification:
+    """Re-prove that ``target`` is unreachable below ``recorded_distance``.
+
+    A fresh ``TrajectoryGraph`` is expanded breadth-first from ``input_list``
+    to depth ``recorded_distance - 1``.  Reaching the target is judged by
+    answer equality (``TypedList.canonical_key``), the relation solvers are
+    graded by, while states are expanded under the finer ``search_key``.
+    """
+    if isinstance(recorded_distance, bool) or not isinstance(recorded_distance, int):
+        raise ValueError(f"recorded_distance must be an int, got {recorded_distance!r}")
+    if recorded_distance < 0:
+        raise ValueError(f"recorded_distance must be non-negative: {recorded_distance}")
+    if recorded_distance == 0 and target != input_list:
+        raise ValueError("a recorded distance of 0 requires target == input")
+
+    search_depth = max(0, recorded_distance - 1)
+    graph = TrajectoryGraph(functions=available_functions)
+    root = graph.add_root(input_list)
+    expansion = graph.expand(
+        root,
+        max_depth=search_depth,
+        max_states=max_states,
+        max_transitions=max_transitions,
+    )
+    destination = graph.shallowest_answer(expansion, target)
+    shorter_distance: int | None = None
+    if destination is not None:
+        depth = expansion.node_depths[destination]
+        if depth < recorded_distance:
+            shorter_distance = depth
+
+    outcome: RecertificationOutcome
+    if shorter_distance is not None:
+        outcome = "inflated"
+    elif expansion.complete:
+        outcome = "certified"
+    else:
+        outcome = "inconclusive"
+    return ShortestPathRecertification(
+        outcome=outcome,
+        recorded_distance=recorded_distance,
+        shorter_distance=shorter_distance,
+        search_depth=search_depth,
+        certified_search_depth=expansion.certified_depth,
+        complete_expansion=expansion.complete,
+        states_searched=expansion.num_reached_states,
+        transitions_attempted=expansion.attempted_transitions,
+        stop_reason=expansion.stop_reason,
+    )
+
+
+def recertify_shortest_v1_record(
+    record: dict[str, Any],
+    *,
+    available_functions: FunctionDefSet = basic_fns,
+    max_states: int | None = None,
+    max_transitions: int | None = None,
+) -> ShortestPathRecertification:
+    """Re-run the witness of a ``shortest_v1`` record, then recertify it.
+
+    Raises ``ValueError`` when the record is not certified, its witness names
+    do not match ``relabeled_length``, it has no output, a witness function is
+    unknown, or the stored witness no longer reproduces the recorded output.
+    """
+    if record.get("schema_version") != SCHEMA_VERSION:
+        raise ValueError(
+            f"expected schema_version {SCHEMA_VERSION}, "
+            f"got {record.get('schema_version')!r}"
+        )
+    if not record.get("certified"):
+        raise ValueError("record is not marked certified")
+    names = record["relabeled_functions"]
+    length = record["relabeled_length"]
+    if len(names) != length:
+        raise ValueError(
+            f"relabeled_functions has {len(names)} names "
+            f"but relabeled_length is {length}"
+        )
+    if record.get("output") is None:
+        raise ValueError("record has no output")
+    unknown = [
+        name for name in names if name not in available_functions.name_to_function
+    ]
+    if unknown:
+        raise ValueError(f"unknown witness functions: {unknown}")
+
+    input_list = TypedList.from_str(record["input"])
+    target = TypedList.from_str(record["output"])
+    witness = [available_functions.name_to_function[name] for name in names]
+    if not _execute_candidate(input_list, target, witness, available_functions):
+        raise ValueError("stored witness does not reproduce the recorded output")
+    return recertify_shortest_path(
+        input_list,
+        target,
+        length,
+        available_functions=available_functions,
+        max_states=max_states,
+        max_transitions=max_transitions,
+    )
 
 
 def record_to_spec(

@@ -43,6 +43,19 @@ identity = FunctionDef(
     code="return x",
 )
 
+neg_zero = FunctionDef(
+    name="neg_zero",
+    input_type="builtins.float",
+    output_type="builtins.float",
+    code="return -(x * 0.0)",
+)
+negate = FunctionDef(
+    name="negate",
+    input_type="builtins.float",
+    output_type="builtins.float",
+    code="return -x",
+)
+
 FUNCTIONS = FunctionDefSet([inc, double, add_two, to_str])
 
 
@@ -256,14 +269,16 @@ class TestTrajectoryGraphExpansion:
         assert expansion.failed_transitions == 1
         assert expansion.certified_depth == 1
 
-    def test_graph_state_key_agrees_with_typed_list_search_key(self):
-        # The "may these two states be merged" rule is implemented twice: here
-        # in _freeze, and in TypedList.search_key for the BFS solver. They
-        # cannot share code -- the key shapes differ -- so nothing stops one
-        # from drifting, and a disagreement is precisely the bug class that
-        # inflates certified distances. Pin them to the same partition.
+    def test_graph_state_key_is_typed_list_search_key(self):
+        # The "may these two states be merged" rule used to be implemented
+        # twice: once in the graph and once in TypedList.search_key for the BFS
+        # solver, and a disagreement is precisely the bug class that inflates
+        # certified distances. The graph now delegates, so the two searches
+        # share one state partition by construction. Pin the delegation.
+        from wandering_light.proposer_pilot import graph as graph_module
         from wandering_light.proposer_pilot.graph import _state_key
 
+        assert not hasattr(graph_module, "_freeze")
         values = [
             _tl([0.0], float),
             _tl([-0.0], float),
@@ -276,9 +291,12 @@ class TestTrajectoryGraphExpansion:
             _tl([{"a": [-0.0]}], dict),
             _tl([(0.0,)], tuple),
             _tl([(-0.0,)], tuple),
+            _tl([True], bool),
+            _tl([1]),
         ]
 
         for left in values:
+            assert _state_key(left) == left.search_key()
             for right in values:
                 same_graph = _state_key(left) == _state_key(right)
                 same_search = left.search_key() == right.search_key()
@@ -291,12 +309,6 @@ class TestTrajectoryGraphExpansion:
         # -0.0 == 0.0 in Python, so keying states on equality merges them and
         # leaves -0.0's successors unexplored: ["-0.0"] then looks unreachable,
         # or is found later through some longer path and mislabelled.
-        negate = FunctionDef(
-            name="negate",
-            input_type="builtins.float",
-            output_type="builtins.float",
-            code="return -x",
-        )
         show = FunctionDef(
             name="show",
             input_type="builtins.float",
@@ -316,6 +328,72 @@ class TestTrajectoryGraphExpansion:
         assert negative_text is not None
         assert expansion.node_depths[negative_text] == 2
         assert g.find(_tl(["0.0"], str)) != negative_text
+
+    def test_shallowest_answer_collapses_signed_zero_onto_one_answer(self):
+        # Expansion keeps [-0.0] and [0.0] apart, but a solver that answers
+        # [-0.0] when asked for [0.0] is graded correct. The distance of [0.0]
+        # is therefore the depth of whichever answer-equal state is shallowest.
+        g = TrajectoryGraph(functions=FunctionDefSet([neg_zero, negate]))
+        root = g.add_root(_tl([1.0], float))
+
+        expansion = g.expand(root, max_depth=2)
+        negative = g.find(_tl([-0.0], float))
+        positive = g.find(_tl([0.0], float))
+
+        assert expansion.complete
+        assert negative != positive
+        assert expansion.node_depths[negative] == 1
+        assert expansion.node_depths[positive] == 2
+        assert g.shallowest_answer(expansion, _tl([0.0], float)) == negative
+        assert g.shallowest_answer(expansion, _tl([-0.0], float)) == negative
+
+    def test_shallowest_answer_is_none_for_unreached_targets(self):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        root = g.add_root(_tl([1]))
+        expansion = g.expand(root, max_depth=1)
+
+        assert g.shallowest_answer(expansion, _tl([99])) is None
+        # Present in the graph, but not reached by this expansion.
+        other = g.add_root(_tl([42]))
+        assert g.find(_tl([42])) == other
+        assert g.shallowest_answer(expansion, _tl([42])) is None
+        # Deeper than the expansion looked.
+        assert g.find(_tl([5])) is None
+        assert g.shallowest_answer(expansion, _tl([5])) is None
+
+    def test_shallowest_answer_returns_root_for_input_equal_targets(self):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        root = g.add_root(_tl([1]))
+        expansion = g.expand(root, max_depth=1)
+
+        assert g.shallowest_answer(expansion, _tl([1])) == root
+        assert expansion.node_depths[root] == 0
+
+    def test_shallowest_answer_rejects_foreign_expansion(self):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        root = g.add_root(_tl([1]))
+        expansion = g.expand(root, max_depth=1)
+        other = TrajectoryGraph(functions=FUNCTIONS)
+        other.add_root(_tl([1]))
+
+        with pytest.raises(ValueError, match="different graph"):
+            other.shallowest_answer(expansion, _tl([2]))
+
+    def test_task_from_proposal_judges_output_by_answer_equality(self):
+        g = TrajectoryGraph(functions=FunctionDefSet([neg_zero, negate]))
+        root = g.add_root(_tl([1.0], float))
+        expansion = g.expand(root, max_depth=2)
+        proposal_spec = TrajectorySpec(
+            _tl([1.0], float), FunctionDefList([neg_zero, negate])
+        )
+        proposal = Trajectory(proposal_spec, _tl([0.0], float))
+
+        task = g.task_from_proposal(proposal, expansion)
+
+        assert task.proposed_num_steps == 2
+        assert task.verified_shortest_num_steps == 1
+        assert [fn.name for fn in task.trajectory.function_defs] == ["neg_zero"]
+        assert task.trajectory.output == _tl([0.0], float)
 
     def test_transition_budget_only_certifies_completed_layers(self):
         g = TrajectoryGraph(functions=FUNCTIONS)

@@ -6,7 +6,6 @@ them; multiple edges between the same pair are allowed when distinct functions
 yield the same result.
 """
 
-import math
 from collections import deque
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
@@ -18,59 +17,21 @@ from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionD
 from wandering_light.trajectory import Trajectory, TrajectorySpec
 from wandering_light.typed_list import TypedList
 
-type StateKey = tuple[str, tuple[object, ...]]
+type StateKey = tuple[type, object]
 type FunctionFingerprint = tuple[tuple[str, str, str, str], ...]
 
 
-def _type_name(t: type) -> str:
-    return f"{t.__module__}.{t.__qualname__}"
-
-
-def _freeze(value: object) -> object:
-    """Return a deterministic, hashable representation of a builtin value."""
-    value_type = _type_name(type(value))
-    if value is None:
-        return (value_type, None)
-    if isinstance(value, bool | int | str | bytes):
-        return (value_type, value)
-    if isinstance(value, float):
-        # Signed zero is kept: ``-0.0 == 0.0`` in Python, but ``float_to_str``
-        # maps them to unequal strings, so merging the two states would leave
-        # one set of successors unexplored and inflate the certified distance of
-        # anything reachable only through them.  (``f_fraction`` and ``f_sin``
-        # also preserve the sign, but their outputs still compare equal, so they
-        # carry the difference rather than expose it.)  NaNs stay collapsed --
-        # no basis function observes their sign or payload.
-        normalized = "nan" if math.isnan(value) else value.hex()
-        return (value_type, normalized)
-    if isinstance(value, bytearray):
-        return (value_type, bytes(value))
-    if isinstance(value, complex):
-        return (value_type, _freeze(value.real), _freeze(value.imag))
-    if isinstance(value, range):
-        return (value_type, value.start, value.stop, value.step)
-    if isinstance(value, list | tuple):
-        return (value_type, tuple(_freeze(item) for item in value))
-    if isinstance(value, set | frozenset):
-        return (value_type, frozenset(_freeze(item) for item in value))
-    if isinstance(value, dict):
-        return (
-            value_type,
-            frozenset((_freeze(key), _freeze(item)) for key, item in value.items()),
-        )
-    if hasattr(value, "model_dump"):
-        return (value_type, _freeze(value.model_dump()))
-    if hasattr(value, "dict"):
-        return (value_type, _freeze(value.dict()))
-    try:
-        hash(value)
-    except TypeError:
-        return (value_type, repr(value))
-    return (value_type, value)
-
-
 def _state_key(tl: TypedList) -> StateKey:
-    return (_type_name(tl.item_type), tuple(_freeze(item) for item in tl.items))
+    """Identity under which the graph deduplicates search states.
+
+    This is ``TypedList.search_key``, the same partition the BFS solver prunes
+    on, so the two searches cannot drift into disagreeing about which states
+    may be merged.  It keeps ``-0.0`` and ``0.0`` apart (``float_to_str`` can
+    tell them apart) while collapsing NaNs.  It is finer than the relation a
+    solution is graded by -- see ``TrajectoryGraph.shallowest_answer`` for
+    reading a distance back in answer space.
+    """
+    return tl.search_key()
 
 
 def _fingerprint(functions: FunctionDefSet) -> FunctionFingerprint:
@@ -149,6 +110,8 @@ class TrajectoryGraph:
         self.executor = Executor(self.functions, enforce_membership=False)
         self._nodes: dict[int, Node] = {}
         self._state_index: dict[StateKey, int] = {}
+        # Search states grouped by the answer they grade equal to.
+        self._answer_index: dict[object, list[int]] = {}
         self._roots: list[int] = []
         self._next_id = 0
 
@@ -180,6 +143,7 @@ class TrajectoryGraph:
         self._next_id += 1
         self._nodes[node_id] = Node(id=node_id, typed_list=tl)
         self._state_index[key] = node_id
+        self._answer_index.setdefault(tl.canonical_key(), []).append(node_id)
         return node_id
 
     def _record_transition(
@@ -328,6 +292,27 @@ class TrajectoryGraph:
     def find(self, tl: TypedList) -> int | None:
         return self._state_index.get(_state_key(tl))
 
+    def shallowest_answer(
+        self, expansion: ExpansionResult, target: TypedList
+    ) -> int | None:
+        """Return the shallowest expanded node that is answer-equal to ``target``.
+
+        States are expanded under ``search_key``, which keeps ``-0.0`` and
+        ``0.0`` apart so that each explores its own successors.  A solver is
+        graded with ``==`` (``canonical_key``), under which they are the same
+        answer, so the distance of a target is the depth of the shallowest
+        reached state that grades equal to it -- whichever search state that
+        is.  Ties at the same depth go to the earliest created node.  Returns
+        ``None`` when no answer-equal state was reached by ``expansion``.
+        """
+        self._validate_expansion(expansion)
+        best: tuple[int, int] | None = None
+        for node_id in self._answer_index.get(target.canonical_key(), ()):
+            depth = expansion.node_depths.get(node_id)
+            if depth is not None and (best is None or (depth, node_id) < best):
+                best = (depth, node_id)
+        return None if best is None else best[1]
+
     def shortest_path(self, src_id: int, dst_id: int) -> list[FunctionDef] | None:
         if src_id not in self._nodes or dst_id not in self._nodes:
             raise KeyError("unknown node id")
@@ -444,8 +429,8 @@ class TrajectoryGraph:
             self._nodes[expansion.root_id].typed_list
         ):
             raise ValueError("proposal input does not match expansion root")
-        dst_id = self.find(proposal.output)
-        if dst_id is None or dst_id not in expansion.node_depths:
+        dst_id = self.shallowest_answer(expansion, proposal.output)
+        if dst_id is None:
             raise ValueError("proposal output was not reached by this expansion")
         path = self._expansion_path(expansion, dst_id)
         num_steps = len(path)
