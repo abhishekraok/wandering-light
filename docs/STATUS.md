@@ -51,6 +51,7 @@ holds the argument.
 | what | who | where | question it answers |
 |---|---|---|---|
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
+| **Stack corpus, v4** — `stack_pbe_v4.jsonl.gz`, 1,600 tasks over the same 40 behaviours, **split on the program's skeleton** (ops in `INTERCHANGEABLE` blanked to `_`) instead of the behaviour name: 35 skeletons, 1,280 train / 320 eval, and `keep_zeros` / `keep_negative` (both `[ _ _ ] filter`) now fall on one side. Nine behaviours carry a second witness as `alternative_programs`; `sum_of_squares`'s canonical is now the single fold. No shown set is drawn at a single list length (the `uncons drop i` memorisation on `last`). Schema 2; `load` still reads v3, which stays in place. **No solver has been run on it.** | `eval/pbe-skeleton-split-a` branch | `wandering_light/stack_pbe.py` | does a shape-level split close the behaviour-name leak? |
 
 ## Superseded
 
