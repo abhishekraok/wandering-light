@@ -35,7 +35,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from wandering_light.quotation_guard import blocked
+from wandering_light.quotation_guard import RUNS_CODE, blocked
 from wandering_light.stack_machine import (
     DEFAULT_FUEL_LIMIT,
     Lst,
@@ -56,6 +56,8 @@ if TYPE_CHECKING:
 
 Product = tuple[tuple, ...]  # one stack per shown example
 Node = tuple[Product, tuple[str, ...], float]  # (product, program, log-probability)
+
+OP_INDEX: dict[str, int] = {op.name: index for index, op in enumerate(OPS)}
 
 
 class BeamObserver:
@@ -274,13 +276,7 @@ def _beam_solve(
     started = time.perf_counter()
     watch = observer if observer is not None else BeamObserver()
     watching = observer is not None
-    inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
-    outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
-    if guard in ("close", "both") and any(
-        isinstance(v, Mark) for stack in outputs for v in stack
-    ):
-        raise ValueError("the close guard needs mark-free targets")
-    targets = encode_targets(outputs)
+    inputs, outputs, targets = _prepare(task, guard)
     # The visited set is keyed on the product itself. Membership is decided by
     # ``Value.__eq__``, which is structural and induces exactly ``value_key``'s
     # partition (the union is closed and each variant carries a distinct class);
@@ -375,3 +371,408 @@ def _beam_solve(
             return result(None, "frontier_exhausted", depth + 1)
         beam = next_beam
     return result(None, "max_depth", max_depth)
+
+
+# ---------------------------------------------------------------------------
+# Segment-reset beam
+# ---------------------------------------------------------------------------
+#
+# A *closed state* is what a top-level combinator application leaves: the
+# successor of an op in ``RUNS_CODE`` applied to a product with no ``Mark`` on
+# any stack. Between two closed states a witness builds a quotation and runs it,
+# and the flat beam has to carry every half-built body across the whole depth
+# alongside every finished one. The segment beam resets at closed states: each
+# segment runs a short beam per root, collects the closed states it reaches, and
+# the best of them are the next segment's roots.
+
+
+def _has_mark(product: Product) -> bool:
+    return any(isinstance(v, Mark) for stack in product for v in stack)
+
+
+def closed_cuts(states: Sequence[Product], program: Sequence[str]) -> list[int]:
+    """``t + 1`` for every step that leaves a closed state.
+
+    ``states[t]`` is the product before ``program[t]``; a step closes when its
+    op runs code and ``states[t]`` carries no mark.
+    """
+    return [
+        t + 1
+        for t, name in enumerate(program)
+        if name in RUNS_CODE and not _has_mark(states[t])
+    ]
+
+
+@dataclass(slots=True)
+class _Tally:
+    executions: int = 0
+    fuel: int = 0
+    expansions: int = 0
+    deepest: int = 0  # ops in the longest program any expansion produced
+
+
+def _prepare(task: Task, guard: str) -> tuple[Product, Product, list]:
+    """The task's parsed inputs and outputs and the encoded targets."""
+    inputs = tuple(parse_stack(text, basis=BASIS) for text in task.inputs)
+    outputs = tuple(parse_stack(text, basis=BASIS) for text in task.outputs)
+    if guard in ("close", "both") and _has_mark(outputs):
+        raise ValueError("the close guard needs mark-free targets")
+    return inputs, outputs, encode_targets(outputs)
+
+
+def _run_segment(
+    roots: Sequence[Node],
+    outputs: Product,
+    targets,
+    scorer: PolicyScorer,
+    tally: _Tally,
+    *,
+    beam_width: int,
+    segment_depth: int,
+    horizon: int,
+    guard: str,
+    budget: int | None,
+    max_state_atoms: int | None,
+    stop_at_fit: bool,
+) -> tuple[str | None, tuple[str, ...] | None, dict[Product, tuple[float, tuple]]]:
+    """One segment: a beam per root, layer by layer, collecting closed states.
+
+    Returns ``(stop, program, closed)``: ``stop`` is ``"fit"``, ``"budget"`` or
+    None, and ``closed`` maps each closed product reached to its best
+    ``(score, program)``, in the order first reached.
+    """
+    beams: list[list[Node]] = [[root] for root in roots]
+    visited: list[set[Product]] = [{root[0]} for root in roots]
+    closed: dict[Product, tuple[float, tuple[str, ...]]] = {}
+    for layer in range(segment_depth):
+        last = layer == segment_depth - 1
+        for which, beam in enumerate(beams):
+            if not beam:
+                continue
+            successors = []  # (node, op index, product, program, closes)
+            legal = np.zeros((len(beam), len(OPS)), dtype=bool)
+            for node, (product, program, _) in enumerate(beam):
+                tally.expansions += 1
+                open_parent = not _has_mark(product)
+                for index, op in enumerate(OPS):
+                    if budget is not None and tally.executions >= budget:
+                        return "budget", None, closed
+                    moved, spent, stepped = step_all_quiet(product, op)
+                    tally.executions += stepped
+                    tally.fuel += spent
+                    if moved is None:
+                        continue
+                    legal[node, index] = True
+                    extended = (*program, op.name)
+                    tally.deepest = max(tally.deepest, len(extended))
+                    if stop_at_fit and moved == outputs:
+                        return "fit", extended, closed
+                    closes = open_parent and op.name in RUNS_CODE
+                    successors.append((node, index, moved, extended, closes))
+            next_beam: list[Node] = []
+            if successors:
+                blocks = [
+                    item_array(
+                        [
+                            encode_item(s, t)
+                            for s, t in zip(product, targets, strict=True)
+                        ]
+                    )
+                    for product, _, _ in beam
+                ]
+                log_probs = scorer.log_probs(blocks, legal)
+                ranked = sorted(
+                    successors,
+                    key=lambda s: beam[s[0]][2] + log_probs[s[0], s[1]],
+                    reverse=True,
+                )
+                seen = visited[which]
+                for node, index, product, program, closes in ranked:
+                    if guard != "off" and (
+                        blocked(product[0], horizon - len(program), guard) is not None
+                    ):
+                        continue
+                    if max_state_atoms is not None and atoms_exceed(
+                        product, max_state_atoms
+                    ):
+                        continue
+                    score = beam[node][2] + log_probs[node, index]
+                    if closes:
+                        held = closed.get(product)
+                        if held is None or score > held[0]:
+                            closed[product] = (score, program)
+                        continue
+                    if last or len(next_beam) == beam_width or product in seen:
+                        continue
+                    seen.add(product)
+                    next_beam.append((product, program, score))
+            beams[which] = next_beam
+    return None, None, closed
+
+
+def _rank_closed(
+    closed: Mapping[Product, tuple[float, tuple[str, ...]]], expanded: set[Product]
+) -> list[Node]:
+    """Unexpanded closed states, best score first, ties in merge order."""
+    fresh = [
+        (product, program, score)
+        for product, (score, program) in closed.items()
+        if product not in expanded
+    ]
+    fresh.sort(key=lambda node: node[2], reverse=True)
+    return fresh
+
+
+def segment_beam_solve(
+    task: Task,
+    scorer: PolicyScorer,
+    *,
+    beam_width: int = 64,
+    roots: int = 16,
+    segment_depth: int = 12,
+    max_segments: int = 12,
+    guard: str = "both",
+    budget: int | None = None,
+    max_state_atoms: int | None = None,
+) -> BeamResult:
+    """Search one task by segments that reset at closed states.
+
+    The cyclic collector is off for the duration, as in ``beam_solve``.
+    Terminations: ``fit``, ``budget`` (over the whole search),
+    ``frontier_exhausted`` (no new closed state) and ``max_segments``.
+    """
+    collecting = gc.isenabled()
+    if collecting:
+        gc.disable()
+    try:
+        return _segment_beam_solve(
+            task,
+            scorer,
+            beam_width=beam_width,
+            roots=roots,
+            segment_depth=segment_depth,
+            max_segments=max_segments,
+            guard=guard,
+            budget=budget,
+            max_state_atoms=max_state_atoms,
+        )
+    finally:
+        if collecting:
+            gc.enable()
+
+
+def _segment_beam_solve(
+    task: Task,
+    scorer: PolicyScorer,
+    *,
+    beam_width: int,
+    roots: int,
+    segment_depth: int,
+    max_segments: int,
+    guard: str,
+    budget: int | None,
+    max_state_atoms: int | None,
+) -> BeamResult:
+    started = time.perf_counter()
+    inputs, outputs, targets = _prepare(task, guard)
+    tally = _Tally()
+    horizon = max_segments * segment_depth
+
+    def result(program, termination):
+        return BeamResult(
+            program,
+            termination,
+            time.perf_counter() - started,
+            tally.executions,
+            tally.fuel,
+            tally.expansions,
+            len(program) if program is not None else tally.deepest,
+        )
+
+    frontier: list[Node] = [(inputs, (), 0.0)]
+    expanded: set[Product] = set()
+    for _segment in range(max_segments):
+        expanded.update(product for product, _, _ in frontier)
+        stop, program, closed = _run_segment(
+            frontier,
+            outputs,
+            targets,
+            scorer,
+            tally,
+            beam_width=beam_width,
+            segment_depth=segment_depth,
+            horizon=horizon,
+            guard=guard,
+            budget=budget,
+            max_state_atoms=max_state_atoms,
+            stop_at_fit=True,
+        )
+        if stop == "fit":
+            return result(program, "fit")
+        if stop == "budget":
+            return result(None, "budget")
+        frontier = _rank_closed(closed, expanded)[:roots]
+        if not frontier:
+            return result(None, "frontier_exhausted")
+    return result(None, "max_segments")
+
+
+def _witness_log_prob(
+    states: Sequence[Product],
+    program: Sequence[str],
+    *,
+    start: int,
+    stop: int,
+    targets,
+    scorer: PolicyScorer,
+) -> float:
+    """The policy's log-probability of ``program[start:stop]`` along its states.
+
+    Normalised over the ops the machine allows at each state, as the beam
+    scores. Diagnostic only: the executions spent here are not charged.
+    """
+    total = 0.0
+    for t in range(start, stop):
+        product = states[t]
+        legal = np.zeros((1, len(OPS)), dtype=bool)
+        for index, op in enumerate(OPS):
+            legal[0, index] = step_all_quiet(product, op)[0] is not None
+        block = item_array(
+            [encode_item(s, g) for s, g in zip(product, targets, strict=True)]
+        )
+        total += float(scorer.log_probs([block], legal)[0, OP_INDEX[program[t]]])
+    return total
+
+
+def segment_witness_ranks(
+    task: Task,
+    scorer: PolicyScorer,
+    program: Sequence[str] | None = None,
+    *,
+    beam_width: int = 64,
+    roots: int = 16,
+    segment_depth: int = 12,
+    max_segments: int = 12,
+    guard: str = "both",
+    budget: int | None = None,
+    max_state_atoms: int | None = None,
+) -> list[dict]:
+    """Where the witness's closed states rank, segment by segment (the K diagnostic).
+
+    The search runs as ``segment_beam_solve`` does without stopping at a fit,
+    one segment per closed cut of the witness. A witness root that fell out of
+    the frontier is appended (``forced``) so the next segment still asks the
+    question. One row per segment; see the keys below.
+    """
+    collecting = gc.isenabled()
+    if collecting:
+        gc.disable()
+    try:
+        return _segment_witness_ranks(
+            task,
+            scorer,
+            task.program if program is None else tuple(program),
+            beam_width=beam_width,
+            roots=roots,
+            segment_depth=segment_depth,
+            max_segments=max_segments,
+            guard=guard,
+            budget=budget,
+            max_state_atoms=max_state_atoms,
+        )
+    finally:
+        if collecting:
+            gc.enable()
+
+
+def _segment_witness_ranks(
+    task: Task,
+    scorer: PolicyScorer,
+    program: tuple[str, ...],
+    *,
+    beam_width: int,
+    roots: int,
+    segment_depth: int,
+    max_segments: int,
+    guard: str,
+    budget: int | None,
+    max_state_atoms: int | None,
+) -> list[dict]:
+    inputs, outputs, targets = _prepare(task, guard)
+    states: list[Product] = [inputs]
+    for step, name in enumerate(program):
+        moved, _spent, _stepped = step_all_quiet(states[-1], OP_BY_NAME[name])
+        if moved is None:
+            raise ValueError(
+                f"{task.behaviour}: the program refuses step {step} ({name})"
+            )
+        states.append(moved)
+    cuts = closed_cuts(states, program)[:max_segments]
+    tally = _Tally()
+    horizon = max_segments * segment_depth
+    frontier: list[Node] = [(inputs, (), 0.0)]
+    witness: Node = frontier[0]
+    expanded: set[Product] = set()
+    rows: list[dict] = []
+    previous = 0
+    for segment, cut in enumerate(cuts):
+        forced = all(product != witness[0] for product, _, _ in frontier)
+        if forced:
+            frontier = [*frontier, witness]
+        expanded.update(product for product, _, _ in frontier)
+        stop, _, closed = _run_segment(
+            frontier,
+            outputs,
+            targets,
+            scorer,
+            tally,
+            beam_width=beam_width,
+            segment_depth=segment_depth,
+            horizon=horizon,
+            guard=guard,
+            budget=budget,
+            max_state_atoms=max_state_atoms,
+            stop_at_fit=False,
+        )
+        ranked = _rank_closed(closed, expanded)
+        target = states[cut]
+        rank = next(
+            (at for at, (product, _, _) in enumerate(ranked, 1) if product == target),
+            None,
+        )
+        complete = stop != "budget"
+        rows.append(
+            {
+                "segment": segment,
+                "ops": cut - previous,
+                "roots": len(frontier),
+                "forced": forced,
+                "closed": len(ranked),
+                "rank": rank,
+                "score": float(ranked[rank - 1][2]) if rank is not None else None,
+                "best": float(ranked[0][2]) if ranked else None,
+                "executions": tally.executions,
+                "complete": complete,
+            }
+        )
+        if not complete:
+            break
+        if rank is not None:
+            witness = ranked[rank - 1]
+        else:
+            witness = (
+                target,
+                program[:cut],
+                witness[2]
+                + _witness_log_prob(
+                    states,
+                    program,
+                    start=previous,
+                    stop=cut,
+                    targets=targets,
+                    scorer=scorer,
+                ),
+            )
+        frontier = ranked[:roots]
+        previous = cut
+    return rows
