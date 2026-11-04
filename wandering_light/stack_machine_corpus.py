@@ -19,7 +19,16 @@ state.
 
 Because every op costs exactly one fuel, shortest is also fastest here, so the
 label is unambiguous. That stops being true the moment a looping combinator
-enters the basis.
+enters the basis: one outer `map` can run its quotation many times, so the
+fewest-op program and the cheapest program come apart.
+
+`expand_cost` is the search for the cheapest one. It orders paths by Levin's
+Kt, `|program| + log2(fuel)`, where fuel is the total work over all of a task's
+examples. Kt is monotone along a path but not additive: how much a suffix
+costs depends on the length and fuel of the prefix it lands on. So the search
+keeps a Pareto frontier of arrivals per behaviour rather than one best label,
+and only prunes an arrival that another one beats on length and on every
+example's fuel at once.
 
     uv run python -m wandering_light.stack_machine_corpus --out corpus.jsonl.gz
 """
@@ -29,12 +38,15 @@ from __future__ import annotations
 import argparse
 import gzip
 import hashlib
+import heapq
 import json
+import math
 import random
 import sys
 import time
 from collections import defaultdict
 from dataclasses import asdict, dataclass
+from typing import TYPE_CHECKING
 
 from wandering_light.stack_machine import (
     CORE_OPS,
@@ -43,12 +55,16 @@ from wandering_light.stack_machine import (
     Config,
     Int,
     Lst,
+    Op,
     Value,
     format_stack,
     parse_stack,
     step_raw,
     value_key,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 SCHEMA_VERSION = 3
 
@@ -118,19 +134,89 @@ def behaviour_key(behaviour: Behaviour) -> tuple:
     return tuple(tuple(value_key(v) for v in stack) for stack in behaviour)
 
 
-def step_all(behaviour: Behaviour, op) -> Behaviour | None:
-    """Apply `op` to every example, or None if any example's guard refuses.
+@dataclass(frozen=True, slots=True)
+class CostedPath:
+    """A program together with the fuel it spent on each example.
+
+    `score` is `fuel << length`, an exact integer stand-in for `2**Kt` with
+    Levin's `Kt = length + log2(fuel)`. Comparing scores compares Kt without
+    ever touching a float, which keeps the search order total and exact.
+    """
+
+    program: tuple[str, ...]
+    example_fuels: tuple[int, ...]
+
+    @property
+    def length(self) -> int:
+        return len(self.program)
+
+    @property
+    def fuel(self) -> int:
+        """Total work over every example."""
+        return sum(self.example_fuels)
+
+    @property
+    def score(self) -> int:
+        """`2**Kt` as an exact integer; 0 for the empty program."""
+        return self.fuel << self.length
+
+    @property
+    def kt(self) -> float:
+        """Levin's Kt, `length + log2(fuel)`; 0.0 for the empty program."""
+        score = self.score
+        return math.log2(score) if score else 0.0
+
+    def dominates(self, other: CostedPath) -> bool:
+        """True when `other` can never beat this path after any suffix.
+
+        A suffix costs the same from either arrival -- the stacks are the same
+        and an op's cost does not depend on its budget until the budget runs
+        out -- so no greater length and no greater fuel on every example means
+        no greater Kt after every suffix as well.
+        """
+        return self.length <= other.length and all(
+            mine <= theirs
+            for mine, theirs in zip(
+                self.example_fuels, other.example_fuels, strict=True
+            )
+        )
+
+
+def step_all_costed(
+    behaviour: Behaviour, example_fuels: tuple[int, ...], op: Op
+) -> tuple[Behaviour, tuple[int, ...]] | None:
+    """Apply `op` to every example, tracking the fuel each one has spent.
+
+    Each example runs under its own remaining budget, `DEFAULT_FUEL_LIMIT`
+    less what it has already spent. Returns the moved behaviour and the new
+    per-example fuels, or None if any example refuses -- for want of fuel or
+    for any other reason.
 
     Uses `step_raw` rather than guard-then-apply: an op that runs code cannot
     know its legality without running, so asking twice runs the body twice.
     """
+    if len(behaviour) != len(example_fuels):
+        raise ValueError(
+            f"{len(behaviour)} example(s) but {len(example_fuels)} fuel(s)"
+        )
     out = []
-    for stack in behaviour:
-        outcome = step_raw(op, stack, DEFAULT_FUEL_LIMIT, 0)
+    fuels = []
+    for stack, spent in zip(behaviour, example_fuels, strict=True):
+        outcome = step_raw(op, stack, DEFAULT_FUEL_LIMIT - spent, 0)
         if isinstance(outcome, str):
             return None
         out.append(outcome[0])
-    return tuple(out)
+        fuels.append(spent + outcome[1])
+    return tuple(out), tuple(fuels)
+
+
+def step_all(behaviour: Behaviour, op: Op) -> Behaviour | None:
+    """Apply `op` to every example, or None if any example's guard refuses.
+
+    Every example starts with the full budget, as the BFS does not carry fuel.
+    """
+    moved = step_all_costed(behaviour, (0,) * len(behaviour), op)
+    return None if moved is None else moved[0]
 
 
 def expand(
@@ -168,6 +254,91 @@ def expand(
         if len(found) > max_states:
             complete = False
             break
+    return found, complete
+
+
+def expand_cost(
+    inputs: Behaviour,
+    max_depth: int,
+    max_states: int | None = 2_000_000,
+    *,
+    max_score: int | None = None,
+    ops: Iterable[Op] = OPS,
+) -> tuple[dict, bool]:
+    """Uniform-cost search over behaviours by Kt. Returns {key: CostedPath}, complete.
+
+    Paths come off the queue in order of `score`, ties broken by `(length,
+    program)`, and a path shorter than `max_depth` is extended by every op of
+    `ops`. Candidates whose score exceeds `max_score` are dropped. The first
+    arrival at a behaviour is therefore its cheapest program under Kt, and
+    the root maps to the empty path.
+
+    Kt is monotone but not additive. A longer, low-fuel arrival can be the
+    cheaper one now while a shorter, high-fuel one wins after an expensive
+    common suffix, because that suffix doubles with every op of length but
+    adds to fuel. So every behaviour keeps a Pareto frontier of arrivals, and
+    an arrival is pruned only when a kept one has no greater length and no
+    greater fuel on every example; then nothing built on it could ever win.
+
+    `complete` is True once the queue is exhausted. The search stops with
+    `(found, False)` the moment a new behaviour would take it past
+    `max_states` distinct behaviours, so what it has found is still certified.
+    """
+    if max_depth < 0:
+        raise ValueError(f"max_depth must be >= 0, got {max_depth}")
+    if max_states is not None and max_states < 1:
+        raise ValueError(f"max_states must be None or >= 1, got {max_states}")
+    if max_score is not None and max_score < 0:
+        raise ValueError(f"max_score must be None or >= 0, got {max_score}")
+    ops = tuple(ops)
+
+    found: dict = {}
+    # Arrivals already expanded, per behaviour: the Pareto frontier.
+    frontier: dict = defaultdict(list)
+    root = CostedPath((), (0,) * len(inputs))
+    # (score, length, program, tiebreak, path, behaviour). The counter only
+    # keeps the heap from ever comparing paths or behaviours.
+    counter = 0
+    queue = [(root.score, root.length, root.program, counter, root, inputs)]
+    complete = True
+
+    while queue:
+        _score, _length, _program, _tiebreak, path, behaviour = heapq.heappop(queue)
+        key = behaviour_key(behaviour)
+        kept = frontier[key]
+        if any(other.dominates(path) for other in kept):
+            continue
+        if key not in found:
+            if max_states is not None and len(found) >= max_states:
+                complete = False
+                break
+            found[key] = path
+        kept.append(path)
+        if path.length >= max_depth:
+            continue
+        for op in ops:
+            moved = step_all_costed(behaviour, path.example_fuels, op)
+            if moved is None:
+                continue
+            next_behaviour, fuels = moved
+            candidate = CostedPath((*path.program, op.name), fuels)
+            if max_score is not None and candidate.score > max_score:
+                continue
+            next_key = behaviour_key(next_behaviour)
+            if any(other.dominates(candidate) for other in frontier[next_key]):
+                continue
+            counter += 1
+            heapq.heappush(
+                queue,
+                (
+                    candidate.score,
+                    candidate.length,
+                    candidate.program,
+                    counter,
+                    candidate,
+                    next_behaviour,
+                ),
+            )
     return found, complete
 
 
@@ -350,6 +521,28 @@ def replay(inputs: Behaviour, program: tuple[str, ...]) -> Behaviour:
             raise ValueError(f"{name} is illegal partway through {program}")
         behaviour = moved
     return behaviour
+
+
+def replay_costed(
+    inputs: Behaviour, program: tuple[str, ...]
+) -> tuple[Behaviour, CostedPath]:
+    """Run a program on every example, tracking fuel. Raises on an illegal step.
+
+    An unknown op name counts as an illegal step too, so the caller sees one
+    `ValueError` for any program the machine would refuse.
+    """
+    by_name = {op.name: op for op in OPS}
+    behaviour = inputs
+    fuels = (0,) * len(inputs)
+    for name in program:
+        op = by_name.get(name)
+        if op is None:
+            raise ValueError(f"unknown op {name!r} in {program}")
+        moved = step_all_costed(behaviour, fuels, op)
+        if moved is None:
+            raise ValueError(f"{name} is illegal partway through {program}")
+        behaviour, fuels = moved
+    return behaviour, CostedPath(tuple(program), fuels)
 
 
 def main(argv: list[str] | None = None) -> int:
