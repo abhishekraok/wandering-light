@@ -6,25 +6,39 @@ shortest -- which means exhaustively confirming nothing shorter works.
 """
 
 import gzip
+import itertools
 import json
+import math
 from collections import Counter
 from pathlib import Path
 
 import pytest
 
-from wandering_light.stack_machine import Config, format_stack, parse_stack
+from wandering_light.stack_machine import (
+    DEFAULT_FUEL_LIMIT,
+    Config,
+    Int,
+    Op,
+    format_stack,
+    parse_stack,
+)
 from wandering_light.stack_machine_corpus import (
     BASIS,
     FAMILIES,
     OPS,
+    CostedPath,
     Task,
     assign_split,
     behaviour_key,
     encode_task,
     expand,
+    expand_cost,
     generate,
     is_useful,
     replay,
+    replay_costed,
+    step_all,
+    step_all_costed,
 )
 
 CORPUS = (
@@ -75,7 +89,9 @@ def test_the_split_is_deterministic_and_covers_both_sides(tasks):
     assert 0.10 < share < 0.30, counts
     # and recomputing it from the task itself must agree
     for task in tasks:
-        assert assign_split(tuple(task["inputs"]), tuple(task["outputs"])) == task["split"]
+        assert (
+            assign_split(tuple(task["inputs"]), tuple(task["outputs"])) == task["split"]
+        )
 
 
 def test_no_task_appears_in_both_splits(tasks):
@@ -221,3 +237,180 @@ def test_long_labels_are_certified_shortest(tasks):
         found, complete = expand(inputs, max_depth=task["length"] - 1)
         assert complete, task
         assert target not in found, f"shorter program exists for {task}"
+
+
+# --------------------------------------------------------------------------
+# Cost-ordered search under Levin's Kt
+# --------------------------------------------------------------------------
+
+BY_NAME = {op.name: op for op in OPS}
+
+
+def test_costed_path_properties():
+    empty = CostedPath((), (0, 0))
+    assert (empty.length, empty.fuel, empty.score, empty.kt) == (0, 0, 0, 0.0)
+    path = CostedPath(("dup", "map"), (3, 9))
+    assert path.length == 2
+    assert path.fuel == 12
+    assert path.score == 12 << 2 == 48
+    assert path.kt == pytest.approx(2 + math.log2(12))
+    with pytest.raises(AttributeError):
+        path.program = ()  # frozen
+    assert not hasattr(path, "__dict__")  # slots
+
+
+def test_step_all_costed_charges_each_example_separately():
+    inputs = (parse_stack("(1 2 3) (dup mul)"), parse_stack("(4) (dup mul)"))
+    moved, fuels = step_all_costed(inputs, (5, 0), BY_NAME["map"])
+    assert moved == step_all(inputs, BY_NAME["map"])
+    # map costs 1, plus 2 per element for the body
+    assert fuels == (5 + 1 + 3 * 2, 0 + 1 + 1 * 2)
+    assert step_all_costed(inputs, (0, 0), BY_NAME["add"]) is None
+    with pytest.raises(ValueError):
+        step_all_costed(inputs, (0,), BY_NAME["dup"])
+
+
+def test_step_all_costed_respects_each_examples_remaining_budget():
+    inputs = (parse_stack("1"), parse_stack("1"))
+    assert step_all_costed(inputs, (0, DEFAULT_FUEL_LIMIT - 1), BY_NAME["dup"])
+    assert step_all_costed(inputs, (0, DEFAULT_FUEL_LIMIT), BY_NAME["dup"]) is None
+
+
+def test_replay_costed_matches_replay():
+    inputs = FAMILIES["with_fold"][0]
+    behaviour, path = replay_costed(inputs, ("fold",))
+    assert behaviour == replay(inputs, ("fold",))
+    assert path.program == ("fold",)
+    assert path.example_fuels == (1 + 3, 1 + 2, 1 + 1)
+    with pytest.raises(ValueError):
+        replay_costed(inputs, ("fold", "fold"))
+
+
+def test_expand_cost_validates_arguments():
+    inputs = FAMILIES["int_pair"][0]
+    for kwargs in (
+        {"max_depth": -1},
+        {"max_depth": 1, "max_states": 0},
+        {"max_depth": 1, "max_score": -1},
+    ):
+        with pytest.raises(ValueError):
+            expand_cost(inputs, **kwargs)
+    found, complete = expand_cost(inputs, 1, None, max_score=0)
+    assert complete
+    assert found == {behaviour_key(inputs): CostedPath((), (0, 0, 0))}
+
+
+def test_expand_cost_reaches_what_bfs_reaches_and_labels_replay():
+    for inputs in (FAMILIES["with_map"][0], FAMILIES["bool_int"][0]):
+        bfs, _ = expand(inputs, 3)
+        found, complete = expand_cost(inputs, 3)
+        assert complete
+        assert set(found) == set(bfs)
+        for key, path in found.items():
+            assert path.length >= bfs[key][0]
+            behaviour, replayed = replay_costed(inputs, path.program)
+            assert behaviour_key(behaviour) == key
+            assert replayed == path
+
+
+def exhaustive_cheapest(inputs, ops, max_depth):
+    """Every program up to max_depth, keeping the min (score, length, program)."""
+    best: dict = {}
+    for length in range(max_depth + 1):
+        for program in itertools.product(ops, repeat=length):
+            behaviour, fuels = inputs, (0,) * len(inputs)
+            for op in program:
+                stepped = step_all_costed(behaviour, fuels, op)
+                if stepped is None:
+                    break
+                behaviour, fuels = stepped
+            else:
+                path = CostedPath(tuple(op.name for op in program), fuels)
+                key = behaviour_key(behaviour)
+                rank = (path.score, path.length, path.program)
+                if key not in best or rank < best[key][0]:
+                    best[key] = (rank, path)
+    return {key: path for key, (_rank, path) in best.items()}
+
+
+def test_expand_cost_agrees_with_exhaustive_enumeration():
+    ops = tuple(
+        BY_NAME[n]
+        for n in ("dup", "swap", "drop", "over", "cons", "i", "map", "dip", "quote")
+    )
+    inputs = (parse_stack("(1 0) (dup add)"), parse_stack("(2 2 2) (0 add)"))
+    found, complete = expand_cost(inputs, 4, None, ops=ops)
+    assert complete
+    assert found == exhaustive_cheapest(inputs, ops, 4)
+
+
+def test_cheapest_program_can_be_longer_than_shortest():
+    """A handed-over quotation can be short to call and expensive to run."""
+    body = "drop 1" + " dup drop" * 10
+    inputs = (parse_stack(f"0 ({body})"), parse_stack(f"5 ({body})"))
+    bfs, _ = expand(inputs, 3)
+    found, complete = expand_cost(inputs, 3)
+    assert complete
+    key = behaviour_key((parse_stack("1"), parse_stack("1")))
+    assert bfs[key][:2] == (1, ("i",))
+    cheapest = found[key]
+    assert cheapest.length == 3
+    assert cheapest.score < replay_costed(inputs, ("i",))[1].score
+    assert cheapest.example_fuels == (3, 3)
+
+
+def _toy_op(name: str, source: int, target: int, cost: int) -> Op:
+    def guard(config):
+        top = config.stack[-1] if config.stack else None
+        return None if top == Int(source) else f"top is not {source}"
+
+    return Op(
+        name=name,
+        group="toy",
+        effect=f"( {source} -- {target} )",
+        _guard=guard,
+        _apply=lambda config: ((Int(target),), cost),
+    )
+
+
+def test_pareto_frontier_keeps_the_dominated_now_but_cheaper_later_arrival():
+    """Kt is not additive, so the first arrival at a state is not always the
+    one to extend.
+
+    State 2 is settled by `s t u` (fuel 3, length 3, score 24). Only after that
+    does `a big` arrive (fuel 14, length 2, score 56): worse now, so a search
+    that stopped extending settled states would drop it. But after the
+    expensive suffix `x`, `a big x` scores 114 << 3 = 912 against `s t u x` at
+    103 << 4 = 1648.
+    """
+    ops = (
+        _toy_op("a", 0, 4, 13),
+        _toy_op("big", 4, 2, 1),
+        _toy_op("s", 0, 1, 1),
+        _toy_op("t", 1, 5, 1),
+        _toy_op("u", 5, 2, 1),
+        _toy_op("x", 2, 3, 100),
+    )
+    inputs = ((Int(0),),)
+    found, complete = expand_cost(inputs, 4, ops=ops)
+    assert complete
+    assert found[behaviour_key(((Int(2),),))] == CostedPath(("s", "t", "u"), (3,))
+    assert found[behaviour_key(((Int(3),),))] == CostedPath(("a", "big", "x"), (114,))
+    assert found == exhaustive_cheapest(inputs, ops, 4)
+
+
+def test_expand_cost_max_score_and_max_states():
+    inputs = FAMILIES["with_map"][0]
+    full, _ = expand_cost(inputs, 3)
+    capped, complete = expand_cost(inputs, 3, max_score=40)
+    assert complete
+    assert capped == {k: p for k, p in full.items() if p.score <= 40}
+
+    for limit in (1, 50):
+        found, complete = expand_cost(inputs, 3, max_states=limit)
+        assert not complete
+        assert len(found) <= limit
+        assert all(full[k] == p for k, p in found.items())
+    found, complete = expand_cost(inputs, 3, max_states=len(full))
+    assert complete
+    assert found == full
