@@ -6,6 +6,7 @@ import sys
 import time
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -278,6 +279,28 @@ def test_the_widening_beam_spends_one_budget_across_its_restarts():
     assert fuelled.executions < result.executions
 
 
+class DistractedScorer(WitnessScorer):
+    """The witness's op second at each witness state: a bigger bonus on another.
+
+    A beam of one follows the distractor and never fits; a wide enough beam
+    keeps the witness's path beside it.
+    """
+
+    def log_probs(self, blocks, legal):
+        logits = np.zeros(legal.shape)
+        for row, block in enumerate(blocks):
+            want = self.want.get((block.shape, block.tobytes()))
+            if want is not None:
+                logits[row, want] = self.bonus
+                others = [i for i in np.flatnonzero(legal[row]) if i != want]
+                if others:
+                    logits[row, others[0]] = self.bonus + 1.0
+        logits = np.where(legal, logits, -np.inf)
+        peak = logits.max(axis=1, keepdims=True)
+        shifted = logits - np.where(np.isfinite(peak), peak, 0.0)
+        return shifted - np.log(np.exp(shifted).sum(axis=1, keepdims=True))
+
+
 def test_the_widening_beam_stops_at_a_fit_or_the_clock():
     task = witness_task("sum", 4)
     scorer = WitnessScorer(task, 2.0)
@@ -300,20 +323,24 @@ def test_the_widening_beam_stops_at_a_fit_or_the_clock():
         "saturated": False,
     }
     # A width too narrow to fit is restarted wider until one does; the depth
-    # is the fitting restart's, the costs the sum.
+    # is the fitting restart's, the costs the sum over every restart.
+    distracted = DistractedScorer(task, 2.0)
+    assert beam_solve(task, distracted, beam_width=1, max_depth=7).program is None
     narrow, report = widening_beam_solve(
-        task, scorer, budget=10**9, start_width=1, max_depth=7, guard="both"
+        task, distracted, budget=10**9, start_width=1, max_depth=7
     )
     assert narrow.termination == "fit"
     assert narrow.program == flat.program
-    assert report["fit_width"] == report["widths"][-1]["width"]
-    assert report["fit_width"] > 1
-    assert report["widths"][-1]["termination"] == "fit"
-    assert all(w["termination"] != "fit" for w in report["widths"][:-1])
-    assert narrow.executions == sum(w["executions"] for w in report["widths"])
-    assert narrow.depth == len(narrow.program)
-    assert report["largest_width_completed"] == report["fit_width"]
+    assert [w["width"] for w in report["widths"]] == [1, 2, 4, 8, 16]
+    assert [w["termination"] for w in report["widths"]] == ["max_depth"] * 4 + ["fit"]
+    assert report["fit_width"] == report["largest_width_completed"] == 16
     assert not report["saturated"]
+    alone = beam_solve(task, distracted, beam_width=16, max_depth=7)
+    assert alone.program == narrow.program
+    assert report["widths"][-1]["executions"] == alone.executions
+    assert narrow.executions == sum(w["executions"] for w in report["widths"])
+    assert narrow.executions > alone.executions
+    assert narrow.depth == len(narrow.program) == alone.depth
     past = time.perf_counter() - 1
     timed, report = widening_beam_solve(
         task, scorer, budget=10**9, start_width=8, max_depth=7, deadline=past
