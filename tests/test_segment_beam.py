@@ -17,6 +17,7 @@ from wandering_light.stack_beam import (
     _prepare,
     _run_segment,
     _Tally,
+    block_encoder,
     closed_cuts,
     segment_beam_solve,
     segment_witness_ranks,
@@ -30,7 +31,12 @@ from wandering_light.stack_pbe import (
     draw_task,
 )
 from wandering_light.stack_pbe_eval import grade
-from wandering_light.stack_policy import encode_item, item_array
+from wandering_light.stack_policy import (
+    DIFFERENCE,
+    MACHINE,
+    SEP,
+    node_encoder,
+)
 
 
 def task_for(name: str, seed: int = 4):
@@ -39,7 +45,7 @@ def task_for(name: str, seed: int = 4):
 
 
 def states_along(task, program):
-    inputs, _outputs, _targets = _prepare(task, "both")
+    inputs, _outputs = _prepare(task, "both")
     states = [inputs]
     for name in program:
         states.append(step_all_quiet(states[-1], OP_BY_NAME[name])[0])
@@ -50,21 +56,32 @@ class WitnessScorer:
     """``bonus`` on the witness's next op at each witness state; uniform elsewhere.
 
     A state is recognised by its encoded block, which is what a real scorer
-    sees, so the stub cannot read anything the policy could not.
+    sees, so the stub cannot read anything the policy could not. With no
+    ``encoding`` the stub has only ``log_probs``, like the tests' other stubs,
+    and the search must feed it the ``machine`` layout; given one, it has
+    `PolicyScorer`'s ``encoder`` and ``encode`` in that layout, and recognises
+    only blocks built in it.
     """
 
-    def __init__(self, task, bonus: float = 5.0):
-        _inputs, _outputs, targets = _prepare(task, "both")
+    def __init__(self, task, bonus: float = 5.0, encoding: str | None = None):
+        _inputs, outputs = _prepare(task, "both")
         self.bonus = bonus
         self.want = {}
+        if encoding is not None:
+            self.encoding = encoding
+            self.encoder = lambda target_stacks: node_encoder(target_stacks, encoding)
+            self.encode = lambda product, target_stacks: self.encoder(target_stacks)(
+                product
+            )
+        encode = node_encoder(outputs, encoding or MACHINE)
         states = states_along(task, task.program)[:-1]
         for state, name in zip(states, task.program, strict=True):
-            block = item_array(
-                [encode_item(s, t) for s, t in zip(state, targets, strict=True)]
-            )
+            block = encode(state)
             self.want[block.shape, block.tobytes()] = OP_INDEX[name]
+        self.seen = []  # every block scored, for the layout tests
 
     def log_probs(self, blocks, legal):
+        self.seen.extend(blocks)
         logits = np.zeros(legal.shape)
         for row, block in enumerate(blocks):
             want = self.want.get((block.shape, block.tobytes()))
@@ -122,7 +139,7 @@ def test_a_segment_too_short_for_the_witness_cannot_close_it():
 def test_merge_keeps_the_best_score_whatever_the_root_order():
     """Two roots on one product close the same states; the better root's paths win."""
     task = task_for(TWO)
-    inputs, outputs, targets = _prepare(task, "both")
+    inputs, outputs = _prepare(task, "both")
     good = (inputs, (), 0.0)
     worse = (inputs, ("dup", "drop"), -3.0)
     knobs = {
@@ -135,10 +152,11 @@ def test_merge_keeps_the_best_score_whatever_the_root_order():
         "stop_at_fit": False,
     }
     scorer = WitnessScorer(task)
-    alone = _run_segment([good], outputs, targets, scorer, _Tally(), **knobs)[2]
+    encode = block_encoder(scorer, outputs)
+    alone = _run_segment([good], outputs, encode, scorer, _Tally(), **knobs)[2]
     for roots in ([good, worse], [worse, good]):
         stop, _program, closed = _run_segment(
-            roots, outputs, targets, scorer, _Tally(), **knobs
+            roots, outputs, encode, scorer, _Tally(), **knobs
         )
         assert stop is None
         assert closed == alone
@@ -259,3 +277,100 @@ def test_witness_rank_counts_a_closed_state_already_expanded():
     rows = segment_witness_ranks(task, Flat(), beam_width=28, segment_depth=2)
     assert rows[0]["rank"] is not None
     assert rows[0]["eligible_rank"] is None
+
+
+# ---------------------------------------------------------------------------
+# Item layouts: the search builds every block in the scorer's own layout
+# ---------------------------------------------------------------------------
+
+
+def test_block_encoder_feeds_a_bare_scorer_the_machine_layout():
+    task = task_for(TWO)
+    inputs, outputs = _prepare(task, "both")
+    bare = WitnessScorer(task)
+    assert not hasattr(bare, "encoder")
+    machine = node_encoder(outputs, MACHINE)(inputs)
+    assert np.array_equal(block_encoder(bare, outputs)(inputs), machine)
+    for encoding in (MACHINE, DIFFERENCE):
+        scorer = WitnessScorer(task, encoding=encoding)
+        got = block_encoder(scorer, outputs)(inputs)
+        assert np.array_equal(got, node_encoder(outputs, encoding)(inputs))
+    difference = block_encoder(WitnessScorer(task, encoding=DIFFERENCE), outputs)
+    assert difference(inputs).shape[1] > machine.shape[1]
+
+
+def seps_per_row(block) -> list[int]:
+    return [int((row == SEP).sum()) for row in block]
+
+
+@pytest.mark.parametrize("encoding", [None, MACHINE, DIFFERENCE])
+def test_the_segment_search_finds_the_witness_in_the_scorer_layout(encoding):
+    task = task_for(TWO)
+    scorer = WitnessScorer(task, encoding=encoding)
+    result = segment_beam_solve(task, scorer, **SMALL)
+    assert result.termination == "fit" and result.program == task.program
+    # Every block the search scored is in the scorer's layout: a difference
+    # item ends in a second SEP and its flags, a machine item has one SEP.
+    inputs, outputs = _prepare(task, "both")
+    seps = 2 if encoding == DIFFERENCE else 1
+    assert scorer.seen
+    assert all(seps_per_row(block) == [seps] * task.examples for block in scorer.seen)
+    encode = node_encoder(outputs, encoding or MACHINE)
+    assert np.array_equal(scorer.seen[0], encode(inputs))
+
+
+def test_a_scorer_in_the_other_layout_does_not_recognise_the_witness():
+    """The stub keys states by block, so a search in the wrong layout loses it."""
+    task = task_for(TWO)
+    scorer = WitnessScorer(task, encoding=DIFFERENCE)
+    _inputs, outputs = _prepare(task, "both")
+    machine = node_encoder(outputs, MACHINE)
+    for state in states_along(task, task.program)[:-1]:
+        block = machine(state)
+        assert (block.shape, block.tobytes()) not in scorer.want
+
+    # And so the search, fed the machine layout, is not led to the witness.
+    class MachineFed:
+        encoder = staticmethod(node_encoder)
+        log_probs = scorer.log_probs
+
+    result = segment_beam_solve(task, MachineFed(), **SMALL)
+    assert result.program != task.program
+
+
+def test_run_segment_takes_the_encoder_and_scores_through_it():
+    task = task_for(TWO)
+    inputs, outputs = _prepare(task, "both")
+    scorer = WitnessScorer(task, encoding=DIFFERENCE)
+    knobs = {
+        "beam_width": 2,
+        "segment_depth": 6,
+        "horizon": 18,
+        "guard": "both",
+        "budget": None,
+        "max_state_atoms": None,
+        "stop_at_fit": False,
+    }
+    encode = block_encoder(scorer, outputs)
+    stop, _program, closed = _run_segment(
+        [(inputs, (), 0.0)], outputs, encode, scorer, _Tally(), **knobs
+    )
+    assert stop is None
+    assert states_along(task, task.program)[6] in closed
+    assert all(seps_per_row(block) == [2] * task.examples for block in scorer.seen)
+
+
+def test_witness_ranks_score_the_path_in_the_scorer_layout():
+    task = task_for(TWO)
+    for encoding in (MACHINE, DIFFERENCE):
+        scorer = WitnessScorer(task, encoding=encoding)
+        rows = segment_witness_ranks(task, scorer, **SMALL)
+        assert [row["rank"] for row in rows] == [1, 1]
+        assert not any(row["forced"] for row in rows)
+        seps = 2 if encoding == DIFFERENCE else 1
+        assert all(
+            seps_per_row(block) == [seps] * task.examples for block in scorer.seen
+        )
+    lost = WitnessScorer(task, bonus=-20.0, encoding=DIFFERENCE)
+    rows = segment_witness_ranks(task, lost, **{**SMALL, "beam_width": 1, "roots": 1})
+    assert rows[0]["rank"] is None and rows[1]["forced"]
