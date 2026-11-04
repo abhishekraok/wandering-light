@@ -256,13 +256,15 @@ class TestTrajectoryGraphExpansion:
         assert expansion.failed_transitions == 1
         assert expansion.certified_depth == 1
 
-    def test_graph_state_key_agrees_with_typed_list_search_key(self):
-        # The "may these two states be merged" rule is implemented twice: here
-        # in _freeze, and in TypedList.search_key for the BFS solver. They
-        # cannot share code -- the key shapes differ -- so nothing stops one
-        # from drifting, and a disagreement is precisely the bug class that
-        # inflates certified distances. Pin them to the same partition.
+    def test_graph_state_key_is_typed_list_search_key(self):
+        # The graph and the BFS solver must prune on one state identity; a
+        # second implementation could drift and inflate certified distances.
+        from wandering_light.proposer_pilot import graph as graph_module
         from wandering_light.proposer_pilot.graph import _state_key
+
+        assert not hasattr(graph_module, "_freeze")
+        for tl in (_tl([-0.0], float), _tl([{"a": [0.0]}], dict), _tl([1, 2])):
+            assert _state_key(tl) == tl.search_key()
 
         values = [
             _tl([0.0], float),
@@ -316,6 +318,46 @@ class TestTrajectoryGraphExpansion:
         assert negative_text is not None
         assert expansion.node_depths[negative_text] == 2
         assert g.find(_tl(["0.0"], str)) != negative_text
+
+    def test_find_answer_uses_answer_equality_and_takes_shallowest(self):
+        to_neg_zero = FunctionDef(
+            name="to_neg_zero",
+            input_type="builtins.float",
+            output_type="builtins.float",
+            code="return -0.0 * x",
+        )
+        absolute = FunctionDef(
+            name="absolute",
+            input_type="builtins.float",
+            output_type="builtins.float",
+            code="return abs(x)",
+        )
+        g = TrajectoryGraph(functions=FunctionDefSet([to_neg_zero, absolute]))
+        root = g.add_root(_tl([1.0], float))
+
+        expansion = g.expand(root, max_depth=2)
+        negative = g.find(_tl([-0.0], float))
+        positive = g.find(_tl([0.0], float))
+        answer = g.find_answer(expansion, _tl([0.0], float))
+
+        # Distinct search states, one answer: the shallower one wins.
+        assert negative is not None and positive is not None
+        assert negative != positive
+        assert expansion.node_depths[negative] == 1
+        assert expansion.node_depths[positive] == 2
+        assert answer == negative
+        assert g.find_answer(expansion, _tl([-0.0], float)) == negative
+        assert g.find_answer(expansion, _tl([7.0], float)) is None
+
+    def test_find_answer_ignores_nodes_outside_the_expansion(self):
+        g = TrajectoryGraph(functions=FUNCTIONS)
+        root = g.add_root(_tl([1]))
+        g.apply(g.apply(g.apply(root, inc), inc), inc)
+
+        expansion = g.expand(root, max_depth=1)
+
+        assert g.find(_tl([4])) is not None
+        assert g.find_answer(expansion, _tl([4])) is None
 
     def test_transition_budget_only_certifies_completed_layers(self):
         g = TrajectoryGraph(functions=FUNCTIONS)

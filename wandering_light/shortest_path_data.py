@@ -3,9 +3,10 @@
 import gzip
 import io
 import json
+from dataclasses import dataclass
 from itertools import combinations
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from wandering_light.common_functions import basic_fns
 from wandering_light.executor import Executor
@@ -125,8 +126,8 @@ def bounded_relabel(
             search_transitions=expansion.attempted_transitions,
             search_stop_reason=expansion.stop_reason,
         )
-        destination = graph.find(target)
-        if destination is not None and destination in expansion.node_depths:
+        destination = graph.find_answer(expansion, target)
+        if destination is not None:
             path = graph.shortest_path(root, destination)
             if path is None:
                 raise AssertionError("reached destination has no graph path")
@@ -251,6 +252,140 @@ def certified_specs(
             record_to_spec(record, available_functions=available_functions)
             for record in selected
         ]
+    )
+
+
+type RecertificationOutcome = Literal["certified", "inflated", "inconclusive"]
+
+
+@dataclass(frozen=True)
+class ShortestPathRecertification:
+    """Fresh evidence about a recorded shortest-path distance.
+
+    ``certified``: a complete expansion to ``recorded_distance - 1`` found no
+    answer-equal state, so the recorded distance is a true lower bound.
+    ``inflated``: an answer-equal state was reached at ``shorter_distance``.
+    ``inconclusive``: a budget stopped the expansion before either was shown.
+    """
+
+    outcome: RecertificationOutcome
+    recorded_distance: int
+    shorter_distance: int | None
+    search_depth: int
+    certified_search_depth: int
+    complete_expansion: bool
+    states_searched: int
+    transitions_attempted: int
+    stop_reason: str | None
+
+    @property
+    def ok(self) -> bool:
+        return self.outcome == "certified"
+
+
+def recertify_shortest_path(
+    input_list: TypedList,
+    target: TypedList,
+    recorded_distance: int,
+    *,
+    available_functions: FunctionDefSet = basic_fns,
+    max_states: int | None = None,
+    max_transitions: int | None = None,
+) -> ShortestPathRecertification:
+    """Re-prove that ``target`` is unreachable in fewer than ``recorded_distance``.
+
+    Only the lower bound is checked here; the caller is responsible for a
+    witness of length ``recorded_distance`` (see
+    ``recertify_shortest_v1_record``). Reaching the target is judged by answer
+    equality (``TypedList.canonical_key``), while the search itself prunes on
+    the finer ``search_key``.
+    """
+    if isinstance(recorded_distance, bool) or not isinstance(recorded_distance, int):
+        raise ValueError(
+            f"recorded_distance must be an int, got {type(recorded_distance).__name__}"
+        )
+    if recorded_distance < 0:
+        raise ValueError(f"recorded_distance must be non-negative: {recorded_distance}")
+    if recorded_distance == 0 and target != input_list:
+        raise ValueError("recorded_distance 0 requires target to equal input")
+
+    search_depth = max(0, recorded_distance - 1)
+    graph = TrajectoryGraph(functions=available_functions)
+    root = graph.add_root(input_list)
+    expansion = graph.expand(
+        root,
+        max_depth=search_depth,
+        max_states=max_states,
+        max_transitions=max_transitions,
+    )
+
+    shorter_distance: int | None = None
+    if recorded_distance > 0:
+        destination = graph.find_answer(expansion, target)
+        if destination is not None:
+            shorter_distance = expansion.node_depths[destination]
+
+    outcome: RecertificationOutcome
+    if shorter_distance is not None:
+        outcome = "inflated"
+    elif expansion.complete:
+        outcome = "certified"
+    else:
+        outcome = "inconclusive"
+    return ShortestPathRecertification(
+        outcome=outcome,
+        recorded_distance=recorded_distance,
+        shorter_distance=shorter_distance,
+        search_depth=search_depth,
+        certified_search_depth=expansion.certified_depth,
+        complete_expansion=expansion.complete,
+        states_searched=expansion.num_reached_states,
+        transitions_attempted=expansion.attempted_transitions,
+        stop_reason=expansion.stop_reason,
+    )
+
+
+def recertify_shortest_v1_record(
+    record: dict[str, Any],
+    *,
+    available_functions: FunctionDefSet = basic_fns,
+    max_states: int | None = None,
+    max_transitions: int | None = None,
+) -> ShortestPathRecertification:
+    """Check a committed ``shortest_v1`` record from scratch.
+
+    The stored witness must reproduce the recorded output (upper bound), and a
+    fresh bounded search must show nothing shorter exists (lower bound).
+    """
+    if record.get("schema_version") != SCHEMA_VERSION:
+        raise ValueError(f"unsupported schema_version {record.get('schema_version')!r}")
+    if record.get("certified") is not True:
+        raise ValueError("record is not marked certified")
+    if record.get("output") is None:
+        raise ValueError("record has no output")
+    names = record.get("relabeled_functions")
+    distance = record.get("relabeled_length")
+    if not isinstance(names, list) or len(names) != distance:
+        raise ValueError("relabeled_functions does not match relabeled_length")
+    unknown = [
+        name for name in names if name not in available_functions.name_to_function
+    ]
+    if unknown:
+        raise ValueError(f"witness uses unknown functions: {unknown}")
+
+    input_list = TypedList.from_str(record["input"])
+    target = TypedList.from_str(record["output"])
+    witness = [available_functions.name_to_function[name] for name in names]
+    if not _execute_candidate(input_list, target, witness, available_functions):
+        raise ValueError("stored witness does not reproduce the recorded output")
+
+    return recertify_shortest_path(
+        input_list,
+        target,
+        distance,
+        available_functions=available_functions,
+        max_states=max_states,
+        max_transitions=max_transitions,
     )
 
 

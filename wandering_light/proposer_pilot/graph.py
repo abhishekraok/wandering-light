@@ -6,7 +6,6 @@ them; multiple edges between the same pair are allowed when distinct functions
 yield the same result.
 """
 
-import math
 from collections import deque
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
@@ -18,59 +17,13 @@ from wandering_light.function_def import FunctionDef, FunctionDefList, FunctionD
 from wandering_light.trajectory import Trajectory, TrajectorySpec
 from wandering_light.typed_list import TypedList
 
-type StateKey = tuple[str, tuple[object, ...]]
+type StateKey = tuple[type, object]
 type FunctionFingerprint = tuple[tuple[str, str, str, str], ...]
 
 
-def _type_name(t: type) -> str:
-    return f"{t.__module__}.{t.__qualname__}"
-
-
-def _freeze(value: object) -> object:
-    """Return a deterministic, hashable representation of a builtin value."""
-    value_type = _type_name(type(value))
-    if value is None:
-        return (value_type, None)
-    if isinstance(value, bool | int | str | bytes):
-        return (value_type, value)
-    if isinstance(value, float):
-        # Signed zero is kept: ``-0.0 == 0.0`` in Python, but ``float_to_str``
-        # maps them to unequal strings, so merging the two states would leave
-        # one set of successors unexplored and inflate the certified distance of
-        # anything reachable only through them.  (``f_fraction`` and ``f_sin``
-        # also preserve the sign, but their outputs still compare equal, so they
-        # carry the difference rather than expose it.)  NaNs stay collapsed --
-        # no basis function observes their sign or payload.
-        normalized = "nan" if math.isnan(value) else value.hex()
-        return (value_type, normalized)
-    if isinstance(value, bytearray):
-        return (value_type, bytes(value))
-    if isinstance(value, complex):
-        return (value_type, _freeze(value.real), _freeze(value.imag))
-    if isinstance(value, range):
-        return (value_type, value.start, value.stop, value.step)
-    if isinstance(value, list | tuple):
-        return (value_type, tuple(_freeze(item) for item in value))
-    if isinstance(value, set | frozenset):
-        return (value_type, frozenset(_freeze(item) for item in value))
-    if isinstance(value, dict):
-        return (
-            value_type,
-            frozenset((_freeze(key), _freeze(item)) for key, item in value.items()),
-        )
-    if hasattr(value, "model_dump"):
-        return (value_type, _freeze(value.model_dump()))
-    if hasattr(value, "dict"):
-        return (value_type, _freeze(value.dict()))
-    try:
-        hash(value)
-    except TypeError:
-        return (value_type, repr(value))
-    return (value_type, value)
-
-
 def _state_key(tl: TypedList) -> StateKey:
-    return (_type_name(tl.item_type), tuple(_freeze(item) for item in tl.items))
+    """Search identity of a state: the same partition the BFS solver prunes on."""
+    return tl.search_key()
 
 
 def _fingerprint(functions: FunctionDefSet) -> FunctionFingerprint:
@@ -326,7 +279,27 @@ class TrajectoryGraph:
         return sum(len(n.out_edges) for n in self._nodes.values())
 
     def find(self, tl: TypedList) -> int | None:
+        """Return the node with exactly this search identity, if any."""
         return self._state_index.get(_state_key(tl))
+
+    def find_answer(self, expansion: ExpansionResult, target: TypedList) -> int | None:
+        """Return the shallowest expanded node that is answer-equal to ``target``.
+
+        Answer equality is ``TypedList.canonical_key`` -- the relation solvers
+        are graded by -- which is coarser than the search identity: ``[-0.0]``
+        and ``[0.0]`` are distinct states but the same answer. Ties at equal
+        depth go to the node reached first in breadth-first order.
+        """
+        self._validate_expansion(expansion)
+        target_key = target.canonical_key()
+        best: int | None = None
+        best_depth = 0
+        for node_id, depth in expansion.node_depths.items():
+            if best is not None and depth >= best_depth:
+                continue
+            if self._nodes[node_id].typed_list.canonical_key() == target_key:
+                best, best_depth = node_id, depth
+        return best
 
     def shortest_path(self, src_id: int, dst_id: int) -> list[FunctionDef] | None:
         if src_id not in self._nodes or dst_id not in self._nodes:
