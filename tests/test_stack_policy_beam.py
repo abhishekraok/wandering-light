@@ -247,11 +247,15 @@ def test_no_state_cap_is_the_unbounded_search():
             unbounded.expansions,
             unbounded.depth,
         )
-    # A cap below every successor empties the frontier at the first layer.
-    starved = beam_solve(task, scorer, max_state_atoms=0, **settings)
+    # A cap of zero keeps only atom-free states: `drop` empties a stack, and
+    # nothing is legal on an empty product, so the frontier empties right after.
+    emptied = _Watcher()
+    starved = beam_solve(task, scorer, max_state_atoms=0, observer=emptied, **settings)
     assert starved.program is None
     assert starved.termination == "frontier_exhausted"
-    assert starved.depth == 1
+    assert emptied.retained
+    assert all(product == ((),) * task.examples for _, product in emptied.retained)
+    assert starved.depth <= 2
 
 
 def test_beam_reports_max_depth_when_the_witness_is_out_of_reach():
