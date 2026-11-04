@@ -17,6 +17,7 @@ from wandering_light.stack_beam import (
     _prepare,
     _run_segment,
     _Tally,
+    block_encoder,
     closed_cuts,
     segment_beam_solve,
     segment_witness_ranks,
@@ -30,7 +31,16 @@ from wandering_light.stack_pbe import (
     draw_task,
 )
 from wandering_light.stack_pbe_eval import grade
-from wandering_light.stack_policy import encode_item, item_array
+from wandering_light.stack_policy import (
+    DIFFERENCE,
+    FLAG_BASE,
+    MACHINE,
+    SEP,
+    encode_item,
+    encode_targets,
+    item_array,
+    node_encoder,
+)
 
 
 def task_for(name: str, seed: int = 4):
@@ -39,7 +49,7 @@ def task_for(name: str, seed: int = 4):
 
 
 def states_along(task, program):
-    inputs, _outputs, _targets = _prepare(task, "both")
+    inputs, _outputs = _prepare(task, "both")
     states = [inputs]
     for name in program:
         states.append(step_all_quiet(states[-1], OP_BY_NAME[name])[0])
@@ -54,7 +64,8 @@ class WitnessScorer:
     """
 
     def __init__(self, task, bonus: float = 5.0):
-        _inputs, _outputs, targets = _prepare(task, "both")
+        _inputs, _outputs = _prepare(task, "both")
+        targets = encode_targets(_outputs)
         self.bonus = bonus
         self.want = {}
         states = states_along(task, task.program)[:-1]
@@ -122,7 +133,8 @@ def test_a_segment_too_short_for_the_witness_cannot_close_it():
 def test_merge_keeps_the_best_score_whatever_the_root_order():
     """Two roots on one product close the same states; the better root's paths win."""
     task = task_for(TWO)
-    inputs, outputs, targets = _prepare(task, "both")
+    inputs, outputs = _prepare(task, "both")
+    encode = block_encoder(WitnessScorer(task), outputs)
     good = (inputs, (), 0.0)
     worse = (inputs, ("dup", "drop"), -3.0)
     knobs = {
@@ -135,10 +147,10 @@ def test_merge_keeps_the_best_score_whatever_the_root_order():
         "stop_at_fit": False,
     }
     scorer = WitnessScorer(task)
-    alone = _run_segment([good], outputs, targets, scorer, _Tally(), **knobs)[2]
+    alone = _run_segment([good], outputs, encode, scorer, _Tally(), **knobs)[2]
     for roots in ([good, worse], [worse, good]):
         stop, _program, closed = _run_segment(
-            roots, outputs, targets, scorer, _Tally(), **knobs
+            roots, outputs, encode, scorer, _Tally(), **knobs
         )
         assert stop is None
         assert closed == alone
@@ -259,3 +271,72 @@ def test_witness_rank_counts_a_closed_state_already_expanded():
     rows = segment_witness_ranks(task, Flat(), beam_width=28, segment_depth=2)
     assert rows[0]["rank"] is not None
     assert rows[0]["eligible_rank"] is None
+
+
+class DifferenceWitnessScorer(WitnessScorer):
+    """`WitnessScorer` that reads `difference` blocks, as a `PolicyScorer` would.
+
+    It recognises witness states only by their `difference` block, so a search
+    that built `machine` blocks for it would never see the bonus.
+    """
+
+    encoding = DIFFERENCE
+
+    def __init__(self, task, bonus: float = 5.0):
+        _inputs, outputs = _prepare(task, "both")
+        encode = node_encoder(outputs, DIFFERENCE)
+        self.bonus = bonus
+        self.want = {}
+        self.seen = []
+        states = states_along(task, task.program)[:-1]
+        for state, name in zip(states, task.program, strict=True):
+            block = encode(state)
+            self.want[block.shape, block.tobytes()] = OP_INDEX[name]
+
+    def encoder(self, target_stacks):
+        return node_encoder(target_stacks, self.encoding)
+
+    def log_probs(self, blocks, legal):
+        self.seen.extend(blocks)
+        return super().log_probs(blocks, legal)
+
+
+def test_block_encoder_defaults_a_duck_typed_scorer_to_machine():
+    task = task_for(TWO)
+    inputs, outputs = _prepare(task, "both")
+    targets = encode_targets(outputs)
+    block = block_encoder(WitnessScorer(task), outputs)(inputs)
+    want = item_array([encode_item(s, t) for s, t in zip(inputs, targets, strict=True)])
+    assert block.dtype == np.int16
+    assert block.shape == want.shape and block.tobytes() == want.tobytes()
+    assert block.tobytes() == node_encoder(outputs, MACHINE)(inputs).tobytes()
+
+
+def test_block_encoder_uses_the_scorers_own_layout():
+    task = task_for(TWO)
+    inputs, outputs = _prepare(task, "both")
+    block = block_encoder(DifferenceWitnessScorer(task), outputs)(inputs)
+    assert block.tobytes() == node_encoder(outputs, DIFFERENCE)(inputs).tobytes()
+    assert (block >= FLAG_BASE).any()
+
+
+def test_segment_search_and_ranks_build_blocks_in_the_scorers_layout():
+    task = task_for(TWO)
+    scorer = DifferenceWitnessScorer(task)
+    result = segment_beam_solve(task, scorer, **SMALL)
+    assert result.termination == "fit" and result.program == task.program
+    assert scorer.seen and all((block >= FLAG_BASE).any() for block in scorer.seen)
+    rows = segment_witness_ranks(task, DifferenceWitnessScorer(task), **SMALL)
+    assert [row["rank"] for row in rows] == [1, 1]
+
+
+def test_flat_beam_builds_blocks_in_the_scorers_layout():
+    from wandering_light.stack_beam import beam_solve
+
+    task = task_for("sum_positive")
+    scorer = DifferenceWitnessScorer(task)
+    result = beam_solve(task, scorer, beam_width=2, max_depth=len(task.program))
+    assert result.termination == "fit" and result.program == task.program
+    # Every block carries a second SEP and flags after the target.
+    for block in scorer.seen:
+        assert ((block == SEP).sum(axis=1) == 2).all()
