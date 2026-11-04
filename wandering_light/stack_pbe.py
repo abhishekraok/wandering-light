@@ -37,12 +37,15 @@ which ``filter`` and ``fold`` reject outright. See
 from __future__ import annotations
 
 import argparse
+import functools
 import gzip
 import hashlib
+import inspect
 import json
 import math
 import random
 import sys
+import textwrap
 import time
 from collections import Counter
 from dataclasses import asdict, dataclass, field
@@ -4074,6 +4077,79 @@ def catalogue_digest(catalogue: Sequence[Behaviour] = CATALOGUE) -> str:
     return "sha256:" + hashlib.sha256(payload.encode()).hexdigest()
 
 
+def _callable_source(fn: object, _active: frozenset[int] = frozenset()) -> str:
+    """A string that changes when the behaviour of ``fn`` could have.
+
+    ``inspect.getsource`` alone is not enough. Every sampler a factory such as
+    ``_list_of`` returns has the same source line, and ``_list_of(SMALL)`` and
+    ``_list_of(POSITIVE)`` differ only by the value the lambda captured; so the
+    captured values are appended, and a captured function is expanded the same
+    way, recursively. A builtin such as ``max`` has no source at all and is
+    named instead of silently hashing as empty. Globals a function merely
+    refers to are not followed: a change there is a change to this module,
+    which is recorded by the commit, not by the manifest.
+    """
+    if fn is None:
+        return ""
+    if isinstance(fn, functools.partial):
+        return (
+            f"partial({_callable_source(fn.func, _active)}, "
+            f"args={fn.args!r}, keywords={sorted(fn.keywords.items())!r})"
+        )
+    if id(fn) in _active:  # a closure that captured itself
+        return f"<recursive {getattr(fn, '__qualname__', fn)!r}>"
+    try:
+        source = textwrap.dedent(inspect.getsource(fn))
+    except (OSError, TypeError):
+        module = getattr(fn, "__module__", None) or type(fn).__module__
+        name = getattr(fn, "__qualname__", None) or getattr(fn, "__name__", None)
+        if name is None:
+            raise TypeError(f"cannot describe the source of {fn!r}") from None
+        return f"<builtin {module}.{name}>"
+    code = getattr(fn, "__code__", None)
+    closure = getattr(fn, "__closure__", None)
+    if code is None or not closure:
+        return source
+    active = _active | {id(fn)}
+    captured = []
+    for name, cell in zip(code.co_freevars, closure, strict=True):
+        try:
+            value = cell.cell_contents
+        except ValueError:
+            captured.append(f"{name}=<empty cell>")
+            continue
+        if callable(value):
+            captured.append(f"{name}={_callable_source(value, active)}")
+        else:
+            captured.append(f"{name}={value!r}")
+    return source + "\n# captured: " + "; ".join(captured)
+
+
+def catalogue_source_digest(catalogue: Sequence[Behaviour] = CATALOGUE) -> str:
+    """A digest over what the catalogue *does*: its Python, not just its text.
+
+    ``catalogue_digest`` covers names, summaries and witnesses, which is what a
+    label depends on. It cannot see a sampler edit, and a sampler edit changes
+    every task of a behaviour without touching a witness. This digest covers
+    the source of each behaviour's ``reference``, ``sample`` and ``accept``
+    (``None`` hashes as empty), with captured values and named builtins so
+    that functions ``inspect.getsource`` cannot tell apart are told apart.
+    """
+    payload = json.dumps(
+        [
+            [
+                b.name,
+                _callable_source(b.reference),
+                _callable_source(b.sample),
+                _callable_source(b.accept),
+            ]
+            for b in catalogue
+        ],
+        sort_keys=True,
+    )
+    return "sha256:" + hashlib.sha256(payload.encode()).hexdigest()
+
+
 def _sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -4134,6 +4210,7 @@ def write_corpus(
             "behaviours": len(catalogue),
             "skeletons": len({b.skeleton for b in catalogue}),
             "digest": catalogue_digest(catalogue),
+            "source_digest": catalogue_source_digest(catalogue),
         },
         "counts": {
             "tasks": len(tasks),
@@ -4158,19 +4235,86 @@ _TUPLE_FIELDS = (
 )
 
 
-def load(path: str | Path) -> list[Task]:
+GENERATOR = "wandering_light.stack_pbe"
+_VERIFY_MODES = ("local", "hub", "off")
+
+
+def verify_corpus(corpus_dir: str | Path, *, hub: bool = False) -> dict[str, str]:
+    """Check that a corpus directory is the one its manifest describes.
+
+    Payloads are not in git, and ``load`` reads whatever the manifest names, so
+    a regenerated payload would otherwise load exactly like the published one.
+    Three things are checked, and the digests checked are returned:
+
+    * every split file's sha256 matches the manifest;
+    * a manifest this module generated names the *live* catalogue -- its
+      ``digest`` always, its ``source_digest`` when the manifest has one
+      (older manifests lack it and are not refused for that). Corpora from
+      other generators have their own catalogues and are not checked here;
+    * with ``hub``, the pinned Hub revision holds the same manifest and the
+      same payload bytes. A manifest that was never published has no revision
+      to check against and is refused.
+    """
+    from wandering_light import corpus_hub
+
+    root = Path(corpus_dir)
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    checked = corpus_hub.verify_corpus_files(root)
+    if manifest.get("generator") == GENERATOR:
+        block = manifest.get("catalogue")
+        block = block if isinstance(block, dict) else {}
+        live = catalogue_digest()
+        if block.get("digest") != live:
+            raise ValueError(
+                f"catalogue digest mismatch: manifest says {block.get('digest')}, "
+                f"live catalogue is {live}"
+            )
+        checked["catalogue"] = live
+        if "source_digest" in block:
+            live_source = catalogue_source_digest()
+            if block["source_digest"] != live_source:
+                raise ValueError(
+                    "catalogue source_digest mismatch: manifest says "
+                    f"{block['source_digest']}, live catalogue is {live_source}"
+                )
+            checked["catalogue_source"] = live_source
+    if hub:
+        location = manifest.get("hub")
+        location = location if isinstance(location, dict) else {}
+        repo_id, revision = location.get("repo_id"), location.get("revision")
+        if not repo_id or not revision:
+            raise ValueError(
+                f"{root / 'manifest.json'} has no hub revision; publish the "
+                "corpus first or verify it locally"
+            )
+        published = corpus_hub.verify_published_corpus(
+            root, repo_id=repo_id, revision=revision
+        )
+        checked.update({f"hub:{split}": digest for split, digest in published.items()})
+    return checked
+
+
+def load(path: str | Path, *, verify: str = "local") -> list[Task]:
     """Read a corpus back, from a single payload or from a corpus directory.
 
     A directory is read through its manifest, so the split files it names are
     the ones loaded and nothing else in the directory is picked up by accident.
+    It is also verified first (``verify_corpus``): ``"local"`` checks the
+    payload digests and the catalogue, ``"hub"`` checks the pinned Hub revision
+    as well, ``"off"`` trusts the directory. A single payload file has no
+    manifest to check against and is read as before.
     """
+    if verify not in _VERIFY_MODES:
+        raise ValueError(f"verify must be one of {_VERIFY_MODES}, not {verify!r}")
     target = Path(path)
     if target.is_dir():
+        if verify != "off":
+            verify_corpus(target, hub=verify == "hub")
         manifest = json.loads((target / "manifest.json").read_text())
         return [
             task
             for split in sorted(manifest["splits"])
-            for task in load(target / manifest["splits"][split]["path"])
+            for task in _load_payload(target / manifest["splits"][split]["path"])
         ]
     return _load_payload(target)
 

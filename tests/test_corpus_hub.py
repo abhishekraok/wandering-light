@@ -313,3 +313,85 @@ def test_verify_published_corpus_uses_the_pinned_revision(tmp_path, monkeypatch)
     assert set(checked) == {"discovery", "validation", "test"}
     assert calls
     assert {call[3] for call in calls} == {"immutable123"}
+
+
+def _serve_remote(tmp_path, monkeypatch, root):
+    """A fake Hub holding a copy of ``root`` as it was at publish time."""
+    remote = tmp_path / "remote"
+    remote.mkdir()
+    for path in root.iterdir():
+        shutil.copyfile(path, remote / path.name)
+
+    def fake_download(*, repo_id, repo_type, filename, revision):
+        return str(remote / filename)
+
+    monkeypatch.setitem(
+        sys.modules,
+        "huggingface_hub",
+        type("Hub", (), {"hf_hub_download": staticmethod(fake_download)}),
+    )
+    return remote
+
+
+def test_verify_published_corpus_sets_the_hub_block_aside(tmp_path, monkeypatch):
+    # The Hub copy is uploaded before `record_hub_location` writes the `hub`
+    # block into the local manifest, so a byte-for-byte comparison failed on
+    # every corpus that had actually been published.
+    root = _corpus(tmp_path)
+    _serve_remote(tmp_path, monkeypatch, root)
+    corpus_hub.record_hub_location(root, repo_id="acct/v2", revision="immutable123")
+    local = json.loads((root / "manifest.json").read_text())
+    assert "hub" in local
+
+    checked = corpus_hub.verify_published_corpus(
+        root, repo_id="acct/v2", revision="immutable123"
+    )
+
+    assert set(checked) == {"discovery", "validation", "test"}
+
+
+def test_verify_published_corpus_still_rejects_a_differing_manifest(
+    tmp_path, monkeypatch
+):
+    # Setting the `hub` block aside must not loosen anything else: a remote
+    # manifest that describes different payload bytes is a different corpus.
+    root = _corpus(tmp_path)
+    remote = _serve_remote(tmp_path, monkeypatch, root)
+    corpus_hub.record_hub_location(root, repo_id="acct/v2", revision="immutable123")
+    published = json.loads((remote / "manifest.json").read_text())
+    published["splits"]["test"]["sha256"] = "sha256:" + "0" * 64
+    (remote / "manifest.json").write_text(json.dumps(published), encoding="utf-8")
+
+    with pytest.raises(
+        ValueError, match="published manifest differs from the local manifest"
+    ):
+        corpus_hub.verify_published_corpus(
+            root, repo_id="acct/v2", revision="immutable123"
+        )
+
+
+def test_verify_published_corpus_ignores_formatting_but_not_values(
+    tmp_path, monkeypatch
+):
+    # `record_hub_location` rewrites the local file with indentation, so the
+    # comparison is on content. A changed value anywhere outside `hub` -- even
+    # one the digest check would not notice -- is still a mismatch.
+    root = _corpus(tmp_path)
+    remote = _serve_remote(tmp_path, monkeypatch, root)
+    corpus_hub.record_hub_location(root, repo_id="acct/v2", revision="immutable123")
+    published = json.loads((remote / "manifest.json").read_text())
+    (remote / "manifest.json").write_text(
+        json.dumps(published, indent=4, sort_keys=False), encoding="utf-8"
+    )
+    assert set(
+        corpus_hub.verify_published_corpus(
+            root, repo_id="acct/v2", revision="immutable123"
+        )
+    ) == {"discovery", "validation", "test"}
+
+    published["basis_set_id"] = "wl-core-v2"
+    (remote / "manifest.json").write_text(json.dumps(published), encoding="utf-8")
+    with pytest.raises(ValueError, match="published manifest differs"):
+        corpus_hub.verify_published_corpus(
+            root, repo_id="acct/v2", revision="immutable123"
+        )
