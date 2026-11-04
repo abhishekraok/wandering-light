@@ -14,10 +14,16 @@ import sys
 import pytest
 
 from wandering_light.stack_machine import (
+    BASIS_OPS,
+    CLOSE_MARK,
     CORE_OPS,
+    DEFAULT_BASIS,
     FIRST_ORDER_OPS,
+    MARK,
+    MARK_OPS,
     NIL,
     OP_BY_NAME,
+    OPEN_MARK,
     OPS,
     Bool,
     Config,
@@ -25,12 +31,19 @@ from wandering_light.stack_machine import (
     Int,
     Lst,
     MachineError,
+    Mark,
     Sym,
+    format_stack,
     format_value,
+    legal_mask,
     legal_ops,
+    main,
+    ops_for_basis,
     parse_program,
+    parse_stack,
     run,
     step,
+    step_raw,
     value_key,
 )
 
@@ -255,3 +268,162 @@ print(json.dumps(config.key))
         env={**os.environ, "PYTHONHASHSEED": seed},
     )
     assert result.stdout.strip() == json.dumps(execute(program).key)
+
+
+# ---------------------------------------------------------------------------
+# mark-28: structural quotation with [ and ]
+# ---------------------------------------------------------------------------
+
+
+def execute_mark(source: str, config: Config | None = None) -> Config:
+    final = config if config is not None else Config()
+    for reached in run(parse_program(source, MARK_OPS), final):
+        final = reached
+    return final
+
+
+def test_mark_is_a_fieldless_structural_value():
+    assert Mark() == MARK
+    assert value_key(MARK) == ("mark",)
+    assert value_key(MARK) != value_key(Sym("MARK"))
+    assert format_value(MARK) == "MARK"
+    with pytest.raises(AttributeError):
+        MARK.anything = 1  # frozen and slotted
+
+
+def test_bases_are_named_and_hold_the_canonical_tuples():
+    assert DEFAULT_BASIS == "executable-26"
+    assert BASIS_OPS["executable-26"] is CORE_OPS
+    assert BASIS_OPS["full-52"] is OPS
+    assert BASIS_OPS["mark-28"] is MARK_OPS
+    assert (*CORE_OPS, OPEN_MARK, CLOSE_MARK) == MARK_OPS
+    assert len(MARK_OPS) == 28 and len(OPS) == 52
+    assert ops_for_basis() is CORE_OPS
+    for name, ops in BASIS_OPS.items():
+        assert ops_for_basis(name) is ops
+    with pytest.raises(MachineError, match="unknown basis 'nope'; choose one of"):
+        ops_for_basis("nope")
+
+
+def test_brackets_build_a_quotation_one_op_per_quoted_op():
+    final = execute_mark("[ dup mul ]")
+    assert final.stack == (Lst((Sym("dup"), Sym("mul"))),)
+    assert final.fuel == 4
+    assert final.stack == execute("nil 'mul cons 'dup cons").stack
+
+
+def test_empty_brackets_give_nil():
+    assert execute_mark("[ ]").stack == (NIL,)
+
+
+def test_literals_still_push_values_inside_a_quotation():
+    final = execute_mark("[ 1 add ]")
+    assert final.stack == (Lst((Int(1), Sym("add"))),)
+
+
+def test_a_built_quotation_runs():
+    assert execute_mark("1 1 [ add ] i").stack == (Int(2),)
+    assert execute_mark("nil 1 cons 0 cons [ 1 add ] map").stack == (
+        Lst((Int(1), Int(2))),
+    )
+
+
+def test_combinators_inside_marks_are_named_not_run():
+    """`i` with nothing to run would be illegal; quoted it is just a name."""
+    final = execute_mark("[ i map ifte dip ]")
+    assert final.stack == (Lst(tuple(Sym(n) for n in ("i", "map", "ifte", "dip"))),)
+
+
+def test_marks_nest_and_close_innermost_first():
+    final = execute_mark("[ dup [ mul ] ]")
+    assert final.stack == (Lst((Sym("dup"), Lst((Sym("mul"),)))),)
+
+
+def test_quote_construction_is_visible_in_the_state():
+    config = execute_mark("1 [ dup")
+    assert config.stack == (Int(1), MARK, Sym("dup"))
+    assert format_stack(config) == "[ 1 MARK dup ]"
+
+
+def test_close_is_refused_without_an_open_mark():
+    assert CLOSE_MARK.guard(Config()) == "no open quotation"
+    assert CLOSE_MARK.guard(Config((Int(1), NIL))) == "no open quotation"
+    with pytest.raises(IllegalOpError):
+        step(Config(), CLOSE_MARK)
+    assert step_raw(CLOSE_MARK, (), 10, 0) == "no open quotation"
+
+
+def test_close_only_collects_above_the_topmost_mark():
+    config = Config((Int(1), MARK, Int(0), MARK, Sym("add")))
+    assert CLOSE_MARK.apply(config) == (
+        (Int(1), MARK, Int(0), Lst((Sym("add"),))),
+        1,
+    )
+
+
+def test_every_quoted_op_is_legal_and_costs_one_under_a_mark():
+    config = Config((MARK,))
+    for op in OPS:
+        assert op.guard(config) is None, op.name
+        stack, cost = op.apply(config)
+        assert cost == 1
+        assert step_raw(op, config.stack, 100, 0) == (stack, cost)
+        if op.group in ("literals", "symbols"):
+            # already data: they run as usual
+            assert (stack, cost) == op._apply(config), op.name
+        else:
+            assert stack == (MARK, Sym(op.name)), op.name
+    assert all(legal_mask(config, MARK_OPS))
+
+
+def test_a_mark_anywhere_on_the_stack_quotes():
+    """The marker need not be on top: it is any top-level stack item."""
+    config = Config((MARK, Int(1), Int(2)))
+    assert OP_BY_NAME["add"].apply(config) == ((MARK, Int(1), Int(2), Sym("add")), 1)
+
+
+def test_without_a_mark_nothing_changes():
+    config = Config((Int(1), Int(2)))
+    assert OP_BY_NAME["add"].apply(config) == ((Int(3),), 1)
+    assert OP_BY_NAME["i"].guard(Config()) is not None
+    assert legal_mask(config) == legal_mask(config, OPS)
+
+
+def test_fuel_refusal_comes_before_quoting():
+    spent = Config((MARK,), fuel=5, fuel_limit=5)
+    for op in MARK_OPS:
+        assert op.guard(spent) == "out of fuel", op.name
+    assert step_raw(OP_BY_NAME["add"], (MARK,), 0, 0) == "out of fuel"
+
+
+def test_legal_ops_and_mask_take_the_basis():
+    empty = Config()
+    assert OPEN_MARK in legal_ops(empty, MARK_OPS)
+    assert CLOSE_MARK not in legal_ops(empty, MARK_OPS)
+    assert len(legal_mask(empty, MARK_OPS)) == 28
+    assert len(legal_mask(empty)) == 52
+
+
+def test_parse_program_takes_the_basis():
+    assert parse_program("[ ]", MARK_OPS) == (OPEN_MARK, CLOSE_MARK)
+    with pytest.raises(MachineError):
+        parse_program("[ ]")
+    with pytest.raises(MachineError):
+        parse_program("'add", MARK_OPS)
+
+
+def test_parse_stack_reads_mark_only_under_mark_28():
+    assert parse_stack("[ 1 MARK dup ]", basis="mark-28") == (Int(1), MARK, Sym("dup"))
+    assert parse_stack("[ 1 MARK ]") == (Int(1), Sym("MARK"))
+    assert parse_stack("[ MARK ]", basis="full-52") == (Sym("MARK"),)
+    with pytest.raises(MachineError, match="unknown basis"):
+        parse_stack("[ ]", basis="nope")
+    config = execute_mark("0 [ 1 dup")
+    assert parse_stack(format_stack(config), basis="mark-28") == config.stack
+
+
+def test_cli_takes_a_basis(capsys):
+    assert main(["--basis", "mark-28", "1 1 [ add ] i"]) == 0
+    out = capsys.readouterr().out
+    assert "/28" in out and "[ 2 ]" in out
+    assert main(["[ ]"]) == 2  # default full-52 has no brackets

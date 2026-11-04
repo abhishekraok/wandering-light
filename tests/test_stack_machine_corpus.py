@@ -298,3 +298,53 @@ def test_long_labels_are_certified_shortest(tasks):
         found, complete = expand(inputs, max_depth=task["length"] - 1)
         assert complete, task
         assert target not in found, f"shorter program exists for {task}"
+
+
+def test_corpus_basis_defaults_to_executable_26():
+    from wandering_light.stack_machine import CORE_OPS, DEFAULT_BASIS, ops_for_basis
+
+    assert BASIS == DEFAULT_BASIS == "executable-26"
+    assert ops_for_basis(BASIS) is OPS is CORE_OPS
+
+
+def test_expand_and_replay_take_the_basis():
+    from wandering_light.stack_machine import MARK_OPS
+    from wandering_light.stack_machine_corpus import replay_costed
+
+    inputs = (parse_stack("[ 3 ]"), parse_stack("[ 4 ]"))
+    # `[ dup mul ] i` squares by building and running a quotation
+    target = behaviour_key((parse_stack("[ 9 ]"), parse_stack("[ 16 ]")))
+    program = ("[", "dup", "mul", "]", "i")
+    assert behaviour_key(replay(inputs, program, MARK_OPS)) == target
+    behaviour, path = replay_costed(inputs, program, MARK_OPS)
+    assert behaviour_key(behaviour) == target
+    assert path.example_fuels == (7, 7)  # 4 to build, i, then dup and mul
+    with pytest.raises(KeyError):
+        replay(inputs, program)
+
+    found, complete = expand(inputs, max_depth=2, ops=MARK_OPS)
+    assert complete
+    assert found[target][1] == ("dup", "mul")
+    assert any("[" in program for _d, program, _w in found.values())
+    plain, _ = expand(inputs, max_depth=2)
+    assert not any("[" in program for _d, program, _w in plain.values())
+
+
+def test_generate_records_the_basis_it_searched():
+    default, _ = generate(max_depth=2, per_depth=3, seed=1)
+    assert {t.basis for t in default} == {"executable-26"}
+    marked, _ = generate(max_depth=2, per_depth=3, seed=1, basis="mark-28")
+    assert marked and {t.basis for t in marked} == {"mark-28"}
+    with pytest.raises(Exception, match="unknown basis"):
+        generate(max_depth=1, per_depth=1, seed=1, basis="nope")
+
+
+def test_corpus_cli_takes_a_basis(tmp_path):
+    from wandering_light.stack_machine_corpus import main
+
+    out = tmp_path / "c.jsonl.gz"
+    args = ["--out", str(out), "--max-depth", "2", "--per-depth", "2"]
+    assert main([*args, "--basis", "mark-28"]) == 0
+    with gzip.open(out, "rt") as handle:
+        rows = [json.loads(line) for line in handle]
+    assert rows and {r["basis"] for r in rows} == {"mark-28"}
