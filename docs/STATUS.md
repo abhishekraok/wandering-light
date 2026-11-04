@@ -49,6 +49,7 @@ holds the argument.
 | what | who | where | question it answers |
 |---|---|---|---|
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
+| Held-out grader and first baselines on `stack_pbe_v3` | `eval/heldout-grader-a` branch | `wandering_light/stack_pbe_eval.py`, `experiments/stack_pbe_baseline.py` | What does a solver score on the eight hidden examples, and how far does a shown-only grader overstate it? Nothing is measured until this is on `main`. |
 
 ## Superseded
 

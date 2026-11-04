@@ -12,6 +12,7 @@ from collections import deque
 from dataclasses import dataclass
 from typing import Literal
 
+import anthropic
 import google.generativeai as genai
 import openai
 from dotenv import load_dotenv
@@ -441,6 +442,49 @@ class GeminiTokenGenerator(TokenGenerator):
         return super().generate_batch(prompts)
 
 
+class AnthropicTokenGenerator(TokenGenerator):
+    """One Claude model at one effort, and nothing standing in for it.
+
+    Deliberately no server-side fallbacks: the API can re-run a refused
+    request on another model inside the same call, and a column of answers
+    that silently mixes two models' work is not a measurement of either. A
+    refusal comes back as "" and is graded as the empty program.
+    """
+
+    def __init__(
+        self,
+        model: str = "claude-opus-5",
+        effort: str = "high",
+        max_tokens: int = 16000,
+    ):
+        self.model = model
+        self.effort = effort
+        self.max_tokens = max_tokens
+        load_dotenv()
+        self.client = anthropic.Anthropic()
+        self.llm_io_history = []
+
+    def generate(self, prompt: str) -> str:
+        response = self.client.messages.create(
+            model=self.model,
+            max_tokens=self.max_tokens,
+            output_config={"effort": self.effort},
+            messages=[{"role": "user", "content": prompt}],
+        )
+        if response.stop_reason == "refusal":
+            output = ""
+        else:
+            output = "".join(
+                block.text for block in response.content if block.type == "text"
+            )
+        self.llm_io_history.append((prompt, output))
+        return output
+
+    def generate_batch(self, prompts: list[str]) -> list[str]:
+        """Generate responses for a batch of prompts. Uses sequential processing for API-based generation."""
+        return super().generate_batch(prompts)
+
+
 def remove_thinking(response: str) -> str:
     return response.rsplit("</think>", maxsplit=1)[-1].strip()
 
@@ -759,6 +803,13 @@ def get_solver_by_name(
     elif name == "openai":
         return create_token_solver(
             OpenAITokenGenerator(model="o4-mini-2025-04-16"),
+            budget=budget,
+            usage_tracker=usage_tracker,
+            track_function_usage=track_function_usage,
+        )
+    elif name == "anthropic":
+        return create_token_solver(
+            AnthropicTokenGenerator(),
             budget=budget,
             usage_tracker=usage_tracker,
             track_function_usage=track_function_usage,
