@@ -155,8 +155,69 @@ def test_fetch_replaces_an_incomplete_cache_directory(tmp_path, monkeypatch):
     assert (
         got / stack_policy_hub.MODEL_FILE
     ).read_text() == stack_policy_hub.MODEL_FILE
-    # Nothing is left behind beside it: no staging directory, no stale copy.
-    assert [p.name for p in target.parent.iterdir()] == [revision]
+    # Nothing is left behind beside it but the install lock: no staging
+    # directory, no stale copy.
+    assert sorted(p.name for p in target.parent.iterdir()) == [
+        f".{revision}.lock",
+        revision,
+    ]
+
+
+def test_fetch_never_discards_a_checkpoint_a_concurrent_fetch_installed(
+    tmp_path, monkeypatch
+):
+    """A fetch that judged the target incomplete must not delete another fetch's install.
+
+    Fetch A finds an incomplete directory and is about to discard it; fetch B,
+    in a thread, runs to completion in that window if nothing stops it. B's
+    caller must still find B's checkpoint once A is done.
+    """
+    import threading
+
+    import huggingface_hub
+
+    def fake_download(repo_id, filename, revision=None):
+        if filename == stack_policy_hub.WANDB_LINK_FILE:
+            raise huggingface_hub.errors.EntryNotFoundError("no run")
+        who = threading.current_thread().name
+        source = tmp_path / "hub" / who / filename
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text(who)
+        return str(source)
+
+    monkeypatch.setattr(huggingface_hub, "hf_hub_download", fake_download)
+    revision = "ef" * 20
+    cache = tmp_path / "cache"
+    target = stack_policy_hub.checkpoint_dir("x/y", revision, cache_dir=cache)
+    target.mkdir(parents=True)
+    (target / stack_policy_hub.MODEL_FILE).write_text("half a download")
+
+    seen_by_b = {}
+    b_done = threading.Event()
+
+    def fetch_b():
+        got = stack_policy_hub.fetch_stack_policy("x/y", revision, cache_dir=cache)
+        seen_by_b["model"] = (got / stack_policy_hub.MODEL_FILE).read_text()
+        b_done.set()
+
+    real_discard = stack_policy_hub._discard
+    b = threading.Thread(target=fetch_b, name="B")
+
+    def discard_after_b_runs(path):
+        if not b.is_alive() and not b_done.is_set():
+            # A is about to discard: let B run. With the lock, B blocks until
+            # A has installed; without it, B installs and returns first.
+            b.start()
+            b_done.wait(timeout=0.5)
+        real_discard(path)
+
+    monkeypatch.setattr(stack_policy_hub, "_discard", discard_after_b_runs)
+    got = stack_policy_hub.fetch_stack_policy("x/y", revision, cache_dir=cache)
+    b.join(timeout=10)
+    assert not b.is_alive()
+    assert stack_policy_hub.is_checkpoint(got)
+    # Whatever B handed its caller is still what is on disk.
+    assert (got / stack_policy_hub.MODEL_FILE).read_text() == seen_by_b["model"]
 
 
 def test_fetch_pins_a_commit_and_downloads_once(tmp_path, monkeypatch):
