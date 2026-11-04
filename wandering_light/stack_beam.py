@@ -25,11 +25,16 @@ of atoms, where hashing, comparing and encoding them is all the search does
 guard verdict; a bound far above any witness's peak state changes no search that
 stays small.
 
-``budget`` caps primitive executions and ``deadline``, a ``time.perf_counter()``
-value, caps wall-clock; both are checked before every op attempt, and a search
-stopped by one ends ``budget`` or ``wall_clock_cap``. Left None, neither is
-read and the search is the uncapped one (``tests/test_short_segment_search.py``
-pins that).
+``budget`` caps the search's spend, counted in ``budget_unit`` (one of
+``BUDGET_UNITS``: ``executions``, ``fuel`` or ``executions+fuel``, see
+``spent_in``), and ``deadline``, a ``time.perf_counter()`` value, caps
+wall-clock; both are checked before every op attempt, and a search stopped by
+one ends ``budget`` or ``wall_clock_cap``. Left None, neither is read and the
+search is the uncapped one (``tests/test_short_segment_search.py`` pins that).
+An unknown unit is refused before any work, with or without a budget.
+
+``widening_beam_solve`` is the matched control for the segment search: the flat
+beam restarted from scratch at double the width while one budget lasts.
 
 ``segment_beam_solve`` is the segment-reset beam of short-segment-campaign
 (#168). A **closed state** is what a top-level combinator application leaves: an
@@ -159,6 +164,23 @@ class BeamResult:
     depth: int
 
 
+#: What a ``budget`` counts. ``fuel`` already charges one per op plus the steps
+#: of a quotation body, so ``executions+fuel`` counts an outer step twice and a
+#: body step once.
+BUDGET_UNITS = ("executions", "fuel", "executions+fuel")
+
+
+def spent_in(unit: str, executions: int, fuel: int) -> int:
+    """``executions`` and ``fuel`` so far, as one number in ``unit``."""
+    if unit == "executions":
+        return executions
+    if unit == "fuel":
+        return fuel
+    if unit == "executions+fuel":
+        return executions + fuel
+    raise ValueError(f"unknown budget unit {unit!r}; choose one of {BUDGET_UNITS}")
+
+
 def replay_program(
     program: Sequence[str], inputs: Product, outputs: Product
 ) -> tuple[bool, int, int]:
@@ -265,8 +287,13 @@ def beam_solve(
     observer: BeamObserver | None = None,
     max_state_atoms: int | None = None,
     deadline: float | None = None,
+    budget_unit: str = "executions",
 ) -> BeamResult:
     """Search one task. The cyclic collector is off for the duration.
+
+    ``budget`` is counted in ``budget_unit`` (``BUDGET_UNITS``) and checked
+    before every op attempt, so a search overshoots it by less than one
+    attempt; an unknown unit is refused before any work.
 
     Every object the expansion loop makes -- a product tuple per op per example,
     a program tuple per legal successor, the visited set's keys -- is acyclic,
@@ -293,6 +320,7 @@ def beam_solve(
             observer=observer,
             max_state_atoms=max_state_atoms,
             deadline=deadline,
+            budget_unit=budget_unit,
         )
     finally:
         if collecting:
@@ -310,7 +338,9 @@ def _beam_solve(
     observer: BeamObserver | None = None,
     max_state_atoms: int | None = None,
     deadline: float | None = None,
+    budget_unit: str = "executions",
 ) -> BeamResult:
+    spent_in(budget_unit, 0, 0)  # refuse an unknown unit before any work
     started = time.perf_counter()
     watch = observer if observer is not None else BeamObserver()
     watching = observer is not None
@@ -352,7 +382,10 @@ def _beam_solve(
         for node, (product, program, _) in enumerate(beam):
             expansions += 1
             for index, op in enumerate(OPS):
-                if budget is not None and executions >= budget:
+                if (
+                    budget is not None
+                    and spent_in(budget_unit, executions, fuel) >= budget
+                ):
                     return result(None, "budget", depth + 1)
                 if deadline is not None and time.perf_counter() >= deadline:
                     return result(None, "wall_clock_cap", depth + 1)
@@ -412,6 +445,108 @@ def _beam_solve(
             return result(None, "frontier_exhausted", depth + 1)
         beam = next_beam
     return result(None, "max_depth", max_depth)
+
+
+# ---------------------------------------------------------------------------
+# Widening flat beam: the segment search's matched control (#168)
+# ---------------------------------------------------------------------------
+
+
+def widening_beam_solve(
+    task: Task,
+    scorer: PolicyScorer,
+    *,
+    budget: int,
+    start_width: int = 64,
+    max_depth: int = 48,
+    guard: str = "both",
+    max_state_atoms: int | None = None,
+    deadline: float | None = None,
+    budget_unit: str = "executions",
+) -> tuple[BeamResult, dict]:
+    """``beam_solve`` at ``start_width``, then twice as wide, while one budget lasts.
+
+    Every restart is from scratch, and every restart draws on one counter
+    capped at ``budget`` in ``budget_unit``: a restart gets what the ones
+    before it left. The search stops at the first restart that ends ``fit``,
+    ``budget`` or ``wall_clock_cap``, or when a restart spends exactly as many
+    executions as the one before it: its beam never filled, so a wider beam
+    would be the same search again (``saturated``).
+
+    The result sums ``executions``, ``fuel`` and ``expansions`` over the
+    restarts and takes the last restart's ``program`` and ``termination``; its
+    ``depth`` is the last restart's if it fit, else the deepest any restart
+    reached. The dict beside it holds ``widths``, one ``{"width",
+    "termination", "executions"}`` per restart in order; ``largest_width_completed``,
+    the widest restart not ended by the budget or the wall clock, else None;
+    ``fit_width``, the width that fit, None without a fit; and ``saturated``.
+    """
+    spent_in(budget_unit, 0, 0)  # refuse an unknown unit before any work
+    started = time.perf_counter()
+    collecting = gc.isenabled()
+    if collecting:
+        gc.disable()
+    try:
+        restarts: list[tuple[int, BeamResult]] = []
+        executions = fuel = expansions = 0
+        width = start_width
+        saturated = False
+        while True:
+            left = max(0, budget - spent_in(budget_unit, executions, fuel))
+            result = _beam_solve(
+                task,
+                scorer,
+                beam_width=width,
+                max_depth=max_depth,
+                guard=guard,
+                budget=left,
+                max_state_atoms=max_state_atoms,
+                deadline=deadline,
+                budget_unit=budget_unit,
+            )
+            executions += result.executions
+            fuel += result.fuel
+            expansions += result.expansions
+            if restarts and restarts[-1][1].executions == result.executions:
+                saturated = True
+            restarts.append((width, result))
+            if saturated or result.termination in ("fit", "budget", "wall_clock_cap"):
+                break
+            width *= 2
+    finally:
+        if collecting:
+            gc.enable()
+    last = restarts[-1][1]
+    completed = [
+        width
+        for width, result in restarts
+        if result.termination not in ("budget", "wall_clock_cap")
+    ]
+    summed = BeamResult(
+        last.program,
+        last.termination,
+        time.perf_counter() - started,
+        executions,
+        fuel,
+        expansions,
+        last.depth
+        if last.termination == "fit"
+        else max(result.depth for _, result in restarts),
+    )
+    report = {
+        "widths": [
+            {
+                "width": width,
+                "termination": result.termination,
+                "executions": result.executions,
+            }
+            for width, result in restarts
+        ],
+        "largest_width_completed": max(completed) if completed else None,
+        "fit_width": restarts[-1][0] if last.termination == "fit" else None,
+        "saturated": saturated,
+    }
+    return summed, report
 
 
 # ---------------------------------------------------------------------------
