@@ -155,8 +155,100 @@ def test_fetch_replaces_an_incomplete_cache_directory(tmp_path, monkeypatch):
     assert (
         got / stack_policy_hub.MODEL_FILE
     ).read_text() == stack_policy_hub.MODEL_FILE
-    # Nothing is left behind beside it: no staging directory, no stale copy.
-    assert [p.name for p in target.parent.iterdir()] == [revision]
+    # Nothing is left behind beside it but the install lock: no staging
+    # directory, no stale copy. The lock file stays on purpose; see
+    # `stack_policy_hub._install_lock`.
+    assert sorted(p.name for p in target.parent.iterdir()) == sorted(
+        [revision, f".{revision}.lock"]
+    )
+
+
+def test_concurrent_fetch_never_discards_a_complete_checkpoint(tmp_path, monkeypatch):
+    """Repairing an incomplete cache directory must not delete a copy a concurrent fetch installed.
+
+    Fetch A finds the target incomplete and is about to discard it. Before it
+    does, fetch B installs a complete checkpoint and returns it to its caller.
+    Unserialised, A then discards B's checkpoint out from under that caller.
+    The test forces exactly that interleaving: A's `_discard` call starts B in
+    a thread and lets B run until it either returns (unserialised) or blocks
+    on the install lock (serialised), and records whether what A then
+    discards is a complete checkpoint.
+    """
+    import fcntl
+    import threading
+
+    import huggingface_hub
+
+    def fake_download(repo_id, filename, revision=None):
+        if filename == stack_policy_hub.WANDB_LINK_FILE:
+            raise huggingface_hub.errors.EntryNotFoundError("no run")
+        source = tmp_path / "hub" / filename
+        source.parent.mkdir(exist_ok=True)
+        source.write_text(filename)
+        return str(source)
+
+    monkeypatch.setattr(huggingface_hub, "hf_hub_download", fake_download)
+    revision = "ef" * 20
+    cache_dir = tmp_path / "cache"
+    target = stack_policy_hub.checkpoint_dir("x/y", revision, cache_dir=cache_dir)
+    target.mkdir(parents=True)
+    (target / stack_policy_hub.MODEL_FILE).write_text("half a download")
+    assert not stack_policy_hub.is_checkpoint(target)
+
+    b_settled = threading.Event()  # B returned, or B is waiting on the lock
+    b_result: list = []
+
+    def fetch_b():
+        try:
+            b_result.append(
+                stack_policy_hub.fetch_stack_policy(
+                    "x/y", revision, cache_dir=cache_dir
+                )
+            )
+        except BaseException as exc:  # re-raised on the main thread
+            b_result.append(exc)
+        finally:
+            b_settled.set()
+
+    thread_b = threading.Thread(target=fetch_b, name="fetch-b")
+
+    real_flock = fcntl.flock
+
+    def spy_flock(fd, operation):
+        # B about to take the install lock while A holds it: B is as far as
+        # it can get, so let A carry on instead of deadlocking.
+        if threading.current_thread() is thread_b:
+            b_settled.set()
+        return real_flock(fd, operation)
+
+    monkeypatch.setattr(fcntl, "flock", spy_flock)
+
+    real_discard = stack_policy_hub._discard
+    discarded_complete: list[bool] = []
+
+    def spy_discard(path):
+        if threading.current_thread() is threading.main_thread():
+            thread_b.start()
+            assert b_settled.wait(timeout=30), "fetch B neither returned nor blocked"
+        discarded_complete.append(stack_policy_hub.is_checkpoint(path))
+        real_discard(path)
+
+    monkeypatch.setattr(stack_policy_hub, "_discard", spy_discard)
+
+    got_a = stack_policy_hub.fetch_stack_policy("x/y", revision, cache_dir=cache_dir)
+    thread_b.join(timeout=30)
+    assert not thread_b.is_alive()
+    (got_b,) = b_result
+    if isinstance(got_b, BaseException):
+        raise got_b
+
+    assert discarded_complete, "the incomplete directory was never repaired"
+    assert not any(discarded_complete), "a complete checkpoint was discarded"
+    assert got_a == target and got_b == target
+    assert stack_policy_hub.is_checkpoint(target)
+    assert (
+        target / stack_policy_hub.MODEL_FILE
+    ).read_text() == stack_policy_hub.MODEL_FILE
 
 
 def test_fetch_pins_a_commit_and_downloads_once(tmp_path, monkeypatch):

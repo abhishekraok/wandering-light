@@ -16,6 +16,7 @@ so both directions need the token `hf auth login` writes.
 from __future__ import annotations
 
 import contextlib
+import fcntl
 import os
 import shutil
 import tempfile
@@ -73,9 +74,8 @@ def fetch_stack_policy(
     # leave a directory that `is_checkpoint` accepts and that no later call
     # retries. The whole checkpoint, optional metadata included, appears
     # atomically or not at all; AGENTS.md wants model lineage recoverable, and a
-    # checkpoint permanently missing its run link is not. A private directory
-    # also settles the concurrent case: two processes fetching the same
-    # revision each build their own and one rename wins.
+    # checkpoint permanently missing its run link is not. The download itself
+    # needs no lock: every fetch builds its own staging directory.
     target.parent.mkdir(parents=True, exist_ok=True)
     staging_dir = Path(tempfile.mkdtemp(dir=target.parent, prefix=f".{revision}."))
     try:
@@ -87,26 +87,41 @@ def fetch_stack_policy(
                     raise
                 continue
             shutil.copyfile(cached, staging_dir / name)
-        try:
-            staging_dir.replace(target)
-        except OSError:
-            # A concurrent fetch got there first, and its copy is as good as ours.
-            # Anything else in the way is an incomplete directory -- from a fetch
-            # that predates private assembly, or made by hand -- and a rename
-            # onto a non-empty directory fails, so without this every later
-            # fetch would download everything and fail the same way. Move it
-            # aside and try once more; a concurrent fetch landing in between
-            # still wins.
-            if not is_checkpoint(target):
+        # Looking at the target, discarding what is there and renaming into
+        # place happen under one lock. Without it, a fetch that saw an
+        # incomplete directory -- from a fetch that predates private assembly,
+        # or made by hand -- could discard it after a concurrent fetch had
+        # already replaced it with a complete checkpoint and handed that to its
+        # caller, deleting weights out from under a load.
+        with _install_lock(target):
+            if is_checkpoint(target):
+                # A concurrent fetch got there first, and its copy is as good
+                # as ours. A complete checkpoint is never discarded.
+                return target
+            if target.exists():
                 _discard(target)
-                try:
-                    staging_dir.replace(target)
-                except OSError:
-                    if not is_checkpoint(target):
-                        raise
+            staging_dir.replace(target)
     finally:
         shutil.rmtree(staging_dir, ignore_errors=True)
     return target
+
+
+@contextlib.contextmanager
+def _install_lock(target: Path):
+    """Hold the exclusive lock that serialises installing ``target``, across threads and processes.
+
+    The lock file stays behind once the checkpoint is installed: deleting it
+    would let two processes each lock a different file of the same name, which
+    is no lock at all. `flock` is per open file description, so two threads
+    opening the file separately exclude each other as two processes do.
+    """
+    lock_path = target.parent / f".{target.name}.lock"
+    fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o644)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        os.close(fd)
 
 
 def _discard(path: Path) -> None:
