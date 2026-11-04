@@ -1,5 +1,6 @@
 """The short-segment-campaign (#168) search driver and the caps it added to the beams."""
 
+import itertools
 import json
 import random
 import sys
@@ -1049,12 +1050,13 @@ def segment_kwargs(shape):
 
 
 @pytest.mark.parametrize("scoring", ["cumulative", "local"])
-@pytest.mark.parametrize(("name", "witness", "shape", "want"), SEGMENT_GOLDEN)
+@pytest.mark.parametrize("golden", SEGMENT_GOLDEN, ids=[g[0] for g in SEGMENT_GOLDEN])
 def test_the_archive_keeps_every_segment_and_changes_nothing(
-    name, witness, shape, want, scoring, monkeypatch
+    golden, scoring, monkeypatch
 ):
     from wandering_light import stack_beam as beam
 
+    name, _witness, shape, want = golden
     task = witness_task(name, 4)
     kwargs = {**segment_kwargs(shape), "scoring": scoring}
     plain = segment_beam_solve(task, WitnessScorer(task, 1.0), **kwargs)
@@ -1095,7 +1097,7 @@ def test_the_archive_keeps_every_segment_and_changes_nothing(
 
     # Each segment's roots are the previous segment's best unexpanded closed
     # states, in the order they ran, scored as the search scored them.
-    for before, after in zip(archive, archive[1:]):
+    for before, after in itertools.pairwise(archive):
         ranked = sorted(before.closed.values(), key=lambda kept: kept[0], reverse=True)
         programs = [root for root, _ in after.roots]
         assert len(after.roots) <= shape[0]
@@ -1129,9 +1131,7 @@ def test_solve_tasks_hands_each_row_its_archived_segments():
     first = witness_task("sum", 4)
     tasks = [first, first, drawn("negate_each", 3)]
     scorer = WitnessScorer(first, 1.0)
-    system = tiny_system(
-        search="segment", roots=4, segment_depth=4, max_segments=2
-    )
+    system = tiny_system(search="segment", roots=4, segment_depth=4, max_segments=2)
 
     def records(rows):
         return [{k: v for k, v in r.record().items() if k != "seconds"} for r in rows]
@@ -1139,7 +1139,10 @@ def test_solve_tasks_hands_each_row_its_archived_segments():
     plain = solve.solve_tasks(tasks, scorer, system)
     calls = []
     archived = solve.solve_tasks(
-        tasks, scorer, system, archive=lambda row, segments: calls.append((row, segments))
+        tasks,
+        scorer,
+        system,
+        archive=lambda row, segments: calls.append((row, segments)),
     )
     assert records(archived) == records(plain)
     assert [row for row, _ in calls] == archived
@@ -1154,6 +1157,9 @@ def test_solve_tasks_hands_each_row_its_archived_segments():
 
     flat = []
     solve.solve_tasks(
-        tasks[2:], scorer, tiny_system(), archive=lambda row, segments: flat.append(segments)
+        tasks[2:],
+        scorer,
+        tiny_system(),
+        archive=lambda row, segments: flat.append(segments),
     )
     assert flat == [[]]
