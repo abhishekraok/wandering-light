@@ -41,7 +41,7 @@ from typing import TYPE_CHECKING, Any
 
 import torch
 
-from wandering_light.stack_beam import beam_solve, replay_program
+from wandering_light.stack_beam import beam_solve, replay_program, segment_beam_solve
 from wandering_light.stack_machine import parse_stack, run_body
 from wandering_light.stack_pbe import BASIS, load
 from wandering_light.stack_pbe_eval import grade
@@ -55,6 +55,11 @@ if TYPE_CHECKING:
     from wandering_light.stack_pbe import Task
 
 REPO = Path(__file__).resolve().parents[1]
+
+#: ``flat`` is `stack_beam.beam_solve`, one beam carried across the whole
+#: program; ``segment`` is `stack_beam.segment_beam_solve`, the beam reset at
+#: every closed state (segment composite, #160).
+SEARCHES = ("flat", "segment")
 
 
 @dataclass(frozen=True)
@@ -72,14 +77,33 @@ class System:
     # beam-state-size-unbounded (#157): a successor with more atoms than this is
     # refused. None leaves the beam unbounded.
     max_state_atoms: int | None = None
+    # One of `SEARCHES`. The three below are read only by the segment search,
+    # which runs `roots` beams of `beam_width` for up to `max_segments`
+    # segments of `segment_depth` ops each, and does not read `max_depth`.
+    search: str = "flat"
+    roots: int = 16
+    segment_depth: int = 12
+    max_segments: int = 12
+
+    def __post_init__(self) -> None:
+        if self.search not in SEARCHES:
+            raise ValueError(
+                f"unknown search {self.search!r}; choose one of {SEARCHES}"
+            )
 
     def describe(self) -> str:
-        return (
+        text = (
             f"{self.name} = {self.repo_id}@{self.revision[:12]}; beam {self.beam_width}"
             f" x depth {self.max_depth}, guard {self.guard}, library "
             f"{'on' if self.library else 'off'}, state cap "
             f"{self.max_state_atoms if self.max_state_atoms is not None else 'none'}"
         )
+        if self.search != "flat":
+            text += (
+                f", search {self.search}: {self.roots} roots, {self.max_segments} "
+                f"segments of up to {self.segment_depth} ops, the beam per root"
+            )
+        return text
 
 
 BEST = System(
@@ -213,14 +237,26 @@ def solve_tasks(
                     program, source, termination = candidate, "library", "fit"
                     break
         if program is None:
-            result = beam_solve(
-                task,
-                scorer,
-                beam_width=system.beam_width,
-                max_depth=system.max_depth,
-                guard=system.guard,
-                max_state_atoms=system.max_state_atoms,
-            )
+            if system.search == "segment":
+                result = segment_beam_solve(
+                    task,
+                    scorer,
+                    beam_width=system.beam_width,
+                    roots=system.roots,
+                    segment_depth=system.segment_depth,
+                    max_segments=system.max_segments,
+                    guard=system.guard,
+                    max_state_atoms=system.max_state_atoms,
+                )
+            else:
+                result = beam_solve(
+                    task,
+                    scorer,
+                    beam_width=system.beam_width,
+                    max_depth=system.max_depth,
+                    guard=system.guard,
+                    max_state_atoms=system.max_state_atoms,
+                )
             program, termination = result.program, result.termination
             executions += result.executions
             fuel += result.fuel
