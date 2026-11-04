@@ -13,7 +13,22 @@ from pathlib import Path
 
 import pytest
 
-from wandering_light.stack_machine import Config, Int, Op, format_stack, parse_stack
+from wandering_light import stack_machine_corpus
+from wandering_light.stack_machine import (
+    CORE_OPS,
+    DEFAULT_BASIS,
+    MARK,
+    MARK_OPS,
+    Config,
+    Int,
+    Lst,
+    MachineError,
+    Op,
+    Sym,
+    format_stack,
+    ops_for_basis,
+    parse_stack,
+)
 from wandering_light.stack_machine_corpus import (
     BASIS,
     FAMILIES,
@@ -27,7 +42,10 @@ from wandering_light.stack_machine_corpus import (
     expand_cost,
     generate,
     is_useful,
+    main,
     replay,
+    replay_costed,
+    step_all,
     step_all_costed,
 )
 
@@ -298,3 +316,158 @@ def test_long_labels_are_certified_shortest(tasks):
         found, complete = expand(inputs, max_depth=task["length"] - 1)
         assert complete, task
         assert target not in found, f"shorter program exists for {task}"
+
+
+# ---------------------------------------------------------------------------
+# Bases: the corpus can be certified against mark-28 as well
+# ---------------------------------------------------------------------------
+
+# `[ quote ] map` on the bitlist3 family wraps every element: four ops, one
+# answer, and the answer depends on the input. Without brackets the executable
+# basis has no way to put `(quote)` on the stack in four ops, so this is a
+# behaviour the mark basis reaches and the default one does not. (Summing with
+# `[ add ] fold` is not such a behaviour: a list of ints is itself a runnable
+# quotation, so `swap dip add add` sums list_int in four executable ops.)
+BRACKET_PROGRAM = ("[", "quote", "]", "map")
+BRACKET_INPUTS = FAMILIES["bitlist3"][0]
+BRACKET_OUTPUTS = ["[ ((1) (0) (1)) ]", "[ ((0) (1) (1)) ]", "[ ((1) (1) (0)) ]"]
+
+
+def test_default_basis_is_the_executable_core():
+    assert BASIS == DEFAULT_BASIS == "executable-26"
+    assert OPS is CORE_OPS
+    assert OPS is ops_for_basis(BASIS)
+    assert Task.__dataclass_fields__["basis"].default == BASIS
+
+
+def test_replay_takes_the_basis():
+    inputs = BRACKET_INPUTS
+    outputs = replay(inputs, BRACKET_PROGRAM, ops=MARK_OPS)
+    assert [format_stack(Config(s)) for s in outputs] == BRACKET_OUTPUTS
+    assert is_useful(inputs, outputs)
+    with pytest.raises(KeyError):
+        replay(inputs, BRACKET_PROGRAM)  # `[` is not in the default basis
+
+
+def test_replay_costed_charges_one_per_quoted_op():
+    inputs = BRACKET_INPUTS
+    outputs, path = replay_costed(inputs, BRACKET_PROGRAM, ops=MARK_OPS)
+    assert [format_stack(Config(s)) for s in outputs] == BRACKET_OUTPUTS
+    # 3 to build (quote), then map: 1 plus one quote per element
+    assert path.example_fuels == (3 + 1 + 3,) * 3
+    assert path.length == 4
+    assert path.fuel == 21
+
+
+def test_an_unfinished_quotation_is_a_behaviour_with_the_mark_in_it():
+    """The marker is state, so search sees half-built quotations as states."""
+    inputs = FAMILIES["int_pair"][0]
+    outputs = replay(inputs, ("[", "add"), ops=MARK_OPS)
+    assert outputs[0] == (Int(3), Int(5), MARK, Sym("add"))
+    assert format_stack(Config(outputs[0])) == "[ 3 5 MARK add ]"
+    assert parse_stack("[ 3 5 MARK add ]", basis="mark-28") == outputs[0]
+    assert not is_useful(inputs, outputs)
+
+
+def test_multi_example_guard_quotes_per_example():
+    """Quoting is decided per example, so a mark on one example alone can
+    make an op legal there and illegal elsewhere -- the conjunction decides."""
+    add = next(op for op in MARK_OPS if op.name == "add")
+    assert step_all(((MARK,), (Int(1),)), add) is None
+    assert step_all(((MARK,), (Int(1), Int(1))), add) == (
+        (MARK, Sym("add")),
+        (Int(2),),
+    )
+    for op in MARK_OPS:
+        each = [op.guard(Config(stack)) is None for stack in ((MARK,), (Lst(()),))]
+        assert (step_all(((MARK,), (Lst(()),)), op) is not None) == all(each), op.name
+
+
+def test_expand_takes_the_basis():
+    inputs = BRACKET_INPUTS
+    target = behaviour_key(replay(inputs, BRACKET_PROGRAM, ops=MARK_OPS))
+
+    marked, complete = expand(inputs, max_depth=4, ops=MARK_OPS)
+    assert complete
+    depth, program, witnesses = marked[target]
+    assert depth == 4
+    assert program == BRACKET_PROGRAM
+    assert witnesses == 1
+
+    plain, complete = expand(inputs, max_depth=4)
+    assert complete
+    assert target not in plain
+    assert not any("[" in program for _d, program, _w in plain.values())
+    # with no mark on any path the default-basis search is unchanged
+    assert plain == expand(inputs, max_depth=4, ops=CORE_OPS)[0]
+
+
+def test_expand_cost_takes_the_basis():
+    inputs = BRACKET_INPUTS
+    target = behaviour_key(replay(inputs, BRACKET_PROGRAM, ops=MARK_OPS))
+    found, complete = expand_cost(inputs, max_depth=4, ops=MARK_OPS)
+    assert complete
+    assert found[target].program == BRACKET_PROGRAM
+    assert found[target].fuel == 21
+
+
+def test_generate_records_the_basis_on_every_task():
+    with pytest.raises(MachineError, match="unknown basis"):
+        generate(max_depth=1, per_depth=1, seed=1, basis="mark-29")
+
+    plain, _ = generate(max_depth=2, per_depth=3, seed=1)
+    assert plain and {t.basis for t in plain} == {"executable-26"}
+    marked, _ = generate(max_depth=2, per_depth=3, seed=1, basis="mark-28")
+    assert marked and {t.basis for t in marked} == {"mark-28"}
+    # nothing two ops long can close a bracket and still leave one value
+    assert not any("[" in t.program for t in marked)
+    assert [t.program for t in marked] == [t.program for t in plain]
+
+
+def test_generate_under_the_mark_basis_keeps_bracket_programs(monkeypatch):
+    monkeypatch.setattr(
+        stack_machine_corpus, "FAMILIES", {"bitlist3": FAMILIES["bitlist3"]}
+    )
+    tasks, stats = generate(max_depth=4, per_depth=400, seed=1, basis="mark-28")
+    assert stats["bitlist3"]["by_depth"][4] > 0
+    assert {t.basis for t in tasks} == {"mark-28"}
+    bracketed = [t for t in tasks if "[" in t.program]
+    assert any(t.program == BRACKET_PROGRAM for t in bracketed)
+    for task in bracketed:
+        assert task.program.count("[") == task.program.count("]")
+        inputs = tuple(parse_stack(s, basis=task.basis) for s in task.inputs)
+        produced = replay(inputs, task.program, ops=ops_for_basis(task.basis))
+        expected = tuple(parse_stack(s, basis=task.basis) for s in task.outputs)
+        assert behaviour_key(produced) == behaviour_key(expected), task
+        assert task.certified
+    # the encoding carries brackets as ordinary tokens
+    for task in bracketed:
+        assert encode_task(task)["completion"].split() == list(task.program)
+
+
+def test_main_takes_the_basis(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(
+        stack_machine_corpus, "FAMILIES", {"int_pair": FAMILIES["int_pair"]}
+    )
+    out = tmp_path / "mark.jsonl.gz"
+    assert (
+        main(
+            [
+                "--out",
+                str(out),
+                "--max-depth",
+                "2",
+                "--per-depth",
+                "2",
+                "--basis",
+                "mark-28",
+            ]
+        )
+        == 0
+    )
+    with gzip.open(out, "rt") as handle:
+        rows = [json.loads(line) for line in handle]
+    assert rows and {row["basis"] for row in rows} == {"mark-28"}
+    assert "wrote" in capsys.readouterr().err
+    with pytest.raises(SystemExit):
+        main(["--out", str(out), "--basis", "mark-29"])

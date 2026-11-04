@@ -37,7 +37,8 @@ from collections import defaultdict
 from dataclasses import asdict, dataclass
 
 from wandering_light.stack_machine import (
-    CORE_OPS,
+    BASIS_OPS,
+    DEFAULT_BASIS,
     DEFAULT_FUEL_LIMIT,
     Bool,
     Config,
@@ -45,6 +46,7 @@ from wandering_light.stack_machine import (
     Lst,
     Value,
     format_stack,
+    ops_for_basis,
     parse_stack,
     step_raw,
     value_key,
@@ -61,8 +63,12 @@ SCHEMA_VERSION = 3
 # whole depths of certification -- measured at 32x growth per depth against
 # 5.9x here. Quotations still reach the combinators, by arriving as part of a
 # task's input rather than being built op by op.
-OPS = CORE_OPS
-BASIS = "executable-26"
+#
+# `generate(..., basis=...)` can certify against another basis -- `mark-28`
+# adds `[` and `]`, so programs can build quotations structurally -- and every
+# task records which one it was searched under.
+BASIS = DEFAULT_BASIS
+OPS = ops_for_basis(BASIS)
 
 TRAIN_FRACTION = 80  # out of 100
 
@@ -183,12 +189,13 @@ def step_all(behaviour: Behaviour, op) -> Behaviour | None:
 
 
 def expand(
-    inputs: Behaviour, max_depth: int, max_states: int = 2_000_000
+    inputs: Behaviour, max_depth: int, max_states: int = 2_000_000, ops=OPS
 ) -> tuple[dict, bool]:
     """BFS over behaviours. Returns {key: (depth, program, witnesses)}, complete.
 
     `witnesses` counts distinct op-sequences of that same shortest length which
     realise the behaviour -- how under-determined the task is by its examples.
+    `ops` is the basis searched; a "shortest" label is relative to it.
     """
     start = behaviour_key(inputs)
     found = {start: (0, (), 1)}
@@ -200,7 +207,7 @@ def expand(
         counts: dict = defaultdict(int)
         for key, (behaviour, paths) in frontier.items():
             program = found[key][1]
-            for op in OPS:
+            for op in ops:
                 moved = step_all(behaviour, op)
                 if moved is None:
                     continue
@@ -446,7 +453,14 @@ FAMILIES: dict[str, list[Behaviour]] = {
 }
 
 
-def generate(max_depth: int, per_depth: int, seed: int) -> tuple[list[Task], dict]:
+def generate(
+    max_depth: int, per_depth: int, seed: int, *, basis: str = BASIS
+) -> tuple[list[Task], dict]:
+    """Search every family under `basis` and sample tasks per (family, depth).
+
+    Rejects an unknown basis before any search starts.
+    """
+    ops = ops_for_basis(basis)
     rng = random.Random(seed)
     tasks: list[Task] = []
     stats: dict = {}
@@ -454,12 +468,12 @@ def generate(max_depth: int, per_depth: int, seed: int) -> tuple[list[Task], dic
         by_depth: dict[int, list[Task]] = defaultdict(list)
         searched = 0
         for inputs in input_sets:
-            found, complete = expand(inputs, max_depth)
+            found, complete = expand(inputs, max_depth, ops=ops)
             searched += len(found)
             for _key, (depth, program, witnesses) in found.items():
                 if depth == 0:
                     continue
-                outputs = replay(inputs, program)
+                outputs = replay(inputs, program, ops=ops)
                 if not is_useful(inputs, outputs) or is_repetition(program):
                     continue
                 encoded_inputs = tuple(format_stack(Config(s)) for s in inputs)
@@ -475,6 +489,7 @@ def generate(max_depth: int, per_depth: int, seed: int) -> tuple[list[Task], dic
                         witnesses=witnesses,
                         certified=complete,
                         examples=len(inputs),
+                        basis=basis,
                     )
                 )
         picked = []
@@ -492,9 +507,9 @@ def generate(max_depth: int, per_depth: int, seed: int) -> tuple[list[Task], dic
     return tasks, stats
 
 
-def replay(inputs: Behaviour, program: tuple[str, ...]) -> Behaviour:
+def replay(inputs: Behaviour, program: tuple[str, ...], ops=OPS) -> Behaviour:
     """Run a program on every example. Raises if any step is illegal."""
-    by_name = {op.name: op for op in OPS}
+    by_name = {op.name: op for op in ops}
     behaviour = inputs
     for name in program:
         moved = step_all(behaviour, by_name[name])
@@ -505,10 +520,10 @@ def replay(inputs: Behaviour, program: tuple[str, ...]) -> Behaviour:
 
 
 def replay_costed(
-    inputs: Behaviour, program: tuple[str, ...]
+    inputs: Behaviour, program: tuple[str, ...], ops=OPS
 ) -> tuple[Behaviour, CostedPath]:
     """Run a program and return both its behaviour and accumulated fuel."""
-    by_name = {op.name: op for op in OPS}
+    by_name = {op.name: op for op in ops}
     behaviour = inputs
     fuels = (0,) * len(inputs)
     for name in program:
@@ -527,10 +542,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-depth", type=int, default=5)
     parser.add_argument("--per-depth", type=int, default=40)
     parser.add_argument("--seed", type=int, default=17)
+    parser.add_argument(
+        "--basis",
+        default=BASIS,
+        choices=tuple(BASIS_OPS),
+        help="the op set every certified-shortest label is relative to",
+    )
     args = parser.parse_args(argv)
 
     started = time.time()
-    tasks, stats = generate(args.max_depth, args.per_depth, args.seed)
+    tasks, stats = generate(args.max_depth, args.per_depth, args.seed, basis=args.basis)
 
     with gzip.open(args.out, "wt") as handle:
         for task in tasks:
