@@ -47,37 +47,17 @@ sys.path.insert(0, str(REPO))
 import torch  # noqa: E402
 
 import experiments.compute_optimal_mark28 as co  # noqa: E402
-from wandering_light.stack_beam import beam_solve, step_all_quiet  # noqa: E402
+
+# ``replay_program`` lives in ``wandering_light.stack_beam`` now and is
+# re-exported here for the scripts that import it from this experiment.
+from wandering_light.stack_beam import beam_solve, replay_program  # noqa: E402
 from wandering_light.stack_machine import parse_stack  # noqa: E402
-from wandering_light.stack_pbe import BASIS, OP_BY_NAME  # noqa: E402
+from wandering_light.stack_pbe import BASIS  # noqa: E402
 from wandering_light.stack_pbe_eval import grade  # noqa: E402
 from wandering_light.stack_policy import PolicyScorer, load_policy  # noqa: E402
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from wandering_light.stack_pbe import Task
-
-
-def replay_program(
-    program: Sequence[str], inputs: tuple[tuple, ...], outputs: tuple[tuple, ...]
-) -> tuple[bool, int, int]:
-    """Does ``program`` take every shown input to its shown output, and at what cost?
-
-    Charged like the beam: one execution per op run on one example stack, and an
-    op the machine refuses ends the attempt. Returns ``(fits, executions, fuel)``.
-    """
-    executions = 0
-    fuel = 0
-    product = inputs
-    for name in program:
-        moved, spent, stepped = step_all_quiet(product, OP_BY_NAME[name])
-        executions += stepped
-        fuel += spent
-        if moved is None:
-            return False, executions, fuel
-        product = moved
-    return product == outputs, executions, fuel
 
 
 def run_cell(

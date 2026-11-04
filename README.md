@@ -148,6 +148,7 @@ Run the linter through `uv run` so the pinned ruff is used rather than one on `P
 │   ├── quotation_guard.py           # search-level pruning of open-quotation states
 │   ├── solver.py                    # random, BFS, LLM and rollout (beam) solvers
 │   ├── rollout_policy.py, stack_policy.py, stack_beam.py   # learned next-op policies, beam search
+│   ├── solve.py, stack_policy_hub.py   # the current best system on a task file; its checkpoint on the Hub
 │   ├── compute_optimal.py           # cost-to-clear metrics, certified optimal-action sets
 │   ├── corpus_hub.py, policy_hub.py # Hub fetch/publish for corpora and policy checkpoints
 │   ├── shortest_path_data.py, stack_machine_corpus.py   # certified-shortest corpus generation
@@ -185,6 +186,23 @@ uv run python -m wandering_light.stack_machine --basis mark-28 "1 [ 1 add ] i"
 ```
 prints the stack, fuel spent and number of legal ops after each step. `[` and
 `]` build a quotation and `i` executes it. The CLI defaults to `full-52`.
+
+### Run the best system on a task file
+```bash
+uv run python -m wandering_light.solve wandering_light/evals/data/stack_pbe_v4   # or any .jsonl / .jsonl.gz payload
+```
+`TASKS` is a `stack_pbe` payload or a corpus directory. The system is
+`wandering_light.solve.BEST`: a policy checkpoint pinned to a Hub commit
+(`abhishekraok/wandering-light-stack-policy`, fetched once into
+`~/.cache/wandering-light/stack-policy`), beam 64 × depth 48 with the guard,
+and a library of the programs solved earlier in the run, replayed before each
+search inside the task's clock. Every task is attempted in file order and
+graded on its held-out examples only after the last clock stops, so no search
+is warmed by an example it was not shown. It prints a verdict (`solved`,
+`memorised`, `unsolved`) and wall-clock per task, then coverage and total
+wall-clock over every task attempted. `--checkpoint DIR` runs a local policy
+instead (the header says so), `--device cuda` moves the policy, and
+`--json PATH` keeps every row with the host and commit.
 
 ### Baselines on `stack_pbe_v4`
 After fetching the corpus (see Installation):

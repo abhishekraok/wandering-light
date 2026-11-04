@@ -4306,9 +4306,22 @@ def verify_corpus(
     return checked
 
 
+def _open_payload(path: Path):
+    """Open a payload as text whether or not it is gzipped.
+
+    Gzip is detected by its magic bytes rather than the suffix, so a plain
+    ``.jsonl`` and a ``.jsonl.gz`` are both read, whatever they are named.
+    """
+    with path.open("rb") as handle:
+        magic = handle.read(2)
+    if magic == b"\x1f\x8b":
+        return gzip.open(path, "rt")
+    return path.open("rt")
+
+
 def _load_payload(path: Path) -> list[Task]:
     """JSON has no tuples, so restore them on the way in."""
-    with gzip.open(path, "rt") as handle:
+    with _open_payload(path) as handle:
         return [
             Task(
                 **{
