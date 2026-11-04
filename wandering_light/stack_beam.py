@@ -27,7 +27,8 @@ stays small.
 
 ``budget`` caps primitive executions and ``deadline``, a ``time.perf_counter()``
 value, caps wall-clock; both are checked before every op attempt, and a search
-stopped by one ends ``budget`` or ``wall_clock_cap``. Left None, neither is
+stopped by one ends ``budget`` or ``wall_clock_cap``. The flat beam can count
+its budget in another unit of ``BUDGET_UNITS`` (``spent_in``). Left None, neither is
 read and the search is the uncapped one (``tests/test_short_segment_search.py``
 pins that).
 
@@ -39,6 +40,10 @@ of segment-composite (#160). From each root a flat beam runs until its paths
 close; equal closed states are merged across roots, and the best ``roots`` of
 them by cumulative log-probability start the next segment, each with a fresh
 beam. ``segment_witness_ranks`` is the diagnostic that sizes ``roots``.
+
+``widening_beam_solve`` is the matched control for the segment beam: a flat beam
+restarted from scratch at twice the width until one budget, shared by every
+restart, runs out or the beam stops changing.
 
 Every search builds a node's block with ``block_encoder``: the scorer's own
 ``encoder``, so a ``difference`` policy (#168) reads the layout it trained on.
@@ -78,6 +83,24 @@ if TYPE_CHECKING:
 
 Product = tuple[tuple, ...]  # one stack per shown example
 Node = tuple[Product, tuple[str, ...], float]  # (product, program, log-probability)
+
+
+#: What a ``budget`` can count. ``fuel`` already charges one per op plus every
+#: step run inside a quotation body, so ``executions+fuel`` counts the outer
+#: steps twice; it is the unit that charges a search for both the breadth it
+#: tries and the depth of what it runs.
+BUDGET_UNITS = ("executions", "fuel", "executions+fuel")
+
+
+def spent_in(unit: str, executions: int, fuel: int) -> int:
+    """What ``executions`` and ``fuel`` cost in ``unit``, one of ``BUDGET_UNITS``."""
+    if unit == "executions":
+        return executions
+    if unit == "fuel":
+        return fuel
+    if unit == "executions+fuel":
+        return executions + fuel
+    raise ValueError(f"unknown budget unit {unit!r}; choose one of {BUDGET_UNITS}")
 
 
 def block_encoder(
@@ -265,8 +288,13 @@ def beam_solve(
     observer: BeamObserver | None = None,
     max_state_atoms: int | None = None,
     deadline: float | None = None,
+    budget_unit: str = "executions",
 ) -> BeamResult:
     """Search one task. The cyclic collector is off for the duration.
+
+    ``budget`` is counted in ``budget_unit`` (``spent_in``); an unknown unit
+    is refused before any work. The budget is checked before every op
+    attempt, so a search can overshoot it by under one attempt.
 
     Every object the expansion loop makes -- a product tuple per op per example,
     a program tuple per legal successor, the visited set's keys -- is acyclic,
@@ -293,6 +321,7 @@ def beam_solve(
             observer=observer,
             max_state_atoms=max_state_atoms,
             deadline=deadline,
+            budget_unit=budget_unit,
         )
     finally:
         if collecting:
@@ -310,7 +339,13 @@ def _beam_solve(
     observer: BeamObserver | None = None,
     max_state_atoms: int | None = None,
     deadline: float | None = None,
+    budget_unit: str = "executions",
 ) -> BeamResult:
+    spent_in(budget_unit, 0, 0)  # refuse an unknown unit before any work
+    # The unit is resolved once, not per attempt: the check runs 28 x beam
+    # times a layer, and in executions it must stay the comparison it was.
+    count_executions = budget_unit in ("executions", "executions+fuel")
+    count_fuel = budget_unit in ("fuel", "executions+fuel")
     started = time.perf_counter()
     watch = observer if observer is not None else BeamObserver()
     watching = observer is not None
@@ -352,7 +387,9 @@ def _beam_solve(
         for node, (product, program, _) in enumerate(beam):
             expansions += 1
             for index, op in enumerate(OPS):
-                if budget is not None and executions >= budget:
+                if budget is not None and (
+                    count_executions * executions + count_fuel * fuel >= budget
+                ):
                     return result(None, "budget", depth + 1)
                 if deadline is not None and time.perf_counter() >= deadline:
                     return result(None, "wall_clock_cap", depth + 1)
@@ -412,6 +449,107 @@ def _beam_solve(
             return result(None, "frontier_exhausted", depth + 1)
         beam = next_beam
     return result(None, "max_depth", max_depth)
+
+
+# ---------------------------------------------------------------------------
+# Widening flat beam: the matched control for the segment beam
+# ---------------------------------------------------------------------------
+
+#: Terminations that end a widening search: a wider beam would not be asked.
+_WIDENING_STOPS = frozenset({"fit", "budget", "wall_clock_cap"})
+
+
+def widening_beam_solve(
+    task: Task,
+    scorer: PolicyScorer,
+    *,
+    budget: int,
+    start_width: int = 64,
+    max_depth: int = 48,
+    guard: str = "both",
+    max_state_atoms: int | None = None,
+    deadline: float | None = None,
+    budget_unit: str = "executions",
+) -> tuple[BeamResult, dict]:
+    """``beam_solve`` at ``start_width``, then twice as wide, until one budget runs out.
+
+    Every restart searches from scratch, at depth ``max_depth``, and draws on
+    one counter capped at ``budget`` (in ``budget_unit``): a restart gets what
+    the ones before it left. The search stops at the first restart that ends
+    ``fit``, ``budget`` or ``wall_clock_cap``, or that spends exactly as many
+    executions as the one before -- its beam never filled, so a wider beam is
+    the same search; that stop is ``saturated``.
+
+    The result sums executions, fuel and expansions over the restarts, and its
+    seconds run from the first restart's start to the last one's end. Program
+    and termination are the last restart's; depth is the last restart's when it
+    fit, else the deepest any restart reached. The dict holds ``widths``, one
+    ``{"width", "termination", "executions"}`` per restart; ``largest_width_
+    completed``, the widest restart not ended by budget or wall clock (None if
+    every one was); ``fit_width`` (None without a fit); and ``saturated``.
+    """
+    spent_in(budget_unit, 0, 0)  # refuse an unknown unit before any work
+    if budget is None:
+        raise ValueError("a widening search needs a budget")
+    if start_width < 1:
+        raise ValueError(f"start_width must be at least 1, not {start_width}")
+    started = time.perf_counter()
+    width = start_width
+    executions = fuel = expansions = deepest = 0
+    widths: list[dict] = []
+    previous: int | None = None
+    saturated = False
+    while True:
+        left = max(0, budget - spent_in(budget_unit, executions, fuel))
+        last = beam_solve(
+            task,
+            scorer,
+            beam_width=width,
+            max_depth=max_depth,
+            guard=guard,
+            budget=left,
+            max_state_atoms=max_state_atoms,
+            deadline=deadline,
+            budget_unit=budget_unit,
+        )
+        executions += last.executions
+        fuel += last.fuel
+        expansions += last.expansions
+        deepest = max(deepest, last.depth)
+        widths.append(
+            {
+                "width": width,
+                "termination": last.termination,
+                "executions": last.executions,
+            }
+        )
+        if last.termination in _WIDENING_STOPS:
+            break
+        if previous is not None and last.executions == previous:
+            saturated = True
+            break
+        previous = last.executions
+        width *= 2
+    completed = [
+        w["width"]
+        for w in widths
+        if w["termination"] not in ("budget", "wall_clock_cap")
+    ]
+    result = BeamResult(
+        last.program,
+        last.termination,
+        time.perf_counter() - started,
+        executions,
+        fuel,
+        expansions,
+        last.depth if last.termination == "fit" else deepest,
+    )
+    return result, {
+        "widths": widths,
+        "largest_width_completed": max(completed) if completed else None,
+        "fit_width": width if last.termination == "fit" else None,
+        "saturated": saturated,
+    }
 
 
 # ---------------------------------------------------------------------------

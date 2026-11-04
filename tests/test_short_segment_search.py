@@ -18,7 +18,13 @@ from tests.test_segment_beam import task_for as witness_task
 from tests.test_stack_beam_equivalence import _Deterministic
 from wandering_light import solve
 from wandering_light.rollout_policy import PolicyArchitecture
-from wandering_light.stack_beam import beam_solve, segment_beam_solve
+from wandering_light.stack_beam import (
+    BUDGET_UNITS,
+    beam_solve,
+    segment_beam_solve,
+    spent_in,
+    widening_beam_solve,
+)
 from wandering_light.stack_pbe import BY_NAME, build_task, draw_task
 from wandering_light.stack_policy import save_policy, train_policy, witness_rows
 
@@ -447,3 +453,224 @@ def test_a_matched_cell_starts_only_after_its_segment_cell_is_written(
     again = []
     assert run_cells.run_queue(cells, args, again.append) == 0
     assert not any(line.startswith("start") for line in again)
+
+
+# ---------------------------------------------------------------------------
+# Budget units and the widening flat beam
+# ---------------------------------------------------------------------------
+
+
+class _Refusing:
+    """A scorer that fails the test if the search ever asks it anything."""
+
+    def log_probs(self, blocks, legal):
+        raise AssertionError("the search did work before refusing")
+
+
+def test_spent_in_counts_each_unit_and_refuses_others():
+    assert BUDGET_UNITS == ("executions", "fuel", "executions+fuel")
+    assert spent_in("executions", 7, 30) == 7
+    assert spent_in("fuel", 7, 30) == 30
+    assert spent_in("executions+fuel", 7, 30) == 37
+    with pytest.raises(ValueError, match="unknown budget unit 'ops'"):
+        spent_in("ops", 7, 30)
+
+
+def test_an_unknown_unit_is_refused_before_any_work():
+    task = drawn("negate_each", 3)
+    for budget in (None, 100):
+        with pytest.raises(ValueError, match="unknown budget unit"):
+            beam_solve(task, _Refusing(), budget=budget, budget_unit="ops")
+        with pytest.raises(ValueError, match="unknown budget unit"):
+            widening_beam_solve(task, _Refusing(), budget=100, budget_unit="ops")
+
+
+@pytest.mark.parametrize("unit", ["fuel", "executions+fuel"])
+def test_the_flat_beam_counts_its_budget_in_the_unit(unit):
+    task = drawn("negate_each", 3)
+    free = beam_solve(task, _Deterministic(3), beam_width=16, max_depth=8)
+    assert spent_in(unit, free.executions, free.fuel) > 3000
+    for budget in (0, 1, 500, 3000):
+        capped = beam_solve(
+            task,
+            _Deterministic(3),
+            beam_width=16,
+            max_depth=8,
+            budget=budget,
+            budget_unit=unit,
+        )
+        assert capped.termination == "budget"
+        spent = spent_in(unit, capped.executions, capped.fuel)
+        assert spent >= budget
+        # Under one attempt over: the search stopped at the first check past
+        # the budget, so it was under the budget one attempt earlier.
+        assert capped.executions < budget + task.examples
+    # In fuel a budget runs out sooner than the same number of executions.
+    by_executions = beam_solve(
+        task, _Deterministic(3), beam_width=16, max_depth=8, budget=3000
+    )
+    by_both = beam_solve(
+        task,
+        _Deterministic(3),
+        beam_width=16,
+        max_depth=8,
+        budget=3000,
+        budget_unit="executions+fuel",
+    )
+    assert by_both.executions < by_executions.executions
+    roomy = beam_solve(
+        task,
+        _Deterministic(3),
+        beam_width=16,
+        max_depth=8,
+        budget=spent_in(unit, free.executions, free.fuel) + 1,
+        budget_unit=unit,
+    )
+    assert [getattr(roomy, f) for f in FIELDS] == [getattr(free, f) for f in FIELDS]
+
+
+def test_widening_that_fits_at_the_first_width_is_one_flat_beam():
+    task = witness_task("sum", 4)
+    kwargs = {"max_depth": len(task.program) + 2, "max_state_atoms": 16_384}
+    flat = beam_solve(task, WitnessScorer(task, 2.0), beam_width=8, **kwargs)
+    got, info = widening_beam_solve(
+        task, WitnessScorer(task, 2.0), budget=10**6, start_width=8, **kwargs
+    )
+    assert [getattr(got, f) for f in FIELDS] == [getattr(flat, f) for f in FIELDS]
+    assert info == {
+        "widths": [{"width": 8, "termination": "fit", "executions": flat.executions}],
+        "largest_width_completed": 8,
+        "fit_width": 8,
+        "saturated": False,
+    }
+
+
+def test_widening_doubles_from_scratch_until_the_shared_budget_runs_out():
+    task = drawn("negate_each", 3)
+    budget = 40_000
+    got, info = widening_beam_solve(
+        task, _Deterministic(3), budget=budget, start_width=4, max_depth=8
+    )
+    widths = [w["width"] for w in info["widths"]]
+    assert widths == [4 * 2**i for i in range(len(widths))]
+    assert len(widths) >= 2
+    # Every restart but the last walked its whole depth, each from scratch:
+    # the same search as a lone flat beam at that width.
+    for entry in info["widths"][:-1]:
+        lone = beam_solve(
+            task, _Deterministic(3), beam_width=entry["width"], max_depth=8
+        )
+        assert (entry["termination"], entry["executions"]) == (
+            lone.termination,
+            lone.executions,
+        )
+    assert info["widths"][-1]["termination"] == "budget"
+    assert got.termination == "budget" and got.program is None
+    assert got.executions == sum(w["executions"] for w in info["widths"])
+    assert budget <= got.executions < budget + task.examples
+    assert info["largest_width_completed"] == widths[-2]
+    assert info["fit_width"] is None and not info["saturated"]
+    assert got.depth == 8
+
+
+def test_widening_with_a_tiny_budget_completes_no_width():
+    task = drawn("negate_each", 3)
+    got, info = widening_beam_solve(
+        task, _Deterministic(3), budget=100, start_width=16, max_depth=8
+    )
+    assert info["widths"] == [
+        {"width": 16, "termination": "budget", "executions": got.executions}
+    ]
+    assert info["largest_width_completed"] is None
+    assert info["fit_width"] is None
+
+
+def test_widening_stops_when_a_wider_beam_is_the_same_search():
+    # One layer from the inputs has at most 28 successors, so no beam of 64 or
+    # more ever fills and the second restart repeats the first.
+    task = drawn("negate_each", 3)
+    got, info = widening_beam_solve(
+        task, _Deterministic(3), budget=10**6, start_width=64, max_depth=1
+    )
+    assert [w["width"] for w in info["widths"]] == [64, 128]
+    first, second = info["widths"]
+    assert first["executions"] == second["executions"]
+    assert info["saturated"] and info["largest_width_completed"] == 128
+    assert got.termination == first["termination"] == "max_depth"
+    assert got.executions == 2 * first["executions"]
+
+
+def test_widening_hands_the_unit_to_every_restart():
+    task = drawn("negate_each", 3)
+    budget = 20_000
+    got, _info = widening_beam_solve(
+        task,
+        _Deterministic(3),
+        budget=budget,
+        start_width=4,
+        max_depth=8,
+        budget_unit="fuel",
+    )
+    assert got.termination == "budget"
+    assert got.fuel >= budget
+    plain, _ = widening_beam_solve(
+        task, _Deterministic(3), budget=budget, start_width=4, max_depth=8
+    )
+    assert got.executions < plain.executions
+
+
+def test_the_widening_system_describes_itself():
+    system = tiny_system(search="widening")
+    assert system.describe().endswith(
+        ", search widening: the width doubles per restart within a budget"
+    )
+    assert "widening" not in tiny_system().describe()
+
+
+def test_solve_tasks_refuses_bad_units_and_unbudgeted_widening_up_front():
+    tasks = [witness_task("sum", 4), drawn("negate_each", 3)]
+    refusing = _Refusing()
+    with pytest.raises(ValueError, match="unknown budget unit"):
+        solve.solve_tasks(tasks, refusing, tiny_system(), budget_unit="ops")
+    with pytest.raises(ValueError, match="the segment search budgets executions only"):
+        solve.solve_tasks(
+            tasks, refusing, tiny_system(search="segment"), budget_unit="fuel"
+        )
+    widening = tiny_system(search="widening")
+    for budgets in (None, [1000, None]):
+        with pytest.raises(ValueError, match="a widening search needs a budget"):
+            solve.solve_tasks(tasks, refusing, widening, budgets=budgets)
+
+
+def test_solve_tasks_runs_widening_and_records_it():
+    first = witness_task("sum", 4)
+    tasks = [first, drawn("negate_each", 3), witness_task("sum", 4)]
+    scorer = WitnessScorer(first, 2.0)
+    rows = solve.solve_tasks(
+        tasks, scorer, tiny_system(search="widening"), budgets=[10**6, 5_000, 10**6]
+    )
+    assert rows[0].termination == "fit"
+    assert rows[0].widening["fit_width"] == 8
+    assert rows[0].record()["widening"] == rows[0].widening
+    assert rows[1].termination == "budget"
+    assert 5_000 <= rows[1].executions < 5_000 + tasks[1].examples
+    assert rows[1].widening["widths"][0]["width"] == 8
+    # The third is solved by replaying the first's program; no search ran.
+    assert rows[2].source == "library" and rows[2].widening is None
+    assert "widening" not in rows[2].record()
+    flat = solve.solve_tasks(tasks, scorer, tiny_system())
+    assert all("widening" not in row.record() for row in flat)
+
+
+def test_solve_tasks_charges_library_replay_in_the_budget_unit():
+    first = witness_task("sum", 4)
+    tasks = [first, drawn("negate_each", 3)]
+    scorer = WitnessScorer(first, 2.0)
+    rows = solve.solve_tasks(
+        tasks, scorer, tiny_system(), budgets=[None, 900], budget_unit="fuel"
+    )
+    assert rows[1].termination == "budget"
+    # Replay and search together: the fuel crosses the budget by under one
+    # attempt, and the replay's fuel is part of it.
+    assert rows[1].fuel >= 900
+    assert rows[1].executions < 900
