@@ -4,6 +4,7 @@ import json
 import random
 import sys
 import time
+from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -1034,3 +1035,152 @@ def test_local_per_op_rank_divides_the_gain_by_the_segment_ops():
     # Cumulative keeps the whole-program mean: -2 / 10 beats -1 / 2.
     cumulative = _rank_variants(every, [long_root, short_root], set(), product(30))
     assert cumulative["per_op_rank"] == 2
+
+
+# --- archiving the segment search's closed states (segment-archive) -----------
+
+
+@pytest.mark.parametrize(("name", "witness", "shape", "want"), SEGMENT_GOLDEN)
+@pytest.mark.parametrize("scoring", ["cumulative", "local"])
+def test_an_archive_records_every_segment_and_changes_nothing(
+    name, witness, shape, want, scoring
+):
+    from wandering_light.stack_beam import ArchivedSegment, _prepare
+
+    task = witness_task(name, 4)
+    roots, depth, segments, width = shape
+    kwargs = {
+        "roots": roots,
+        "segment_depth": depth,
+        "max_segments": segments,
+        "beam_width": width,
+        "max_state_atoms": 16_384,
+        "scoring": scoring,
+    }
+    plain = segment_beam_solve(task, WitnessScorer(task, 1.0), **kwargs)
+    archive = []
+    archived = segment_beam_solve(
+        task, WitnessScorer(task, 1.0), **kwargs, archive=archive
+    )
+    # The result and every counter are the same with or without an archive.
+    assert tuple(getattr(archived, f) for f in FIELDS) == tuple(
+        getattr(plain, f) for f in FIELDS
+    )
+    if scoring == "cumulative":
+        assert tuple(getattr(plain, f) for f in FIELDS) == want
+    # One entry per segment run, the one that stopped the search included.
+    assert 1 <= len(archive) <= segments
+    assert all(isinstance(entry, ArchivedSegment) for entry in archive)
+    assert [entry.segment for entry in archive] == list(range(len(archive)))
+    assert archive[0].roots == (((), 0.0),)
+    stops = [entry.stop for entry in archive]
+    if plain.termination == "fit":
+        assert stops == [None] * (len(archive) - 1) + ["fit"]
+        # The fit extends one of the stopping segment's roots.
+        assert any(
+            plain.program[: len(program)] == program for program, _ in archive[-1].roots
+        )
+    else:
+        assert stops == [None] * len(archive)
+        if plain.termination == "frontier_exhausted":
+            # The last segment closed no state that had not been a root already
+            # (roots are states, so a closed state can be the inputs again).
+            expanded = {_prepare(task, "both")[0]}
+            for before, after in pairwise(archive):
+                programs = {program for program, _ in after.roots}
+                expanded.update(
+                    product
+                    for product, (_, program) in before.closed.items()
+                    if program in programs
+                )
+            assert set(archive[-1].closed) <= expanded
+        else:
+            assert len(archive) == segments
+    for entry in archive:
+        assert len(entry.roots) <= roots
+        for program, score in entry.roots:
+            assert isinstance(program, tuple) and isinstance(score, float)
+        if scoring == "local":
+            assert all(score == 0.0 for _, score in entry.roots)
+    # The next segment's roots are closed states of the one before, at their
+    # scores under cumulative scoring and at 0 under local, best first.
+    for before, after in pairwise(archive):
+        closed = {program: score for score, program in before.closed.values()}
+        assert all(program in closed for program, _ in after.roots)
+        if scoring == "cumulative":
+            assert [score for _, score in after.roots] == sorted(
+                (closed[program] for program, _ in after.roots), reverse=True
+            )
+
+
+def test_the_archive_holds_the_segments_own_closed_states(monkeypatch):
+    """The archive keeps references: `closed` is the dict `_run_segment` returned."""
+    from wandering_light import stack_beam as beam
+
+    returned = []
+    children = {(): [("A", -1.0), ("B", -3.0)], ("A",): [("A2", -2.0)]}
+
+    def fake(frontier, outputs, encode, scorer, tally, **kwargs):
+        closed = {}
+        for _, program, score in frontier:
+            for name, gain in children.get(program, []):
+                closed[((name,),)] = (score + gain, (*program, name))
+        stop = "fit" if ("A", "A2") in {p for _, p in closed.values()} else None
+        returned.append(closed)
+        return stop, (("A", "A2") if stop else None), closed
+
+    monkeypatch.setattr(beam, "_run_segment", fake)
+    task = witness_task("sum", 4)
+    archive = []
+    got = beam.segment_beam_solve(
+        task, WitnessScorer(task), roots=2, max_segments=3, archive=archive
+    )
+    assert got.termination == "fit" and got.program == ("A", "A2")
+    assert len(archive) == len(returned) == 2
+    assert all(e.closed is c for e, c in zip(archive, returned, strict=True))
+    assert archive[0] == beam.ArchivedSegment(0, (((), 0.0),), returned[0], None)
+    assert archive[1].segment == 1
+    assert archive[1].roots == ((("A",), -1.0), (("B",), -3.0))
+    assert archive[1].stop == "fit"
+    # Nothing is appended when no archive is given.
+    returned.clear()
+    assert beam.segment_beam_solve(task, WitnessScorer(task), roots=2).program == (
+        "A",
+        "A2",
+    )
+    assert len(returned) == 2
+
+
+def test_solve_tasks_hands_each_task_its_archive_after_the_clock_stops():
+    from wandering_light.stack_beam import ArchivedSegment
+
+    first = witness_task("sum", 4)
+    tasks = [first, first, drawn("negate_each", 3)]
+    scorer = WitnessScorer(first, 1.0)
+    system = tiny_system(search="segment", roots=4, segment_depth=4, max_segments=4)
+    seen = []
+
+    def archive(row, segments):
+        # Called once the clock has stopped and before grading.
+        assert row.seconds > 0 and row.solved is False
+        seen.append((row, segments))
+
+    rows = solve.solve_tasks(tasks, scorer, system, archive=archive)
+    assert [row for row, _ in seen] == rows
+    assert rows[0].termination == "fit" and rows[0].source == "search"
+    assert rows[1].source == "library"
+    assert rows[2].source == "search" and rows[2].termination != "fit"
+    searched, replayed, missed = (segments for _, segments in seen)
+    assert len(searched) >= 1 and searched[-1].stop == "fit"
+    assert all(isinstance(entry, ArchivedSegment) for entry in searched + missed)
+    assert replayed == []
+    assert len(missed) >= 1 and all(entry.stop is None for entry in missed)
+    # An archive changes no row, and a flat search archives nothing.
+    plain = solve.solve_tasks(tasks, scorer, system)
+    strip = lambda rows: [  # noqa: E731
+        {k: v for k, v in r.record().items() if k != "seconds"} for r in rows
+    ]
+    assert strip(plain) == strip(rows)
+    flat = []
+    solve.solve_tasks(tasks, scorer, tiny_system(), archive=lambda _, s: flat.append(s))
+    assert flat == [[], [], []]
