@@ -13,6 +13,7 @@ dependencies = [
     "python-dotenv",
     "ollama>=0.5.1",
     "openai==1.74.0",
+    "anthropic>=1.2.0",
     "google-generativeai==0.8.5",
     "tqdm>=4.67.0",
     "transformers==4.52.4",

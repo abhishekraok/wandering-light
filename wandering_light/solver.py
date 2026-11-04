@@ -12,6 +12,7 @@ from collections import deque
 from dataclasses import dataclass
 from typing import Literal
 
+import anthropic
 import google.generativeai as genai
 import openai
 from dotenv import load_dotenv
@@ -417,6 +418,46 @@ class OpenAITokenGenerator(TokenGenerator):
     def generate_batch(self, prompts: list[str]) -> list[str]:
         """Generate responses for a batch of prompts. Uses sequential processing for API-based generation."""
         return super().generate_batch(prompts)
+
+
+class AnthropicTokenGenerator(TokenGenerator):
+    """Claude through the Messages API, at a fixed effort.
+
+    Deliberately no server-side model fallbacks: a silent substitution would
+    put two models' answers in one results column. A refusal returns "" so
+    it is graded as an unparsed program rather than raising mid-run.
+    """
+
+    def __init__(
+        self,
+        model: str = "claude-opus-5",
+        effort: str = "high",
+        max_tokens: int = 32_000,
+    ):
+        self.model = model
+        self.effort = effort
+        self.max_tokens = max_tokens
+        load_dotenv()
+        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        self.llm_io_history = []
+
+    def generate(self, prompt: str) -> str:
+        response = self.client.messages.create(
+            model=self.model,
+            max_tokens=self.max_tokens,
+            messages=[{"role": "user", "content": prompt}],
+            output_config={"effort": self.effort},
+        )
+        if response.stop_reason == "refusal":
+            output = ""
+        else:
+            output = "".join(
+                block.text
+                for block in response.content
+                if getattr(block, "type", None) == "text"
+            )
+        self.llm_io_history.append((prompt, output))
+        return output
 
 
 class GeminiTokenGenerator(TokenGenerator):
