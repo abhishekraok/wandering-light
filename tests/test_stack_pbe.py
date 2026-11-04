@@ -37,6 +37,7 @@ from wandering_light.stack_pbe import (
     assign_split,
     build_task,
     catalogue_digest,
+    catalogue_source_digest,
     check,
     draw_task,
     encode_task,
@@ -48,6 +49,7 @@ from wandering_light.stack_pbe import (
     to_stack,
     to_value,
     verify,
+    verify_corpus,
     write_corpus,
 )
 
@@ -484,3 +486,188 @@ def test_to_value_refuses_bools():
 
     with pytest.raises(MachineError):
         to_value(True)
+
+
+# --------------------------------------------------------------------------
+# Verified loading: a regenerated payload must not load as the published one
+# --------------------------------------------------------------------------
+
+
+def _written(tmp_path, seed=5):
+    made, _stats = generate(per_behaviour=1, seed=seed)
+    write_corpus(made, tmp_path, config={"per_behaviour": 1, "seed": seed})
+    return made
+
+
+def _edit_manifest(root, edit):
+    path = root / "manifest.json"
+    manifest = json.loads(path.read_text())
+    edit(manifest)
+    path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+
+
+def test_catalogue_source_digest_is_stable_and_leaves_catalogue_digest_alone():
+    first = catalogue_source_digest()
+    assert first.startswith("sha256:") and len(first) == len("sha256:") + 64
+    assert catalogue_source_digest() == first
+    assert catalogue_source_digest(list(CATALOGUE)) == first
+
+
+def test_catalogue_source_digest_sees_a_sampler_change_the_witness_digest_cannot():
+    """`_list_of(SMALL)` and `_list_of(POSITIVE)` share one source line."""
+    from dataclasses import replace
+
+    from wandering_light.stack_pbe import POSITIVE, SMALL, _list_of
+
+    i = next(i for i, b in enumerate(CATALOGUE) if b.name == "double_each")
+    small = [*CATALOGUE[:i], replace(CATALOGUE[i], sample=_list_of(SMALL))]
+    positive = [*CATALOGUE[:i], replace(CATALOGUE[i], sample=_list_of(POSITIVE))]
+    longer = [*CATALOGUE[:i], replace(CATALOGUE[i], sample=_list_of(SMALL, hi=9))]
+
+    assert catalogue_digest(small) == catalogue_digest(positive)
+    assert catalogue_source_digest(small) != catalogue_source_digest(positive)
+    assert catalogue_source_digest(small) != catalogue_source_digest(longer)
+    # A fresh closure over the same values is the same sampler.
+    again = [*CATALOGUE[:i], replace(CATALOGUE[i], sample=_list_of(SMALL))]
+    assert catalogue_source_digest(again) == catalogue_source_digest(small)
+
+
+def test_catalogue_source_digest_names_builtins_and_follows_captured_functions():
+    from dataclasses import replace
+
+    i = next(i for i, b in enumerate(CATALOGUE) if b.reference is max)
+    as_min = [*CATALOGUE[:i], replace(CATALOGUE[i], reference=min), *CATALOGUE[i + 1 :]]
+    assert catalogue_source_digest(as_min) != catalogue_source_digest()
+
+    def wrap(inner):
+        return lambda *args: inner(*args)  # noqa: PLW0108 -- a closure is the point
+
+    via_max = [replace(CATALOGUE[i], reference=wrap(max))]
+    via_min = [replace(CATALOGUE[i], reference=wrap(min))]
+    assert catalogue_source_digest(via_max) != catalogue_source_digest(via_min)
+
+
+def test_catalogue_source_digest_covers_accept():
+    from dataclasses import replace
+
+    base = CATALOGUE[0]
+    assert base.accept is None
+    guarded = replace(base, accept=lambda _args, _results: True)
+    assert catalogue_source_digest([base]) != catalogue_source_digest([guarded])
+
+
+def test_write_corpus_records_the_source_digest(tmp_path):
+    _written(tmp_path)
+    catalogue = json.loads((tmp_path / "manifest.json").read_text())["catalogue"]
+    assert catalogue["digest"] == catalogue_digest()
+    assert catalogue["source_digest"] == catalogue_source_digest()
+
+
+def test_verify_corpus_accepts_what_write_corpus_wrote(tmp_path):
+    made = _written(tmp_path)
+    checked = verify_corpus(tmp_path)
+    assert {task.split for task in made} <= set(checked)
+    assert checked["catalogue:digest"] == catalogue_digest()
+    assert checked["catalogue:source_digest"] == catalogue_source_digest()
+
+
+def test_a_regenerated_payload_does_not_load_as_the_published_one(tmp_path):
+    """The hazard: payloads are not in git and `load` reads what's on disk."""
+    published = tmp_path / "published"
+    regenerated = tmp_path / "regenerated"
+    _written(published, seed=5)
+    _written(regenerated, seed=9)
+    manifest = json.loads((published / "manifest.json").read_text())
+    for split in manifest["splits"].values():
+        (published / split["path"]).write_bytes(
+            (regenerated / split["path"]).read_bytes()
+        )
+
+    with pytest.raises(ValueError, match="digest mismatch"):
+        load(published)
+    assert load(published, verify="off")  # the escape hatch still reads it
+
+
+def test_verify_corpus_refuses_a_stale_catalogue_digest(tmp_path):
+    _written(tmp_path)
+    _edit_manifest(tmp_path, lambda m: m["catalogue"].update(digest="sha256:00"))
+    with pytest.raises(ValueError, match="catalogue digest"):
+        verify_corpus(tmp_path)
+    with pytest.raises(ValueError, match="catalogue digest"):
+        load(tmp_path)
+
+
+def test_verify_corpus_refuses_a_stale_source_digest(tmp_path):
+    _written(tmp_path)
+    _edit_manifest(tmp_path, lambda m: m["catalogue"].update(source_digest="sha256:00"))
+    with pytest.raises(ValueError, match="catalogue source_digest"):
+        verify_corpus(tmp_path)
+
+
+def test_an_older_manifest_without_a_source_digest_is_not_refused_for_it(tmp_path):
+    _written(tmp_path)
+    _edit_manifest(tmp_path, lambda m: m["catalogue"].pop("source_digest"))
+    checked = verify_corpus(tmp_path)
+    assert "catalogue:source_digest" not in checked
+    assert checked["catalogue:digest"] == catalogue_digest()
+
+
+def test_other_generators_catalogues_are_not_checked(tmp_path):
+    _written(tmp_path)
+
+    def other(m):
+        m["generator"] = "experiments.something_else"
+        m["catalogue"].update(digest="sha256:00", source_digest="sha256:00")
+
+    _edit_manifest(tmp_path, other)
+    checked = verify_corpus(tmp_path)
+    assert not any(key.startswith("catalogue:") for key in checked)
+
+
+def test_hub_verification_needs_a_recorded_revision(tmp_path):
+    _written(tmp_path)
+    with pytest.raises(ValueError, match="no hub revision"):
+        verify_corpus(tmp_path, hub=True)
+    with pytest.raises(ValueError, match="no hub revision"):
+        load(tmp_path, verify="hub")
+
+
+def test_hub_verification_uses_the_manifest_hub_block(tmp_path, monkeypatch):
+    from wandering_light import corpus_hub
+
+    made = _written(tmp_path)
+    corpus_hub.record_hub_location(tmp_path, repo_id="acct/pbe", revision="rev9")
+    calls = []
+
+    def fake_verify(root, *, repo_id, revision):
+        calls.append((Path(root), repo_id, revision))
+        return {"train": "sha256:x"}
+
+    monkeypatch.setattr(corpus_hub, "verify_published_corpus", fake_verify)
+
+    checked = verify_corpus(tmp_path, hub=True)
+    assert calls == [(tmp_path, "acct/pbe", "rev9")]
+    assert checked["hub:train"] == "sha256:x"
+
+    calls.clear()
+    assert len(load(tmp_path, verify="hub")) == len(made)
+    assert calls == [(tmp_path, "acct/pbe", "rev9")]
+
+    calls.clear()
+    load(tmp_path)  # "local" never touches the Hub
+    assert calls == []
+
+
+def test_load_refuses_an_unknown_verify_mode(tmp_path):
+    _written(tmp_path)
+    with pytest.raises(ValueError, match="verify must be"):
+        load(tmp_path, verify="strict")
+
+
+def test_a_single_payload_file_is_read_as_before(tmp_path):
+    made = _written(tmp_path)
+    manifest = json.loads((tmp_path / "manifest.json").read_text())
+    split, meta = next(iter(manifest["splits"].items()))
+    (tmp_path / "manifest.json").unlink()  # no manifest needed for a file
+    rows = load(tmp_path / meta["path"])
+    assert rows == [task for task in made if task.split == split]

@@ -39,11 +39,13 @@ from __future__ import annotations
 import argparse
 import gzip
 import hashlib
+import inspect
 import json
 import math
 import random
 import sys
 import time
+import types
 from collections import Counter
 from dataclasses import asdict, dataclass, field
 from itertools import pairwise
@@ -4058,6 +4060,7 @@ def generate(
 
 CORPUS_NAME = "stack_pbe_v4"
 HUB_REPO_ID = "abhishekraok/wandering-light-stack-pbe-v4"
+GENERATOR = "wandering_light.stack_pbe"
 
 
 def catalogue_digest(catalogue: Sequence[Behaviour] = CATALOGUE) -> str:
@@ -4072,6 +4075,97 @@ def catalogue_digest(catalogue: Sequence[Behaviour] = CATALOGUE) -> str:
         [[b.name, b.summary, list(b.witnesses)] for b in catalogue], sort_keys=True
     )
     return "sha256:" + hashlib.sha256(payload.encode()).hexdigest()
+
+
+def _describe(value: object, seen: frozenset[int] = frozenset()) -> str:
+    """A stable text for a sampler, reference or guard and what it closes over.
+
+    ``inspect.getsource`` alone is not enough. Two closures made by one factory
+    line -- ``_list_of(SMALL)`` and ``_list_of(POSITIVE)`` -- have the same
+    source and differ only in captured values, so captured cells (and default
+    arguments) are described too, recursively when they hold functions.
+    Builtins such as ``max`` have no source and are named instead.
+    """
+    if value is None:
+        return ""
+    if isinstance(value, types.FunctionType):
+        if id(value) in seen:  # a recursive closure: name it, do not loop
+            return f"<recursive {value.__module__}.{value.__qualname__}>"
+        inner = seen | {id(value)}
+        try:
+            source = inspect.getsource(value)
+        except (OSError, TypeError):
+            # No file to read (e.g. exec'd code): fall back to the bytecode.
+            source = f"<code {value.__code__.co_code.hex()}>"
+        parts = [f"{value.__module__}.{value.__qualname__}", source]
+        for name, cell in zip(
+            value.__code__.co_freevars, value.__closure__ or (), strict=True
+        ):
+            try:
+                captured = cell.cell_contents
+            except ValueError:  # an unfilled cell
+                captured = "<empty>"
+            parts.append(f"{name}={_describe(captured, inner)}")
+        if value.__defaults__:
+            parts.append(
+                "defaults=" + ",".join(_describe(d, inner) for d in value.__defaults__)
+            )
+        if value.__kwdefaults__:
+            parts.append(
+                "kwdefaults="
+                + ",".join(
+                    f"{k}={_describe(v, inner)}"
+                    for k, v in sorted(value.__kwdefaults__.items())
+                )
+            )
+        return "\n".join(parts)
+    if isinstance(value, types.BuiltinFunctionType | types.BuiltinMethodType):
+        module = getattr(value, "__module__", None) or "builtins"
+        return f"<builtin {module}.{value.__qualname__}>"
+    if isinstance(value, type):
+        return f"<type {value.__module__}.{value.__qualname__}>"
+    if isinstance(value, set | frozenset):
+        return "{" + ",".join(sorted(_describe(v, seen) for v in value)) + "}"
+    if isinstance(value, list | tuple):
+        items = ",".join(_describe(v, seen) for v in value)
+        return f"{type(value).__name__}({items})"
+    if isinstance(value, dict):
+        items = ",".join(
+            sorted(
+                f"{_describe(k, seen)}:{_describe(v, seen)}" for k, v in value.items()
+            )
+        )
+        return "dict(" + items + ")"
+    if callable(value):  # partials and other callable objects
+        return f"<{type(value).__qualname__} {value!r}>"
+    return repr(value)
+
+
+def catalogue_source_digest(catalogue: Sequence[Behaviour] = CATALOGUE) -> str:
+    """A digest over the *code* behind the catalogue, which `catalogue_digest` skips.
+
+    A sampler edit changes every task of a behaviour without touching a
+    witness, so `catalogue_digest` cannot see it; this can. It hashes each
+    behaviour's name and the source of its ``reference``, ``sample`` and
+    ``accept`` (``None`` as empty), with captured values -- see `_describe`.
+
+    Source text is a proxy, not a proof: an edit to a module-level helper a
+    sampler calls by global name (``_draw``) is not captured, nor is a change
+    in Python's ``random``. It catches the common case, an edited catalogue.
+    """
+    digest = hashlib.sha256()
+    for behaviour in catalogue:
+        payload = json.dumps(
+            [
+                behaviour.name,
+                _describe(behaviour.reference),
+                _describe(behaviour.sample),
+                _describe(behaviour.accept),
+            ]
+        )
+        digest.update(payload.encode())
+        digest.update(b"\n")
+    return "sha256:" + digest.hexdigest()
 
 
 def _sha256_file(path: Path) -> str:
@@ -4122,7 +4216,7 @@ def write_corpus(
         "schema_version": SCHEMA_VERSION,
         "corpus": name,
         "basis": BASIS,
-        "generator": "wandering_light.stack_pbe",
+        "generator": GENERATOR,
         "generator_description": (
             "Behaviours are hand-written and paired with an independent Python "
             "reference; inputs are sampled fresh per example; no task input "
@@ -4134,6 +4228,7 @@ def write_corpus(
             "behaviours": len(catalogue),
             "skeletons": len({b.skeleton for b in catalogue}),
             "digest": catalogue_digest(catalogue),
+            "source_digest": catalogue_source_digest(catalogue),
         },
         "counts": {
             "tasks": len(tasks),
@@ -4158,19 +4253,75 @@ _TUPLE_FIELDS = (
 )
 
 
-def load(path: str | Path) -> list[Task]:
+_VERIFY_MODES = ("local", "hub", "off")
+
+
+def verify_corpus(corpus_dir: str | Path, *, hub: bool = False) -> dict[str, str]:
+    """Check a corpus directory is the corpus its manifest describes.
+
+    Payloads are not in git and `load` reads whatever the manifest names, so a
+    regenerated payload would otherwise load exactly like the published one.
+    Every split must match its sha256; a manifest this module wrote must name
+    the live catalogue, by witness `catalogue_digest` and, when the manifest
+    records one, `catalogue_source_digest` (older manifests lack it and are
+    not refused for that). With ``hub``, the pinned Hub revision is fetched and
+    verified too. Returns the digests checked.
+    """
+    from wandering_light import corpus_hub
+
+    root = Path(corpus_dir)
+    checked = corpus_hub.verify_corpus_files(root)
+    manifest = json.loads((root / corpus_hub.MANIFEST_NAME).read_text("utf-8"))
+
+    if manifest.get("generator") == GENERATOR:
+        catalogue = manifest.get("catalogue") or {}
+        live = catalogue_digest()
+        if catalogue.get("digest") != live:
+            raise ValueError(
+                f"catalogue digest mismatch: manifest says "
+                f"{catalogue.get('digest')}, live catalogue is {live}"
+            )
+        checked["catalogue:digest"] = live
+        if "source_digest" in catalogue:
+            live_source = catalogue_source_digest()
+            if catalogue["source_digest"] != live_source:
+                raise ValueError(
+                    f"catalogue source_digest mismatch: manifest says "
+                    f"{catalogue['source_digest']}, live catalogue is {live_source}"
+                )
+            checked["catalogue:source_digest"] = live_source
+
+    if hub:
+        location = manifest.get("hub") or {}
+        if not location.get("revision") or not location.get("repo_id"):
+            raise ValueError(f"{root} manifest has no hub revision to verify against")
+        published = corpus_hub.verify_published_corpus(
+            root, repo_id=location["repo_id"], revision=location["revision"]
+        )
+        checked.update({f"hub:{k}": v for k, v in published.items()})
+    return checked
+
+
+def load(path: str | Path, *, verify: str = "local") -> list[Task]:
     """Read a corpus back, from a single payload or from a corpus directory.
 
     A directory is read through its manifest, so the split files it names are
     the ones loaded and nothing else in the directory is picked up by accident.
+    It is verified first (`verify_corpus`): ``"local"`` checks the files and
+    catalogue, ``"hub"`` also checks the pinned Hub revision, ``"off"`` skips
+    it. A single payload file has no manifest and is read as is.
     """
+    if verify not in _VERIFY_MODES:
+        raise ValueError(f"verify must be one of {_VERIFY_MODES}, got {verify!r}")
     target = Path(path)
     if target.is_dir():
+        if verify != "off":
+            verify_corpus(target, hub=verify == "hub")
         manifest = json.loads((target / "manifest.json").read_text())
         return [
             task
             for split in sorted(manifest["splits"])
-            for task in load(target / manifest["splits"][split]["path"])
+            for task in _load_payload(target / manifest["splits"][split]["path"])
         ]
     return _load_payload(target)
 

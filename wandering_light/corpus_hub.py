@@ -273,6 +273,23 @@ def publish_corpus(
     return revision
 
 
+def _without_hub(path: Path) -> str:
+    """A manifest's canonical text with its ``hub`` block set aside.
+
+    ``record_hub_location`` writes the hub block into the local copy *after*
+    the manifest was uploaded, so the published copy never has it and the
+    local copy always does. The block says where the corpus lives, not what it
+    is, so it is the one thing the two copies may disagree on. Everything else
+    is compared as canonical JSON, which keeps ``1`` and ``1.0`` and ``true``
+    distinct while ignoring indentation and key order.
+    """
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(manifest, dict):
+        raise ValueError(f"{path} is not a JSON object")
+    manifest.pop(_HUB_KEY, None)
+    return _canonical_json(manifest)
+
+
 def verify_published_corpus(
     corpus_dir: str | Path,
     *,
@@ -294,7 +311,7 @@ def verify_published_corpus(
             revision=revision,
         )
     )
-    if cached_manifest.read_bytes() != local_manifest.read_bytes():
+    if _without_hub(cached_manifest) != _without_hub(local_manifest):
         raise ValueError("published manifest differs from the local manifest")
     with tempfile.TemporaryDirectory(prefix="wandering-light-corpus-") as directory:
         target = Path(directory)

@@ -313,3 +313,79 @@ def test_verify_published_corpus_uses_the_pinned_revision(tmp_path, monkeypatch)
     assert set(checked) == {"discovery", "validation", "test"}
     assert calls
     assert {call[3] for call in calls} == {"immutable123"}
+
+
+def _serve_from(tmp_path, monkeypatch, files):
+    """Fake the Hub: serve ``files`` (name -> path) and record requested revisions."""
+    calls = []
+
+    def fake_download(*, repo_id, repo_type, filename, revision):
+        calls.append(revision)
+        return str(files[filename])
+
+    monkeypatch.setitem(
+        sys.modules,
+        "huggingface_hub",
+        type("Hub", (), {"hf_hub_download": staticmethod(fake_download)}),
+    )
+    return calls
+
+
+def test_verify_published_corpus_sets_the_recorded_hub_block_aside(
+    tmp_path, monkeypatch
+):
+    # Publishing uploads the manifest, then record_hub_location rewrites the
+    # local copy with a hub block. A byte-for-byte check refused every
+    # published corpus; the hub block must be the only thing set aside.
+    root = _corpus(tmp_path)
+    remote = tmp_path / "remote"
+    shutil.copytree(root, remote)
+    corpus_hub.record_hub_location(root, repo_id="acct/v2", revision="rev1")
+    assert (root / "manifest.json").read_bytes() != (
+        remote / "manifest.json"
+    ).read_bytes()
+    _serve_from(tmp_path, monkeypatch, {p.name: p for p in remote.iterdir()})
+
+    checked = corpus_hub.verify_published_corpus(
+        root, repo_id="acct/v2", revision="rev1"
+    )
+
+    assert set(checked) == {"discovery", "validation", "test"}
+
+
+@pytest.mark.parametrize(
+    "edit",
+    [
+        lambda m: m.update(basis_set_id="wl-core-v2"),
+        lambda m: m.update(manifest_digest="sha256:cafe"),
+        lambda m: m["splits"]["test"].update(size=1.0),  # 1 vs 1.0 is a change
+        lambda m: m.update(extra=True),
+    ],
+)
+def test_verify_published_corpus_still_refuses_any_other_difference(
+    tmp_path, monkeypatch, edit
+):
+    root = _corpus(tmp_path)
+    remote = tmp_path / "remote"
+    shutil.copytree(root, remote)
+    manifest = json.loads((remote / "manifest.json").read_text())
+    edit(manifest)
+    (remote / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    corpus_hub.record_hub_location(root, repo_id="acct/v2", revision="rev1")
+    _serve_from(tmp_path, monkeypatch, {p.name: p for p in remote.iterdir()})
+
+    with pytest.raises(ValueError, match="published manifest differs"):
+        corpus_hub.verify_published_corpus(root, repo_id="acct/v2", revision="rev1")
+
+
+def test_a_hub_block_on_the_published_copy_is_also_set_aside(tmp_path, monkeypatch):
+    # Republishing after record_hub_location uploads a manifest that carries a
+    # (possibly stale) hub block of its own; that is hosting, not identity.
+    root = _corpus(tmp_path)
+    corpus_hub.record_hub_location(root, repo_id="acct/v2", revision="old")
+    remote = tmp_path / "remote"
+    shutil.copytree(root, remote)
+    corpus_hub.record_hub_location(root, repo_id="acct/v2", revision="new")
+    _serve_from(tmp_path, monkeypatch, {p.name: p for p in remote.iterdir()})
+
+    assert corpus_hub.verify_published_corpus(root, repo_id="acct/v2", revision="new")
