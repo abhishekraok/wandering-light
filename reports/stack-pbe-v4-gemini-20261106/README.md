@@ -7,7 +7,7 @@ held-out grader as [the effort sweep](../stack-pbe-v4-effort-sweep-20260927/READ
 The owner stopped the run early as clearly off the frontier, so Flash high is
 partial and failed calls were not retried. Not plotted in the README figure.
 
-| model | thinking | solved | memorised | timed out (900 s) | $/task (lower bound) | mean thinking tokens |
+| model | thinking | solved | memorised | timed out (900 s) | $ per completed call | mean thinking tokens |
 |---|---|---:|---:|---:|---:|---:|
 | gemini-4-argon | low | 12/40 | 0 | 1 | 0.0029 | 0 |
 | gemini-4-argon | medium | 19/40 | 7 | 7 | 0.0232 | 2,042 |
@@ -17,13 +17,15 @@ partial and failed calls were not retried. Not plotted in the README figure.
 | gemini-3.8-flash | high | 9/36, partial | 3 | 20 (+1 503) | 0.0601 | 15,760 |
 
 **Dominated at every level.** gpt-6.1-sol medium solves 25/40 at $0.007/task;
-Argon high needs about 7x that for 23. Best Gemini point is Argon high, one below
+Argon high costs 5–7x that for 23. Best Gemini point is Argon high, one below
 the 24–27 top band.
 
 - **Cost** is list price x (1.3k-token prompt + recorded output, thinking
   included): Argon $2/$10 per 1M (intro price to 2026-11-30, then $4/$20),
-  Flash $0.75/$3.75. Timed-out calls report no usage and are left out, so
-  every $/task is a lower bound, most for the arms with many timeouts.
+  Flash $0.75/$3.75. Timed-out calls report no usage, so the figure is the
+  mean over completed calls, as in earlier sweeps. Whether Google bills a
+  call the client abandoned is unknown: counting those as free, Argon high is
+  $0.036/task.
 - **Timeouts** are scored unsolved, as in earlier sweeps. Some are service
   hangs (Argon low does not think and otherwise answers in under a minute;
   Flash high timed out on 12-op `min_pair`), the rest are probably runaway

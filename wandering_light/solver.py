@@ -1150,6 +1150,8 @@ class GeminiTokenGenerator(TokenGenerator):
     The pinned `google-generativeai` SDK predates thinking levels. `effort`
     (low / medium / high on gemini-3.8-flash and gemini-4-argon) goes straight
     to `thinkingConfig.thinkingLevel`; left unset the model's default applies.
+    Gemini 2.x takes a token budget, not a level, and rejects one, so `effort`
+    is dropped for those (the baseline CLI always passes one).
     `last_meta` records the served `modelVersion`, the usage (output tokens
     include thinking tokens, which are billed as output) and the finish
     reason. The key travels in a header so an error message never carries it.
@@ -1166,7 +1168,7 @@ class GeminiTokenGenerator(TokenGenerator):
         retries: int = 4,
     ):
         self.model = model.removeprefix("models/")
-        self.effort = effort
+        self.effort = None if self.model.startswith("gemini-2") else effort
         self.timeout = timeout
         self.retries = retries
         load_dotenv()

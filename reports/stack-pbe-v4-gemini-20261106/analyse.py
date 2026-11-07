@@ -3,8 +3,8 @@
 Same cost convention as ../stack-pbe-v4-effort-sweep-20260927/analyse.py: list
 price x (1.3k-token prompt + recorded output tokens, thinking included).
 Usage: analyse.py [OUT]  (default: this directory, which holds the saved
-shards). Timed-out calls report no usage, so $/task
-leaves them out and understates cost.
+shards). Timed-out calls report no usage, so $/task is
+the mean over completed calls, not over all tasks.
 """
 
 import json

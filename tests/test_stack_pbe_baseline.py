@@ -550,3 +550,10 @@ def test_gemini_sends_effort_as_thinking_level_and_bills_thoughts_as_output(
     }
     assert generator.last_meta["usage"]["output_tokens"] == 125
     assert generator.last_meta["model"] == ["gemini-3.8-flash"]
+
+
+def test_gemini_2_drops_effort_it_cannot_take():
+    import wandering_light.solver as solver_module
+
+    assert solver_module.GeminiTokenGenerator("gemini-2.5-flash", "high").effort is None
+    assert solver_module.GeminiTokenGenerator("gemini-4-argon", "high").effort == "high"
