@@ -211,7 +211,9 @@ ax.set_xlabel(
 ax.set_ylabel("solved, of 40 (held-out graded)")
 ax.set_title(
     "stack_pbe_v4 seed-17 sample: accuracy against cost, hosted cost frontier dashed\n"
-    "L/M/H/X/Mx = effort low/medium/high/xhigh/max",
+    "L/M/H/X/Mx = effort low/medium/high/xhigh/max\n"
+    "Gemini (hexagons, coloured at every thinking level): Argon \\$2/\\$10 per 1M (intro to 11-30; \\$4/\\$20 after), "
+    "3.8 Flash \\$0.75/\\$3.75",
     fontsize=10,
     loc="left",
 )
@@ -219,8 +221,6 @@ ax.grid(True, which="major", color="#e8e7e1", lw=0.8)
 for side in ("top", "right"):
     ax.spines[side].set_visible(False)
 notes = [
-    "Gemini (hexagons, L/M/H thinking level): coloured at every level\n"
-    "Argon at $2/$10 per 1M (intro, to 11-30; $4/$20 after); 3.8 Flash $0.75/$3.75\n"
     "colour: current-generation hosted frontier points + own systems\n"
     "grey: other hosted points (including older frontier endpoints)\n"
     "dashed steps: all hosted generations; local systems excluded",
