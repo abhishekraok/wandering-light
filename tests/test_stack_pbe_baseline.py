@@ -502,3 +502,51 @@ def test_an_interrupted_call_kills_the_process_group(tmp_path, monkeypatch, prov
     assert generator.last_meta["errors"] == ["interrupted"]
     assert "usage" not in generator.last_meta
     assert "timed_out" not in generator.last_meta
+
+
+def test_gemini_sends_effort_as_thinking_level_and_bills_thoughts_as_output(
+    monkeypatch,
+):
+    import httpx
+
+    import wandering_light.solver as solver_module
+
+    sent = {}
+
+    def fake_post(url, headers, json, timeout):
+        sent.update(url=url, body=json)
+        return httpx.Response(
+            200,
+            request=httpx.Request("POST", url),
+            json={
+                "candidates": [
+                    {
+                        "content": {
+                            "parts": [
+                                {"text": "scratch", "thought": True},
+                                {"text": "dup add"},
+                            ]
+                        },
+                        "finishReason": "STOP",
+                    }
+                ],
+                "usageMetadata": {
+                    "promptTokenCount": 900,
+                    "candidatesTokenCount": 5,
+                    "thoughtsTokenCount": 120,
+                },
+                "modelVersion": "gemini-3.8-flash",
+            },
+        )
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+    generator = solver_module.GeminiTokenGenerator(
+        "models/gemini-3.8-flash", effort="high"
+    )
+    assert generator.generate("p") == "dup add"
+    assert "models/gemini-3.8-flash:generateContent" in sent["url"]
+    assert sent["body"]["generationConfig"]["thinkingConfig"] == {
+        "thinkingLevel": "high"
+    }
+    assert generator.last_meta["usage"]["output_tokens"] == 125
+    assert generator.last_meta["model"] == ["gemini-3.8-flash"]

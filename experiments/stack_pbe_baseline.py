@@ -162,7 +162,9 @@ def list_models(provider: str) -> int:
         from dotenv import load_dotenv
 
         load_dotenv()
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+        genai.configure(
+            api_key=os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        )
         names = sorted(
             m.name
             for m in genai.list_models()
@@ -283,7 +285,7 @@ def solve_with_llm(task: Task, generator, samples: int) -> list[str]:
 
 
 ERRORS: dict[int, list[str]] = {}
-# Per-call cost and tool attempts, for generators that report them (codex, claude).
+# Per-call cost and tool attempts, for generators that report them (codex, claude, gemini).
 GENERATION: dict[int, list[dict]] = {}
 
 
@@ -368,7 +370,9 @@ def main(argv: list[str] | None = None) -> int:
             "openai": lambda: solver_module.OpenAITokenGenerator(
                 args.model, effort=args.effort
             ),
-            "gemini": lambda: solver_module.GeminiTokenGenerator(args.model),
+            "gemini": lambda: solver_module.GeminiTokenGenerator(
+                args.model, effort=args.effort
+            ),
             # An OpenAI model through `codex exec` on a subscription, trimmed
             # to the API protocol -- see the class. Records tool attempts and
             # token usage per task so the row can say it stayed the API

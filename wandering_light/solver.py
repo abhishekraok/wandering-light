@@ -19,7 +19,6 @@ from numbers import Real
 from typing import Literal
 
 import anthropic
-import google.generativeai as genai
 import openai
 from dotenv import load_dotenv
 from ollama import ChatResponse, Client
@@ -1146,25 +1145,81 @@ class AnthropicTokenGenerator(TokenGenerator):
 
 
 class GeminiTokenGenerator(TokenGenerator):
-    def __init__(self, model: str = "models/gemini-2.5-flash", timeout: int = 120):
-        # The SDK has no default deadline, so an unreachable model hangs.
-        self.model = model
+    """Gemini over REST, so `effort` can set `thinkingLevel`.
+
+    The pinned `google-generativeai` SDK predates thinking levels. `effort`
+    (low / medium / high on gemini-3.8-flash and gemini-4-argon) goes straight
+    to `thinkingConfig.thinkingLevel`; left unset the model's default applies.
+    `last_meta` records the served `modelVersion`, the usage (output tokens
+    include thinking tokens, which are billed as output) and the finish
+    reason. The key travels in a header so an error message never carries it.
+    """
+
+    URL = "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent"
+    RETRY_STATUS = (429, 500, 502, 503, 504)
+
+    def __init__(
+        self,
+        model: str = "gemini-2.5-flash",
+        effort: str | None = None,
+        timeout: float = 900.0,
+        retries: int = 4,
+    ):
+        self.model = model.removeprefix("models/")
+        self.effort = effort
         self.timeout = timeout
+        self.retries = retries
         load_dotenv()
-        genai.configure(
-            api_key=os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-        )
-        self.client = genai.GenerativeModel(self.model)
+        self.api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
         self.llm_io_history = []
+        self.last_meta: dict | None = None
 
     def generate(
         self,
         prompt: str,
     ) -> str:
-        response = self.client.generate_content(
-            prompt, request_options={"timeout": self.timeout}
+        import httpx
+
+        self.last_meta = None
+        body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
+        if self.effort:
+            body["generationConfig"] = {
+                "thinkingConfig": {"thinkingLevel": self.effort}
+            }
+        started = time.time()
+        # A 429 or 5xx is the service, not the model: retry it rather than
+        # score a task the model never saw as unsolved. A deadline is not
+        # retried; it is the bound on a runaway generation.
+        for attempt in range(self.retries + 1):
+            response = httpx.post(
+                self.URL.format(self.model),
+                headers={"x-goog-api-key": self.api_key or ""},
+                json=body,
+                timeout=self.timeout,
+            )
+            if response.status_code not in self.RETRY_STATUS or attempt == self.retries:
+                break
+            time.sleep(min(60, 5 * 2**attempt))
+        response.raise_for_status()
+        data = response.json()
+        candidate = (data.get("candidates") or [{}])[0]
+        parts = candidate.get("content", {}).get("parts", [])
+        output = "".join(
+            part.get("text", "") for part in parts if not part.get("thought")
         )
-        output = response.text
+        usage = data.get("usageMetadata", {})
+        thinking = usage.get("thoughtsTokenCount", 0)
+        self.last_meta = {
+            "model": [data["modelVersion"]] if data.get("modelVersion") else [],
+            "usage": {
+                "input_tokens": usage.get("promptTokenCount", 0),
+                "output_tokens": usage.get("candidatesTokenCount", 0) + thinking,
+                "thinking_tokens": thinking,
+            },
+            "stop_reason": candidate.get("finishReason"),
+            "attempts": attempt + 1,
+            "seconds": round(time.time() - started, 1),
+        }
         self.llm_io_history.append((prompt, output))
         return output
 
