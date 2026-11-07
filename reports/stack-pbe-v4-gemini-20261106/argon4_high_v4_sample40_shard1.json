@@ -1,0 +1,256 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "guard": "off",
+  "partial": false,
+  "shard": "1/4",
+  "tasks_planned": 10,
+  "tasks": 10,
+  "solved": 5,
+  "memorised": 0,
+  "shown_fit": 5,
+  "illegal": 5,
+  "solve_rate": 0.5,
+  "shown_rate": 0.5,
+  "by_behaviour": {
+    "min_pair": {
+      "witness_length": 12,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "widest_pair": {
+      "witness_length": 84,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "adjacent_sign_change_count": {
+      "witness_length": 47,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "axis_point_count": {
+      "witness_length": 86,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_ascending_pairs": {
+      "witness_length": 80,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "concatenate_shorter_first": {
+      "witness_length": 26,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "keep_below": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "negate_each": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "replace_value": {
+      "witness_length": 22,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "largest_inside_interval": {
+      "witness_length": 40,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      1
+    ],
+    [
+      "[ over 0 [ drop 1 add ] fold over 0 [ drop 1 add ] fold lt? ] [ ] [ swap ] ifte cat",
+      1
+    ],
+    [
+      "quote [ lt? ] cat filter",
+      1
+    ],
+    [
+      "[ 0 swap sub ] map",
+      1
+    ],
+    [
+      "quote [ drop ] swap cat quote swap quote [ dup ] swap cat [ eq? ] cat quote swap cat [ ] quote cat [ ifte ] cat map",
+      1
+    ]
+  ],
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "model": "gemini-4-argon",
+  "provider": "gemini",
+  "effort": "high",
+  "candidates": [
+    {
+      "task_index": 359,
+      "behaviour": "min_pair",
+      "candidate": "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 527,
+            "output_tokens": 2016,
+            "thinking_tokens": 1997
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 32.3
+        }
+      ]
+    },
+    {
+      "task_index": 1156,
+      "behaviour": "widest_pair",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 1499,
+      "behaviour": "adjacent_sign_change_count",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 1266,
+      "behaviour": "axis_point_count",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 1347,
+      "behaviour": "keep_ascending_pairs",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 1019,
+      "behaviour": "concatenate_shorter_first",
+      "candidate": "[ over 0 [ drop 1 add ] fold over 0 [ drop 1 add ] fold lt? ] [ ] [ swap ] ifte cat",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 635,
+            "output_tokens": 6072,
+            "thinking_tokens": 6036
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 88.1
+        }
+      ]
+    },
+    {
+      "task_index": 317,
+      "behaviour": "keep_below",
+      "candidate": "quote [ lt? ] cat filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 605,
+            "output_tokens": 1356,
+            "thinking_tokens": 1345
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 46.9
+        }
+      ]
+    },
+    {
+      "task_index": 47,
+      "behaviour": "negate_each",
+      "candidate": "[ 0 swap sub ] map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 563,
+            "output_tokens": 570,
+            "thinking_tokens": 559
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 61.6
+        }
+      ]
+    },
+    {
+      "task_index": 470,
+      "behaviour": "replace_value",
+      "candidate": "quote [ drop ] swap cat quote swap quote [ dup ] swap cat [ eq? ] cat quote swap cat [ ] quote cat [ ifte ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 661,
+            "output_tokens": 6665,
+            "thinking_tokens": 6629
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 115.1
+        }
+      ]
+    },
+    {
+      "task_index": 1735,
+      "behaviour": "largest_inside_interval",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,302 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "guard": "off",
+  "partial": false,
+  "shard": "2/4",
+  "tasks_planned": 10,
+  "tasks": 10,
+  "solved": 7,
+  "memorised": 1,
+  "shown_fit": 8,
+  "illegal": 2,
+  "solve_rate": 0.7,
+  "shown_rate": 0.8,
+  "by_behaviour": {
+    "keep_negative": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "replace_value": {
+      "witness_length": 22,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "nearest_interval_endpoint_each": {
+      "witness_length": 39,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "axis_point_count": {
+      "witness_length": 86,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "keep_zeros": {
+      "witness_length": 5,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "sum_negative": {
+      "witness_length": 16,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "aligned_matches": {
+      "witness_length": 39,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "rotate_left": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "prefix_sums": {
+      "witness_length": 25,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "[ 0 eq? ] filter",
+      2
+    ],
+    [
+      "[ 0 lt? ] filter",
+      1
+    ],
+    [
+      "[ 0 lt? ] filter 0 [ add ] fold",
+      1
+    ],
+    [
+      "drop uncons swap drop quote",
+      1
+    ],
+    [
+      "uncons quote cat",
+      1
+    ],
+    [
+      "uncons quote [ over uncons swap drop add cons ] fold nil [ cons ] fold",
+      1
+    ]
+  ],
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "model": "gemini-3.8-flash",
+  "provider": "gemini",
+  "effort": "low",
+  "candidates": [
+    {
+      "task_index": 234,
+      "behaviour": "keep_negative",
+      "candidate": "[ 0 lt? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 582,
+            "output_tokens": 331,
+            "thinking_tokens": 324
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 28.2
+        }
+      ]
+    },
+    {
+      "task_index": 479,
+      "behaviour": "replace_value",
+      "candidate": "[ over eq? [ drop dup ] [ ] ifte ] quote cons [ map ] dip drop drop i",
+      "verdict": "failed",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 642,
+            "output_tokens": 2399,
+            "thinking_tokens": 2377
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 29.6
+        }
+      ]
+    },
+    {
+      "task_index": 815,
+      "behaviour": "nearest_interval_endpoint_each",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "RemoteProtocolError"
+      ]
+    },
+    {
+      "task_index": 1241,
+      "behaviour": "axis_point_count",
+      "candidate": "[ 0 eq? ] filter 0 [ drop 1 add ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 580,
+            "output_tokens": 1496,
+            "thinking_tokens": 1480
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 64.0
+        }
+      ]
+    },
+    {
+      "task_index": 160,
+      "behaviour": "keep_zeros",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 501,
+            "output_tokens": 664,
+            "thinking_tokens": 657
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 77.1
+        }
+      ]
+    },
+    {
+      "task_index": 176,
+      "behaviour": "keep_zeros",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 564,
+            "output_tokens": 619,
+            "thinking_tokens": 612
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 73.1
+        }
+      ]
+    },
+    {
+      "task_index": 399,
+      "behaviour": "sum_negative",
+      "candidate": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 557,
+            "output_tokens": 951,
+            "thinking_tokens": 938
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 121.8
+        }
+      ]
+    },
+    {
+      "task_index": 1634,
+      "behaviour": "aligned_matches",
+      "candidate": "drop uncons swap drop quote",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 582,
+            "output_tokens": 1386,
+            "thinking_tokens": 1381
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 53.4
+        }
+      ]
+    },
+    {
+      "task_index": 521,
+      "behaviour": "rotate_left",
+      "candidate": "uncons quote cat",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 567,
+            "output_tokens": 899,
+            "thinking_tokens": 895
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 10.2
+        }
+      ]
+    },
+    {
+      "task_index": 128,
+      "behaviour": "prefix_sums",
+      "candidate": "uncons quote [ over uncons swap drop add cons ] fold nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 551,
+            "output_tokens": 7491,
+            "thinking_tokens": 7473
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 70.3
+        }
+      ]
+    }
+  ]
+}

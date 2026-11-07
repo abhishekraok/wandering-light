@@ -1,0 +1,302 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "guard": "off",
+  "partial": false,
+  "shard": "2/4",
+  "tasks_planned": 10,
+  "tasks": 10,
+  "solved": 7,
+  "memorised": 2,
+  "shown_fit": 9,
+  "illegal": 1,
+  "solve_rate": 0.7,
+  "shown_rate": 0.9,
+  "by_behaviour": {
+    "keep_negative": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "replace_value": {
+      "witness_length": 22,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "nearest_interval_endpoint_each": {
+      "witness_length": 39,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "axis_point_count": {
+      "witness_length": 86,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "keep_zeros": {
+      "witness_length": 5,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "sum_negative": {
+      "witness_length": 16,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "aligned_matches": {
+      "witness_length": 39,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "rotate_left": {
+      "witness_length": 5,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "prefix_sums": {
+      "witness_length": 25,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "[ 0 eq? ] filter",
+      2
+    ],
+    [
+      "[ 0 lt? ] filter",
+      1
+    ],
+    [
+      "quote [ drop ] swap cat quote swap quote [ dup ] swap cat [ eq? ] cat quote swap cat [ ] quote cat [ ifte ] cat map",
+      1
+    ],
+    [
+      "[ 0 lt? ] filter 0 [ add ] fold",
+      1
+    ],
+    [
+      "drop uncons swap drop quote",
+      1
+    ],
+    [
+      "nil 0 cons [ over uncons swap drop add cons ] fold nil [ cons ] fold uncons drop",
+      1
+    ]
+  ],
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "model": "gemini-4-argon",
+  "provider": "gemini",
+  "effort": "high",
+  "candidates": [
+    {
+      "task_index": 234,
+      "behaviour": "keep_negative",
+      "candidate": "[ 0 lt? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 609,
+            "output_tokens": 661,
+            "thinking_tokens": 650
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 12.0
+        }
+      ]
+    },
+    {
+      "task_index": 479,
+      "behaviour": "replace_value",
+      "candidate": "quote [ drop ] swap cat quote swap quote [ dup ] swap cat [ eq? ] cat quote swap cat [ ] quote cat [ ifte ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 669,
+            "output_tokens": 9446,
+            "thinking_tokens": 9410
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 143.2
+        }
+      ]
+    },
+    {
+      "task_index": 815,
+      "behaviour": "nearest_interval_endpoint_each",
+      "candidate": "quote swap quote [ drop drop ] swap cat quote cat [ nil swap cons [ 0 lt? ] filter ] swap cat [ fold ] cat map",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 540,
+            "output_tokens": 12090,
+            "thinking_tokens": 12056
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 148.6
+        }
+      ]
+    },
+    {
+      "task_index": 1241,
+      "behaviour": "axis_point_count",
+      "candidate": "[ 0 eq? ] filter 0 [ drop 1 add ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 607,
+            "output_tokens": 1306,
+            "thinking_tokens": 1286
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 57.1
+        }
+      ]
+    },
+    {
+      "task_index": 160,
+      "behaviour": "keep_zeros",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 528,
+            "output_tokens": 494,
+            "thinking_tokens": 483
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 33.5
+        }
+      ]
+    },
+    {
+      "task_index": 176,
+      "behaviour": "keep_zeros",
+      "candidate": "[ 0 eq? ] filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 591,
+            "output_tokens": 561,
+            "thinking_tokens": 550
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 9.9
+        }
+      ]
+    },
+    {
+      "task_index": 399,
+      "behaviour": "sum_negative",
+      "candidate": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 584,
+            "output_tokens": 974,
+            "thinking_tokens": 957
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 23.7
+        }
+      ]
+    },
+    {
+      "task_index": 1634,
+      "behaviour": "aligned_matches",
+      "candidate": "drop uncons swap drop quote",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 609,
+            "output_tokens": 3812,
+            "thinking_tokens": 3802
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 48.0
+        }
+      ]
+    },
+    {
+      "task_index": 521,
+      "behaviour": "rotate_left",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 128,
+      "behaviour": "prefix_sums",
+      "candidate": "nil 0 cons [ over uncons swap drop add cons ] fold nil [ cons ] fold uncons drop",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 578,
+            "output_tokens": 3987,
+            "thinking_tokens": 3961
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 55.2
+        }
+      ]
+    }
+  ]
+}

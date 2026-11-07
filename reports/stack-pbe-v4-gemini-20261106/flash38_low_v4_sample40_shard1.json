@@ -1,0 +1,288 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "guard": "off",
+  "partial": false,
+  "shard": "1/4",
+  "tasks_planned": 10,
+  "tasks": 10,
+  "solved": 4,
+  "memorised": 2,
+  "shown_fit": 6,
+  "illegal": 4,
+  "solve_rate": 0.4,
+  "shown_rate": 0.6,
+  "by_behaviour": {
+    "min_pair": {
+      "witness_length": 12,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "widest_pair": {
+      "witness_length": 84,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "adjacent_sign_change_count": {
+      "witness_length": 47,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "axis_point_count": {
+      "witness_length": 86,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_ascending_pairs": {
+      "witness_length": 80,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "concatenate_shorter_first": {
+      "witness_length": 26,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "keep_below": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "negate_each": {
+      "witness_length": 6,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "replace_value": {
+      "witness_length": 22,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "largest_inside_interval": {
+      "witness_length": 40,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    }
+  },
+  "solved_programs": [
+    [
+      "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      1
+    ],
+    [
+      "quote [ lt? ] cat filter",
+      1
+    ],
+    [
+      "[ 0 swap sub ] map",
+      1
+    ],
+    [
+      "quote [ drop ] swap cat swap quote [ dup ] swap cat [ eq? ] cat swap quote swap quote swap cat [ [ ] ifte ] cat map",
+      1
+    ]
+  ],
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "model": "gemini-3.8-flash",
+  "provider": "gemini",
+  "effort": "low",
+  "candidates": [
+    {
+      "task_index": 359,
+      "behaviour": "min_pair",
+      "candidate": "[ over over lt? ] [ drop ] [ swap drop ] ifte",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 500,
+            "output_tokens": 1361,
+            "thinking_tokens": 1346
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 26.3
+        }
+      ]
+    },
+    {
+      "task_index": 1156,
+      "behaviour": "widest_pair",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 1499,
+      "behaviour": "adjacent_sign_change_count",
+      "candidate": "[ 0 1 sub lt? ] filter 0 [ drop 1 add ] fold",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 530,
+            "output_tokens": 7083,
+            "thinking_tokens": 7064
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 111.1
+        }
+      ]
+    },
+    {
+      "task_index": 1266,
+      "behaviour": "axis_point_count",
+      "candidate": "[ 0 eq? false eq? ] filter [ 0 lt? [ 0 1 sub ] [ 1 ] ifte ] map uncons [ over over mul 0 lt? [ swap sub ] [ drop ] ifte ] fold dup 0 lt? [ 0 swap sub ] [ ] ifte 1 sub",
+      "verdict": "failed",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 556,
+            "output_tokens": 15430,
+            "thinking_tokens": 15361
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 188.8
+        }
+      ]
+    },
+    {
+      "task_index": 1347,
+      "behaviour": "keep_ascending_pairs",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 1019,
+      "behaviour": "concatenate_shorter_first",
+      "candidate": "over 0 swap [ drop 1 add ] fold over 0 swap [ drop 1 add ] fold lt? [ ] [ swap ] ifte cat",
+      "verdict": "failed",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 608,
+            "output_tokens": 2043,
+            "thinking_tokens": 2011
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 93.1
+        }
+      ]
+    },
+    {
+      "task_index": 317,
+      "behaviour": "keep_below",
+      "candidate": "quote [ lt? ] cat filter",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 578,
+            "output_tokens": 1210,
+            "thinking_tokens": 1203
+          },
+          "stop_reason": "STOP",
+          "attempts": 5,
+          "seconds": 99.7
+        }
+      ]
+    },
+    {
+      "task_index": 47,
+      "behaviour": "negate_each",
+      "candidate": "[ 0 swap sub ] map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 536,
+            "output_tokens": 293,
+            "thinking_tokens": 286
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 25.3
+        }
+      ]
+    },
+    {
+      "task_index": 470,
+      "behaviour": "replace_value",
+      "candidate": "quote [ drop ] swap cat swap quote [ dup ] swap cat [ eq? ] cat swap quote swap quote swap cat [ [ ] ifte ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 634,
+            "output_tokens": 11767,
+            "thinking_tokens": 11735
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 101.3
+        }
+      ]
+    },
+    {
+      "task_index": 1735,
+      "behaviour": "largest_inside_interval",
+      "candidate": "swap drop swap drop 1 sub",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 508,
+            "output_tokens": 8997,
+            "thinking_tokens": 8990
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 108.0
+        }
+      ]
+    }
+  ]
+}

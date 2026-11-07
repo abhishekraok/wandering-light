@@ -13,11 +13,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 HERE = Path(__file__).parent.parent / "stack-pbe-v4-effort-sweep-20260927"
-OUT = Path(
-    sys.argv[1]
-    if len(sys.argv) > 1
-    else Path.home() / "repos/wandering-light/checkpoints/gemini-sweep-20261106"
-)
+OUT = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).parent)
 GEMINI = ("gemini-4-argon", "gemini-3.8-flash")
 ORDER = (  # model, colour, current generation (eligible for colour)
     ("gemini-4-argon", "#1a73e8", True),

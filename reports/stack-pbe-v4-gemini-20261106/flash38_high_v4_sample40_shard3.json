@@ -1,0 +1,186 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "guard": "off",
+  "partial": true,
+  "shard": "3/4",
+  "tasks_planned": 10,
+  "tasks": 8,
+  "solved": 1,
+  "memorised": 0,
+  "shown_fit": 1,
+  "illegal": 6,
+  "solve_rate": 0.125,
+  "shown_rate": 0.125,
+  "by_behaviour": {
+    "drop_last": {
+      "witness_length": 12,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "positive_balance_prefix_count": {
+      "witness_length": 49,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "min_pair": {
+      "witness_length": 12,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "positive_majority_three": {
+      "witness_length": 39,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "largest_inside_interval": {
+      "witness_length": 40,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "widest_pair": {
+      "witness_length": 84,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "n_minus_each": {
+      "witness_length": 7,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "cartesian_pair_sums": {
+      "witness_length": 15,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "quote [ swap sub ] cat map",
+      1
+    ]
+  ],
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "model": "gemini-3.8-flash",
+  "provider": "gemini",
+  "effort": "high",
+  "candidates": [
+    {
+      "task_index": 595,
+      "behaviour": "drop_last",
+      "candidate": "uncons drop",
+      "verdict": "failed",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 499,
+            "output_tokens": 21416,
+            "thinking_tokens": 21413
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 148.9
+        }
+      ]
+    },
+    {
+      "task_index": 1408,
+      "behaviour": "positive_balance_prefix_count",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 341,
+      "behaviour": "min_pair",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 992,
+      "behaviour": "positive_majority_three",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 1729,
+      "behaviour": "largest_inside_interval",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 1159,
+      "behaviour": "widest_pair",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 241,
+      "behaviour": "n_minus_each",
+      "candidate": "quote [ swap sub ] cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 539,
+            "output_tokens": 6778,
+            "thinking_tokens": 6771
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 147.1
+        }
+      ]
+    },
+    {
+      "task_index": 1579,
+      "behaviour": "cartesian_pair_sums",
+      "candidate": "swap nil [ [ over ] dip quote [ add ] cat map cat ] fold swap drop",
+      "verdict": "failed",
+      "generation": [
+        {
+          "model": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input_tokens": 631,
+            "output_tokens": 27892,
+            "thinking_tokens": 27874
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 198.9
+        }
+      ]
+    }
+  ]
+}

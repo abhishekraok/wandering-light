@@ -1,0 +1,264 @@
+{
+  "backend": "llm",
+  "split": "eval",
+  "budget": 10000,
+  "guard": "off",
+  "partial": false,
+  "shard": "0/4",
+  "tasks_planned": 10,
+  "tasks": 10,
+  "solved": 5,
+  "memorised": 2,
+  "shown_fit": 7,
+  "illegal": 3,
+  "solve_rate": 0.5,
+  "shown_rate": 0.7,
+  "by_behaviour": {
+    "sum_negative": {
+      "witness_length": 16,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "aligned_matches": {
+      "witness_length": 39,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "positive_majority_three": {
+      "witness_length": 39,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 1
+    },
+    "replace_value": {
+      "witness_length": 22,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    },
+    "median_floor": {
+      "witness_length": 253,
+      "tasks": 1,
+      "solved": 0,
+      "memorised": 0
+    },
+    "bounds_cover_list_flag": {
+      "witness_length": 92,
+      "tasks": 2,
+      "solved": 0,
+      "memorised": 0
+    },
+    "drop_last": {
+      "witness_length": 12,
+      "tasks": 2,
+      "solved": 2,
+      "memorised": 0
+    },
+    "farthest_from_target_last_tie": {
+      "witness_length": 59,
+      "tasks": 1,
+      "solved": 1,
+      "memorised": 0
+    }
+  },
+  "solved_programs": [
+    [
+      "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      2
+    ],
+    [
+      "[ 0 lt? ] filter 0 [ add ] fold",
+      1
+    ],
+    [
+      "[ drop ] swap quote cat quote [ [ ] ifte ] cat swap [ dup ] swap quote cat [ eq? ] cat quote swap cat map",
+      1
+    ],
+    [
+      "[ uncons ] dip [ over ] swap quote cat [ sub dup mul ] cat dup cat [ lt? ] cat quote [ [ swap drop ] [ drop ] ifte ] cat fold",
+      1
+    ]
+  ],
+  "corpus": "wandering_light/evals/data/stack_pbe_v4",
+  "model": "gemini-4-argon",
+  "provider": "gemini",
+  "effort": "high",
+  "candidates": [
+    {
+      "task_index": 361,
+      "behaviour": "sum_negative",
+      "candidate": "[ 0 lt? ] filter 0 [ add ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 555,
+            "output_tokens": 1264,
+            "thinking_tokens": 1247
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 48.1
+        }
+      ]
+    },
+    {
+      "task_index": 1603,
+      "behaviour": "aligned_matches",
+      "candidate": "swap quote [ swap quote [ eq? ] cat filter null? false eq? ] cat filter",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 633,
+            "output_tokens": 8734,
+            "thinking_tokens": 8711
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 109.1
+        }
+      ]
+    },
+    {
+      "task_index": 967,
+      "behaviour": "positive_majority_three",
+      "candidate": "add add [ dup 0 swap lt? ] [ drop 1 ] [ drop 0 ] ifte",
+      "verdict": "memorised",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 552,
+            "output_tokens": 10848,
+            "thinking_tokens": 10822
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 136.2
+        }
+      ]
+    },
+    {
+      "task_index": 456,
+      "behaviour": "replace_value",
+      "candidate": "[ drop ] swap quote cat quote [ [ ] ifte ] cat swap [ dup ] swap quote cat [ eq? ] cat quote swap cat map",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 618,
+            "output_tokens": 3092,
+            "thinking_tokens": 3058
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 37.8
+        }
+      ]
+    },
+    {
+      "task_index": 1466,
+      "behaviour": "median_floor",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 1087,
+      "behaviour": "bounds_cover_list_flag",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 570,
+      "behaviour": "drop_last",
+      "candidate": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 551,
+            "output_tokens": 3619,
+            "thinking_tokens": 3602
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 91.1
+        }
+      ]
+    },
+    {
+      "task_index": 1097,
+      "behaviour": "bounds_cover_list_flag",
+      "candidate": "",
+      "verdict": "failed",
+      "errors": [
+        "ReadTimeout"
+      ]
+    },
+    {
+      "task_index": 574,
+      "behaviour": "drop_last",
+      "candidate": "nil [ cons ] fold uncons drop nil [ cons ] fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 546,
+            "output_tokens": 5185,
+            "thinking_tokens": 5165
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 76.4
+        }
+      ]
+    },
+    {
+      "task_index": 1772,
+      "behaviour": "farthest_from_target_last_tie",
+      "candidate": "[ uncons ] dip [ over ] swap quote cat [ sub dup mul ] cat dup cat [ lt? ] cat quote [ [ swap drop ] [ drop ] ifte ] cat fold",
+      "verdict": "solved",
+      "generation": [
+        {
+          "model": [
+            "gemini-4-argon"
+          ],
+          "usage": {
+            "input_tokens": 583,
+            "output_tokens": 11995,
+            "thinking_tokens": 11953
+          },
+          "stop_reason": "STOP",
+          "attempts": 1,
+          "seconds": 147.2
+        }
+      ]
+    }
+  ]
+}

@@ -2,7 +2,9 @@
 
 Same cost convention as ../stack-pbe-v4-effort-sweep-20260927/analyse.py: list
 price x (1.3k-token prompt + recorded output tokens, thinking included).
-Usage: analyse.py [OUT]  (default: the main checkout's checkpoints dir).
+Usage: analyse.py [OUT]  (default: this directory, which holds the saved
+shards). Timed-out calls report no usage, so $/task
+leaves them out and understates cost.
 """
 
 import json
@@ -11,11 +13,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-OUT = Path(
-    sys.argv[1]
-    if len(sys.argv) > 1
-    else Path.home() / "repos/wandering-light/checkpoints/gemini-sweep-20261106"
-)
+OUT = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).parent)
 PROMPT_TOKENS = 1300
 PRICE = {  # $ per 1M input, output (thinking billed as output); aistudio pricing page, 2026-11-06
     "gemini-4-argon": (2, 10),  # through 2026-11-30; $4/$20 from 2026-12-01
@@ -31,10 +29,10 @@ ARMS = [
 def main() -> None:
     rows, lines = [], []
     lines.append(
-        "| model | effort | solved | memorised | tasks | errors | retried (first error -> failed again) | out tok med / mean | "
+        "| model | effort | solved | memorised | tasks | errors | out tok med / mean | "
         "think tok mean | prompt tok med | $/task | finish | served | s/call med |"
     )
-    lines.append("|" + "---|" * 14)
+    lines.append("|" + "---|" * 13)
     for tag, model, effort in ARMS:
         shards = [OUT / f"{tag}_v4_sample40_shard{k}.json" for k in range(4)]
         if not all(p.exists() for p in shards):
@@ -50,18 +48,16 @@ def main() -> None:
         pi, po = PRICE[model]
         cost = statistics.mean(PROMPT_TOKENS * pi / 1e6 + o * po / 1e6 for o in out)
         errors = Counter(e for c in cands for e in c.get("errors", []))
-        retried = [c["retry"] for c in cands if "retry" in c]
-        first = Counter(e for r in retried for e in r["first_errors"])
-        again = Counter(r["error"] for r in retried if "error" in r)
         solved = sum(r["solved"] for r in runs)
         memorised = sum(r["memorised"] for r in runs)
         served = sorted({m for g in gens for m in g["model"]})
         finish = Counter(g["stop_reason"] for g in gens)
         secs = statistics.median(g["seconds"] for g in gens)
+        # a deadline-killed call reports nothing; charge it the full 900 s
+        wall = sum(g["seconds"] for g in gens) + 900 * errors["ReadTimeout"]
         lines.append(
             f"| `{model}` | {effort} | **{solved}** | {memorised} | {len(cands)}"
             f"{' PARTIAL' if partial else ''} | {dict(errors) or 0} | "
-            f"{len(retried)} ({dict(first) or '-'} -> {dict(again) or 0}) | "
             f"{statistics.median(out):,.0f} / {statistics.mean(out):,.0f} | "
             f"{statistics.mean(think):,.0f} | {statistics.median(prompt):,.0f} | "
             f"{cost:.4f} | {dict(finish)} | {', '.join(served)} ({len(gens)}/{len(cands)}) | {secs:.0f} |"
@@ -76,8 +72,10 @@ def main() -> None:
                 "cost_per_task": cost,
                 "usage_calls": len(gens),
                 "errors": dict(errors),
-                "retried": len(retried),
-                "failed_again": dict(again),
+                "wall_s": round(wall),
+                "timeouts": errors["ReadTimeout"],
+                "prohibited": finish["PROHIBITED_CONTENT"],
+                "mean_thinking": statistics.mean(think),
                 "median_out": statistics.median(out),
                 "mean_out": statistics.mean(out),
             }

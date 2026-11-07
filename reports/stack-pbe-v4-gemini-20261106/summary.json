@@ -1,0 +1,112 @@
+[
+ {
+  "model": "gemini-4-argon",
+  "effort": "low",
+  "solved": 12,
+  "tasks": 40,
+  "partial": false,
+  "cost_per_task": 0.002895384615384615,
+  "usage_calls": 39,
+  "errors": {
+   "ReadTimeout": 1
+  },
+  "wall_s": 1522,
+  "timeouts": 1,
+  "prohibited": 0,
+  "mean_thinking": 0,
+  "median_out": 21,
+  "mean_out": 29.53846153846154
+ },
+ {
+  "model": "gemini-4-argon",
+  "effort": "medium",
+  "solved": 19,
+  "tasks": 40,
+  "partial": false,
+  "cost_per_task": 0.02322121212121212,
+  "usage_calls": 33,
+  "errors": {
+   "ReadTimeout": 7
+  },
+  "wall_s": 7810,
+  "timeouts": 7,
+  "prohibited": 1,
+  "mean_thinking": 2042.4545454545455,
+  "median_out": 566,
+  "mean_out": 2062.121212121212
+ },
+ {
+  "model": "gemini-4-argon",
+  "effort": "high",
+  "solved": 23,
+  "tasks": 40,
+  "partial": false,
+  "cost_per_task": 0.05171928571428572,
+  "usage_calls": 28,
+  "errors": {
+   "ReadTimeout": 12
+  },
+  "wall_s": 12946,
+  "timeouts": 12,
+  "prohibited": 0,
+  "mean_thinking": 4890.392857142857,
+  "median_out": 3552.0,
+  "mean_out": 4911.928571428572
+ },
+ {
+  "model": "gemini-3.8-flash",
+  "effort": "low",
+  "solved": 17,
+  "tasks": 40,
+  "partial": false,
+  "cost_per_task": 0.018528857142857142,
+  "usage_calls": 35,
+  "errors": {
+   "RemoteProtocolError": 2,
+   "ReadTimeout": 3
+  },
+  "wall_s": 5549,
+  "timeouts": 3,
+  "prohibited": 1,
+  "mean_thinking": 4663.628571428571,
+  "median_out": 2043,
+  "mean_out": 4681.028571428571
+ },
+ {
+  "model": "gemini-3.8-flash",
+  "effort": "medium",
+  "solved": 19,
+  "tasks": 40,
+  "partial": false,
+  "cost_per_task": 0.036881625,
+  "usage_calls": 30,
+  "errors": {
+   "ReadTimeout": 10
+  },
+  "wall_s": 12392,
+  "timeouts": 10,
+  "prohibited": 0,
+  "mean_thinking": 9558.033333333333,
+  "median_out": 5900.5,
+  "mean_out": 9575.1
+ },
+ {
+  "model": "gemini-3.8-flash",
+  "effort": "high",
+  "solved": 9,
+  "tasks": 36,
+  "partial": true,
+  "cost_per_task": 0.06011925,
+  "usage_calls": 15,
+  "errors": {
+   "ReadTimeout": 20,
+   "HTTPStatusError": 1
+  },
+  "wall_s": 20232,
+  "timeouts": 20,
+  "prohibited": 0,
+  "mean_thinking": 15760.466666666667,
+  "median_out": 17690,
+  "mean_out": 15771.8
+ }
+]
