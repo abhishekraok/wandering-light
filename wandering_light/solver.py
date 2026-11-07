@@ -1187,18 +1187,28 @@ class GeminiTokenGenerator(TokenGenerator):
                 "thinkingConfig": {"thinkingLevel": self.effort}
             }
         started = time.time()
-        # A 429 or 5xx is the service, not the model: retry it rather than
-        # score a task the model never saw as unsolved. A deadline is not
-        # retried; it is the bound on a runaway generation.
+        # A 429, a 5xx or a dropped connection is the service, not the model:
+        # retry it rather than score a task the model never saw as unsolved.
+        # A deadline is not retried; it is the bound on a runaway generation.
         for attempt in range(self.retries + 1):
-            response = httpx.post(
-                self.URL.format(self.model),
-                headers={"x-goog-api-key": self.api_key or ""},
-                json=body,
-                timeout=self.timeout,
-            )
-            if response.status_code not in self.RETRY_STATUS or attempt == self.retries:
-                break
+            try:
+                response = httpx.post(
+                    self.URL.format(self.model),
+                    headers={"x-goog-api-key": self.api_key or ""},
+                    json=body,
+                    timeout=self.timeout,
+                )
+            except httpx.TimeoutException:
+                raise
+            except httpx.TransportError:
+                if attempt == self.retries:
+                    raise
+            else:
+                if (
+                    response.status_code not in self.RETRY_STATUS
+                    or attempt == self.retries
+                ):
+                    break
             time.sleep(min(60, 5 * 2**attempt))
         response.raise_for_status()
         data = response.json()
