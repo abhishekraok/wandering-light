@@ -22,20 +22,19 @@ PRICE = {  # $ per 1M input, output (thinking billed as output); aistudio pricin
     "gemini-3.8-flash": (0.75, 3.75),  # through 2026-12-31; $1.50/$7.50 from 2027-01-01
 }
 ARMS = [
-    (tag, model, effort)
-    for model, tag in (("gemini-4-argon", "argon4"), ("gemini-3.8-flash", "flash38"))
+    (f"{short}_{effort}", model, effort)
+    for model, short in (("gemini-4-argon", "argon4"), ("gemini-3.8-flash", "flash38"))
     for effort in ("low", "medium", "high")
-    for tag in [f"{tag}_{effort}"]
 ]
 
 
 def main() -> None:
     rows, lines = [], []
     lines.append(
-        "| model | effort | solved | memorised | tasks | errors | out tok med / mean | "
+        "| model | effort | solved | memorised | tasks | errors | retried (first error -> failed again) | out tok med / mean | "
         "think tok mean | prompt tok med | $/task | finish | served | s/call med |"
     )
-    lines.append("|" + "---|" * 13)
+    lines.append("|" + "---|" * 14)
     for tag, model, effort in ARMS:
         shards = [OUT / f"{tag}_v4_sample40_shard{k}.json" for k in range(4)]
         if not all(p.exists() for p in shards):
@@ -51,6 +50,9 @@ def main() -> None:
         pi, po = PRICE[model]
         cost = statistics.mean(PROMPT_TOKENS * pi / 1e6 + o * po / 1e6 for o in out)
         errors = Counter(e for c in cands for e in c.get("errors", []))
+        retried = [c["retry"] for c in cands if "retry" in c]
+        first = Counter(e for r in retried for e in r["first_errors"])
+        again = Counter(r["error"] for r in retried if "error" in r)
         solved = sum(r["solved"] for r in runs)
         memorised = sum(r["memorised"] for r in runs)
         served = sorted({m for g in gens for m in g["model"]})
@@ -59,6 +61,7 @@ def main() -> None:
         lines.append(
             f"| `{model}` | {effort} | **{solved}** | {memorised} | {len(cands)}"
             f"{' PARTIAL' if partial else ''} | {dict(errors) or 0} | "
+            f"{len(retried)} ({dict(first) or '-'} -> {dict(again) or 0}) | "
             f"{statistics.median(out):,.0f} / {statistics.mean(out):,.0f} | "
             f"{statistics.mean(think):,.0f} | {statistics.median(prompt):,.0f} | "
             f"{cost:.4f} | {dict(finish)} | {', '.join(served)} ({len(gens)}/{len(cands)}) | {secs:.0f} |"
@@ -73,6 +76,8 @@ def main() -> None:
                 "cost_per_task": cost,
                 "usage_calls": len(gens),
                 "errors": dict(errors),
+                "retried": len(retried),
+                "failed_again": dict(again),
                 "median_out": statistics.median(out),
                 "mean_out": statistics.mean(out),
             }
