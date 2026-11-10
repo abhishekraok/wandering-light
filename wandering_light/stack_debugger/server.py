@@ -22,7 +22,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 
 from wandering_light.quotation_guard import blocked
-from wandering_light.stack_beam import step_all_explained
+from wandering_light.stack_beam import block_encoder, step_all_explained
 from wandering_light.stack_debugger.anatomy import anatomy
 from wandering_light.stack_debugger.session import (
     SearchSettings,
@@ -43,7 +43,6 @@ from wandering_light.stack_debugger.trace import (
 from wandering_light.stack_debugger.walk import play_program
 from wandering_light.stack_machine import Sym, value_key
 from wandering_light.stack_pbe import OPS
-from wandering_light.stack_policy import encode_item, encode_targets, item_array
 
 if TYPE_CHECKING:
     from wandering_light.stack_beam import Product
@@ -88,10 +87,7 @@ def _op_table(
     The same mask and per-node normalization the beam uses, so a hand-driven
     step and a searched step rank ops alike.
     """
-    targets = encode_targets(outputs)
-    block = item_array(
-        [encode_item(s, t) for s, t in zip(product, targets, strict=True)]
-    )
+    block = block_encoder(context.scorer, outputs)(product)
     logits = context.scorer.logits([block])[0]
     rows = []
     legal = np.zeros(len(OPS), dtype=bool)

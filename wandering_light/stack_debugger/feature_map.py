@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 
 from wandering_light.rollout_debugger.feature_map import project_to_plane
-from wandering_light.stack_policy import encode_item, encode_targets, item_array
+from wandering_light.stack_beam import block_encoder
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -27,11 +27,8 @@ def features_of(
 ) -> np.ndarray:
     if not products:
         return np.zeros((0, 0), dtype=np.float32)
-    targets = encode_targets(outputs)
-    blocks = [
-        item_array([encode_item(s, t) for s, t in zip(product, targets, strict=True)])
-        for product in products
-    ]
+    encode = block_encoder(scorer, outputs)
+    blocks = [encode(product) for product in products]
     return scorer.pooled_features(blocks)
 
 

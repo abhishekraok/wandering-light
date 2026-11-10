@@ -83,7 +83,7 @@ class Adviser:
             return {**self.status(), "suggestions": []}
         import numpy as np
 
-        from wandering_light.stack_policy import encode_item, encode_targets, item_array
+        from wandering_light.stack_beam import block_encoder
 
         product = [stack_from(e["input"]) for e in examples]
         outputs = [stack_from(e["output"], expected=True) for e in examples]
@@ -111,12 +111,7 @@ class Adviser:
                 "suggestions": [],
                 "message": "No instruction is legal on every example.",
             }
-        block = item_array(
-            [
-                encode_item(s, t)
-                for s, t in zip(product, encode_targets(outputs), strict=True)
-            ]
-        )
+        block = block_encoder(self.scorer, outputs)(product)
         with self.lock:
             probabilities = np.exp(self.scorer.log_probs([block], np.array([legal]))[0])
         order = np.argsort(-probabilities)
