@@ -17,6 +17,7 @@ from wandering_light.stack_beam import (
     _prepare,
     _run_segment,
     _Tally,
+    block_encoder,
     closed_cuts,
     segment_beam_solve,
     segment_witness_ranks,
@@ -30,7 +31,16 @@ from wandering_light.stack_pbe import (
     draw_task,
 )
 from wandering_light.stack_pbe_eval import grade
-from wandering_light.stack_policy import encode_item, item_array
+from wandering_light.stack_policy import (
+    DIFFERENCE,
+    FLAG_BASE,
+    MACHINE,
+    SEP,
+    encode_item,
+    encode_targets,
+    item_array,
+    node_encoder,
+)
 
 
 def task_for(name: str, seed: int = 4):
@@ -39,7 +49,7 @@ def task_for(name: str, seed: int = 4):
 
 
 def states_along(task, program):
-    inputs, _outputs, _targets = _prepare(task, "both")
+    inputs, _outputs = _prepare(task, "both")
     states = [inputs]
     for name in program:
         states.append(step_all_quiet(states[-1], OP_BY_NAME[name])[0])
@@ -50,19 +60,27 @@ class WitnessScorer:
     """``bonus`` on the witness's next op at each witness state; uniform elsewhere.
 
     A state is recognised by its encoded block, which is what a real scorer
-    sees, so the stub cannot read anything the policy could not.
+    sees, so the stub cannot read anything the policy could not. It has only
+    ``log_probs``, so the searches hand it ``machine`` blocks; those are spelled
+    out here as they were before a model could read another layout, which makes
+    every test that finds the witness through this stub a check that the
+    ``machine`` blocks are still those.
     """
 
     def __init__(self, task, bonus: float = 5.0):
-        _inputs, _outputs, targets = _prepare(task, "both")
+        _inputs, outputs = _prepare(task, "both")
+        targets = encode_targets(outputs)
         self.bonus = bonus
         self.want = {}
         states = states_along(task, task.program)[:-1]
         for state, name in zip(states, task.program, strict=True):
-            block = item_array(
-                [encode_item(s, t) for s, t in zip(state, targets, strict=True)]
-            )
+            block = self.block(state, outputs, targets)
             self.want[block.shape, block.tobytes()] = OP_INDEX[name]
+
+    def block(self, state, outputs, targets):
+        return item_array(
+            [encode_item(s, t) for s, t in zip(state, targets, strict=True)]
+        )
 
     def log_probs(self, blocks, legal):
         logits = np.zeros(legal.shape)
@@ -74,6 +92,33 @@ class WitnessScorer:
         peak = logits.max(axis=1, keepdims=True)
         shifted = logits - np.where(np.isfinite(peak), peak, 0.0)
         return shifted - np.log(np.exp(shifted).sum(axis=1, keepdims=True))
+
+
+class LayoutScorer(WitnessScorer):
+    """A `WitnessScorer` that names its own layout, as a `PolicyScorer` does.
+
+    It recognises the witness's states only in ``encoding``'s blocks, so a
+    search that built them any other way would be scoring uniformly. ``made``
+    counts the encoders the search asked for and ``calls`` keeps every batch of
+    blocks it was asked to score.
+    """
+
+    def __init__(self, task, encoding: str, bonus: float = 5.0):
+        self.encoding = encoding
+        self.made = 0
+        self.calls = []
+        super().__init__(task, bonus)
+
+    def block(self, state, outputs, targets):
+        return node_encoder(outputs, self.encoding)(state)
+
+    def encoder(self, target_stacks):
+        self.made += 1
+        return node_encoder(target_stacks, self.encoding)
+
+    def log_probs(self, blocks, legal):
+        self.calls.append(list(blocks))
+        return super().log_probs(blocks, legal)
 
 
 # `[ 0 swap lt? ] filter 0 [ add ] fold`: two top-level combinator applications,
@@ -122,7 +167,7 @@ def test_a_segment_too_short_for_the_witness_cannot_close_it():
 def test_merge_keeps_the_best_score_whatever_the_root_order():
     """Two roots on one product close the same states; the better root's paths win."""
     task = task_for(TWO)
-    inputs, outputs, targets = _prepare(task, "both")
+    inputs, outputs = _prepare(task, "both")
     good = (inputs, (), 0.0)
     worse = (inputs, ("dup", "drop"), -3.0)
     knobs = {
@@ -135,10 +180,11 @@ def test_merge_keeps_the_best_score_whatever_the_root_order():
         "stop_at_fit": False,
     }
     scorer = WitnessScorer(task)
-    alone = _run_segment([good], outputs, targets, scorer, _Tally(), **knobs)[2]
+    encode = block_encoder(scorer, outputs)
+    alone = _run_segment([good], outputs, encode, scorer, _Tally(), **knobs)[2]
     for roots in ([good, worse], [worse, good]):
         stop, _program, closed = _run_segment(
-            roots, outputs, targets, scorer, _Tally(), **knobs
+            roots, outputs, encode, scorer, _Tally(), **knobs
         )
         assert stop is None
         assert closed == alone
@@ -259,3 +305,146 @@ def test_witness_rank_counts_a_closed_state_already_expanded():
     rows = segment_witness_ranks(task, Flat(), beam_width=28, segment_depth=2)
     assert rows[0]["rank"] is not None
     assert rows[0]["eligible_rank"] is None
+
+
+# ---------------------------------------------------------------------------
+# One encoder per search, in the scorer's layout (difference-encoding)
+# ---------------------------------------------------------------------------
+
+
+def same_block(left, right) -> bool:
+    return (left.shape, left.dtype, left.tobytes()) == (
+        right.shape,
+        right.dtype,
+        right.tobytes(),
+    )
+
+
+def is_difference(block) -> bool:
+    """Every item has its second separator and at least one flag after it."""
+    return all((row == SEP).sum() == 2 and row.max() >= FLAG_BASE for row in block)
+
+
+def test_prepare_returns_the_parsed_examples_and_nothing_encoded():
+    task = task_for(TWO)
+    prepared = _prepare(task, "both")
+    assert len(prepared) == 2
+    inputs, outputs = prepared
+    assert len(inputs) == len(outputs) == task.examples
+    assert all(isinstance(stack, tuple) for stack in (*inputs, *outputs))
+
+
+def test_block_encoder_gives_a_scorer_with_only_log_probs_the_machine_layout():
+    task = task_for(TWO)
+    _inputs, outputs = _prepare(task, "both")
+    scorer = WitnessScorer(task)
+    assert not hasattr(scorer, "encoder")
+    encode = block_encoder(scorer, outputs)
+    targets = encode_targets(outputs)
+    for state in states_along(task, task.program):
+        legacy = item_array(
+            [encode_item(s, t) for s, t in zip(state, targets, strict=True)]
+        )
+        assert same_block(encode(state), legacy)
+        assert same_block(encode(state), node_encoder(outputs, MACHINE)(state))
+
+
+def test_block_encoder_asks_a_scorer_that_has_an_encoder():
+    task = task_for(TWO)
+    inputs, outputs = _prepare(task, "both")
+    for encoding in (MACHINE, DIFFERENCE):
+        scorer = LayoutScorer(task, encoding)
+        encode = block_encoder(scorer, outputs)
+        assert scorer.made == 1
+        assert same_block(encode(inputs), node_encoder(outputs, encoding)(inputs))
+    assert is_difference(block_encoder(LayoutScorer(task, DIFFERENCE), outputs)(inputs))
+    assert not is_difference(
+        block_encoder(LayoutScorer(task, MACHINE), outputs)(inputs)
+    )
+
+
+def test_the_segment_beam_builds_every_block_in_the_scorers_layout():
+    task = task_for(TWO)
+    scorer = LayoutScorer(task, DIFFERENCE)
+    result = segment_beam_solve(task, scorer, **SMALL)
+    # Found only because the witness's states arrived as `difference` blocks: a
+    # width-2 beam under a uniform scorer does not walk an 11-op witness.
+    assert result.termination == "fit" and result.program == task.program
+    assert scorer.made == 1  # one encoder for the whole search, not one per segment
+    seen = [block for call in scorer.calls for block in call]
+    assert seen and all(is_difference(block) for block in seen)
+    # The layout is doing the work: a scorer that knows the witness's states as
+    # `machine` blocks and is handed `difference` ones matches nothing.
+    mismatched = LayoutScorer(task, MACHINE)
+    mismatched.encoding = DIFFERENCE
+    assert segment_beam_solve(task, mismatched, **SMALL).program is None
+
+
+def test_a_machine_scorer_with_an_encoder_searches_as_one_without():
+    task = task_for(TWO)
+    plain = segment_beam_solve(task, WitnessScorer(task), **SMALL)
+    named = segment_beam_solve(task, LayoutScorer(task, MACHINE), **SMALL)
+    assert (named.program, named.termination, named.executions, named.fuel) == (
+        plain.program,
+        plain.termination,
+        plain.executions,
+        plain.fuel,
+    )
+    assert (named.expansions, named.depth) == (plain.expansions, plain.depth)
+
+
+def test_run_segment_scores_the_blocks_its_encoder_builds():
+    """The third positional argument is the encoder function, not encoded targets."""
+    task = task_for(TWO)
+    inputs, outputs = _prepare(task, "both")
+    scorer = LayoutScorer(task, DIFFERENCE)
+    built = []
+
+    def encode(product):
+        built.append(node_encoder(outputs, DIFFERENCE)(product))
+        return built[-1]
+
+    _run_segment(
+        [(inputs, (), 0.0)],
+        outputs,
+        encode,
+        scorer,
+        _Tally(),
+        beam_width=2,
+        segment_depth=2,
+        horizon=6,
+        guard="both",
+        budget=None,
+        max_state_atoms=None,
+        stop_at_fit=False,
+    )
+    assert scorer.made == 0  # the caller's encoder is used; none is made here
+    scored = [block for call in scorer.calls for block in call]
+    assert len(scored) == len(built) > 0
+    assert all(got is made for got, made in zip(scored, built, strict=True))
+
+
+def test_witness_ranks_score_the_witness_path_and_the_search_in_one_layout():
+    task = task_for(TWO)
+    _inputs, outputs = _prepare(task, "both")
+    scorer = LayoutScorer(task, DIFFERENCE)
+    rows = segment_witness_ranks(task, scorer, **SMALL)
+    assert [row["rank"] for row in rows] == [1, 1]
+    assert scorer.made == 1  # shared by the path scoring and every segment
+    # The first thing scored is the witness's own path, one block per op.
+    path = scorer.calls[0]
+    states = states_along(task, task.program)[:-1]
+    assert len(path) == len(task.program)
+    expected = node_encoder(outputs, DIFFERENCE)
+    assert all(
+        same_block(block, expected(state))
+        for block, state in zip(path, states, strict=True)
+    )
+    assert all(is_difference(block) for call in scorer.calls for block in call)
+    # ... and a forced witness root, whose score is that path's, still ranks.
+    hostile = LayoutScorer(task, DIFFERENCE, bonus=-20.0)
+    forced = segment_witness_ranks(
+        task, hostile, **{**SMALL, "beam_width": 1, "roots": 1}
+    )
+    assert forced[1]["forced"] and hostile.made == 1
+    assert all(is_difference(block) for call in hostile.calls for block in call)
