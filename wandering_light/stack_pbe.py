@@ -4306,9 +4306,20 @@ def verify_corpus(
     return checked
 
 
+_GZIP_MAGIC = b"\x1f\x8b"
+
+
 def _load_payload(path: Path) -> list[Task]:
-    """JSON has no tuples, so restore them on the way in."""
-    with gzip.open(path, "rt") as handle:
+    """JSON has no tuples, so restore them on the way in.
+
+    A payload is gzipped JSON lines as `write_corpus` leaves it, or the same
+    lines uncompressed. The file's first two bytes decide, not its name, so a
+    task file that was renamed or unpacked by hand still loads.
+    """
+    with open(path, "rb") as raw:
+        gzipped = raw.read(2) == _GZIP_MAGIC
+    opener = gzip.open if gzipped else open
+    with opener(path, "rt", encoding="utf-8") as handle:
         return [
             Task(
                 **{
@@ -4319,7 +4330,7 @@ def _load_payload(path: Path) -> list[Task]:
                     ),
                 }
             )
-            for row in map(json.loads, handle)
+            for row in map(json.loads, filter(str.strip, handle))
         ]
 
 

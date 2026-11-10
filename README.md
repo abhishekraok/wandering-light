@@ -148,8 +148,9 @@ Run the linter through `uv run` so the pinned ruff is used rather than one on `P
 │   ├── quotation_guard.py           # search-level pruning of open-quotation states
 │   ├── solver.py                    # random, BFS, LLM and rollout (beam) solvers
 │   ├── rollout_policy.py, stack_policy.py, stack_beam.py   # learned next-op policies, beam search
+│   ├── solve.py                     # the current best system, run on a task file
 │   ├── compute_optimal.py           # cost-to-clear metrics, certified optimal-action sets
-│   ├── corpus_hub.py, policy_hub.py # Hub fetch/publish for corpora and policy checkpoints
+│   ├── corpus_hub.py, policy_hub.py, stack_policy_hub.py   # Hub fetch/publish for corpora and policy checkpoints
 │   ├── shortest_path_data.py, stack_machine_corpus.py   # certified-shortest corpus generation
 │   ├── proposer_pilot/graph.py      # TrajectoryGraph, the persistent state graph
 │   ├── rollout_debugger/            # interactive rollout debugger (see its README)
@@ -198,6 +199,32 @@ uv run python experiments/stack_pbe_baseline.py --backend llm --provider openai 
 candidate is graded on the task's held-out examples, and a program that fits
 only the shown ones is counted as memorised, not solved. `--provider ollama`
 runs a local model.
+
+### Run the current best system on a task file
+```bash
+uv run python -m wandering_light.solve TASKS
+```
+
+`TASKS` is a `stack_pbe` payload (`.jsonl` or `.jsonl.gz`) or a corpus
+directory. The system is `BEST` in `wandering_light/solve.py`: a policy
+checkpoint pinned to a Hub commit id, the beam width, depth and guard it was
+measured with, and a library of the programs found earlier in the same run.
+The checkpoint is downloaded once into `~/.cache/wandering-light/stack-policy`
+(under `$XDG_CACHE_HOME` when that is set); `huggingface_hub` authenticates as
+it usually does (`HF_TOKEN` or `hf auth login`), which a private repository needs.
+
+Every task is attempted, in file order. One clock per task covers replaying the
+library on the task's shown examples and, when nothing in it fits, the search.
+Grading on the held-out examples waits until the last clock has stopped, so no
+search is warmed by examples the solver was not shown. The command prints a
+verdict (`solved`, `memorised` for a program that fits only the shown examples,
+or `unsolved`) and the wall-clock for each task, then coverage and total
+wall-clock over every task attempted, including the unsolved ones. A search has
+no time limit of its own.
+
+`--json run.json` also writes the rows, the system and the host. `--device cuda`
+moves the policy to the GPU. `--checkpoint DIR` runs the same search on a local
+`stack_policy` checkpoint and marks the run as not `BEST`.
 
 ## Evaluation
 
