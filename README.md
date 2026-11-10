@@ -166,6 +166,26 @@ Run the linter through `uv run` so the pinned ruff is used rather than one on `P
 
 ## Usage
 
+### Run the current best system on a task file
+```bash
+uv run python -m wandering_light.solve TASKS
+```
+`TASKS` is a `stack_pbe` payload (`.jsonl` or `.jsonl.gz`, one task per line) or
+a corpus directory. The system is `BEST` in
+[`wandering_light/solve.py`](wandering_light/solve.py): a stack policy pinned to
+a Hub commit, fetched once into `$XDG_CACHE_HOME/wandering-light/stack-policy`
+(default `~/.cache/...`), guiding beam search on the CPU. The policy repository
+is private, so the first run needs `HF_TOKEN` or `hf auth login`.
+
+Every task is attempted in file order under its own wall clock. Programs solved
+earlier in the run are replayed on the task's shown examples before searching,
+inside that clock. Held-out examples are read only to grade, after the last
+clock stops. The command prints one row per task with its verdict (`solved`,
+`memorised` = fits the shown examples only, or `unsolved`) and seconds. It then
+prints coverage and the total wall clock over every task attempted. Optional:
+`--json FILE` writes every row with provenance, `--checkpoint DIR` swaps in a
+local policy (marked "not BEST"), and `--device cuda` runs the policy on a GPU.
+
 ### Solve a typed-list task
 ```python
 from wandering_light.common_functions import basic_fns   # wl-core-v1, 118 functions

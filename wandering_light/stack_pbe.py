@@ -70,6 +70,7 @@ from wandering_light.stack_machine import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
+    from typing import IO
 
 SCHEMA_VERSION = 2
 
@@ -4306,9 +4307,25 @@ def verify_corpus(
     return checked
 
 
+_GZIP_MAGIC = b"\x1f\x8b"
+
+
+def _open_payload(path: Path) -> IO[str]:
+    """A payload as text, gzipped or plain; gzip is told by its magic bytes."""
+    with open(path, "rb") as probe:
+        gzipped = probe.read(len(_GZIP_MAGIC)) == _GZIP_MAGIC
+    if gzipped:
+        return gzip.open(path, "rt", encoding="utf-8")
+    return open(path, encoding="utf-8")
+
+
 def _load_payload(path: Path) -> list[Task]:
-    """JSON has no tuples, so restore them on the way in."""
-    with gzip.open(path, "rt") as handle:
+    """JSON has no tuples, so restore them on the way in.
+
+    A payload is JSON lines, gzipped (what `write_corpus` writes) or plain (what
+    a hand-made task file is likely to be); the bytes decide, not the suffix.
+    """
+    with _open_payload(path) as handle:
         return [
             Task(
                 **{
