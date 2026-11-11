@@ -52,8 +52,8 @@ read November 10, 2026. Calls used the Claude subscription. The plot estimate
 totals $3.752080 for 40 tasks. The actual recorded token mix, including
 cache writes at $10/$16 per million for 5m/1h and reads at $0.20, has a
 $4.168352 list equivalent; this exactly matches the CLI's reported total.
-The pre-run estimate from Fable 5.1 low's tokens was $2.78; extra output
-and the actual cache-write mix raised the result. The Claude Max 20x meter read 19% before the run
+The plot total uses the fixed prompt and recorded output; the actual
+token-mix total includes cache writes. The Claude Max 20x meter read 19% before the run
 and at 18:14 PST, below the 60% start limit.
 
 The one low arm ran November 10 from 17:56:17 to 18:13:52 PST in
