@@ -514,5 +514,15 @@
   "mean_out": 1771.65,
   "model_confirmed_calls": 40,
   "source_artifact": "stack-pbe-v4-terra61-20261027/terra61_max_v4_sample40.json"
+ },
+ {
+  "model": "claude-fable-5-2",
+  "effort": "low",
+  "solved": 22,
+  "cost_per_task": 0.093802,
+  "median_out": 714.0,
+  "mean_out": 2085.05,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-fable52-20261110/fable52_low_v4_sample40.json"
  }
 ]

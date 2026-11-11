@@ -87,7 +87,7 @@ carries a certified distance or an authored witness rather than an estimate.
 
 ![Accuracy against cost on the stack_pbe_v4 40-task sample](reports/stack-pbe-v4-effort-sweep-20260927/accuracy_vs_cost.png)
 
-Solved of 40 on a fixed `stack_pbe_v4` eval sample against dollars per task, for hosted LLMs at each reasoning effort, local LLMs, BFS and this repo's 1m-parameter learned policy ([details](reports/stack-pbe-v4-effort-sweep-20260927/README.md)). Includes [Sonnet 5.5 at five efforts](reports/stack-pbe-v4-sonnet55-20260928/README.md), [GPT-6.1 Sol at four](reports/stack-pbe-v4-sol61-20260929/README.md), [Haiku 5.5 at five](reports/stack-pbe-v4-haiku55-20261011/README.md) and [GPT-6.1 Terra at five verified efforts](reports/stack-pbe-v4-terra61-20261027/README.md).
+Solved of 40 on a fixed `stack_pbe_v4` eval sample against dollars per task, for hosted LLMs at each reasoning effort, local LLMs, BFS and this repo's 1m-parameter learned policy ([details](reports/stack-pbe-v4-effort-sweep-20260927/README.md)). Includes [Sonnet 5.5 at five efforts](reports/stack-pbe-v4-sonnet55-20260928/README.md), [GPT-6.1 Sol at four](reports/stack-pbe-v4-sol61-20260929/README.md), [Haiku 5.5 at five](reports/stack-pbe-v4-haiku55-20261011/README.md), [GPT-6.1 Terra at five verified efforts](reports/stack-pbe-v4-terra61-20261027/README.md) and [Fable 5.2 at low only](reports/stack-pbe-v4-fable52-20261110/README.md).
 
 [`docs/RESULTS.md`](docs/RESULTS.md) has the headline numbers for language
 models, search and the learned policies on both substrates, and

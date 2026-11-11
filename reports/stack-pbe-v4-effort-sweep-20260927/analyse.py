@@ -30,6 +30,7 @@ PRICE = {  # $ per 1M input, output; Sonnet 5.5 verified 2026-09-28, 6.1 Sol 202
     "claude-haiku-5-5": (0.1, 0.5),  # verified 2026-10-11
     "claude-fable-5": (10, 50),
     "claude-fable-5-1": (10, 50),  # list price; was an inferred (15, 75)
+    "claude-fable-5-2": (8, 40),  # vendor list price, checked 2026-11-10
 }
 ARMS = (
     ("stack-pbe-v4-codex-exec-20260910/astra_low", "gpt-6-astra", "low"),
@@ -105,6 +106,7 @@ ARMS = (
     ("stack-pbe-v4-terra61-20261027/terra61_high", "gpt-6.1-terra", "high"),
     ("stack-pbe-v4-terra61-20261027/terra61_xhigh", "gpt-6.1-terra", "xhigh"),
     ("stack-pbe-v4-terra61-20261027/terra61_max", "gpt-6.1-terra", "max"),
+    ("stack-pbe-v4-fable52-20261110/fable52_low", "claude-fable-5-2", "low"),
 )
 
 
@@ -180,6 +182,14 @@ def main() -> None:
             calls = arm["calls"]
             confirmed = sum(call["identity_confirmed"] for call in calls)
             served = [f"{m} ({confirmed}/40)"] if confirmed else ["unconfirmed (0/40)"]
+        if m == "claude-fable-5-2":
+            audit_path = (REPORTS / stems[(m, e)]).parent / "validation.json"
+            audit = json.loads(audit_path.read_text())
+            assert audit["artifact"] == Path(f"{stems[(m, e)]}_v4_sample40.json").name
+            assert audit["task_indices"] == [c["task_index"] for c in cands]
+            confirmed = audit["model_confirmed_calls"]
+            assert confirmed == audit["usage_available_calls"] == len(out) == 40
+            served = [f"{m} ({confirmed}/40)"]
         tools = sum(
             g.get("tool_calls", 0) + bool(g.get("text_tool_call")) for g in gens
         )

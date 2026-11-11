@@ -1,0 +1,52 @@
+{
+  "purpose": "Separate lowest-effort preflight; excluded from evaluation",
+  "requested_model": "claude-fable-5-2",
+  "effort": "low",
+  "started_at": "2026-11-11T01:55:54.126270+00:00",
+  "finished_at": "2026-11-11T01:55:56.388752+00:00",
+  "source_commit": "421b24a00d0fcc7ee83e11c2530ca2b4ed99d774",
+  "cli_version": "2.1.322 (Claude Code)",
+  "command": [
+    "claude",
+    "-p",
+    "--model",
+    "claude-fable-5-2",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--setting-sources",
+    "",
+    "--no-session-persistence",
+    "--output-format",
+    "json",
+    "--system-prompt",
+    "Follow the instructions in the message. You have no tools and cannot run commands or code; answer from the message alone.\n",
+    "--effort",
+    "low"
+  ],
+  "prompt": "Reply exactly OK.",
+  "returncode": 0,
+  "stdout": "{\"duration_api_ms\":1147,\"stop_reason\":\"end_turn\",\"session_id\":\"5773c838-0e33-4654-bc6b-12da55d29241\",\"total_cost_usd\":0.00936,\"usage\":{\"input_tokens\":2,\"cache_creation_input_tokens\":574,\"cache_read_input_tokens\":0,\"output_tokens\":4,\"output_tokens_details\":{\"thinking_tokens\":0},\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":574,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"global\",\"iterations\":[{\"input_tokens\":2,\"output_tokens\":4,\"cache_read_input_tokens\":0,\"cache_creation_input_tokens\":574,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":574},\"type\":\"message\"}],\"speed\":\"standard\",\"fallback_credit\":null},\"modelUsage\":{\"claude-fable-5-2\":{\"inputTokens\":2,\"outputTokens\":4,\"cacheReadInputTokens\":0,\"cacheCreationInputTokens\":574,\"webSearchRequests\":0,\"costUSD\":0.00936,\"contextWindow\":1000000,\"maxOutputTokens\":128000,\"thinkingTokens\":0,\"cacheCreationEphemeral5mInputTokens\":0,\"cacheCreationEphemeral1hInputTokens\":574,\"canonicalModel\":\"claude-fable-5-2\",\"provider\":\"firstParty\",\"costBasis\":\"list\"}},\"permission_denials\":[],\"terminal_reason\":\"completed\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"subagent_stats\":{\"spawned\":0,\"requested\":{\"background\":0,\"foreground\":0,\"unset\":0},\"started_in_background\":0,\"max_depth\":0,\"spawned_by_subagents\":0,\"completed\":0,\"failed\":0,\"killed\":{\"parent\":0,\"user\":0,\"system\":0},\"refused\":{\"depth_limit\":0,\"concurrency_limit\":0,\"budget\":0},\"by_type\":{}},\"safety_stops\":0,\"is_error\":false,\"num_turns\":1,\"subtype\":\"success\",\"api_error_status\":null,\"result\":\"OK\",\"ttft_ms\":1197,\"type\":\"result\",\"duration_ms\":1215,\"uuid\":\"dda59237-014b-4355-8150-e835348bf342\",\"ttft_stream_ms\":1197,\"time_to_request_ms\":71,\"first_content_frame_ms\":1197,\"queued_turn_count\":0,\"result_index\":0,\"credential_expires_at\":\"2026-12-03T00:51:11.470Z\"}\n",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "served_models": [
+    "claude-fable-5-2"
+  ],
+  "parsed_metadata": {
+    "tool_calls": 0,
+    "text_tool_call": false,
+    "errors": [],
+    "usage": {
+      "input_tokens": 576,
+      "cache_creation_input_tokens": 574,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 4,
+      "reasoning_output_tokens": 0
+    },
+    "model": [
+      "claude-fable-5-2"
+    ],
+    "stop_reason": "end_turn",
+    "api_ms": 1147
+  },
+  "passed": true
+}
