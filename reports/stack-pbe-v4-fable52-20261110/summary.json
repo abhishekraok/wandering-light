@@ -1,0 +1,19 @@
+[
+  {
+    "model": "claude-fable-5-2",
+    "effort": "low",
+    "solved": 22,
+    "memorised": 17,
+    "illegal": 1,
+    "generation_failures": 0,
+    "usage_calls": 40,
+    "model_confirmed_calls": 40,
+    "reported_tool_call_proxy": 0,
+    "shown_rate": 0.975,
+    "cost_per_task": 0.093802,
+    "median_out": 714.0,
+    "mean_out": 2085.05,
+    "seconds": 1050.9,
+    "artifact": "fable52_low_v4_sample40.json"
+  }
+]

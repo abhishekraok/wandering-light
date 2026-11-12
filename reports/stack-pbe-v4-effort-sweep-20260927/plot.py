@@ -14,7 +14,8 @@ HERE = Path(__file__).parent
 ORDER = (  # model, colour, current generation (eligible for colour)
     ("claude-sonnet-5-5", "#006d77", True),
     ("claude-haiku-5-5", "#d4a017", True),
-    ("claude-fable-5-1", "#7a3db8", True),
+    ("claude-fable-5-2", "#7a3db8", True),
+    ("claude-fable-5-1", "#7a3db8", False),
     ("claude-fable-5", "#b58ae0", False),
     ("claude-opus-5-5", "#2a78d6", True),
     ("claude-opus-5", "#8fb8ea", False),
