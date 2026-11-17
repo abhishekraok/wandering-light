@@ -1,4 +1,4 @@
-"""Retain CLI stdout and server model fields without copying full transport traces."""
+"""Retain CLI stdout, served-model fields and completion metadata without copying full transport traces."""
 
 import argparse
 import gzip
@@ -44,6 +44,17 @@ def main():
                         selected = {
                             k: container[k] for k in ("id", "model") if k in container
                         }
+                        if event.get("type") == "response.completed":
+                            usage = container.get("usage") or {}
+                            selected["usage"] = {
+                                k: usage[k]
+                                for k in ("input_tokens", "output_tokens")
+                                if k in usage
+                            }
+                            selected["output_types"] = [
+                                item.get("type")
+                                for item in container.get("output") or []
+                            ]
                         headers = container.get("headers") or {}
                     else:
                         selected, headers = {}, container

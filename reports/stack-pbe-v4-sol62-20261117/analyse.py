@@ -7,6 +7,7 @@ import random
 import statistics
 from pathlib import Path
 
+from experiments.stack_pbe_baseline import parse_response
 from wandering_light.solver import CodexExecTokenGenerator
 from wandering_light.stack_pbe import load
 from wandering_light.stack_pbe_eval import grade, summarise
@@ -87,8 +88,11 @@ def main():
             effort,
         )
         assert [c["task_index"] for c in data["candidates"]] == selected
+        arm_evidence = evidence[path.stem]
         scores, outputs, calls = [], [], []
-        for number, candidate in enumerate(data["candidates"], 1):
+        for number, (candidate, call) in enumerate(
+            zip(data["candidates"], arm_evidence, strict=True), 1
+        ):
             assert len(candidate["generation"]) == 1
             generation = candidate["generation"][0]
             score = grade(candidate["candidate"], tasks[candidate["task_index"]])
@@ -102,21 +106,43 @@ def main():
             usage = generation.get("usage", {})
             if "output_tokens" in usage:
                 outputs.append(usage["output_tokens"])
-            call = evidence[path.stem][number - 1]
             assert call["call"] == f"call-{number:03d}"
             command = call["command"]
             assert command[command.index("-m") + 1] == MODEL
             assert f'model_reasoning_effort="{effort}"' in command
-            stdout = call["stdout"]
-            _, raw_meta = CodexExecTokenGenerator.parse_events(stdout.splitlines())
+            stdout = call["stdout"].splitlines()
+            message, raw_meta = CodexExecTokenGenerator.parse_events(stdout)
+            assert " ".join(parse_response(message).split()) == candidate["candidate"]
             for key in ("usage", "tool_calls", "errors"):
                 assert raw_meta.get(key) == generation.get(key)
+            cli_events = [
+                json.loads(line).get("type")
+                for line in stdout
+                if line.lstrip().startswith("{")
+            ]
             models = server_models(call)
+            cli_token_counts = {
+                k: usage[k] for k in ("input_tokens", "output_tokens") if k in usage
+            }
+            matching_responses = {
+                response["id"]
+                for event in call["received_model_events"]
+                if event["type"] == "response.completed"
+                and (response := event.get("response"))
+                and response.get("id")
+                and response.get("model") == MODEL
+                and cli_token_counts
+                and response.get("usage") == cli_token_counts
+            }
             calls.append(
                 {
                     "task_index": candidate["task_index"],
                     "server_models": models,
                     "identity_confirmed": models == [MODEL],
+                    "cli_completed_turns": cli_events.count("turn.completed"),
+                    "cli_failed_turns": cli_events.count("turn.failed")
+                    + cli_events.count("error"),
+                    "server_completions_matching_cli_usage": len(matching_responses),
                     "tool_calls": generation.get("tool_calls", 0),
                     "cli_error_events": generation.get("errors", []),
                     "generation_exceptions": candidate.get("errors", []),
