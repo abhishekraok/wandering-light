@@ -38,8 +38,8 @@ CLI turn completed with zero generation exceptions. The CLI sends a
 zero-output connection setup request. Its residual `exec` schema also
 elicited four requests, two at medium and two at high. The outgoing
 trace for each records `code-mode host is disabled`. The model continued
-within those turns, so both generated responses count toward the CLI
-usage and the plot cost. The published audit records these rejected
+within those turns. Both responses count toward CLI usage, and their
+output tokens enter the plot cost. The published audit records these rejected
 requests separately from executed tools, of which there were zero.
 [Compact CLI audit](cli-audit.json) · [Validation](validation.json)
 
