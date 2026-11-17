@@ -1,0 +1,35 @@
+[
+  {
+    "model": "gpt-6.2-sol",
+    "effort": "low",
+    "solved": 24,
+    "memorised": 10,
+    "illegal": 2,
+    "usage_calls": 40,
+    "mean_out": 188.75,
+    "cost_per_task": 0.0044875,
+    "model_confirmed_calls": 40
+  },
+  {
+    "model": "gpt-6.2-sol",
+    "effort": "medium",
+    "solved": 22,
+    "memorised": 17,
+    "illegal": 1,
+    "usage_calls": 40,
+    "mean_out": 380.85,
+    "cost_per_task": 0.0064085,
+    "model_confirmed_calls": 40
+  },
+  {
+    "model": "gpt-6.2-sol",
+    "effort": "high",
+    "solved": 24,
+    "memorised": 14,
+    "illegal": 2,
+    "usage_calls": 40,
+    "mean_out": 674.8,
+    "cost_per_task": 0.009348,
+    "model_confirmed_calls": 40
+  }
+]

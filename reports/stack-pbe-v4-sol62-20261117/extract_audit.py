@@ -5,7 +5,49 @@ import gzip
 import hashlib
 import json
 import re
+import zlib
 from pathlib import Path
+
+
+def tool_results(lines):
+    """Decode outgoing websocket frames, retaining only tool-result status."""
+    decoder = zlib.decompressobj(wbits=-15)
+    statuses = []
+    for number, line in enumerate(lines):
+        if "Sending frame:" not in line:
+            continue
+        frame = lines[number + 1 : number + 11]
+        if "opcode: TEXT" not in frame:
+            continue
+        payload = next(
+            (
+                match[1]
+                for entry in frame
+                if (match := re.fullmatch(r"payload: 0x([0-9a-f]+)", entry))
+            ),
+            None,
+        )
+        if payload is None:
+            continue
+        try:
+            data = (
+                decoder.decompress(bytes.fromhex(payload) + b"\0\0\xff\xff")
+                if "reserved: true false false" in frame
+                else bytes.fromhex(payload)
+            )
+            request = json.loads(data)
+        except (ValueError, zlib.error):
+            continue
+        for item in request.get("input") or []:
+            if item.get("type") in ("custom_tool_call_output", "function_call_output"):
+                statuses.append(
+                    {
+                        "type": item["type"],
+                        "code_mode_host_disabled": item.get("output")
+                        == "code-mode host is disabled",
+                    }
+                )
+    return statuses
 
 
 def main():
@@ -27,7 +69,8 @@ def main():
                 else gzip.decompress(stderr.with_suffix(".txt.gz").read_bytes())
             )
             events = []
-            for line in re.sub(r"\x1b\[[0-9;]*m", "", payload.decode()).splitlines():
+            lines = re.sub(r"\x1b\[[0-9;]*m", "", payload.decode()).splitlines()
+            for line in lines:
                 marker = next(
                     (m for m in ("SSE event: ", "Received message ") if m in line), None
                 )
@@ -80,6 +123,13 @@ def main():
                     "stdout": (command.parent / (stem + ".stdout.jsonl")).read_text(),
                     "stderr_sha256": hashlib.sha256(payload).hexdigest(),
                     "received_model_events": events,
+                    "tool_results": tool_results(lines)
+                    if any(
+                        kind in ("custom_tool_call", "function_call")
+                        for event in events
+                        for kind in event.get("response", {}).get("output_types", [])
+                    )
+                    else [],
                 }
             )
         arms[arm.stem] = calls

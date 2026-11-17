@@ -99,7 +99,9 @@ def main():
             verdict = (
                 "solved"
                 if score.solved
-                else "memorised" if score.memorised else "failed"
+                else "memorised"
+                if score.memorised
+                else "failed"
             )
             assert verdict == candidate["verdict"]
             scores.append(score)
@@ -124,7 +126,7 @@ def main():
             cli_token_counts = {
                 k: usage[k] for k in ("input_tokens", "output_tokens") if k in usage
             }
-            scored_responses = {
+            generation_responses = {
                 response["id"]: response
                 for event in call["received_model_events"]
                 if event["type"] == "response.completed"
@@ -138,13 +140,13 @@ def main():
             server_token_counts = {
                 key: sum(
                     response.get("usage", {}).get(key, 0)
-                    for response in scored_responses.values()
+                    for response in generation_responses.values()
                 )
                 for key in ("input_tokens", "output_tokens")
             }
             server_tool_attempts = sum(
                 kind in ("custom_tool_call", "function_call")
-                for response in scored_responses.values()
+                for response in generation_responses.values()
                 for kind in response.get("output_types", ())
             )
             calls.append(
@@ -155,10 +157,14 @@ def main():
                     "cli_completed_turns": cli_events.count("turn.completed"),
                     "cli_failed_turns": cli_events.count("turn.failed")
                     + cli_events.count("error"),
-                    "server_scored_completions": len(scored_responses),
-                    "server_scored_usage_matches_cli": bool(scored_responses)
+                    "server_generation_completions": len(generation_responses),
+                    "server_generation_usage_matches_cli": bool(generation_responses)
                     and server_token_counts == cli_token_counts,
                     "server_tool_attempts": server_tool_attempts,
+                    "disabled_tool_results": sum(
+                        result["code_mode_host_disabled"]
+                        for result in call["tool_results"]
+                    ),
                     "tool_calls": generation.get("tool_calls", 0),
                     "cli_error_events": generation.get("errors", []),
                     "generation_exceptions": candidate.get("errors", []),
