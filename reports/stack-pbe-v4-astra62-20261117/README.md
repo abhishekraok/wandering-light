@@ -74,6 +74,9 @@ systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- \
 .venv/bin/python "$PLOT/plot.py"
 ```
 
+Without `OUT`, the runner stores measurements in the main checkout at
+`reports/stack-pbe-v4-astra62-20261117/raw/measurements/`.
+
 To run the benchmark again using the Codex subscription, choose a fresh
 output directory. The runner makes and checks the low preflight for each
 arm. The extractor takes the CLI commands, stdout, stderr hash and selected
