@@ -124,16 +124,29 @@ def main():
             cli_token_counts = {
                 k: usage[k] for k in ("input_tokens", "output_tokens") if k in usage
             }
-            matching_responses = {
-                response["id"]
+            scored_responses = {
+                response["id"]: response
                 for event in call["received_model_events"]
                 if event["type"] == "response.completed"
                 and (response := event.get("response"))
                 and response.get("id")
-                and response.get("model") == MODEL
-                and cli_token_counts
-                and response.get("usage") == cli_token_counts
+                and (
+                    response.get("output_types")
+                    or response.get("usage", {}).get("output_tokens")
+                )
             }
+            server_token_counts = {
+                key: sum(
+                    response.get("usage", {}).get(key, 0)
+                    for response in scored_responses.values()
+                )
+                for key in ("input_tokens", "output_tokens")
+            }
+            server_tool_attempts = sum(
+                kind in ("custom_tool_call", "function_call")
+                for response in scored_responses.values()
+                for kind in response.get("output_types", ())
+            )
             calls.append(
                 {
                     "task_index": candidate["task_index"],
@@ -142,7 +155,10 @@ def main():
                     "cli_completed_turns": cli_events.count("turn.completed"),
                     "cli_failed_turns": cli_events.count("turn.failed")
                     + cli_events.count("error"),
-                    "server_completions_matching_cli_usage": len(matching_responses),
+                    "server_scored_completions": len(scored_responses),
+                    "server_scored_usage_matches_cli": bool(scored_responses)
+                    and server_token_counts == cli_token_counts,
+                    "server_tool_attempts": server_tool_attempts,
                     "tool_calls": generation.get("tool_calls", 0),
                     "cli_error_events": generation.get("errors", []),
                     "generation_exceptions": candidate.get("errors", []),
