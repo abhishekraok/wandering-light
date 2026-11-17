@@ -5,7 +5,10 @@ cd "$(dirname "$0")/../.."
 report=reports/stack-pbe-v4-sol62-20261117
 prior=reports/stack-pbe-v4-terra61-20261027
 PYTHON=${PYTHON:-.venv/bin/python}
-OUT=${OUT:-$report}
+if [[ -z "${OUT:-}" ]]; then
+  IFS= read -r -d '' main_checkout < <(git worktree list --porcelain -z)
+  OUT="${main_checkout#worktree }/$report/raw/measurements"
+fi
 effort=${1:?Specify low, medium, high or xhigh}
 case "$effort" in
   low|medium|high|xhigh) ;;
