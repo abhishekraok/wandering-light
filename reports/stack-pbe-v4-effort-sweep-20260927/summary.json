@@ -24,6 +24,36 @@
   "mean_out": 562
  },
  {
+  "model": "gpt-6.2-astra",
+  "effort": "low",
+  "solved": 21,
+  "cost_per_task": 0.016054,
+  "median_out": 84.0,
+  "mean_out": 141.35,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-astra62-20261117/astra62_low_v4_sample40.json"
+ },
+ {
+  "model": "gpt-6.2-astra",
+  "effort": "medium",
+  "solved": 23,
+  "cost_per_task": 0.019957,
+  "median_out": 114.5,
+  "mean_out": 238.925,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-astra62-20261117/astra62_medium_v4_sample40.json"
+ },
+ {
+  "model": "gpt-6.2-astra",
+  "effort": "high",
+  "solved": 27,
+  "cost_per_task": 0.029502999999999998,
+  "median_out": 259.0,
+  "mean_out": 477.575,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-astra62-20261117/astra62_high_v4_sample40.json"
+ },
+ {
   "model": "gpt-5.6-terra",
   "effort": "high",
   "solved": 16,

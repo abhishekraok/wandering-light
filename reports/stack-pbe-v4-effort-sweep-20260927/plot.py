@@ -19,7 +19,8 @@ ORDER = (  # model, colour, current generation (eligible for colour)
     ("claude-fable-5", "#b58ae0", False),
     ("claude-opus-5-5", "#2a78d6", True),
     ("claude-opus-5", "#8fb8ea", False),
-    ("gpt-6-astra", "#c2185b", True),
+    ("gpt-6.2-astra", "#c2185b", True),
+    ("gpt-6-astra", "#c2185b", False),
     ("gpt-6.1-sol", "#b83a0b", True),
     ("gpt-6.1-terra", "#8b6508", True),
     ("gpt-6-sol", "#eb6834", False),
@@ -35,7 +36,10 @@ rows = [
     r
     for r in saved_rows
     if r["cost_per_task"] is not None
-    and (r["model"] != "gpt-6.1-terra" or r.get("model_confirmed_calls") == 40)
+    and (
+        r["model"] not in ("gpt-6.1-terra", "gpt-6.2-astra")
+        or r.get("model_confirmed_calls") == 40
+    )
 ]
 # Keep exact ties: equally good/costly models receive the same treatment.
 frontier = [
@@ -98,9 +102,9 @@ for model, colour, new in ORDER:
         ax.annotate(
             EFFORT[e],
             (x, y),
-            xytext=(-5, -13),
+            xytext=(5, -13) if model == "gpt-6.2-astra" else (-5, -13),
             textcoords="offset points",
-            ha="right",
+            ha="left" if model == "gpt-6.2-astra" else "right",
             fontsize=7,
             color="#6b6a64",
         )

@@ -1,0 +1,2387 @@
+{
+  "requested_model": "gpt-6.2-astra",
+  "task_indices": [
+    361,
+    359,
+    234,
+    595,
+    1603,
+    1156,
+    479,
+    1408,
+    967,
+    1499,
+    815,
+    341,
+    456,
+    1266,
+    1241,
+    992,
+    1466,
+    1347,
+    160,
+    1729,
+    1087,
+    1019,
+    176,
+    1159,
+    570,
+    317,
+    399,
+    241,
+    1097,
+    47,
+    1634,
+    1579,
+    574,
+    470,
+    521,
+    897,
+    1772,
+    1735,
+    128,
+    95
+  ],
+  "cli_audit_sha256": "bbc79ab70efdbfbd56e98ceaee499b1adc53777131eb8c51cf18fa5e0376be1b",
+  "expected_efforts": [
+    "low",
+    "medium",
+    "high",
+    "xhigh"
+  ],
+  "completed_efforts": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "plot_prompt_tokens": 1300,
+  "input_usd_per_million": 8,
+  "output_usd_per_million": 40,
+  "pricing_source": "https://developers.openai.com/api/docs/pricing",
+  "pricing_checked": "2026-11-17",
+  "regraded_candidates": 120,
+  "model_confirmed_calls": 120,
+  "all_server_identities_confirmed": true,
+  "analysis_source_sha256": {
+    "experiments/stack_pbe_baseline.py": "3fb9d9f971924d6e833f695403ec39486677e34360e530c01b41a7f7cddf3eff",
+    "wandering_light/solver.py": "a1a6eb77eb19ce6d78b58a239a99a0a7b2737324b9ddff0cfd1c6b33f890806b",
+    "wandering_light/stack_pbe_eval.py": "81114072e09d41df230162d74fa1e05fa1d6f4781720c0fad87ac6872fac07cb",
+    "wandering_light/stack_machine.py": "1cae29b19e1fcdb2ed452ba6a36577da889082e21916d18948a7a42d417e27c1",
+    "wandering_light/evals/data/stack_pbe_v4/manifest.json": "26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b"
+  },
+  "arms": [
+    {
+      "effort": "low",
+      "artifact": "astra62_low_v4_sample40.json",
+      "regraded_candidates": 40,
+      "saved_grades_agree": true,
+      "inference_provenance": {
+        "capture_method": "recorded at inference time",
+        "source_commit": "ac84297f2ab290cee300bf90edd303e064760370",
+        "source_dirty": false,
+        "cli_version_before": "codex-cli 0.169.0",
+        "started_at": "2026-11-17T22:34:34.735424+00:00",
+        "baseline_arguments": [
+          "--backend",
+          "llm",
+          "--provider",
+          "codex",
+          "--model",
+          "gpt-6.2-astra",
+          "--effort",
+          "low",
+          "--tasks",
+          "40",
+          "--split",
+          "eval",
+          "--seed",
+          "17",
+          "--out",
+          "/home/abhishekrao/repos/wandering-light-bench/reports/stack-pbe-v4-astra62-20261117/astra62_low_v4_sample40.json"
+        ],
+        "identity_trace_logging": "codex_api::sse::responses=trace,tungstenite::protocol=trace",
+        "memory_scope": {
+          "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-rcec39614a72f43b38f3d566cebd538c4.scope",
+          "memory.max": "12884901888",
+          "memory.swap.max": "0"
+        },
+        "inference_source_sha256": {
+          "experiments/stack_pbe_baseline.py": "3fb9d9f971924d6e833f695403ec39486677e34360e530c01b41a7f7cddf3eff",
+          "wandering_light/solver.py": "a1a6eb77eb19ce6d78b58a239a99a0a7b2737324b9ddff0cfd1c6b33f890806b",
+          "wandering_light/stack_pbe_eval.py": "81114072e09d41df230162d74fa1e05fa1d6f4781720c0fad87ac6872fac07cb",
+          "wandering_light/stack_machine.py": "1cae29b19e1fcdb2ed452ba6a36577da889082e21916d18948a7a42d417e27c1",
+          "wandering_light/evals/data/stack_pbe_v4/manifest.json": "26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+          "reports/stack-pbe-v4-terra61-20261027/capture.py": "5d61c7fb02899ed26fa6a2b08c2e65a8077d24b410924202c17803ef8abf2a32"
+        },
+        "finished_at": "2026-11-17T22:44:06.314131+00:00",
+        "cli_version_after": "codex-cli 0.169.0",
+        "artifact_sha256": "fad1e9abce2a40eb155cdf640be649b6e01b67b5acaca038ac0332cf262436aa"
+      },
+      "provenance_caveats": [],
+      "calls": [
+        {
+          "task_index": 361,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 359,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 234,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 595,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1603,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1156,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 479,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1408,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 2,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 1,
+          "disabled_tool_results": 1,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 967,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1499,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 815,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 341,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 456,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1266,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1241,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 992,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1466,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1347,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 160,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1729,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1087,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1019,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 176,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1159,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 570,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 317,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 399,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 241,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1097,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 47,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1634,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1579,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 574,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 470,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 521,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 897,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1772,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1735,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 128,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 95,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        }
+      ]
+    },
+    {
+      "effort": "medium",
+      "artifact": "astra62_medium_v4_sample40.json",
+      "regraded_candidates": 40,
+      "saved_grades_agree": true,
+      "inference_provenance": {
+        "capture_method": "recorded at inference time",
+        "source_commit": "ac84297f2ab290cee300bf90edd303e064760370",
+        "source_dirty": false,
+        "cli_version_before": "codex-cli 0.169.0",
+        "started_at": "2026-11-17T22:53:14.240555+00:00",
+        "baseline_arguments": [
+          "--backend",
+          "llm",
+          "--provider",
+          "codex",
+          "--model",
+          "gpt-6.2-astra",
+          "--effort",
+          "medium",
+          "--tasks",
+          "40",
+          "--split",
+          "eval",
+          "--seed",
+          "17",
+          "--out",
+          "/home/abhishekrao/repos/wandering-light-bench/reports/stack-pbe-v4-astra62-20261117/astra62_medium_v4_sample40.json"
+        ],
+        "identity_trace_logging": "codex_api::sse::responses=trace,tungstenite::protocol=trace",
+        "memory_scope": {
+          "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-rfd3a52b6bdac4ece9d2450c643b8d7dc.scope",
+          "memory.max": "12884901888",
+          "memory.swap.max": "0"
+        },
+        "inference_source_sha256": {
+          "experiments/stack_pbe_baseline.py": "3fb9d9f971924d6e833f695403ec39486677e34360e530c01b41a7f7cddf3eff",
+          "wandering_light/solver.py": "a1a6eb77eb19ce6d78b58a239a99a0a7b2737324b9ddff0cfd1c6b33f890806b",
+          "wandering_light/stack_pbe_eval.py": "81114072e09d41df230162d74fa1e05fa1d6f4781720c0fad87ac6872fac07cb",
+          "wandering_light/stack_machine.py": "1cae29b19e1fcdb2ed452ba6a36577da889082e21916d18948a7a42d417e27c1",
+          "wandering_light/evals/data/stack_pbe_v4/manifest.json": "26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+          "reports/stack-pbe-v4-terra61-20261027/capture.py": "5d61c7fb02899ed26fa6a2b08c2e65a8077d24b410924202c17803ef8abf2a32"
+        },
+        "finished_at": "2026-11-17T23:05:20.024961+00:00",
+        "cli_version_after": "codex-cli 0.169.0",
+        "artifact_sha256": "637ec48e3448dd4faa3b3a87e8092bcb91f473125df537195f868f9244abbe94"
+      },
+      "provenance_caveats": [],
+      "calls": [
+        {
+          "task_index": 361,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 359,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 234,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 595,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1603,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1156,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 479,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1408,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 2,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 1,
+          "disabled_tool_results": 1,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 967,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1499,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 815,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 341,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 456,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1266,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1241,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 992,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1466,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1347,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 160,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1729,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1087,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1019,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 176,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1159,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 570,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 317,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 399,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 241,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1097,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 47,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1634,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1579,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 574,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 470,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 521,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 897,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1772,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1735,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 128,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 95,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        }
+      ]
+    },
+    {
+      "effort": "high",
+      "artifact": "astra62_high_v4_sample40.json",
+      "regraded_candidates": 40,
+      "saved_grades_agree": true,
+      "inference_provenance": {
+        "capture_method": "recorded at inference time",
+        "source_commit": "ac84297f2ab290cee300bf90edd303e064760370",
+        "source_dirty": false,
+        "cli_version_before": "codex-cli 0.169.0",
+        "started_at": "2026-11-17T23:08:42.800972+00:00",
+        "baseline_arguments": [
+          "--backend",
+          "llm",
+          "--provider",
+          "codex",
+          "--model",
+          "gpt-6.2-astra",
+          "--effort",
+          "high",
+          "--tasks",
+          "40",
+          "--split",
+          "eval",
+          "--seed",
+          "17",
+          "--out",
+          "/home/abhishekrao/repos/wandering-light-bench/reports/stack-pbe-v4-astra62-20261117/astra62_high_v4_sample40.json"
+        ],
+        "identity_trace_logging": "codex_api::sse::responses=trace,tungstenite::protocol=trace",
+        "memory_scope": {
+          "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-rc40ecd4751904eda8fd8976204222629.scope",
+          "memory.max": "12884901888",
+          "memory.swap.max": "0"
+        },
+        "inference_source_sha256": {
+          "experiments/stack_pbe_baseline.py": "3fb9d9f971924d6e833f695403ec39486677e34360e530c01b41a7f7cddf3eff",
+          "wandering_light/solver.py": "a1a6eb77eb19ce6d78b58a239a99a0a7b2737324b9ddff0cfd1c6b33f890806b",
+          "wandering_light/stack_pbe_eval.py": "81114072e09d41df230162d74fa1e05fa1d6f4781720c0fad87ac6872fac07cb",
+          "wandering_light/stack_machine.py": "1cae29b19e1fcdb2ed452ba6a36577da889082e21916d18948a7a42d417e27c1",
+          "wandering_light/evals/data/stack_pbe_v4/manifest.json": "26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+          "reports/stack-pbe-v4-terra61-20261027/capture.py": "5d61c7fb02899ed26fa6a2b08c2e65a8077d24b410924202c17803ef8abf2a32"
+        },
+        "finished_at": "2026-11-17T23:27:26.828211+00:00",
+        "cli_version_after": "codex-cli 0.169.0",
+        "artifact_sha256": "d609dda4c2668ffab38a90dc939423e72bb4aae3d4730661878f44f592ade547"
+      },
+      "provenance_caveats": [],
+      "calls": [
+        {
+          "task_index": 361,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 359,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 234,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 595,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1603,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1156,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 479,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1408,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 967,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1499,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 815,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 341,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 456,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1266,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 2,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 1,
+          "disabled_tool_results": 1,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1241,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 992,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1466,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 2,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 1,
+          "disabled_tool_results": 1,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1347,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 160,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1729,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1087,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1019,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 176,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1159,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 570,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 317,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 399,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 241,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1097,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 47,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1634,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1579,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 574,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 470,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 521,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 897,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1772,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 1735,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 128,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        },
+        {
+          "task_index": 95,
+          "server_models": [
+            "gpt-6.2-astra"
+          ],
+          "identity_confirmed": true,
+          "cli_completed_turns": 1,
+          "cli_failed_turns": 0,
+          "server_generation_completions": 1,
+          "server_generation_usage_matches_cli": true,
+          "server_tool_attempts": 0,
+          "disabled_tool_results": 0,
+          "tool_calls": 0,
+          "cli_error_events": [
+            "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+          ],
+          "generation_exceptions": []
+        }
+      ]
+    }
+  ]
+}

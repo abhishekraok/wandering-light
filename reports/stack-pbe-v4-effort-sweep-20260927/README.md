@@ -16,7 +16,9 @@ Updated 2026-10-27 with [GPT-6.1 Terra at five verified efforts](../stack-pbe-v4
 
 Updated 2026-11-10 with [Fable 5.2 at low effort only](../stack-pbe-v4-fable52-20261110/README.md), as requested by the owner: **22/40 at $0.093802/task**, $8/$40 per million input/output tokens. This is below the 24–27 shaded band and matches Fable 5.1 low's 22 at 10% higher cost despite the lower token price. All 40 served identities and grades are verified; no retries or other efforts. The previous 62 rows are unchanged.
 
-- **Top of the sample:** fable-5 medium 27, gpt-6-sol max 26, sonnet-5.5 xhigh 26, fable-5 xhigh 26, gpt-5.6-sol max 25, opus-5 xhigh 25 -- all within the ±3-task noise of a 40-task sample. gpt-6-sol reaches that band at ~$0.02/task, Sonnet at ~$0.06, Fable at ~$0.14-0.23.
+Updated 2026-11-17 with GPT-6.2 Astra low, medium and high at $8/$40 per million input/output tokens. The arms solve 21, 23 and 27 of 40 at $0.016054, $0.019957 and $0.029503/task, respectively. High ties the best hosted score at 79% lower cost than the previous 27/40 point. Xhigh was skipped after high reached the band. All 120 serving identities and grades are verified. The tool/turn proxy includes the rejected tool requests, with all continuation tokens priced. [GPT-6.2 Astra report](../stack-pbe-v4-astra62-20261117/README.md)
+
+- **Top of the sample:** GPT-6.2 Astra high and Fable 5 medium at 27, gpt-6-sol max 26, sonnet-5.5 xhigh 26, fable-5 xhigh 26, gpt-5.6-sol max 25, opus-5 xhigh 25 -- all within the ±3-task noise of a 40-task sample. gpt-6-sol reaches that band at ~$0.02/task, Sonnet at ~$0.06, Fable at ~$0.14-0.23.
 - **Fable 5.1 is not better than Fable 5 here** (22 / 24 / 22 / 23 against 20 / 27 / 24 / 26), and xhigh costs $0.47/task.
 - **Local solvers** (`local/`): the 1m next-op policy (`solve.BEST`, CPU) solves 14 at ~$0.0001/task, above every local LLM (gpt-oss-20b 9, qwen3-30b-a3b 6) and BFS (1 / 2 / 6 at 1k / 10k / 100k nodes). It is trained on the v4 train split, so its solves are mostly retrieval (#155), unlike the zero-shot LLMs.
 
