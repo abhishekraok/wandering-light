@@ -524,5 +524,35 @@
   "mean_out": 2085.05,
   "model_confirmed_calls": 40,
   "source_artifact": "stack-pbe-v4-fable52-20261110/fable52_low_v4_sample40.json"
+ },
+ {
+  "model": "gpt-6.2-sol",
+  "effort": "low",
+  "solved": 24,
+  "cost_per_task": 0.0044875,
+  "median_out": 132.5,
+  "mean_out": 188.75,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-sol62-20261117/sol62_low_v4_sample40.json"
+ },
+ {
+  "model": "gpt-6.2-sol",
+  "effort": "medium",
+  "solved": 22,
+  "cost_per_task": 0.006408499999999999,
+  "median_out": 256.5,
+  "mean_out": 380.85,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-sol62-20261117/sol62_medium_v4_sample40.json"
+ },
+ {
+  "model": "gpt-6.2-sol",
+  "effort": "high",
+  "solved": 24,
+  "cost_per_task": 0.009348,
+  "median_out": 369.0,
+  "mean_out": 674.8,
+  "model_confirmed_calls": 40,
+  "source_artifact": "stack-pbe-v4-sol62-20261117/sol62_high_v4_sample40.json"
  }
 ]

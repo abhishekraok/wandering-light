@@ -1,0 +1,130 @@
+{
+  "purpose": "Separate lowest-effort preflight; excluded from evaluation",
+  "requested_model": "gpt-6.2-sol",
+  "effort": "low",
+  "started_at": "2026-11-17T21:23:03.509429+00:00",
+  "finished_at": "2026-11-17T21:23:09.025234+00:00",
+  "source_commit": "e48362113e15a247f3bfe7659840886dfce80d91",
+  "cli_version": "codex-cli 0.169.0",
+  "identity_trace_logging": "codex_api::sse::responses=trace,tungstenite::protocol=trace",
+  "command": [
+    "codex",
+    "exec",
+    "--ephemeral",
+    "--skip-git-repo-check",
+    "--strict-config",
+    "--sandbox",
+    "read-only",
+    "-C",
+    "/tmp/codex-exec-d_tku4od/workdir",
+    "-m",
+    "gpt-6.2-sol",
+    "-c",
+    "model_instructions_file=\"/tmp/codex-exec-d_tku4od/instructions.md\"",
+    "-c",
+    "tools.web_search=false",
+    "--json",
+    "-c",
+    "model_reasoning_effort=\"low\"",
+    "--disable",
+    "shell_tool",
+    "--disable",
+    "unified_exec",
+    "--disable",
+    "code_mode_host",
+    "--disable",
+    "multi_agent",
+    "--disable",
+    "plugins",
+    "--disable",
+    "apps",
+    "--disable",
+    "browser_use",
+    "--disable",
+    "browser_use_external",
+    "--disable",
+    "computer_use",
+    "--disable",
+    "image_generation",
+    "--disable",
+    "view_image",
+    "--disable",
+    "sleep_tool",
+    "--disable",
+    "tool_suggest",
+    "--disable",
+    "skill_search",
+    "--disable",
+    "goals",
+    "--disable",
+    "hooks",
+    "--disable",
+    "personality",
+    "-"
+  ],
+  "prompt": "Reply exactly OK.",
+  "returncode": 0,
+  "stdout": "{\"type\":\"thread.started\",\"thread_id\":\"01a1eb64-5ee7-7fd0-8fd4-fc55bb50aaac\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_0\",\"type\":\"error\",\"message\":\"Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.\"}}\n{\"type\":\"turn.started\"}\n{\"type\":\"item.completed\",\"item\":{\"id\":\"item_1\",\"type\":\"agent_message\",\"text\":\"OK\"}}\n{\"type\":\"turn.completed\",\"usage\":{\"input_tokens\":7645,\"cached_input_tokens\":0,\"cache_write_input_tokens\":0,\"output_tokens\":5,\"reasoning_output_tokens\":0}}\n",
+  "stderr_sha256": "a743eb0e92a583c95e445ad4eeb2349837db38f7eac16b689c3bd926743162e8",
+  "received_model_events": [
+    {
+      "type": "response.created",
+      "response": {
+        "id": "resp_02be7149549488b7016afcc5bb323887d0bcf43c9757be28eb",
+        "model": "gpt-6.2-sol"
+      }
+    },
+    {
+      "type": "response.in_progress",
+      "response": {
+        "id": "resp_02be7149549488b7016afcc5bb323887d0bcf43c9757be28eb",
+        "model": "gpt-6.2-sol"
+      }
+    },
+    {
+      "type": "response.completed",
+      "response": {
+        "id": "resp_02be7149549488b7016afcc5bb323887d0bcf43c9757be28eb",
+        "model": "gpt-6.2-sol"
+      }
+    },
+    {
+      "type": "response.created",
+      "response": {
+        "id": "resp_02be7149549488b7016afcc5bbb2b487d0bdaa1fd6c2d32783",
+        "model": "gpt-6.2-sol"
+      }
+    },
+    {
+      "type": "response.in_progress",
+      "response": {
+        "id": "resp_02be7149549488b7016afcc5bbb2b487d0bdaa1fd6c2d32783",
+        "model": "gpt-6.2-sol"
+      }
+    },
+    {
+      "type": "response.completed",
+      "response": {
+        "id": "resp_02be7149549488b7016afcc5bbb2b487d0bdaa1fd6c2d32783",
+        "model": "gpt-6.2-sol"
+      }
+    }
+  ],
+  "served_models": [
+    "gpt-6.2-sol"
+  ],
+  "parsed_metadata": {
+    "tool_calls": 0,
+    "errors": [
+      "Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host"
+    ],
+    "usage": {
+      "input_tokens": 7645,
+      "cached_input_tokens": 0,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 5,
+      "reasoning_output_tokens": 0
+    }
+  },
+  "passed": true
+}

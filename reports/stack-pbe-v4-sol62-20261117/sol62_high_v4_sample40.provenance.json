@@ -1,0 +1,42 @@
+{
+  "capture_method": "recorded at inference time",
+  "source_commit": "dad0bc1603cb02f8c69f8807f72c6a8967eb282d",
+  "source_dirty": false,
+  "cli_version_before": "codex-cli 0.169.0",
+  "started_at": "2026-11-17T21:56:32.495897+00:00",
+  "baseline_arguments": [
+    "--backend",
+    "llm",
+    "--provider",
+    "codex",
+    "--model",
+    "gpt-6.2-sol",
+    "--effort",
+    "high",
+    "--tasks",
+    "40",
+    "--split",
+    "eval",
+    "--seed",
+    "17",
+    "--out",
+    "/home/abhishekrao/repos/wandering-light-bench/reports/stack-pbe-v4-sol62-20261117/sol62_high_v4_sample40.json"
+  ],
+  "identity_trace_logging": "codex_api::sse::responses=trace,tungstenite::protocol=trace",
+  "memory_scope": {
+    "cgroup": "/user.slice/user-1000.slice/user@1000.service/app.slice/run-r6f9ba032be0d49259dbce9cd0dd26a04.scope",
+    "memory.max": "12884901888",
+    "memory.swap.max": "0"
+  },
+  "inference_source_sha256": {
+    "experiments/stack_pbe_baseline.py": "3fb9d9f971924d6e833f695403ec39486677e34360e530c01b41a7f7cddf3eff",
+    "wandering_light/solver.py": "a1a6eb77eb19ce6d78b58a239a99a0a7b2737324b9ddff0cfd1c6b33f890806b",
+    "wandering_light/stack_pbe_eval.py": "81114072e09d41df230162d74fa1e05fa1d6f4781720c0fad87ac6872fac07cb",
+    "wandering_light/stack_machine.py": "1cae29b19e1fcdb2ed452ba6a36577da889082e21916d18948a7a42d417e27c1",
+    "wandering_light/evals/data/stack_pbe_v4/manifest.json": "26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+    "reports/stack-pbe-v4-terra61-20261027/capture.py": "5d61c7fb02899ed26fa6a2b08c2e65a8077d24b410924202c17803ef8abf2a32"
+  },
+  "finished_at": "2026-11-17T22:10:31.136248+00:00",
+  "cli_version_after": "codex-cli 0.169.0",
+  "artifact_sha256": "12e12af09f7bbda968a16df2504d053dab4326e66b0f5dd78609718dd27e9f6e"
+}
