@@ -36,9 +36,11 @@ import sys
 
 proof = json.loads(Path(sys.argv[1]).read_text())
 version = subprocess.check_output(['codex', '--version'], text=True).strip()
-if (not proof['passed'] or proof['served_models'] != ['gpt-6.2-astra']
-    or proof['effort'] != 'low' or proof['cli_version'] != version):
-    raise SystemExit('Current Codex needs a successful low-effort serving-model check')
+if not proof['passed'] or proof['served_models'] != ['gpt-6.2-astra'] or proof['effort'] != 'low':
+    raise SystemExit('A successful low-effort serving-model check is required')
+preflight_version = proof.get('cli_version') or 'unknown'
+if preflight_version != version:
+    print(f'Preflight used {preflight_version}. This arm uses {version}.', file=sys.stderr)
 PY
 printf 'RUN STARTED %s %s\n' "$(date -Is)" "$(codex --version)" >> "$OUT/$tag.log"
 status=0

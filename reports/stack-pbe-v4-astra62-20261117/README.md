@@ -76,6 +76,8 @@ systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 -- \
 
 Without `OUT`, the runner stores measurements in the main checkout at
 `reports/stack-pbe-v4-astra62-20261117/raw/measurements/`.
+If the CLI version differs from the saved preflight, the runner warns
+and the offline validation records the difference as a caveat.
 
 To run the benchmark again using the Codex subscription, choose a fresh
 output directory. The runner makes and checks the low preflight for each
