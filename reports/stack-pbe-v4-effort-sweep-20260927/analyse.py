@@ -18,6 +18,7 @@ PROMPT_TOKENS = 1300
 PRICE = {  # $ per 1M input, output; Sonnet 5.5 verified 2026-09-28, 6.1 Sol 2026-09-29
     "gpt-6.1-terra": (1, 5),  # vendor standard list price, checked 2026-10-27
     "gpt-6.1-sol": (2, 10),
+    "gpt-6.2-sol": (2, 10),  # OpenAI standard list price, checked 2026-11-17
     "gpt-6-astra": (10, 50),
     "gpt-6.2-astra": (8, 40),  # OpenAI standard list price, checked 2026-11-17
     "gpt-6-sol": (2, 10),
@@ -111,6 +112,9 @@ ARMS = (
     ("stack-pbe-v4-terra61-20261027/terra61_xhigh", "gpt-6.1-terra", "xhigh"),
     ("stack-pbe-v4-terra61-20261027/terra61_max", "gpt-6.1-terra", "max"),
     ("stack-pbe-v4-fable52-20261110/fable52_low", "claude-fable-5-2", "low"),
+    ("stack-pbe-v4-sol62-20261117/sol62_low", "gpt-6.2-sol", "low"),
+    ("stack-pbe-v4-sol62-20261117/sol62_medium", "gpt-6.2-sol", "medium"),
+    ("stack-pbe-v4-sol62-20261117/sol62_high", "gpt-6.2-sol", "high"),
 )
 
 
@@ -175,16 +179,26 @@ def main() -> None:
             for r in ref.values()
         ]
         served = sorted({x for g in gens for x in g.get("model", [])}) or ["-"]
+        tools = sum(
+            g.get("tool_calls", 0) + bool(g.get("text_tool_call")) for g in gens
+        )
         confirmed = None
-        if m == "gpt-6.1-terra":
-            # Low/medium use the owner's identity reruns; the first runs remain
-            # saved in their parent directory. Bind identity to that run's audit.
+        if m in ("gpt-6.1-terra", "gpt-6.2-sol", "gpt-6.2-astra"):
+            # Terra low/medium use the owner's identity reruns. Bind identity
+            # to the selected run's audit.
             audit_path = (REPORTS / stems[(m, e)]).parent / "validation.json"
             audit = json.loads(audit_path.read_text())
             arm = next(arm for arm in audit["arms"] if arm["effort"] == e)
             assert arm["artifact"] == Path(f"{stems[(m, e)]}_v4_sample40.json").name
             calls = arm["calls"]
             confirmed = sum(call["identity_confirmed"] for call in calls)
+            if m in ("gpt-6.2-sol", "gpt-6.2-astra"):
+                assert audit["requested_model"] == m
+                assert audit["task_indices"] == [c["task_index"] for c in cands]
+                assert confirmed == len(calls) == len(out) == 40
+                assert all(call["server_models"] == [m] for call in calls)
+                assert all(call["tool_calls"] == 0 for call in calls)
+                tools += sum(call["server_tool_attempts"] for call in calls)
             served = [f"{m} ({confirmed}/40)"] if confirmed else ["unconfirmed (0/40)"]
         if m == "claude-fable-5-2":
             audit_path = (REPORTS / stems[(m, e)]).parent / "validation.json"
@@ -193,23 +207,6 @@ def main() -> None:
             assert audit["task_indices"] == [c["task_index"] for c in cands]
             confirmed = audit["model_confirmed_calls"]
             assert confirmed == audit["usage_available_calls"] == len(out) == 40
-            served = [f"{m} ({confirmed}/40)"]
-        tools = sum(
-            g.get("tool_calls", 0) + bool(g.get("text_tool_call")) for g in gens
-        )
-        if m == "gpt-6.2-astra":
-            audit_path = (REPORTS / stems[(m, e)]).parent / "validation.json"
-            audit = json.loads(audit_path.read_text())
-            arm = next(arm for arm in audit["arms"] if arm["effort"] == e)
-            assert arm["artifact"] == Path(f"{stems[(m, e)]}_v4_sample40.json").name
-            assert audit["requested_model"] == m
-            assert audit["task_indices"] == [c["task_index"] for c in cands]
-            calls = arm["calls"]
-            confirmed = sum(call["identity_confirmed"] for call in calls)
-            assert confirmed == len(calls) == len(out) == 40
-            assert all(call["server_models"] == [m] for call in calls)
-            assert all(call["tool_calls"] == 0 for call in calls)
-            tools += sum(call["server_tool_attempts"] for call in calls)
             served = [f"{m} ({confirmed}/40)"]
         token_text = (
             f"{statistics.median(out):,.0f} / {statistics.mean(out):,.0f}"

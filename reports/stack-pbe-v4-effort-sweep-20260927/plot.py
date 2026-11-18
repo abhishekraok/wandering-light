@@ -21,7 +21,8 @@ ORDER = (  # model, colour, current generation (eligible for colour)
     ("claude-opus-5", "#8fb8ea", False),
     ("gpt-6.2-astra", "#c2185b", True),
     ("gpt-6-astra", "#c2185b", False),
-    ("gpt-6.1-sol", "#b83a0b", True),
+    ("gpt-6.2-sol", "#b83a0b", True),
+    ("gpt-6.1-sol", "#eb6834", False),
     ("gpt-6.1-terra", "#8b6508", True),
     ("gpt-6-sol", "#eb6834", False),
     ("gpt-6-luna", "#1baf7a", True),
@@ -37,7 +38,7 @@ rows = [
     for r in saved_rows
     if r["cost_per_task"] is not None
     and (
-        r["model"] not in ("gpt-6.1-terra", "gpt-6.2-astra")
+        r["model"] not in ("gpt-6.1-terra", "gpt-6.2-sol", "gpt-6.2-astra")
         or r.get("model_confirmed_calls") == 40
     )
 ]
@@ -113,9 +114,9 @@ for model, colour, new in ORDER:
     ax.annotate(
         model,
         (x, y),
-        xytext=(-10, 8) if model == "gpt-6.1-sol" else (10, 4),
+        xytext=(-10, 8) if model == "gpt-6.2-sol" else (10, 4),
         textcoords="offset points",
-        ha="right" if model == "gpt-6.1-sol" else "left",
+        ha="right" if model == "gpt-6.2-sol" else "left",
         fontsize=8.5,
         fontweight="bold",
         color=colour,
