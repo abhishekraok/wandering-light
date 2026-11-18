@@ -13,6 +13,8 @@ wider than the byte encoder's 96-byte cap, because 80% of them sit inside an
 open ``[`` with a long body on top. One token per op symbol, bracket, boolean
 or small integer keeps a state under ``STATE_CAP`` in nearly every case, and a
 state that still overflows keeps its *top*, which is what the next op reads.
+The difference layout appends per-position comparisons of the full stacks,
+starting at the top.
 
 Training rows replay each task's authored witness on its shown examples and
 label every prefix with the witness's next op. The witness is an upper bound,
@@ -67,6 +69,12 @@ INT_BASE = SYM_BASE + len(OP_NAMES)
 SMALL_INT = 64
 DIGIT_BASE = INT_BASE + 2 * SMALL_INT + 1
 VOCAB = DIGIT_BASE + 10
+MACHINE, DIFFERENCE = "machine", "difference"
+ENCODINGS = (MACHINE, DIFFERENCE)
+FLAG_TOP = 8
+EQUAL, CHANGED, ADDED, REMOVED = range(4)
+FLAG_BASE = VOCAB
+EMBEDDING_ROWS = {MACHINE: VOCAB, DIFFERENCE: FLAG_BASE + 4 * FLAG_TOP}
 STATE_CAP = 160
 TARGET_CAP = 64
 ITEM_WIDTH = STATE_CAP + 1 + TARGET_CAP
@@ -124,6 +132,27 @@ def encode_targets(outputs: Sequence[Sequence[Value]]) -> list[list[int]]:
     return [encode_stack(output, TARGET_CAP) for output in outputs]
 
 
+def _validate_encoding(encoding: str) -> None:
+    if encoding not in ENCODINGS:
+        raise ValueError(f"unknown encoding {encoding!r}; choose one of {ENCODINGS}")
+
+
+def flags(state: Sequence[Value], target: Sequence[Value]) -> list[int]:
+    """Compare whole values at each position from the top of the two stacks."""
+    tokens = []
+    for k in range(FLAG_TOP):
+        if k >= len(state) and k >= len(target):
+            continue
+        if k >= len(state):
+            flag = ADDED
+        elif k >= len(target):
+            flag = REMOVED
+        else:
+            flag = EQUAL if state[-1 - k] == target[-1 - k] else CHANGED
+        tokens.append(FLAG_BASE + 4 * k + flag)
+    return tokens
+
+
 def item_array(items: Sequence[Sequence[int]]) -> np.ndarray:
     """One node's items as a padded int16 block, the unit ``collate`` consumes."""
     width = max(len(item) for item in items)
@@ -131,6 +160,44 @@ def item_array(items: Sequence[Sequence[int]]) -> np.ndarray:
     for row, item in enumerate(items):
         block[row, : len(item)] = item
     return block
+
+
+type StackProduct = Sequence[Sequence[Value]]
+
+
+def node_encoder(
+    target_stacks: StackProduct, encoding: str = MACHINE
+) -> Callable[[StackProduct], np.ndarray]:
+    """Prepare fixed targets and return an encoder for one product state."""
+    _validate_encoding(encoding)
+    if encoding == MACHINE:
+        targets = encode_targets(target_stacks)
+
+        def machine(product: StackProduct) -> np.ndarray:
+            return item_array(
+                [encode_item(s, t) for s, t in zip(product, targets, strict=True)]
+            )
+
+        return machine
+
+    stacks = tuple(tuple(stack) for stack in target_stacks)
+    targets = encode_targets(stacks)
+
+    def difference(product: StackProduct) -> np.ndarray:
+        return item_array(
+            [
+                [*encode_item(state, tokens), SEP, *flags(state, target)]
+                for state, tokens, target in zip(product, targets, stacks, strict=True)
+            ]
+        )
+
+    return difference
+
+
+def encode_node(
+    product: StackProduct, target_stacks: StackProduct, encoding: str = MACHINE
+) -> np.ndarray:
+    return node_encoder(target_stacks, encoding)(product)
 
 
 def collate(
@@ -176,14 +243,17 @@ class StackPairPolicy(AlignedPairPolicy):
         self,
         architecture: PolicyArchitecture,
         actions: Sequence[str] = OP_NAMES,
+        encoding: str = MACHINE,
     ) -> None:
+        _validate_encoding(encoding)
         actions = tuple(actions)
         if actions[: len(OP_NAMES)] != OP_NAMES:
             raise ValueError("an action space must begin with the mark-28 ops")
         self.actions = actions
+        self.encoding = encoding
         super().__init__(len(actions), architecture)
         self.embedding = nn.Embedding(
-            VOCAB, architecture.byte_embedding, padding_idx=PAD
+            EMBEDDING_ROWS[encoding], architecture.byte_embedding, padding_idx=PAD
         )
 
     def _encode_items(self, sequences: Tensor) -> Tensor:
@@ -209,6 +279,18 @@ class PolicyScorer:
         # nothing and lets an observer lay the beam out in the policy's own
         # space without a second pass over every node.
         self.last_features: np.ndarray | None = None
+
+    @property
+    def encoding(self) -> str:
+        return getattr(self.model, "encoding", MACHINE)
+
+    def encoder(
+        self, target_stacks: StackProduct
+    ) -> Callable[[StackProduct], np.ndarray]:
+        return node_encoder(target_stacks, self.encoding)
+
+    def encode(self, product: StackProduct, target_stacks: StackProduct) -> np.ndarray:
+        return self.encoder(target_stacks)(product)
 
     def logits(self, blocks: Sequence[np.ndarray]) -> np.ndarray:
         """The head's raw rows, one per node, over all 28 ops; nothing masked."""
@@ -269,19 +351,15 @@ def replay_witness(
         states = tuple(moved)
 
 
-def witness_rows(tasks: Sequence[Task]) -> list[Row]:
+def witness_rows(tasks: Sequence[Task], encoding: str = MACHINE) -> list[Row]:
     rows = []
     for index, task in enumerate(tasks):
-        targets = encode_targets(
-            [parse_stack(text, basis=BASIS) for text in task.outputs]
+        encode = node_encoder(
+            [parse_stack(text, basis=BASIS) for text in task.outputs], encoding
         )
         for step, states, name in replay_witness(task):
-            items = [
-                encode_item(state, target)
-                for state, target in zip(states, targets, strict=True)
-            ]
             rows.append(
-                Row(item_array(items), OP_INDEX[name], index, step, task.length - step)
+                Row(encode(states), OP_INDEX[name], index, step, task.length - step)
             )
     return rows
 
@@ -343,6 +421,7 @@ def train_policy(
     validation_batch_size: int,
     seed: int,
     device: str | torch.device,
+    encoding: str = MACHINE,
     epoch_callback: Callable[[dict[str, Any]], None] | None = None,
     epoch_end: Callable[[int, StackPairPolicy, dict[str, Any]], None] | None = None,
 ) -> tuple[StackPairPolicy, dict[str, Any]]:
@@ -357,7 +436,7 @@ def train_policy(
         raise ValueError("train and validation rows must both be non-empty")
     seed_everything(seed)
     target = torch.device(device)
-    model = StackPairPolicy(architecture).to(target)
+    model = StackPairPolicy(architecture, encoding=encoding).to(target)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     order = list(range(len(train)))
     rng = random.Random(seed)
@@ -413,6 +492,7 @@ def train_policy(
         "seed": seed,
         "device": str(target),
         "parameters": model.parameter_count,
+        "encoding": model.encoding,
     }
 
 
@@ -422,10 +502,14 @@ def train_policy(
 
 
 def policy_config(
-    architecture: PolicyArchitecture, actions: Sequence[str] = OP_NAMES
+    architecture: PolicyArchitecture,
+    actions: Sequence[str] = OP_NAMES,
+    encoding: str = MACHINE,
 ) -> dict[str, Any]:
+    _validate_encoding(encoding)
     return {
         "schema_version": SCHEMA_VERSION,
+        "encoding": encoding,
         "architecture": {
             "name": ARCHITECTURE,
             "byte_embedding": architecture.byte_embedding,
@@ -433,7 +517,7 @@ def policy_config(
             "hidden": architecture.hidden,
         },
         "vocabulary": {
-            "size": VOCAB,
+            "size": EMBEDDING_ROWS[encoding],
             "small_int": SMALL_INT,
             "state_cap": STATE_CAP,
             "target_cap": TARGET_CAP,
@@ -459,7 +543,11 @@ def save_policy(
     save_file(state, str(checkpoint / MODEL_FILE), metadata={"format": "pt"})
     (checkpoint / CONFIG_FILE).write_text(
         json.dumps(
-            policy_config(model.architecture, getattr(model, "actions", OP_NAMES)),
+            policy_config(
+                model.architecture,
+                getattr(model, "actions", OP_NAMES),
+                getattr(model, "encoding", MACHINE),
+            ),
             indent=2,
             sort_keys=True,
         )
@@ -498,6 +586,6 @@ def load_policy(
     architecture = PolicyArchitecture(
         dims["byte_embedding"], dims["conv_channels"], dims["hidden"]
     )
-    model = StackPairPolicy(architecture, actions)
+    model = StackPairPolicy(architecture, actions, config.get("encoding", MACHINE))
     model.load_state_dict(load_file(str(checkpoint / MODEL_FILE), device="cpu"))
     return model.to(device).eval()

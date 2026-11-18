@@ -17,6 +17,8 @@ from wandering_light.stack_beam import (
     _prepare,
     _run_segment,
     _Tally,
+    beam_solve,
+    block_encoder,
     closed_cuts,
     segment_beam_solve,
     segment_witness_ranks,
@@ -30,7 +32,7 @@ from wandering_light.stack_pbe import (
     draw_task,
 )
 from wandering_light.stack_pbe_eval import grade
-from wandering_light.stack_policy import encode_item, item_array
+from wandering_light.stack_policy import DIFFERENCE, FLAG_BASE, MACHINE, node_encoder
 
 
 def task_for(name: str, seed: int = 4):
@@ -39,7 +41,7 @@ def task_for(name: str, seed: int = 4):
 
 
 def states_along(task, program):
-    inputs, _outputs, _targets = _prepare(task, "both")
+    inputs, _outputs = _prepare(task, "both")
     states = [inputs]
     for name in program:
         states.append(step_all_quiet(states[-1], OP_BY_NAME[name])[0])
@@ -53,15 +55,14 @@ class WitnessScorer:
     sees, so the stub cannot read anything the policy could not.
     """
 
-    def __init__(self, task, bonus: float = 5.0):
-        _inputs, _outputs, targets = _prepare(task, "both")
+    def __init__(self, task, bonus: float = 5.0, *, encoding: str = MACHINE):
+        _inputs, outputs = _prepare(task, "both")
+        encode = node_encoder(outputs, encoding)
         self.bonus = bonus
         self.want = {}
         states = states_along(task, task.program)[:-1]
         for state, name in zip(states, task.program, strict=True):
-            block = item_array(
-                [encode_item(s, t) for s, t in zip(state, targets, strict=True)]
-            )
+            block = encode(state)
             self.want[block.shape, block.tobytes()] = OP_INDEX[name]
 
     def log_probs(self, blocks, legal):
@@ -74,6 +75,22 @@ class WitnessScorer:
         peak = logits.max(axis=1, keepdims=True)
         shifted = logits - np.where(np.isfinite(peak), peak, 0.0)
         return shifted - np.log(np.exp(shifted).sum(axis=1, keepdims=True))
+
+
+class DifferenceWitnessScorer(WitnessScorer):
+    def __init__(self, task):
+        super().__init__(task, encoding=DIFFERENCE)
+        self.encoder_calls = 0
+        self.batch_sizes = []
+
+    def encoder(self, outputs):
+        self.encoder_calls += 1
+        return node_encoder(outputs, DIFFERENCE)
+
+    def log_probs(self, blocks, legal):
+        self.batch_sizes.append(len(blocks))
+        assert all((block >= FLAG_BASE).any(axis=1).all() for block in blocks)
+        return super().log_probs(blocks, legal)
 
 
 # `[ 0 swap lt? ] filter 0 [ add ] fold`: two top-level combinator applications,
@@ -109,6 +126,29 @@ def test_a_two_segment_witness_is_found_across_its_closed_state():
     assert 0 < result.expansions <= 6 * 1 * 2 + 6 * 2 * 2
 
 
+def test_flat_and_segment_beams_use_the_scorers_encoder_once():
+    task = task_for(TWO)
+    for search, knobs in (
+        (beam_solve, {"beam_width": 2, "max_depth": len(task.program)}),
+        (segment_beam_solve, SMALL),
+    ):
+        scorer = DifferenceWitnessScorer(task)
+        result = search(task, scorer, **knobs)
+        assert result.program == task.program
+        assert scorer.encoder_calls == 1
+        assert scorer.batch_sizes
+
+
+def test_witness_ranks_reuse_the_scorers_encoder_for_the_path_and_search():
+    task = task_for(TWO)
+    scorer = DifferenceWitnessScorer(task)
+    rows = segment_witness_ranks(task, scorer, **SMALL)
+    assert [row["rank"] for row in rows] == [1, 1]
+    assert scorer.encoder_calls == 1
+    assert scorer.batch_sizes[0] == len(task.program)
+    assert len(scorer.batch_sizes) > 1
+
+
 def test_a_segment_too_short_for_the_witness_cannot_close_it():
     task = task_for(TWO)
     short = segment_beam_solve(
@@ -122,7 +162,7 @@ def test_a_segment_too_short_for_the_witness_cannot_close_it():
 def test_merge_keeps_the_best_score_whatever_the_root_order():
     """Two roots on one product close the same states; the better root's paths win."""
     task = task_for(TWO)
-    inputs, outputs, targets = _prepare(task, "both")
+    inputs, outputs = _prepare(task, "both")
     good = (inputs, (), 0.0)
     worse = (inputs, ("dup", "drop"), -3.0)
     knobs = {
@@ -135,10 +175,11 @@ def test_merge_keeps_the_best_score_whatever_the_root_order():
         "stop_at_fit": False,
     }
     scorer = WitnessScorer(task)
-    alone = _run_segment([good], outputs, targets, scorer, _Tally(), **knobs)[2]
+    encode = block_encoder(scorer, outputs)
+    alone = _run_segment([good], outputs, encode, scorer, _Tally(), **knobs)[2]
     for roots in ([good, worse], [worse, good]):
         stop, _program, closed = _run_segment(
-            roots, outputs, targets, scorer, _Tally(), **knobs
+            roots, outputs, encode, scorer, _Tally(), **knobs
         )
         assert stop is None
         assert closed == alone
