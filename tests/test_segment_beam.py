@@ -17,6 +17,8 @@ from wandering_light.stack_beam import (
     _prepare,
     _run_segment,
     _Tally,
+    beam_solve,
+    block_encoder,
     closed_cuts,
     segment_beam_solve,
     segment_witness_ranks,
@@ -30,7 +32,7 @@ from wandering_light.stack_pbe import (
     draw_task,
 )
 from wandering_light.stack_pbe_eval import grade
-from wandering_light.stack_policy import encode_item, item_array
+from wandering_light.stack_policy import DIFFERENCE, MACHINE, SEP, node_encoder
 
 
 def task_for(name: str, seed: int = 4):
@@ -39,7 +41,7 @@ def task_for(name: str, seed: int = 4):
 
 
 def states_along(task, program):
-    inputs, _outputs, _targets = _prepare(task, "both")
+    inputs, _outputs = _prepare(task, "both")
     states = [inputs]
     for name in program:
         states.append(step_all_quiet(states[-1], OP_BY_NAME[name])[0])
@@ -53,15 +55,14 @@ class WitnessScorer:
     sees, so the stub cannot read anything the policy could not.
     """
 
-    def __init__(self, task, bonus: float = 5.0):
-        _inputs, _outputs, targets = _prepare(task, "both")
+    def __init__(self, task, bonus: float = 5.0, encoding=MACHINE):
+        _inputs, outputs = _prepare(task, "both")
+        encode = node_encoder(outputs, encoding)
         self.bonus = bonus
         self.want = {}
         states = states_along(task, task.program)[:-1]
         for state, name in zip(states, task.program, strict=True):
-            block = item_array(
-                [encode_item(s, t) for s, t in zip(state, targets, strict=True)]
-            )
+            block = encode(state)
             self.want[block.shape, block.tobytes()] = OP_INDEX[name]
 
     def log_probs(self, blocks, legal):
@@ -80,6 +81,39 @@ class WitnessScorer:
 # closed after the filter (6 ops) and after the fold (11).
 TWO = "sum_positive"
 SMALL = {"beam_width": 2, "roots": 2, "segment_depth": 6, "max_segments": 3}
+
+
+@pytest.mark.parametrize(
+    "search", [beam_solve, segment_beam_solve, segment_witness_ranks]
+)
+def test_search_uses_one_difference_encoder_for_every_scored_node(search):
+    task = task_for(TWO)
+    _, outputs = _prepare(task, "both")
+
+    class DifferenceScorer(WitnessScorer):
+        preparations = 0
+
+        def encoder(self, targets):
+            assert targets == outputs
+            self.preparations += 1
+            return node_encoder(targets, DIFFERENCE)
+
+        def log_probs(self, blocks, legal):
+            for block in blocks:
+                assert np.all((block == SEP).sum(axis=1) == 2)
+            return super().log_probs(blocks, legal)
+
+    scorer = DifferenceScorer(task, encoding=DIFFERENCE)
+    if search is beam_solve:
+        assert (
+            search(task, scorer, beam_width=2, max_depth=task.length).program
+            == task.program
+        )
+    elif search is segment_beam_solve:
+        assert search(task, scorer, **SMALL).program == task.program
+    else:
+        assert [row["rank"] for row in search(task, scorer, **SMALL)] == [1, 1]
+    assert scorer.preparations == 1
 
 
 def test_the_cut_is_step_kinds_run_label():
@@ -122,7 +156,7 @@ def test_a_segment_too_short_for_the_witness_cannot_close_it():
 def test_merge_keeps_the_best_score_whatever_the_root_order():
     """Two roots on one product close the same states; the better root's paths win."""
     task = task_for(TWO)
-    inputs, outputs, targets = _prepare(task, "both")
+    inputs, outputs = _prepare(task, "both")
     good = (inputs, (), 0.0)
     worse = (inputs, ("dup", "drop"), -3.0)
     knobs = {
@@ -135,10 +169,11 @@ def test_merge_keeps_the_best_score_whatever_the_root_order():
         "stop_at_fit": False,
     }
     scorer = WitnessScorer(task)
-    alone = _run_segment([good], outputs, targets, scorer, _Tally(), **knobs)[2]
+    encode = block_encoder(scorer, outputs)
+    alone = _run_segment([good], outputs, encode, scorer, _Tally(), **knobs)[2]
     for roots in ([good, worse], [worse, good]):
         stop, _program, closed = _run_segment(
-            roots, outputs, targets, scorer, _Tally(), **knobs
+            roots, outputs, encode, scorer, _Tally(), **knobs
         )
         assert stop is None
         assert closed == alone
