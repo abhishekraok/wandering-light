@@ -8,23 +8,36 @@ shortest -- which means exhaustively confirming nothing shorter works.
 import gzip
 import json
 from collections import Counter
+from itertools import product
 from pathlib import Path
 
 import pytest
 
-from wandering_light.stack_machine import Config, format_stack, parse_stack
+from wandering_light import stack_machine_corpus
+from wandering_light.stack_machine import (
+    OP_BY_NAME,
+    Config,
+    Op,
+    format_stack,
+    parse_stack,
+)
 from wandering_light.stack_machine_corpus import (
     BASIS,
     FAMILIES,
     OPS,
+    CostedPath,
     Task,
     assign_split,
     behaviour_key,
     encode_task,
     expand,
+    expand_cost,
     generate,
     is_useful,
     replay,
+    replay_costed,
+    step_all,
+    step_all_costed,
 )
 
 CORPUS = (
@@ -187,13 +200,162 @@ def test_witness_count_is_at_least_one(tasks):
 
 def test_multi_example_guard_is_the_conjunction():
     """An op is legal on a task exactly when it is legal on every example."""
-    from wandering_light.stack_machine import Config
-    from wandering_light.stack_machine_corpus import step_all
-
     inputs = FAMILIES["int_pair"][0]
     for op in OPS:
         each = [op.guard(Config(stack)) is None for stack in inputs]
         assert (step_all(inputs, op) is not None) == all(each), op.name
+
+
+def test_replay_costed_counts_loop_work_on_each_example():
+    inputs = (parse_stack("(1 2 3) (1 add)"), parse_stack("(5) (1 add)"))
+    program = ("map", "dup")
+    behaviour, path = replay_costed(inputs, program)
+
+    assert behaviour == replay(inputs, program)
+    assert path == CostedPath(program, (8, 4))
+    assert path.length == 2
+    assert path.fuel == 12
+    assert path.score == 48
+    assert path.kt == pytest.approx(5.5849625)
+
+    root = CostedPath((), (0, 0))
+    assert replay_costed(inputs, ()) == (inputs, root)
+    assert root.score == 0
+    assert root.kt == 0.0
+
+
+def test_costed_steps_enforce_each_examples_remaining_budget(monkeypatch):
+    monkeypatch.setattr(stack_machine_corpus, "DEFAULT_FUEL_LIMIT", 9)
+    inputs = (parse_stack("(1 2 3) (1 add)"), parse_stack("(5) (1 add)"))
+    op = OP_BY_NAME["map"]
+
+    assert step_all_costed(inputs, (1, 5), op) == (step_all(inputs, op), (8, 8))
+    assert step_all_costed(inputs, (2, 5), op) is None
+    assert step_all_costed(inputs, (1, 6), op) is None
+    with pytest.raises(ValueError, match="one fuel count per example"):
+        step_all_costed(inputs, (9,), op)
+    with pytest.raises(ValueError, match="dup is illegal"):
+        replay_costed(inputs, ("map", "dup", "dup", "dup"))
+    with pytest.raises(ValueError, match="unknown is illegal"):
+        replay_costed(inputs, ("unknown",))
+
+
+@pytest.mark.parametrize(
+    ("noop_pairs", "intermediate_path"),
+    [
+        # One pair gives equal scores, so the shorter program wins the tie.
+        (1, CostedPath(("i",), (4,))),
+        (3, CostedPath(("drop", "drop"), (2,))),
+    ],
+)
+def test_expand_cost_keeps_shorter_arrivals_for_an_expensive_suffix(
+    noop_pairs, intermediate_path
+):
+    suffix = "0 drop " * 8 + "7"
+    prefix = "dup drop " * noop_pairs + "drop"
+    inputs = (parse_stack(f"({suffix}) 42 ({prefix})"),)
+    ops = (OP_BY_NAME["drop"], OP_BY_NAME["i"])
+
+    found, complete = expand_cost(inputs, max_depth=3, ops=ops)
+
+    assert complete
+    intermediate = behaviour_key((parse_stack(f"({suffix})"),))
+    assert found[intermediate] == intermediate_path
+    # In both cases the expensive suffix makes the shorter arrival cheaper.
+    assert found[behaviour_key((parse_stack("7"),))] == CostedPath(
+        ("i", "i"), (20 + 2 * noop_pairs,)
+    )
+
+
+def test_expand_cost_keeps_arrivals_with_incomparable_example_fuels(monkeypatch):
+    monkeypatch.setattr(stack_machine_corpus, "DEFAULT_FUEL_LIMIT", 8)
+    first, second = parse_stack("1"), parse_stack("2")
+    middle_first, middle_second = parse_stack("3"), parse_stack("4")
+    end = parse_stack("5")
+
+    def make_op(name, transitions):
+        def run(stack, budget, _depth):
+            moved, spent = transitions.get(stack, (stack, budget + 1))
+            return (moved, spent) if spent <= budget else "refused"
+
+        return Op(name, "test", "", lambda _: None, lambda _: None, run)
+
+    cheap = make_op("cheap", {first: (middle_first, 4), second: (middle_second, 1)})
+    balanced = make_op(
+        "balanced", {first: (middle_first, 1), second: (middle_second, 5)}
+    )
+    finish = make_op("finish", {middle_first: (end, 5), middle_second: (end, 1)})
+
+    found, complete = expand_cost((first, second), 2, ops=(cheap, balanced, finish))
+
+    assert complete
+    assert found[behaviour_key((middle_first, middle_second))] == CostedPath(
+        ("cheap",), (4, 1)
+    )
+    assert found[behaviour_key((end, end))] == CostedPath(
+        ("balanced", "finish"), (6, 6)
+    )
+
+
+def test_expand_cost_matches_exhaustive_replay():
+    inputs = FAMILIES["with_map"][0]
+    ops = tuple(reversed(OPS))
+    expected = {}
+    for depth in range(4):
+        for program in product((op.name for op in ops), repeat=depth):
+            try:
+                behaviour, path = replay_costed(inputs, program)
+            except ValueError:
+                continue
+            key = behaviour_key(behaviour)
+            best = expected.get(key)
+            if best is None or (path.score, path.length, path.program) < (
+                best.score,
+                best.length,
+                best.program,
+            ):
+                expected[key] = path
+
+    assert expand_cost(inputs, 3, max_states=None, ops=ops) == (expected, True)
+
+
+def test_expand_cost_applies_inclusive_limits_in_cost_order():
+    inputs = (parse_stack("(1 2 3) (1 add)"),)
+    root = {behaviour_key(inputs): CostedPath((), (0,))}
+    dropped = {behaviour_key((parse_stack("(1 2 3)"),)): CostedPath(("drop",), (1,))}
+    ops = (OP_BY_NAME["map"], OP_BY_NAME["drop"])
+
+    assert expand_cost(inputs, 0, max_states=1, ops=ops) == (root, True)
+    assert expand_cost(inputs, 1, max_score=0, ops=ops) == (root, True)
+    assert expand_cost(inputs, 1, max_states=1, ops=ops) == (root, False)
+    assert expand_cost(inputs, 1, max_states=2, ops=ops) == (root | dropped, False)
+    assert expand_cost(inputs, 2, max_states=2, max_score=2, ops=ops) == (
+        root | dropped,
+        True,
+    )
+
+
+def test_expand_cost_breaks_equal_cost_and_length_ties_by_program():
+    inputs = (parse_stack("nil"),)
+    ops = (OP_BY_NAME["i"], OP_BY_NAME["drop"])
+
+    found, complete = expand_cost(inputs, 1, max_states=2, ops=ops)
+
+    assert complete
+    assert found[behaviour_key(((),))] == CostedPath(("drop",), (1,))
+
+
+@pytest.mark.parametrize(
+    "limits",
+    [
+        {"max_depth": -1},
+        {"max_states": 0},
+        {"max_score": -1},
+    ],
+)
+def test_expand_cost_rejects_invalid_limits(limits):
+    with pytest.raises(ValueError):
+        expand_cost(((),), **({"max_depth": 0} | limits))
 
 
 def test_generator_is_deterministic():
