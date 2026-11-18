@@ -66,6 +66,7 @@ holds the argument.
 | what | who | where | question it answers |
 |---|---|---|---|
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
+| Mark-28 one-step policy and beam search | Compute-optimal policy size | [Policy](../wandering_light/stack_policy.py), [beam search](../wandering_light/stack_beam.py) | Local verification replayed 440 fixture tasks into 21,446 witness rows. Policy-size comparison on `stack_pbe_v4` is pending. |
 
 ## Superseded
 
