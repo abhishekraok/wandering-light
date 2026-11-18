@@ -109,8 +109,10 @@ change settles:
 - `run_body`'s memo is process-global: run one process per timed cell.
 - Validate a search predicate by witness replay on v4, not v3 alone (v3 has
   no closures).
-- Compare data arms at matched epochs; early stopping on validation CE
-  confounds the comparison with training length.
+- Compare data arms at matched epochs when that gives them the same training
+  budget. If corpus sizes differ, isolate the effect of the data with a control
+  matched on training tokens, tokens per update and learning-rate schedule.
+  Early stopping on validation CE confounds the comparison with training length.
 - When a readout needs an open gate at baseline, check the gate is open there
   before registering a contrast on it. For a thresholded readout, use a
   same-seed replicate as the noise floor, or cite an existing one (a GPU rerun
