@@ -45,6 +45,7 @@ holds the argument.
 
 | what | who | where | question it answers |
 |---|---|---|---|
+| Materialized-state rollout predictor implemented and tested | Scratch branch | [Solver](../wandering_light/solver.py), [40 rollout tests](../tests/test_rollout_solver.py) | How does a batched action scorer guide beam search within a basis-execution budget? |
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
 
 ## Superseded
