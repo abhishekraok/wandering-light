@@ -20,6 +20,7 @@ PRICE = {  # $ per 1M input, output; Sonnet 5.5 verified 2026-09-28, 6.1 Sol 202
     "gpt-6.1-sol": (2, 10),
     "gpt-6.2-sol": (2, 10),  # OpenAI standard list price, checked 2026-11-17
     "gpt-6-astra": (10, 50),
+    "gpt-6.2-astra": (8, 40),  # OpenAI standard list price, checked 2026-11-17
     "gpt-6-sol": (2, 10),
     "gpt-6-luna": (0.1, 0.5),
     "gpt-5.6-sol": (4, 20),
@@ -37,6 +38,9 @@ ARMS = (
     ("stack-pbe-v4-codex-exec-20260910/astra_low", "gpt-6-astra", "low"),
     ("stack-pbe-v4-codex-exec-20260910/astra_medium", "gpt-6-astra", "medium"),
     ("stack-pbe-v4-codex-exec-20260910/astra_high", "gpt-6-astra", "high"),
+    ("stack-pbe-v4-astra62-20261117/astra62_low", "gpt-6.2-astra", "low"),
+    ("stack-pbe-v4-astra62-20261117/astra62_medium", "gpt-6.2-astra", "medium"),
+    ("stack-pbe-v4-astra62-20261117/astra62_high", "gpt-6.2-astra", "high"),
     ("stack-pbe-v4-codex-exec-20260910/terra_high", "gpt-5.6-terra", "high"),
     ("stack-pbe-v4-codex-exec-20260910/luna_high", "gpt-5.6-luna", "high"),
     ("stack-pbe-v4-claude-exec-20260913/opus_low", "claude-opus-5", "low"),
@@ -179,16 +183,16 @@ def main() -> None:
             g.get("tool_calls", 0) + bool(g.get("text_tool_call")) for g in gens
         )
         confirmed = None
-        if m in ("gpt-6.1-terra", "gpt-6.2-sol"):
-            # Low/medium use the owner's identity reruns; the first runs remain
-            # saved in their parent directory. Bind identity to that run's audit.
+        if m in ("gpt-6.1-terra", "gpt-6.2-sol", "gpt-6.2-astra"):
+            # Terra low/medium use the owner's identity reruns. Bind identity
+            # to the selected run's audit.
             audit_path = (REPORTS / stems[(m, e)]).parent / "validation.json"
             audit = json.loads(audit_path.read_text())
             arm = next(arm for arm in audit["arms"] if arm["effort"] == e)
             assert arm["artifact"] == Path(f"{stems[(m, e)]}_v4_sample40.json").name
             calls = arm["calls"]
             confirmed = sum(call["identity_confirmed"] for call in calls)
-            if m == "gpt-6.2-sol":
+            if m in ("gpt-6.2-sol", "gpt-6.2-astra"):
                 assert audit["requested_model"] == m
                 assert audit["task_indices"] == [c["task_index"] for c in cands]
                 assert confirmed == len(calls) == len(out) == 40

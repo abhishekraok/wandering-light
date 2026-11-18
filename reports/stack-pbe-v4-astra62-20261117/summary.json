@@ -1,0 +1,35 @@
+[
+  {
+    "model": "gpt-6.2-astra",
+    "effort": "low",
+    "solved": 21,
+    "memorised": 11,
+    "illegal": 3,
+    "usage_calls": 40,
+    "mean_out": 141.35,
+    "cost_per_task": 0.016054,
+    "model_confirmed_calls": 40
+  },
+  {
+    "model": "gpt-6.2-astra",
+    "effort": "medium",
+    "solved": 23,
+    "memorised": 15,
+    "illegal": 2,
+    "usage_calls": 40,
+    "mean_out": 238.925,
+    "cost_per_task": 0.019957,
+    "model_confirmed_calls": 40
+  },
+  {
+    "model": "gpt-6.2-astra",
+    "effort": "high",
+    "solved": 27,
+    "memorised": 12,
+    "illegal": 1,
+    "usage_calls": 40,
+    "mean_out": 477.575,
+    "cost_per_task": 0.029503,
+    "model_confirmed_calls": 40
+  }
+]
