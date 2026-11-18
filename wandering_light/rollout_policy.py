@@ -82,10 +82,10 @@ class PolicyArchitecture:
             "hidden": self.hidden,
         }
 
-    def parameter_count(self, action_count: int) -> int:
+    def parameter_count(self, action_count: int, *, vocab_size: int = 258) -> int:
         if type(action_count) is not int or action_count <= 0:
             raise ValueError("action_count must be a positive integer")
-        embedding = 258 * self.byte_embedding
+        embedding = vocab_size * self.byte_embedding
         convolution = (
             self.conv_channels * self.byte_embedding * CONV_KERNEL + self.conv_channels
         )
@@ -285,6 +285,9 @@ class AlignedPairPolicy(nn.Module):
         self,
         action_count: int,
         architecture: PolicyArchitecture = DEFAULT_POLICY_ARCHITECTURE,
+        *,
+        vocab_size: int = 258,
+        padding_idx: int | None = None,
     ):
         super().__init__()
         if action_count <= 0:
@@ -293,7 +296,10 @@ class AlignedPairPolicy(nn.Module):
             raise TypeError("architecture must be a PolicyArchitecture")
         self.action_count = action_count
         self.architecture = architecture
-        self.embedding = nn.Embedding(258, architecture.byte_embedding)
+        self.pad_token = PAD if padding_idx is None else padding_idx
+        self.embedding = nn.Embedding(
+            vocab_size, architecture.byte_embedding, padding_idx=padding_idx
+        )
         self.convolution = nn.Conv1d(
             architecture.byte_embedding,
             architecture.conv_channels,
@@ -307,7 +313,7 @@ class AlignedPairPolicy(nn.Module):
         )
 
     def _encode_items(self, sequences: Tensor) -> Tensor:
-        real = sequences != PAD
+        real = sequences != self.pad_token
         embedded = self.embedding(sequences) * real.unsqueeze(-1)
         convolved = self.convolution(embedded.transpose(1, 2)).relu()
         convolved = convolved.masked_fill(~real.unsqueeze(1), -1e9)

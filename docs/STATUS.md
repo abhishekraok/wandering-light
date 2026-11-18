@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-09-03
+Last updated: 2026-11-17
 
 ## What is true now
 
@@ -66,6 +66,7 @@ holds the argument.
 | what | who | where | question it answers |
 |---|---|---|---|
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
+| Compute-optimal policy size on `stack_pbe_v4` | Scratch branch | [Policy and beam tests](../tests/test_stack_policy_beam.py) | The mark-28 policy trains on witness prefixes and guides beam search over shown examples. Policy size and solve rate still need measurement. |
 
 ## Superseded
 
