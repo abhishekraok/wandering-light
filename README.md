@@ -186,6 +186,27 @@ uv run python -m wandering_light.stack_machine --basis mark-28 "1 [ 1 add ] i"
 prints the stack, fuel spent and number of legal ops after each step. `[` and
 `]` build a quotation and `i` executes it. The CLI defaults to `full-52`.
 
+### Solve stack PBE tasks
+
+```bash
+uv run python -m wandering_light.solve TASKS
+```
+
+`TASKS` can be a `.jsonl` or `.jsonl.gz` payload or a corpus directory with a
+manifest. The command attempts every task in payload order. For a corpus
+directory, it reads the splits alphabetically and preserves each payload's
+order. It prints each verdict and time, then coverage and total task wall-clock,
+including time spent replaying programs found earlier in the run. Held-out
+grading starts after all task clocks have stopped.
+
+The default `staged-s0-e3` system uses beam width 64, depth 48, both guards,
+and a program library. Its pinned checkpoint is downloaded from Hugging Face
+on first use and cached under `$XDG_CACHE_HOME/wandering-light/stack-policy`
+(or `~/.cache/wandering-light/stack-policy`). Set `HF_TOKEN` or run `hf auth login`
+if Hub authentication is needed. Use `--checkpoint PATH` for local weights,
+`--device cuda` for GPU inference, or `--json REPORT.json` to save the results
+and provenance.
+
 ### Baselines on `stack_pbe_v4`
 After fetching the corpus (see Installation):
 
