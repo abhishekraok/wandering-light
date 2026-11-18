@@ -80,6 +80,15 @@ def main():
         if not path.exists():
             continue
         provenance, caveats = inference_provenance(path)
+        preflight = out / f"preflight-before-{effort}.json"
+        if provenance and preflight.is_file():
+            preflight_version = json.loads(preflight.read_text()).get("cli_version")
+            arm_version = provenance.get("cli_version_before")
+            if preflight_version != arm_version:
+                caveats.append(
+                    f"Preflight CLI version ({preflight_version or 'unknown'}) differs "
+                    f"from inference ({arm_version or 'unknown'})."
+                )
         data = json.loads(path.read_text())
         assert data["tasks"] == data["tasks_planned"] == 40 and not data["partial"]
         assert (data["model"], data["provider"], data["effort"]) == (
