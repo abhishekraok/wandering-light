@@ -124,6 +124,25 @@ pip install -e ".[dev,experiments]"
 Note: pip won't respect `uv.lock`, so transitive versions may drift.
 </details>
 
+## Solve a stack PBE task file
+
+```bash
+uv run python -m wandering_light.solve TASKS
+```
+
+Pass a `.jsonl` or `.jsonl.gz` payload, or a corpus directory containing its
+manifest and split files. The command downloads the pinned `staged-s0-e3`
+policy on first use and reuses the cached checkpoint on later runs. It runs
+on CPU by default. Use `--device cuda` to select a GPU, `--checkpoint DIR` to
+load local weights, and `--json results.json` to save programs, costs, and
+run provenance.
+
+Tasks run in file order. Each task's clock includes replaying earlier programs
+on its shown examples and any beam search that follows. After the last clock
+stops, the table reports each verdict and time. A program that fits only the
+shown examples is marked `memorised`. Coverage counts held-out solves, and
+total wall-clock includes every attempted task.
+
 ## Testing
 
 ```bash

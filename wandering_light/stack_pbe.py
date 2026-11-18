@@ -48,6 +48,7 @@ import textwrap
 import time
 import warnings
 from collections import Counter
+from contextlib import nullcontext
 from dataclasses import asdict, dataclass, field
 from itertools import pairwise
 from pathlib import Path
@@ -4308,7 +4309,12 @@ def verify_corpus(
 
 def _load_payload(path: Path) -> list[Task]:
     """JSON has no tuples, so restore them on the way in."""
-    with gzip.open(path, "rt") as handle:
+    with (
+        path.open("rb") as raw,
+        gzip.GzipFile(fileobj=raw)
+        if raw.peek(2).startswith(b"\x1f\x8b")
+        else nullcontext(raw) as handle,
+    ):
         return [
             Task(
                 **{

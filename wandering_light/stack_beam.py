@@ -35,7 +35,7 @@ from wandering_light.stack_machine import (
     step_raw,
     value_key,
 )
-from wandering_light.stack_pbe import BASIS, OPS
+from wandering_light.stack_pbe import BASIS, OP_BY_NAME, OPS
 from wandering_light.stack_policy import encode_item, encode_targets, item_array
 
 if TYPE_CHECKING:
@@ -163,6 +163,27 @@ def step_all(product: Product, op) -> tuple[Product | None, int, int]:
     """
     moved, fuel, stepped, _reason = step_all_explained(product, op)
     return moved, fuel, stepped
+
+
+def replay_program(
+    program: Sequence[str], inputs: Product, outputs: Product
+) -> tuple[bool, int, int]:
+    """Does ``program`` take every shown input to its shown output, and at what cost?
+
+    Charged like the beam: one execution per op run on one example stack, and an
+    op the machine refuses ends the attempt. Returns ``(fits, executions, fuel)``.
+    """
+    executions = 0
+    fuel = 0
+    product = inputs
+    for name in program:
+        moved, spent, stepped = step_all_quiet(product, OP_BY_NAME[name])
+        executions += stepped
+        fuel += spent
+        if moved is None:
+            return False, executions, fuel
+        product = moved
+    return product == outputs, executions, fuel
 
 
 def beam_solve(
