@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-08-28
+Last updated: 2026-11-17
 
 ## What is true now
 
@@ -46,6 +46,7 @@ holds the argument.
 | what | who | where | question it answers |
 |---|---|---|---|
 | Theory discussion | `stack-machine-vs-register` session | [#52](../../issues/52) | — |
+| Materialized-state rollout search | `eval/rollout-predictor-f` | [predictor](../wandering_light/solver.py), [tests](../tests/test_rollout_solver.py) | Each layer scores its retained states in one batch. Search reports the basis executions spent and the paths retained at each completed depth. |
 
 ## Superseded
 

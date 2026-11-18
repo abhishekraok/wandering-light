@@ -2,14 +2,18 @@
 
 This module provides several strategies for finding a sequence of functions
 that maps an input list to a target output list.  Available approaches include
-random search (``RandomSolve``), breadth-first search (``BFSSolve``) and
-LLM-based solvers using ``TokenGenerator`` classes.
+random search (``RandomSolve``), breadth-first search (``BFSSolve``),
+policy-guided beam search (``RolloutPredictor``), and LLM-based solvers using
+``TokenGenerator`` classes.
 """
 
 import abc
+import math
 import os
 from collections import deque
-from dataclasses import dataclass
+from collections.abc import Sized
+from dataclasses import dataclass, field
+from numbers import Real
 from typing import Literal
 
 import google.generativeai as genai
@@ -34,13 +38,16 @@ class MaybeTrajectory:
     error_msg: str | None = None
 
 
+SearchTermination = Literal["solved", "budget", "max_depth", "frontier_exhausted"]
+
+
 @dataclass(frozen=True)
 class BFSSearchResult:
     """A BFS prediction together with the search cost and stop reason."""
 
     function_defs: FunctionDefList
     executions: int
-    termination: Literal["solved", "budget", "max_depth", "frontier_exhausted"]
+    termination: SearchTermination
 
 
 class FunctionPredictor(abc.ABC):
@@ -367,6 +374,180 @@ class BFSPredictor(FunctionPredictor):
     def _is_type_compatible(self, func: FunctionDef, typed_list: TypedList) -> bool:
         """Check if a function's input type is compatible with the typed list's type."""
         return typed_list.item_type == func.input_type_cls()
+
+
+class ActionScorer(abc.ABC):
+    """Policy over basis functions conditioned on a materialized state and target."""
+
+    @abc.abstractmethod
+    def score_actions_batch(
+        self,
+        problems: list[tuple[TypedList, TypedList]],
+        available_functions: FunctionDefSet,
+    ) -> list[dict[str, float]]:
+        """Return one unnormalized score per available function for each problem."""
+
+
+@dataclass(frozen=True)
+class RolloutDepthTrace:
+    """Beam retained after a complete layer, with its size before pruning."""
+
+    depth: int
+    retained_paths: tuple[tuple[str, ...], ...]
+    unique_successors: int
+
+
+@dataclass(frozen=True)
+class RolloutSearchResult(BFSSearchResult):
+    """A rollout prediction, its execution cost, and completed beam layers."""
+
+    trace: tuple[RolloutDepthTrace, ...] = field(default=(), compare=False)
+
+
+@dataclass(frozen=True)
+class _BeamNode:
+    state: TypedList
+    path: tuple[FunctionDef, ...]
+    log_prob: float
+
+
+class RolloutPredictor(FunctionPredictor):
+    """Beam search that scores actions again at each retained state."""
+
+    def __init__(
+        self,
+        action_scorer: ActionScorer,
+        beam_width: int = 8,
+        max_depth: int = 8,
+        budget: int = 100_000,
+    ):
+        for name, value, minimum in (
+            ("beam_width", beam_width, 1),
+            ("max_depth", max_depth, 0),
+            ("budget", budget, 0),
+        ):
+            if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+                raise ValueError(f"{name} must be an integer >= {minimum}")
+        self.action_scorer = action_scorer
+        self.beam_width = beam_width
+        self.max_depth = max_depth
+        self.budget = budget
+
+    def predict_functions_batch(
+        self,
+        problems: list[tuple[TypedList, TypedList]],
+        available_functions: FunctionDefSet,
+    ) -> list[FunctionDefList]:
+        return [
+            self.search_with_cost(state, target, available_functions).function_defs
+            for state, target in problems
+        ]
+
+    def _ranked_transitions(
+        self,
+        beam: list[_BeamNode],
+        target: TypedList,
+        available_functions: FunctionDefSet,
+    ) -> list[tuple[float, _BeamNode, FunctionDef]]:
+        problems = [(node.state, target) for node in beam]
+        rows = self.action_scorer.score_actions_batch(problems, available_functions)
+        if not isinstance(rows, list) or len(rows) != len(beam):
+            count = len(rows) if isinstance(rows, Sized) else "unknown"
+            raise ValueError(
+                f"action scorer returned {count} rows; expected {len(beam)}"
+            )
+
+        transitions = []
+        for node, row in zip(beam, rows, strict=True):
+            if (
+                not isinstance(row, dict)
+                or row.keys() != available_functions.name_to_function.keys()
+            ):
+                raise ValueError("action scorer row has wrong function names")
+            if any(
+                isinstance(score, bool)
+                or not isinstance(score, Real)
+                or not math.isfinite(score)
+                for score in row.values()
+            ):
+                raise ValueError(
+                    "action scorer returned a non-finite or non-numeric score"
+                )
+
+            compatible = [
+                (func, float(row[func.name]))
+                for func in available_functions
+                if node.state.item_type is func.input_type_cls()
+            ]
+            if not compatible:
+                continue
+            peak = max(score for _, score in compatible)
+            log_sum = math.log(sum(math.exp(score - peak) for _, score in compatible))
+            for func, score in compatible:
+                action_log_prob = (score - peak) - log_sum
+                transitions.append((node.log_prob + action_log_prob, node, func))
+
+        # Stable sort preserves beam order, then basis order, for equal scores.
+        transitions.sort(key=lambda transition: transition[0], reverse=True)
+        return transitions
+
+    def search_with_cost(
+        self,
+        input_list: TypedList,
+        output_list: TypedList,
+        available_functions: FunctionDefSet,
+    ) -> RolloutSearchResult:
+        executions = 0
+        trace: list[RolloutDepthTrace] = []
+
+        def finish(termination: SearchTermination, path: tuple[FunctionDef, ...] = ()):
+            return RolloutSearchResult(
+                FunctionDefList(list(path)), executions, termination, tuple(trace)
+            )
+
+        if input_list == output_list:
+            return finish("solved")
+        if not available_functions:
+            return finish("frontier_exhausted")
+        if self.budget == 0:
+            return finish("budget")
+        if self.max_depth == 0:
+            return finish("max_depth")
+
+        executor = Executor(available_functions)
+        beam = [_BeamNode(input_list, (), 0.0)]
+        for depth in range(1, self.max_depth + 1):
+            transitions = self._ranked_transitions(
+                beam, output_list, available_functions
+            )
+            if not transitions:
+                return finish("frontier_exhausted")
+
+            successors: dict[tuple, _BeamNode] = {}
+            for log_prob, parent, func in transitions:
+                executions += 1
+                try:
+                    state = executor.execute(func, parent.state)
+                except Exception:
+                    if executions == self.budget:
+                        return finish("budget")
+                    continue
+                if state == output_list:
+                    return finish("solved", (*parent.path, func))
+                if executions == self.budget:
+                    return finish("budget")
+
+                # Attempts are ranked, so the first path to each key is its best.
+                key = state.search_key()
+                if key not in successors:
+                    successors[key] = _BeamNode(state, (*parent.path, func), log_prob)
+
+            beam = list(successors.values())[: self.beam_width]
+            paths = tuple(tuple(func.name for func in node.path) for node in beam)
+            trace.append(RolloutDepthTrace(depth, paths, len(successors)))
+            if not beam:
+                return finish("frontier_exhausted")
+        return finish("max_depth")
 
 
 class TokenGenerator(abc.ABC):
