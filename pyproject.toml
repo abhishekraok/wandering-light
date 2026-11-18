@@ -91,6 +91,9 @@ wandering_light = [
     "training/data/deep_corpus_v1/manifest.json",
 ]
 
+[tool.setuptools.data-files]
+"share/wandering-light/world_behaviours" = ["experiments/world_behaviours/macros.txt"]
+
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
 exclude = [
