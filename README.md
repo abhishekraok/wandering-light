@@ -96,7 +96,7 @@ earlier induction/proposer line whose checkpoints remain on the Hub.
 [`docs/STATUS.md`](docs/STATUS.md) says what those numbers establish and
 whether the project is currently active. Training curves for the earlier line
 are in
-[WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg).
+[WandB](https://wandb.ai/abhishekraok-na/wandering-light-rl_proposer/reports/Initial-Wandering-Light-project-report--VmlldzoxNjExOTQ3Mg?accessToken=21hou3g702spnui44p3bn1arsplg4t0m0yvbcrchn9hfe8b6gdzn8ncq8wpe5721).
 
 ## Installation
 Python 3.12 or later (CI pins 3.12.8). We use [uv](https://docs.astral.sh/uv/);
@@ -372,3 +372,20 @@ refuses to run without a fixed `PYTHONHASHSEED`. Evaluate the SFT output with
 the `trained_local` command under Evaluation before starting RL; a success rate
 between 30 and 70 % leaves GRPO a gradient.
 </details>
+
+## Data sources and credits
+
+The code is Apache-2.0. The `behaviours.jsonl` and `pool.jsonl` files under
+`reports/world-*` and `reports/distinct-programs-20260926`, and the
+`stack-pbe-world-*` datasets on the Hub, contain or are derived from these
+public task sets, which keep their own licences. Where adapted, their examples
+were extended and their programs re-authored as stack programs.
+
+| Source | Licence |
+|---|---|
+| [MBPP](https://huggingface.co/datasets/google-research-datasets/mbpp) (Google Research) | CC BY 4.0 |
+| [CodeARC](https://huggingface.co/datasets/anjiangwei/CodeARC-Problems) | Apache-2.0 |
+| [LeetCodeDataset](https://huggingface.co/datasets/newfacade/LeetCodeDataset); problem statements are from LeetCode | Apache-2.0 |
+| [BIG-bench `list_functions`](https://github.com/google/BIG-bench/tree/main/bigbench/benchmark_tasks/list_functions); its canary string is kept | Apache-2.0 |
+| [DreamCoder list tasks](https://github.com/ellisk42/ec) | MIT |
+| LambdaBeam's handwritten tasks, from the [AbstractBeam](https://github.com/jzenkner/AbstractBeam) fork | Apache-2.0 |
