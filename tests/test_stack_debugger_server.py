@@ -41,7 +41,7 @@ def client():
         provenance={"policy": {"source": "test", "arm": "tiny", "seed": 0}},
         prior=TrainPrior([replace(task, split="train") for task in tasks]),
     )
-    return TestClient(create_app(context))
+    return TestClient(create_app(context), base_url="http://127.0.0.1")
 
 
 def test_context_lists_behaviours(client):
@@ -111,3 +111,29 @@ def test_play_witness_and_custom_program(client):
         client.get("/api/play", params={"task": 1, "program": "solution"}).status_code
         == 400
     )
+
+
+def test_debugger_refuses_nonlocal_request_origins(client):
+    assert (
+        client.get("/api/context", headers={"Host": "example.test"}).status_code == 400
+    )
+    response = client.get("/api/context", headers={"Sec-Fetch-Site": "cross-site"})
+    assert response.status_code == 403
+    assert client.get("/", headers={"Sec-Fetch-Site": "cross-site"}).status_code == 200
+    response = client.get("/api/context", headers={"Host": "[::1]:8010"})
+    assert response.status_code == 200
+    assert response.headers["X-Frame-Options"] == "DENY"
+
+
+@pytest.mark.parametrize(
+    ("endpoint", "params"),
+    [
+        ("/api/session", {"beam_width": 129}),
+        ("/api/session", {"max_depth": 65}),
+        ("/api/session", {"budget": 1_000_001}),
+        ("/api/state", {"path": "drop," * 129}),
+        ("/api/play", {"program": "drop," * 129}),
+    ],
+)
+def test_debugger_caps_request_work(client, endpoint, params):
+    assert client.get(endpoint, params={"task": 0, **params}).status_code == 422

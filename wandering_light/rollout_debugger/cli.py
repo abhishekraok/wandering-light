@@ -11,6 +11,7 @@ import argparse
 import json
 from pathlib import Path
 
+from wandering_light.debugger_http import is_loopback_host
 from wandering_light.rollout_debugger.context import DebugContext
 from wandering_light.rollout_debugger.session import (
     DEFAULT_BEAM_WIDTH,
@@ -55,10 +56,12 @@ def main(argv: list[str] | None = None) -> int:
 
     serve = subparsers.add_parser("serve", help="Serve the interactive debugger")
     add_shared_arguments(serve)
-    serve.add_argument("--host", default="127.0.0.1")
+    serve.add_argument("--host", default="127.0.0.1", help="Loopback address")
     serve.add_argument("--port", type=int, default=8000)
 
     args = parser.parse_args(argv)
+    if args.command == "serve" and not is_loopback_host(args.host):
+        serve.error("--host must be a loopback address")
 
     context = DebugContext.load(
         corpus_dir=args.corpus_dir,

@@ -12,6 +12,20 @@ LOCAL_ROOT=/root
 REPO_VOLUME=$VOLUME/wandering-light
 REPO_DIR=$LOCAL_ROOT/wandering-light
 
+# Remove the old unscoped helper before Git accesses any remote.
+legacy_github_helper='!f() { echo username=x-access-token; echo password=$GITHUB_TOKEN; }; f'
+git config --global --fixed-value --unset-all credential.helper "$legacy_github_helper" || [ "$?" -eq 5 ]
+
+# Read the token on demand, only for HTTPS requests to github.com.
+if [ -n "${GITHUB_TOKEN:-}" ]; then
+    github_helper='!f() {
+        if [ "$1" = get ] && [ -n "${GITHUB_TOKEN:-}" ]; then
+            printf "username=x-access-token\npassword=%s\n" "$GITHUB_TOKEN"
+        fi
+    }; f'
+    git config --global --fixed-value --replace-all credential.https://github.com.helper "$github_helper" "$github_helper"
+fi
+
 # Self-update the volume clone so pushes from elsewhere take effect on next boot.
 # --ff-only fails loudly on divergence instead of silently running unknown code.
 # Note: this run still executes the old in-memory version; the update lands next boot.
@@ -66,12 +80,6 @@ if [ -n "${WANDB_API_KEY:-}" ]; then
 fi
 if [ -n "${HF_TOKEN:-}" ]; then
     huggingface-cli login --token "$HF_TOKEN" --add-to-git-credential >/dev/null 2>&1 || true
-fi
-
-# Git push auth: credential helper reads $GITHUB_TOKEN from env at push time.
-# No token on disk; relies on the Runpod Secret being present.
-if [ -n "${GITHUB_TOKEN:-}" ]; then
-    git config --global credential.helper '!f() { echo username=x-access-token; echo password=$GITHUB_TOKEN; }; f'
 fi
 
 echo "Pod restored. Open a new shell (or: source $VOLUME/.env.runpod)"

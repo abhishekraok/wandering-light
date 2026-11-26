@@ -21,6 +21,11 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 
+from wandering_light.debugger_http import (
+    is_loopback_host,
+    local_debugger_requests,
+    parse_op_path,
+)
 from wandering_light.quotation_guard import blocked
 from wandering_light.stack_beam import step_all_explained
 from wandering_light.stack_debugger.anatomy import anatomy
@@ -144,6 +149,7 @@ def _op_table(
 def create_app(context: DebugContext) -> FastAPI:
     app = FastAPI(title="Stack debugger")
     app.add_middleware(GZipMiddleware, minimum_size=1024)
+    app.middleware("http")(local_debugger_requests)
     cohort = set(cohort_indices(context.tasks))
 
     @app.get("/")
@@ -187,10 +193,10 @@ def create_app(context: DebugContext) -> FastAPI:
         bucket: str | None = None,
         cohort_only: bool = False,
         seed: int | None = None,
-        beam_width: int = Query(default=64, ge=1),
-        max_depth: int = Query(default=48, ge=1),
+        beam_width: int = Query(default=64, ge=1, le=128),
+        max_depth: int = Query(default=48, ge=1, le=64),
         guard: str = Query(default="both"),
-        budget: int | None = Query(default=None, ge=0),
+        budget: int | None = Query(default=None, ge=0, le=1_000_000),
         include_map: bool = True,
     ) -> dict[str, Any]:
         try:
@@ -235,13 +241,13 @@ def create_app(context: DebugContext) -> FastAPI:
     @app.get("/api/state")
     def get_state(
         task: int,
-        path: str = "",
-        max_depth: int = Query(default=48, ge=1),
+        path: str = Query(default="", max_length=1024),
+        max_depth: int = Query(default=48, ge=1, le=64),
         guard: str = Query(default="both"),
     ) -> dict[str, Any]:
         """One state in full: every example, every op, the tokens, the map frame."""
         record = _task(context, task)
-        steps = [name for name in path.split(",") if name]
+        steps = parse_op_path(path)
         trail = _replay(record, steps)
         product = trail[-1]
         outputs = parse_product(record.outputs)
@@ -275,7 +281,9 @@ def create_app(context: DebugContext) -> FastAPI:
         }
 
     @app.get("/api/play")
-    def get_play(task: int, program: str = "witness") -> dict[str, Any]:
+    def get_play(
+        task: int, program: str = Query(default="witness", max_length=1024)
+    ) -> dict[str, Any]:
         """Step a program through the machine: ``witness``, ``witness:N``,
         ``solution`` or a comma-separated op list."""
         record = _task(context, task)
@@ -292,7 +300,7 @@ def create_app(context: DebugContext) -> FastAPI:
                 detail="pass the found program as an op list; the server keeps no session",
             )
         else:
-            ops = [name for name in program.split(",") if name]
+            ops = parse_op_path(program)
             label = "program"
         return {
             "label": label,
@@ -305,5 +313,8 @@ def create_app(context: DebugContext) -> FastAPI:
 
 def serve_debugger(context: DebugContext, *, host: str, port: int) -> None:
     import uvicorn
+
+    if not is_loopback_host(host):
+        raise ValueError("Debugger must bind to a loopback address")
 
     uvicorn.run(create_app(context), host=host, port=port, log_level="info")
