@@ -89,7 +89,7 @@ def make_context(scorer=None):
 @pytest.fixture
 def client():
     context, record = make_context()
-    return TestClient(create_app(context)), record
+    return TestClient(create_app(context), base_url="http://127.0.0.1"), record
 
 
 def test_session_runs_the_search_and_returns_a_navigable_trace(client):
@@ -130,7 +130,7 @@ def test_drive_ranks_actions_with_the_searchs_own_mask_and_normalization():
         {(2,): {"increment": 3.0, "double": 1.0, "stringify": 0.0, "shout": -5.0}}
     )
     context, record = make_context(scorer)
-    http = TestClient(create_app(context))
+    http = TestClient(create_app(context), base_url="http://127.0.0.1")
 
     payload = http.get("/api/drive", params={"task_id": record.task_id}).json()
 

@@ -73,14 +73,18 @@ jobs:
       run: uv python install 3.12.8
     - name: Install dependencies
       run: uv sync --frozen --extra dev
-    - name: Fetch pinned deep corpus
-      run: >-
-        uv run python -c
-        "from wandering_light import corpus_hub;
-        corpus_hub.fetch_corpus('wandering_light/training/data/deep_corpus_v1/manifest.json')"
-    - name: Re-certify relevant-change sample
+    - name: Re-certify the committed-data sample
       if: github.event_name == 'push' || github.event_name == 'pull_request'
-      run: uv run python -m experiments.verify_committed_shortest_paths --profile pr
-    - name: Re-certify full dataset guard
+      run: uv run python -m experiments.verify_committed_shortest_paths --profile pr --committed-only
+    - name: Re-certify full datasets
       if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-      run: uv run python -m experiments.verify_committed_shortest_paths --profile full
+      env:
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      run: |
+        if [ -z "$HF_TOKEN" ]; then
+          echo "::notice::The private deep corpus was skipped because HF_TOKEN is unset."
+          uv run python -m experiments.verify_committed_shortest_paths --profile full --committed-only
+        else
+          uv run python -c "from wandering_light import corpus_hub; corpus_hub.fetch_corpus('wandering_light/training/data/deep_corpus_v1/manifest.json')"
+          uv run python -m experiments.verify_committed_shortest_paths --profile full
+        fi

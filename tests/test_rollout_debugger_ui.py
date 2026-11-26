@@ -37,7 +37,7 @@ pytestmark = pytest.mark.skipif(
 
 def test_the_page_renders_and_answers_every_key(tmp_path):
     context, record = make_context()
-    http = TestClient(create_app(context))
+    http = TestClient(create_app(context), base_url="http://127.0.0.1")
 
     payloads = {
         "session": http.get(

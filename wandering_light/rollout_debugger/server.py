@@ -22,6 +22,11 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 
+from wandering_light.debugger_http import (
+    is_loopback_host,
+    local_debugger_requests,
+    parse_op_path,
+)
 from wandering_light.executor import Executor
 from wandering_light.rollout_debugger.session import (
     SearchSettings,
@@ -127,6 +132,7 @@ def create_app(context: DebugContext) -> FastAPI:
     # The largest thing served is one session's trace: a few megabytes of very
     # repetitive JSON, which compresses about fourteen-fold.
     app.add_middleware(GZipMiddleware, minimum_size=1024)
+    app.middleware("http")(local_debugger_requests)
 
     @app.get("/")
     def index() -> FileResponse:
@@ -157,9 +163,9 @@ def create_app(context: DebugContext) -> FastAPI:
         distance: int | None = None,
         input_type: str | None = None,
         seed: int | None = None,
-        beam_width: int = Query(default=64, ge=1),
-        max_depth: int = Query(default=8, ge=0),
-        budget: int = Query(default=100_000, ge=0),
+        beam_width: int = Query(default=64, ge=1, le=128),
+        max_depth: int = Query(default=8, ge=0, le=32),
+        budget: int = Query(default=100_000, ge=0, le=1_000_000),
         capture_logits: bool = False,
         include_map: bool = True,
     ) -> dict[str, Any]:
@@ -191,11 +197,13 @@ def create_app(context: DebugContext) -> FastAPI:
         return payload
 
     @app.get("/api/logits")
-    def get_logits(task_id: str, path: str = "") -> dict[str, Any]:
+    def get_logits(
+        task_id: str, path: str = Query(default="", max_length=4096)
+    ) -> dict[str, Any]:
         """The full raw row for one node, fetched only when the panel opens."""
 
         record = _record_for(context, task_id)
-        steps = [name for name in path.split(",") if name]
+        steps = parse_op_path(path)
         state = _replay(context, record, steps)
         row = context.policy.score_actions_batch(
             [(state, record.output_value)], context.available_functions
@@ -219,18 +227,22 @@ def create_app(context: DebugContext) -> FastAPI:
         }
 
     @app.get("/api/encoding")
-    def get_encoding(task_id: str, path: str = "") -> dict[str, Any]:
+    def get_encoding(
+        task_id: str, path: str = Query(default="", max_length=4096)
+    ) -> dict[str, Any]:
         record = _record_for(context, task_id)
-        steps = [name for name in path.split(",") if name]
+        steps = parse_op_path(path)
         state = _replay(context, record, steps)
         return encoding_view(state, record.output_value)
 
     @app.get("/api/drive")
-    def get_drive(task_id: str, path: str = "") -> dict[str, Any]:
+    def get_drive(
+        task_id: str, path: str = Query(default="", max_length=4096)
+    ) -> dict[str, Any]:
         """One hand-driven step: where the path leads, and what to press next."""
 
         record = _record_for(context, task_id)
-        steps = [name for name in path.split(",") if name]
+        steps = parse_op_path(path)
         state = _replay(context, record, steps)
         target = record.output_value
         ranked = _ranked_actions(context, state, target)
@@ -304,5 +316,8 @@ def _session_map(
 
 def serve_debugger(context: DebugContext, *, host: str, port: int) -> None:
     import uvicorn
+
+    if not is_loopback_host(host):
+        raise ValueError("Debugger must bind to a loopback address")
 
     uvicorn.run(create_app(context), host=host, port=port, log_level="info")

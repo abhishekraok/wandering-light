@@ -165,6 +165,9 @@ def _deep_summary(result: dict[str, Any]) -> dict[str, Any]:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", choices=DEEP_RECERTIFICATIONS, required=True)
+    parser.add_argument(
+        "--committed-only", action="store_true", help="Skip the Hub-hosted deep corpus"
+    )
     args = parser.parse_args(argv)
 
     evaluation = read_jsonl_gz(EVAL_DATA)
@@ -184,13 +187,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     induction_summary = _verify_shortest_v1_records(induction_selection)
     induction_summary["strata"] = _stratum_counts(induction_selection)
 
-    deep_count = DEEP_RECERTIFICATIONS[args.profile]
-    print(
-        f"verifying deep corpus ({deep_count} distance re-certifications)", flush=True
-    )
-    deep_summary = _deep_summary(verify_corpus(DEEP_CORPUS, recertify=deep_count))
+    deep_summary = None
+    if args.committed_only:
+        print("skipping Hub-hosted deep corpus (--committed-only)", flush=True)
+    else:
+        deep_count = DEEP_RECERTIFICATIONS[args.profile]
+        print(
+            f"verifying deep corpus ({deep_count} distance re-certifications)",
+            flush=True,
+        )
+        deep_summary = _deep_summary(verify_corpus(DEEP_CORPUS, recertify=deep_count))
 
-    ok = eval_summary["ok"] and induction_summary["ok"] and deep_summary["ok"]
+    ok = eval_summary["ok"] and induction_summary["ok"]
+    if deep_summary is not None:
+        ok = ok and deep_summary["ok"]
     summary = {
         "profile": args.profile,
         "eval": eval_summary,
