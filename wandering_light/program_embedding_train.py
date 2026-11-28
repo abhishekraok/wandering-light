@@ -12,6 +12,7 @@ import hashlib
 import json
 import math
 import random
+import time
 from dataclasses import asdict, replace
 from pathlib import Path
 
@@ -42,7 +43,7 @@ from wandering_light.program_embedding_eval import (
     lexical_vectors,
     retrieval_metrics,
 )
-from wandering_light.program_embedding_execution import ExecutionMatcher
+from wandering_light.program_embedding_execution import ExecutionLabeler
 
 # Preserve existing imports while evaluation now has its own reusable module.
 __all__ = [
@@ -202,6 +203,22 @@ def train(args) -> dict:
         if args.io_io_weight
         else "disabled"
     )
+    metadata["program_supervision"] = (
+        {
+            "kind": "execution-mutual-shown-io-v1",
+            "positive": "both programs pass both sampled shown I/O sets",
+            "negative": "a completed cross-failure, with both own matches known true",
+            "unknown": "unreliable own matches or unresolved cross-matches excluded",
+            "candidate_scope": "in-batch",
+        }
+        if args.invariance_weight
+        else {"kind": "disabled"}
+    )
+    metadata["execution_labeling"] = {
+        "workers": args.execution_label_workers,
+        "start_method": "spawn" if args.execution_label_workers else "serial",
+        "cache_size_per_worker": args.execution_label_cache_size,
+    }
     run = None
     try:
         import wandb
@@ -245,114 +262,162 @@ def train(args) -> dict:
     metadata["rewrite_training_records"] = len(rewrite_fit)
     _write_json(args.out / "provenance.json", metadata)
     labels_by_key = {r.key: i for i, r in enumerate(fit)}
-    matcher = ExecutionMatcher(
-        args.execution_label_timeout, args.execution_label_cache_size
-    )
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay
     )
     rng = random.Random(args.seed)
     best_score = -math.inf
     history = []
-    for step in range(1, args.steps + 1):
-        model.train()
-        rewrite_count = (
-            round(args.batch_size * args.rewrite_fraction) if rewrite_fit else 0
-        )
-        batch = [rng.choice(rewrite_fit) for _ in range(rewrite_count)] + [
-            rng.choice(fit) for _ in range(args.batch_size - rewrite_count)
-        ]
-        rng.shuffle(batch)
-        first = [rng.choice(r.programs) for r in batch]
-        second = [
-            rng.choice([p for p in r.programs if p != a] or r.programs)
-            for r, a in zip(batch, first, strict=True)
-        ]
-        io_a = [_sample_examples(r.examples, args.io_examples, rng) for r in batch]
-        io_b = [_sample_examples(r.examples, args.io_examples, rng) for r in batch]
-        labels = torch.tensor([labels_by_key[r.key] for r in batch], device=args.device)
-        program_a = model.encode_programs(first)
-        program_b = model.encode_programs(second)
-        inputs_a = model.encode_io(io_a)
-        inputs_b = model.encode_io(io_b)
-        loss_io = inputs_a.sum() * 0
-        if args.io_weight:
-            positives_a, known_a = matcher.masks(io_a, first, device=args.device)
-            positives_b, known_b = matcher.masks(io_b, second, device=args.device)
-            loss_io = (
-                symmetric_multi_positive_contrastive_loss(
-                    inputs_a,
-                    program_a,
-                    positive_mask=positives_a,
-                    valid_mask=known_a,
-                    temperature=args.temperature,
-                )
-                + symmetric_multi_positive_contrastive_loss(
-                    inputs_b,
-                    program_b,
-                    positive_mask=positives_b,
-                    valid_mask=known_b,
-                    temperature=args.temperature,
-                )
-            ) / 2
-        loss_program = symmetric_multi_positive_contrastive_loss(
-            program_a, program_b, labels=labels, temperature=args.temperature
-        )
-        loss = args.io_weight * loss_io + args.invariance_weight * loss_program
-        if args.io_io_weight:
+    cross_record_counts = {
+        "io_cross_record_positives": 0,
+        "program_cross_record_positives": 0,
+    }
+    started = time.monotonic()
+    with ExecutionLabeler(
+        args.execution_label_timeout,
+        args.execution_label_cache_size,
+        workers=args.execution_label_workers,
+    ) as matcher:
+        for step in range(1, args.steps + 1):
+            model.train()
+            rewrite_count = (
+                round(args.batch_size * args.rewrite_fraction) if rewrite_fit else 0
+            )
+            batch = [rng.choice(rewrite_fit) for _ in range(rewrite_count)] + [
+                rng.choice(fit) for _ in range(args.batch_size - rewrite_count)
+            ]
+            rng.shuffle(batch)
+            first = [rng.choice(r.programs) for r in batch]
+            second = [
+                rng.choice([p for p in r.programs if p != a] or r.programs)
+                for r, a in zip(batch, first, strict=True)
+            ]
+            io_a = [_sample_examples(r.examples, args.io_examples, rng) for r in batch]
+            io_b = [_sample_examples(r.examples, args.io_examples, rng) for r in batch]
+            labels = torch.tensor(
+                [labels_by_key[r.key] for r in batch], device=args.device
+            )
+            program_a = model.encode_programs(first)
+            program_b = model.encode_programs(second)
+            inputs_a = model.encode_io(io_a)
+            inputs_b = model.encode_io(io_b)
+            own_a, own_b, program_masks = matcher.batch_masks(
+                io_a,
+                first,
+                io_b,
+                second,
+                io=bool(args.io_weight),
+                program=bool(args.invariance_weight),
+                device=args.device,
+            )
             same_record = labels[:, None] == labels[None, :]
-            loss = (
-                loss
-                + args.io_io_weight * (1 - (inputs_a @ inputs_b.T)[same_record]).mean()
-            )
-        optimizer.zero_grad(set_to_none=True)
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        optimizer.step()
-        if step % args.eval_every == 0 or step == args.steps:
-            validation = evaluate(
-                model,
-                records,
-                seed=args.seed,
-                io_examples=args.io_examples,
-                execution=bool(args.io_weight),
-                execution_examples=0,
-                max_eval_records=args.max_eval_records,
-                global_bank=args.global_bank,
-            )
-            score = _validation_score(validation)
-            if args.io_weight == 0:
-                available = [
-                    p["cross_style_program"]["mrr"]
-                    for p in validation["partitions"].values()
-                    if p["cross_style_program"]["mrr"] is not None
-                ]
-                score = sum(available) / len(available) if available else -math.inf
-            entry = {
-                "step": step,
-                "loss": float(loss.detach()),
-                "io_loss": float(loss_io.detach()),
-                "program_loss": float(loss_program.detach()),
-                "validation_mrr": score if math.isfinite(score) else None,
-                "selection_metric": "execution_io_mrr@10_lower"
-                if args.io_weight
-                else "cross_style_mrr",
-                "execution_labels": matcher.statistics(),
-            }
-            history.append(entry)
-            print(json.dumps(entry), flush=True)
-            if run is not None:
-                run.log(entry, step=step)
-            if score > best_score or best_score == -math.inf:
-                best_score = score
-                model.save(
-                    args.out / "best.pt",
-                    {
-                        **metadata,
-                        "step": step,
-                        "validation_mrr": entry["validation_mrr"],
-                    },
+            loss_io = inputs_a.sum() * 0
+            if args.io_weight:
+                positives_a, known_a = own_a
+                positives_b, known_b = own_b
+                cross_record_counts["io_cross_record_positives"] += int(
+                    (positives_a & ~same_record).sum()
+                    + (positives_b & ~same_record).sum()
                 )
+                loss_io = (
+                    symmetric_multi_positive_contrastive_loss(
+                        inputs_a,
+                        program_a,
+                        positive_mask=positives_a,
+                        valid_mask=known_a,
+                        temperature=args.temperature,
+                    )
+                    + symmetric_multi_positive_contrastive_loss(
+                        inputs_b,
+                        program_b,
+                        positive_mask=positives_b,
+                        valid_mask=known_b,
+                        temperature=args.temperature,
+                    )
+                ) / 2
+            loss_program = program_a.sum() * 0
+            if args.invariance_weight:
+                program_positive, program_known = program_masks
+                cross_record_counts["program_cross_record_positives"] += int(
+                    (program_positive & ~same_record).sum()
+                )
+                loss_program = symmetric_multi_positive_contrastive_loss(
+                    program_a,
+                    program_b,
+                    positive_mask=program_positive,
+                    valid_mask=program_known,
+                    temperature=args.temperature,
+                )
+            loss = args.io_weight * loss_io + args.invariance_weight * loss_program
+            if args.io_io_weight:
+                loss = (
+                    loss
+                    + args.io_io_weight
+                    * (1 - (inputs_a @ inputs_b.T)[same_record]).mean()
+                )
+            optimizer.zero_grad(set_to_none=True)
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
+            if step % 25 == 0 and step % args.eval_every and step != args.steps:
+                print(
+                    json.dumps(
+                        {
+                            "step": step,
+                            "loss": float(loss.detach()),
+                            "elapsed_seconds": time.monotonic() - started,
+                            "execution_labels": matcher.statistics(),
+                            **cross_record_counts,
+                        }
+                    ),
+                    flush=True,
+                )
+            if step % args.eval_every == 0 or step == args.steps:
+                validation = evaluate(
+                    model,
+                    records,
+                    seed=args.seed,
+                    io_examples=args.io_examples,
+                    execution=bool(args.io_weight),
+                    execution_examples=0,
+                    max_eval_records=args.max_eval_records,
+                    global_bank=args.global_bank,
+                )
+                score = _validation_score(validation)
+                if args.io_weight == 0:
+                    available = [
+                        p["cross_style_program"]["mrr"]
+                        for p in validation["partitions"].values()
+                        if p["cross_style_program"]["mrr"] is not None
+                    ]
+                    score = sum(available) / len(available) if available else -math.inf
+                entry = {
+                    "step": step,
+                    "elapsed_seconds": time.monotonic() - started,
+                    "loss": float(loss.detach()),
+                    "io_loss": float(loss_io.detach()),
+                    "program_loss": float(loss_program.detach()),
+                    "validation_mrr": score if math.isfinite(score) else None,
+                    "selection_metric": "execution_io_mrr@10_lower"
+                    if args.io_weight
+                    else "cross_style_mrr",
+                    "execution_labels": matcher.statistics(),
+                    **cross_record_counts,
+                }
+                history.append(entry)
+                print(json.dumps(entry), flush=True)
+                if run is not None:
+                    run.log(entry, step=step)
+                if score > best_score or best_score == -math.inf:
+                    best_score = score
+                    model.save(
+                        args.out / "best.pt",
+                        {
+                            **metadata,
+                            "step": step,
+                            "validation_mrr": entry["validation_mrr"],
+                        },
+                    )
     model.save(args.out / "last.pt", {**metadata, "step": args.steps})
     save_training_history(args.out / "history.json", history, metadata)
     model = ProgramEmbedding.load(args.out / "best.pt", device=args.device)
@@ -420,6 +485,7 @@ def main(argv=None):
     parser.add_argument("--execution-examples", type=int, default=16)
     parser.add_argument("--execution-label-timeout", type=float, default=1.0)
     parser.add_argument("--execution-label-cache-size", type=int, default=65536)
+    parser.add_argument("--execution-label-workers", type=int, default=0)
     parser.add_argument("--offline", action="store_true")
     parser.add_argument(
         "--skip-execution",
@@ -452,6 +518,8 @@ def main(argv=None):
         parser.error("execution-label-timeout must be positive and finite")
     if args.execution_label_cache_size < 0:
         parser.error("execution-label-cache-size must be nonnegative")
+    if args.execution_label_workers < 0:
+        parser.error("execution-label-workers must be nonnegative")
     if not 0 <= args.rewrite_fraction <= 1:
         parser.error("rewrite-fraction must be between zero and one")
     if args.untrained_eval and args.checkpoint:

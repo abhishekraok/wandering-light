@@ -10,6 +10,7 @@ from types import SimpleNamespace
 import pytest
 
 from wandering_light import program_embedding_eval as evaluator
+from wandering_light import program_embedding_execution as execution
 from wandering_light import program_embedding_train as trainer
 from wandering_light.program_embedding import EmbeddingConfig, ProgramEmbedding
 from wandering_light.program_embedding_artifacts import (
@@ -130,6 +131,7 @@ def _assert_provenance(report, checkpoint=None):
         assert provenance["checkpoint_digest"] is None
         assert provenance["checkpoint_metadata"] == {}
         assert provenance["io_supervision"] == {"kind": "not-trained"}
+        assert provenance["program_supervision"] == {"kind": "not-trained"}
         assert provenance["io_io_supervision"] == "not-trained"
         assert provenance["checkpoint_selection"] == "not-trained"
     else:
@@ -144,6 +146,9 @@ def _assert_provenance(report, checkpoint=None):
         assert provenance["checkpoint_metadata"] == model.metadata
         assert provenance["io_supervision"] == model.metadata.get(
             "io_supervision", {"kind": "unknown"}
+        )
+        assert provenance["program_supervision"] == model.metadata.get(
+            "program_supervision", {"kind": "unknown"}
         )
         assert provenance["io_io_supervision"] == model.metadata.get(
             "io_io_supervision", "unknown"
@@ -316,12 +321,26 @@ def test_plot_accepts_new_and_legacy_reports(tmp_path, experiment, legacy):
     assert all(path.read_bytes() == content for path, content in inputs.items())
 
 
-def test_corrected_training_records_execution_supervision(tmp_path, experiment):
-    out = _run(tmp_path, "--io-io-weight", "0.2")
+@pytest.mark.parametrize("workers", [0, 2])
+def test_corrected_training_records_execution_supervision(
+    tmp_path, experiment, workers
+):
+    out = _run(
+        tmp_path, "--io-io-weight", "0.2", "--execution-label-workers", str(workers)
+    )
     model = ProgramEmbedding.load(out / "best.pt")
     assert model.metadata["io_supervision"]["kind"] == "execution-on-shown-io-v1"
+    assert (
+        model.metadata["program_supervision"]["kind"] == "execution-mutual-shown-io-v1"
+    )
+    assert model.metadata["execution_labeling"] == {
+        "workers": workers,
+        "start_method": "spawn" if workers else "serial",
+        "cache_size_per_worker": 65536,
+    }
     initial = json.loads((out / "untrained.json").read_text())["provenance"]
     assert initial["io_supervision"] == {"kind": "not-trained"}
+    assert initial["program_supervision"] == {"kind": "not-trained"}
     assert (
         initial["io_io_supervision"] == initial["checkpoint_selection"] == "not-trained"
     )
@@ -367,14 +386,11 @@ def test_training_accepts_cross_record_matches_without_hidden_outputs(
         trainer, "load_records", lambda *a, **k: [*train_records, records[1]]
     )
     original_loss = trainer.symmetric_multi_positive_contrastive_loss
-    io_masks, record_labels = [], []
+    masks = []
 
     def capture_loss(*args, **kwargs):
-        if "positive_mask" in kwargs:
-            io_masks.append(kwargs["positive_mask"].cpu())
-            assert "labels" not in kwargs
-        else:
-            record_labels.append(kwargs["labels"].cpu())
+        masks.append(kwargs["positive_mask"].cpu())
+        assert "labels" not in kwargs
         return original_loss(*args, **kwargs)
 
     monkeypatch.setattr(
@@ -389,17 +405,36 @@ def test_training_accepts_cross_record_matches_without_hidden_outputs(
         return original_matches(program, examples, **kwargs)
 
     monkeypatch.setattr(evaluator, "_matches", shown_only)
-    _run(tmp_path, "--batch-size", "8")
-    assert len(io_masks) == 2
-    assert all(mask.all() for mask in io_masks)
-    assert record_labels[0].unique().numel() == 2
+    out = _run(tmp_path, "--batch-size", "8")
+    assert len(masks) == 3  # Both I/O views, then mutual program agreement.
+    assert all(mask.all() for mask in masks)
+    history, _ = load_training_history(out / "history.json")
+    assert history[0]["io_cross_record_positives"] > 0
+    assert history[0]["program_cross_record_positives"] > 0
+    assert history[0]["elapsed_seconds"] > 0
 
 
-def test_program_only_run_does_not_claim_execution_supervision(tmp_path, experiment):
+def test_program_only_run_executes_for_program_supervision(tmp_path, experiment):
     out = _run(tmp_path, "--io-weight", "0")
     model = ProgramEmbedding.load(out / "best.pt")
     assert model.metadata["io_supervision"] == {"kind": "disabled"}
+    assert (
+        model.metadata["program_supervision"]["kind"] == "execution-mutual-shown-io-v1"
+    )
     assert model.metadata["checkpoint_selection"] == "cross_style_mrr"
     history, _ = load_training_history(out / "history.json")
     assert history[0]["selection_metric"] == "cross_style_mrr"
-    assert history[0]["execution_labels"]["cache_misses"] == 0
+    assert history[0]["execution_labels"]["cache_misses"] > 0
+    assert history[0]["execution_labels"]["program_positive"] > 0
+
+
+def test_alignment_skips_program_supervision(tmp_path, experiment, monkeypatch):
+    def unexpected(*args, **kwargs):
+        pytest.fail("Disabled program objective must not grade program pairs")
+
+    monkeypatch.setattr(execution.ExecutionMatcher, "program_masks", unexpected)
+    out = _run(tmp_path, "--invariance-weight", "0", "--freeze-program-space")
+    model = ProgramEmbedding.load(out / "best.pt")
+    assert model.metadata["program_supervision"] == {"kind": "disabled"}
+    history, _ = load_training_history(out / "history.json")
+    assert history[0]["program_loss"] == 0

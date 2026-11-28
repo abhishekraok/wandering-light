@@ -8,7 +8,7 @@ this file is not established, however confidently some comment states it.
 
 Update this file as part of finishing work, not as a separate chore.
 
-Last updated: 2026-10-31 (obsolete embedding weights deleted)
+Last updated: 2026-10-31 (corrected embedding retraining complete)
 
 ## What is true now
 
@@ -97,19 +97,20 @@ claim a number supports.
 
 ## In flight
 
-**Semantic program embeddings:** implementation and historical held-out
-evaluation complete. Learned program ranking beats untrained encoders, token
-overlap and fixed n-gram baselines.
-Retain it as an experimental retriever. I/O retrieval remains partial even
-with answers available; improvement over the existing PBE solver is unmeasured.
-The training bug is corrected: I/O positives now come from
-execution on shown examples, unknown pairs are excluded, and checkpoint
-selection uses shown execution rather than record IDs. All saved embedding
-weights and the weight-containing index were deleted at the owner's request
-on 2026-10-31. No corrected model has been trained; historical data, results
-and provenance remain.
-The next decision needs a candidate bank built independently of test tasks
-and an equal wall-clock comparison including execution and fallback search.
+**Semantic program embeddings:** corrected seed-0 training, historical-ranking
+replay and matched comparison are complete in this worktree; landing is pending.
+The corrected recipe shows no overall retrieval improvement. I/O and auxiliary
+program-pair positives now use shown-example execution, with incomplete pairs
+excluded; program-only checkpoint selection still uses alternate-text ranking.
+Geometry does not establish an embedding-distance rule for equivalence.
+Fresh weights and a self-contained index are available; the obsolete weights
+remain deleted. [Measured results and caveats](RESULTS_DETAILED.md#execution-supervised-retraining-2026-10-31),
+[comparison](../reports/program-embeddings-20261024/comparison.json),
+[geometry](../reports/program-embeddings-20261024/geometry.json),
+[paired changes](../reports/program-embeddings-20261024/paired-changes.json).
+Retain the program retriever as experimental. PBE utility still needs an
+independent candidate bank and an equal wall-clock comparison including
+execution and fallback search.
 [Report](../reports/program-embeddings-20261024/README.md),
 [semantic-program-embeddings (#189)](https://github.com/abhishekraok/wandering-light/issues/189).
 
@@ -146,6 +147,8 @@ Six designs were set aside after exploratory, unreviewed probes on 2026-09-20: [
 
 Claims that were stated confidently and are wrong. Recorded here so a
 correction lands in one place instead of being chased across comment threads.
+
+- **2026-10-31, "the training bug is corrected"** (the previous In flight entry for semantic-program-embeddings (#189)). The I/O-only fix left auxiliary program-pair positives tied to record IDs, so valid cross-record matches could still become negatives. The completed retraining also requires both programs to pass both sampled shown-example sets; unresolved comparisons leave the loss. Program-only checkpoint selection remains record-linked alternate-text MRR. [Corrected results](RESULTS_DETAILED.md#execution-supervised-retraining-2026-10-31); historical measurements remain unchanged.
 
 - **2026-10-30, "your requested mapping is implemented"** (semantic-program-embeddings (#189)). Overstated: I/O contrastive positives use behavior-group identity, not execution satisfaction of each sampled I/O subset. Different groups can both fit an ambiguous subset yet be treated as negatives; frequency and impact are unmeasured. The measured retrieval results stand.
 

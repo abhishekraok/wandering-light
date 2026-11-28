@@ -64,6 +64,59 @@ primary recall@10: +26.41 percentage points; paired behavior bootstrap 95%
 interval +16.41 to +36.67 (10,000 resamples, seed 0; no training-seed uncertainty).
 [Syntax-check artifact](../reports/program-embeddings-20261024/syntax-baselines.json).
 
+### Execution-supervised retraining, 2026-10-31
+
+**No overall retrieval gain in the corrected seed-0 run.** Same architecture,
+record/source digests, 9,702 fit records and 12,837-program test bank; all 177 I/O
+queries and 156 alternate-text queries match the historical evaluation.
+Both I/O and auxiliary program-pair training use shown-example execution;
+unknown pairs leave the loss. Budgets remain 1,500 + 500 + 500 steps, but selected
+ancestry is **1,500 → 250 → 500**. I/O stages select by shown execution mean reciprocal rank (MRR)@10
+lower bound; program-only still selects by record-linked alternate-text MRR.
+
+| corrected stage | selected / budget steps | selection score | validation program recall@1 / @10 | validation record-ID I/O recall@10 |
+|---|---:|---:|---:|---:|
+| [Joint](/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/joint-s0/validation.json) | 1,500 / 1,500 | execution MRR@10 0.060888 | 30.85% / 58.16% | 7.81% |
+| [Program-only](/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/program-s0/validation.json) | 250 / 500 | alternate-text MRR 0.479245 | 41.84% / 61.35% | 9.38% |
+| [Frozen-program I/O](/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/aligned-s0/validation.json) | 500 / 500 | execution MRR@10 0.079067 | 41.84% / 61.35% | 8.59% |
+
+Test execution columns below are **historical → corrected**. Historical MRR@10
+was replayed from saved rankings: unchanged record/source digests, zero
+shown@1/@10 deviations across 354 checks, zero incomplete outcomes; no old
+checkpoint was restored. Program recalls remain behavior-balanced.
+
+| test stratum (I/O queries) | corrected program recall@1 / @10 | shown execution MRR@10 | shown success@10 | selected hidden success@10 |
+|---|---:|---:|---:|---:|
+| Grouped holdout (128) | 41.28% / 70.00% (65 behaviors) | 0.058851 → 0.056985 | 18 → 17 | 12 → 12 |
+| Official v4 (45) | 33.33% / 83.33% (3 behaviors) | 0.112125 → 0.086693 | 13 → 12 | 10 → 9 |
+| Eval-linked (4) | 25.00% / 100% (2 behaviors) | 0 → 0.027778 | 0 → 1 | 0 → 1 |
+
+All test outcomes are known. Paired selected-hidden gains/regressions are 4/4,
+2/3 and 1/0 respectively; the eval-linked gain is `halve_each`. Primary program
+recall@10 moves 72.31% → 70.00%: 5 query gains / 8 regressions, with 100 unchanged
+successes / 33 failures. Corrected record-ID I/O recall@10 / MRR is
+8.59% / 0.040223, 17.78% / 0.078858 and 25.00% / 0.042314 in the same order.
+[Comparison/provenance](../reports/program-embeddings-20261024/comparison.json),
+[paired changes](../reports/program-embeddings-20261024/paired-changes.json).
+
+Descriptive geometry: 102 different-style known-positive pairs have median
+cosine 0.737538. Only one pair has token-set Jaccard overlap ≤0.3 (cosine
+0.321506), so low-overlap invariance is not established. The minimum
+known-positive cosine falls below the maximum verified-negative cosine on
+86/156 program queries and 118/177 I/O queries; median differences are −0.027098
+and −0.026335. Negatives fail shown examples among 20 syntax-nearest candidates
+per program, excluding known positives: 6,100 failures, 16 passing candidates
+excluded, zero unknowns. [Geometry](../reports/program-embeddings-20261024/geometry.json).
+
+Fresh weights and a self-contained index are available under
+`checkpoints/semantic-embeddings-20261031-corrected/`; historical weights remain
+deleted. Four-thread warm CPU lookup: median 3.22 ms / 95th percentile 4.84 ms over 45
+queries, excluding execution; this is a descriptive timing, not a controlled
+speed comparison. One seed, finite-domain labels, answer-containing bank;
+training supervision and checkpoint selection changed together. Training
+labels use per-example deadlines, while evaluation/replay/geometry use a
+one-second deadline per candidate example set.
+
 ## Stack PBE v3 — 40 behaviours, eval split 440 tasks
 
 `stack_pbe_v3`, `mark-28`. BFS budgets are node expansions. [report](../reports/stack-pbe-baseline-20260829/README.md), [rerun-baselines-v4 (#85)](../../issues/85) for luna.

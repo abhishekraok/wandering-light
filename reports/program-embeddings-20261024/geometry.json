@@ -1,0 +1,4659 @@
+{
+  "positive_pairs": [
+    {
+      "key": "abs_each",
+      "partition": "cross_style_holdout",
+      "programs": [
+        717,
+        1129
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.7392086982727051,
+      "token_jaccard": 0.5714285714285714
+    },
+    {
+      "key": "abs_each",
+      "partition": "cross_style_holdout",
+      "programs": [
+        717,
+        1128
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.6990832686424255,
+      "token_jaccard": 0.5714285714285714
+    },
+    {
+      "key": "abs_each",
+      "partition": "cross_style_holdout",
+      "programs": [
+        1129,
+        1128
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.9430363178253174,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "all_positive",
+      "partition": "official_eval",
+      "programs": [
+        236,
+        663
+      ],
+      "styles": [
+        "canonical",
+        "alternative"
+      ],
+      "cosine": 0.6222686171531677,
+      "token_jaccard": 0.8181818181818182
+    },
+    {
+      "key": "count_negative",
+      "partition": "cross_style_holdout",
+      "programs": [
+        379,
+        425
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.890640377998352,
+      "token_jaccard": 0.9
+    },
+    {
+      "key": "count_negative",
+      "partition": "cross_style_holdout",
+      "programs": [
+        379,
+        2
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.896950900554657,
+      "token_jaccard": 0.8
+    },
+    {
+      "key": "count_negative",
+      "partition": "cross_style_holdout",
+      "programs": [
+        425,
+        2
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.8144100904464722,
+      "token_jaccard": 0.7272727272727273
+    },
+    {
+      "key": "count_zeros",
+      "partition": "cross_style_holdout",
+      "programs": [
+        375,
+        377
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.8150513768196106,
+      "token_jaccard": 0.8181818181818182
+    },
+    {
+      "key": "count_zeros",
+      "partition": "cross_style_holdout",
+      "programs": [
+        375,
+        376
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.8830778002738953,
+      "token_jaccard": 0.8181818181818182
+    },
+    {
+      "key": "count_zeros",
+      "partition": "cross_style_holdout",
+      "programs": [
+        377,
+        376
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.8756022453308105,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "dc-caesar-cipher-k-modulo-n-k3-n5",
+      "partition": "cross_style_holdout",
+      "programs": [
+        506,
+        179
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.648385226726532,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "dc-count-k-k3",
+      "partition": "cross_style_holdout",
+      "programs": [
+        248,
+        508
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.72710782289505,
+      "token_jaccard": 0.75
+    },
+    {
+      "key": "dc-count-k-k5",
+      "partition": "cross_style_holdout",
+      "programs": [
+        207,
+        514
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.8017954230308533,
+      "token_jaccard": 0.8333333333333334
+    },
+    {
+      "key": "dc-index-k-k2",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2358,
+        9971
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.616855263710022,
+      "token_jaccard": 0.36363636363636365
+    },
+    {
+      "key": "dc-index-k-k3",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2354,
+        9965
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.6042051911354065,
+      "token_jaccard": 0.36363636363636365
+    },
+    {
+      "key": "dc-index-k-k5",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2351,
+        175
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.5679599046707153,
+      "token_jaccard": 0.3333333333333333
+    },
+    {
+      "key": "dc-remove-mod-k-k3",
+      "partition": "cross_style_holdout",
+      "programs": [
+        183,
+        186
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.7939752340316772,
+      "token_jaccard": 0.7692307692307693
+    },
+    {
+      "key": "dc-remove-mod-k-k4",
+      "partition": "cross_style_holdout",
+      "programs": [
+        259,
+        224
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.8502570390701294,
+      "token_jaccard": 0.7857142857142857
+    },
+    {
+      "key": "dc-remove-mod-k-k5",
+      "partition": "cross_style_holdout",
+      "programs": [
+        257,
+        209
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.9576795697212219,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "dc-replace-all-with-index-k-k2",
+      "partition": "cross_style_holdout",
+      "programs": [
+        8098,
+        5878
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.6151236295700073,
+      "token_jaccard": 0.5555555555555556
+    },
+    {
+      "key": "dc-replace-all-with-index-k-k3",
+      "partition": "cross_style_holdout",
+      "programs": [
+        8099,
+        5870
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.4773544669151306,
+      "token_jaccard": 0.5555555555555556
+    },
+    {
+      "key": "dc-replace-all-with-index-k-k4",
+      "partition": "cross_style_holdout",
+      "programs": [
+        8104,
+        5875
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.5143066644668579,
+      "token_jaccard": 0.5555555555555556
+    },
+    {
+      "key": "dc-replace-all-with-index-k-k5",
+      "partition": "cross_style_holdout",
+      "programs": [
+        976,
+        6271
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.19520005583763123,
+      "token_jaccard": 0.8235294117647058
+    },
+    {
+      "key": "distance_from_target_total",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2923,
+        3608
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.7842669486999512,
+      "token_jaccard": 0.7692307692307693
+    },
+    {
+      "key": "distance_from_target_total",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2923,
+        3352
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.7494595050811768,
+      "token_jaccard": 0.8461538461538461
+    },
+    {
+      "key": "distance_from_target_total",
+      "partition": "cross_style_holdout",
+      "programs": [
+        3608,
+        3352
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.9192603826522827,
+      "token_jaccard": 0.7857142857142857
+    },
+    {
+      "key": "double_each",
+      "partition": "official_eval_overlap",
+      "programs": [
+        1231,
+        519
+      ],
+      "styles": [
+        "canonical",
+        "alternative"
+      ],
+      "cosine": 0.6795145273208618,
+      "token_jaccard": 0.5714285714285714
+    },
+    {
+      "key": "flat_pair_maxima",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10371,
+        10399
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.4775632917881012,
+      "token_jaccard": 0.5909090909090909
+    },
+    {
+      "key": "flat_pair_maxima",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10371,
+        10397
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.8371245861053467,
+      "token_jaccard": 0.7058823529411765
+    },
+    {
+      "key": "flat_pair_maxima",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10399,
+        10397
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.5010515451431274,
+      "token_jaccard": 0.6842105263157895
+    },
+    {
+      "key": "hamming_distance",
+      "partition": "cross_style_holdout",
+      "programs": [
+        35,
+        878
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.7615888118743896,
+      "token_jaccard": 0.5882352941176471
+    },
+    {
+      "key": "hamming_distance",
+      "partition": "cross_style_holdout",
+      "programs": [
+        35,
+        877
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.7487200498580933,
+      "token_jaccard": 0.7333333333333333
+    },
+    {
+      "key": "hamming_distance",
+      "partition": "cross_style_holdout",
+      "programs": [
+        878,
+        877
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.9534369707107544,
+      "token_jaccard": 0.8
+    },
+    {
+      "key": "increment_each",
+      "partition": "official_eval",
+      "programs": [
+        642,
+        658
+      ],
+      "styles": [
+        "canonical",
+        "alternative"
+      ],
+      "cosine": 0.8658918142318726,
+      "token_jaccard": 0.8333333333333334
+    },
+    {
+      "key": "interval_overlap_length",
+      "partition": "cross_style_holdout",
+      "programs": [
+        689,
+        3859
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.5654792189598083,
+      "token_jaccard": 0.8181818181818182
+    },
+    {
+      "key": "interval_overlap_length",
+      "partition": "cross_style_holdout",
+      "programs": [
+        689,
+        674
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.7358668446540833,
+      "token_jaccard": 0.8181818181818182
+    },
+    {
+      "key": "interval_overlap_length",
+      "partition": "cross_style_holdout",
+      "programs": [
+        3859,
+        674
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.6751759052276611,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "largest_magnitude",
+      "partition": "cross_style_holdout",
+      "programs": [
+        5,
+        466
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.640501856803894,
+      "token_jaccard": 0.5882352941176471
+    },
+    {
+      "key": "largest_magnitude",
+      "partition": "cross_style_holdout",
+      "programs": [
+        5,
+        1
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.7812461256980896,
+      "token_jaccard": 0.9090909090909091
+    },
+    {
+      "key": "largest_magnitude",
+      "partition": "cross_style_holdout",
+      "programs": [
+        466,
+        1
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.658380389213562,
+      "token_jaccard": 0.625
+    },
+    {
+      "key": "lb-005",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10434,
+        10542
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.7014405727386475,
+      "token_jaccard": 0.782608695652174
+    },
+    {
+      "key": "lb-008",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2307,
+        10438
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.682316243648529,
+      "token_jaccard": 0.875
+    },
+    {
+      "key": "lb-018",
+      "partition": "cross_style_holdout",
+      "programs": [
+        1243,
+        1146
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.7112952470779419,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "lb-023",
+      "partition": "cross_style_holdout",
+      "programs": [
+        1191,
+        1178
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.9687055349349976,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "lb-024",
+      "partition": "cross_style_holdout",
+      "programs": [
+        1308,
+        1307
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.9086533188819885,
+      "token_jaccard": 0.6363636363636364
+    },
+    {
+      "key": "lb-032",
+      "partition": "cross_style_holdout",
+      "programs": [
+        870,
+        855
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.903818666934967,
+      "token_jaccard": 0.9
+    },
+    {
+      "key": "lb-056",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10430,
+        10436
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.8767640590667725,
+      "token_jaccard": 0.8181818181818182
+    },
+    {
+      "key": "lb-078",
+      "partition": "cross_style_holdout",
+      "programs": [
+        5719,
+        9943
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.571853518486023,
+      "token_jaccard": 0.7368421052631579
+    },
+    {
+      "key": "lb-087",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2364,
+        12783
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.20626352727413177,
+      "token_jaccard": 0.8
+    },
+    {
+      "key": "lb-089",
+      "partition": "cross_style_holdout",
+      "programs": [
+        9942,
+        8728
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.3908672332763672,
+      "token_jaccard": 0.7727272727272727
+    },
+    {
+      "key": "lb-095",
+      "partition": "cross_style_holdout",
+      "programs": [
+        1333,
+        8117
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.8814154863357544,
+      "token_jaccard": 0.9545454545454546
+    },
+    {
+      "key": "lf-c024",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2393,
+        8115
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.52427738904953,
+      "token_jaccard": 0.5454545454545454
+    },
+    {
+      "key": "lf-c058",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2350,
+        9621
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.32150620222091675,
+      "token_jaccard": 0.2222222222222222
+    },
+    {
+      "key": "lf-c071",
+      "partition": "official_eval_overlap",
+      "programs": [
+        510,
+        639
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.9360697269439697,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "lf-c089",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2383,
+        12766
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.606502115726471,
+      "token_jaccard": 0.5555555555555556
+    },
+    {
+      "key": "lf-c110",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10208,
+        10330
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.4160618782043457,
+      "token_jaccard": 0.7391304347826086
+    },
+    {
+      "key": "lf-c118",
+      "partition": "cross_style_holdout",
+      "programs": [
+        1359,
+        5969
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.329440712928772,
+      "token_jaccard": 0.7916666666666666
+    },
+    {
+      "key": "lf-c135",
+      "partition": "cross_style_holdout",
+      "programs": [
+        188,
+        229
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.462741494178772,
+      "token_jaccard": 0.6842105263157895
+    },
+    {
+      "key": "lf-c146",
+      "partition": "cross_style_holdout",
+      "programs": [
+        8118,
+        8119
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.9281800985336304,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "lf-c158",
+      "partition": "cross_style_holdout",
+      "programs": [
+        6256,
+        9128
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.35223037004470825,
+      "token_jaccard": 0.7619047619047619
+    },
+    {
+      "key": "lf-c159",
+      "partition": "cross_style_holdout",
+      "programs": [
+        5716,
+        5717
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.7749209403991699,
+      "token_jaccard": 0.8095238095238095
+    },
+    {
+      "key": "lf-c161",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10182,
+        5707
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.6240757703781128,
+      "token_jaccard": 0.625
+    },
+    {
+      "key": "lf-c162",
+      "partition": "cross_style_holdout",
+      "programs": [
+        227,
+        1240
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.7745834589004517,
+      "token_jaccard": 0.8888888888888888
+    },
+    {
+      "key": "lf-c184",
+      "partition": "cross_style_holdout",
+      "programs": [
+        38,
+        6263
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.4841393232345581,
+      "token_jaccard": 0.7083333333333334
+    },
+    {
+      "key": "lf-c186",
+      "partition": "cross_style_holdout",
+      "programs": [
+        8139,
+        6268
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.8573915958404541,
+      "token_jaccard": 0.6428571428571429
+    },
+    {
+      "key": "lf-c201",
+      "partition": "cross_style_holdout",
+      "programs": [
+        1336,
+        2316
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.8580700159072876,
+      "token_jaccard": 0.9285714285714286
+    },
+    {
+      "key": "lf-c216",
+      "partition": "cross_style_holdout",
+      "programs": [
+        9997,
+        9085
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.5697194337844849,
+      "token_jaccard": 0.7916666666666666
+    },
+    {
+      "key": "lf-c218",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2392,
+        6265
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.6165308952331543,
+      "token_jaccard": 0.7333333333333333
+    },
+    {
+      "key": "lf-c221",
+      "partition": "cross_style_holdout",
+      "programs": [
+        1147,
+        1137
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.9754961133003235,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "lf-c226",
+      "partition": "cross_style_holdout",
+      "programs": [
+        5970,
+        8095
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.036351315677165985,
+      "token_jaccard": 0.7619047619047619
+    },
+    {
+      "key": "lf-c244",
+      "partition": "cross_style_holdout",
+      "programs": [
+        181,
+        180
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.9320152997970581,
+      "token_jaccard": 0.8461538461538461
+    },
+    {
+      "key": "lf-c249",
+      "partition": "cross_style_holdout",
+      "programs": [
+        5977,
+        5978
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.42886143922805786,
+      "token_jaccard": 0.7142857142857143
+    },
+    {
+      "key": "maximum_drawdown",
+      "partition": "cross_style_holdout",
+      "programs": [
+        12798,
+        10193
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.7282891869544983,
+      "token_jaccard": 0.5909090909090909
+    },
+    {
+      "key": "maximum_drawdown",
+      "partition": "cross_style_holdout",
+      "programs": [
+        12798,
+        10192
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.7356577515602112,
+      "token_jaccard": 0.7222222222222222
+    },
+    {
+      "key": "maximum_drawdown",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10193,
+        10192
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.9135939478874207,
+      "token_jaccard": 0.8
+    },
+    {
+      "key": "mbpp-430",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10537,
+        1261
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.8671570420265198,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "mbpp-571",
+      "partition": "cross_style_holdout",
+      "programs": [
+        852,
+        10420
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.6006568074226379,
+      "token_jaccard": 0.8333333333333334
+    },
+    {
+      "key": "mbpp-673",
+      "partition": "cross_style_holdout",
+      "programs": [
+        12771,
+        12784
+      ],
+      "styles": [
+        "sol",
+        "opus"
+      ],
+      "cosine": 0.9025659561157227,
+      "token_jaccard": 0.8888888888888888
+    },
+    {
+      "key": "minimum",
+      "partition": "cross_style_holdout",
+      "programs": [
+        12776,
+        12773
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.9551376104354858,
+      "token_jaccard": 0.8888888888888888
+    },
+    {
+      "key": "negate_each",
+      "partition": "official_eval",
+      "programs": [
+        504,
+        273
+      ],
+      "styles": [
+        "canonical",
+        "alternative"
+      ],
+      "cosine": 0.763611912727356,
+      "token_jaccard": 0.625
+    },
+    {
+      "key": "ordered_pair",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2429,
+        10465
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.7565557956695557,
+      "token_jaccard": 0.8
+    },
+    {
+      "key": "ordered_pair",
+      "partition": "cross_style_holdout",
+      "programs": [
+        2429,
+        1433
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.8349853157997131,
+      "token_jaccard": 0.875
+    },
+    {
+      "key": "ordered_pair",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10465,
+        1433
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.8825312256813049,
+      "token_jaccard": 0.7
+    },
+    {
+      "key": "positive_quadrant_count",
+      "partition": "cross_style_holdout",
+      "programs": [
+        9955,
+        503
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.6845251321792603,
+      "token_jaccard": 0.6363636363636364
+    },
+    {
+      "key": "positive_quadrant_count",
+      "partition": "cross_style_holdout",
+      "programs": [
+        9955,
+        10351
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.6773350238800049,
+      "token_jaccard": 0.75
+    },
+    {
+      "key": "positive_quadrant_count",
+      "partition": "cross_style_holdout",
+      "programs": [
+        503,
+        10351
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.7636590600013733,
+      "token_jaccard": 0.85
+    },
+    {
+      "key": "replace_zeros",
+      "partition": "cross_style_holdout",
+      "programs": [
+        854,
+        10534
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.43929120898246765,
+      "token_jaccard": 0.45
+    },
+    {
+      "key": "replace_zeros",
+      "partition": "cross_style_holdout",
+      "programs": [
+        854,
+        1227
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.4521180987358093,
+      "token_jaccard": 0.5294117647058824
+    },
+    {
+      "key": "replace_zeros",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10534,
+        1227
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.7865987420082092,
+      "token_jaccard": 0.8421052631578947
+    },
+    {
+      "key": "running_positive_streaks",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10337,
+        238
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.5552351474761963,
+      "token_jaccard": 0.7222222222222222
+    },
+    {
+      "key": "running_positive_streaks",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10337,
+        9984
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.5765719413757324,
+      "token_jaccard": 0.7647058823529411
+    },
+    {
+      "key": "running_positive_streaks",
+      "partition": "cross_style_holdout",
+      "programs": [
+        238,
+        9984
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.7039954662322998,
+      "token_jaccard": 0.9375
+    },
+    {
+      "key": "stable_sort_flat_pairs",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10372,
+        10390
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.7561821937561035,
+      "token_jaccard": 0.7
+    },
+    {
+      "key": "stable_sort_flat_pairs",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10372,
+        10396
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.7083331942558289,
+      "token_jaccard": 0.7
+    },
+    {
+      "key": "stable_sort_flat_pairs",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10390,
+        10396
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.9607346057891846,
+      "token_jaccard": 1.0
+    },
+    {
+      "key": "sum_inside_interval",
+      "partition": "cross_style_holdout",
+      "programs": [
+        873,
+        3860
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.8262090682983398,
+      "token_jaccard": 0.6666666666666666
+    },
+    {
+      "key": "sum_inside_interval",
+      "partition": "cross_style_holdout",
+      "programs": [
+        873,
+        690
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.8864300847053528,
+      "token_jaccard": 0.8333333333333334
+    },
+    {
+      "key": "sum_inside_interval",
+      "partition": "cross_style_holdout",
+      "programs": [
+        3860,
+        690
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.9094513654708862,
+      "token_jaccard": 0.6923076923076923
+    },
+    {
+      "key": "triangle_feasibility_flag",
+      "partition": "cross_style_holdout",
+      "programs": [
+        859,
+        10413
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.7068564891815186,
+      "token_jaccard": 0.5
+    },
+    {
+      "key": "triangle_feasibility_flag",
+      "partition": "cross_style_holdout",
+      "programs": [
+        859,
+        10419
+      ],
+      "styles": [
+        "canonical",
+        "refused"
+      ],
+      "cosine": 0.795011043548584,
+      "token_jaccard": 0.625
+    },
+    {
+      "key": "triangle_feasibility_flag",
+      "partition": "cross_style_holdout",
+      "programs": [
+        10413,
+        10419
+      ],
+      "styles": [
+        "staged",
+        "refused"
+      ],
+      "cosine": 0.6398212909698486,
+      "token_jaccard": 0.8235294117647058
+    },
+    {
+      "key": "zero_base_by_minimum",
+      "partition": "cross_style_holdout",
+      "programs": [
+        9919,
+        9914
+      ],
+      "styles": [
+        "canonical",
+        "staged"
+      ],
+      "cosine": 0.9581276774406433,
+      "token_jaccard": 0.9230769230769231
+    }
+  ],
+  "program_margins": [
+    {
+      "query": 717,
+      "key": "abs_each",
+      "positive_min_cosine": 0.6990832686424255,
+      "negative_max_cosine": 0.6900932192802429,
+      "margin": 0.008990049362182617,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1128,
+      "key": "abs_each",
+      "positive_min_cosine": 0.6990832686424255,
+      "negative_max_cosine": 0.6152000427246094,
+      "margin": 0.08388322591781616,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1129,
+      "key": "abs_each",
+      "positive_min_cosine": 0.7392086982727051,
+      "negative_max_cosine": 0.7358679175376892,
+      "margin": 0.003340780735015869,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 236,
+      "key": "all_positive",
+      "positive_min_cosine": 0.6222686171531677,
+      "negative_max_cosine": 0.6400214433670044,
+      "margin": -0.01775282621383667,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 663,
+      "key": "all_positive",
+      "positive_min_cosine": 0.6222686171531677,
+      "negative_max_cosine": 0.7250151634216309,
+      "margin": -0.10274654626846313,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2,
+      "key": "count_negative",
+      "positive_min_cosine": 0.8144100904464722,
+      "negative_max_cosine": 0.9006917476654053,
+      "margin": -0.0862816572189331,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 379,
+      "key": "count_negative",
+      "positive_min_cosine": 0.890640377998352,
+      "negative_max_cosine": 0.779604971408844,
+      "margin": 0.11103540658950806,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 425,
+      "key": "count_negative",
+      "positive_min_cosine": 0.8144100904464722,
+      "negative_max_cosine": 0.6885793209075928,
+      "margin": 0.1258307695388794,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 375,
+      "key": "count_zeros",
+      "positive_min_cosine": 0.8150513768196106,
+      "negative_max_cosine": 0.8587674498558044,
+      "margin": -0.04371607303619385,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 376,
+      "key": "count_zeros",
+      "positive_min_cosine": 0.8756022453308105,
+      "negative_max_cosine": 0.8359870910644531,
+      "margin": 0.03961515426635742,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 377,
+      "key": "count_zeros",
+      "positive_min_cosine": 0.8150513768196106,
+      "negative_max_cosine": 0.6913086771965027,
+      "margin": 0.12374269962310791,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 179,
+      "key": "dc-caesar-cipher-k-modulo-n-k3-n5",
+      "positive_min_cosine": 0.648385226726532,
+      "negative_max_cosine": 0.8786670565605164,
+      "margin": -0.23028182983398438,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 506,
+      "key": "dc-caesar-cipher-k-modulo-n-k3-n5",
+      "positive_min_cosine": 0.648385226726532,
+      "negative_max_cosine": 0.9155776500701904,
+      "margin": -0.26719242334365845,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 248,
+      "key": "dc-count-k-k3",
+      "positive_min_cosine": 0.72710782289505,
+      "negative_max_cosine": 0.942682683467865,
+      "margin": -0.21557486057281494,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 508,
+      "key": "dc-count-k-k3",
+      "positive_min_cosine": 0.72710782289505,
+      "negative_max_cosine": 0.8747817873954773,
+      "margin": -0.14767396450042725,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 207,
+      "key": "dc-count-k-k5",
+      "positive_min_cosine": 0.8017954230308533,
+      "negative_max_cosine": 0.942682683467865,
+      "margin": -0.14088726043701172,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 514,
+      "key": "dc-count-k-k5",
+      "positive_min_cosine": 0.8017954230308533,
+      "negative_max_cosine": 0.9085378646850586,
+      "margin": -0.10674244165420532,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2358,
+      "key": "dc-index-k-k2",
+      "positive_min_cosine": 0.616855263710022,
+      "negative_max_cosine": 0.9927099347114563,
+      "margin": -0.3758546710014343,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9971,
+      "key": "dc-index-k-k2",
+      "positive_min_cosine": 0.616855263710022,
+      "negative_max_cosine": 0.9704987406730652,
+      "margin": -0.3536434769630432,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2354,
+      "key": "dc-index-k-k3",
+      "positive_min_cosine": 0.6042051911354065,
+      "negative_max_cosine": 0.9989300966262817,
+      "margin": -0.39472490549087524,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9965,
+      "key": "dc-index-k-k3",
+      "positive_min_cosine": 0.6042051911354065,
+      "negative_max_cosine": 0.9704987406730652,
+      "margin": -0.3662935495376587,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 175,
+      "key": "dc-index-k-k5",
+      "positive_min_cosine": 0.5679599046707153,
+      "negative_max_cosine": 0.7833831310272217,
+      "margin": -0.21542322635650635,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2351,
+      "key": "dc-index-k-k5",
+      "positive_min_cosine": 0.5679599046707153,
+      "negative_max_cosine": 0.9995567798614502,
+      "margin": -0.43159687519073486,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 183,
+      "key": "dc-remove-mod-k-k3",
+      "positive_min_cosine": 0.7939752340316772,
+      "negative_max_cosine": 0.9134500026702881,
+      "margin": -0.11947476863861084,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 186,
+      "key": "dc-remove-mod-k-k3",
+      "positive_min_cosine": 0.7939752340316772,
+      "negative_max_cosine": 0.8465377688407898,
+      "margin": -0.05256253480911255,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 224,
+      "key": "dc-remove-mod-k-k4",
+      "positive_min_cosine": 0.8502570390701294,
+      "negative_max_cosine": 0.8465377688407898,
+      "margin": 0.0037192702293395996,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 259,
+      "key": "dc-remove-mod-k-k4",
+      "positive_min_cosine": 0.8502570390701294,
+      "negative_max_cosine": 0.9309669733047485,
+      "margin": -0.08070993423461914,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 209,
+      "key": "dc-remove-mod-k-k5",
+      "positive_min_cosine": 0.9576795697212219,
+      "negative_max_cosine": 0.8945626616477966,
+      "margin": 0.06311690807342529,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 257,
+      "key": "dc-remove-mod-k-k5",
+      "positive_min_cosine": 0.9576795697212219,
+      "negative_max_cosine": 0.8730489015579224,
+      "margin": 0.08463066816329956,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5878,
+      "key": "dc-replace-all-with-index-k-k2",
+      "positive_min_cosine": 0.6151236295700073,
+      "negative_max_cosine": 0.9232668876647949,
+      "margin": -0.3081432580947876,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 8098,
+      "key": "dc-replace-all-with-index-k-k2",
+      "positive_min_cosine": 0.6151236295700073,
+      "negative_max_cosine": 0.9755582809448242,
+      "margin": -0.3604346513748169,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5870,
+      "key": "dc-replace-all-with-index-k-k3",
+      "positive_min_cosine": 0.4773544669151306,
+      "negative_max_cosine": 0.9232668876647949,
+      "margin": -0.4459124207496643,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 8099,
+      "key": "dc-replace-all-with-index-k-k3",
+      "positive_min_cosine": 0.4773544669151306,
+      "negative_max_cosine": 0.9755582809448242,
+      "margin": -0.4982038140296936,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5875,
+      "key": "dc-replace-all-with-index-k-k4",
+      "positive_min_cosine": 0.5143066644668579,
+      "negative_max_cosine": 0.8767873644828796,
+      "margin": -0.36248070001602173,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 8104,
+      "key": "dc-replace-all-with-index-k-k4",
+      "positive_min_cosine": 0.5143066644668579,
+      "negative_max_cosine": 0.8978280425071716,
+      "margin": -0.3835213780403137,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 976,
+      "key": "dc-replace-all-with-index-k-k5",
+      "positive_min_cosine": 0.19520005583763123,
+      "negative_max_cosine": 0.6094087362289429,
+      "margin": -0.41420868039131165,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 6271,
+      "key": "dc-replace-all-with-index-k-k5",
+      "positive_min_cosine": 0.19520005583763123,
+      "negative_max_cosine": 0.5806155204772949,
+      "margin": -0.3854154646396637,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2923,
+      "key": "distance_from_target_total",
+      "positive_min_cosine": 0.7494595050811768,
+      "negative_max_cosine": 0.9002301692962646,
+      "margin": -0.1507706642150879,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 3352,
+      "key": "distance_from_target_total",
+      "positive_min_cosine": 0.7494595050811768,
+      "negative_max_cosine": 0.6559309363365173,
+      "margin": 0.09352856874465942,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 3608,
+      "key": "distance_from_target_total",
+      "positive_min_cosine": 0.7842669486999512,
+      "negative_max_cosine": 0.8077542781829834,
+      "margin": -0.023487329483032227,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 519,
+      "key": "double_each",
+      "positive_min_cosine": 0.6795145273208618,
+      "negative_max_cosine": 0.8504195213317871,
+      "margin": -0.1709049940109253,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1231,
+      "key": "double_each",
+      "positive_min_cosine": 0.6795145273208618,
+      "negative_max_cosine": 0.8329335451126099,
+      "margin": -0.15341901779174805,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10371,
+      "key": "flat_pair_maxima",
+      "positive_min_cosine": 0.4775632917881012,
+      "negative_max_cosine": 0.8733318448066711,
+      "margin": -0.39576855301856995,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10397,
+      "key": "flat_pair_maxima",
+      "positive_min_cosine": 0.5010515451431274,
+      "negative_max_cosine": 0.7251598834991455,
+      "margin": -0.22410833835601807,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10399,
+      "key": "flat_pair_maxima",
+      "positive_min_cosine": 0.4775632917881012,
+      "negative_max_cosine": 0.6049139499664307,
+      "margin": -0.12735065817832947,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 35,
+      "key": "hamming_distance",
+      "positive_min_cosine": 0.7487200498580933,
+      "negative_max_cosine": 0.9255291819572449,
+      "margin": -0.1768091320991516,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 877,
+      "key": "hamming_distance",
+      "positive_min_cosine": 0.7487200498580933,
+      "negative_max_cosine": 0.8370177745819092,
+      "margin": -0.08829772472381592,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 878,
+      "key": "hamming_distance",
+      "positive_min_cosine": 0.7615888118743896,
+      "negative_max_cosine": 0.8217809200286865,
+      "margin": -0.060192108154296875,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 642,
+      "key": "increment_each",
+      "positive_min_cosine": 0.8658918142318726,
+      "negative_max_cosine": 0.8943603038787842,
+      "margin": -0.02846848964691162,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 658,
+      "key": "increment_each",
+      "positive_min_cosine": 0.8658918142318726,
+      "negative_max_cosine": 0.7912812232971191,
+      "margin": 0.07461059093475342,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 674,
+      "key": "interval_overlap_length",
+      "positive_min_cosine": 0.6751759052276611,
+      "negative_max_cosine": 0.6690756678581238,
+      "margin": 0.0061002373695373535,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 689,
+      "key": "interval_overlap_length",
+      "positive_min_cosine": 0.5654792189598083,
+      "negative_max_cosine": 0.9625973701477051,
+      "margin": -0.39711815118789673,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 3859,
+      "key": "interval_overlap_length",
+      "positive_min_cosine": 0.5654792189598083,
+      "negative_max_cosine": 0.7712585926055908,
+      "margin": -0.20577937364578247,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1,
+      "key": "largest_magnitude",
+      "positive_min_cosine": 0.658380389213562,
+      "negative_max_cosine": 0.7480604648590088,
+      "margin": -0.08968007564544678,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5,
+      "key": "largest_magnitude",
+      "positive_min_cosine": 0.640501856803894,
+      "negative_max_cosine": 0.8599419593811035,
+      "margin": -0.21944010257720947,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 466,
+      "key": "largest_magnitude",
+      "positive_min_cosine": 0.640501856803894,
+      "negative_max_cosine": 0.547127902507782,
+      "margin": 0.09337395429611206,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10434,
+      "key": "lb-005",
+      "positive_min_cosine": 0.7014405727386475,
+      "negative_max_cosine": 0.46418219804763794,
+      "margin": 0.23725837469100952,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10542,
+      "key": "lb-005",
+      "positive_min_cosine": 0.7014405727386475,
+      "negative_max_cosine": 0.6370960474014282,
+      "margin": 0.06434452533721924,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2307,
+      "key": "lb-008",
+      "positive_min_cosine": 0.682316243648529,
+      "negative_max_cosine": 0.6270246505737305,
+      "margin": 0.055291593074798584,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10438,
+      "key": "lb-008",
+      "positive_min_cosine": 0.682316243648529,
+      "negative_max_cosine": 0.6370960474014282,
+      "margin": 0.04522019624710083,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1146,
+      "key": "lb-018",
+      "positive_min_cosine": 0.7112952470779419,
+      "negative_max_cosine": 0.7686622142791748,
+      "margin": -0.05736696720123291,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1243,
+      "key": "lb-018",
+      "positive_min_cosine": 0.7112952470779419,
+      "negative_max_cosine": 0.7081682682037354,
+      "margin": 0.003126978874206543,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1178,
+      "key": "lb-023",
+      "positive_min_cosine": 0.9687055349349976,
+      "negative_max_cosine": 0.6900932192802429,
+      "margin": 0.27861231565475464,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1191,
+      "key": "lb-023",
+      "positive_min_cosine": 0.9687055349349976,
+      "negative_max_cosine": 0.5965768098831177,
+      "margin": 0.3721287250518799,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1307,
+      "key": "lb-024",
+      "positive_min_cosine": 0.9086533188819885,
+      "negative_max_cosine": 0.6116161346435547,
+      "margin": 0.29703718423843384,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1308,
+      "key": "lb-024",
+      "positive_min_cosine": 0.9086533188819885,
+      "negative_max_cosine": 0.5425774455070496,
+      "margin": 0.36607587337493896,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 855,
+      "key": "lb-032",
+      "positive_min_cosine": 0.903818666934967,
+      "negative_max_cosine": 0.8510864973068237,
+      "margin": 0.05273216962814331,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 870,
+      "key": "lb-032",
+      "positive_min_cosine": 0.903818666934967,
+      "negative_max_cosine": 0.7455270290374756,
+      "margin": 0.15829163789749146,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10430,
+      "key": "lb-056",
+      "positive_min_cosine": 0.8767640590667725,
+      "negative_max_cosine": 0.5505676865577698,
+      "margin": 0.3261963725090027,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10436,
+      "key": "lb-056",
+      "positive_min_cosine": 0.8767640590667725,
+      "negative_max_cosine": 0.6093979477882385,
+      "margin": 0.26736611127853394,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5719,
+      "key": "lb-078",
+      "positive_min_cosine": 0.571853518486023,
+      "negative_max_cosine": 0.6843174695968628,
+      "margin": -0.11246395111083984,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9943,
+      "key": "lb-078",
+      "positive_min_cosine": 0.571853518486023,
+      "negative_max_cosine": 0.8537635207176208,
+      "margin": -0.2819100022315979,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2364,
+      "key": "lb-087",
+      "positive_min_cosine": 0.20626352727413177,
+      "negative_max_cosine": 0.504584014415741,
+      "margin": -0.2983204871416092,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 12783,
+      "key": "lb-087",
+      "positive_min_cosine": 0.20626352727413177,
+      "negative_max_cosine": 0.7892189621925354,
+      "margin": -0.5829554349184036,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 8728,
+      "key": "lb-089",
+      "positive_min_cosine": 0.3908672332763672,
+      "negative_max_cosine": 0.5094709992408752,
+      "margin": -0.11860376596450806,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9942,
+      "key": "lb-089",
+      "positive_min_cosine": 0.3908672332763672,
+      "negative_max_cosine": 0.3152405619621277,
+      "margin": 0.0756266713142395,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1333,
+      "key": "lb-095",
+      "positive_min_cosine": 0.8814154863357544,
+      "negative_max_cosine": 0.4547261595726013,
+      "margin": 0.4266893267631531,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 8117,
+      "key": "lb-095",
+      "positive_min_cosine": 0.8814154863357544,
+      "negative_max_cosine": 0.5650064945220947,
+      "margin": 0.31640899181365967,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2393,
+      "key": "lf-c024",
+      "positive_min_cosine": 0.52427738904953,
+      "negative_max_cosine": 0.5170018672943115,
+      "margin": 0.007275521755218506,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 8115,
+      "key": "lf-c024",
+      "positive_min_cosine": 0.52427738904953,
+      "negative_max_cosine": 0.751908540725708,
+      "margin": -0.22763115167617798,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2350,
+      "key": "lf-c058",
+      "positive_min_cosine": 0.32150620222091675,
+      "negative_max_cosine": 0.9997808933258057,
+      "margin": -0.6782746911048889,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9621,
+      "key": "lf-c058",
+      "positive_min_cosine": 0.32150620222091675,
+      "negative_max_cosine": 0.5324510335922241,
+      "margin": -0.21094483137130737,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 510,
+      "key": "lf-c071",
+      "positive_min_cosine": 0.9360697269439697,
+      "negative_max_cosine": 0.9197841882705688,
+      "margin": 0.01628553867340088,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 639,
+      "key": "lf-c071",
+      "positive_min_cosine": 0.9360697269439697,
+      "negative_max_cosine": 0.9454503655433655,
+      "margin": -0.009380638599395752,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2383,
+      "key": "lf-c089",
+      "positive_min_cosine": 0.606502115726471,
+      "negative_max_cosine": 0.7634116411209106,
+      "margin": -0.1569095253944397,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 12766,
+      "key": "lf-c089",
+      "positive_min_cosine": 0.606502115726471,
+      "negative_max_cosine": 0.8765429258346558,
+      "margin": -0.2700408101081848,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10208,
+      "key": "lf-c110",
+      "positive_min_cosine": 0.4160618782043457,
+      "negative_max_cosine": 0.6501604914665222,
+      "margin": -0.2340986132621765,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10330,
+      "key": "lf-c110",
+      "positive_min_cosine": 0.4160618782043457,
+      "negative_max_cosine": 0.743800163269043,
+      "margin": -0.32773828506469727,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1359,
+      "key": "lf-c118",
+      "positive_min_cosine": 0.329440712928772,
+      "negative_max_cosine": 0.18934890627861023,
+      "margin": 0.14009180665016174,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5969,
+      "key": "lf-c118",
+      "positive_min_cosine": 0.329440712928772,
+      "negative_max_cosine": 0.379145085811615,
+      "margin": -0.04970437288284302,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 188,
+      "key": "lf-c135",
+      "positive_min_cosine": 0.462741494178772,
+      "negative_max_cosine": 0.409575879573822,
+      "margin": 0.05316561460494995,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 229,
+      "key": "lf-c135",
+      "positive_min_cosine": 0.462741494178772,
+      "negative_max_cosine": 0.41894179582595825,
+      "margin": 0.04379969835281372,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 8118,
+      "key": "lf-c146",
+      "positive_min_cosine": 0.9281800985336304,
+      "negative_max_cosine": 0.6032145023345947,
+      "margin": 0.32496559619903564,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 8119,
+      "key": "lf-c146",
+      "positive_min_cosine": 0.9281800985336304,
+      "negative_max_cosine": 0.38736629486083984,
+      "margin": 0.5408138036727905,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 6256,
+      "key": "lf-c158",
+      "positive_min_cosine": 0.35223037004470825,
+      "negative_max_cosine": 0.6805269718170166,
+      "margin": -0.32829660177230835,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9128,
+      "key": "lf-c158",
+      "positive_min_cosine": 0.35223037004470825,
+      "negative_max_cosine": 0.40966832637786865,
+      "margin": -0.0574379563331604,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5716,
+      "key": "lf-c159",
+      "positive_min_cosine": 0.7749209403991699,
+      "negative_max_cosine": 0.6536810398101807,
+      "margin": 0.12123990058898926,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5717,
+      "key": "lf-c159",
+      "positive_min_cosine": 0.7749209403991699,
+      "negative_max_cosine": 0.4795090854167938,
+      "margin": 0.2954118549823761,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5707,
+      "key": "lf-c161",
+      "positive_min_cosine": 0.6240757703781128,
+      "negative_max_cosine": 0.7531152367591858,
+      "margin": -0.129039466381073,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10182,
+      "key": "lf-c161",
+      "positive_min_cosine": 0.6240757703781128,
+      "negative_max_cosine": 0.7141008377075195,
+      "margin": -0.09002506732940674,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 227,
+      "key": "lf-c162",
+      "positive_min_cosine": 0.7745834589004517,
+      "negative_max_cosine": 0.6828386783599854,
+      "margin": 0.09174478054046631,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1240,
+      "key": "lf-c162",
+      "positive_min_cosine": 0.7745834589004517,
+      "negative_max_cosine": 0.7342750430107117,
+      "margin": 0.04030841588973999,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 38,
+      "key": "lf-c184",
+      "positive_min_cosine": 0.4841393232345581,
+      "negative_max_cosine": 0.6978732943534851,
+      "margin": -0.213733971118927,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 6263,
+      "key": "lf-c184",
+      "positive_min_cosine": 0.4841393232345581,
+      "negative_max_cosine": 0.7149091958999634,
+      "margin": -0.23076987266540527,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 6268,
+      "key": "lf-c186",
+      "positive_min_cosine": 0.8573915958404541,
+      "negative_max_cosine": 0.5897647142410278,
+      "margin": 0.26762688159942627,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 8139,
+      "key": "lf-c186",
+      "positive_min_cosine": 0.8573915958404541,
+      "negative_max_cosine": 0.7920001745223999,
+      "margin": 0.0653914213180542,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1336,
+      "key": "lf-c201",
+      "positive_min_cosine": 0.8580700159072876,
+      "negative_max_cosine": 0.6482141017913818,
+      "margin": 0.20985591411590576,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2316,
+      "key": "lf-c201",
+      "positive_min_cosine": 0.8580700159072876,
+      "negative_max_cosine": 0.7595255374908447,
+      "margin": 0.09854447841644287,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9085,
+      "key": "lf-c216",
+      "positive_min_cosine": 0.5697194337844849,
+      "negative_max_cosine": 0.8223162293434143,
+      "margin": -0.25259679555892944,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9997,
+      "key": "lf-c216",
+      "positive_min_cosine": 0.5697194337844849,
+      "negative_max_cosine": 0.6415854692459106,
+      "margin": -0.07186603546142578,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2392,
+      "key": "lf-c218",
+      "positive_min_cosine": 0.6165308952331543,
+      "negative_max_cosine": 0.6502747535705566,
+      "margin": -0.033743858337402344,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 6265,
+      "key": "lf-c218",
+      "positive_min_cosine": 0.6165308952331543,
+      "negative_max_cosine": 0.49184203147888184,
+      "margin": 0.12468886375427246,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1137,
+      "key": "lf-c221",
+      "positive_min_cosine": 0.9754961133003235,
+      "negative_max_cosine": 0.8081808686256409,
+      "margin": 0.16731524467468262,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1147,
+      "key": "lf-c221",
+      "positive_min_cosine": 0.9754961133003235,
+      "negative_max_cosine": 0.8098174333572388,
+      "margin": 0.16567867994308472,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5970,
+      "key": "lf-c226",
+      "positive_min_cosine": 0.036351315677165985,
+      "negative_max_cosine": 0.3242967128753662,
+      "margin": -0.2879453971982002,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 8095,
+      "key": "lf-c226",
+      "positive_min_cosine": 0.036351315677165985,
+      "negative_max_cosine": 0.6411170959472656,
+      "margin": -0.6047657802700996,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 180,
+      "key": "lf-c244",
+      "positive_min_cosine": 0.9320152997970581,
+      "negative_max_cosine": 0.7464333772659302,
+      "margin": 0.18558192253112793,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 181,
+      "key": "lf-c244",
+      "positive_min_cosine": 0.9320152997970581,
+      "negative_max_cosine": 0.8111788034439087,
+      "margin": 0.12083649635314941,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5977,
+      "key": "lf-c249",
+      "positive_min_cosine": 0.42886143922805786,
+      "negative_max_cosine": 0.4939940869808197,
+      "margin": -0.06513264775276184,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 5978,
+      "key": "lf-c249",
+      "positive_min_cosine": 0.42886143922805786,
+      "negative_max_cosine": 0.36135557293891907,
+      "margin": 0.0675058662891388,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10192,
+      "key": "maximum_drawdown",
+      "positive_min_cosine": 0.7356577515602112,
+      "negative_max_cosine": 0.8929643630981445,
+      "margin": -0.15730661153793335,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10193,
+      "key": "maximum_drawdown",
+      "positive_min_cosine": 0.7282891869544983,
+      "negative_max_cosine": 0.8929609060287476,
+      "margin": -0.16467171907424927,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 12798,
+      "key": "maximum_drawdown",
+      "positive_min_cosine": 0.7282891869544983,
+      "negative_max_cosine": 0.9441587924957275,
+      "margin": -0.21586960554122925,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1261,
+      "key": "mbpp-430",
+      "positive_min_cosine": 0.8671570420265198,
+      "negative_max_cosine": 0.7232979536056519,
+      "margin": 0.14385908842086792,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10537,
+      "key": "mbpp-430",
+      "positive_min_cosine": 0.8671570420265198,
+      "negative_max_cosine": 0.6883842945098877,
+      "margin": 0.17877274751663208,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 852,
+      "key": "mbpp-571",
+      "positive_min_cosine": 0.6006568074226379,
+      "negative_max_cosine": 0.5559720993041992,
+      "margin": 0.04468470811843872,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10420,
+      "key": "mbpp-571",
+      "positive_min_cosine": 0.6006568074226379,
+      "negative_max_cosine": 0.4398353099822998,
+      "margin": 0.16082149744033813,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 12771,
+      "key": "mbpp-673",
+      "positive_min_cosine": 0.9025659561157227,
+      "negative_max_cosine": 0.4188370108604431,
+      "margin": 0.48372894525527954,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 12784,
+      "key": "mbpp-673",
+      "positive_min_cosine": 0.9025659561157227,
+      "negative_max_cosine": 0.48175132274627686,
+      "margin": 0.4208146333694458,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 12773,
+      "key": "minimum",
+      "positive_min_cosine": 0.9551376104354858,
+      "negative_max_cosine": 0.980864405632019,
+      "margin": -0.025726795196533203,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 12776,
+      "key": "minimum",
+      "positive_min_cosine": 0.9551376104354858,
+      "negative_max_cosine": 0.9566788673400879,
+      "margin": -0.0015412569046020508,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 273,
+      "key": "negate_each",
+      "positive_min_cosine": 0.763611912727356,
+      "negative_max_cosine": 0.7271193265914917,
+      "margin": 0.03649258613586426,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 504,
+      "key": "negate_each",
+      "positive_min_cosine": 0.763611912727356,
+      "negative_max_cosine": 0.6909364461898804,
+      "margin": 0.07267546653747559,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1433,
+      "key": "ordered_pair",
+      "positive_min_cosine": 0.8349853157997131,
+      "negative_max_cosine": 0.8730250000953674,
+      "margin": -0.0380396842956543,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 2429,
+      "key": "ordered_pair",
+      "positive_min_cosine": 0.7565557956695557,
+      "negative_max_cosine": 0.7252359390258789,
+      "margin": 0.03131985664367676,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10465,
+      "key": "ordered_pair",
+      "positive_min_cosine": 0.7565557956695557,
+      "negative_max_cosine": 0.7396152019500732,
+      "margin": 0.016940593719482422,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 503,
+      "key": "positive_quadrant_count",
+      "positive_min_cosine": 0.6845251321792603,
+      "negative_max_cosine": 0.6989996433258057,
+      "margin": -0.01447451114654541,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9955,
+      "key": "positive_quadrant_count",
+      "positive_min_cosine": 0.6773350238800049,
+      "negative_max_cosine": 0.930557906627655,
+      "margin": -0.25322288274765015,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10351,
+      "key": "positive_quadrant_count",
+      "positive_min_cosine": 0.6773350238800049,
+      "negative_max_cosine": 0.8424956202507019,
+      "margin": -0.16516059637069702,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 854,
+      "key": "replace_zeros",
+      "positive_min_cosine": 0.43929120898246765,
+      "negative_max_cosine": 0.7793980836868286,
+      "margin": -0.34010687470436096,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 1227,
+      "key": "replace_zeros",
+      "positive_min_cosine": 0.4521180987358093,
+      "negative_max_cosine": 0.47628054022789,
+      "margin": -0.02416244149208069,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10534,
+      "key": "replace_zeros",
+      "positive_min_cosine": 0.43929120898246765,
+      "negative_max_cosine": 0.5323619842529297,
+      "margin": -0.09307077527046204,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 238,
+      "key": "running_positive_streaks",
+      "positive_min_cosine": 0.5552351474761963,
+      "negative_max_cosine": 0.4139598309993744,
+      "margin": 0.1412753164768219,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9984,
+      "key": "running_positive_streaks",
+      "positive_min_cosine": 0.5765719413757324,
+      "negative_max_cosine": 0.4875461757183075,
+      "margin": 0.08902576565742493,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10337,
+      "key": "running_positive_streaks",
+      "positive_min_cosine": 0.5552351474761963,
+      "negative_max_cosine": 0.482293963432312,
+      "margin": 0.07294118404388428,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10372,
+      "key": "stable_sort_flat_pairs",
+      "positive_min_cosine": 0.7083331942558289,
+      "negative_max_cosine": 0.7879310250282288,
+      "margin": -0.0795978307723999,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10390,
+      "key": "stable_sort_flat_pairs",
+      "positive_min_cosine": 0.7561821937561035,
+      "negative_max_cosine": 0.649588406085968,
+      "margin": 0.1065937876701355,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10396,
+      "key": "stable_sort_flat_pairs",
+      "positive_min_cosine": 0.7083331942558289,
+      "negative_max_cosine": 0.6405798196792603,
+      "margin": 0.0677533745765686,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 690,
+      "key": "sum_inside_interval",
+      "positive_min_cosine": 0.8864300847053528,
+      "negative_max_cosine": 0.9053922891616821,
+      "margin": -0.018962204456329346,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 873,
+      "key": "sum_inside_interval",
+      "positive_min_cosine": 0.8262090682983398,
+      "negative_max_cosine": 0.8944399952888489,
+      "margin": -0.06823092699050903,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 3860,
+      "key": "sum_inside_interval",
+      "positive_min_cosine": 0.8262090682983398,
+      "negative_max_cosine": 0.9055330753326416,
+      "margin": -0.07932400703430176,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 859,
+      "key": "triangle_feasibility_flag",
+      "positive_min_cosine": 0.7068564891815186,
+      "negative_max_cosine": 0.6628760099411011,
+      "margin": 0.04398047924041748,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10413,
+      "key": "triangle_feasibility_flag",
+      "positive_min_cosine": 0.6398212909698486,
+      "negative_max_cosine": 0.1707756519317627,
+      "margin": 0.46904563903808594,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 10419,
+      "key": "triangle_feasibility_flag",
+      "positive_min_cosine": 0.6398212909698486,
+      "negative_max_cosine": 0.8945885896682739,
+      "margin": -0.2547672986984253,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9914,
+      "key": "zero_base_by_minimum",
+      "positive_min_cosine": 0.9581276774406433,
+      "negative_max_cosine": 0.6531182527542114,
+      "margin": 0.3050094246864319,
+      "verified_negative_count": 20
+    },
+    {
+      "query": 9919,
+      "key": "zero_base_by_minimum",
+      "positive_min_cosine": 0.9581276774406433,
+      "negative_max_cosine": 0.7414710521697998,
+      "margin": 0.2166566252708435,
+      "verified_negative_count": 20
+    }
+  ],
+  "io_margins": [
+    {
+      "key": "adjacent_sign_change_count",
+      "positive_min_cosine": 0.5924972295761108,
+      "negative_max_cosine": 0.7376003861427307,
+      "margin": -0.14510315656661987,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "aligned_matches",
+      "positive_min_cosine": 0.5452122688293457,
+      "negative_max_cosine": 0.1688501089811325,
+      "margin": 0.3763621598482132,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "aligned_maxima",
+      "positive_min_cosine": 0.740921676158905,
+      "negative_max_cosine": 0.5997766256332397,
+      "margin": 0.14114505052566528,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "all_positive",
+      "positive_min_cosine": 0.45835214853286743,
+      "negative_max_cosine": 0.4834333658218384,
+      "margin": -0.025081217288970947,
+      "verified_negative_count": 36
+    },
+    {
+      "key": "axis_point_count",
+      "positive_min_cosine": 0.6123236417770386,
+      "negative_max_cosine": 0.5626665949821472,
+      "margin": 0.04965704679489136,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "bootstrap-000-03",
+      "positive_min_cosine": 0.7779504656791687,
+      "negative_max_cosine": 0.730903685092926,
+      "margin": 0.047046780586242676,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "bounds_cover_list_flag",
+      "positive_min_cosine": 0.4658180773258209,
+      "negative_max_cosine": 0.6118833422660828,
+      "margin": -0.14606526494026184,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "capped_sum",
+      "positive_min_cosine": 0.4613160789012909,
+      "negative_max_cosine": 0.49654167890548706,
+      "margin": -0.03522560000419617,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "cartesian_pair_sums",
+      "positive_min_cosine": 0.5617741346359253,
+      "negative_max_cosine": 0.6833525896072388,
+      "margin": -0.12157845497131348,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "concatenate_shorter_first",
+      "positive_min_cosine": 0.7580963373184204,
+      "negative_max_cosine": 0.6162117123603821,
+      "margin": 0.14188462495803833,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "count_in_range",
+      "positive_min_cosine": 0.6914247274398804,
+      "negative_max_cosine": 0.7630883455276489,
+      "margin": -0.07166361808776855,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "distinct_count_three",
+      "positive_min_cosine": 0.4058811366558075,
+      "negative_max_cosine": 0.5734430551528931,
+      "margin": -0.16756191849708557,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "double_each",
+      "positive_min_cosine": 0.4548371434211731,
+      "negative_max_cosine": 0.5398586988449097,
+      "margin": -0.08502155542373657,
+      "verified_negative_count": 40
+    },
+    {
+      "key": "drop_last",
+      "positive_min_cosine": 0.5531367063522339,
+      "negative_max_cosine": 0.5980005264282227,
+      "margin": -0.04486382007598877,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "farther_choice_from_target",
+      "positive_min_cosine": 0.35467761754989624,
+      "negative_max_cosine": 0.2777920961380005,
+      "margin": 0.07688552141189575,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "farthest_from_target_last_tie",
+      "positive_min_cosine": 0.604739785194397,
+      "negative_max_cosine": 0.6284184455871582,
+      "margin": -0.02367866039276123,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "furthest_squared_radius",
+      "positive_min_cosine": 0.594781219959259,
+      "negative_max_cosine": 0.5407835245132446,
+      "margin": 0.053997695446014404,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "halve_each",
+      "positive_min_cosine": 0.588916540145874,
+      "negative_max_cosine": 0.563269853591919,
+      "margin": 0.025646686553955078,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "increment_each",
+      "positive_min_cosine": 0.15402889251708984,
+      "negative_max_cosine": 0.3070083558559418,
+      "margin": -0.15297946333885193,
+      "verified_negative_count": 32
+    },
+    {
+      "key": "keep_ascending_pairs",
+      "positive_min_cosine": 0.5164245367050171,
+      "negative_max_cosine": 0.5177839994430542,
+      "margin": -0.0013594627380371094,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "keep_below",
+      "positive_min_cosine": 0.5369826555252075,
+      "negative_max_cosine": 0.6457760334014893,
+      "margin": -0.10879337787628174,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "keep_negative",
+      "positive_min_cosine": 0.4842418432235718,
+      "negative_max_cosine": 0.4995875060558319,
+      "margin": -0.015345662832260132,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "keep_positive",
+      "positive_min_cosine": 0.5832158327102661,
+      "negative_max_cosine": 0.6413803696632385,
+      "margin": -0.05816453695297241,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "keep_zeros",
+      "positive_min_cosine": 0.6237826347351074,
+      "negative_max_cosine": 0.6086249351501465,
+      "margin": 0.015157699584960938,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "largest_inside_interval",
+      "positive_min_cosine": 0.49043089151382446,
+      "negative_max_cosine": 0.7673492431640625,
+      "margin": -0.27691835165023804,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "lb-023",
+      "positive_min_cosine": 0.5658742785453796,
+      "negative_max_cosine": 0.2394813895225525,
+      "margin": 0.32639288902282715,
+      "verified_negative_count": 25
+    },
+    {
+      "key": "lexicographic_order",
+      "positive_min_cosine": 0.4390297830104828,
+      "negative_max_cosine": 0.47306597232818604,
+      "margin": -0.03403618931770325,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "lf-c071",
+      "positive_min_cosine": 0.17209473252296448,
+      "negative_max_cosine": 0.3519846200942993,
+      "margin": -0.17988988757133484,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "lf-c184",
+      "positive_min_cosine": 0.49002397060394287,
+      "negative_max_cosine": 0.5649449825286865,
+      "margin": -0.07492101192474365,
+      "verified_negative_count": 40
+    },
+    {
+      "key": "manhattan_point_radii",
+      "positive_min_cosine": 0.7713903188705444,
+      "negative_max_cosine": 0.6237633228302002,
+      "margin": 0.14762699604034424,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "mbpp-673",
+      "positive_min_cosine": 0.27222543954849243,
+      "negative_max_cosine": 0.4972385764122009,
+      "margin": -0.2250131368637085,
+      "verified_negative_count": 32
+    },
+    {
+      "key": "median_floor",
+      "positive_min_cosine": 0.3446175158023834,
+      "negative_max_cosine": 0.5068163871765137,
+      "margin": -0.16219887137413025,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "min_pair",
+      "positive_min_cosine": 0.5786288380622864,
+      "negative_max_cosine": 0.5687189698219299,
+      "margin": 0.009909868240356445,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "minimum_cross_list_gap",
+      "positive_min_cosine": 0.3354858160018921,
+      "negative_max_cosine": 0.2835516929626465,
+      "margin": 0.051934123039245605,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "n_minus_each",
+      "positive_min_cosine": 0.6015332341194153,
+      "negative_max_cosine": 0.6132192611694336,
+      "margin": -0.01168602705001831,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "nearest_interval_endpoint_each",
+      "positive_min_cosine": 0.5713921785354614,
+      "negative_max_cosine": 0.43809688091278076,
+      "margin": 0.13329529762268066,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "negate_each",
+      "positive_min_cosine": 0.3621038794517517,
+      "negative_max_cosine": 0.5159558057785034,
+      "margin": -0.1538519263267517,
+      "verified_negative_count": 38
+    },
+    {
+      "key": "nondecreasing_indicator",
+      "positive_min_cosine": 0.10854527354240417,
+      "negative_max_cosine": 0.5463747978210449,
+      "margin": -0.43782952427864075,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pair_floor_averages",
+      "positive_min_cosine": 0.6424227356910706,
+      "negative_max_cosine": 0.5562897324562073,
+      "margin": 0.08613300323486328,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-0264c90e2f42986748c5",
+      "positive_min_cosine": 0.47521093487739563,
+      "negative_max_cosine": 0.6310668587684631,
+      "margin": -0.1558559238910675,
+      "verified_negative_count": 15
+    },
+    {
+      "key": "pbe-scale-02ebea896bfa9eaba3d6",
+      "positive_min_cosine": 0.6841510534286499,
+      "negative_max_cosine": 0.7472043037414551,
+      "margin": -0.06305325031280518,
+      "verified_negative_count": 19
+    },
+    {
+      "key": "pbe-scale-07bc2cfdc0715695d0f7",
+      "positive_min_cosine": 0.5641696453094482,
+      "negative_max_cosine": 0.7059707045555115,
+      "margin": -0.14180105924606323,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-10f129f4ae07f2433373",
+      "positive_min_cosine": 0.8129976391792297,
+      "negative_max_cosine": 0.8112955093383789,
+      "margin": 0.00170212984085083,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-1175cdcda882f48cc396",
+      "positive_min_cosine": 0.7199639081954956,
+      "negative_max_cosine": 0.712609052658081,
+      "margin": 0.007354855537414551,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-154123c61b4f36ee2f14",
+      "positive_min_cosine": 0.8096895217895508,
+      "negative_max_cosine": 0.8302816152572632,
+      "margin": -0.020592093467712402,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-198afba5e55b1d40ad60",
+      "positive_min_cosine": 0.7062803506851196,
+      "negative_max_cosine": 0.7308794856071472,
+      "margin": -0.024599134922027588,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-1ea1a8538a3c1ccd8060",
+      "positive_min_cosine": 0.7241387367248535,
+      "negative_max_cosine": 0.7559140920639038,
+      "margin": -0.03177535533905029,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-2054a6e1ab9fda6758bc",
+      "positive_min_cosine": 0.8426462411880493,
+      "negative_max_cosine": 0.829869270324707,
+      "margin": 0.012776970863342285,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-2480ff258cb813258851",
+      "positive_min_cosine": 0.5839224457740784,
+      "negative_max_cosine": 0.6602640151977539,
+      "margin": -0.07634156942367554,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-2536f468e6dc61f9935b",
+      "positive_min_cosine": 0.6728888750076294,
+      "negative_max_cosine": 0.7121940851211548,
+      "margin": -0.03930521011352539,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-25427108feb2d0d1f8af",
+      "positive_min_cosine": 0.7211025953292847,
+      "negative_max_cosine": 0.7574230432510376,
+      "margin": -0.03632044792175293,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-2654dcc79c8c2ca4e39f",
+      "positive_min_cosine": 0.7335683107376099,
+      "negative_max_cosine": 0.7746732234954834,
+      "margin": -0.041104912757873535,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-270c31044fd05bb9de19",
+      "positive_min_cosine": 0.8019272089004517,
+      "negative_max_cosine": 0.8071110248565674,
+      "margin": -0.005183815956115723,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-29207571847ec1e03249",
+      "positive_min_cosine": 0.6053735613822937,
+      "negative_max_cosine": 0.6131583452224731,
+      "margin": -0.007784783840179443,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-296041f11a2eaaed24ba",
+      "positive_min_cosine": 0.7751524448394775,
+      "negative_max_cosine": 0.7406421303749084,
+      "margin": 0.03451031446456909,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-2f0b585e19ae3811a6c9",
+      "positive_min_cosine": 0.8144965767860413,
+      "negative_max_cosine": 0.8288314342498779,
+      "margin": -0.01433485746383667,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-31f2952fcca5c1b16842",
+      "positive_min_cosine": 0.6770889759063721,
+      "negative_max_cosine": 0.7572286128997803,
+      "margin": -0.0801396369934082,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-32bcd94b7528deb1bb55",
+      "positive_min_cosine": 0.6470832228660583,
+      "negative_max_cosine": 0.7659748196601868,
+      "margin": -0.11889159679412842,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-36645990024b181c7fa2",
+      "positive_min_cosine": 0.6933989524841309,
+      "negative_max_cosine": 0.6476147174835205,
+      "margin": 0.04578423500061035,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-370f66667023b2523ce9",
+      "positive_min_cosine": 0.6716972589492798,
+      "negative_max_cosine": 0.7713643908500671,
+      "margin": -0.09966713190078735,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-38ac0b3dd89e90e59c5f",
+      "positive_min_cosine": 0.7619035243988037,
+      "negative_max_cosine": 0.7094894647598267,
+      "margin": 0.05241405963897705,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-3c5da1abadc6907c9705",
+      "positive_min_cosine": 0.6625779271125793,
+      "negative_max_cosine": 0.7003803253173828,
+      "margin": -0.03780239820480347,
+      "verified_negative_count": 19
+    },
+    {
+      "key": "pbe-scale-3c605ff37f9c08cc8715",
+      "positive_min_cosine": 0.7040771245956421,
+      "negative_max_cosine": 0.7517088055610657,
+      "margin": -0.047631680965423584,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-3ce34a5a28425b4f2187",
+      "positive_min_cosine": 0.6662136316299438,
+      "negative_max_cosine": 0.669677734375,
+      "margin": -0.0034641027450561523,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-3ef712a995546ff25402",
+      "positive_min_cosine": 0.6637564301490784,
+      "negative_max_cosine": 0.687504768371582,
+      "margin": -0.023748338222503662,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-3f21f69804386b508cdd",
+      "positive_min_cosine": 0.7173081636428833,
+      "negative_max_cosine": 0.7776581048965454,
+      "margin": -0.06034994125366211,
+      "verified_negative_count": 19
+    },
+    {
+      "key": "pbe-scale-3fac983928d46e3728f2",
+      "positive_min_cosine": 0.7800698280334473,
+      "negative_max_cosine": 0.7767424583435059,
+      "margin": 0.0033273696899414062,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-4818df2a8eaa3415da11",
+      "positive_min_cosine": 0.7188101410865784,
+      "negative_max_cosine": 0.7180561423301697,
+      "margin": 0.0007539987564086914,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-4d49000a60c70737df1d",
+      "positive_min_cosine": 0.7193870544433594,
+      "negative_max_cosine": 0.7135683298110962,
+      "margin": 0.005818724632263184,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-4fcdd68a158bc7121166",
+      "positive_min_cosine": 0.80166095495224,
+      "negative_max_cosine": 0.7879148125648499,
+      "margin": 0.013746142387390137,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-5067d94809b12e5f3869",
+      "positive_min_cosine": 0.6547472476959229,
+      "negative_max_cosine": 0.7129111289978027,
+      "margin": -0.05816388130187988,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-50c40ba4095d4acbb7fc",
+      "positive_min_cosine": 0.731134295463562,
+      "negative_max_cosine": 0.7589500546455383,
+      "margin": -0.02781575918197632,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-518c571d5f569da313ad",
+      "positive_min_cosine": 0.7316432595252991,
+      "negative_max_cosine": 0.7779722809791565,
+      "margin": -0.04632902145385742,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-51fe961a62f12ef46e32",
+      "positive_min_cosine": 0.8196457624435425,
+      "negative_max_cosine": 0.8393822908401489,
+      "margin": -0.019736528396606445,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-57781a7c6eb53c289568",
+      "positive_min_cosine": 0.8191288709640503,
+      "negative_max_cosine": 0.823574423789978,
+      "margin": -0.004445552825927734,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-57e64a11e23e192b5bf8",
+      "positive_min_cosine": 0.5954143404960632,
+      "negative_max_cosine": 0.7756398320198059,
+      "margin": -0.18022549152374268,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-5d63d94a4ee5a0bb3530",
+      "positive_min_cosine": 0.5710470676422119,
+      "negative_max_cosine": 0.6686018109321594,
+      "margin": -0.09755474328994751,
+      "verified_negative_count": 19
+    },
+    {
+      "key": "pbe-scale-5f6c3306d6dea783bf0e",
+      "positive_min_cosine": 0.7189568281173706,
+      "negative_max_cosine": 0.7108769416809082,
+      "margin": 0.008079886436462402,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-5fd1036499651564044d",
+      "positive_min_cosine": 0.7466774582862854,
+      "negative_max_cosine": 0.7400636672973633,
+      "margin": 0.006613790988922119,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-60ba3cfd7250a2cb6792",
+      "positive_min_cosine": 0.6640014052391052,
+      "negative_max_cosine": 0.6711486577987671,
+      "margin": -0.007147252559661865,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-6106d700e454f2a0c44c",
+      "positive_min_cosine": 0.7210217714309692,
+      "negative_max_cosine": 0.6111292243003845,
+      "margin": 0.10989254713058472,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-6899396b278d4a22f2a2",
+      "positive_min_cosine": 0.7138190269470215,
+      "negative_max_cosine": 0.7369845509529114,
+      "margin": -0.023165524005889893,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-69eeb379db608530b3be",
+      "positive_min_cosine": 0.7487187385559082,
+      "negative_max_cosine": 0.793461799621582,
+      "margin": -0.04474306106567383,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-6c5c8c93779681aaa44d",
+      "positive_min_cosine": 0.6169449090957642,
+      "negative_max_cosine": 0.6918554306030273,
+      "margin": -0.07491052150726318,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-6d0c53ea28ac9488f412",
+      "positive_min_cosine": 0.6828216314315796,
+      "negative_max_cosine": 0.6124969124794006,
+      "margin": 0.07032471895217896,
+      "verified_negative_count": 19
+    },
+    {
+      "key": "pbe-scale-6d9ee7344f1eb0d315f6",
+      "positive_min_cosine": 0.7232194542884827,
+      "negative_max_cosine": 0.7685452699661255,
+      "margin": -0.04532581567764282,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-70bbf202f9606c7bf9ac",
+      "positive_min_cosine": 0.5714364051818848,
+      "negative_max_cosine": 0.5973477959632874,
+      "margin": -0.025911390781402588,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-756dfd747a3da7148e3e",
+      "positive_min_cosine": 0.6871601343154907,
+      "negative_max_cosine": 0.6816941499710083,
+      "margin": 0.005465984344482422,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-75e9e64fb141ecf6fc3b",
+      "positive_min_cosine": 0.6391379237174988,
+      "negative_max_cosine": 0.6575119495391846,
+      "margin": -0.01837402582168579,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-75ec84346094fd465744",
+      "positive_min_cosine": 0.620869517326355,
+      "negative_max_cosine": 0.7469388842582703,
+      "margin": -0.12606936693191528,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-7bdd5e11c8849a5d2551",
+      "positive_min_cosine": 0.7776482105255127,
+      "negative_max_cosine": 0.7174665927886963,
+      "margin": 0.060181617736816406,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-7d04f3e9ebb1fc8521ee",
+      "positive_min_cosine": 0.6067261099815369,
+      "negative_max_cosine": 0.776519775390625,
+      "margin": -0.16979366540908813,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-7d0855ae949e583d7847",
+      "positive_min_cosine": 0.6322602033615112,
+      "negative_max_cosine": 0.6788421869277954,
+      "margin": -0.04658198356628418,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-7f8df95f5cf82ae9de1c",
+      "positive_min_cosine": 0.6071454882621765,
+      "negative_max_cosine": 0.7906208038330078,
+      "margin": -0.1834753155708313,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-844fee08724b55c32847",
+      "positive_min_cosine": 0.7583956718444824,
+      "negative_max_cosine": 0.8047264814376831,
+      "margin": -0.046330809593200684,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-8536719c9c6b4dcc4754",
+      "positive_min_cosine": 0.7319377660751343,
+      "negative_max_cosine": 0.7194812297821045,
+      "margin": 0.012456536293029785,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-8575deaeee1ed7b53d8b",
+      "positive_min_cosine": 0.7948881983757019,
+      "negative_max_cosine": 0.7813798189163208,
+      "margin": 0.013508379459381104,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-88fe42e39083b61dbbaf",
+      "positive_min_cosine": 0.7168757915496826,
+      "negative_max_cosine": 0.7489262223243713,
+      "margin": -0.03205043077468872,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-899cc73d5198e7424d99",
+      "positive_min_cosine": 0.7041703462600708,
+      "negative_max_cosine": 0.5493541955947876,
+      "margin": 0.1548161506652832,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-8cf26b648a7276896db5",
+      "positive_min_cosine": 0.7703221440315247,
+      "negative_max_cosine": 0.7658094763755798,
+      "margin": 0.004512667655944824,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-8e16bc32e7aaa2605c17",
+      "positive_min_cosine": 0.6960791349411011,
+      "negative_max_cosine": 0.6407989263534546,
+      "margin": 0.055280208587646484,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-8e34c9896b1c6232c39f",
+      "positive_min_cosine": 0.6231381297111511,
+      "negative_max_cosine": 0.5756509304046631,
+      "margin": 0.04748719930648804,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-8f776755716b0c2a5945",
+      "positive_min_cosine": 0.3813016712665558,
+      "negative_max_cosine": 0.2669723927974701,
+      "margin": 0.1143292784690857,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-9105ddc924690b8b7f60",
+      "positive_min_cosine": 0.7416119575500488,
+      "negative_max_cosine": 0.8181398510932922,
+      "margin": -0.07652789354324341,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-91d33a05aaa5357d603a",
+      "positive_min_cosine": 0.7911494970321655,
+      "negative_max_cosine": 0.7993829250335693,
+      "margin": -0.008233428001403809,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-93e6469003f09013d977",
+      "positive_min_cosine": 0.6226247549057007,
+      "negative_max_cosine": 0.20043854415416718,
+      "margin": 0.4221862107515335,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-9625e26a8ca18efb4718",
+      "positive_min_cosine": 0.7463072538375854,
+      "negative_max_cosine": 0.8282155990600586,
+      "margin": -0.08190834522247314,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-97493157c14ff0434e88",
+      "positive_min_cosine": 0.7296522855758667,
+      "negative_max_cosine": 0.7559875845909119,
+      "margin": -0.026335299015045166,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-97f8b68d9dfe6d10c8f6",
+      "positive_min_cosine": 0.6747247576713562,
+      "negative_max_cosine": 0.7609705924987793,
+      "margin": -0.0862458348274231,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-a0422d9424ad670ec60f",
+      "positive_min_cosine": 0.7328171133995056,
+      "negative_max_cosine": 0.7118034362792969,
+      "margin": 0.02101367712020874,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-a142abc4d2848eb52918",
+      "positive_min_cosine": 0.4415189027786255,
+      "negative_max_cosine": 0.6060385704040527,
+      "margin": -0.16451966762542725,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-a1ff4c05feb3871d7fe1",
+      "positive_min_cosine": 0.7012909054756165,
+      "negative_max_cosine": 0.6301625370979309,
+      "margin": 0.07112836837768555,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-a7cade3401a03293b423",
+      "positive_min_cosine": 0.504189133644104,
+      "negative_max_cosine": 0.5958178639411926,
+      "margin": -0.09162873029708862,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-b072ca8c241630ac589e",
+      "positive_min_cosine": 0.5890235304832458,
+      "negative_max_cosine": 0.6713330745697021,
+      "margin": -0.0823095440864563,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-b2fae59db1a8bcbf76d9",
+      "positive_min_cosine": 0.6818372011184692,
+      "negative_max_cosine": 0.6933045387268066,
+      "margin": -0.011467337608337402,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-b503f52fa07df25bde5a",
+      "positive_min_cosine": 0.758831799030304,
+      "negative_max_cosine": 0.856045126914978,
+      "margin": -0.09721332788467407,
+      "verified_negative_count": 19
+    },
+    {
+      "key": "pbe-scale-b84f137920744fac088f",
+      "positive_min_cosine": 0.6871976256370544,
+      "negative_max_cosine": 0.7709816694259644,
+      "margin": -0.08378404378890991,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-c05a258d6da617c42b2c",
+      "positive_min_cosine": 0.6907281279563904,
+      "negative_max_cosine": 0.6480675935745239,
+      "margin": 0.042660534381866455,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-c0f0a82c28da06f3497b",
+      "positive_min_cosine": 0.5855218172073364,
+      "negative_max_cosine": 0.6188413500785828,
+      "margin": -0.03331953287124634,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-c42bbc8f9a1f62fa181b",
+      "positive_min_cosine": 0.8623625040054321,
+      "negative_max_cosine": 0.6878838539123535,
+      "margin": 0.1744786500930786,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-c8042d0872eaf13d4f91",
+      "positive_min_cosine": 0.6942688226699829,
+      "negative_max_cosine": 0.7396981716156006,
+      "margin": -0.045429348945617676,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-cc22c292a8a6cc0caaca",
+      "positive_min_cosine": 0.8084993362426758,
+      "negative_max_cosine": 0.567844569683075,
+      "margin": 0.24065476655960083,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-cdd52899d1c1a4b95d8e",
+      "positive_min_cosine": 0.7719293832778931,
+      "negative_max_cosine": 0.7238678336143494,
+      "margin": 0.0480615496635437,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-ce2f8ac0938f951e12a5",
+      "positive_min_cosine": 0.7940395474433899,
+      "negative_max_cosine": 0.8060776591300964,
+      "margin": -0.012038111686706543,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-cfb1bd00859e166da4f6",
+      "positive_min_cosine": 0.833385705947876,
+      "negative_max_cosine": 0.8276807069778442,
+      "margin": 0.005704998970031738,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-d8cdedec7930f3e49317",
+      "positive_min_cosine": 0.45452621579170227,
+      "negative_max_cosine": 0.7242048978805542,
+      "margin": -0.26967868208885193,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-da03b7f78a0c70623dd0",
+      "positive_min_cosine": 0.6653581261634827,
+      "negative_max_cosine": 0.8265286087989807,
+      "margin": -0.16117048263549805,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-da258310cdfa61bb3e76",
+      "positive_min_cosine": 0.7764081954956055,
+      "negative_max_cosine": 0.8252865076065063,
+      "margin": -0.04887831211090088,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-df10be0f6e1296b58638",
+      "positive_min_cosine": 0.820838212966919,
+      "negative_max_cosine": 0.8222023844718933,
+      "margin": -0.0013641715049743652,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-df4ef7bc8b4e5fe61174",
+      "positive_min_cosine": 0.5568894743919373,
+      "negative_max_cosine": 0.7393592596054077,
+      "margin": -0.18246978521347046,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-e0a32240f3790c663342",
+      "positive_min_cosine": 0.7118210792541504,
+      "negative_max_cosine": 0.7369958162307739,
+      "margin": -0.025174736976623535,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-e17f26bc1fd4d257f51e",
+      "positive_min_cosine": 0.658812403678894,
+      "negative_max_cosine": 0.7376693487167358,
+      "margin": -0.0788569450378418,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-e19e1daea3eabdfac769",
+      "positive_min_cosine": 0.6965768337249756,
+      "negative_max_cosine": 0.7172624468803406,
+      "margin": -0.02068561315536499,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-e6a77864d0179cfb754d",
+      "positive_min_cosine": 0.7722667455673218,
+      "negative_max_cosine": 0.8135417103767395,
+      "margin": -0.041274964809417725,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-e7fecf05dab633b0107f",
+      "positive_min_cosine": 0.6540387272834778,
+      "negative_max_cosine": 0.7708132266998291,
+      "margin": -0.11677449941635132,
+      "verified_negative_count": 19
+    },
+    {
+      "key": "pbe-scale-e8e44d83353d59ab37ff",
+      "positive_min_cosine": 0.7499479055404663,
+      "negative_max_cosine": 0.7939013838768005,
+      "margin": -0.04395347833633423,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-eecd68ba4e4afd3ea893",
+      "positive_min_cosine": 0.6659193634986877,
+      "negative_max_cosine": 0.6811097860336304,
+      "margin": -0.015190422534942627,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-ef3a49a47f64a0f673a5",
+      "positive_min_cosine": 0.7257637977600098,
+      "negative_max_cosine": 0.7691152095794678,
+      "margin": -0.04335141181945801,
+      "verified_negative_count": 18
+    },
+    {
+      "key": "pbe-scale-f206d39dc33a363ebca8",
+      "positive_min_cosine": 0.7156183123588562,
+      "negative_max_cosine": 0.7376893758773804,
+      "margin": -0.02207106351852417,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-f555883af6e0a2327513",
+      "positive_min_cosine": 0.6841542720794678,
+      "negative_max_cosine": 0.7297811508178711,
+      "margin": -0.04562687873840332,
+      "verified_negative_count": 19
+    },
+    {
+      "key": "pbe-scale-f603b2229af873fb6979",
+      "positive_min_cosine": 0.6069827079772949,
+      "negative_max_cosine": 0.6915894746780396,
+      "margin": -0.08460676670074463,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-f843c5b89e74d7fbb6f9",
+      "positive_min_cosine": 0.6485967636108398,
+      "negative_max_cosine": 0.7053617835044861,
+      "margin": -0.05676501989364624,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-f888ac8c7f077c8356bb",
+      "positive_min_cosine": 0.5868291854858398,
+      "negative_max_cosine": 0.6972802877426147,
+      "margin": -0.1104511022567749,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-f997ede5875b4456376d",
+      "positive_min_cosine": 0.7730416655540466,
+      "negative_max_cosine": 0.7733254432678223,
+      "margin": -0.00028377771377563477,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-fc85f8536ecaa29bd9ec",
+      "positive_min_cosine": 0.6762397289276123,
+      "negative_max_cosine": 0.7355191707611084,
+      "margin": -0.059279441833496094,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-fca0f7eb521a36ec0d96",
+      "positive_min_cosine": 0.7493283748626709,
+      "negative_max_cosine": 0.7251911163330078,
+      "margin": 0.024137258529663086,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-fd72866c25c095ed6a53",
+      "positive_min_cosine": 0.8011735081672668,
+      "negative_max_cosine": 0.7254606485366821,
+      "margin": 0.07571285963058472,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-fe5d74ef2bb41c518df6",
+      "positive_min_cosine": 0.713752031326294,
+      "negative_max_cosine": 0.7486032843589783,
+      "margin": -0.034851253032684326,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "pbe-scale-ff1cdef34588b2e237d2",
+      "positive_min_cosine": 0.7288907170295715,
+      "negative_max_cosine": 0.712736964225769,
+      "margin": 0.01615375280380249,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "polyline_manhattan_length",
+      "positive_min_cosine": 0.2649695873260498,
+      "negative_max_cosine": 0.39793360233306885,
+      "margin": -0.13296401500701904,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "positive_balance_prefix_count",
+      "positive_min_cosine": 0.5345842242240906,
+      "negative_max_cosine": 0.493974506855011,
+      "margin": 0.04060971736907959,
+      "verified_negative_count": 19
+    },
+    {
+      "key": "positive_majority_three",
+      "positive_min_cosine": 0.6503263711929321,
+      "negative_max_cosine": 0.38437509536743164,
+      "margin": 0.2659512758255005,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "prefix_sums",
+      "positive_min_cosine": 0.4034947454929352,
+      "negative_max_cosine": 0.6107180118560791,
+      "margin": -0.20722326636314392,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "push_back",
+      "positive_min_cosine": 0.24314220249652863,
+      "negative_max_cosine": 0.48297563195228577,
+      "margin": -0.23983342945575714,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "replace_value",
+      "positive_min_cosine": 0.4059663712978363,
+      "negative_max_cosine": 0.5413597822189331,
+      "margin": -0.1353934109210968,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "reverse",
+      "positive_min_cosine": 0.504475474357605,
+      "negative_max_cosine": 0.6940633058547974,
+      "margin": -0.18958783149719238,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "rotate_left",
+      "positive_min_cosine": 0.5195992588996887,
+      "negative_max_cosine": 0.6167300343513489,
+      "margin": -0.09713077545166016,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000006-14",
+      "positive_min_cosine": 0.6720898151397705,
+      "negative_max_cosine": 0.605748176574707,
+      "margin": 0.06634163856506348,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000011-06",
+      "positive_min_cosine": 0.5229803323745728,
+      "negative_max_cosine": 0.5211669206619263,
+      "margin": 0.0018134117126464844,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000019-23",
+      "positive_min_cosine": 0.6905558109283447,
+      "negative_max_cosine": 0.7284765243530273,
+      "margin": -0.03792071342468262,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000021-14",
+      "positive_min_cosine": 0.7157437801361084,
+      "negative_max_cosine": 0.719657301902771,
+      "margin": -0.003913521766662598,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000033-22",
+      "positive_min_cosine": 0.7528961896896362,
+      "negative_max_cosine": 0.8214514851570129,
+      "margin": -0.06855529546737671,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000038-22",
+      "positive_min_cosine": 0.7457730770111084,
+      "negative_max_cosine": 0.7693941593170166,
+      "margin": -0.023621082305908203,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000049-06",
+      "positive_min_cosine": 0.6909054517745972,
+      "negative_max_cosine": 0.7200177907943726,
+      "margin": -0.02911233901977539,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000049-09",
+      "positive_min_cosine": 0.8014622926712036,
+      "negative_max_cosine": 0.7670339345932007,
+      "margin": 0.03442835807800293,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000057-12",
+      "positive_min_cosine": 0.5423139333724976,
+      "negative_max_cosine": 0.3131778836250305,
+      "margin": 0.22913604974746704,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000073-22",
+      "positive_min_cosine": 0.668017566204071,
+      "negative_max_cosine": 0.7654094696044922,
+      "margin": -0.09739190340042114,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000082-13",
+      "positive_min_cosine": 0.6523736715316772,
+      "negative_max_cosine": 0.7867599725723267,
+      "margin": -0.13438630104064941,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000082-14",
+      "positive_min_cosine": 0.6637922525405884,
+      "negative_max_cosine": 0.545256495475769,
+      "margin": 0.11853575706481934,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "scale-000088-12",
+      "positive_min_cosine": 0.6637837886810303,
+      "negative_max_cosine": 0.7222777605056763,
+      "margin": -0.058493971824645996,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "second_largest",
+      "positive_min_cosine": 0.5505101680755615,
+      "negative_max_cosine": 0.26543891429901123,
+      "margin": 0.2850712537765503,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "shared_value_occurrences",
+      "positive_min_cosine": 0.7549777030944824,
+      "negative_max_cosine": 0.6378670334815979,
+      "margin": 0.11711066961288452,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "span_inside_interval",
+      "positive_min_cosine": 0.21607579290866852,
+      "negative_max_cosine": 0.6719194650650024,
+      "margin": -0.4558436721563339,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "square_each",
+      "positive_min_cosine": 0.6578761339187622,
+      "negative_max_cosine": 0.6978326439857483,
+      "margin": -0.039956510066986084,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "stable_distinct_shared_values",
+      "positive_min_cosine": 0.48253166675567627,
+      "negative_max_cosine": 0.452090859413147,
+      "margin": 0.030440807342529297,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "sum_negative",
+      "positive_min_cosine": 0.5142579674720764,
+      "negative_max_cosine": 0.6079443693161011,
+      "margin": -0.09368640184402466,
+      "verified_negative_count": 20
+    },
+    {
+      "key": "widest_pair",
+      "positive_min_cosine": 0.4460994601249695,
+      "negative_max_cosine": 0.6324909329414368,
+      "margin": -0.18639147281646729,
+      "verified_negative_count": 20
+    }
+  ],
+  "distributions": {
+    "positive_cosine": {
+      "count": 102,
+      "mean": 0.7080769837633067,
+      "min": 0.036351315677165985,
+      "p05": 0.3541622132062912,
+      "p25": 0.6047794222831726,
+      "median": 0.7375377714633942,
+      "p75": 0.866840735077858,
+      "p95": 0.9550525784492493,
+      "max": 0.9754961133003235
+    },
+    "low_lexical_positive_cosine": {
+      "count": 1,
+      "mean": 0.32150620222091675,
+      "min": 0.32150620222091675,
+      "p05": 0.32150620222091675,
+      "p25": 0.32150620222091675,
+      "median": 0.32150620222091675,
+      "p75": 0.32150620222091675,
+      "p95": 0.32150620222091675,
+      "max": 0.32150620222091675
+    },
+    "program_margin": {
+      "count": 156,
+      "mean": -0.044144465086551815,
+      "min": -0.6782746911048889,
+      "p05": -0.39610595256090164,
+      "p25": -0.21164211630821228,
+      "median": -0.027097642421722412,
+      "p75": 0.08970551937818527,
+      "p95": 0.3252732902765274,
+      "max": 0.5408138036727905
+    },
+    "io_minimum_positive_cosine": {
+      "count": 177,
+      "mean": 0.634729614533947,
+      "min": 0.10854527354240417,
+      "p05": 0.3526655972003937,
+      "p25": 0.5710470676422119,
+      "median": 0.668017566204071,
+      "p75": 0.7316432595252991,
+      "p95": 0.8087373733520508,
+      "max": 0.8623625040054321
+    },
+    "io_margin": {
+      "count": 177,
+      "mean": -0.02771925690483912,
+      "min": -0.4558436721563339,
+      "p05": -0.1840585470199585,
+      "p25": -0.0823095440864563,
+      "median": -0.026335299015045166,
+      "p75": 0.013508379459381104,
+      "p95": 0.14906482696533194,
+      "max": 0.4221862107515335
+    }
+  },
+  "negative_execution_counts": {
+    "passed": 16,
+    "failed": 6100,
+    "unknown": 0
+  },
+  "protocol": "Descriptive, unweighted pairs; low lexical means token-set Jaccard <=0.3. Known positives are record-linked, not exhaustive semantic classes. Negatives fail shown examples among the 20 highest token-bag-cosine nonpositive candidates per program; incomplete executions are skipped. Program margin uses minimum different-style positive cosine minus maximum verified negative cosine. I/O margin uses minimum known-positive cosine minus maximum cosine across that record's pooled verified negatives. Five shown examples: exact evaluator views for sampled I/O queries; otherwise an independent Random(0) sample per record. No hidden examples or tuning.",
+  "provenance": {
+    "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+    "dirty": false,
+    "seed": 0,
+    "config": {
+      "dim": 128,
+      "hidden_dim": 128,
+      "byte_dim": 48,
+      "num_layers": 1,
+      "max_program_bytes": 16384,
+      "max_example_bytes": 16384
+    },
+    "data": {
+      "schema_version": 1,
+      "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+      "dirty": false,
+      "wandb_run.url": null,
+      "seed": 20261024,
+      "config": {
+        "split_policy": "template-and-all-witness-skeleton-components-v1",
+        "validation_share": 0.1,
+        "test_share": 0.1
+      },
+      "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+      "counts": {
+        "validation": 1224,
+        "test": 1290,
+        "train": 9707
+      },
+      "partitions": {
+        "cross_style_holdout": 2465,
+        "fit": 9707,
+        "official_eval": 45,
+        "official_eval_overlap": 4
+      },
+      "components": {
+        "count": 11469,
+        "largest": 23
+      },
+      "components_by_split": {
+        "train": 9116,
+        "validation": 1144,
+        "test": 1209
+      },
+      "cross_style_by_split": {
+        "validation": 47,
+        "test": 70,
+        "train": 367
+      },
+      "source_data_digests": {
+        "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+        "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+        "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+        "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+        "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+        "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+        "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+      },
+      "caveats": [
+        "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+        "Fewer than four distinct visible examples after hidden-input exclusion.",
+        "Held out because template or witness skeleton connects to official v4 eval.",
+        "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+        "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+      ],
+      "excluded_program_sha256": [
+        "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+      ],
+      "excluded_program_variants": 1
+    },
+    "checkpoint_metadata": {
+      "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+      "dirty": false,
+      "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embedding-retrain-20261031",
+      "asset_root": "/home/abhishekrao/repos/wandering-light",
+      "asset_git": {
+        "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+        "dirty": false
+      },
+      "config": {
+        "dim": 128,
+        "hidden_dim": 128,
+        "byte_dim": 48,
+        "num_layers": 1,
+        "max_program_bytes": 16384,
+        "max_example_bytes": 16384
+      },
+      "training": {
+        "repo_root": "/home/abhishekrao/repos/wandering-light",
+        "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/aligned-s0",
+        "exclude_program_sha256": [
+          "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+        ],
+        "steps": 500,
+        "batch_size": 64,
+        "eval_every": 250,
+        "device": "cuda",
+        "rewrite_fraction": 0.5,
+        "threads": 4,
+        "global_bank": true,
+        "untrained_eval": false,
+        "freeze_program_space": true,
+        "seed": 0,
+        "dim": 128,
+        "hidden_dim": 128,
+        "byte_dim": 48,
+        "max_eval_records": 128,
+        "max_train_records": 0,
+        "max_program_bytes": 16384,
+        "max_example_bytes": 16384,
+        "lr": 0.001,
+        "weight_decay": 0.01,
+        "temperature": 0.07,
+        "io_weight": 1.0,
+        "invariance_weight": 0.0,
+        "io_io_weight": 0.0,
+        "io_examples": 5,
+        "execution_examples": 16,
+        "execution_label_timeout": 1.0,
+        "execution_label_cache_size": 65536,
+        "execution_label_workers": 4,
+        "offline": false,
+        "skip_execution": false,
+        "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/program-s0/best.pt",
+        "eval_only": false,
+        "eval_split": "validation"
+      },
+      "extra_task_paths": [
+        "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+        "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+      ],
+      "data": {
+        "schema_version": 1,
+        "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+        "dirty": false,
+        "wandb_run.url": null,
+        "seed": 20261024,
+        "config": {
+          "split_policy": "template-and-all-witness-skeleton-components-v1",
+          "validation_share": 0.1,
+          "test_share": 0.1
+        },
+        "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+        "counts": {
+          "validation": 1224,
+          "test": 1290,
+          "train": 9707
+        },
+        "partitions": {
+          "cross_style_holdout": 2465,
+          "fit": 9707,
+          "official_eval": 45,
+          "official_eval_overlap": 4
+        },
+        "components": {
+          "count": 11469,
+          "largest": 23
+        },
+        "components_by_split": {
+          "train": 9116,
+          "validation": 1144,
+          "test": 1209
+        },
+        "cross_style_by_split": {
+          "validation": 47,
+          "test": 70,
+          "train": 367
+        },
+        "source_data_digests": {
+          "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+          "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+          "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+          "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+          "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+          "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+          "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+        },
+        "caveats": [
+          "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+          "Fewer than four distinct visible examples after hidden-input exclusion.",
+          "Held out because template or witness skeleton connects to official v4 eval.",
+          "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+          "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+        ],
+        "excluded_program_sha256": [
+          "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+        ],
+        "excluded_program_variants": 1
+      },
+      "seed": 0,
+      "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/ikcpxo2w",
+      "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+      "initial_checkpoint_metadata": {
+        "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+        "dirty": false,
+        "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embedding-retrain-20261031",
+        "asset_root": "/home/abhishekrao/repos/wandering-light",
+        "asset_git": {
+          "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+          "dirty": false
+        },
+        "config": {
+          "dim": 128,
+          "hidden_dim": 128,
+          "byte_dim": 48,
+          "num_layers": 1,
+          "max_program_bytes": 16384,
+          "max_example_bytes": 16384
+        },
+        "training": {
+          "repo_root": "/home/abhishekrao/repos/wandering-light",
+          "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/program-s0",
+          "exclude_program_sha256": [
+            "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+          ],
+          "steps": 500,
+          "batch_size": 64,
+          "eval_every": 250,
+          "device": "cuda",
+          "rewrite_fraction": 1.0,
+          "threads": 4,
+          "global_bank": true,
+          "untrained_eval": false,
+          "freeze_program_space": false,
+          "seed": 0,
+          "dim": 128,
+          "hidden_dim": 128,
+          "byte_dim": 48,
+          "max_eval_records": 128,
+          "max_train_records": 0,
+          "max_program_bytes": 16384,
+          "max_example_bytes": 16384,
+          "lr": 0.0002,
+          "weight_decay": 0.01,
+          "temperature": 0.07,
+          "io_weight": 0.0,
+          "invariance_weight": 1.0,
+          "io_io_weight": 0.0,
+          "io_examples": 5,
+          "execution_examples": 16,
+          "execution_label_timeout": 1.0,
+          "execution_label_cache_size": 65536,
+          "execution_label_workers": 4,
+          "offline": false,
+          "skip_execution": true,
+          "checkpoint": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/joint-s0/best.pt",
+          "eval_only": false,
+          "eval_split": "validation"
+        },
+        "extra_task_paths": [
+          "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+          "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+        ],
+        "data": {
+          "schema_version": 1,
+          "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+          "dirty": false,
+          "wandb_run.url": null,
+          "seed": 20261024,
+          "config": {
+            "split_policy": "template-and-all-witness-skeleton-components-v1",
+            "validation_share": 0.1,
+            "test_share": 0.1
+          },
+          "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+          "counts": {
+            "validation": 1224,
+            "test": 1290,
+            "train": 9707
+          },
+          "partitions": {
+            "cross_style_holdout": 2465,
+            "fit": 9707,
+            "official_eval": 45,
+            "official_eval_overlap": 4
+          },
+          "components": {
+            "count": 11469,
+            "largest": 23
+          },
+          "components_by_split": {
+            "train": 9116,
+            "validation": 1144,
+            "test": 1209
+          },
+          "cross_style_by_split": {
+            "validation": 47,
+            "test": 70,
+            "train": 367
+          },
+          "source_data_digests": {
+            "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+            "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+            "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+            "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+            "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+          },
+          "caveats": [
+            "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+            "Fewer than four distinct visible examples after hidden-input exclusion.",
+            "Held out because template or witness skeleton connects to official v4 eval.",
+            "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+            "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+          ],
+          "excluded_program_sha256": [
+            "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+          ],
+          "excluded_program_variants": 1
+        },
+        "seed": 0,
+        "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/2r2w80s0",
+        "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+        "initial_checkpoint_metadata": {
+          "commit": "b287bc896fae0a84054aabe088f4fbd81bf2ed26",
+          "dirty": false,
+          "source_root": "/home/abhishekrao/repos/worktrees/wandering-light/semantic-embedding-retrain-20261031",
+          "asset_root": "/home/abhishekrao/repos/wandering-light",
+          "asset_git": {
+            "commit": "839159cb392dbacb82d05debb6a59282a487d190",
+            "dirty": false
+          },
+          "config": {
+            "dim": 128,
+            "hidden_dim": 128,
+            "byte_dim": 48,
+            "num_layers": 1,
+            "max_program_bytes": 16384,
+            "max_example_bytes": 16384
+          },
+          "training": {
+            "repo_root": "/home/abhishekrao/repos/wandering-light",
+            "out": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/joint-s0",
+            "exclude_program_sha256": [
+              "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+            ],
+            "steps": 1500,
+            "batch_size": 64,
+            "eval_every": 300,
+            "device": "cuda",
+            "rewrite_fraction": 0.5,
+            "threads": 4,
+            "global_bank": true,
+            "untrained_eval": false,
+            "freeze_program_space": false,
+            "seed": 0,
+            "dim": 128,
+            "hidden_dim": 128,
+            "byte_dim": 48,
+            "max_eval_records": 128,
+            "max_train_records": 0,
+            "max_program_bytes": 16384,
+            "max_example_bytes": 16384,
+            "lr": 0.001,
+            "weight_decay": 0.01,
+            "temperature": 0.07,
+            "io_weight": 1.0,
+            "invariance_weight": 1.0,
+            "io_io_weight": 0.0,
+            "io_examples": 5,
+            "execution_examples": 16,
+            "execution_label_timeout": 1.0,
+            "execution_label_cache_size": 65536,
+            "execution_label_workers": 4,
+            "offline": false,
+            "skip_execution": false,
+            "checkpoint": null,
+            "eval_only": false,
+            "eval_split": "validation"
+          },
+          "extra_task_paths": [
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl",
+            "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl"
+          ],
+          "data": {
+            "schema_version": 1,
+            "git_commit": "839159cb392dbacb82d05debb6a59282a487d190",
+            "dirty": false,
+            "wandb_run.url": null,
+            "seed": 20261024,
+            "config": {
+              "split_policy": "template-and-all-witness-skeleton-components-v1",
+              "validation_share": 0.1,
+              "test_share": 0.1
+            },
+            "records_digest": "sha256:7702c5f7461fff5529c7dd7d070bc35aa5994126668661f9611e7e3b6498ef71",
+            "counts": {
+              "validation": 1224,
+              "test": 1290,
+              "train": 9707
+            },
+            "partitions": {
+              "cross_style_holdout": 2465,
+              "fit": 9707,
+              "official_eval": 45,
+              "official_eval_overlap": 4
+            },
+            "components": {
+              "count": 11469,
+              "largest": 23
+            },
+            "components_by_split": {
+              "train": 9116,
+              "validation": 1144,
+              "test": 1209
+            },
+            "cross_style_by_split": {
+              "validation": 47,
+              "test": 70,
+              "train": 367
+            },
+            "source_data_digests": {
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_train.jsonl.gz": "sha256:13450717aadfce2ec16e890f3e9509514cf4c82bdff3d1199006854fe80c683b",
+              "/home/abhishekrao/repos/wandering-light/experiments/staged_witnesses/v4.jsonl": "sha256:19b60e8410a34b95d06eb13b31ed97011cd8751c26f96aeb9961c1be1d6e3c3b",
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/manifest.json": "sha256:26fd110c3596a39e55b201944633f29bca8b6768a225f18a51bfffd80372518b",
+              "/home/abhishekrao/repos/wandering-light/wandering_light/evals/data/stack_pbe_v4/stack_pbe_v4_eval.jsonl.gz": "sha256:ecf48f1376f519d327912822d2af7534261f2d1f6667d55ce5c9fc202aece786",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/validated-v2.jsonl": "sha256:379b5a19780015643d018c0fa809e6a5561d9ac604d6f8a54f856b47d8d52aae",
+              "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/data/author-validation-v2.jsonl": "sha256:ce7d58560e32a6c620adf6958d55df7b396ecb8f900cc547c4e9a3712fb12c63",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/behaviours.jsonl": "sha256:bd0fa86bb7114daf619d276e0575e595e18e655eaa946465cba41f3efc74eea8",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/audit.jsonl": "sha256:81d8f3227e0f6aeaac8abcac3cd961c017102022ead0669c3bf3c8a2a8d664c6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/opus_check.out": "sha256:555ee0fad0240e650ff29967512e1156a55774f6f2e78471d6b04d6aa6753c31",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o16.jsonl": "sha256:414f1cc9f4a2934443140615bd2f0598ec13c9b616c71607da33579372ac5e11",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o11.jsonl": "sha256:5af0844cd30981f445a3706a4b4c328bd9ada04bf53a3a5f40f3168cd42501c5",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/verdicts.jsonl": "sha256:3dabf432b5a4ec853bc3e6df72f55340241d1be959a67230cab620bc853b28e4",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w08.jsonl": "sha256:917787ee8479d9cea37b1525bd5f8ac600f9e4f659c889c89d98078f07e34cfd",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o05.jsonl": "sha256:9a793f95ee45a8ba7b49689ccac901827ab72067061ab4aa30a3a43f3077f3e6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w06.jsonl": "sha256:31d1590e8d961cf3e92440e127f52c79d24f5aef65557845b855ac2b4fd31819",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w05.jsonl": "sha256:cff052218e736b14e9ea128d7b25731703e008fe53b37f08af81a5bb4618daab",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o12.jsonl": "sha256:387ba27ff1fc59c441902687d6e8cb32316b6eee0290f670058f086929f21c8e",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w01.jsonl": "sha256:02080debb0cbba8a726614f5be8e4b534a84840de8cc4743ff84bb65249fdd80",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o07.jsonl": "sha256:50a69e21eb14e6953baa8fa29b9555a526d266bc8ddb154bfc0bb84c2bed8792",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w11.jsonl": "sha256:92a98037c527b9db6ca0a72cefce4d827c4a40fb54f8d1080a3c8185bb3f4e70",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o06.jsonl": "sha256:54117b4021487ee02d544c74aa72a0e463da558689ee098741001070a95b648f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w09.jsonl": "sha256:c3b27accd27aa58d56e189ba7b830c831983d406b8bc8ac199ef40a35f0eeb4d",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w13.jsonl": "sha256:e0b196ff511774f157b20c7fc392321035087557b566704e574a002947dceadb",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o14.jsonl": "sha256:1af22351974c7db2e36d737fe5bce2b642cb54e55867fc7816a272e4935ea324",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w10.jsonl": "sha256:e2dfe9c91ee92da7f83af4d8b398ef8ac5c275d7b786cfeee85ba131e8e3277f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w07.jsonl": "sha256:110b06f42d0a02057e5c9223606d3950e3af5791f9c764b5edb05d7324a243ea",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o04.jsonl": "sha256:621bbafa026bfa0cb8b1465894635c945e937bbfdd8f4f1327321c4831d9a328",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w04.jsonl": "sha256:4596f7393632e9587416e93e99ba51832114e74e4e56e0a8350fe654f1dcbb82",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w03.jsonl": "sha256:fd953deaeaa4118bdff84dd9f78355829701f925993d3a2f165ee34026af654f",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o09.jsonl": "sha256:d56b1efe4f9ff16250ab915e774c12b1863cea21095adebf2ae894f53658e8d6",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w12.jsonl": "sha256:ca5e5754e95df947860bc66ee3e7b498b660f3f7d953fc502af3b9d8da14b48b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o01.jsonl": "sha256:608e2db1dd130eb08d71f819ac3d946e1275b08aacfcb79feb810058689b478e",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w02.jsonl": "sha256:d1338c5bc91aa1e98ae40226a8dc735d508f1cd9c135a62d4592ccec5ed1902a",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o10.jsonl": "sha256:e5a5e3d524c0137f7fafe29c3b8944a0f518a2dc4f7d9601cc52a1e7f1066264",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o15.jsonl": "sha256:6bce403523f11eafc1711866381f4aab938a2da801195ec4bb7d5001e0c08497",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o08.jsonl": "sha256:598d685e08de1da6ade5f2c806e00962ff5084383b38de8d333ea7c779fdad1b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o13.jsonl": "sha256:d8259e5b3ddeffd0a85b5ab8a23efd37ffa7f68a771c618ca1c7e03779a250f7",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w14.jsonl": "sha256:9f33cbcb46a4cbb7221cd34460fe639902eb7483a4060110bfa51b72befb9f09",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w15.jsonl": "sha256:8b20fb787d41a26a70ab0d2201c2ef3927462de510bf57e5f048478f4c603f24",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o03.jsonl": "sha256:b6d9a998b1f1e12b3b5ea3bfeab9cd667e42525b429ddcab299fc1bff2e7c18b",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_o02.jsonl": "sha256:330c2eedfe092fc3f9c6890e186ebf6cdf6313bf5b40b0a86871a814fcc1717a",
+              "/home/abhishekrao/repos/wandering-light/reports/distinct-programs-20260926/programs_w16.jsonl": "sha256:31d460a9636a90455f5cb1d321c90471f5cf198beb70c36ff20ccb09aa01b59d"
+            },
+            "caveats": [
+              "1 explicitly audited program variant(s) excluded after grouping/split assignment",
+              "Fewer than four distinct visible examples after hidden-input exclusion.",
+              "Held out because template or witness skeleton connects to official v4 eval.",
+              "Independent verification report is keyed by behavior id, without a program digest; programs were not re-executed.",
+              "Preliminary peer-scale snapshot; verified on its own examples, not a novelty certificate."
+            ],
+            "excluded_program_sha256": [
+              "0f80c1f45e2d148534defa33e2b6efce5fddaa9dc2bf6837ce97e62fad537a43"
+            ],
+            "excluded_program_variants": 1
+          },
+          "seed": 0,
+          "wandb_url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/vlpjwcvu",
+          "data_digest": "0e1f4d0589223deaa4218373c751866ef6b80e39d11640299419a28405ae90c6",
+          "train_records_used": 9702,
+          "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+          "io_supervision": {
+            "kind": "execution-on-shown-io-v1",
+            "positive": "candidate passes every shown example in the current query",
+            "negative": "candidate fails at least one shown example",
+            "unknown": "excluded from targets and softmax denominators",
+            "candidate_scope": "in-batch",
+            "seconds_per_program_example": 1.0,
+            "cache_size": 65536,
+            "selection": "shown execution MRR@10 lower bound; no hidden outputs"
+          },
+          "checkpoint_selection": "execution_io_mrr@10_lower",
+          "io_io_supervision": "disabled",
+          "program_supervision": {
+            "kind": "execution-mutual-shown-io-v1",
+            "positive": "both programs pass both sampled shown I/O sets",
+            "negative": "a completed cross-failure, with both own matches known true",
+            "unknown": "unreliable own matches or unresolved cross-matches excluded",
+            "candidate_scope": "in-batch"
+          },
+          "execution_labeling": {
+            "workers": 4,
+            "start_method": "spawn",
+            "cache_size_per_worker": 65536
+          },
+          "rewrite_training_records": 363,
+          "step": 1500,
+          "validation_mrr": 0.060887896825396824
+        },
+        "initial_checkpoint_digest": "144fd09edb664f1411c32f93dc1a302d28275ddd7f22703fbb3fc7964e5566d4",
+        "train_records_used": 9702,
+        "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+        "io_supervision": {
+          "kind": "disabled"
+        },
+        "checkpoint_selection": "cross_style_mrr",
+        "io_io_supervision": "disabled",
+        "program_supervision": {
+          "kind": "execution-mutual-shown-io-v1",
+          "positive": "both programs pass both sampled shown I/O sets",
+          "negative": "a completed cross-failure, with both own matches known true",
+          "unknown": "unreliable own matches or unresolved cross-matches excluded",
+          "candidate_scope": "in-batch"
+        },
+        "execution_labeling": {
+          "workers": 4,
+          "start_method": "spawn",
+          "cache_size_per_worker": 65536
+        },
+        "rewrite_training_records": 363,
+        "step": 250,
+        "validation_mrr": 0.47924483747796226
+      },
+      "initial_checkpoint_digest": "33a468854e40391f3b93c2434ad141961b60fc8f4f7bfccdb51db0f1d98c2fdd",
+      "train_records_used": 9702,
+      "train_keys_digest": "8e925e63444857c90b199fabef093feb153262e05d4dd81e009aa28aad58f537",
+      "io_supervision": {
+        "kind": "execution-on-shown-io-v1",
+        "positive": "candidate passes every shown example in the current query",
+        "negative": "candidate fails at least one shown example",
+        "unknown": "excluded from targets and softmax denominators",
+        "candidate_scope": "in-batch",
+        "seconds_per_program_example": 1.0,
+        "cache_size": 65536,
+        "selection": "shown execution MRR@10 lower bound; no hidden outputs"
+      },
+      "checkpoint_selection": "execution_io_mrr@10_lower",
+      "io_io_supervision": "disabled",
+      "program_supervision": {
+        "kind": "disabled"
+      },
+      "execution_labeling": {
+        "workers": 4,
+        "start_method": "spawn",
+        "cache_size_per_worker": 65536
+      },
+      "rewrite_training_records": 363,
+      "step": 500,
+      "validation_mrr": 0.07906746031746031
+    },
+    "checkpoint_path": "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/aligned-s0/best.pt",
+    "checkpoint_digest": "sha256:735e02d74fc8eb522fd1302cc9dfec848a7b896e93416d5c8e900fc22ad46785",
+    "source_data_digests": {
+      "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0/test-trained.json": "sha256:08b22881c4da330e6a74398cb21897d4c3827e6d8a93b7852abd602e986f4414",
+      "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261024/aligned-s0/test-untrained.json": "sha256:74fe1e3dbb0c3a656bb1228af662f5a6efd4d994f3579083c0c5ed6f6eb27b67",
+      "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/historical-execution.json": "sha256:c4b8b7de1172ae341dd35e0e975cc83d7e24ebcd17f1769db27042a7ad75dfa8",
+      "/home/abhishekrao/repos/wandering-light/checkpoints/semantic-embeddings-20261031-corrected/test-trained/evaluation.json": "sha256:e1ff0063dd30cdd21596757ad4a56a447aac6483bb95598ab06e77db5f0e4b44"
+    },
+    "script_digest": "sha256:4eee95f91db641bbd43ad8eb35834f5f7f34e67b2dbf364c0a87ff3b97876b49",
+    "wandb_run.url": "https://wandb.ai/abhishekraok-na/wandering-light-program-embeddings/runs/ikcpxo2w",
+    "index_config": {
+      "batch_size": 32,
+      "device": "cuda",
+      "threads": 4
+    }
+  }
+}
